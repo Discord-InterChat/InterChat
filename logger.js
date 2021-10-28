@@ -16,7 +16,3 @@ const logger = createLogger({
 	),
 	transports: [new transports.Console()],
 });
-
-
-logger.info('Hello there!');
-logger.error('Testing errors too!');
