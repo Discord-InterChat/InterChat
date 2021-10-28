@@ -1,0 +1,19 @@
+{
+  "name": "discord-chatbot",
+  "version": "1.0.0",
+  "description": "A growing discord bot which provides inter-server chat! ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Supreme1707, Makiyu, heyimdev",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^13.2.0",
+    "sequelize": "^6.8.0",
+    "sqlite3": "^4.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.1.0"
+  }
+}
