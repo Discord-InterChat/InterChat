@@ -4,6 +4,7 @@ const custom = format.printf((info) => {
 	return `${info.level}: ${info.message} | ${info.timestamp}`;
 });
 
+// eslint-disable-next-line no-unused-vars
 const logger = createLogger({
 	format: format.combine(
 		format.timestamp({ format: '[on] DD MMMM, YYYY [at] hh:mm:ss.SSS' }),
@@ -16,7 +17,3 @@ const logger = createLogger({
 	),
 	transports: [new transports.Console()],
 });
-
-
-logger.info('Hello there!');
-logger.error('Testing errors too!');
