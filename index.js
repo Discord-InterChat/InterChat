@@ -1,7 +1,6 @@
 const discord = require('discord.js');
 const dotenv = require('dotenv');
 const fs = require('fs');
-const logger = require('./logger');
 
 dotenv.config();
 
@@ -42,23 +41,6 @@ for (const eventFile of eventFiles) {
 		client.on(event.name, (...args) => event.execute(...args, client));
 	}
 }
-
-
-client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand()) return;
-
-	const command = client.commands.get(interaction.commandName);
-
-	if (!command) return;
-
-	try {
-		await command.execute(interaction);
-	}
-	catch (error) {
-		logger.error(error);
-		await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-	}
-});
 
 
 client.login(process.env.TOKEN);

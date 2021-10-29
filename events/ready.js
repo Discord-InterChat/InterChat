@@ -8,7 +8,7 @@ module.exports = {
 	name: 'ready',
 	once: true,
 	async execute(client) {
-		logger.log('info', `Logged in as ${client.user.tag}`);
+		logger.info(`Logged in as ${client.user.tag}`);
 		dotenv.config();
 
 		const commands = [];
