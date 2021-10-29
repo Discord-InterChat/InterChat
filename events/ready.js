@@ -1,4 +1,4 @@
-const { logger } = require('../logger');
+const logger = require('../logger');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const { REST } = require('@discordjs/rest');

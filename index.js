@@ -1,6 +1,7 @@
 const discord = require('discord.js');
 const dotenv = require('dotenv');
 const fs = require('fs');
+const { MongoClient } = require('mongodb');
 
 dotenv.config();
 
@@ -41,6 +42,11 @@ for (const eventFile of eventFiles) {
 		client.on(event.name, (...args) => event.execute(...args, client));
 	}
 }
+
+// Create MongoDB Client and export it
+const uri = process.env.MONGODB_URI;
+const dbClient = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+module.exports.dbClient = dbClient;
 
 
 client.login(process.env.TOKEN);
