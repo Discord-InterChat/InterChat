@@ -15,5 +15,11 @@ const logger = createLogger({
 		format.colorize(),
 		custom,
 	),
-	transports: [new transports.Console()],
+	transports: [
+		new transports.Console(),
+		new transports.File({ filename: 'error.log', level: 'error' }),
+		new transports.File({ filename: 'discord.log' }),
+	],
 });
+
+module.exports.logger = logger;
