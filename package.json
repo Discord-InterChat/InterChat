@@ -4,8 +4,7 @@
     "description": "A growing discord bot which provides inter-server chat! ",
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1",
-        "format": "prettier-eslint \"src/**/*.js\""
+        "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Supreme1707, Makiyu, heyimdev",
     "license": "ISC",
@@ -18,12 +17,9 @@
         "discord.js": "^13.2.0",
         "dotenv": "^10.0.0",
         "mongodb": "^4.1.3",
-        "pino": "^7.0.0-rc.9",
         "winston": "^3.3.3"
     },
     "devDependencies": {
-        "eslint": "^8.1.0",
-        "prettier-eslint": "^8.2.2",
-        "prettier-eslint-cli": "^4.4.3"
+        "eslint": "^8.1.0"
     }
 }
