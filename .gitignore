@@ -1,3 +1,2 @@
 node_modules/
-discord.log
-error.log
+logs/
