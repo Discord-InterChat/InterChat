@@ -33,7 +33,21 @@ module.exports = {
 		const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
 		rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: commands })
-			.then(() => logger.info('Registered all application command successfully.'))
+			.then(async () => {
+				logger.info('Registered all application command successfully.');
+				const cbHQ = await client.guilds.cache.get('770256165300338709');
+				const badgeCommand = await cbHQ.commands.fetch('904979045995905046');
+
+				const staffCommandPermissions = [
+					{
+						id: '800698916995203104',
+						type: 'ROLE',
+						permission: true,
+					},
+				];
+
+				await badgeCommand.permissions.set({ permissions: staffCommandPermissions });
+			})
 			.catch(console.error);
 
 	},

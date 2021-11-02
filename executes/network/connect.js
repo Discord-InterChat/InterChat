@@ -1,5 +1,5 @@
 const { stripIndents } = require('common-tags');
-const logger = require('../logger');
+const logger = require('../../logger');
 
 module.exports = {
 	async execute(interaction, connectedList) {

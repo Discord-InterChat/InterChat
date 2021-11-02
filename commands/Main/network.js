@@ -3,7 +3,7 @@ const mongoUtil = require('../../mongoUtil');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('chat')
+		.setName('network')
 		.setDescription('Manage the chat network for this server.')
 		.addSubcommand(new SlashCommandSubcommandBuilder()
 			.setName('connect')
@@ -16,9 +16,9 @@ module.exports = {
 	async execute(interaction) {
 		const subcommand = interaction.options.getSubcommand();
 		const database = mongoUtil.getDb();
-		const connectedList = database.collection('connected_list');
+		const connectedList = database.collection('connectedList');
 
-		const subcommandFile = require(`../../commandExecutes/${subcommand}`);
+		const subcommandFile = require(`../../executes/network/${subcommand}`);
 		subcommandFile.execute(interaction, connectedList);
 	},
 };
