@@ -36,7 +36,7 @@ module.exports = {
 			.then(async () => {
 				logger.info('Registered all application command successfully.');
 				const cbHQ = await client.guilds.cache.get('770256165300338709');
-				const badgeCommand = await cbHQ.commands.fetch('904979045995905046');
+				const badgeCommand = await cbHQ.commands.fetch('905456838215073813');
 
 				const staffCommandPermissions = [
 					{
