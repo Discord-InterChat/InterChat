@@ -1,9 +1,16 @@
 const discord = require('discord.js');
 const dotenv = require('dotenv');
 const fs = require('fs');
-
+const mongoUtil = require('./mongoUtil.js');
+const logger = require('./logger');
 
 dotenv.config();
+
+// eslint-disable-next-line no-unused-vars
+mongoUtil.connect((err, mongoClient) => {
+	if (err) console.log(err);
+	logger.log('info', 'Connected to MongoDB');
+});
 
 const client = new discord.Client({
 	intents: [
@@ -17,6 +24,8 @@ const client = new discord.Client({
 
 client.description = 'A growing discord bot which provides inter-server chat!';
 client.commands = new discord.Collection();
+
+module.exports.client = client;
 
 
 fs.readdirSync('./commands').forEach((dir) => {
