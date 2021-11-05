@@ -3,7 +3,6 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
-const mongoUtil = require('../mongoUtil.js');
 
 module.exports = {
 	name: 'ready',
@@ -12,10 +11,6 @@ module.exports = {
 		logger.info(`Logged in as ${client.user.tag}`);
 		dotenv.config();
 
-		// eslint-disable-next-line no-unused-vars
-		mongoUtil.connect((err, mongoClient) => {
-			if (err) console.log(err);
-		});
 		const commands = [];
 
 		fs.readdirSync('./commands').forEach((dir) => {
