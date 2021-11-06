@@ -32,7 +32,7 @@ module.exports = {
 		}
 
 		await interaction.reply(`I have left the server ${server.name} due to reason "${reason}".`);
-		sendInFirst(server, `I am leaving this server due to reason ${reason}. Please contact the staff from the support server if you think that the reason is not valid.`);
+		await sendInFirst(server, `I am leaving this server due to reason ${reason}. Please contact the staff from the support server if you think that the reason is not valid.`);
 		logger.info(`Left server ${server.name} due to reason ${reason}`);
 		await server.leave();
 	},

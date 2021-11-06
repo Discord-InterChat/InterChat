@@ -17,7 +17,7 @@ module.exports = {
 		const database = mongoUtil.getDb();
 		const connectedList = database.collection('connectedList');
 
-		const channelInNetwork = await connectedList.findOne({ channel_id: message.channel.id });
+		const channelInNetwork = await connectedList.findOne({ channelId: message.channel.id });
 
 		if (channelInNetwork) {
 			if (message.content.includes('@everyone') || message.content.includes('@here')) {
@@ -49,7 +49,7 @@ module.exports = {
 			}
 
 			allConnectedChannels.forEach(async channelObj => {
-				const channel = await client.channels.fetch(channelObj.channel_id);
+				const channel = await client.channels.fetch(channelObj.channelId);
 				await channel.send({ embeds: [embed] });
 			});
 		}
