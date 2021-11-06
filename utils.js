@@ -1,3 +1,5 @@
+const logger = require('./logger');
+
 module.exports = {
 	colors: () => {
 		const colorArr = [
@@ -51,5 +53,21 @@ module.exports = {
 			upper = false;
 		}
 		return String(newStr);
+	},
+	sendInFirst: async (guild, message) => {
+		const channels = await guild.channels.fetch();
+		for (const channel of channels) {
+			if (channel[1].type == 'GUILD_TEXT') {
+				if (channel[1].permissionsFor(guild.me).has('SEND_MESSAGES')) {
+					try {
+						await channel[1].send(message);
+						break;
+					}
+					catch (err) {
+						logger.error(err);
+					}
+				}
+			}
+		}
 	},
 };

@@ -45,7 +45,7 @@ module.exports = {
 				await message.delete();
 			}
 			catch (err) {
-				logger.log('error', err);
+				logger.error(err);
 			}
 
 			allConnectedChannels.forEach(async channelObj => {

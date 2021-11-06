@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const logger = require('../../logger');
+const { sendInFirst } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -21,6 +22,7 @@ module.exports = {
 		const serverOpt = interaction.options.getString('server');
 		const reason = interaction.options.getString('reason');
 		let server;
+
 		try {
 			server = await interaction.client.guilds.fetch(serverOpt);
 		}
@@ -29,14 +31,9 @@ module.exports = {
 			return;
 		}
 
-		try {
-			await server.systemChannel.send(`I am leaving this server due to reason "${reason}".`);
-		}
-		catch (err) {
-			logger.error(err);
-		}
-
 		await interaction.reply(`I have left the server ${server.name} due to reason "${reason}".`);
+		sendInFirst(server, `I am leaving this server due to reason ${reason}. Please contact the staff from the support server if you think that the reason is not valid.`);
+		logger.info(`Left server ${server.name} due to reason ${reason}`);
 		await server.leave();
 	},
 
