@@ -9,7 +9,7 @@ let _db;
 module.exports = {
 	connect: callback => {
 		MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
-			_db = client.db('discordChatbot');
+			_db = client.db('Discord-ChatBot');
 			return callback(err);
 		});
 	},
