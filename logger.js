@@ -12,11 +12,20 @@ const logger = createLogger({
 			info.level = info.level.toUpperCase();
 			return info;
 		})(),
-		format.colorize(),
 		custom,
 	),
 	transports: [
-		new transports.Console(),
+		new transports.Console({
+			format: format.combine(
+				format.timestamp({ format: '[on] DD MMMM, YYYY [at] hh:mm:ss.SSS' }),
+				format(info => {
+					info.level = info.level.toUpperCase();
+					return info;
+				})(),
+				format.colorize(),
+				custom,
+			),
+		}),
 		new transports.File({ filename: 'logs/error.log', level: 'error' }),
 		new transports.File({ filename: 'logs/discord.log' }),
 	],
