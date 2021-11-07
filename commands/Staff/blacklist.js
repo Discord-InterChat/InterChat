@@ -14,10 +14,10 @@ module.exports = {
 						subcommand
 							.setName('user')
 							.setDescription('Blacklist a user from using the bot.')
-							.addUserOption(user =>
+							.addStringOption(user =>
 								user
 									.setName('user')
-									.setDescription('The user to blacklist.')
+									.setDescription('The user ID to blacklist.')
 									.setRequired(true),
 							)
 							.addStringOption(string =>
@@ -34,7 +34,7 @@ module.exports = {
 						.addStringOption(server =>
 							server
 								.setName('server')
-								.setDescription('The server to blacklist.')
+								.setDescription('The server ID to blacklist.')
 								.setRequired(true),
 						)
 						.addStringOption(string =>
@@ -54,11 +54,16 @@ module.exports = {
 						subcommand
 							.setName('user')
 							.setDescription('Remove a user from the blacklist.')
-							.addUserOption(user =>
+							.addStringOption(user =>
 								user
 									.setName('user')
 									.setDescription('The user to remove from the blacklist.')
 									.setRequired(true),
+							)
+							.addStringOption(string =>
+								string
+									.setName('reason')
+									.setDescription('The reason for blacklisting the server.'),
 							),
 				)
 				.addSubcommand(subcommand =>
@@ -70,6 +75,11 @@ module.exports = {
 								.setName('server')
 								.setDescription('The server to remove from the blacklist.')
 								.setRequired(true),
+						)
+						.addStringOption(string =>
+							string
+								.setName('reason')
+								.setDescription('The reason for blacklisting the server.'),
 						),
 				),
 		)

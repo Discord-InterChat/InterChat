@@ -20,6 +20,7 @@
         "winston": "^3.3.3"
     },
     "devDependencies": {
+        "@types/common-tags": "^1.8.1",
         "eslint": "^8.1.0"
     }
 }

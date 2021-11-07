@@ -30,18 +30,6 @@ module.exports = {
 		rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, '770256165300338709'), { body: commands })
 			.then(async () => {
 				logger.info('Registered all application commands successfully in CBHQ.');
-				const cbHQ = await client.guilds.cache.get('770256165300338709');
-				const badgeCommand = await cbHQ.commands.fetch('905456838215073813');
-
-				const staffCommandPermissions = [
-					{
-						id: '800698916995203104',
-						type: 'ROLE',
-						permission: true,
-					},
-				];
-
-				await badgeCommand.permissions.set({ permissions: staffCommandPermissions });
 			})
 			.catch(console.error);
 

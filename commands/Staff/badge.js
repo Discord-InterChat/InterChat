@@ -5,7 +5,6 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('badge')
 		.setDescription('Manage the badges for a user. ChatBot Staff Only.')
-		.setDefaultPermission(false)
 		.addSubcommand(subcommand =>
 			subcommand
 				.setName('add')

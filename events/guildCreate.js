@@ -11,7 +11,7 @@ module.exports = {
 
 		const serverInBlacklist = await blacklistedServers.findOne({ serverId: guild.id });
 		if (serverInBlacklist) {
-			await sendInFirst(guild, `This server is blacklisted in this bot for reason \`${serverInBlacklist.reason}\`. Please join the support server and contact the staff to get whitelisted and/or if you think the reason is not valid.`);
+			await sendInFirst(guild, `This server is blacklisted in this bot for reason \`${serverInBlacklist.reason}\`. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
 			await guild.leave();
 			return;
 		}
