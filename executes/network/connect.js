@@ -4,7 +4,7 @@ const logger = require('../../logger');
 module.exports = {
 	async execute(interaction, connectedList) {
 		const findChannel = await connectedList.findOne({ channelId: interaction.channel.id });
-		const findServer = await connectedList.findOne({ serverId: interaction.channel.guild.id });
+		const findServer = await connectedList.findOne({ serverId: interaction.guild.id });
 
 		if (findChannel) {
 			await interaction.reply('This channel is already connected to the chat network.');
