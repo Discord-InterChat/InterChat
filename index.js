@@ -17,6 +17,7 @@ const client = new discord.Client({
 		discord.Intents.FLAGS.GUILDS,
 		discord.Intents.FLAGS.GUILD_MESSAGES,
 		discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+		discord.Intents.FLAGS.GUILD_MEMBERS,
 		discord.Intents.FLAGS.DIRECT_MESSAGES,
 		discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
 	],
@@ -24,6 +25,7 @@ const client = new discord.Client({
 
 client.description = 'A growing discord bot which provides inter-server chat!';
 client.commands = new discord.Collection();
+client.version = '2.0.0b';
 
 module.exports.client = client;
 

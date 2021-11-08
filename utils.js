@@ -70,4 +70,13 @@ module.exports = {
 			}
 		}
 	},
+	developers: [828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n],
+	staff: [442653948630007808n, 446709111715921920n],
+	getCredits: async () => {
+		let creditArray = [];
+
+		creditArray = creditArray.concat(module.exports.developers, module.exports.staff);
+
+		return creditArray;
+	},
 };
