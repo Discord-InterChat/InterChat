@@ -67,7 +67,7 @@ module.exports = {
 				{
 					name: 'Bot Version',
 					value: `v${interaction.client.version}`,
-					inlien: true,
+					inline: true,
 				},
 				{
 					name: 'Discord.JS',
@@ -87,11 +87,6 @@ module.exports = {
 				{
 					name: 'Connected Members',
 					value: String(connectedMembers),
-					inline: true,
-				},
-				{
-					name: 'Placeholder',
-					value: 'Placeholder',
 					inline: true,
 				},
 			])
