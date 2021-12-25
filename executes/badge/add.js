@@ -1,6 +1,6 @@
 module.exports = {
 	async execute(interaction, dbCollection, user, badge) {
-		const userInCollection = await dbCollection.findOne({ user_id: user.id });
+		const userInCollection = await dbCollection.findOne({ userId: user.id });
 
 		if (userInCollection) {
 			const userBadges = userInCollection.badges;
@@ -10,13 +10,13 @@ module.exports = {
 				return;
 			}
 			else {
-				await dbCollection.updateOne({ user_id: user.id }, { $set: { badges: [...userBadges, badge] } });
+				await dbCollection.updateOne({ userId: user.id }, { $set: { badges: [...userBadges, badge] } });
 				await interaction.reply(`Badge \`${badge}\` added to ${user.tag}.`);
 				return;
 			}
 		}
 		else {
-			await dbCollection.insertOne({ user_id: user.id, badges: [badge] });
+			await dbCollection.insertOne({ userId: user.id, badges: [badge] });
 			await interaction.reply(`Badge \`${badge}\` added to ${user.tag}.`);
 			return;
 		}
