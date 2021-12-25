@@ -1,0 +1,21 @@
+name: Restart EpikHost Server
+
+on: [ push ]
+
+jobs:
+  update-server:
+    runs-on: ubuntu-latest 
+    env:
+      apiKey: ${{secrets.pterodactyl_panel_api_key}}
+      id: ${{secrets.server_id}}
+    steps:
+      - name: Restart server
+        run: |
+          curl "https://panel.epikhost.xyz/api/client/servers/${{env.id}}/power" \
+            -H 'Accept: application/json' \
+            -H 'Content-Type: application/json' \
+            -H 'Authorization: Bearer ${{env.apiKey}}' \
+            -X POST \
+            -d '{
+            "signal": "restart"
+            }' 
