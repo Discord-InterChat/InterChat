@@ -6,7 +6,7 @@ const { colors } = require('../../utils');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('rules')
-		.setDescription('Shows rules of the bot and chat network'),
+		.setDescription('Sends rules of the bot and chat network'),
 	async execute(interaction) {
 		const embed = new MessageEmbed()
 			.setTitle('ChatBot Rules')

@@ -4,7 +4,7 @@ const mongoUtil = require('../../utils');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('badge')
-		.setDescription('Manage the badges for a user. ChatBot Staff Only.')
+		.setDescription('Manage the badges for a user. Staff-only.')
 		.addSubcommand(subcommand =>
 			subcommand
 				.setName('add')

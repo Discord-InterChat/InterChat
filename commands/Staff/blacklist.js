@@ -4,7 +4,7 @@ const mongoUtil = require('../../utils');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('blacklist')
-		.setDescription('Blacklist a user or server from using the bot.')
+		.setDescription('Blacklist a user or server from using the bot. Staff-only')
 		.addSubcommandGroup(subcommandGroup =>
 			subcommandGroup
 				.setName('add')
@@ -13,7 +13,7 @@ module.exports = {
 					subcommand =>
 						subcommand
 							.setName('user')
-							.setDescription('Blacklist a user from using the bot.')
+							.setDescription('Blacklist a user from using the bot. Staff-only')
 							.addStringOption(user =>
 								user
 									.setName('user')
@@ -30,7 +30,7 @@ module.exports = {
 				.addSubcommand(subcommand =>
 					subcommand
 						.setName('server')
-						.setDescription('Blacklist a server from using the bot.')
+						.setDescription('Blacklist a server from using the bot. Staff-only')
 						.addStringOption(server =>
 							server
 								.setName('server')
