@@ -19,7 +19,7 @@ module.exports = {
 				6. Do not DM the developers for unnecessary reasons.
 				7. Do not make the chat uncomfortable for other users.
 				8. Use the suggest command for suggestions or the report command for reporting bugs only.
-				9. Use the connect/call command in only channels which are supposed to be receiving messages.
+				9. Use the connect command in only channels which are supposed to be receiving messages.
 				10. DO NOT SELF-PROMO. This will get you banned too!
 				11. Please support the bot by joining the ChatBot support server.
 			`)

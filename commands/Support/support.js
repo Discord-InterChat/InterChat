@@ -32,6 +32,11 @@ module.exports = {
 						.setRequired(true)
 						.setDescription('A description of the report.'),
 				),
+		)
+		.addSubcommand(subcommand =>
+			subcommand
+				.setName('server')
+				.setDescription('Get the invite to the support server.'),
 		),
 	async execute(interaction) {
 		const subcommand = interaction.options.getSubcommand();
