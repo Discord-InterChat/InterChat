@@ -1,6 +1,6 @@
 const { MessageEmbed } = require('discord.js');
 const { client } = require('../index');
-const mongoUtil = require('../mongoUtil');
+const mongoUtil = require('../utils');
 const { sendInFirst } = require('../utils');
 
 module.exports = {

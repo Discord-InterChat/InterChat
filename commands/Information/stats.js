@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const { colors } = require('../../utils');
-const mongoUtil = require('../../mongoUtil');
+const mongoUtil = require('../../utils');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('stats')

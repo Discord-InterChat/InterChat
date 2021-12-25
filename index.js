@@ -1,7 +1,7 @@
 const discord = require('discord.js');
 const dotenv = require('dotenv');
 const fs = require('fs');
-const mongoUtil = require('./mongoUtil.js');
+const mongoUtil = require('./utils.js');
 const logger = require('./logger');
 
 dotenv.config();

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const mongoUtil = require('../../mongoUtil');
+const mongoUtil = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
