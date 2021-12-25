@@ -1,6 +1,6 @@
 const { MessageEmbed } = require('discord.js');
 const logger = require('../logger');
-const mongoUtil = require('../mongoUtil');
+const mongoUtil = require('../utils');
 const { colors } = require('../utils');
 const { client } = require('../index');
 
@@ -17,9 +17,16 @@ module.exports = {
 		const database = mongoUtil.getDb();
 		const connectedList = database.collection('connectedList');
 
-		const channelInNetwork = await connectedList.findOne({ channel_id: message.channel.id });
+		const channelInNetwork = await connectedList.findOne({ channelId: message.channel.id });
 
 		if (channelInNetwork) {
+
+			const userInBlacklist = await database.collection('blacklistedUsers').findOne({ userId: message.author.id });
+			if (userInBlacklist) {
+				await message.reply(`You are blacklisted from using the ChatBot Chat Network for reason \`${userInBlacklist.reason}\`! Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+				return;
+			}
+
 			if (message.content.includes('@everyone') || message.content.includes('@here')) {
 				await message.channel.send('Haha good try, but you just pinged your own server 😆.');
 				return;
@@ -45,11 +52,11 @@ module.exports = {
 				await message.delete();
 			}
 			catch (err) {
-				logger.log('error', err);
+				logger.error(err);
 			}
 
 			allConnectedChannels.forEach(async channelObj => {
-				const channel = await client.channels.fetch(channelObj.channel_id);
+				const channel = await client.channels.fetch(channelObj.channelId);
 				await channel.send({ embeds: [embed] });
 			});
 		}

@@ -1,11 +1,10 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const mongoUtil = require('../../mongoUtil');
+const mongoUtil = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('badge')
-		.setDescription('Manage the badges for a user. ChatBot Staff Only.')
-		.setDefaultPermission(false)
+		.setDescription('Manage the badges for a user. Staff-only.')
 		.addSubcommand(subcommand =>
 			subcommand
 				.setName('add')
@@ -52,7 +51,8 @@ module.exports = {
 						.setDescription('The user to list badges for')
 						.setRequired(true),
 				),
-		),
+		)
+		.setDefaultPermission(false),
 	async execute(interaction) {
 		const subcommand = interaction.options.getSubcommand();
 		const user = interaction.options.getUser('user');

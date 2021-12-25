@@ -1,8 +1,8 @@
 module.exports = {
 	async execute(interaction, connectedList) {
-		const findChannel = await connectedList.findOne({ channel_id: interaction.channel.id });
+		const findChannel = await connectedList.findOne({ channelId: interaction.channel.id });
 		if (findChannel) {
-			await connectedList.deleteOne({ channel_id: interaction.channel.id });
+			await connectedList.deleteOne({ channelId: interaction.channel.id });
 			await interaction.reply('Disconnected from the network.');
 		}
 		else {
