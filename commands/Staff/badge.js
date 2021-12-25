@@ -51,7 +51,8 @@ module.exports = {
 						.setDescription('The user to list badges for')
 						.setRequired(true),
 				),
-		),
+		)
+		.setDefaultPermission(false),
 	async execute(interaction) {
 		const subcommand = interaction.options.getSubcommand();
 		const user = interaction.options.getUser('user');

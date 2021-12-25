@@ -94,7 +94,8 @@ module.exports = {
 						.setRequired(true)
 						.addChoices([['User', 'user'], ['Server', 'server']]),
 				),
-		),
+		)
+		.setDefaultPermission(false),
 	async execute(interaction) {
 		const subCommand = interaction.options.getSubcommand();
 		const database = mongoUtil.getDb();

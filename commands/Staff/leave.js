@@ -17,7 +17,8 @@ module.exports = {
 				.setName('reason')
 				.setDescription('The reason for leaving the server.')
 				.setRequired(true),
-		),
+		)
+		.setDefaultPermission(false),
 	async execute(interaction) {
 		const serverOpt = interaction.options.getString('server');
 		const reason = interaction.options.getString('reason');
