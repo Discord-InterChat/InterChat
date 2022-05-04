@@ -20,7 +20,7 @@ async function mongo() {
 		console.log(`ID: ${result[i]._id}\nserverID: ${result[i].serverId}\nReason: ${result[i].reason}`);
 		// console.log(result[i]._id);
 		// console.log(result[i].serverId);
-		// console.log(result[i].reason);
+		// console.log(result[i].reason)
 
 	}
 
