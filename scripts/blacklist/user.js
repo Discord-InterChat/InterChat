@@ -12,7 +12,7 @@ module.exports = {
 		try {
 			user = await interaction.client.users.fetch(userOpt);
 		}
-		catch {
+		catch (err) {
 			interaction.reply('Something went wrong! Are you sure that was a valid user ID?');
 			return logger.error(err);
 		}
