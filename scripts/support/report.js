@@ -26,7 +26,7 @@ module.exports = {
 					const embed = new MessageEmbed()
 						.setTitle('New Report')
 						.setDescription(`**Type: ${type}**\n\n` + report)
-						.setAuthor(`Reported By: ${interaction.member.user.tag}`, interaction.member.user.avatarURL({ dynamic: true }))
+						.setAuthor({ name: `Reported By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
 						.setFooter(`From Server: ${interaction.guild.name}`, interaction.guild.iconURL({ dynamic: true }))
 						.setTimestamp()
 						.setColor(colors());

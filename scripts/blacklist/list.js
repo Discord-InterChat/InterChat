@@ -20,7 +20,7 @@ module.exports = {
 			}
 			const Embed = new MessageEmbed()
 				.setColor('#0099ff')
-				.setAuthor('Blacklisted Servers:', 'https://cdn.discordapp.com/attachments/770258662694060032/827818761276751903/ChatBot.png')
+				.setAuthor({ name: 'Blacklisted Servers:', iconURL: interaction.client.user.avatarURL })
 				.setDescription(str);
 			interaction.reply({ embeds: [Embed] });
 		}
@@ -38,7 +38,7 @@ module.exports = {
 			}
 			const Embed = new MessageEmbed()
 				.setColor('#0099ff')
-				.setAuthor('Blacklisted Users:', 'https://cdn.discordapp.com/attachments/770258662694060032/827818761276751903/ChatBot.png')
+				.setAuthor({ name: 'Blacklisted Users:', iconURL: interaction.client.user.avatarURL })
 				.setDescription(str1);
 
 			// console.log(list);
