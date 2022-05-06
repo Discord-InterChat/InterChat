@@ -13,7 +13,7 @@ module.exports = {
 			members.push(member);
 		}
 		const embed = new MessageEmbed()
-			.setAuthor(`${interaction.client.user.tag} Credits`, interaction.client.user.avatarURL())
+			.setAuthor({ name: `${interaction.client.user.tag} Credits`, iconURL: interaction.client.user.avatarURL() })
 			.setColor(colors())
 			.setTimestamp()
 			.addFields([
