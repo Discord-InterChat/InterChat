@@ -41,7 +41,7 @@ module.exports = {
 			const embed = new MessageEmbed()
 				.setTimestamp()
 				.setColor(colors())
-				.setAuthor(message.author.tag, message.author.avatarURL({ dynamic: true }), `https://discord.com/users/${message.author.id}`)
+				.setAuthor({ name: message.author.tag, iconURL: message.author.avatarURL({ dynamic: true }), url: `https://discord.com/users/${message.author.id}` })
 				.setFooter(`From: ${message.guild}┃${message.guild.id}`, message.guild.iconURL({ dynamic: true }))
 				.addField('Message', message.content, false);
 

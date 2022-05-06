@@ -15,7 +15,7 @@
         "common-tags": "^1.8.0",
         "dayjs": "^1.10.7",
         "discord-api-types": "^0.24.0",
-        "discord.js": "^14.0.0-dev.1651493371-4ba0f56",
+        "discord.js": "^13.6.0",
         "dotenv": "^10.0.0",
         "human-date": "^1.4.0",
         "mongodb": "^4.1.3",

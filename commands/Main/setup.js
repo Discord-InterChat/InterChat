@@ -1,8 +1,7 @@
-/* eslint-disable no-inline-comments */
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+// const { MessageEmbed } = require('discord.js');
 const mongoUtil = require('../../utils');
-// const logger = require('../logger/logger');
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setup')
@@ -88,5 +87,3 @@ module.exports = {
 	},
 
 };
-
-// DONE: Set bot perms for setup channel

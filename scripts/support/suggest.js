@@ -25,7 +25,7 @@ module.exports = {
 					const embed = new MessageEmbed()
 						.setTitle('New Suggestion')
 						.setDescription(suggestion)
-						.setAuthor(`Suggested By: ${interaction.member.user.tag}`, interaction.member.user.avatarURL({ dynamic: true }))
+						.setAuthor({ name: `Suggested By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
 						.setFooter(`From Server: ${interaction.guild.name}`, interaction.guild.iconURL({ dynamic: true }))
 						.setTimestamp()
 						.setColor(colors());

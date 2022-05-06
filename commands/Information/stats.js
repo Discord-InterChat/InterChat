@@ -98,17 +98,18 @@
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
-const { colors } = require('../../utils');
+const utils = require('../../utils');
 const mongoUtil = require('../../utils');
 const os = require('os-utils');
-const humanize = require('human-date');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('stats')
 		.setDescription('Shows the bot\'s statistics'),
 	async execute(interaction) {
-		await interaction.deferReply();
+		const uptime = utils.toHuman(interaction.client);
+
+		/*
 		let totalSeconds = (interaction.client.uptime / 1000);
 		const days = Math.floor(totalSeconds / 86400);
 		totalSeconds %= 86400;
@@ -121,47 +122,23 @@ module.exports = {
 		else if (days == 0 && hours == 0) uptime = `${minutes}m ${seconds}s`;
 		else if (days == 0) uptime = `${hours}h, ${minutes}m ${seconds}s`;
 		else uptime = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
-
-		// const guilds = await interaction.client.guilds.fetch();
-		// const guilds = await interaction.client.guilds.cache.size;
-
-		// const members = [];
-		// for (const oauth2Guild of guilds) {
-		// 	const guild = await oauth2Guild[1].fetch();
-		// 	const guildMembers = await guild.members.fetch();
-		// 	for (const member of guildMembers) {
-		// 		// members = members + member;
-		// 		members.push(member);
-		// 	}
-		// }
-		// members = [...new Set(members)];
+		*/
 
 		const database = mongoUtil.getDb();
 		const connectedList = database.collection('connectedList');
 		const count = await connectedList.count();
-		const time = humanize.relativeTime(process.uptime(), { returnObject: true });
-		console.log(time.seconds);
 
-		// const allConnected = await connectedList.find({}).toArray();
-
-		// let connectedMembers = 0;
-		// for (const guildEntry of allConnected) {
-		// 	const guild = await interaction.client.guilds.fetch(String(guildEntry.serverId));
-		// 	connectedMembers = connectedMembers + guild.memberCount;
-		// }
 
 		const embed = new MessageEmbed()
-			.setColor(colors())
+			.setColor(utils.colors())
 			.addFields([
 				{
 					name: 'Uptime',
-					// eslint-disable-next-line no-inline-comments
-					value: uptime, // `${Math.floor(process.uptime() / 60)} minutes`,
+					value: uptime,
 					inline: true,
 				},
 				{
 					name: 'Memory Usage',
-					// eslint-disable-next-line no-inline-comments
 					value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB / ${Math.round(os.totalmem() / 1024)} GB`,
 					inline: true,
 				},
@@ -208,12 +185,11 @@ module.exports = {
 				{
 					name: 'Connected Members',
 					value: 'nahh',
-					// String(connectedMembers),
 					inline: true,
 				},
 			])
-			.setAuthor(`${interaction.client.user.username} Statistics`, interaction.client.user.avatarURL());
-		await interaction.followUp({ embeds: [embed] });
+			.setAuthor({ name: `${interaction.client.user.username} Statistics`, iconURL: interaction.client.user.avatarURL() });
+		await interaction.reply({ embeds: [embed] });
 	},
 
 };
