@@ -12,16 +12,13 @@ module.exports = {
 			const searchCursor = await blacklistedServers.find();
 			const result = await searchCursor.toArray();
 			// const serverList = [];
-			let str = '';
+			const Embed = new MessageEmbed();
 			for (let i = 0; i < result.length; i++) {
 				console.log(`Name: ${result[i].serverName}\nID: ${result[i]._id}\nserverID: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`);
-				str = str + `**${result[i].serverName}:**\nID: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`;
-				// serverList.push(`**${result[i].serverName}:**\nID: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`);
+				Embed.addFields([{ name: result[i].serverName, value: `ID: ${result[i].serverId}\nReason: ${result[i].reason}\n\n` }]);
 			}
-			const Embed = new MessageEmbed()
-				.setColor('#0099ff')
-				.setAuthor({ name: 'Blacklisted Servers:', iconURL: interaction.client.user.avatarURL })
-				.setDescription(str);
+			Embed.setColor('#0099ff');
+			Embed.setAuthor({ name: 'Blacklisted Servers:', iconURL: interaction.client.user.avatarURL() });
 			interaction.reply({ embeds: [Embed] });
 		}
 
@@ -30,20 +27,13 @@ module.exports = {
 			const searchCursor = await blacklistedServers.find();
 			const result = await searchCursor.toArray();
 			// const userList = [];
-			let str1 = '';
+			const Embed = new MessageEmbed();
 			for (let i = 0; i < result.length; i++) {
 				console.log(`Name: ${result[i].username}\nID: ${result[i]._id}\nUserID: ${result[i].userId}\nReason: ${result[i].reason}\n\n`);
-				// userList.push(`**${result[i].username}:**\nID: ${result[i].userId}\nReason: ${result[i].reason}\n\n`);
-				str1 = str1 + `**${result[i].username}:**\nID: ${result[i].userId}\nReason: ${result[i].reason}\n\n`;
+				Embed.addFields([{ name: result[i].username, value: `ID: ${result[i].userId}\nReason: ${result[i].reason}\n\n` }]);
 			}
-			const Embed = new MessageEmbed()
-				.setColor('#0099ff')
-				.setAuthor({ name: 'Blacklisted Users:', iconURL: interaction.client.user.avatarURL })
-				.setDescription(str1);
-
-			// console.log(list);
-			// console.log(str);
-
+			Embed.setColor('#0099ff');
+			Embed.setAuthor({ name: 'Blacklisted Users:', iconURL: interaction.client.user.avatarURL() });
 			interaction.reply({ embeds: [Embed] });
 		}
 	},
