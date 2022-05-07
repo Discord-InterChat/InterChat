@@ -1,10 +1,11 @@
 {
     "name": "discord-chatbot",
-    "version": "1.0.0",
+    "version": "v2.3.0",
     "description": "A growing discord bot which provides inter-server chat! ",
     "main": "index.js",
     "scripts": {
         "start": "node index.js",
+        "dev": "nodemon .",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Supreme1707, Makiyu, dev-737",
