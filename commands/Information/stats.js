@@ -107,7 +107,7 @@ module.exports = {
 		.setName('stats')
 		.setDescription('Shows the bot\'s statistics'),
 	async execute(interaction) {
-		const uptime = utils.toHuman(interaction.client);
+		const uptime = utils.toTime(interaction.client);
 
 		/*
 		let totalSeconds = (interaction.client.uptime / 1000);
