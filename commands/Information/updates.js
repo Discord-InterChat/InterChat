@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 
 module.exports = {
@@ -7,9 +7,9 @@ module.exports = {
 		.setName('updates')
 		.setDescription('Notes on updates for ChatBot'),
 	async execute(interaction) {
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setTitle('Update Notes')
-			.setAuthor('Requested By: ' + interaction.user.tag, interaction.user.avatarURL({ dynamic: true }))
+			.setAuthor({ name: 'Requested By: ' + interaction.user.tag, iconURL: interaction.user.avatarURL({ dynamic: true }) })
 			.setFooter(interaction.client.user.tag, interaction.client.user.avatarURL())
 			.setDescription(stripIndents`
 			Hey!

@@ -1,9 +1,9 @@
-const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
+const { ActionRow, MessageButton, EmbedBuilder } = require('discord.js');
 const { colors } = require('../../utils');
 
 module.exports = {
 	async execute(interaction) {
-		const row = new MessageActionRow()
+		const row = new ActionRow()
 			.addComponents(
 				new MessageButton()
 					.setCustomId('yes')
@@ -22,10 +22,10 @@ module.exports = {
 			if (i.user.id === interaction.user.id) {
 				if (i.customId === 'yes') {
 					const suggestion = interaction.options.getString('suggestion');
-					const embed = new MessageEmbed()
+					const embed = new EmbedBuilder()
 						.setTitle('New Suggestion')
 						.setDescription(suggestion)
-						.setAuthor(`Suggested By: ${interaction.member.user.tag}`, interaction.member.user.avatarURL({ dynamic: true }))
+						.setAuthor({ name: `Suggested By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
 						.setFooter(`From Server: ${interaction.guild.name}`, interaction.guild.iconURL({ dynamic: true }))
 						.setTimestamp()
 						.setColor(colors());

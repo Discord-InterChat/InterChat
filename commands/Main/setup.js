@@ -1,8 +1,9 @@
-/* eslint-disable no-inline-comments */
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder, ChannelType } = require('discord.js');
+const logger = require('../../logger');
+const { colors } = require('../../utils');
 const mongoUtil = require('../../utils');
-// const logger = require('../logger/logger');
+
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setup')
@@ -57,16 +58,18 @@ module.exports = {
 		async function activate() {
 			const guild = interaction.guild;
 			const category = await interaction.options.getChannel('destination');
-			if (category.type != 'GUILD_CATEGORY') return await interaction.reply({ content: 'Please only choose category channels!', ephemeral: true });
-			// console.log(interaction.client);
+			if (category.type != ChannelType.GuildCategory) {
+				logger.error(category.type);
+				return await interaction.reply({ content: 'Please only choose category channels!', ephemeral: true });
+			}
 			const channel = await guild.channels.create('global-chat', {
-				type: 'GUILD_TEXT',
+				type: ChannelType.GuildText,
 				parent: category.id,
 				position: 0,
 				permissionOverwrites: [{
 					type: 'member',
 					id: await interaction.client.user.id,
-					allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'MANAGE_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'READ_MESSAGE_HISTORY', 'MANAGE_MESSAGES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS'],
+					allow: ['ViewChannel', 'SendMessages', 'ManageMessages', 'EmbedLinks', 'AttachFiles', 'ReadMessageHistory', 'ManageMessages', 'AddReactions', 'UseExternalEmojis'],
 				}],
 			});
 
@@ -79,7 +82,12 @@ module.exports = {
 			await connectedList.insertOne(insertChannel);
 
 			// Message link format: https://discord.com/channels/${setupmsg.guildId}/${setupmsg.channelId}/${setupmsg.messageId}
-			await interaction.reply({ content:`<#${setupmsg.channelId}>` });
+			const embed = new EmbedBuilder()
+				.setTitle('🎉 Setup Complete')
+				.setColor(colors())
+				.setDescription(`**Setup Channel:** <#${setupmsg.channelId}>\n**Embed Message:** True`)
+				.setAuthor({ name: 'ChatBot Setup', iconURL: interaction.client.user.avatarURL() });
+			await interaction.reply({ content:`Chatbot has successfully been setup to guild **${interaction.guild}**`, embeds: [embed] });
 			return;
 		}
 		activate().catch(console.error);
@@ -88,5 +96,3 @@ module.exports = {
 	},
 
 };
-
-// DONE: Set bot perms for setup channel

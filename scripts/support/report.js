@@ -1,4 +1,4 @@
-const { MessageActionRow, MessageButton, MessageEmbed } = require('discord.js');
+const { MessageActionRow, MessageButton, EmbedBuilder } = require('discord.js');
 const { colors } = require('../../utils');
 
 module.exports = {
@@ -23,10 +23,10 @@ module.exports = {
 				if (i.customId === 'yes') {
 					const type = interaction.options.getString('type');
 					const report = interaction.options.getString('report');
-					const embed = new MessageEmbed()
+					const embed = new EmbedBuilder()
 						.setTitle('New Report')
 						.setDescription(`**Type: ${type}**\n\n` + report)
-						.setAuthor(`Reported By: ${interaction.member.user.tag}`, interaction.member.user.avatarURL({ dynamic: true }))
+						.setAuthor({ name: `Reported By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
 						.setFooter(`From Server: ${interaction.guild.name}`, interaction.guild.iconURL({ dynamic: true }))
 						.setTimestamp()
 						.setColor(colors());

@@ -9,38 +9,39 @@ let _db;
 
 module.exports = {
 	colors: () => {
+
 		const colorArr = [
-			'DEFAULT',
-			'WHITE',
-			'AQUA',
-			'GREEN',
-			'BLUE',
-			'YELLOW',
-			'PURPLE',
-			'LUMINOUS_VIVID_PINK',
-			'FUCHSIA',
-			'GOLD',
-			'ORANGE',
-			'RED',
-			'GREY',
-			'NAVY',
-			'DARK_AQUA',
-			'DARK_GREEN',
-			'DARK_BLUE',
-			'DARK_PURPLE',
-			'DARK_VIVID_PINK',
-			'DARK_GOLD',
-			'DARK_ORANGE',
-			'DARK_RED',
-			'DARK_GREY',
-			'DARKER_GREY',
-			'LIGHT_GREY',
-			'DARK_NAVY',
-			'BLURPLE',
-			'GREYPLE',
-			'DARK_BUT_NOT_BLACK',
-			'NOT_QUITE_BLACK',
-			'RANDOM',
+			'Default',
+			'White',
+			'Aqua',
+			'Green',
+			'Blue',
+			'Yellow',
+			'Purple',
+			'LuminousVividPink',
+			'Fuchsia',
+			'Gold',
+			'Orange',
+			'Red',
+			'Grey',
+			'DarkNavy',
+			'DarkAqua',
+			'DarkGreen',
+			'DarkBlue',
+			'DarkPurple',
+			'DarkVividPink',
+			'DarkGold',
+			'DarkOrange',
+			'DarkRed',
+			'DarkGrey',
+			'DarkerGrey',
+			'LightGrey',
+			'DarkNavy',
+			'Blurple',
+			'Greyple',
+			'DarkButNotBlack',
+			'NotQuiteBlack',
+			'Random',
 		];
 		return module.exports.choice(colorArr);
 	},
@@ -94,5 +95,20 @@ module.exports = {
 	},
 	getDb: () => {
 		return _db;
+	},
+	toHuman: (client) => {
+		let totalSeconds = (client.uptime / 1000);
+		const days = Math.floor(totalSeconds / 86400);
+		totalSeconds %= 86400;
+		const hours = Math.floor(totalSeconds / 3600);
+		totalSeconds %= 3600;
+		const minutes = Math.floor(totalSeconds / 60);
+		const seconds = Math.floor(totalSeconds % 60);
+		let uptime;
+		if (days == 0 && hours == 0 && minutes == 0) uptime = `${seconds} seconds`;
+		else if (days == 0 && hours == 0) uptime = `${minutes}m ${seconds}s`;
+		else if (days == 0) uptime = `${hours}h, ${minutes}m ${seconds}s`;
+		else uptime = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
+		return uptime;
 	},
 };

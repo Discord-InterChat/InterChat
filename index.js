@@ -3,7 +3,6 @@ const dotenv = require('dotenv');
 const fs = require('fs');
 const mongoUtil = require('./utils.js');
 const logger = require('./logger');
-
 dotenv.config();
 
 // eslint-disable-next-line no-unused-vars
@@ -12,20 +11,20 @@ mongoUtil.connect((err, mongoClient) => {
 	logger.info('Connected to MongoDB');
 });
 
-const client = new discord.Client({
-	intents: [
-		discord.Intents.FLAGS.GUILDS,
-		discord.Intents.FLAGS.GUILD_MESSAGES,
-		discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-		discord.Intents.FLAGS.GUILD_MEMBERS,
-		discord.Intents.FLAGS.DIRECT_MESSAGES,
-		discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-	],
+const client = new discord.Client({ intents: [
+	discord.GatewayIntentBits.Guilds,
+	discord.GatewayIntentBits.GuildMessages,
+	discord.GatewayIntentBits.GuildMessageReactions,
+	discord.GatewayIntentBits.GuildMembers,
+	discord.GatewayIntentBits.DirectMessages,
+	discord.GatewayIntentBits.DirectMessageReactions,
+	discord.GatewayIntentBits.MessageContent,
+],
 });
 
 client.description = 'A growing discord bot which provides inter-server chat!';
 client.commands = new discord.Collection();
-client.version = '2.3.0b';
+client.version = '2.3.1';
 
 module.exports.client = client;
 
@@ -53,5 +52,4 @@ for (const eventFile of eventFiles) {
 		client.on(event.name, (...args) => event.execute(...args, client));
 	}
 }
-
 client.login(process.env.TOKEN);

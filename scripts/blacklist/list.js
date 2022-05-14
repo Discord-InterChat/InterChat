@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 module.exports = {
 	async execute(interaction, database) {
 		// eslint-disable-next-line no-unused-vars
@@ -18,10 +18,10 @@ module.exports = {
 				str = str + `**${result[i].serverName}:**\nID: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`;
 				// serverList.push(`**${result[i].serverName}:**\nID: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`);
 			}
-			const Embed = new MessageEmbed()
+			const Embed = new EmbedBuilder()
 				.setColor('#0099ff')
-				.setAuthor('Blacklisted Servers:', 'https://cdn.discordapp.com/attachments/770258662694060032/827818761276751903/ChatBot.png')
-				.setDescription(str);
+				.setAuthor({ name: 'Blacklisted Servers:', iconURL: interaction.client.user.avatarURL() })
+				.setDescription(str || 'None');
 			interaction.reply({ embeds: [Embed] });
 		}
 
@@ -36,9 +36,10 @@ module.exports = {
 				// userList.push(`**${result[i].username}:**\nID: ${result[i].userId}\nReason: ${result[i].reason}\n\n`);
 				str1 = str1 + `**${result[i].username}:**\nID: ${result[i].userId}\nReason: ${result[i].reason}\n\n`;
 			}
-			const Embed = new MessageEmbed()
+			console.log(interaction.client.user.avatarURL);
+			const Embed = new EmbedBuilder()
 				.setColor('#0099ff')
-				.setAuthor('Blacklisted Users:', 'https://cdn.discordapp.com/attachments/770258662694060032/827818761276751903/ChatBot.png')
+				.setAuthor({ name: 'Blacklisted Users:', iconURL: interaction.client.user.avatarURL() })
 				.setDescription(str1);
 
 			// console.log(list);

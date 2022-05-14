@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const logger = require('../logger');
 const mongoUtil = require('../utils');
 const { colors } = require('../utils');
@@ -38,12 +38,13 @@ module.exports = {
 			}
 
 			const allConnectedChannels = await connectedList.find({});
-			const embed = new MessageEmbed()
+			const embed = new EmbedBuilder()
 				.setTimestamp()
 				.setColor(colors())
-				.setAuthor(message.author.tag, message.author.avatarURL({ dynamic: true }), `https://discord.com/users/${message.author.id}`)
-				.setFooter(`From: ${message.guild}┃${message.guild.id}`, message.guild.iconURL({ dynamic: true }))
-				.addField('Message', message.content, false);
+				.setAuthor({ name: message.author.tag, iconURL: message.author.avatarURL({ dynamic: true }), url: `https://discord.com/users/${message.author.id}` })
+				.setFooter({ text: `From: ${message.guild}┃${message.guild.id}`, iconURL: message.guild.iconURL({ dynamic: true }) })
+				.addFields([
+					{ name: 'Message', value: message.content, inline: false }]);
 
 			await require('../scripts/message/addBadges').execute(message, database, embed);
 			await require('../scripts/message/messageContentModifiers').execute(message, embed);
