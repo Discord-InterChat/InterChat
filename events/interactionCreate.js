@@ -14,7 +14,12 @@ module.exports = {
 		}
 		catch (error) {
 			console.trace(error);
-			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+			try {
+				await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+			}
+			catch {
+				await interaction.channel.send({ content: 'There was an error while executing this command!', ephemeral: true });
+			}
 		}
 	},
 };
