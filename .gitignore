@@ -5,4 +5,4 @@ logs/
 devperms(test).js
 test.js
 idk.txt
-package-lock.json
+/package-lock.json
