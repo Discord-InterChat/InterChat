@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { stripIndents } = require('common-tags');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { colors } = require('../../utils');
 
 module.exports = {
@@ -8,7 +8,7 @@ module.exports = {
 		.setName('rules')
 		.setDescription('Sends rules of the bot and chat network'),
 	async execute(interaction) {
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setTitle('ChatBot Rules')
 			.setDescription(stripIndents`
 				1. No spamming on the chat. This might get you banned from using this chat feature.
@@ -25,7 +25,7 @@ module.exports = {
 			`)
 			.setColor(colors())
 			.setImage('https://images-ext-2.discordapp.net/external/k9bElI9Z2mxhi2DTO783PI-wj00ledbPPvzZE-gPG2k/https/media.discordapp.net/attachments/770258662694060032/799566242276704287/standard_9.gif?width=400&height=51')
-			.setAuthor(interaction.client.user.tag, interaction.client.user.avatarURL());
+			.setAuthor({ name: interaction.client.user.tag, iconURL: interaction.client.user.avatarURL() });
 		await interaction.member.send({ embeds: [embed] });
 		await interaction.reply('Sent the rules to your DMs <a:Check_green:772393366109290498>');
 

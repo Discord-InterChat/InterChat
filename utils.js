@@ -9,38 +9,39 @@ let _db;
 
 module.exports = {
 	colors: () => {
+
 		const colorArr = [
-			'DEFAULT',
-			'WHITE',
-			'AQUA',
-			'GREEN',
-			'BLUE',
-			'YELLOW',
-			'PURPLE',
-			'LUMINOUS_VIVID_PINK',
-			'FUCHSIA',
-			'GOLD',
-			'ORANGE',
-			'RED',
-			'GREY',
-			'NAVY',
-			'DARK_AQUA',
-			'DARK_GREEN',
-			'DARK_BLUE',
-			'DARK_PURPLE',
-			'DARK_VIVID_PINK',
-			'DARK_GOLD',
-			'DARK_ORANGE',
-			'DARK_RED',
-			'DARK_GREY',
-			'DARKER_GREY',
-			'LIGHT_GREY',
-			'DARK_NAVY',
-			'BLURPLE',
-			'GREYPLE',
-			'DARK_BUT_NOT_BLACK',
-			'NOT_QUITE_BLACK',
-			'RANDOM',
+			'Default',
+			'White',
+			'Aqua',
+			'Green',
+			'Blue',
+			'Yellow',
+			'Purple',
+			'LuminousVividPink',
+			'Fuchsia',
+			'Gold',
+			'Orange',
+			'Red',
+			'Grey',
+			'DarkNavy',
+			'DarkAqua',
+			'DarkGreen',
+			'DarkBlue',
+			'DarkPurple',
+			'DarkVividPink',
+			'DarkGold',
+			'DarkOrange',
+			'DarkRed',
+			'DarkGrey',
+			'DarkerGrey',
+			'LightGrey',
+			'DarkNavy',
+			'Blurple',
+			'Greyple',
+			'DarkButNotBlack',
+			'NotQuiteBlack',
+			'Random',
 		];
 		return module.exports.choice(colorArr);
 	},
@@ -79,6 +80,7 @@ module.exports = {
 	},
 	developers: [828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n],
 	staff: [442653948630007808n, 446709111715921920n],
+
 	getCredits: async () => {
 		let creditArray = [];
 
@@ -95,7 +97,8 @@ module.exports = {
 	getDb: () => {
 		return _db;
 	},
-	toTime: (client) => {
+
+	toHuman: (client) => {
 		let totalSeconds = (client.uptime / 1000);
 		const days = Math.floor(totalSeconds / 86400);
 		totalSeconds %= 86400;
@@ -109,5 +112,29 @@ module.exports = {
 		else if (days == 0) uptime = `${hours}h, ${minutes}m ${seconds}s`;
 		else uptime = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
 		return uptime;
+	},
+    
+	staffPermissions: async (interaction) => {
+		let guild;
+		let member;
+		let roles;
+		const staff = '970713237748318268';
+		const developers = '970706750229586010';
+		try {
+			guild = await interaction.client.guilds.fetch('969920027421732874');
+			member = await guild.members.fetch(interaction.user.id);
+			roles = member._roles;
+
+			if (roles.includes(staff)) {
+				return 'staff';
+			}
+			else if (roles.includes(developers)) {
+				return 'developer';
+			}
+		}
+		catch (e) {
+			console.error(e);
+			return interaction.reply('You do not have permissions to use this command.');
+		}
 	},
 };

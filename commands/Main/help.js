@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -11,7 +11,7 @@ module.exports = {
 		commands.forEach((value, key) => {
 			listOfCommands += `\`${key}\` - ${value.data.description}\n`;
 		});
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setTitle('Help')
 			.setDescription(`Hey all, we have some news for you! Check out the /updates command to take a look at the future of ChatBot!\n\nList of Commands:\n${listOfCommands}`)
 			.setAuthor({ name: 'Requested By: ' + interaction.user.tag, iconURL: interaction.user.avatarURL({ dynamic: true }) })

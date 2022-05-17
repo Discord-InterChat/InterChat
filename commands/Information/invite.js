@@ -1,12 +1,12 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageButton, Permissions } = require('discord.js');
+const { ActionRow, MessageButton, Permissions } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('invite')
 		.setDescription('Invite the bot to your server'),
 	async execute(interaction) {
-		const Normal = new MessageActionRow()
+		const Normal = new ActionRow()
 			.addComponents(
 				new MessageButton()
 				// .setCustomId('primary')
@@ -17,7 +17,7 @@ module.exports = {
 					.setDisabled(false),
 
 			);
-		const Admin = new MessageActionRow()
+		const Admin = new ActionRow()
 			.addComponents(
 				new MessageButton()
 				// .setCustomId('primary')

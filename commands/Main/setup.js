@@ -1,71 +1,89 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-// const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder, ChannelType, ActionRowBuilder, SelectMenuBuilder } = require('discord.js');
+const { v4: uuidv4 } = require('uuid');
+const logger = require('../../logger');
+const { colors } = require('../../utils');
 const mongoUtil = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setup')
 		.setDescription('Replies with your input!')
-		.addChannelOption(option => option.setName('destination').setDescription('Select a channel').setRequired(true))
+		.addChannelOption(option => option.setName('destination').setDescription('Select a channel'))
 		.setDefaultPermission(false),
 
 	async execute(interaction) {
-		// inside a command, event listener, etc.
-		// const exampleEmbed = new MessageEmbed()
-		// 	.setColor('#0099ff')
-		// 	.setTitle('Some title')
-		// 	.setURL('https://discord.js.org/')
-		// 	.setAuthor('Some name', 'https://i.imgur.com/AfFp7pu.png', 'https://discord.js.org')
-		// 	.setDescription('Some description here')
-		// 	.setThumbnail('https://i.imgur.com/AfFp7pu.png')
-		// 	.addFields(
-		// 		{ name: 'Regular field title', value: 'Some value here' },
-		// 		{ name: '\u200B', value: '\u200B' },
-		// 		{ name: 'Inline field title', value: 'Some value here', inline: true },
-		// 		{ name: 'Inline field title', value: 'Some value here', inline: true },
-		// 	)
-		// 	.addField('Inline field title', 'Some value here', true)
-		// 	.setImage('https://i.imgur.com/AfFp7pu.png')
-		// 	.setTimestamp()
-		// 	.setFooter('Some footer text here', 'https://i.imgur.com/AfFp7pu.png');
+		const row = new ActionRowBuilder().addComponents([
+			new SelectMenuBuilder()
+				.setCustomId(uuidv4())
+				.setPlaceholder('Customize Setup')
+				.addOptions([
+					{
+						label: 'Embed Message',
+						value: 'idk',
+						description: 'Edit Embed Message',
+						emoji: '🆒',
+					},
+				]),
+		]);
 
-		// interaction.channel.send({ embeds: [exampleEmbed] });
 		const database = mongoUtil.getDb();
 		const setup = database.collection('setup');
 		const connectedList = database.collection('connectedList');
-
-
+		const destination = interaction.options.getChannel('destination');
 		const guildInDB = await setup.findOne({ 'guildId': interaction.guild.id });
-		// console.log(guildInDB);
+		// console.log(guildInDB, interaction.guild.id);
+		const message = await interaction.deferReply();
 		if (guildInDB) {
 			const channels = interaction.guild.channels.cache.find(channel => channel.id === guildInDB.channelId);
 
-			if (!channels) {
+			if (channels) {
+				return update();
+			}
+
+			else if (!channels) {
 				await setup.deleteOne(
 					{ 'guildId': interaction.guild.id });
 				await connectedList.deleteOne(
 					{ 'serverId': interaction.guild.id });
-				activate();
+				if (destination) return activate().catch(console.error);
+				return interaction.followUp('Server is not setup! Please run the `/setup` again with the **destination** option.');
+			}
+			else if (destination) {
+				return activate().catch(console.error);
+			}
+
+			else {
+				console.error;
 				return;
 			}
-			interaction.reply(`This server is already setup to channel <#${guildInDB.channelId}>`);
-			return;
+			// await interaction.followUp({ content: 'An error occured!', ephemeral: true });
+			// console.trace;
+			// return;
 		}
 
+		if (!guildInDB) {
+			if (destination) {
+				return activate().catch(console.error);
+			}
+			return interaction.followUp('Server is not setup! Please run the `/setup` again with the **destination** option.');
+		}
 
 		async function activate() {
 			const guild = interaction.guild;
 			const category = await interaction.options.getChannel('destination');
-			if (category.type != 'GUILD_CATEGORY') return await interaction.reply({ content: 'Please only choose category channels!', ephemeral: true });
-			// console.log(interaction.client);
+			if (category.type != ChannelType.GuildCategory) {
+				logger.error(category.type);
+				return await interaction.followUp({ content: 'Please only choose category channels!', ephemeral: true });
+			}
 			const channel = await guild.channels.create('global-chat', {
-				type: 'GUILD_TEXT',
+				type: ChannelType.GuildText,
 				parent: category.id,
 				position: 0,
 				permissionOverwrites: [{
 					type: 'member',
 					id: await interaction.client.user.id,
-					allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'MANAGE_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'READ_MESSAGE_HISTORY', 'MANAGE_MESSAGES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS'],
+					allow: ['ViewChannel', 'SendMessages', 'ManageMessages', 'EmbedLinks', 'AttachFiles', 'ReadMessageHistory', 'ManageMessages', 'AddReactions', 'UseExternalEmojis'],
 				}],
 			});
 
@@ -73,17 +91,62 @@ module.exports = {
 			await setup.insertOne({
 				'guildId': interaction.guild.id,
 				'channelId': setupmsg.channel.id,
+				'isEmbed': true,
 			});
 			const insertChannel = { channelId: setupmsg.channel.id, channelName: setupmsg.channel.name, serverId: interaction.guild.id, serverName: interaction.guild.name };
 			await connectedList.insertOne(insertChannel);
 
 			// Message link format: https://discord.com/channels/${setupmsg.guildId}/${setupmsg.channelId}/${setupmsg.messageId}
-			await interaction.reply({ content:`<#${setupmsg.channelId}>` });
-			return;
+			// await interaction.followUp({ content:`Chatbot has successfully been setup to guild **${interaction.guild}**` });
+			update();
 		}
-		activate().catch(console.error);
-		const allConnected = await connectedList.find().toArray();
-		console.table(allConnected);
+
+		async function update() {
+
+			// Trying to call db again to get updated data
+			let guild = await setup.findOne({ 'guildId': interaction.guild.id });
+			console.table(guild);
+			console.log(' ---------------- ');
+			const updateEmbed = new EmbedBuilder()
+				.setColor(colors())
+				.addFields([
+					{ name: 'Details', value: `**Status:** Complete\n **Channel(s):** <#${guild.channelId}>\n **Embed Message:** ${guild.isEmbed}` },
+					{ name: 'Premium Details', value: '**Premium:** false\n**Multi-channel:** false\n**Private Networks:** false', inline: true },
+				])
+				.setAuthor({ name: 'ChatBot Setup', iconURL: interaction.client.user.avatarURL() });
+
+			const filter = (menuInteraction) => menuInteraction.isSelectMenu();
+
+			const collector = message.createMessageComponentCollector({ filter, time: 60000, max: '4' });
+			await interaction.editReply({ content:`Setup for guild **${interaction.guild}**`, embeds: [updateEmbed], components: [row] });
+
+			collector.on('collect', async (collected) => {
+			// const value = collected.values[0];
+				if (collector.total == collector.options.max) {
+					return interaction.editReply({ content: 'Max number of tries reached. Please run the command again to restart.', embeds: [], components: [] });
+				}
+				collected.deferUpdate();
+				// let guild2 = await setup.findOne({ 'guildId': interaction.guild.id });
+				// console.table(guild2);
+
+				if (guild.isEmbed == true) {
+					await setup.updateOne({ guildId: interaction.guild.id }, { $set:{ isEmbed: false } });
+
+					guild = await setup.findOne({ 'guildId': interaction.guild.id });
+					updateEmbed.spliceFields(0, 1, { name: 'Details', value: `**Status:** Complete\n **Channel(s):** <#${guild.channelId}>\n **Embed Message:** ${guild.isEmbed}` });
+					return interaction.editReply({ content: '**Messages will now show up normally.**', embeds: [updateEmbed], components: [row] });
+				}
+				if (guild.isEmbed === false) {
+					await setup.updateOne({ guildId: interaction.guild.id }, { $set:{ isEmbed: true } });
+
+					guild = await setup.findOne({ 'guildId': interaction.guild.id });
+					updateEmbed.spliceFields(0, 1, { name: 'Details', value: `**Status:** Complete\n **Channel(s):** <#${guild.channelId}>\n **Embed Message:** ${guild.isEmbed}` });
+					return interaction.editReply({ content: '**Messages will now show up normally.**', embeds: [updateEmbed], components: [row] });
+				}
+			});
+		}
+		// const allConnected = await connectedList.find().toArray();
+		// console.table(allConnected);
 	},
 
 };

@@ -97,7 +97,7 @@
 // };
 
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const utils = require('../../utils');
 const mongoUtil = require('../../utils');
 const os = require('os-utils');
@@ -107,8 +107,8 @@ module.exports = {
 		.setName('stats')
 		.setDescription('Shows the bot\'s statistics'),
 	async execute(interaction) {
-		const uptime = utils.toTime(interaction.client);
 
+		const uptime = utils.toHuman(interaction.client);
 		/*
 		let totalSeconds = (interaction.client.uptime / 1000);
 		const days = Math.floor(totalSeconds / 86400);
@@ -127,9 +127,7 @@ module.exports = {
 		const database = mongoUtil.getDb();
 		const connectedList = database.collection('connectedList');
 		const count = await connectedList.count();
-
-
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setColor(utils.colors())
 			.addFields([
 				{

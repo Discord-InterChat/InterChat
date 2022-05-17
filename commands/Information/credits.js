@@ -1,6 +1,6 @@
 const { getCredits, colors } = require('../../utils');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('credits')
@@ -12,7 +12,7 @@ module.exports = {
 			const member = await interaction.client.users.fetch(String(credit));
 			members.push(member);
 		}
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setAuthor({ name: `${interaction.client.user.tag} Credits`, iconURL: interaction.client.user.avatarURL() })
 			.setColor(colors())
 			.setTimestamp()
