@@ -97,6 +97,7 @@ module.exports = {
 	getDb: () => {
 		return _db;
 	},
+
 	toHuman: (client) => {
 		let totalSeconds = (client.uptime / 1000);
 		const days = Math.floor(totalSeconds / 86400);
@@ -112,7 +113,7 @@ module.exports = {
 		else uptime = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
 		return uptime;
 	},
-
+    
 	staffPermissions: async (interaction) => {
 		let guild;
 		let member;
