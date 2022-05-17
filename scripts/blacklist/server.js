@@ -7,7 +7,9 @@ module.exports = {
 		const reason = interaction.options.getString('reason');
 		const subCommandGroup = interaction.options.getSubcommandGroup();
 		const blacklistedServers = database.collection('blacklistedServers');
-		const serverInBlacklist = await blacklistedServers.findOne({ serverId: serverOpt });
+		const serverInBlacklist = await blacklistedServers.findOne({
+			serverId: serverOpt,
+		});
 
 		if (subCommandGroup == 'add') {
 			if (serverInBlacklist) {
@@ -19,7 +21,9 @@ module.exports = {
 				server = await interaction.client.guilds.fetch(serverOpt);
 			}
 			catch (err) {
-				interaction.reply('Something went wrong! Are you sure that was a valid server ID?');
+				interaction.reply(
+					'Something went wrong! Are you sure that was a valid server ID?',
+				);
 				return logger.error(err);
 			}
 			await blacklistedServers.insertOne({
@@ -28,8 +32,13 @@ module.exports = {
 				reason: reason,
 			});
 
-			await sendInFirst(server, `This server has been blacklisted from this bot for reason \`${reason}\`. Please join the support server and contact the staff to get whitelisted and/or if you think the reason is not valid.`);
-			await interaction.reply(`The server **${server.name}** has been blacklisted for reason \`${reason}\`.`);
+			await sendInFirst(
+				server,
+				`This server has been blacklisted from this bot for reason \`${reason}\`. Please join the support server and contact the staff to get whitelisted and/or if you think the reason is not valid.`,
+			);
+			await interaction.reply(
+				`The server **${server.name}** has been blacklisted for reason \`${reason}\`.`,
+			);
 			await server.leave();
 		}
 		else if (subCommandGroup == 'remove') {
@@ -39,7 +48,9 @@ module.exports = {
 			}
 
 			await blacklistedServers.deleteOne({ serverId: serverOpt });
-			await interaction.reply(`The server **${serverOpt}** has been removed from the blacklist.`);
+			interaction.reply(
+				`The server **${serverOpt}** has been removed from the blacklist.`,
+			);
 		}
 	},
 };
