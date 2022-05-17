@@ -1,23 +1,13 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { staffPermissions } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('logout')
 		.setDescription('Logs the bot out.'),
 	async execute(interaction) {
-		let guild;
-		let member;
-		try {
-			guild = await interaction.client.guilds.fetch('969920027421732874');
-			member = await guild.members.fetch(interaction.user.id);
-		}
-		catch {
-			return interaction.reply('You do not have permissions to use this command.');
-		}
-		const roles = await member._roles;
-		const developer = '970706750229586010';
-
-		if (roles.includes(developer)) {
+		const roles = await staffPermissions(interaction);
+		if (roles === 'developer') {
 			await interaction.reply('Logged Out!');
 			await interaction.client.destroy();
 			process.exit(0);

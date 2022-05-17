@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { staffPermissions } = require('../../utils');
 const mongoUtil = require('../../utils');
 
 module.exports = {
@@ -96,19 +97,8 @@ module.exports = {
 				),
 		),
 	async execute(interaction) {
-		let guild;
-		let member;
-		try {
-			guild = await interaction.client.guilds.fetch('969920027421732874');
-			member = await guild.members.fetch(interaction.user.id);
-		}
-		catch {
-			return interaction.reply('You do not have permissions to use this command.');
-		}
-		const roles = await member._roles;
-		const staff = '970713237748318268';
-
-		if (roles.includes(staff)) {
+		const roles = await staffPermissions(interaction);
+		if (roles === 'staff') {
 			const subCommand = interaction.options.getSubcommand();
 			const database = mongoUtil.getDb();
 			require(`../../scripts/blacklist/${subCommand}`).execute(interaction, database);
