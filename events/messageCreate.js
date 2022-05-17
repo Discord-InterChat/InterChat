@@ -22,6 +22,58 @@ module.exports = {
 		const guildInDB = await setup.findOne({ 'guildId': message.guild.id });
 		const channelInNetwork = await connectedList.findOne({ channelId: message.channel.id });
 
+		async function sendInCatch(embed) {
+			const newConnectedChannels = await connectedList.find({});
+			newConnectedChannels.forEach(async element => {
+				console.log('ChannelId:', element.channelId);
+				const allChannel = await client.channels.fetch(element.channelId);
+				console.log(guildInDB.isEmbed);
+
+				const channelInDb = await setup.findOne({ 'channelId': allChannel.id });
+
+				if (guildInDB.isEmbed === null || channelInDb === null) {
+					await allChannel.send({ embeds: [embed] });
+				}
+				// guildInDB.isEmbed returning null. Cause server is not setup, find a way to try-catch this too or smth
+				else if (guildInDB.isEmbed === false && allChannel == message.channel.id) {
+					console.log('FALSE AND CHANNEL == MESSAGE.CHANNELID');
+					await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
+				}
+				else if (allChannel == channelInDb.channelId && channelInDb.isEmbed === false) {
+					console.log(allChannel.id);
+					console.log(guildInDB.channelId);
+					await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
+				}
+				else {
+					console.log('IN ELESE');
+					await allChannel.send({ embeds: [embed] });
+				}
+			});
+		}
+
+		async function messageTypes(channelObj, embed) {
+			const allChannel = await client.channels.fetch(channelObj.channelId);
+
+			const channelInDb = await setup.findOne({ 'channelId': allChannel.id });
+
+			if (guildInDB.isEmbed === null || channelInDb === null) {
+				await allChannel.send({ embeds: [embed] });
+			}
+			else if (guildInDB.isEmbed === false && allChannel == message.channel.id) {
+				console.log('FALSE AND CHANNEL == MESSAGE.CHANNELID');
+				await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
+			}
+			else if (allChannel == channelInDb.channelId && channelInDb.isEmbed === false) {
+				console.log(allChannel.id);
+				console.log(guildInDB.channelId);
+				await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
+			}
+			else {
+				console.log('IN ELESE');
+				await allChannel.send({ embeds: [embed] });
+			}
+		}
+
 		if (channelInNetwork) {
 
 			const userInBlacklist = await database.collection('blacklistedUsers').findOne({ userId: message.author.id });
@@ -64,7 +116,7 @@ module.exports = {
 			allConnectedChannels.forEach(async channelObj => {
 				// console.log(channelObj.channelId);
 				try {
-					// console.log('Trying...');
+					console.log('Trying...');
 					await client.channels.fetch(channelObj.channelId);
 				}
 				catch (e) {
@@ -76,57 +128,19 @@ module.exports = {
 							$in: deletedChannels,
 						},
 					});
+					await setup.deleteMany({
+						channelId: {
+							$in: deletedChannels,
+						},
+					});
 					console.log('channel id before idk:', channelObj.channelId);
-					idk();
+					sendInCatch(embed);
 					return;
 				}
-				const allChannel = await client.channels.fetch(channelObj.channelId);
-				console.log(guildInDB.isEmbed);
+				messageTypes(channelObj, embed);
 
-				// if (guildInDB.isEmbed === false) {
-				// 	console.log('Inside if');
-				// 	if (channel == message.channel.id) {
-				// 		await message.channel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
-				// 	}
-				// 	else {
-				// 		await channel.send({ embeds: [embed] });
-				// 	}
-				// }
-				// else {
-				// 	console.log(channel.id);
-				// 	console.log('Inside else');
-				// 	await channel.send({ embeds: [embed] });
-				// }
-				const channelInDb = await setup.findOne({ 'channelId': allChannel.id });
-				if (guildInDB.isEmbed === false && allChannel == message.channel.id) {
-					console.log('FALSE AND CHANNEL == MESSAGE.CHANNELID');
-					await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
-				}
-				else if (allChannel == channelInDb.channelId && channelInDb.isEmbed === false) {
-					console.log(allChannel.id);
-					console.log(guildInDB.channelId);
-					await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
-				}
-				else {
-					console.log('IN ELESE');
-					await allChannel.send({ embeds: [embed] });
-				}
 			});
 			// eslint-disable-next-line no-inner-declarations
-			async function idk() {
-				const newConnectedChannels = await connectedList.find({});
-				newConnectedChannels.forEach(async element => {
-					console.log('ChannelId:', element.channelId);
-					const channel = await client.channels.fetch(element.channelId);
-
-					if (guildInDB.isEmbed === false) {
-						await channel.send({ content: `**${message.author.tag}:** ${message.content}` });
-						return;
-					}
-
-					await channel.send({ embeds: [embed] });
-				});
-			}
 
 			// finally {
 			// 	console.log('Reached Finally');
