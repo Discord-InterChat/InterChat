@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const logger = require('../../logger');
-const { sendInFirst } = require('../../utils');
+const { sendInFirst, staffPermissions } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -19,19 +19,8 @@ module.exports = {
 				.setRequired(true),
 		),
 	async execute(interaction) {
-		let guild;
-		let member;
-		try {
-			guild = await interaction.client.guilds.fetch('969920027421732874');
-			member = await guild.members.fetch(interaction.user.id);
-		}
-		catch {
-			return interaction.reply('You do not have permissions to use this command.');
-		}
-		const roles = await member._roles;
-		const staff = '970713237748318268';
-
-		if (roles.includes(staff)) {
+		const roles = await staffPermissions(interaction);
+		if (roles === 'staff') {
 			const serverOpt = interaction.options.getString('server');
 			const reason = interaction.options.getString('reason');
 			let server;
