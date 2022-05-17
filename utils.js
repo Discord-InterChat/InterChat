@@ -113,7 +113,7 @@ module.exports = {
 		else uptime = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
 		return uptime;
 	},
-    
+
 	staffPermissions: async (interaction) => {
 		let guild;
 		let member;

@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 module.exports = {
 	async execute(interaction, database) {
 		const serverOpt = interaction.options.getString('type');
@@ -10,7 +10,7 @@ module.exports = {
 			const blacklistedServers = database.collection('blacklistedServers');
 			const searchCursor = await blacklistedServers.find();
 			const result = await searchCursor.toArray();
-			const Embed = new MessageEmbed()
+			const Embed = new EmbedBuilder()
 				.setColor('#0099ff')
 				.setAuthor({
 					name: 'Blacklisted Servers:',
@@ -30,7 +30,7 @@ module.exports = {
 			const blacklistedServers = database.collection('blacklistedUsers');
 			const searchCursor = await blacklistedServers.find();
 			const result = await searchCursor.toArray();
-			const Embed = new MessageEmbed()
+			const Embed = new EmbedBuilder()
 				.setColor('#0099ff')
 				.setAuthor({
 					name: 'Blacklisted Users:',
