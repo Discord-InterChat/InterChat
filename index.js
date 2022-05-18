@@ -52,4 +52,12 @@ for (const eventFile of eventFiles) {
 		client.on(event.name, (...args) => event.execute(...args, client));
 	}
 }
+
+process.on('uncaughtException', function(err) {
+	logger.error('Excepton:', err);
+});
+process.on('unhandledRejection', function(err) {
+	logger.error('Rejection:', err);
+});
+
 client.login(process.env.TOKEN);
