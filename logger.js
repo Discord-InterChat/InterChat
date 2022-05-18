@@ -1,7 +1,9 @@
 const { createLogger, format, transports } = require('winston');
 
 const custom = format.printf((info) => {
-	return `${info.level}: ${info.message} | ${info.timestamp}`;
+	if (info.stack == undefined) return `${info.level}: ${info.message} | ${info.timestamp}`;
+
+	return `${info.level}: ${info.message} | ${info.timestamp}\n${info.stack}`;
 });
 
 // eslint-disable-next-line no-unused-vars
