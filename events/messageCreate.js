@@ -99,7 +99,7 @@ module.exports = {
 				.setAuthor({ name: message.author.tag, iconURL: message.author.avatarURL({ dynamic: true }), url: `https://discord.com/users/${message.author.id}` })
 				.setFooter({ text: `From: ${message.guild}┃${message.guild.id}`, iconURL: message.guild.iconURL({ dynamic: true }) })
 				.addFields([
-					{ name: 'Message', value: message.content, inline: false }]);
+					{ name: 'Message', value: message.content || '\u200B', inline: false }]);
 
 			await require('../scripts/message/addBadges').execute(message, database, embed);
 			await require('../scripts/message/messageContentModifiers').execute(message, embed);
@@ -133,7 +133,7 @@ module.exports = {
 							$in: deletedChannels,
 						},
 					});
-					console.log('channel id before idk:', channelObj.channelId);
+					console.log('channel id before:', channelObj.channelId);
 					sendInCatch(embed);
 					return;
 				}

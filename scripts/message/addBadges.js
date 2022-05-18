@@ -1,6 +1,6 @@
 module.exports = {
 	async execute(message, database, embed) {
-		const badges = await database.collection('userBadges').findOne({ user_id: message.author.id });
+		const badges = await database.collection('userBadges').findOne({ userId: message.author.id });
 
 		if (!badges) return;
 
