@@ -118,9 +118,11 @@ module.exports = {
 		let guild;
 		let member;
 		let roles;
+		// Change staff and developers to cbhq role ids [change]
 		const staff = '970713237748318268';
 		const developers = '970706750229586010';
 		try {
+			// change guild to cbhq guild id [change]
 			guild = await interaction.client.guilds.fetch('969920027421732874');
 			member = await guild.members.fetch(interaction.user.id);
 			roles = member._roles;

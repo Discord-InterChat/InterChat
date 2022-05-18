@@ -16,14 +16,15 @@
         "common-tags": "^1.8.0",
         "dayjs": "^1.10.7",
         "discord-api-types": "^0.24.0",
-        "discord.js": "^13.6.0",
+        "discord.js": "^14.0.0-dev.1652832627-dfe449c",
         "dotenv": "^10.0.0",
         "human-date": "^1.4.0",
         "mongodb": "^4.1.3",
         "os-utils": "^0.0.14",
         "prettier": "^2.4.1",
         "uuid": "^8.3.2",
-        "winston": "^3.3.3"
+        "winston": "^3.3.3",
+        "winston-daily-rotate-file": "^4.6.1"
     },
     "devDependencies": {
         "@types/common-tags": "^1.8.1",

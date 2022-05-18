@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { EmbedBuilder, ChannelType, ActionRowBuilder, SelectMenuBuilder } = require('discord.js');
+const { EmbedBuilder, ChannelType, ActionRowBuilder, SelectMenuBuilder, ButtonStyle } = require('discord.js');
+const { ButtonBuilder } = require('discord.js/node_modules/@discordjs/builders');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../../logger');
 const { colors } = require('../../utils');
@@ -9,10 +10,20 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setup')
 		.setDescription('Replies with your input!')
-		.addChannelOption(option => option.setName('destination').setDescription('Select a channel'))
+		.addChannelOption(option => option.setName('destination').setDescription('Select a channel').addChannelType(ChannelType.GuildCategory))
 		.setDefaultPermission(false),
 
 	async execute(interaction) {
+		const confirmBtn = new ActionRowBuilder().addComponents([
+			new ButtonBuilder()
+				.setCustomId('yes')
+				.setLabel('Yes')
+				.setStyle(ButtonStyle.Success),
+			new ButtonBuilder()
+				.setCustomId('no')
+				.setLabel('No')
+				.setStyle(ButtonStyle.Danger),
+		]);
 		const row = new ActionRowBuilder().addComponents([
 			new SelectMenuBuilder()
 				.setCustomId(uuidv4())
@@ -20,9 +31,15 @@ module.exports = {
 				.addOptions([
 					{
 						label: 'Embed Message',
-						value: 'idk',
-						description: 'Edit Embed Message',
+						value: 'embed',
+						description: 'Toggle Embeds on or off',
 						emoji: '🆒',
+					},
+					{
+						label: 'Reset Setup',
+						value: 'reset',
+						description: 'Delete all data related to this server from ChatBot',
+						emoji: '♻️',
 					},
 				]),
 		]);
@@ -33,6 +50,8 @@ module.exports = {
 		const destination = interaction.options.getChannel('destination');
 		const guildInDB = await setup.findOne({ 'guildId': interaction.guild.id });
 		// console.log(guildInDB, interaction.guild.id);
+		console.log(await database.stats());
+
 		const message = await interaction.deferReply();
 		if (guildInDB) {
 			const channels = interaction.guild.channels.cache.find(channel => channel.id === guildInDB.channelId);
@@ -121,27 +140,52 @@ module.exports = {
 			await interaction.editReply({ content:`Setup for guild **${interaction.guild}**`, embeds: [updateEmbed], components: [row] });
 
 			collector.on('collect', async (collected) => {
-			// const value = collected.values[0];
+				const value = collected.values[0];
 				if (collector.total == collector.options.max) {
 					return interaction.editReply({ content: 'Max number of tries reached. Please run the command again to restart.', embeds: [], components: [] });
 				}
 				collected.deferUpdate();
 				// let guild2 = await setup.findOne({ 'guildId': interaction.guild.id });
 				// console.table(guild2);
+				if (value === 'embed') {
+					if (guild.isEmbed === true) {
+						await setup.updateOne({ guildId: interaction.guild.id }, { $set:{ isEmbed: false } });
 
-				if (guild.isEmbed == true) {
-					await setup.updateOne({ guildId: interaction.guild.id }, { $set:{ isEmbed: false } });
+						guild = await setup.findOne({ 'guildId': interaction.guild.id });
+						updateEmbed.spliceFields(0, 1, { name: 'Details', value: `**Status:** Complete\n **Channel(s):** <#${guild.channelId}>\n **Embed Message:** ${guild.isEmbed}` });
+						await interaction.editReply({ embeds: [updateEmbed] });
+						return interaction.followUp({ content: '**Messages will now show up normally.**' });
+					}
+					if (guild.isEmbed === false) {
+						await setup.updateOne({ guildId: interaction.guild.id }, { $set:{ isEmbed: true } });
 
-					guild = await setup.findOne({ 'guildId': interaction.guild.id });
-					updateEmbed.spliceFields(0, 1, { name: 'Details', value: `**Status:** Complete\n **Channel(s):** <#${guild.channelId}>\n **Embed Message:** ${guild.isEmbed}` });
-					return interaction.editReply({ content: '**Messages will now show up normally.**', embeds: [updateEmbed], components: [row] });
+						guild = await setup.findOne({ 'guildId': interaction.guild.id });
+						updateEmbed.spliceFields(0, 1, { name: 'Details', value: `**Status:** Complete\n **Channel(s):** <#${guild.channelId}>\n **Embed Message:** ${guild.isEmbed}` });
+						await interaction.editReply({ embeds: [updateEmbed] });
+						return interaction.followUp({ content: '**This server will recieve embeded messages from now on.**' });
+					}
 				}
-				if (guild.isEmbed === false) {
-					await setup.updateOne({ guildId: interaction.guild.id }, { $set:{ isEmbed: true } });
+				else if (value === 'reset') {
+					const btnfilter = (menuInteraction) => menuInteraction.isButton();
+					const confirmMsg = await interaction.followUp({ content: '**Are you sure? This is a potentially destructive action!**', components: [confirmBtn] });
+					const btnCollector = confirmMsg.createMessageComponentCollector({ btnfilter, time: 60000, max: '4' });
 
-					guild = await setup.findOne({ 'guildId': interaction.guild.id });
-					updateEmbed.spliceFields(0, 1, { name: 'Details', value: `**Status:** Complete\n **Channel(s):** <#${guild.channelId}>\n **Embed Message:** ${guild.isEmbed}` });
-					return interaction.editReply({ content: '**Messages will now show up normally.**', embeds: [updateEmbed], components: [row] });
+					btnCollector.on('collect', async (btnCollected) => {
+						if (btnCollected.customId === 'yes') {
+							await connectedList.deleteOne({
+								serverId: interaction.guild.id,
+							});
+							await setup.deleteOne({
+								guildId: interaction.guild.id,
+
+							});
+							logger.warn(`Guild "${interaction.guild}" has requested deletion of their data`);
+							return confirmMsg.edit({ content: '**All** of this server\'s data has been erased from chatbot!', components: [] });
+						}
+						else if (btnCollected.customId === 'no') {
+							return confirmMsg.edit({ content: 'Cancelled.', components: [] });
+						}
+					});
 				}
 			});
 		}
