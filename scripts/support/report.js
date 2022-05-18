@@ -1,22 +1,22 @@
-const { MessageActionRow, MessageButton, EmbedBuilder } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, EmbedBuilder, ButtonStyle } = require('discord.js');
 const { colors } = require('../../utils');
 
 module.exports = {
 	async execute(interaction) {
-		const row = new MessageActionRow()
-			.addComponents(
-				new MessageButton()
+		const row = new ActionRowBuilder()
+			.addComponents([
+				new ButtonBuilder()
 					.setCustomId('yes')
 					.setLabel('Yes')
-					.setStyle('SUCCESS'),
-				new MessageButton()
+					.setStyle(ButtonStyle.Success),
+				new ButtonBuilder()
 					.setCustomId('no')
 					.setLabel('No')
-					.setStyle('DANGER'),
-			);
+					.setStyle(ButtonStyle.Danger),
+			]);
 		await interaction.reply({ content: 'Do you want to send this report to the ChatBot HQ Server?', components: [row] });
 		const message = await interaction.fetchReply();
-		const collector = message.createMessageComponentCollector({ componentType: 'BUTTON', time: 10000, idle: 10000, max: 1 });
+		const collector = message.createMessageComponentCollector({ time: 10000, idle: 10000, max: 1 });
 
 		collector.on('collect', async i => {
 			if (i.user.id === interaction.user.id) {
@@ -30,7 +30,7 @@ module.exports = {
 						.setFooter(`From Server: ${interaction.guild.name}`, interaction.guild.iconURL({ dynamic: true }))
 						.setTimestamp()
 						.setColor(colors());
-
+					// change channelId to cbhq later [change]
 					const reportChannel = await interaction.client.channels.fetch('821610981155012628');
 
 					await interaction.followUp('Thank you for your report!');

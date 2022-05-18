@@ -1,14 +1,14 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { ActionRow, MessageButton, Permissions } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, Permissions } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('invite')
 		.setDescription('Invite the bot to your server'),
 	async execute(interaction) {
-		const Normal = new ActionRow()
+		const Normal = new ActionRowBuilder()
 			.addComponents(
-				new MessageButton()
+				new ButtonBuilder()
 				// .setCustomId('primary')
 					.setLabel('Normal')
 					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'] }))
@@ -17,9 +17,9 @@ module.exports = {
 					.setDisabled(false),
 
 			);
-		const Admin = new ActionRow()
+		const Admin = new ActionRowBuilder()
 			.addComponents(
-				new MessageButton()
+				new ButtonBuilder()
 				// .setCustomId('primary')
 					.setLabel('Administrator')
 					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'], permissions: Permissions.FLAGS.ADMINISTRATOR }))
