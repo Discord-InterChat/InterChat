@@ -1,4 +1,3 @@
-const logger = require('../../logger');
 const { sendInFirst } = require('../../utils');
 
 module.exports = {
@@ -20,11 +19,9 @@ module.exports = {
 			try {
 				server = await interaction.client.guilds.fetch(serverOpt);
 			}
-			catch (err) {
-				interaction.reply(
-					'Something went wrong! Are you sure that was a valid server ID?',
-				);
-				return logger.error(err);
+			catch {
+				interaction.reply('Something went wrong! Are you sure that was a valid server ID?');
+				return;
 			}
 			await blacklistedServers.insertOne({
 				serverName: server.name,
@@ -49,7 +46,7 @@ module.exports = {
 
 			await blacklistedServers.deleteOne({ serverId: serverOpt });
 			interaction.reply(
-				`The server **${serverOpt}** has been removed from the blacklist.`,
+				`The server **${blacklistedServers.serverName}** has been removed from the blacklist.`,
 			);
 		}
 	},

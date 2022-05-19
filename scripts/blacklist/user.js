@@ -19,14 +19,15 @@ module.exports = {
 
 		if (subcommandGroup == 'add') {
 			if (userInBlacklist) {
-				interaction.reply(`${user.username} is already blacklisted.`);
+				interaction.reply(`${user.username}#${user.discriminator} is already blacklisted.`);
 				return;
 			}
 			if (userOpt == interaction.user.id) return interaction.reply('You cannot blacklist yourself.');
 			if (userOpt == interaction.client.user.id) return interaction.reply('You cannot blacklist the bot wtf.');
 
+
 			await blacklistedUsers.insertOne({
-				username: user.username,
+				username: `${user.username}#${user.discriminator}`,
 				userId: userOpt,
 				reason: reason,
 			});
