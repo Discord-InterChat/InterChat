@@ -10,7 +10,7 @@ module.exports = {
 		const embed = new EmbedBuilder()
 			.setTitle('Update Notes')
 			.setAuthor({ name: 'Requested By: ' + interaction.user.tag, iconURL: interaction.user.avatarURL({ dynamic: true }) })
-			.setFooter(interaction.client.user.tag, interaction.client.user.avatarURL())
+			.setFooter({ text: interaction.client.user.tag, iconURL: interaction.client.user.avatarURL() })
 			.setDescription(stripIndents`
 			Hey!
 			ChatBot has gone through a major update and is now ready to be used on a larger scale. The entire code has been rewritten from Python (discord.py) to JavaScript (discord.js), and we have converted from traditional prefixes to slash commands. **Due to this, you will have to re-invite ChatBot *with* slash command permissions for it to work properly.** [Click Here](<${interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'] })}>)

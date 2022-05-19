@@ -27,7 +27,7 @@ module.exports = {
 						.setTitle('New Report')
 						.setDescription(`**Type: ${type}**\n\n` + report)
 						.setAuthor({ name: `Reported By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
-						.setFooter(`From Server: ${interaction.guild.name}`, interaction.guild.iconURL({ dynamic: true }))
+						.setFooter({ text: `From Server: ${interaction.guild.name}`, iconURL: interaction.guild.iconURL({ dynamic: true }) })
 						.setTimestamp()
 						.setColor(colors());
 					// change channelId to cbhq later [change]
