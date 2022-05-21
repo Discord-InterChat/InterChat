@@ -1,5 +1,10 @@
 # ChatBot-Alpha
 
+## Review, Change And Bug comments:
+1. `change` - To change later to avoid facing problems in the stable release: Marked as `[change]`
+2. `bug` - A bug that must be fixed before pushing to repo: Marked as `[bug]`
+3. `review` - Review a piece of code to see if there is a better alternative : Marked as `[review]`
+
 ## Discord Intent Questions:
 ### Application Details
 Chatbot is a growing bot which provides an inter-server chat. The inter-server chat crosses the boundary constraining servers to only talk amongst itself. The developers are also working hard to make sure that the chat is free from NSFW and other un-family-friendly things.
