@@ -50,7 +50,6 @@ module.exports = {
 		const destination = interaction.options.getChannel('destination');
 		const guildInDB = await setup.findOne({ 'guildId': interaction.guild.id });
 		// console.log(guildInDB, interaction.guild.id);
-		console.log(await database.stats());
 
 		const message = await interaction.deferReply();
 		if (guildInDB) {
@@ -136,7 +135,7 @@ module.exports = {
 
 			const filter = (menuInteraction) => menuInteraction.isSelectMenu();
 
-			const collector = message.createMessageComponentCollector({ filter, time: 60000, max: '4' });
+			const collector = message.createMessageComponentCollector({ filter, time: 60000, max: '2' });
 			await interaction.editReply({ content:`Setup for guild **${interaction.guild}**`, embeds: [updateEmbed], components: [row] });
 
 			collector.on('collect', async (collected) => {

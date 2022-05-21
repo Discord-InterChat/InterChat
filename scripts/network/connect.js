@@ -11,6 +11,7 @@ module.exports = {
 			return;
 		}
 		if (findServer) {
+			// Bot crashes when channel doesn't exist [Bug]
 			const connectedChannel = await interaction.guild.channels.fetch(findServer.channelId);
 			await interaction.reply(`This server is already connected to the chat network in the channel ${connectedChannel}. Please disconnect from there first.`);
 			return;

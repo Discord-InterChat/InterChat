@@ -41,7 +41,7 @@ module.exports = {
 			}
 
 			await blacklistedUsers.deleteOne({ userId: userOpt });
-
+			// Might wanna fetch user instead of showing name from db incase user changes name [bug]
 			interaction.reply(`**${user.username}#${user.discriminator}** has been removed from the blacklist.`);
 		}
 	},

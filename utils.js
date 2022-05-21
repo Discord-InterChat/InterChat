@@ -124,7 +124,7 @@ module.exports = {
 		try {
 			// change guild to cbhq guild id [change]
 			guild = await interaction.client.guilds.fetch('969920027421732874');
-			member = await guild.members.fetch(interaction.user.id);
+			member = await guild.members.cache.get(interaction.user.id);
 			roles = member._roles;
 
 			if (roles.includes(staff)) {
