@@ -1,5 +1,6 @@
 const { stripIndents } = require('common-tags');
 const logger = require('../../logger');
+const { normal } = require('../../emoji.json');
 
 module.exports = {
 	async execute(interaction, connectedList) {
@@ -11,7 +12,7 @@ module.exports = {
 			return;
 		}
 		if (findServer) {
-			// Bot crashes when channel doesn't exist [Bug]
+			// Bot crashes when channel is deleted in the same guild before disconnection [Bug]
 			const connectedChannel = await interaction.guild.channels.fetch(findServer.channelId);
 			await interaction.reply(`This server is already connected to the chat network in the channel ${connectedChannel}. Please disconnect from there first.`);
 			return;
@@ -24,10 +25,10 @@ module.exports = {
 			connectedList.count({}, async (error, numOfDocs) => {
 				if (error) {logger.error(error);}
 				if (numOfDocs > 1) {
-					await interaction.reply(`This channel has been connected to the chat network. You are currently with ${numOfDocs} other servers, Enjoy! <:chat_clipart:772393314413707274>`);
+					await interaction.reply(`This channel has been connected to the chat network. You are currently with ${numOfDocs} other servers, Enjoy! ${normal.clipart}`);
 				}
 				else {
-					await interaction.reply('This channel has been connected to the chat network, though no one else is there currently... *cricket noises* <:chat_clipart:772393314413707274>');
+					await interaction.reply(`This channel has been connected to the chat network, though no one else is there currently... *cricket noises* ${normal.clipart}`);
 				}
 			});
 			logger.info(`${interaction.guild.name} (${interaction.guildId}) has joined the network.`);
@@ -42,7 +43,7 @@ module.exports = {
 		await allConnectedChannels.forEach(channelEntry => {
 			interaction.client.channels.fetch(channelEntry.channelId).then(async channel => {
 				await channel.send(stripIndents`
-					A new server has joined us in the Network! <:chat_clipart:772393314413707274>
+					A new server has joined us in the Network! ${normal.clipart}
 
 					**Server Name:** __${interaction.guild.name}__
 					**Member Count:** __${interaction.guild.memberCount}__`);

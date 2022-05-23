@@ -7,7 +7,7 @@ module.exports = {
 		.setDescription('Logs the bot out.'),
 	async execute(interaction) {
 		const roles = await staffPermissions(interaction);
-		if (roles === 'developer') {
+		if (roles.includes('developer')) {
 			await interaction.reply('Logged Out!');
 			await interaction.client.destroy();
 			process.exit(0);

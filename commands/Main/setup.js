@@ -1,9 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { EmbedBuilder, ChannelType, ActionRowBuilder, SelectMenuBuilder, ButtonStyle } = require('discord.js');
 const { ButtonBuilder } = require('discord.js/node_modules/@discordjs/builders');
-const { v4: uuidv4 } = require('uuid');
 const logger = require('../../logger');
 const { colors } = require('../../utils');
+const { normal } = require('../../emoji.json');
 const mongoUtil = require('../../utils');
 
 module.exports = {
@@ -26,7 +26,7 @@ module.exports = {
 		]);
 		const row = new ActionRowBuilder().addComponents([
 			new SelectMenuBuilder()
-				.setCustomId(uuidv4())
+				.setCustomId('setup')
 				.setPlaceholder('Customize Setup')
 				.addOptions([
 					{
@@ -38,7 +38,7 @@ module.exports = {
 					{
 						label: 'Reset Setup',
 						value: 'reset',
-						description: 'Delete all data related to this server from ChatBot',
+						description: 'Delete all data related from this server from ChatBot',
 						emoji: '♻️',
 					},
 				]),
@@ -49,7 +49,6 @@ module.exports = {
 		const connectedList = database.collection('connectedList');
 		const destination = interaction.options.getChannel('destination');
 		const guildInDB = await setup.findOne({ 'guildId': interaction.guild.id });
-		// console.log(guildInDB, interaction.guild.id);
 
 		const message = await interaction.deferReply();
 		if (guildInDB) {
@@ -75,9 +74,6 @@ module.exports = {
 				console.error;
 				return;
 			}
-			// await interaction.followUp({ content: 'An error occured!', ephemeral: true });
-			// console.trace;
-			// return;
 		}
 
 		if (!guildInDB) {
@@ -105,7 +101,7 @@ module.exports = {
 				}],
 			});
 
-			const setupmsg = await channel.send('Setup Complete! This channel has been connected to the network! Type `/guide` to get started, or type `/support server` to join the support server for any further questions that you may have. Enjoy! <:chat_clipart:772393314413707274>');
+			const setupmsg = await channel.send(`Setup Complete! This channel has been connected to the network! Type \`/guide\` to get started, or type \`/support server\` to join the support server for any further questions that you may have. Enjoy! ${normal.clipart}`);
 			await setup.insertOne({
 				'guildId': interaction.guild.id,
 				'channelId': setupmsg.channel.id,
@@ -115,7 +111,6 @@ module.exports = {
 			await connectedList.insertOne(insertChannel);
 
 			// Message link format: https://discord.com/channels/${setupmsg.guildId}/${setupmsg.channelId}/${setupmsg.messageId}
-			// await interaction.followUp({ content:`Chatbot has successfully been setup to guild **${interaction.guild}**` });
 			update();
 		}
 
@@ -129,13 +124,12 @@ module.exports = {
 				.setColor(colors())
 				.addFields([
 					{ name: 'Details', value: `**Status:** Complete\n **Channel(s):** <#${guild.channelId}>\n **Embed Message:** ${guild.isEmbed}` },
-					{ name: 'Premium Details', value: '**Premium:** false\n**Multi-channel:** false\n**Private Networks:** false', inline: true },
 				])
 				.setAuthor({ name: 'ChatBot Setup', iconURL: interaction.client.user.avatarURL() });
 
 			const filter = (menuInteraction) => menuInteraction.isSelectMenu();
 
-			const collector = message.createMessageComponentCollector({ filter, time: 60000, max: '2' });
+			const collector = message.createMessageComponentCollector({ filter, time: 60000, max: '3' });
 			await interaction.editReply({ content:`Setup for guild **${interaction.guild}**`, embeds: [updateEmbed], components: [row] });
 
 			collector.on('collect', async (collected) => {
@@ -144,8 +138,6 @@ module.exports = {
 					return interaction.editReply({ content: 'Max number of tries reached. Please run the command again to restart.', embeds: [], components: [] });
 				}
 				collected.deferUpdate();
-				// let guild2 = await setup.findOne({ 'guildId': interaction.guild.id });
-				// console.table(guild2);
 				if (value === 'embed') {
 					if (guild.isEmbed === true) {
 						await setup.updateOne({ guildId: interaction.guild.id }, { $set:{ isEmbed: false } });
@@ -166,7 +158,7 @@ module.exports = {
 				}
 				else if (value === 'reset') {
 					const btnfilter = (menuInteraction) => menuInteraction.isButton();
-					const confirmMsg = await interaction.followUp({ content: '**Are you sure? This is a potentially destructive action!**', components: [confirmBtn] });
+					const confirmMsg = await interaction.followUp({ content: '**Are you sure? This will delete all linked channels and reset all of the server\'s data!**', components: [confirmBtn] });
 					const btnCollector = confirmMsg.createMessageComponentCollector({ btnfilter, time: 60000, max: '4' });
 
 					btnCollector.on('collect', async (btnCollected) => {
@@ -179,7 +171,7 @@ module.exports = {
 
 							});
 							logger.warn(`Guild "${interaction.guild}" has requested deletion of their data`);
-							return confirmMsg.edit({ content: '**All** of this server\'s data has been erased from chatbot!', components: [] });
+							return confirmMsg.edit({ content: `${normal.yes} **Reset Complete**`, components: [] });
 						}
 						else if (btnCollected.customId === 'no') {
 							return confirmMsg.edit({ content: 'Cancelled.', components: [] });
@@ -188,8 +180,6 @@ module.exports = {
 				}
 			});
 		}
-		// const allConnected = await connectedList.find().toArray();
-		// console.table(allConnected);
 	},
 
 };

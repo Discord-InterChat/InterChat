@@ -11,12 +11,12 @@ module.exports = {
 				.setName('type')
 				.setDescription('The type of blacklist to list.')
 				.setRequired(true)
-				.addChoice('Server', 'server'),
+				.addChoices([['Server', 'server'], ['User', 'user']]),
 		),
 
 	async execute(interaction) {
 		const roles = await staffPermissions(interaction);
-		if (roles === 'staff') {
+		if (roles.includes('staff')) {
 			const database = mongoUtil.getDb();
 			require('../../scripts/connected/list').execute(interaction, database);
 		}

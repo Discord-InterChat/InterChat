@@ -98,7 +98,7 @@ module.exports = {
 		),
 	async execute(interaction) {
 		const roles = await staffPermissions(interaction);
-		if (roles === 'staff') {
+		if (roles.includes('staff')) {
 			const subCommand = interaction.options.getSubcommand();
 			const database = mongoUtil.getDb();
 			require(`../../scripts/blacklist/${subCommand}`).execute(interaction, database);

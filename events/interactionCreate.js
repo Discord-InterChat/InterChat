@@ -1,5 +1,3 @@
-// const logger = require('../logger');
-
 module.exports = {
 	name: 'interactionCreate',
 	async execute(interaction) {

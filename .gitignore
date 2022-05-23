@@ -1,8 +1,6 @@
 node_modules/
 logs/
-.npm/
+.git/
 .env
 devperms(test).js
-test.js
-idk.txt
 /package-lock.json

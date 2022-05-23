@@ -4,6 +4,12 @@ module.exports = {
 		const serverOpt = interaction.options.getString('type');
 
 		if (serverOpt == 'server') displayServers();
+		if (serverOpt == 'user') displayUsers();
+
+		async function displayUsers() {
+			await interaction.reply({ content: 'Coming soon!', ephemeral: true });
+		}
+
 		async function displayServers() {
 			const connectedList = database.collection('connectedList');
 			const searchCursor = await connectedList.find();

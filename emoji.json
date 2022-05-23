@@ -1,0 +1,21 @@
+{
+    "normal": {
+    "yes": "<:yes:977600103206498354>",
+    "neutral": "<:neutral:977600034055016499>",
+	"no": "<:no:977600033740431410>",
+    "chatbotStaff": "<:DiscordStaff:910149173146443876>",
+	"invite": "<:Add:910150366035861554>", 
+    "clipart": "<:chat_clipart:772393314413707274>",
+    "checkGreen": "<a:Check_green:772393366109290498>",
+    "tada": "<a:tada:771245416736882708>",
+    "shinyStaff": "<a:staff:789764656549068820>"
+    },
+
+    "badge": {
+        "badge_developer": "<:badge_BotDeveloper:976725090056146994>",
+        "badge_staff": "<:badge_DiscordStaff:976725090169421905>",
+        "badge_premium": "<:modbutbetter:918511698367901707>"
+    }
+    
+    
+}

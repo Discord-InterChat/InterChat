@@ -20,7 +20,7 @@ module.exports = {
 		),
 	async execute(interaction) {
 		const roles = await staffPermissions(interaction);
-		if (roles === 'staff') {
+		if (roles.includes('staff')) {
 			const serverOpt = interaction.options.getString('server');
 			const reason = interaction.options.getString('reason');
 			let server;

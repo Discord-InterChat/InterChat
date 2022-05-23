@@ -1,5 +1,6 @@
 const { ButtonBuilder, EmbedBuilder, ActionRowBuilder, ButtonStyle } = require('discord.js');
 const { colors } = require('../../utils');
+const { normal } = require('../../emoji.json');
 
 module.exports = {
 	async execute(interaction) {
@@ -33,7 +34,10 @@ module.exports = {
 					const suggestionChannel = await interaction.client.channels.fetch('976099718251831366');
 
 					await interaction.followUp('Thank you for your suggestion!');
-					await suggestionChannel.send({ content: '@Developers', embeds: [embed] });
+					const suggestionMsg = await suggestionChannel.send({ content: '@Developers', embeds: [embed] });
+					suggestionMsg.react(normal.yes);
+					suggestionMsg.react(normal.neutral);
+					suggestionMsg.react(normal.no);
 				}
 				else {
 					await interaction.followUp('Ok, discarding suggestion.');

@@ -20,7 +20,7 @@ fs.readdirSync('./commands').forEach((dir) => {
 	}
 });
 
-rest.put(Routes.applicationCommands(process.env.CLIENT_ID, process.env.GUILD_ID), { body: commands })
+rest.put(Routes.applicationCommands('798748015435055134', '969920027421732874'), { body: commands })
 	.then(() => {
 		logger.info('Registered all application commands successfully');
 	})

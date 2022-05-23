@@ -24,10 +24,10 @@ const client = new discord.Client({ intents: [
 
 client.description = 'A growing discord bot which provides inter-server chat!';
 client.commands = new discord.Collection();
-client.version = '2.3.1';
+client.version = 'v1.1.0';
 
 module.exports.client = client;
-
+module.exports.discord = discord;
 
 fs.readdirSync('./commands').forEach((dir) => {
 	if (fs.statSync(`./commands/${dir}`).isDirectory()) {

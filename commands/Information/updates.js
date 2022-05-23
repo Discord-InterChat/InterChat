@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
+const { normal } = require('../../emoji.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -27,7 +28,7 @@ module.exports = {
 			BTW ChatBot has reached 300 servers, and it has been over 1 year since we got verified :partying_face: :partying_face:! So thank you for sticking with us this entire time!
 
 			:christmas_tree: Merry Christmas :christmas_tree: and a :calendar_spiral: Happy New Year! :calendar_spiral:
-			- The ChatBot Staff Team <a:staff:789764656549068820>
+			- The ChatBot Staff Team ${normal.shinyStaff}
 			`);
 		await interaction.reply({ embeds: [embed] });
 	},

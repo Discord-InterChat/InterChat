@@ -1,19 +1,22 @@
-# ChatBot Alpha Changelogs
+# ChatBot Changelogs
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## 2.3.0 - 2022-05-21
+### Changed 
+- The `network` command will be replaced by `/setup` soon™️
 
-
-## 0.2.0 - 2022-05-04
-### Changed
-- Updated to v14 of discord.js
-- Updated embdeds to v14 format
-- Updated embed color names and intent names
-
-## 0.3.0 - 2022-05-16
 ### Added
 - Added setup
-- Added no-embed option to setup
+- Updated to v14 of discord.js
+- View all connected servers with `/connected`
+- Option to clear all guild data from chatbot's database in setup command
+- Enabling and disabling embeds for each server is now fully functional
+- Sending tenor gifs with chatbot (beta)
+- Sending any attachment link with chatbot [.gif |  .png | .webg | .svg ] (beta)
+- Turn off embeds in global chat (beta)
+
 ### Fixes
+- Images should stay longer in the embed when you upload an image directly
+- Updated error handlers to stop bot from crashing
 - Fixed bug where chatbot crashes when kicked from a server
+

@@ -55,7 +55,7 @@ module.exports = {
 		),
 	async execute(interaction) {
 		const roles = await staffPermissions(interaction);
-		if (roles === 'staff') {
+		if (roles.includes('staff')) {
 			const subcommand = interaction.options.getSubcommand();
 			const user = interaction.options.getUser('user');
 			const badge = interaction.options.getString('badge');

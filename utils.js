@@ -119,20 +119,22 @@ module.exports = {
 		let member;
 		let roles;
 		// Change staff and developers to cbhq role ids [change]
-		const staff = '970713237748318268';
-		const developers = '970706750229586010';
+		const staff = '800698916995203104';
+		const developers = '770256273488347176';
 		try {
 			// change guild to cbhq guild id [change]
-			guild = await interaction.client.guilds.fetch('969920027421732874');
-			member = await guild.members.cache.get(interaction.user.id);
+			guild = await interaction.client.guilds.fetch('770256165300338709');
+			member = await guild.members.fetch(interaction.user.id);
 			roles = member._roles;
+			const verification = [];
+			if (roles.includes(developers)) {
+				verification.push('developer');
+			}
 
 			if (roles.includes(staff)) {
-				return 'staff';
+				verification.push('staff');
 			}
-			else if (roles.includes(developers)) {
-				return 'developer';
-			}
+			return verification;
 		}
 		catch (e) {
 			console.error(e);

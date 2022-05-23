@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { stripIndents } = require('common-tags');
 const { EmbedBuilder } = require('discord.js');
 const { colors } = require('../../utils');
+const { normal } = require('../../emoji.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -27,7 +28,7 @@ module.exports = {
 			.setImage('https://images-ext-2.discordapp.net/external/k9bElI9Z2mxhi2DTO783PI-wj00ledbPPvzZE-gPG2k/https/media.discordapp.net/attachments/770258662694060032/799566242276704287/standard_9.gif?width=400&height=51')
 			.setAuthor({ name: interaction.client.user.tag, iconURL: interaction.client.user.avatarURL() });
 		await interaction.member.send({ embeds: [embed] });
-		await interaction.reply('Sent the rules to your DMs <a:Check_green:772393366109290498>');
+		await interaction.reply(`Sent the rules to your DMs ${normal.checkGreen}`);
 
 	},
 };

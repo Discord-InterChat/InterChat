@@ -3,7 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const logger = require('../logger');
 const mongoUtil = require('../utils');
 const { colors } = require('../utils');
-const { client } = require('../index');
+const { client, discord } = require('../index');
 const { messageTypes } = require('../scripts/message/messageTypes');
 module.exports = {
 	name: 'messageCreate',
@@ -14,20 +14,28 @@ module.exports = {
 			await message.reply('ChatBot does not respond to any commands with the prefix `c!` anymore since we have switched to slash commands! Please type / and check out the list of commands!');
 			return;
 		}
+		if (message.content.startsWith('!eval')) await require('../scripts/eval-temp/eval').eval(message);
 
+		if (message.content.startsWith('c!webhook')) {
+			const webhookClient = new discord.WebhookClient({ url: 'https://discord.com/api/webhooks/977758058044342292/r6yPP2JCpWNgzLDff_-0jzBxrOHC5rfD_PSRrza4AAbobO-J6O3L4tlFIOrF2EH2erpD' });
+
+			webhookClient.send({
+				content: 'Webhook test',
+				username: message.author.username,
+				avatarURL: message.author.avatarURL(),
+			});
+		}
 		// main db where ALL connected channel data is stored
 		const database = mongoUtil.getDb();
 		const connectedList = database.collection('connectedList');
 
 		// db for setup data
 		const setup = database.collection('setup');
-
-		// const guildInDB = await setup.findOne({ 'guildId': message.guild.id });
 		const channelInNetwork = await connectedList.findOne({ channelId: message.channel.id });
 
 		/**
 		 *
-		 * @param {EmbedBuilder} embed Takes discord.js embed object
+		 * @param {*} embed
 		 */
 		async function sendInCatch(embed) {
 			/*
@@ -35,40 +43,13 @@ module.exports = {
 			1. it sends 2 messages when initiated (probably cause of 2 foreach loops)
 			2. you have to do same thing from messageTypes function here...
 			*/
+
+			// Gives Maximum call stack size exceeded error [bug]
 			const newConnectedChannels = await connectedList.find({});
 			newConnectedChannels.forEach(async element => {
 				await messageTypes(client, message, element, embed, setup);
 			});
 		}
-
-		// /**
-		//  *
-		//  * @param {Object} channelObj Sending message in the right channel object | Takes discord.js channel object
-		//  * @param {EmbedBuilder} embed The Embed you want to send to the channel | Takes discord.js embed object
-		//  * @returns
-		//  */
-		// async function messageTypes(channelObj, embed) {
-		// 	const allChannel = await client.channels.fetch(channelObj.channelId);
-		// 	// Probably fetching again to get updated results from the DB [review]
-		// 	const channelInDB = await setup.findOne({ 'channelId': allChannel.id });
-
-		// 	// if channel is in setup db then enter this (do not edit as it will return null and break everything)
-		// 	// also why did I use guildIndb and not channelInDB?? (edited now I hope it doesnt break stuff lmao)
-		// 	if (channelInDB && channelInDB.isEmbed === false && allChannel == message.channel.id) {
-		// 		logger.info('false and channel equal message.channelid');
-		// 		logger.info(allChannel.name);
-		// 		await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
-		// 	}
-		// 	else if (channelInDB && allChannel == channelInDB.channelId && channelInDB.isEmbed === false) {
-		// 		logger.info('both are false');
-		// 		await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
-		// 	}
-		// 	else {
-		// 		console.log('in elese');
-		// 		await allChannel.send({ embeds: [embed] });
-		// 	}
-		// }
-
 
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
@@ -83,11 +64,6 @@ module.exports = {
 				return;
 			}
 
-			// if (message.content.includes('https://') || message.content.includes('http://')) {
-			// 	await message.channel.send('Haha good try, but the link you posted didn\'t get sent 😆.');
-			// 	return;
-			// }
-			// fetching all channels from db
 			const allConnectedChannels = await connectedList.find();
 
 			const embed = new EmbedBuilder()
@@ -98,7 +74,7 @@ module.exports = {
 				.addFields([
 					{ name: 'Message', value: message.content || '\u200B', inline: false }]);
 
-			// maybe do something similar for our rather 'big' messageTypes function?
+			// DONE: maybe do something similar for our rather 'big' messageTypes function?
 			await require('../scripts/message/addBadges').execute(message, database, embed);
 			await require('../scripts/message/messageContentModifiers').execute(message, embed);
 
@@ -106,47 +82,15 @@ module.exports = {
 				await message.delete();
 			}
 			catch (err) {
-				logger.error(err);
+				logger.error(err + 'cannot delete message');
 			}
 
 			const deletedChannels = [];
 
-			/* for (let i = 0; i < allc.length; i++) {
-				try {
-					console.log('Trying...');
-					// try to fetch all channels to see if they exist
-					const channels = await client.channels.fetch(allc[i].channelId);
-					console.log(channels.id);
-				}
-				catch (e) {
-					console.log('Inside Catch');
-					// if channels doesn't exist (thats probably why its in catch block in the first place (ʘ ͟ʖ ʘ))
-					// push to deletedChannels array and delete later
-					deletedChannels.push(allc[i].channelId);
-					console.log(e);
-					await connectedList.deleteMany({
-						channelId: {
-							$in: deletedChannels,
-						},
-					});
-					// delete the channels that was pushed to the array earlier from the databse
-					await setup.deleteMany({
-						channelId: {
-							$in: deletedChannels, // Note: $in only takes array
-						},
-					});
-					console.log('channel id before:', allc[i].channelId);
-					// replace this with something that doesnt iterate twise idk lmao [replace]
-					sendInCatch(embed);
-					return;
-				}
-				messageTypes(allc[i], embed);
-			} */
 
 			allConnectedChannels.forEach(async channelObj => {
 				try {
-					console.log('Trying...');
-					// try to fetch all channels to see if they exist
+					// trying to fetch all channels to see if they exist
 					await client.channels.fetch(channelObj.channelId);
 				}
 				catch (e) {
@@ -160,57 +104,19 @@ module.exports = {
 							$in: deletedChannels,
 						},
 					});
-					// delete the channels that was pushed to the array earlier from the databse
+					// deleting the channels that was pushed to the array earlier from the databse
 					await setup.deleteMany({
 						channelId: {
 							$in: deletedChannels, // Note: $in only takes array
 						},
 					});
-					sendInCatch(connectedList, embed);
 					// replace this with something that doesnt iterate twise idk lmao [replace]
+					await sendInCatch(connectedList, embed);
 					return;
 				}
 				await messageTypes(client, message, channelObj, embed, setup);
 
 			});
-
-			/*
-			finally {
-				console.log('Reached Finally');
-				console.log('Deleted Channels: ', deletedChannels);
-				await connectedList.deleteMany({
-					channelId: {
-						$in: deletedChannels,
-					},
-				});
-				// console.log(channelObj.channelId);
-				console.log('Under Finally');
-
-				// const channel = await client.channels.fetch(channelObj.channelId);
-				// channel.send({ embeds: [embed] });
-			}
-
-			console.log(searchCursor.length);
-			try {
-				console.log(channel.id);
-				console.log(channelObj.channelId);
-				const channel = await client.channels.fetch(channelObj.channelId);
-			}
-			catch (e) {
-				return await connectedList.deleteOne({ 'channelId' : channelObj.channelId });
-			}
-
-			await channel.send({ embeds: [embed] });
-			});
-			const updatedList = await connectedList.find();
-			const searchCursor = await connectedList.find().toArray();
-			console.table(searchCursor);
-			updatedList.forEach(async newObj => {
-				console.log('New Obj: ', newObj);
-				const channel = await client.channels.fetch(newObj.channelId);
-				await channel.send({ embeds: [embed] });
-			});
-			*/
 		}
 		else {
 			return;
