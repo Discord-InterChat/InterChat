@@ -4,7 +4,7 @@ module.exports = {
 		if (message.attachments.size > 0) {
 			if (message.attachments.size > 1) await message.reply('Due to Discord Embed limitations, only the first attachment will be sent.');
 			// .attachment should create a new link to image instead of using the deleted image url [review]
-			embed.setImage(message.attachments.first().attachment);
+			embed.setImage(message.attachments.first().proxyURL);
 		}
 
 		// eslint-disable-next-line no-useless-escape
