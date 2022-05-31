@@ -6,12 +6,12 @@ module.exports = {
      * @param {Object} message The discord message object not the message string
      * @param {Object} channelObj Sending message in the right channel object | Takes discord.js channel object
      * @param {*} embed The Embed you want to send to the channel | Takes discord.js embed object
-     * @param {*} setupDb the database constant you are using as your 'setup' databse
+     * @param {*} setupDb the database you are using as your 'setup' databse
      */
 
 	async messageTypes(client, message, channelObj, embed, setupDb) {
 		const allChannel = await client.channels.fetch(channelObj.channelId);
-		// Probably fetching again to get updated results from the DB [review]
+		// fetching again to get updated results from the DB
 		const channelInDB = await setupDb.findOne({ 'channel.id': allChannel.id });
 		const webhookAutomate = async (chan) => {
 			try {
@@ -31,7 +31,6 @@ module.exports = {
 		};
 
 		// if channel is in setup db then enter this (do not edit as it will return null and break everything)
-		// also why did I use guildIndb and not channelInDB?? (edited now I hope it doesnt break stuff lmao)
 		if (channelInDB && channelInDB.isEmbed === false && allChannel == message.channel.id) {
 			webhookAutomate(message.channel);
 			// await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));

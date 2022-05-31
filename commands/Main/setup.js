@@ -1,27 +1,26 @@
 'use strict';
 
 /**
- * SECTION Features
- *? SECTION: Backend: FUNCTIONALITIES:
- * * REVIEW: Make a channel if it doesn't exist
- * * REVIEW: Connect that channel to the network
- * * REVIEW: Delete that channel from the network and setup database on delete/hide
- * !SECTION
+ * ? TODO: Features
+ * ? Backend: FUNCTIONALITIES:
+ * *  Make a channel if it doesn't exist
+ * *  Connect that channel to the network
+ * *  Delete that channel from the network and setup database on delete/hide
  *
- *? SECTION: Discord: FUNCTIONALITIES:
- * * REVIEW: Display the setup embed that acts like a dashboard after setup is complete
- * * REVIEW: Display that same setup embed if the server is already setup:
- * * REVIEW: Display basic information on embed
- * * REVIEW: Switch to editor view if user clicks on 'edit' button, basically displays more information
- * !SECTION
  *
- * ? SECTION: Discord: ACTIONS:
- * * REVIEW: Add a 'reset' button that reset's the setup
- * ! REVIEW: Clicking 'reset' shows you a modal that asks you to type out the name of the channel followed by 'chatbot-' (eg. chatbot-general (general is channel name)). No longer needed as it is too dificult.
- * * REVIEW: Add a SelectMenu that lets you customize chatbot
- * * REVIEW: Add ability to switch between embeded messages and normal messages
- * !SECTION
- * !SECTION
+ *? Discord: FUNCTIONALITIES:
+ * *  Display the setup embed that acts like a dashboard after setup is complete
+ * *  Display that same setup embed if the server is already setup:
+ * *  Display basic information on embed
+ * *  Switch to editor view if user clicks on 'edit' button, basically displays more information
+ *
+ *
+ * ? Discord: ACTIONS:
+ * *  Add a 'reset' button that reset's the setup
+ * !  Clicking 'reset' shows you a modal that asks you to type out the name of the channel followed by 'chatbot-' (eg. chatbot-general (general is channel name)). No longer needed as it is too dificult.
+ * *  Add a SelectMenu that lets you customize chatbot
+ * *  Add ability to switch between embeded messages and normal messages
+ *
  */
 
 
@@ -218,6 +217,7 @@ module.exports = {
 			if (!db_guild) {
 				// return if server is not setup and user did not specify setup destination
 				if (!destination) return message.edit('Please specify a channel destination first!');
+				// Make a channel if it doesn't exist
 				if (destination.type == 'GUILD_CATEGORY') {
 					let channel;
 					try {
@@ -233,7 +233,7 @@ module.exports = {
 						});
 					}
 					catch (e) {
-						return message.edit(`${emoji.normal.no} Please make sure I have the following permissions: \`Manage Channels\` for this command to work!`);
+						return message.edit(`${emoji.normal.no} Please make sure I have the following permissions: \`Manage Channels\`, \`Manage Permissions\` for this command to work!`);
 					}
 
 					// REVIEW: Inserting the newly created channel to setup and connectedlist

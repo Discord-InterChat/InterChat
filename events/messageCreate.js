@@ -97,7 +97,7 @@ module.exports = {
 					});
 					// deleting the channels that was pushed to the array earlier from the databse
 					await setup.deleteMany({
-						channelId: {
+						'channel.id': {
 							$in: deletedChannels, // Note: $in only takes array
 						},
 					});
