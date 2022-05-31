@@ -64,8 +64,7 @@ module.exports = {
 			]),
 		]);
 
-		// Create embed classes
-		// NOTE: Embed classes to make it easier to call and edit multiple embeds
+		// Embed classes to make it easier to call and edit multiple embeds
 		class Embeds {
 			constructor() { /**/ }
 			setDefault() {
@@ -80,7 +79,6 @@ module.exports = {
 			}
 
 			/**
-			 *
 			 * @param {String} description The embed Description
 			 * @param {Array} fields Set embed Fields use the arrays inside objects to add multiple
 			 * @returns {JSON} Returns normal discord Embed in json format
@@ -93,7 +91,7 @@ module.exports = {
 					.setTimestamp()
 					.setFooter({ text: interaction.client.user.username, iconURL: interaction.client.user.avatarURL() });
 
-				if (description !== '' || description !== ' ') embed.setDescription(description); // NOTE: If description is provided, set description and vice versa
+				if (description !== '' || description !== ' ') embed.setDescription(description); // If description is provided, set description and vice versa
 				return embed;
 			}
 		}
@@ -113,7 +111,7 @@ module.exports = {
 
 
 		// Send the initial Message
-		await interaction.reply({ content: `${emoji.interaction.loading} Setting things up...` });
+		await interaction.reply({ content: `${emoji.interaction.loading} Please wait...` });
 
 		// Fetching the sent message and calling setup function
 		const message = await interaction.fetchReply();
@@ -142,43 +140,47 @@ module.exports = {
 					embed = embeds.setCustom('', fields);
 					message.edit({ embeds: [embed], components: [selectMenu, buttonReset] });
 				}
-
 				if (i.customId == 'reset') {
 					/**
-					 * - TODO: Create modal and ask user to input the name of chatbot followed by the name of the channel (eg. chatbot-general)
-					 * - TODO: If user types it correctly delete the channel from the database.
-					*/
-					const msg = await message.reply({ content: `${emoji.interaction.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `, components: [buttonYesNo] });
+					 * - REJECTED TODO: Create modal and ask user to input the name of chatbot followed by the name of the channel (eg. chatbot-general)
+					 * - REJECTED TODO: If user types it correctly delete the channel from the database.
+					*/try {
+						const msg = await message.reply({ content: `${emoji.interaction.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `, components: [buttonYesNo] });
 
 
-					// NOTE: Disabling the reset button so that they wont click it a million times and report it as bug 💀
-					buttonReset.components[0].setDisabled(true);
-					message.edit({ components: [buttonReset] });
+						// NOTE: Disable the reset button so that they wont click it a million times and report it as bug 💀
+						buttonReset.components[0].setDisabled(true);
+						message.edit({ components: [buttonReset] });
 
 
-					const msg_collector = msg.createMessageComponentCollector({ filter: m => m.user.id == interaction.user.id, idle: 60000, max: 1 });
+						const msg_collector = msg.createMessageComponentCollector({ filter: m => m.user.id == interaction.user.id, idle: 60000, max: 1 });
 
-					// Creating another collector is not my style tbh but whatevs
-					msg_collector.on('collect', async collected => {
-						if (collected.customId === 'yes') {
-							await collection.deleteOne({ 'guild.id': interaction.guild.id });
-							await networkDb.deleteOne({ 'serverId': interaction.guild.id });
-							return msg.edit({ content: `${emoji.normal.yes} Successfully reset setup`, components: [] });
-						}
-						msg.edit({ content: `${emoji.normal.no} Cancelled`, components: [] });
-						return;
-					});
+						// Creating collector for yes/no button
+						msg_collector.on('collect', async collected => {
+							if (collected.customId === 'yes') {
+								await collection.deleteOne({ 'guild.id': interaction.guild.id });
+								await networkDb.deleteOne({ 'serverId': interaction.guild.id });
+								return msg.edit({ content: `${emoji.normal.yes} Successfully reset setup`, components: [] });
+							}
+							msg.edit({ content: `${emoji.normal.no} Cancelled`, components: [] });
+							return;
+						});
+					}
+					catch (e) {
+						message.edit({ content: `${emoji.interaction.exclamation} ${ e.message}!`, embeds: [], components: [] });
+						logger.error(e);
+					}
 				}
 			}
 
 			// NOTE: Reference multiple select menus with its 'customId`. or use'value' if you are feeling special .-.
 			if (i.isSelectMenu()) {
 				if (i.customId == 'customize') {
-					// NOTE: The reason why i'm calling db_guild over and over is to get live updates, this might create problems later though.
+					// NOTE: The reason why i'm calling db_guild over and over is to get the latest db updates, this might create problems later though.
 					db_guild = await collection.findOne({ 'guild.id': interaction.guild.id });
 					db_guild_channel = await interaction.guild.channels.fetch(db_guild.channel.id);
 
-					// NOTE: This checks If embed is true in databse
+					// NOTE: This checks If isEmbed value is true in databse
 					if (db_guild && db_guild.isEmbed == true) {
 						await collection.updateOne({ 'guild.id': interaction.guild.id }, { $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), isEmbed: false } });
 						db_guild = await collection.findOne({ 'guild.id': interaction.guild.id });
@@ -211,7 +213,8 @@ module.exports = {
 			/**
 			 * - REVIEW: ✅ If guild isn't in the database create channel and store that channel database
 			 * - REVIEW: ✅ If channel type is category create a channel inside it
-			 * - REVIEW: 😐 Send error to channel if chatbot doesnt have the required permissions! [Link to file]{@link ./events/interactionCreate.js:06}
+			 * - REVIEW: 😐 Send error to channel if chatbot doesnt have the required permissions!
+			 *  {@link https://youtube.com}
 			 */
 
 			if (!db_guild) {
@@ -236,7 +239,7 @@ module.exports = {
 						return message.edit(`${emoji.normal.no} Please make sure I have the following permissions: \`Manage Channels\`, \`Manage Permissions\` for this command to work!`);
 					}
 
-					// REVIEW: Inserting the newly created channel to setup and connectedlist
+					// Inserting the newly created channel to setup and connectedlist
 					await collection.insertOne({ guild: { name: interaction.guild.name, id: interaction.guild.id }, channel: { name: channel.name, id: channel.id }, date: { full: date, timestamp: timestamp, isEmbed: true } });
 					await networkDb.insertOne({
 						'channelId': channel.id,
@@ -262,12 +265,11 @@ module.exports = {
 				message.edit(default_msg);
 			}
 
-			// TODO: If channel is in database display the setup embed
+			// If channel is in database display the setup embed
 			db_guild = await collection.findOne({ 'guild.id': interaction.guild.id }); // fetch again to get updated data (VERY IMPORTANT)
 			if (db_guild) {
 				/**
-		 		* NOTE: Tries to fetch the channel, if it does not exist it delete's from the database
-		 		* REVIEW: Delete from connectedlist db as well later!
+		 		* NOTE: Tries to fetch the channel, if it does not exist delete from the databases'
 		  		*/
 				try {
 					db_guild_channel = await interaction.guild.channels.fetch(db_guild.channel.id);
