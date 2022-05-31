@@ -26,7 +26,7 @@ module.exports = {
 				logger.info('semt');
 			}
 			catch (error) {
-				console.error('Error trying to send a message: ', error);
+				console.error('Error trying to send webhook message: ', error);
 			}
 		};
 
