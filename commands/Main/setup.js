@@ -143,7 +143,7 @@ module.exports = {
 				if (i.customId == 'reset') {
 					/**
 					 * - REJECTED TODO: Create modal and ask user to input the name of chatbot followed by the name of the channel (eg. chatbot-general)
-					 * - REJECTED TODO: If user types it correctly delete the channel from the database.
+					 * - REJECTED TODO:: If user types it correctly delete the channel from the database.
 					*/try {
 						const msg = await message.reply({ content: `${emoji.interaction.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `, components: [buttonYesNo] });
 
