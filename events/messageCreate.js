@@ -14,7 +14,6 @@ module.exports = {
 			await message.reply('ChatBot does not respond to any commands with the prefix `c!` anymore since we have switched to slash commands! Please type / and check out the list of commands!');
 			return;
 		}
-		// if (message.content.startsWith('!eval')) await require('../scripts/eval-temp/eval').eval(message);
 
 		// main db where ALL connected channel data is stored
 		const database = mongoUtil.getDb();
@@ -25,8 +24,7 @@ module.exports = {
 		const channelInNetwork = await connectedList.findOne({ channelId: message.channel.id });
 
 		/**
-		 *
-		 * @param {*} embed The Embed object
+		 * @param {MessageEmbed} embed The Embed object
 		 */
 		async function sendInCatch(embed) {
 			/*
@@ -65,7 +63,6 @@ module.exports = {
 				.addFields([
 					{ name: 'Message', value: message.content || '\u200B', inline: false }]);
 
-			// DONE: maybe do something similar for our rather 'big' messageTypes function?
 			await require('../scripts/message/addBadges').execute(message, database, embed);
 			await require('../scripts/message/messageContentModifiers').execute(message, embed);
 
@@ -86,8 +83,8 @@ module.exports = {
 				}
 				catch (e) {
 					console.log('Inside Catch');
-					// if channels doesn't exist (thats probably why its in catch block in the first place (ʘ ͟ʖ ʘ))
-					// push to deletedChannels array and delete later
+
+					// if channels doesn't exist push to deletedChannels array
 					deletedChannels.push(channelObj.channelId);
 					console.log(e);
 					await connectedList.deleteMany({
@@ -95,13 +92,13 @@ module.exports = {
 							$in: deletedChannels,
 						},
 					});
-					// deleting the channels that was pushed to the array earlier from the databse
+					// deleting the channels that was pushed to deletedChannels earlier, from the databse
 					await setup.deleteMany({
 						'channel.id': {
-							$in: deletedChannels, // Note: $in only takes array
+							$in: deletedChannels, // NOTE: $in only takes array
 						},
 					});
-					// replace this with something that doesnt iterate twise idk lmao [change]
+					// REVIEW: replace this with something that doesnt iterate twise idk lmao
 					await sendInCatch(connectedList, embed);
 					return;
 				}

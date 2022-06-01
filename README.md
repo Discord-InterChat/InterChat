@@ -1,6 +1,10 @@
 # ChatBot-Alpha
 
-## Review, Change And Bug comments:
-1. `change` - To change later to avoid facing problems in the stable release: Marked as `[change]`
-2. `bug` - A bug that must be fixed before pushing to repo: Marked as `[bug]`
-3. `review` - Review a piece of code to see if there is a better alternative : Marked as `[review]`
+## TODO, REVIEW NOTE, and FIXME comments:
+1. `TODO` - Something that must be finished before releasing, a reminder.
+
+2. `REVIEW` - Review a piece of code to see if there is a better alternative.
+
+3. `FIXME` - To change later to avoid facing problems, a bug that must be fixed before release.
+
+4. `NOTE` - A note left for later, something important or something that shows how something is supposed to be used/works.

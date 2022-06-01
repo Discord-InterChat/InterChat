@@ -4,8 +4,8 @@ module.exports = {
 /**
      *
      * @param {Object} message The discord message object not the message string
-     * @param {Object} channelObj Sending message in the right channel object | Takes discord.js channel object
-     * @param {*} embed The Embed you want to send to the channel | Takes discord.js embed object
+     * @param {Object} channelObj Sending message in the right channel object
+     * @param {*} embed The Embed you want to send to the channel
      * @param {*} setupDb the database you are using as your 'setup' databse
      */
 

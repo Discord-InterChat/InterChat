@@ -25,7 +25,7 @@ module.exports = {
 
 
 		const tenorRegex = /https:\/\/tenor\.com\/view\/.*-(\d+)/;
-		const test = tenorRegex.test(message.content);
+		const test = tenorRegex.test(message.content); // pretty much the same thing .match() does
 		if (test) {
 			const fetch = require('node-fetch');
 
