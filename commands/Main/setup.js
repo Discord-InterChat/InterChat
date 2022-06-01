@@ -42,17 +42,10 @@ module.exports = {
 
 	async execute(interaction) {
 
-		//  Basic perm check, it wont cover all bugs
-		// if (!interaction.guild.me.permissions.has('SEND_MESSAGES') && !interaction.guild.me.permissions.has('EMBED_LINKS')) {
-		// 	interaction.reply('I do not have the right permissions in this channel to function properly!');
-		// }
-
 		// Create Action Rows
-		const buttonEdit = new MessageActionRow().addComponents([
+		const buttons = new MessageActionRow().addComponents([
 			new MessageButton().setCustomId('edit').setLabel('edit').setStyle('SECONDARY'),
-		]);
-		const buttonReset = new MessageActionRow().addComponents([
-			new MessageButton().setCustomId('reset').setLabel('Reset').setStyle('DANGER'),
+			new MessageButton().setCustomId('reset').setLabel('reset').setStyle('DANGER'),
 		]);
 		const buttonYesNo = new MessageActionRow().addComponents([
 			new MessageButton().setCustomId('yes').setLabel('Yes').setStyle('SUCCESS'),
@@ -69,10 +62,12 @@ module.exports = {
 			constructor() { /**/ }
 			setDefault() {
 				const embed = new MessageEmbed()
-					.setAuthor({ name: interaction.user.tag, iconURL: interaction.user.avatarURL() })
-					.setDescription(`\u200b\n${emoji.normal.yes} Everything is setup!`)
+					.setAuthor({ name: interaction.client.user.username, iconURL: interaction.client.user.avatarURL() })
+					.setTitle(`${emoji.normal.yes} Everything is setup!`)
+					.setDescription(`Channel: <#${db_guild.channel.id}>`)
+					.setColor('#3eb5fb')
 					.setThumbnail(interaction.guild.iconURL())
-					.setFooter({ text: interaction.client.user.username, iconURL: interaction.client.user.avatarURL() })
+					.setFooter({ text: interaction.user.tag, iconURL: interaction.user.avatarURL() })
 					.setTimestamp();
 
 				return embed;
@@ -86,6 +81,7 @@ module.exports = {
 			setCustom(description, fields) {
 				const embed = new MessageEmbed()
 					.setAuthor({ name: interaction.user.tag, iconURL: interaction.user.avatarURL() })
+					.setColor('#3eb5fb')
 					.addFields(fields)
 					.setThumbnail(interaction.guild.iconURL())
 					.setTimestamp()
@@ -96,11 +92,11 @@ module.exports = {
 			}
 		}
 
-		// Declare indentifiers
+		// Declare
 		const database = getDb();
 		const collection = database.collection('setup');
 
-		const networkDb = database.collection('connectedList');
+		const connectedList = database.collection('connectedList');
 
 		const destination = interaction.options.getChannel('destination');
 		const embeds = new Embeds();
@@ -110,7 +106,7 @@ module.exports = {
 		let db_guild_channel;
 
 
-		// Send the initial Message
+		// Send the initial message
 		await interaction.reply({ content: `${emoji.interaction.loading} Please wait...` });
 
 		// Fetching the sent message and calling setup function
@@ -120,7 +116,7 @@ module.exports = {
 
 		// Create action row collectors
 		const filter = m => m.user.id == interaction.user.id;
-		const collector = message.createMessageComponentCollector({ filter, idle: 30000, max: 4 });
+		const collector = message.createMessageComponentCollector({ filter, idle: 60000, max: 4 });
 
 		// NOTE: Everything is in one collector since im lazy to create multiple collectors
 		collector.on('collect', async i => {
@@ -137,8 +133,9 @@ module.exports = {
 						{ name: 'Details:', value: `**Status:** ${emoji.normal.yes}\n**Channel:** ${db_guild_channel}\n**Changed:** <t:${db_guild.date.timestamp}:R>` },
 						{ name: '**Style:**', value: `**Embeds:** ${db_guild.isEmbed}` },
 					];
+					// calling 'Embeds' class and setting fields
 					embed = embeds.setCustom('', fields);
-					message.edit({ embeds: [embed], components: [selectMenu, buttonReset] });
+					message.edit({ embeds: [embed], components: [selectMenu] });
 				}
 				if (i.customId == 'reset') {
 					/**
@@ -148,18 +145,18 @@ module.exports = {
 						const msg = await message.reply({ content: `${emoji.interaction.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `, components: [buttonYesNo] });
 
 
-						// NOTE: Disable the reset button so that they wont click it a million times and report it as bug 💀
-						buttonReset.components[0].setDisabled(true);
-						message.edit({ components: [buttonReset] });
+						// NOTE: Disabling reset button
+						buttons.components[1].setDisabled(true);
+						message.edit({ components: [buttons] });
 
 
-						const msg_collector = msg.createMessageComponentCollector({ filter: m => m.user.id == interaction.user.id, idle: 60000, max: 1 });
+						const msg_collector = msg.createMessageComponentCollector({ filter: m => m.user.id == interaction.user.id, idle: 1000, max: 1 });
 
 						// Creating collector for yes/no button
 						msg_collector.on('collect', async collected => {
 							if (collected.customId === 'yes') {
 								await collection.deleteOne({ 'guild.id': interaction.guild.id });
-								await networkDb.deleteOne({ 'serverId': interaction.guild.id });
+								await connectedList.deleteOne({ 'serverId': interaction.guild.id });
 								return msg.edit({ content: `${emoji.normal.yes} Successfully reset setup`, components: [] });
 							}
 							msg.edit({ content: `${emoji.normal.no} Cancelled`, components: [] });
@@ -203,25 +200,31 @@ module.exports = {
 		});
 
 
-		// TODO: Make Functions
+		collector.on('end', (i) => {
+			if (i) {
+				console.log(interaction.components);
+			}
+		});
+
+		// Make Functions
 		async function setup() {
 			const date = new Date();
 			const timestamp = Math.round(date.getTime() / 1000);
 			const defaultEmbed = embeds.setDefault();
-			const default_msg = ({ content: null, embeds: [defaultEmbed], components: [buttonEdit] });
+			const default_msg = ({ content: null, embeds: [defaultEmbed], components: [buttons] });
 
 			/**
 			 * - REVIEW: ✅ If guild isn't in the database create channel and store that channel database
-			 * - REVIEW: ✅ If channel type is category create a channel inside it
-			 * - REVIEW: 😐 Send error to channel if chatbot doesnt have the required permissions!
-			 *  {@link https://youtube.com}
+			 * - REVIEW:  Send error to channel if chatbot doesnt have the required permissions!
 			 */
 
 			if (!db_guild) {
 				// return if server is not setup and user did not specify setup destination
 				if (!destination) return message.edit('Please specify a channel destination first!');
-				// Make a channel if it doesn't exist
+
+				// If channel type is category create a channel inside it
 				if (destination.type == 'GUILD_CATEGORY') {
+					// Make a channel if it doesn't exist
 					let channel;
 					try {
 						channel = await interaction.guild.channels.create('global-chat', {
@@ -241,7 +244,7 @@ module.exports = {
 
 					// Inserting the newly created channel to setup and connectedlist
 					await collection.insertOne({ guild: { name: interaction.guild.name, id: interaction.guild.id }, channel: { name: channel.name, id: channel.id }, date: { full: date, timestamp: timestamp, isEmbed: true } });
-					await networkDb.insertOne({
+					await connectedList.insertOne({
 						'channelId': channel.id,
 						'channelName': channel.name,
 						'serverId': interaction.guild.id,
@@ -249,6 +252,8 @@ module.exports = {
 					});
 					return message.edit(default_msg);
 				}
+
+				// insert data into setup & connectedList database
 				await collection.insertOne({
 					guild: { name: interaction.guild.name, id: interaction.guild.id },
 					channel: { name: destination.name, id: destination.id },
@@ -256,7 +261,7 @@ module.exports = {
 					isEmbed: true,
 				});
 
-				await networkDb.insertOne({
+				await connectedList.insertOne({
 					'channelId': destination.id,
 					'channelName': destination.name,
 					'serverId': interaction.guild.id,
@@ -277,7 +282,7 @@ module.exports = {
 				catch {
 					console.log(db_guild.channel.id);
 					await collection.deleteOne({ 'channel.id': db_guild.channel.id });
-					await networkDb.deleteOne({ 'channelId': db_guild.channel.id });
+					await connectedList.deleteOne({ 'channelId': db_guild.channel.id });
 					return message.edit(emoji.interaction.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
 				}
 				message.edit(default_msg);
