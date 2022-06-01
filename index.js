@@ -24,7 +24,7 @@ const client = new discord.Client({
 
 client.description = 'A growing discord bot which provides inter-server chat!';
 client.commands = new discord.Collection();
-client.version = '2.3.1';
+client.version = '2.3.2';
 
 module.exports.client = client;
 module.exports.discord = discord;
