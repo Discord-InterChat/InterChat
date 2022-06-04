@@ -117,24 +117,20 @@ module.exports = {
 		const staff = '800698916995203104';
 		const developers = '770256273488347176';
 		try {
+			const guild = await interaction.client.guilds.fetch('770256165300338709');
+			const member = await guild.members.fetch(interaction.user.id);
+			const roles = member._roles;
 			const verification = [];
-			verification.push('staff'); // FIXME: Change later this for testing
+
+			if (roles.includes(developers)) {
+				verification.push('developer');
+			}
+
+			if (roles.includes(staff)) {
+				verification.push('staff');
+			}
+
 			return verification;
-
-			// 	const guild = await interaction.client.guilds.fetch('770256165300338709');
-			// 	const member = await guild.members.fetch(interaction.user.id);
-			// 	const roles = member._roles;
-			// 	const verification = [];
-
-			// 	if (roles.includes(developers)) {
-			// 		verification.push('developer');
-			// 	}
-
-			// 	if (roles.includes(staff)) {
-			// 		verification.push('staff');
-			// 	}
-
-		// 	return verification;
 		}
 		catch (e) {
 			return '';
