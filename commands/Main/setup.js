@@ -64,7 +64,7 @@ module.exports = {
 				const embed = new MessageEmbed()
 					.setAuthor({ name: interaction.client.user.username, iconURL: interaction.client.user.avatarURL() })
 					.setTitle(`${emoji.normal.yes} Everything is setup!`)
-					.setDescription(`Channel: <#${db_guild.channel.id}>`)
+					.setDescription(`Channel: <#${db_guild ? db_guild.channel.id : 'unknown'}>`)
 					.setColor('#3eb5fb')
 					.setThumbnail(interaction.guild.iconURL())
 					.setFooter({ text: interaction.user.tag, iconURL: interaction.user.avatarURL() })
@@ -150,7 +150,7 @@ module.exports = {
 						message.edit({ components: [buttons] });
 
 
-						const msg_collector = msg.createMessageComponentCollector({ filter: m => m.user.id == interaction.user.id, idle: 1000, max: 1 });
+						const msg_collector = msg.createMessageComponentCollector({ filter: m => m.user.id == interaction.user.id, idle: 60000, max: 1 });
 
 						// Creating collector for yes/no button
 						msg_collector.on('collect', async collected => {
@@ -200,9 +200,24 @@ module.exports = {
 		});
 
 
+		// FIXME
 		collector.on('end', (i) => {
-			if (i) {
-				console.log(interaction.components);
+			// const [firstKey] = i.values();
+			const first = [...i][0];
+			console.log(first);
+			if (i && first[1] == 'ButtonInteraction') {
+				console.log('yes');
+				buttons.components[0].setDisabled(true);
+				buttons.components[1].setDisabled(true);
+				message.edit({ components: [buttons] });
+				return;
+			}
+
+			if (i && first[1] == 'SelectMenuInteraction') {
+				console.log('menu');
+				selectMenu.components[0].setDisabled(true);
+				message.edit({ components: [selectMenu] });
+				return;
 			}
 		});
 
