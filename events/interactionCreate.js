@@ -16,13 +16,9 @@ module.exports = {
 			await command.execute(interaction);
 		}
 		catch (error) {
-			logger.error(error);
-			try {
-				await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-			}
-			catch {
-				return await interaction.channel.send({ content: 'There was an error while executing this command!', ephemeral: true });
-			}
+			console.error(error);
+			const errorMsg = { content: 'There was an error while executing this command!', ephemeral: true, fetchReply: true };
+			interaction.replied ? await interaction.followUp(errorMsg) && console.log('eeee') : await interaction.channel.send(errorMsg);
 		}
 	},
 };
