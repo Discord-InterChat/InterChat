@@ -53,6 +53,27 @@ for (const eventFile of eventFiles) {
 	}
 }
 
+
+async function deleteChan() {
+	const database = mongoUtil.getDb();
+	const connectedList = database.collection('connectedList');
+	const channels = await connectedList.find().toArray();
+
+	const channelsDelete = [];
+	channels.forEach(async (v, i) => {
+		let guild;
+		let channel;
+
+		try { channel = await guild.channels.fetch(v.channelId); }
+		catch (e) { if (e.message === 'Unknown Channel') channelsDelete.push(v.channelId); }
+	});
+	connectedList.deleteMany({ channelId: { $in: deleteChan } });
+	console.table(channels);
+}
+
+setInterval(deleteChan, 60 * 60 * 1000);
+
+
 process.on('uncaughtException', function(err) {
 	logger.error('Excepton:', err);
 });
