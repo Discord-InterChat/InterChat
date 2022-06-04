@@ -9,6 +9,8 @@ module.exports = {
 		const connectedList = database.collection('connectedList');
 		const count = await connectedList.count();
 
+		logger.info(`Logged in as ${client.user.tag}`);
+
 		const activities = [
 			{ name: `${client.guilds.cache.size} servers! 👀`, type: 'WATCHING' },
 			{ name: `${count} connected servers! 👀`, type: 'WATCHING' },
@@ -20,8 +22,7 @@ module.exports = {
 			const newActivity = activities[randomIndex];
 
 			client.user.setActivity(newActivity);
-		}, 20000);
-		logger.info(`Logged in as ${client.user.tag}`);
+		}, 300000);
 
 	},
 };
