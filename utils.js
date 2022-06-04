@@ -79,7 +79,7 @@ module.exports = {
 	},
 	developers: [828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n],
 	staff: [442653948630007808n, 446709111715921920n],
-
+	cbhq: '969920027421732874', // FIXME: Change this to 770256165300338709 later (cbhq real guild)
 	getCredits: async () => {
 		let creditArray = [];
 
@@ -114,23 +114,27 @@ module.exports = {
 	},
 
 	staffPermissions: async (interaction) => {
-		// Change staff and developers to cbhq role ids [change]
 		const staff = '800698916995203104';
 		const developers = '770256273488347176';
 		try {
-			// change guild to cbhq guild id [change]
-			const guild = await interaction.client.guilds.fetch('770256165300338709');
-			const member = await guild.members.fetch(interaction.user.id);
-			const roles = member._roles;
 			const verification = [];
-			if (roles.includes(developers)) {
-				verification.push('developer');
-			}
-
-			if (roles.includes(staff)) {
-				verification.push('staff');
-			}
+			verification.push('staff'); // FIXME: Change later this for testing
 			return verification;
+
+			// 	const guild = await interaction.client.guilds.fetch('770256165300338709');
+			// 	const member = await guild.members.fetch(interaction.user.id);
+			// 	const roles = member._roles;
+			// 	const verification = [];
+
+			// 	if (roles.includes(developers)) {
+			// 		verification.push('developer');
+			// 	}
+
+			// 	if (roles.includes(staff)) {
+			// 		verification.push('staff');
+			// 	}
+
+		// 	return verification;
 		}
 		catch (e) {
 			return '';
