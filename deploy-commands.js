@@ -20,7 +20,7 @@ fs.readdirSync('./commands').forEach((dir) => {
 	}
 });
 
-rest.put(Routes.applicationCommands('969920398995120168'), { body: commands })
+rest.put(Routes.applicationCommands('798748015435055134'), { body: commands })
 	.then(() => {
 		logger.info('Registered all application commands successfully');
 	})
