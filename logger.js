@@ -28,11 +28,9 @@ const logger = createLogger({
 				custom,
 			),
 		}),
-		new transports.File({ filename: 'logs/error.log', level: 'error' }),
 
-		// error logs should not get into discord logs and clutter things up.
-		new transports.File({ filename: 'logs/discord.log', level: 'warn' }),
 		new transports.File({ filename: 'logs/discord.log', level: 'info' }),
+		new transports.File({ filename: 'logs/error.log', level: 'error' }),
 	],
 });
 
