@@ -17,7 +17,7 @@ module.exports = {
 			return;
 		}
 
-		const goalChannel = await client.channels.fetch('982525830305550386'); // FIXME: change with 906460473065615403 later
+		const goalChannel = await client.channels.fetch('906460473065615403');
 		await goalChannel.send(`I have joined ${guild.name} :smiley:! ${500 - client.guilds.cache.size} to go!`);
 
 		const embed = new MessageEmbed()
