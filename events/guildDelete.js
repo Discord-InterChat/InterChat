@@ -9,7 +9,6 @@ module.exports = {
 		const database = mongoUtil.getDb();
 		const connectedList = database.collection('connectedList');
 		connectedList.deleteOne({ serverId: guild.id });
-		console.log('deleted something lel');
 
 		const cbhq = client.guilds.fetch(utils.cbhq);
 		const goalChannel = (await cbhq).channels.cache.get('906460473065615403');
