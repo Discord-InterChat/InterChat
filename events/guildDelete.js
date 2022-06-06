@@ -9,9 +9,10 @@ module.exports = {
 		const database = mongoUtil.getDb();
 		const connectedList = database.collection('connectedList');
 		connectedList.deleteOne({ serverId: guild.id });
+		console.log('deleted something lel');
 
 		const cbhq = client.guilds.fetch(utils.cbhq);
-		const goalChannel = (await cbhq).channels.cache.get('982525830305550386'); // FIXME: Change with 906460473065615403 later
+		const goalChannel = (await cbhq).channels.cache.get('906460473065615403');
 		await goalChannel.send(`I have been kicked from ${guild.name} 😢. ${500 - client.guilds.cache.size} to go!`);
 
 
