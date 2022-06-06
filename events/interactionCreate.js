@@ -16,9 +16,25 @@ module.exports = {
 			await command.execute(interaction);
 		}
 		catch (error) {
-			console.error(error);
+			logger.error(error);
 			const errorMsg = { content: 'There was an error while executing this command!', ephemeral: true, fetchReply: true };
-			interaction.replied ? await interaction.followUp(errorMsg) && console.log('eeee') : await interaction.channel.send(errorMsg);
+
+			if (interaction.replied) {
+				await interaction.followUp(errorMsg);
+			}
+			else {
+				try {
+					await interaction.reply(errorMsg);
+				}
+				catch {
+					try {
+						await interaction.followUp(errorMsg);
+					}
+					catch {
+						await interaction.channel.send(errorMsg);
+					}
+				}
+			}
 		}
 	},
 };
