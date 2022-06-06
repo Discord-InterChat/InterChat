@@ -17,14 +17,10 @@ module.exports = {
 		),
 
 	async execute(interaction) {
-		const roles = await staffPermissions(interaction);
-		console.log(roles);
-		if (roles.includes('staff')) {
-			const database = mongoUtil.getDb();
-			require('../../scripts/connected/server').execute(interaction, database);
-		}
-		else {
-			return interaction.reply({ content: 'You do not have permission to run this command.', ephemeral: true });
-		}
+		const perms = await staffPermissions(interaction);
+		if (perms === 0) return;
+		const database = mongoUtil.getDb();
+		require('../../scripts/connected/server').execute(interaction, database);
+
 	},
 };

@@ -99,14 +99,11 @@ module.exports = {
 				),
 		),
 	async execute(interaction) {
-		const roles = await staffPermissions(interaction);
-		if (roles.includes('staff')) {
-			const subCommand = interaction.options.getSubcommand();
-			const database = mongoUtil.getDb();
-			require(`../../scripts/blacklist/${subCommand}`).execute(interaction, database);
-		}
-		else {
-			return interaction.reply({ content: 'You do not have permission to run this command.', ephemeral: true });
-		}
+		const perms = await staffPermissions(interaction);
+		if (perms === 0) return;
+		const subCommand = interaction.options.getSubcommand();
+		const database = mongoUtil.getDb();
+		require(`../../scripts/blacklist/${subCommand}`).execute(interaction, database);
+
 	},
 };

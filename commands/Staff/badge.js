@@ -61,25 +61,20 @@ module.exports = {
 				),
 		),
 	async execute(interaction) {
-		const roles = await staffPermissions(interaction);
-		if (roles.includes('staff')) {
-			const subcommand = interaction.options.getSubcommand();
-			const user = interaction.options.getUser('user');
-			const badge = interaction.options.getString('badge');
+		const perms = await staffPermissions(interaction);
+		if (perms === 0) return;
+		const subcommand = interaction.options.getSubcommand();
+		const user = interaction.options.getUser('user');
+		const badge = interaction.options.getString('badge');
 
-			const database = mongoUtil.getDb();
-			const userBadges = database.collection('userBadges');
+		const database = mongoUtil.getDb();
+		const userBadges = database.collection('userBadges');
 
-			if (subcommand === 'list') {
-				require('../../scripts/badge/list').execute(interaction, userBadges, user);
-			}
-			else {
-				require(`../../scripts/badge/${subcommand}`).execute(interaction, userBadges, user, badge);
-			}
-
+		if (subcommand === 'list') {
+			require('../../scripts/badge/list').execute(interaction, userBadges, user);
 		}
 		else {
-			return interaction.reply({ content: 'You do not have permission to run this command.', ephemeral: true });
+			require(`../../scripts/badge/${subcommand}`).execute(interaction, userBadges, user, badge);
 		}
 	},
 };

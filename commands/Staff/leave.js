@@ -20,28 +20,25 @@ module.exports = {
 		)
 		.setDefaultPermission(false),
 	async execute(interaction) {
-		const roles = await staffPermissions(interaction);
-		if (roles.includes('staff')) {
-			const serverOpt = interaction.options.getString('server');
-			const reason = interaction.options.getString('reason');
-			let server;
+		const perms = await staffPermissions(interaction);
+		if (perms === 0) return;
+		const serverOpt = interaction.options.getString('server');
+		const reason = interaction.options.getString('reason');
+		let server;
 
-			try {
-				server = await interaction.client.guilds.fetch(serverOpt);
-			}
-			catch (err) {
-				await interaction.reply('I am not in that server.');
-				return;
-			}
+		try {
+			server = await interaction.client.guilds.fetch(serverOpt);
+		}
+		catch (err) {
+			await interaction.reply('I am not in that server.');
+			return;
+		}
 
-			await interaction.reply(`I have left the server ${server.name} due to reason "${reason}".`);
-			await sendInFirst(server, `I am leaving this server due to reason ${reason}. Please contact the staff from the support server if you think that the reason is not valid.`);
-			logger.info(`Left server ${server.name} due to reason \`${reason}\``);
-			await server.leave();
-		}
-		else {
-			return interaction.reply({ content: 'You do not have permission to run this command.', ephemeral: true });
-		}
+		await interaction.reply(`I have left the server ${server.name} due to reason "${reason}".`);
+		await sendInFirst(server, `I am leaving this server due to reason ${reason}. Please contact the staff from the support server if you think that the reason is not valid.`);
+		logger.info(`Left server ${server.name} due to reason \`${reason}\``);
+		await server.leave();
+
 	},
 
 };

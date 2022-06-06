@@ -7,14 +7,10 @@ module.exports = {
 		.setDescription('Logs the bot out.')
 		.setDefaultPermission(false),
 	async execute(interaction) {
-		const roles = await staffPermissions(interaction);
-		if (roles.includes('developer')) {
-			await interaction.reply('Logged Out!');
-			await interaction.client.destroy();
-			process.exit(0);
-		}
-		else {
-			return interaction.reply({ content: 'You do not have permission to run this command.', ephemeral: true });
-		}
+		const perms = await staffPermissions(interaction);
+		if (perms === 0) return;
+		await interaction.reply('Logged Out!');
+		await interaction.client.destroy();
+		process.exit(0);
 	},
 };
