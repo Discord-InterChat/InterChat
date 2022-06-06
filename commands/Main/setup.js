@@ -53,7 +53,7 @@ module.exports = {
 		]);
 		const selectMenu = new MessageActionRow().addComponents([
 			new MessageSelectMenu().setCustomId('customize').setPlaceholder('Customize Setup').addOptions([
-				{ label: 'Message Style', description: 'Customize the way message sent by ChatBot looks', value: 'message_style' },
+				{ label: 'Message Style', emoji: '<:dot:981763271994523658>', description: 'Customize the way message sent by ChatBot looks', value: 'message_style' },
 			]),
 		]);
 
@@ -61,10 +61,13 @@ module.exports = {
 		class Embeds {
 			constructor() { /**/ }
 			setDefault() {
+				const guildd = interaction.client.guilds.cache.get(db_guild?.guild.id);
+				const channel = guildd?.channels.cache.get(db_guild?.channel.id);
+
 				const embed = new MessageEmbed()
 					.setAuthor({ name: interaction.client.user.username, iconURL: interaction.client.user.avatarURL() })
 					.setTitle(`${emoji.normal.yes} Everything is setup!`)
-					.setDescription(`Channel: <#${db_guild ? db_guild.channel.id : 'unknown'}>`)
+					.setDescription(`Channel: ${ channel || 'Unknown' }`)
 					.setColor('#3eb5fb')
 					.setThumbnail(interaction.guild.iconURL())
 					.setFooter({ text: interaction.user.tag, iconURL: interaction.user.avatarURL() })
@@ -138,10 +141,7 @@ module.exports = {
 					message.edit({ embeds: [embed], components: [selectMenu] });
 				}
 				if (i.customId == 'reset') {
-					/**
-					 * - REJECTED TODO: Create modal and ask user to input the name of chatbot followed by the name of the channel (eg. chatbot-general)
-					 * - REJECTED TODO: If user types it correctly delete the channel from the database.
-					*/try {
+					try {
 						const msg = await message.reply({ content: `${emoji.interaction.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `, components: [buttonYesNo] });
 
 
@@ -199,26 +199,11 @@ module.exports = {
 
 		});
 
-
-		// FIXME
-		collector.on('end', (i) => {
-			// const [firstKey] = i.values();
-			const first = [...i][0];
-			console.log(first);
-			if (i && first[1] == 'ButtonInteraction') {
-				console.log('yes');
-				buttons.components[0].setDisabled(true);
-				buttons.components[1].setDisabled(true);
-				message.edit({ components: [buttons] });
-				return;
-			}
-
-			if (i && first[1] == 'SelectMenuInteraction') {
-				console.log('menu');
-				selectMenu.components[0].setDisabled(true);
-				message.edit({ components: [selectMenu] });
-				return;
-			}
+		// removing components from message, idk how to disable them so...
+		collector.on('end', () => {
+			message.edit({ components: [] })
+				.catch(console.log('Interaction deleted, ignoring...'));
+			return;
 		});
 
 		// Make Functions
@@ -229,7 +214,7 @@ module.exports = {
 			const default_msg = ({ content: null, embeds: [defaultEmbed], components: [buttons] });
 
 			/**
-			 * - REVIEW: ✅ If guild isn't in the database create channel and store that channel database
+			 * - REVIEW: ✅ If guild isn't in the database create channel and store that channel into database
 			 * - REVIEW:  Send error to channel if chatbot doesnt have the required permissions!
 			 */
 
@@ -258,7 +243,7 @@ module.exports = {
 					}
 
 					// Inserting the newly created channel to setup and connectedlist
-					await collection.insertOne({ guild: { name: interaction.guild.name, id: interaction.guild.id }, channel: { name: channel.name, id: channel.id }, date: { full: date, timestamp: timestamp, isEmbed: true } });
+					await collection.insertOne({ guild: { name: interaction.guild.name, id: interaction.guild.id }, channel: { name: channel.name, id: channel.id }, date: { full: date, timestamp: timestamp }, isEmbed: true });
 					await connectedList.insertOne({
 						'channelId': channel.id,
 						'channelName': channel.name,
@@ -295,7 +280,6 @@ module.exports = {
 					db_guild_channel = await interaction.guild.channels.fetch(db_guild.channel.id);
 				}
 				catch {
-					console.log(db_guild.channel.id);
 					await collection.deleteOne({ 'channel.id': db_guild.channel.id });
 					await connectedList.deleteOne({ 'channelId': db_guild.channel.id });
 					return message.edit(emoji.interaction.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
