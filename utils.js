@@ -1,7 +1,8 @@
 const logger = require('./logger');
 const { MongoClient } = require('mongodb');
 const dotenv = require('dotenv');
-
+const { MessageActionRow } = require('discord.js');
+const emoji = require('./emoji.json');
 dotenv.config();
 
 const uri = process.env.MONGODB_URI;
@@ -79,7 +80,7 @@ module.exports = {
 	},
 	developers: [828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n],
 	staff: [442653948630007808n, 446709111715921920n],
-	cbhq: '969920027421732874', // FIXME: Change this to 770256165300338709 later (cbhq real guild)
+	cbhq: '770256165300338709',
 	getCredits: async () => {
 		let creditArray = [];
 
@@ -116,24 +117,102 @@ module.exports = {
 	staffPermissions: async (interaction) => {
 		const staff = '800698916995203104';
 		const developers = '770256273488347176';
-		try {
-			const guild = await interaction.client.guilds.fetch('770256165300338709');
-			const member = await guild.members.fetch(interaction.user.id);
-			const roles = member._roles;
-			const verification = [];
 
-			if (roles.includes(developers)) {
-				verification.push('developer');
-			}
+		const guild = await interaction.client.guilds.fetch('770256165300338709');
+		const member = await guild.members.fetch(interaction.user.id);
+		const roles = member._roles;
+		let verification = 0;
 
-			if (roles.includes(staff)) {
-				verification.push('staff');
-			}
-
-			return verification;
+		if (roles?.includes(developers) || roles?.includes(staff)) {
+			verification = 1;
 		}
-		catch (e) {
-			return '';
+		else {
+			return await interaction.reply('You do not have permissions to run this command!');
 		}
+
+		return verification;
+	},
+
+	paginate: async (interaction, pages, time = 60000) => {
+		if (!interaction || !pages || !(pages?.length > 0) || !(time > 10000)) throw new Error('Invalid Parameters');
+
+		// eslint-disable-next-line prefer-const
+		let index = 0, row = new MessageActionRow().addComponents([{
+			type: 'BUTTON',
+			customId: '1',
+			emoji: emoji.interaction.back,
+			style: 'SECONDARY',
+			disabled: true,
+
+		}, {
+			type: 'BUTTON',
+			customId: '3',
+			emoji: emoji.interaction.delete,
+			style: 'DANGER',
+
+		}, {
+			type: 'BUTTON',
+			customId: '2',
+			emoji: emoji.interaction.next,
+			style: 'SECONDARY',
+			disabled: pages.length <= index + 1,
+		}]);
+
+
+		let pagenumber = 0;
+		pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });
+
+
+		const data = {
+			embeds: [pages[index]],
+			components: [row],
+			fetchReply: true,
+		};
+		const msg = interaction.replied ? await interaction.followUp(data) : await interaction.reply(data);
+
+		const col = msg.createMessageComponentCollector({
+			filter: i => i.user.id === interaction.user.id,
+			time: 60000,
+		});
+
+		col.on('collect', (i) => {
+			if (i.customId === '1') --pagenumber, index--;
+			else if (i.customId === '2') pagenumber++, index++;
+			else col.stop();
+
+
+			row.setComponents([{
+				type: 'BUTTON',
+				customId: '1',
+				emoji: emoji.interaction.back,
+				style: 'SECONDARY',
+				disabled: index === 0,
+
+			}, {
+				type: 'BUTTON',
+				customId: '3',
+				emoji: emoji.interaction.delete,
+				style: 'DANGER',
+
+			}, { type: 'BUTTON',
+				customId: '2',
+				emoji: emoji.interaction.next,
+				style: 'SECONDARY',
+				disabled: index === pages.length - 1,
+			}]);
+
+			pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });
+
+			i.update({
+				components: [row],
+				embeds: [pages[index]],
+			});
+
+			col.on('end', () => {
+				msg.edit({
+					components: [],
+				});
+			});
+		});
 	},
 };
