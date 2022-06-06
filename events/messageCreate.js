@@ -23,23 +23,6 @@ module.exports = {
 		const setup = database.collection('setup');
 		const channelInNetwork = await connectedList.findOne({ channelId: message.channel.id });
 
-		/**
-		 * @param {MessageEmbed} embed The Embed object
-		 */
-		async function sendInCatch(embed) {
-			/*
-			Find an alternative for this:
-			1. it sends 2 messages when initiated (probably cause of 2 foreach loops)
-			2. you have to do same thing from messageTypes function here...
-			*/
-
-			// Gives Maximum call stack size exceeded error [bug]
-			const newConnectedChannels = await connectedList.find({});
-			newConnectedChannels.forEach(async element => {
-				await messageTypes(client, message, element, embed, setup);
-			});
-		}
-
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
 			const userInBlacklist = await database.collection('blacklistedUsers').findOne({ userId: message.author.id });
@@ -66,27 +49,26 @@ module.exports = {
 			await require('../scripts/message/addBadges').execute(message, database, embed);
 			await require('../scripts/message/messageContentModifiers').execute(message, embed);
 
-			try {
-				await message.delete();
+			if (message.attachments.first() === undefined) {
+				try {
+					await message.delete();
+				}
+				catch (err) {
+					logger.warn(err + ' cannot delete message');
+				}
 			}
-			catch (err) {
-				logger.warn(err + ' cannot delete message');
-			}
-
 			const deletedChannels = [];
 
-
+			// NOTE: Using the db used here in other chatbot's will end up deleting all servers when you send a message... so be careful XD
 			allConnectedChannels.forEach(async channelObj => {
 				try {
 					// trying to fetch all channels to see if they exist
 					await client.channels.fetch(channelObj.channelId);
 				}
 				catch (e) {
-					console.log('Inside Catch');
-
 					// if channels doesn't exist push to deletedChannels array
 					deletedChannels.push(channelObj.channelId);
-					console.log(e);
+					logger.error(e);
 					await connectedList.deleteMany({
 						channelId: {
 							$in: deletedChannels,
@@ -98,8 +80,9 @@ module.exports = {
 							$in: deletedChannels, // NOTE: $in only takes array
 						},
 					});
-					// REVIEW: replace this with something that doesnt iterate twise idk lmao
-					await sendInCatch(connectedList, embed);
+					/* REVIEW: replace this with something that doesnt iterate twise idk lmao
+					* REVIEW: This suddenly started to work, make sure it really does and isnt luck! Bug testing or something
+					*/
 					return;
 				}
 				await messageTypes(client, message, channelObj, embed, setup);
