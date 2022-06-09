@@ -2,5 +2,16 @@
     "editor.codeActionsOnSave": {
         "source.fixAll.eslint": true
       },
-      "eslint.validate": ["javascript"]
+      "eslint.validate": ["javascript"],
+
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          {
+            "scope": "comment",
+            "settings": {
+              "fontStyle": "italic"
+            }
+          }
+        ]
+      }
 }
