@@ -27,12 +27,12 @@ module.exports = {
 		if (channelInNetwork) {
 			const userInBlacklist = await database.collection('blacklistedUsers').findOne({ userId: message.author.id });
 			if (userInBlacklist) {
+				// TODO: Send message to author not the channel.
 				await message.reply(`You are blacklisted from using the ChatBot Chat Network for reason \`${userInBlacklist.reason}\`! Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
 				return;
 			}
 
 			if (message.content.includes('@everyone') || message.content.includes('@here')) {
-				await message.channel.send('Haha good try, but you just pinged your own server 😆.');
 				return;
 			}
 
