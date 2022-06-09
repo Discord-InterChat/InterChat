@@ -115,22 +115,29 @@ module.exports = {
 	},
 
 	staffPermissions: async (interaction) => {
-		const staff = '800698916995203104';
-		const developers = '770256273488347176';
+		try {
+			const staff = '800698916995203104';
+			const developers = '770256273488347176';
 
-		const guild = await interaction.client.guilds.fetch('770256165300338709');
-		const member = await guild.members.fetch(interaction.user.id);
-		const roles = member._roles;
-		let verification = 0;
+			const guild = await interaction.client.guilds.fetch('770256165300338709');
+			const member = await guild.members.fetch(interaction.user.id);
+			const roles = member._roles;
+			let verification = 0;
 
-		if (roles?.includes(developers) || roles?.includes(staff)) {
-			verification = 1;
+			if (roles?.includes(developers) || roles?.includes(staff)) {
+				verification = 1;
+			}
+			else {
+				return await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+			}
+
+			return verification;
 		}
-		else {
-			return await interaction.reply('You do not have permissions to run this command!');
+		catch (e) {
+			console.log(e);
+			await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+			return 0;
 		}
-
-		return verification;
 	},
 
 	paginate: async (interaction, pages, time = 60000) => {
@@ -160,8 +167,10 @@ module.exports = {
 
 
 		let pagenumber = 0;
-		pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });
-
+		try {
+			pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });
+		}
+		catch {/**/}
 
 		const data = {
 			embeds: [pages[index]],
@@ -201,7 +210,8 @@ module.exports = {
 				disabled: index === pages.length - 1,
 			}]);
 
-			pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });
+			try {pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });}
+			catch {/**/}
 
 			i.update({
 				components: [row],
