@@ -5,6 +5,8 @@ const mongoUtil = require('../utils');
 const { colors } = require('../utils');
 const { client } = require('../index');
 const { messageTypes } = require('../scripts/message/messageTypes');
+const Filter = require('bad-words'),
+	filter = new Filter();
 module.exports = {
 	name: 'messageCreate',
 	async execute(message) {
@@ -25,6 +27,13 @@ module.exports = {
 
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
+			let filtered = filter.clean(message.content);
+
+			if (filtered.includes('*')) {
+				filtered = await filtered.replaceAll('*', '\\*');
+			}
+			message.content = filtered;
+
 			const userInBlacklist = await database.collection('blacklistedUsers').findOne({ userId: message.author.id });
 			if (userInBlacklist) {
 				// TODO: Send message to author not the channel.
@@ -67,8 +76,8 @@ module.exports = {
 				}
 				catch (e) {
 					// if channels doesn't exist push to deletedChannels array
-					deletedChannels.push(channelObj.channelId);
 					logger.error(e);
+					deletedChannels.push(channelObj.channelId);
 					await connectedList.deleteMany({
 						channelId: {
 							$in: deletedChannels,
