@@ -1,4 +1,13 @@
+# dependencies
 /node_modules/
-/logs/
 package-lock.json
-test.md
+
+# old commands
+/Archive/
+
+# logs
+/logs/
+/.env
+
+# test files
+commands/Testing/
