@@ -7,7 +7,6 @@ package-lock.json
 
 # logs
 /logs/
-/.env
-
+.env
 # test files
 commands/Testing/
