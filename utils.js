@@ -9,41 +9,45 @@ const uri = process.env.MONGODB_URI;
 let _db;
 
 module.exports = {
-	colors: () => {
-		const colorArr = [
-			'DEFAULT',
-			'WHITE',
-			'AQUA',
-			'GREEN',
-			'BLUE',
-			'YELLOW',
-			'PURPLE',
-			'LUMINOUS_VIVID_PINK',
-			'FUCHSIA',
-			'GOLD',
-			'ORANGE',
-			'RED',
-			'GREY',
-			'NAVY',
-			'DARK_AQUA',
-			'DARK_GREEN',
-			'DARK_BLUE',
-			'DARK_PURPLE',
-			'DARK_VIVID_PINK',
-			'DARK_GOLD',
-			'DARK_ORANGE',
-			'DARK_RED',
-			'DARK_GREY',
-			'DARKER_GREY',
-			'LIGHT_GREY',
-			'DARK_NAVY',
-			'BLURPLE',
-			'GREYPLE',
-			'DARK_BUT_NOT_BLACK',
-			'NOT_QUITE_BLACK',
-			'RANDOM',
-		];
-		return module.exports.choice(colorArr);
+	colors: (type = 'random') => {
+		const colorType = {
+			random: [
+				'DEFAULT',
+				'WHITE',
+				'AQUA',
+				'GREEN',
+				'BLUE',
+				'YELLOW',
+				'PURPLE',
+				'LUMINOUS_VIVID_PINK',
+				'FUCHSIA',
+				'GOLD',
+				'ORANGE',
+				'RED',
+				'GREY',
+				'NAVY',
+				'DARK_AQUA',
+				'DARK_GREEN',
+				'DARK_BLUE',
+				'DARK_PURPLE',
+				'DARK_VIVID_PINK',
+				'DARK_GOLD',
+				'DARK_ORANGE',
+				'DARK_RED',
+				'DARK_GREY',
+				'DARKER_GREY',
+				'LIGHT_GREY',
+				'DARK_NAVY',
+				'BLURPLE',
+				'GREYPLE',
+				'DARK_BUT_NOT_BLACK',
+				'NOT_QUITE_BLACK',
+				'RANDOM',
+			],
+			chatbot: '#5CB5F9',
+		};
+
+		return type === 'chatbot' ? colorType.chatbot : module.exports.choice(colorType.random);
 	},
 	choice: (arr) => {
 		return arr[Math.floor(Math.random() * arr.length)];
