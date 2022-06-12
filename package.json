@@ -4,8 +4,8 @@
     "description": "A growing discord bot which provides inter-server chat! ",
     "main": "index.js",
     "scripts": {
-        "start": "node index.js",
-        "dev": "nodemon .",
+        "start": "nodemon .",
+        "deploy": "node deploy-commands.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Supreme1707, Makiyu, dev-737",
@@ -13,6 +13,7 @@
     "dependencies": {
         "@discordjs/builders": "^0.13.0",
         "@discordjs/rest": "^0.4.1",
+        "@top-gg/sdk": "^3.1.3",
         "bad-words": "^3.0.4",
         "common-tags": "^1.8.2",
         "dayjs": "^1.11.2",
