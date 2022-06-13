@@ -4,7 +4,7 @@ const logger = require('../logger');
 const { getDb, colors } = require('../utils');
 const { client } = require('../index');
 const { messageTypes } = require('../scripts/message/messageTypes');
-const wordFilter = require('../scripts/message/Wordfilter');
+const wordFilter = require('../scripts/message/wordFilter');
 const Filter = require('bad-words'),
 	filter = new Filter();
 
@@ -45,9 +45,9 @@ module.exports = {
 			});
 			if (prohibited === true) return;
 
-			if (message.content.includes('@everyone') || message.content.includes('@here')) {
-				return;
-			}
+			// if (message.content.includes('@everyone') || message.content.includes('@here')) {
+			// 	return;
+			// }
 			// filter bad words
 			if (filter.isProfane(message.content)) {
 				message.content = await wordFilter.execute(message);

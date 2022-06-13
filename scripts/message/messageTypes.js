@@ -19,10 +19,10 @@ async function messageTypes(client, message, channelObj, embed, setupDb) {
 			const webhook = webhooks.find(wh => wh.token);
 
 			if (!webhook) {
-				return await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
+				return await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}`, allowedMentions: { parse: ['roles'] } }));
 			}
 
-			await webhook.send({ content: message.content, username: message.author.username, avatarURL: message.author.avatarURL() });
+			await webhook.send({ content: message.content, username: message.author.username, avatarURL: message.author.avatarURL(), allowedMentions: { parse: ['roles'] } });
 			logger.info('semt');
 		}
 		catch (error) {
@@ -40,8 +40,7 @@ async function messageTypes(client, message, channelObj, embed, setupDb) {
 		// await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}` }));
 	}
 	else {
-		await allChannel.send({ embeds: [embed] });
+		await allChannel.send({ embeds: [embed], allowedMentions: { parse: ['roles'] } });
 	}
 }
-
 module.exports = { messageTypes };
