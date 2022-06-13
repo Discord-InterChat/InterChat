@@ -2,11 +2,6 @@
 /node_modules/
 package-lock.json
 
-# old commands
-/Archive/
-
 # logs
 /logs/
 .env
-# test files
-commands/Testing/
