@@ -1,6 +1,6 @@
 {
     "name": "discord-chatbot",
-    "version": "v2.3.0",
+    "version": "1.1.0",
     "description": "A growing discord bot which provides inter-server chat! ",
     "main": "index.js",
     "scripts": {
