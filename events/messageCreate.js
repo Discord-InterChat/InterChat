@@ -1,11 +1,13 @@
 /* eslint-disable no-inline-comments */
 const { MessageEmbed } = require('discord.js');
 const logger = require('../logger');
-const { getDb, colors, test } = require('../utils');
+const { getDb, colors } = require('../utils');
 const { client } = require('../index');
 const { messageTypes } = require('../scripts/message/messageTypes');
+const wordFilter = require('../scripts/message/Wordfilter');
 const Filter = require('bad-words'),
 	filter = new Filter();
+
 module.exports = {
 	name: 'messageCreate',
 	async execute(message) {
@@ -30,36 +32,30 @@ module.exports = {
 
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
-			if (message.content.toLowerCase().includes(wordList.words)) return message.channel.send('You are not allowed to use slurs in this bot.');
-
-			// filter bad words from message
-			// and add * to it
-			// log the real message to logs channel
-			try {
-				let filtered = filter.clean(message.content);
-
-				if (filtered.includes('***')) {
-					const logChan = await message.client.channels.fetch('976099718251831366');
-					const filterEmbed = new MessageEmbed()
-						.setAuthor({ name: `${message.client.user.username} logs`, iconURL: message.client.user.avatarURL() })
-						.setTitle('Bad Word Detected')
-						.setColor(colors('chatbot'))
-						.setDescription(`||${message.content}||\n\n**Author:** \`${message.author.tag}\` (${message.author.id})\n**Server:** ${message.guild.name} (${message.guild.id})`);
-					await logChan.send({ embeds: [filterEmbed] });
-					filtered = await filtered.replaceAll('*', '\\*');
+			let prohibited;
+			// check if message contains prohibited words
+			wordList.words.forEach(v => {
+				// return if message contains blacklisted words (slurs)
+				// and log it to staff logs channel
+				if (message.content.toLowerCase().includes(v)) {
+					wordFilter.log(message);
+					prohibited = true;
+					return message.author.send('That word has been blacklisted by the developers.');
 				}
-				message.content = filtered;
-			}
-			catch {/**/}
+			});
+			if (prohibited === true) return;
 
+			if (message.content.includes('@everyone') || message.content.includes('@here')) {
+				return;
+			}
+			// filter bad words
+			if (filter.isProfane(message.content)) {
+				message.content = await wordFilter.execute(message);
+			}
 			const userInBlacklist = await database.collection('blacklistedUsers').findOne({ userId: message.author.id });
 			if (userInBlacklist) {
 				// TODO: Send message to author not the channel.
 				// await message.author.send(`You are blacklisted from using the ChatBot Chat Network for reason \`${userInBlacklist.reason}\`! Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
-				return;
-			}
-
-			if (message.content.includes('@everyone') || message.content.includes('@here')) {
 				return;
 			}
 
@@ -76,6 +72,11 @@ module.exports = {
 			await require('../scripts/message/addBadges').execute(message, database, embed);
 			await require('../scripts/message/messageContentModifiers').execute(message, embed);
 
+			// delete the message only if it doesn't contain images
+			if (message.attachments.first() === undefined) {
+				try {await message.delete();}
+				catch (err) {logger.warn(err + ' cannot delete message');}
+			}
 			const deletedChannels = [];
 
 			// NOTE: Using the db used here in other chatbot's will end up deleting all servers when you send a message... so be careful XD
@@ -108,10 +109,6 @@ module.exports = {
 				await messageTypes(client, message, channelObj, embed, setup);
 
 			});
-			if (message.attachments.first() === undefined) {
-				try {await message.delete();}
-				catch (err) {logger.warn(err + ' cannot delete message');}
-			}
 		}
 		else {
 			return;
