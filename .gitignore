@@ -4,5 +4,6 @@ package-lock.json
 
 # logs
 /logs/
-.env
+
+# archive
 /Archive/test.md
