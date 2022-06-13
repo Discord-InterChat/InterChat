@@ -1,6 +1,6 @@
 # ChatBot-Alpha
 
-## TODO, REVIEW NOTE, and FIXME comments:
+## TODO, REVIEW, NOTE, and FIXME comments:
 1. `TODO` - Something that must be finished before releasing, a reminder.
 
 2. `REVIEW` - Review a piece of code to see if there is a better alternative.
