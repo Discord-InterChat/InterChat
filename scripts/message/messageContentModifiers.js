@@ -25,8 +25,8 @@ module.exports = {
 
 
 		const tenorRegex = /https:\/\/tenor\.com\/view\/.*-(\d+)/;
-		const test = tenorRegex.test(message.content); // pretty much the same thing .match() does but returns boolian
-		if (test) {
+		const isTenor = tenorRegex.test(message.content); // pretty much the same thing .match() does but returns boolian
+		if (isTenor) {
 			const fetch = require('node-fetch');
 
 			const gif = message.content.match(tenorRegex);
