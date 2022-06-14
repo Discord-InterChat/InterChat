@@ -5,12 +5,7 @@ const { v4: uuidv4 } = require('uuid');
 
 module.exports = {
 	async execute(interaction) {
-		const modalBug = new Modal().setCustomId('modal_bug').setTitle('Bug Report');
-		const modalServer = new Modal().setCustomId('modal_server').setTitle('Report a Discord Server');
-		const modalUser = new Modal().setCustomId('modal_user').setTitle('Report a User');
-		const modalOther = new Modal().setCustomId('modal_other').setTitle('Misc Report'); // FIXME: Fix spelling of misc to fullform
-
-		const para_bug = new TextInputComponent()
+		/* 		const para_bug = new TextInputComponent()
 			.setRequired(true)
 			.setCustomId('para_bug')
 			.setStyle('PARAGRAPH')
@@ -77,24 +72,59 @@ module.exports = {
 		const shortRowUser = new MessageActionRow().addComponents(short_user);
 		const shortRowOther = new MessageActionRow().addComponents(short_other);
 
-		modalBug.addComponents(shortRowBug, rowBug);
-		modalServer.addComponents(shortRowServer, rowServer);
-		modalUser.addComponents(shortRowUser, rowUser);
-		modalOther.addComponents(shortRowOther, rowOther);
+			*/
+
+		const modal_bug = new Modal().setCustomId('modal_bug').setTitle('Report');
+		const modal_server = new Modal().setCustomId('modal_server').setTitle('Report');
+		const modal_user = new Modal().setCustomId('modal_user').setTitle('Report');
+		const modal_other = new Modal().setCustomId('modal_other').setTitle('Report');
+
+		const short = new TextInputComponent().setRequired('true').setStyle('SHORT').setMaxLength(300).setCustomId('short');
+		const para = new TextInputComponent().setRequired('true').setStyle('PARAGRAPH').setMaxLength(1000).setCustomId('para');
+
 
 		const optionType = await interaction.options.getString('type');
 
 		if (optionType === 'bug') {
-			await interaction.showModal(modalBug);
+			para.setLabel('What is the bug about?').setLabel('Short description of the bug');
+			short.setLabel('Short description of the bug');
+
+			const row_para = new MessageActionRow().addComponents(para);
+			const row_short = new MessageActionRow().addComponents(short);
+			modal_bug.addComponents(row_short, row_para);
+
+			await interaction.showModal(modal_bug);
 		}
 		if (optionType === 'server') {
-			await interaction.showModal(modalServer);
+			para.setLabel('Please provide more info about the server').setPlaceholder('I am reporting this server because...');
+			short.setLabel('Server Name & ID').setPlaceholder('Ex: Land of ChatBots - 012345678909876543');
+
+			const row_para = new MessageActionRow().addComponents(para);
+			const row_short = new MessageActionRow().addComponents(short);
+			modal_server.addComponents(row_short, row_para);
+
+			await interaction.showModal(modal_server);
 		}
 		if (optionType === 'user') {
-			await interaction.showModal(modalUser);
+			para.setLabel('Please provide more info about the user').setPlaceholder('I am reporting this user because...');
+			short.setLabel('User ID').setPlaceholder('Ex: 012345678909876543');
+
+
+			const row_para = new MessageActionRow().addComponents(para);
+			const row_short = new MessageActionRow().addComponents(short);
+			modal_user.addComponents(row_short, row_para);
+
+			await interaction.showModal(modal_user);
 		}
 		if (optionType === 'other') {
-			await interaction.showModal(modalOther);
+			para.setLabel('Please provide us more details').setPlaceholder('Ask questions, requests, applications etc.');
+			short.setLabel('Title').setPlaceholder('Ex. New feature request for ChatBot').setCustomId('short_other');
+
+			const row_para = new MessageActionRow().addComponents(para);
+			const row_short = new MessageActionRow().addComponents(short);
+			modal_other.addComponents(row_short, row_para);
+
+			await interaction.showModal(modal_other);
 		}
 
 
@@ -107,19 +137,19 @@ module.exports = {
 		const filter = (i) => i.user.id === interaction.user.id;
 		interaction.awaitModalSubmit({ filter, time: 60000 })
 			.then(async i => {
-				const componentShort = i.components[0].components[0];
-				const componentPara = i.components[1].components[0];
+				// const componentShort = i.components[0].components[0];
+				// const componentPara = i.components[1].components[0];
+				// let value1 = componentShort.value;
+				// const value2 = componentPara.value;
+				const componentPara = i.fields.getTextInputValue('para');
+				let componentShort = i.fields.getTextInputValue('short');
 
-				let value1 = componentShort.value;
-				const value2 = componentPara.value;
-
-
-				if (componentShort.customId === 'short_user') {
-					if (/^[0-9]*$/gm.test(value1) == false) return i.reply({ content: 'Please only provide a **User ID**. To see how to get user ID\'s please refer [this post](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-). Or you could also directly get it from chatbot messages [image:](https://imgur.com/a/w93gxgu)', ephemeral: true });
+				if (i.customId === 'modal_user') {
+					if (/^[0-9]*$/gm.test(componentShort) == false) {return i.reply({ content: 'Please only provide a **User ID**. To see how to get user ID\'s please refer [this post](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-). Or you could also directly get it from chatbot messages [image:](https://imgur.com/a/w93gxgu)', ephemeral: true });}
 
 					try {
-						const user = await interaction.client.users.fetch(value1);
-						value1 = `${user.username}#${user.discriminator} - ${user.id}`;
+						const user = await interaction.client.users.fetch(componentShort);
+						componentShort = `${user.username}#${user.discriminator} - ${user.id}`;
 					}
 					catch {
 						i.reply({ content: 'Invalid User Provided.', ephemeral: true });
@@ -128,12 +158,12 @@ module.exports = {
 				}
 
 				const embed = new MessageEmbed()
-					.setDescription(`Type: **${optionType}**`)
+					.setDescription(`Type: **${i.customId.replace('modal_', '')}**`)
 					.setAuthor({ name: `Reported By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
 					.setFooter({ text: `From Server: ${interaction.guild.name}`, iconURL: interaction.guild.iconURL({ dynamic: true }) })
 					.addFields([
-						{ name: 'Title', value: value1 },
-						{ name: 'Description', value: '```' + value2 + '```' },
+						{ name: 'Title', value: componentShort },
+						{ name: 'Description', value: '```' + componentPara + '```' },
 					])
 					.setTimestamp()
 					.setColor(colors());
@@ -142,8 +172,9 @@ module.exports = {
 				const reportChannel = await interaction.client.channels.fetch('976099718251831366');
 
 				await i.reply('Thank you for your report!');
+
 				// send to chatbot reports channel
-				const report = await reportChannel.send({ content: '<@devs>', embeds: [embed], components: [textBtn] });
+				const report = await reportChannel.send({ content: '@Staff', embeds: [embed], components: [textBtn] });
 
 				const collector = report.createMessageComponentCollector({ time: 50400000, componentType: 'BUTTON' });
 
@@ -158,7 +189,7 @@ module.exports = {
 				// it should send one message to the report channel with somewhat accurate information
 				// ...probably
 			})
-			.catch((e) => console.log(e));
+			.catch((e) => console.log('Someone cancelled the modal.'));
 
 
 	},
