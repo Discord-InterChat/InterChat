@@ -26,36 +26,31 @@ module.exports = {
 		const setup = database.collection('setup');
 		const channelInNetwork = await connectedList.findOne({ channelId: message.channel.id });
 
+		// db for blacklisted users
+		const blacklistedUsers = database.collection('blacklistedUsers');
+		const userInBlacklist = await blacklistedUsers.findOne({ userId: message.author.id });
+
 		// db for blacklisted words
 		const restrictedWords = database.collection('restrictedWords');
 		const wordList = await restrictedWords.findOne({ name: 'blacklistedWords' });
 
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
-			let prohibited;
-			// check if message contains prohibited words
-			wordList.words.forEach(v => {
-				// return if message contains blacklisted words (slurs)
-				// and log it to staff logs channel
-				if (message.content.toLowerCase().includes(v)) {
-					wordFilter.log(message);
-					prohibited = true;
-					return message.author.send('That word has been blacklisted by the developers.');
-				}
-			});
-			if (prohibited === true) return;
-
-			// if (message.content.includes('@everyone') || message.content.includes('@here')) {
-			// 	return;
-			// }
-			// filter bad words
-			if (filter.isProfane(message.content)) {
-				message.content = await wordFilter.execute(message);
+			// check if message contains slurs
+			if (message.content.toLowerCase().includes(wordList.words[0]) || message.content.toLowerCase().includes(wordList.words[1]) || message.content.toLowerCase().includes(wordList.words[2])) {
+				wordFilter.log(message);
+				return message.author.send('That word has been blacklisted by the developers.');
 			}
-			const userInBlacklist = await database.collection('blacklistedUsers').findOne({ userId: message.author.id });
+
+			// check if message contains profanity
+			if (filter.isProfane(message.content)) message.content = await wordFilter.execute(message);
+
 			if (userInBlacklist) {
-				// TODO: Send message to author not the channel.
-				// await message.author.send(`You are blacklisted from using the ChatBot Chat Network for reason \`${userInBlacklist.reason}\`! Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+				// if user is in blacklist an notified is false, send them a message saying they are blacklisted
+				if (!userInBlacklist.notified) {
+					message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+					blacklistedUsers.updateOne({ userId: message.author.id }, { $set: { notified: true } });
+				}
 				return;
 			}
 
