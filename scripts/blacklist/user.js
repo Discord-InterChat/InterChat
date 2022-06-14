@@ -12,9 +12,9 @@ module.exports = {
 		try {
 			user = await interaction.client.users.fetch(userOpt);
 		}
-		catch (err) {
+		catch {
 			interaction.reply('Something went wrong! Are you sure that was a valid user ID?');
-			return logger.error(err);
+			return;
 		}
 
 		if (subcommandGroup == 'add') {
@@ -25,12 +25,20 @@ module.exports = {
 			if (userOpt == interaction.user.id) return interaction.reply('You cannot blacklist yourself.');
 			if (userOpt == interaction.client.user.id) return interaction.reply('You cannot blacklist the bot wtf.');
 
-
 			await blacklistedUsers.insertOne({
 				username: `${user.username}#${user.discriminator}`,
 				userId: userOpt,
 				reason: reason,
+				notified: true,
 			});
+
+			try {
+				await user.send(`You have been blacklisted from using this bot for reason **${reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+			}
+			catch {
+				await blacklistedUsers.updateOne({ userId: userOpt }, { $set: { notified: false } });
+				logger.info(`Could not notify ${user.username}#${user.discriminator} about blacklist.`);
+			}
 
 			interaction.reply(`**${user.username}#${user.discriminator}** has been blacklisted.`);
 		}
