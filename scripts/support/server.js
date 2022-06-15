@@ -6,7 +6,7 @@ module.exports = {
 		const embed = new MessageEmbed()
 			.setTitle('ChatBot HQ')
 			.setDescription('[Click Here](<https://discord.gg/6bhXQynAPs>)')
-			.setColor(colors())
+			.setColor(colors('chatbot'))
 			.setTimestamp();
 		await interaction.reply({ embeds: [embed] });
 	},
