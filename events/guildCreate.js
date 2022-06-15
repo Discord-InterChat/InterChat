@@ -22,7 +22,7 @@ module.exports = {
 
 		const embed = new MessageEmbed()
 			.setTitle(`${normal.tada} Hi! Thanks for adding ChatBot to your server! Please type in "/info" for help and information!`)
-			.setDescription('To start chatting, make a channel and run `/network connect`!\n\nAnd if you are interested in the other commands use `/info`\n\nNeed help? [Join the support server](https://discord.gg/qw9s8bJ).\n**Please note that ChatBot is not AI, but a bot for chatting with other real discord servers.**')
+			.setDescription('To start chatting, make a channel and run `/network connect`!\n\nAnd if you are interested in the other commands use `/help`\n\nNeed help? [Join the support server](https://discord.gg/6bhXQynAPs).\n**Please note that ChatBot is not AI, but a bot for chatting with other real discord servers.**')
 			.setColor('#5cb5f9');
 
 		await sendInFirst(guild, { embeds: [embed] });
