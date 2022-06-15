@@ -12,6 +12,7 @@ const commands = [];
 
 fs.readdirSync('./commands').forEach((dir) => {
 	if (fs.statSync(`./commands/${dir}`).isDirectory()) {
+		if (dir === 'private') {/* pass */}
 		const commandFiles = fs.readdirSync(`./commands/${dir}`).filter(file => file.endsWith('.js'));
 		for (const commandFile of commandFiles) {
 			const command = require(`./commands/${dir}/${commandFile}`);
