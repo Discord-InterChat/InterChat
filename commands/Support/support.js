@@ -13,6 +13,12 @@ module.exports = {
 						.setName('suggestion')
 						.setRequired(true)
 						.setDescription('The suggestion for the bot.'),
+				)
+				.addAttachmentOption(option =>
+					option
+						.setName('attachment')
+						.setDescription('Attach a file to the suggestion.')
+						.setRequired(false),
 				),
 		)
 		.addSubcommand(subcommand =>
