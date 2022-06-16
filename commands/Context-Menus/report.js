@@ -30,14 +30,14 @@ module.exports = {
 		const reportChannel = await interaction.client.channels.fetch('976099718251831366');
 
 		// create modal
-		const modal = new Modal().setCustomId('modal').setTitle('Bug Report').addComponents(
+		const modal = new Modal().setCustomId('modal').setTitle('Report').addComponents(
 			new MessageActionRow()
 				.addComponents(
 					new TextInputComponent()
 						.setRequired(true)
 						.setCustomId('para')
 						.setStyle('PARAGRAPH')
-						.setLabel('Please describe the report in more detail:')
+						.setLabel('Please describe the report in more detail')
 						.setMaxLength(1000),
 				));
 
@@ -46,8 +46,8 @@ module.exports = {
 		// create modal input collector
 		const collector = new InteractionCollector(interaction.client, {
 			max: 1,
-			filter: (i) => i.isModalSubmit && i.customId === 'modal',
-			timeout: 60_000,
+			filter: (i) => i.isModalSubmit && i.customId === 'modal' && i.user.id === interaction.user.id,
+			time: 60_000,
 			errors: ['time'],
 		});
 
@@ -56,12 +56,12 @@ module.exports = {
 			const components = i.fields.getTextInputValue('para');
 
 			const embed = new MessageEmbed()
-				.setAuthor({ name: `${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() })
+				.setAuthor({ name: `${i.user.tag}`, iconURL: i.user.displayAvatarURL() })
 				.setTitle('New Report')
 				.setColor('#ff0000')
 				.addFields([
-					{ name: 'Reported By', value: `${interaction.user.tag}`, inline: true },
-					{ name: 'Reported From', value: `${interaction.guild.name}`, inline: true },
+					{ name: 'Reported By', value: `${i.user.tag}`, inline: true },
+					{ name: 'Reported From', value: `${i.guild.name}`, inline: true },
 					{ name: 'Report Info', value: `User: **${userInfo.username}#${userInfo.discriminator}** (${userId})\nServer: **${serverInfo.name}** (${serverId}) ` },
 					{ name: 'Details', value: `${components}` },
 				])
