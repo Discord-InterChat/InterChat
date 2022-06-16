@@ -16,6 +16,7 @@ for (const commandFile of commandFiles) {
 	commands.push(command.data.toJSON());
 }
 
+// FIXME: Change the IDs to main ChatBot ID and ChatBot HQ ID
 rest.put(Routes.applicationGuildCommands('798748015435055134', '969920027421732874'), { body: commands })
 	.then(() => logger.info('Registered all application commands for\u001b[35m ChatBot HQ\u001b[0m successfully'))
 	.catch((e) => console.error(e));

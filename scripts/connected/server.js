@@ -1,7 +1,7 @@
 /* eslint-disable no-inner-declarations */
 const { MessageEmbed } = require('discord.js');
 const { paginate } = require('../../utils');
-const emoji = require('../../emoji.json');
+
 module.exports = {
 	async execute(interaction, database) {
 		const serverOpt = interaction.options.getString('type');
@@ -47,7 +47,7 @@ module.exports = {
 					const fields = current.map(value => { return { name: `${++j}. ${value.serverName}`, value: `ServerID: ${value.serverId}\nChannel: ${value.channelName} \`(${value.channelId})\`` }; });
 
 					const embed = new MessageEmbed()
-						.setDescription(`Displaying the current connected servers: (${j}-${k >= result.length ? result.length : k}) / **${result.length}**`)
+						.setDescription(`Showing the current connected servers: ${j}-${k >= result.length ? result.length : k} / **${result.length}**`)
 						.setColor(0x2F3136)
 						.setFields(fields);
 					embeds.push(embed);

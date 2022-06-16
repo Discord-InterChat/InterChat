@@ -1,4 +1,3 @@
-/* eslint-disable no-inner-declarations */
 const { ContextMenuCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {

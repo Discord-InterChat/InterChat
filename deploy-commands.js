@@ -21,6 +21,7 @@ fs.readdirSync('./commands').forEach((dir) => {
 	}
 });
 
+// FIXME: Change the ID main ChatBot ID
 rest.put(Routes.applicationCommands('798748015435055134'), { body: commands })
 	.then(() => {
 		logger.info('Registered all application commands successfully');
