@@ -34,7 +34,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setup')
 		.setDescription('Replies with your input!')
-		.setDefaultPermission(false)
+		.setDefaultMemberPermissions('0')
 		.addChannelOption(channelOption => channelOption
 			.setName('destination')
 			.setRequired(false)
@@ -202,7 +202,7 @@ module.exports = {
 		// removing components from message, idk how to disable them so...
 		collector.on('end', () => {
 			message.edit({ components: [] })
-				.catch(console.log('Interaction deleted, ignoring...'));
+				.catch(console.log(() => 'Interaction deleted, ignoring...'));
 			return;
 		});
 

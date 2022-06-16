@@ -18,7 +18,7 @@ module.exports = {
 				.setDescription('The reason for leaving the server.')
 				.setRequired(true),
 		)
-		.setDefaultPermission(false),
+		.setDefaultMemberPermissions('0'),
 	async execute(interaction) {
 		const perms = await staffPermissions(interaction);
 		if (perms === 0) return;

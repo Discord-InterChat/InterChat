@@ -5,7 +5,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('logout')
 		.setDescription('Logs the bot out.')
-		.setDefaultPermission(false),
+		.setDefaultMemberPermissions('0'),
 	async execute(interaction) {
 		const perms = await staffPermissions(interaction);
 		if (perms === 0) return;
