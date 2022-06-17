@@ -82,7 +82,7 @@ module.exports = {
 			}
 		}
 	},
-	developers: [828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n],
+	developers: [828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n, 736482645931720765n],
 	staff: [442653948630007808n, 446709111715921920n],
 	cbhq: '770256165300338709',
 	getCredits: async () => {
@@ -169,7 +169,6 @@ module.exports = {
 			disabled: pages.length <= index + 1,
 		}]);
 
-
 		let pagenumber = 0;
 		try {
 			pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });
@@ -228,5 +227,29 @@ module.exports = {
 				});
 			});
 		});
+	},
+	clean: async (client, text) => {
+		// If our input is a promise, await it before continuing
+		if (text && text.constructor.name == 'Promise') text = await text;
+
+		// If the response isn't a string, `util.inspect()`
+		// is used to 'stringify' the code in a safe way that
+		// won't error out on objects with circular references
+		// (like Collections, for example)
+		if (typeof text !== 'string') text = require('util').inspect(text, { depth: 1 });
+
+		// Replace symbols with character code alternatives
+		text = text
+			.replace(/`/g, '`' + String.fromCharCode(8203))
+			.replace(/@/g, '@' + String.fromCharCode(8203));
+
+		const redact = '\u001B[38;5;31m[REDACTED]\u001B[0m';
+		const mongoRegex = /mongodb\+srv:\/\/737:.*|mongodb:\/\/737:.*/g;
+
+		text = text.replaceAll(client.token, redact);
+		text = text.replaceAll(process.env.TOPGG, redact);
+		text = text.replace(mongoRegex, redact);
+		// Send off the cleaned up result
+		return text;
 	},
 };

@@ -1,7 +1,7 @@
 /* eslint-disable no-inline-comments */
 const { MessageEmbed } = require('discord.js');
 const logger = require('../logger');
-const { getDb, colors } = require('../utils');
+const { getDb, colors, developers, clean } = require('../utils');
 const { client } = require('../index');
 const { messageTypes } = require('../scripts/message/messageTypes');
 const wordFilter = require('../scripts/message/wordFilter');
@@ -12,6 +12,49 @@ module.exports = {
 	name: 'messageCreate',
 	async execute(message) {
 		if (message.author.bot) return;
+
+		// Get our input arguments
+		const args = message.content.split(' ').slice(1);
+
+		// The actual eval command
+		if (message.content.startsWith('c!eval')) {
+			// If the message author's ID does not equal
+			// our ownerID, get outta there!
+			// eslint-disable-next-line no-undef
+			if (!developers.includes(BigInt(message.author.id))) {return console.log('Someone used eval');}
+
+			// In case something fails, we to catch errors
+			// in a try/catch block
+			try {
+				// Evaluate (execute) our input
+				const evaled = eval(args.join(' '));
+
+				// Put our eval result through the function
+				// we defined above
+				const cleaned = await clean(client, evaled);
+
+
+				// create a new embed
+				const embed = new MessageEmbed()
+					.setColor('BLURPLE')
+					.setTitle('Evaluation')
+					.setDescription(`\`\`\`ansi\n${cleaned}\n\`\`\``)
+					.setTimestamp();
+
+
+				// if cleaned includes [REDACTED] then send a colored codeblock
+				if (cleaned.includes('[REDACTED]')) embed.setDescription(`\`\`\`ansi\n${cleaned}\n\`\`\``);
+
+				// Reply in the channel with our result
+				{message.channel.send({ embeds: [embed] });}
+			}
+			catch (err) {
+				// Reply in the channel with our error
+				message.channel.send(`\`ERROR\` \`\`\`xl\n${err}\n\`\`\``);
+			}
+
+			// End of our command
+		}
 
 		if (message.content.startsWith('c!help') || message.content.startsWith('c!connect') || message.content.startsWith('c!disconnect')) {
 			await message.reply('ChatBot does not respond to any commands with the prefix `c!` anymore since we have switched to slash commands! Please type / and check out the list of commands!');
@@ -95,10 +138,10 @@ module.exports = {
 							$in: deletedChannels, // NOTE: $in only takes array
 						},
 					});
-					/*
-					 * REVIEW: replace this with something that doesnt iterate twise idk lmao
-					 * REVIEW: This suddenly started to work, make sure it really does and isnt luck! Bug testing or something
-					*/
+
+					// replace this with something that doesnt iterate twise idk lmao
+					// REVIEW: This suddenly started to work, make sure it really does and isnt luck! Bug testing or something
+
 					return;
 				}
 				await messageTypes(client, message, channelObj, embed, setup);
