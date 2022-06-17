@@ -32,8 +32,10 @@ Works for both Windows and Linux.
 ### Deploying Commands with the `deploy` command: 
 
 #### 
-Deploy Public Commands (Default):
-```deploy```
+#### Deploy Public Commands (Default):
+```
+deploy
+```
 
 
 #### Staff commands that are only available in ChatBot HQ:
