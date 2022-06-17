@@ -20,12 +20,12 @@ Works for both Windows and Linux.
 
 #### Windows Setup:
 1. Run `npm link`
-3. Finally run `deploy` in your commandline!
+3. Finally run `deploy` in the terminal!
 
 #### Linux Setup:
 1. Run `chmod +x deploy-commands.js` (optional)
 2. Run `sudo npm link`
-3. Finally run `deploy` in your commandline!
+3. Finally run `deploy` in the terminal!
 
 *Note: To view the help command run, `deploy --help`*
 
