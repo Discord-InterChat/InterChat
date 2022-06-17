@@ -5,11 +5,14 @@
     "main": "index.js",
     "scripts": {
         "start": "nodemon .",
-        "deploy": "node deploy-commands.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Supreme1707, Makiyu, dev-737",
     "license": "ISC",
+    "bin": {
+       "deploy": "deploy-commands.js"
+    },
+
     "dependencies": {
         "@discordjs/builders": "^0.15.0",
         "@discordjs/rest": "^0.5.0",
