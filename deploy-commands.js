@@ -4,6 +4,7 @@ const { Routes } = require('discord-api-types/v9');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const logger = require('./logger');
+const prompt = require('prompt');
 dotenv.config();
 
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
@@ -45,9 +46,21 @@ const deployPrivateCommands = async () => {
 
 async function commandLine() {
 
-	const args = process.argv[2];
+	const args = process.argv[2]?.toLowerCase();
+	const help = `
+	Usage:
+		deploy [--private | -p]
+		deploy [--all | -all | --a | -a]
+		deploy [--help | -help | --h | -h]
+	Options:
+		-h, --help    Show this help message and exit.
+		-a, --all     Deploy both public and private commands.
+		-p, --private Deploy private commands.`;
+
+	// if (!args.startsWith('-') || !args.startsWith('--')) return console.log('Invalid argument provided. Please use \u001B[38;5;31mdeploy --help\u001B[0m for more information.');
 
 	switch (args) {
+
 	case '--private':
 	case '-p':
 		await deployPrivateCommands();
@@ -56,30 +69,23 @@ async function commandLine() {
 	case '-all':
 	case '--a':
 	case '-a':
-		logger.warn('Deploying private and public commands...');
-		await deployCommands();
-		await deployPrivateCommands();
+		prompt.start();
+		console.log('Are you sure you want to deploy all commands? This will overwrite all commands and make private commands visible to every server. (y/n)');
+		prompt.get(['y/n'], (err, result) => {
+			result['y/n'] === 'y' ? deployCommands() && deployPrivateCommands() : console.log('\n\033[31;1;4mDeployment aborted.\033[0m');
+		});
 		break;
 	case '--help':
 	case '-help':
 	case '--h':
 	case '-h':
-		console.log(`
-Usage:
-	deploy [--private | -p]
-	deploy [--all | -all | --a | -a]
-	deploy [--help | -help | --h | -h]
-Options:
-	-h, --help    Show this help message and exit.
-	-a, --all     Deploy both public and private commands.
-	-p, --private Deploy private commands.
-		`);
+		console.log(help);
 		break;
 
 	default:
-		deployCommands().catch(console.error);
+		return args?.startsWith('-') || !args?.startsWith('-') ? console.log('Invalid argument provided. Please use \u001B[40;5;31mdeploy --help\u001B[0m for more information.') : deployCommands().catch(console.error);
 	}
 }
 
-if (process.argv[2]) return commandLine();
-deployCommands().catch(console.error);
+commandLine()
+	.catch(console.error);
