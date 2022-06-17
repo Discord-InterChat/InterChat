@@ -108,7 +108,7 @@ module.exports = {
 				*/
 			})
 			.catch(() => {
-				return console.log('Someone cancelled the modal.');
+				return logger.info('Someone cancelled the modal.');
 			});
 	},
 };

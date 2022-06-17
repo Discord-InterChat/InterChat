@@ -36,8 +36,10 @@ All notable changes to this project will be documented in this file.
 
 [1.1.0]: https://github.com/dev-737/ChatBot-Beta/compare/v1.1.0...v1.2.0
 
-# Stable
+[1.2.0]
+### Changed
 
+# Stable
 ## 2.3.0 - 2022-05-21
 ### Changed 
 - The `network` command will be replaced by `/setup` soon™️
