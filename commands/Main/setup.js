@@ -1,29 +1,4 @@
 'use strict';
-
-/**
- * ? TODO: Features
- * ? Backend: FUNCTIONALITIES:
- * *  Make a channel if it doesn't exist
- * *  Connect that channel to the network
- * *  Delete that channel from the network and setup database on delete/hide
- *
- *
- *? Discord: FUNCTIONALITIES:
- * *  Display the setup embed that acts like a dashboard after setup is complete
- * *  Display that same setup embed if the server is already setup:
- * *  Display basic information on embed
- * *  Switch to editor view if user clicks on 'edit' button, basically displays more information
- *
- *
- * ? Discord: ACTIONS:
- * *  Add a 'reset' button that reset's the setup
- * !  Clicking 'reset' shows you a modal that asks you to type out the name of the channel followed by 'chatbot-' (eg. chatbot-general (general is channel name)). No longer needed as it is too dificult.
- * *  Add a SelectMenu that lets you customize chatbot
- * *  Add ability to switch between embeded messages and normal messages
- *
- */
-
-
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu, Modal } = require('discord.js');
 const logger = require('../../logger');
@@ -79,7 +54,7 @@ module.exports = {
 			/**
 			 * @param {String} description The embed Description
 			 * @param {Array} fields Set embed Fields use the arrays inside objects to add multiple
-			 * @returns {JSON} Returns normal discord Embed in json format
+			 * @returns {MessageEmbed} Returns normal discord Embed in json format
 			 */
 			setCustom(description, fields) {
 				const embed = new MessageEmbed()
@@ -105,7 +80,7 @@ module.exports = {
 		const embeds = new Embeds();
 
 		let embed;
-		let db_guild = await collection.findOne({ 'guild.id': interaction.guild.id }); // NOTE: This returns promise to be sure to await it
+		let db_guild = await collection.findOne({ 'guild.id': interaction.guild.id }); // collection.fineOne returns promise to be sure to await it
 		let db_guild_channel;
 
 
@@ -214,8 +189,8 @@ module.exports = {
 			const default_msg = ({ content: null, embeds: [defaultEmbed], components: [buttons] });
 
 			/**
-			 * - REVIEW: ✅ If guild isn't in the database create channel and store that channel into database
-			 * - REVIEW:  Send error to channel if chatbot doesnt have the required permissions!
+			 * -  ✅ If guild isn't in the database create channel and store that channel into database
+			 * -  Send error to channel if chatbot doesnt have the required permissions!
 			 */
 
 			if (!db_guild) {
@@ -273,9 +248,8 @@ module.exports = {
 			// If channel is in database display the setup embed
 			db_guild = await collection.findOne({ 'guild.id': interaction.guild.id }); // fetch again to get updated data (VERY IMPORTANT)
 			if (db_guild) {
-				/**
-		 		* NOTE: Tries to fetch the channel, if it does not exist delete from the databases'
-		  		*/
+		 		// try to fetch the channel, if it does not exist delete from the databases'
+				// TODO: Delete from connectedList if channel is deleted and keep in setup database 			
 				try {
 					db_guild_channel = await interaction.guild.channels.fetch(db_guild.channel.id);
 				}
