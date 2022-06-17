@@ -4,7 +4,6 @@ const { Routes } = require('discord-api-types/v9');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const logger = require('./logger');
-const { stripIndents } = require('common-tags');
 dotenv.config();
 
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
@@ -45,30 +44,45 @@ const deployPrivateCommands = async () => {
 };
 
 async function commandLine() {
-	if (process.argv[2] && process.argv[2] === '--private' || process.argv[2] === '-p') {
-		await deployPrivateCommands();
-	}
 
-	else if (process.argv[2] && process.argv[2] === '-a' || process.argv[2] && process.argv[2] === '-all') {
+	const args = process.argv[2];
+
+	switch (args) {
+	case '--private':
+	case '-p':
+		await deployPrivateCommands();
+		break;
+	case '--all':
+	case '-all':
+	case '--a':
+	case '-a':
 		logger.warn('Deploying private and public commands...');
 		await deployCommands();
 		await deployPrivateCommands();
-	}
-
-	else if (process.argv[2] && process.argv[2] === '-h' || process.argv[2] && process.argv[2] === '--h' || process.argv[2] && process.argv[2] === '--help' || process.argv[2] && process.argv[2] === '-help') {
-		console.log(stripIndents(`
+		break;
+	case '--help':
+	case '-help':
+	case '--h':
+	case '-h':
+		console.log(`
+Usage:
+	node deploy-commands.js [--private | -p]
+	node deploy-commands.js [--all | -all | --a | -a]
+	node deploy-commands.js [--help | -help | --h | -h]
 Options:
-  -h, --help    Show this help message and exit.
-  -a, --all     Deploy both public and private commands.
-  -p, --private Deploy private commands.
-`));
+	-h, --help    Show this help message and exit.
+	-a, --all     Deploy both public and private commands.
+	-p, --private Deploy private commands.
+		`);
+		break;
 
+	default:
+		deployCommands().catch(console.error);
 	}
 }
 
 if (process.argv[2]) {
-	commandLine();
+	return commandLine();
 }
-else {
-	deployCommands().catch(console.error);
-}
+
+deployCommands().catch(console.error);
