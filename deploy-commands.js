@@ -66,9 +66,9 @@ async function commandLine() {
 	case '-h':
 		console.log(`
 Usage:
-	node deploy-commands.js [--private | -p]
-	node deploy-commands.js [--all | -all | --a | -a]
-	node deploy-commands.js [--help | -help | --h | -h]
+	deploy [--private | -p]
+	deploy [--all | -all | --a | -a]
+	deploy [--help | -help | --h | -h]
 Options:
 	-h, --help    Show this help message and exit.
 	-a, --all     Deploy both public and private commands.
@@ -81,8 +81,5 @@ Options:
 	}
 }
 
-if (process.argv[2]) {
-	return commandLine();
-}
-
+if (process.argv[2]) return commandLine();
 deployCommands().catch(console.error);
