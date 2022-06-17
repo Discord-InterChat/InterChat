@@ -29,7 +29,9 @@ Works for both Windows and Linux.
 
 *Note: To view the help command run, `deploy --help`*
 
-### Deploying Commands with the `deploy` command: 
+---
+
+### Usage: 
 
 #### 
 #### Deploy Public Commands (Default):
