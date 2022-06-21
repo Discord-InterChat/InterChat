@@ -19,18 +19,20 @@
 
 ## Network
 - [ ] Ability to edit/delete messages
-- [ ] Premium features using top.gg as the subscription site
-- [ ] Private networks 
+- [ ] Premium features using topgg as the subscription site
+- [ ] Private networks
 - [ ] Leveling system that gives perks as one uses the chat network more
 - [ ] New earnable badges
+- [ ] Level Badges
 
 ## Moderation
 - [ ] Better profanity filter
 - [ ] A way to detect inappropriate images
 - [ ] A way for Moderators to delete Chat messages in every server
+- [ ] A way for Server Owners & Admins to delete messages sent by their server members.
 
 ## Documentation
 - [ ] A full documentation on gitbook instead of a gist
-- [ ] New dashboard for the bot
+- [ ] New web dashboard for the bot
 - [ ] Privacy Policy & Terms Of Service page
 - [ ] Updated rules for better moderation of the bot
