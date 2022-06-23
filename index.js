@@ -97,9 +97,6 @@ process.on('unhandledRejection', function(err) {
 });
 
 client.login(process.env.TOKEN);
-
-// TODO: Test
-// TODO Test2
 /*
 client.commands.filter(cmd => cmd.category).forEach(cmd => {})
 

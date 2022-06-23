@@ -250,7 +250,6 @@ module.exports = {
 			db_guild = await collection.findOne({ 'guild.id': interaction.guild.id }); // fetch again to get updated data (VERY IMPORTANT)
 			if (db_guild) {
 				// try to fetch the channel, if it does not exist delete from the databases'
-				// TODO: Delete from connectedList if channel is deleted and keep in setup database
 				try {
 					db_guild_channel = await interaction.guild.channels.fetch(db_guild.channel.id);
 				}
