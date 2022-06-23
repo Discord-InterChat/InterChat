@@ -8,3 +8,31 @@
 3. `FIXME` - To change later to avoid facing problems, a bug that must be fixed before release.
 
 4. `NOTE` - A note left for later, something important or something that shows how something is supposed to be used/works.
+
+
+# Goals
+* 1000 servers using chatbot
+* 101 votes on topgg in a month
+
+
+# Plans
+
+## Network
+- [ ] Ability to edit/delete messages
+- [ ] Premium features using topgg as the subscription site
+- [ ] Private networks
+- [ ] Leveling system that gives perks as one uses the chat network more
+- [ ] New earnable badges
+- [ ] Level Badges
+
+## Moderation
+- [ ] Better profanity filter
+- [ ] A way to detect inappropriate images
+- [ ] A way for Moderators to delete Chat messages in every server
+- [ ] A way for Server Owners & Admins to delete messages sent by their server members.
+
+## Documentation
+- [ ] A full documentation on gitbook instead of a gist
+- [ ] New web dashboard for the bot
+- [ ] Privacy Policy & Terms Of Service page
+- [ ] Updated rules for better moderation of the bot
