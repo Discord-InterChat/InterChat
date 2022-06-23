@@ -1,15 +1,17 @@
 {
     "name": "discord-chatbot",
-    "version": "1.1.3",
+    "version": "1.2.0",
     "description": "A growing discord bot which provides inter-server chat! ",
     "main": "index.js",
     "scripts": {
         "start": "nodemon .",
-        "deploy": "node deploy-commands.js",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "Supreme1707, Makiyu, dev-737",
     "license": "ISC",
+    "bin": {
+        "deploy": "deploy-commands.js"
+    },
     "dependencies": {
         "@discordjs/builders": "^0.15.0",
         "@discordjs/rest": "^0.5.0",
@@ -31,6 +33,7 @@
     },
     "devDependencies": {
         "@types/common-tags": "^1.8.1",
-        "eslint": "^8.17.0"
+        "eslint": "^8.17.0",
+        "prompt": "^1.3.0"
     }
 }

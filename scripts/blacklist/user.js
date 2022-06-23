@@ -2,32 +2,34 @@ const logger = require('../../logger');
 
 module.exports = {
 	async execute(interaction, database) {
-		const userOpt = interaction.options.getString('user');
+		let userOpt = interaction.options.getString('user');
 		const reason = interaction.options.getString('reason');
 		const subcommandGroup = interaction.options.getSubcommandGroup();
 
 		const blacklistedUsers = database.collection('blacklistedUsers');
-		const userInBlacklist = await blacklistedUsers.findOne({ userId: userOpt });
 		let user;
+
 		try {
-			user = await interaction.client.users.fetch(userOpt);
+			if (/^<@.*>$/gm.test(userOpt)) userOpt = userOpt.replaceAll(/<@|!|>/g, '');
+			user = await interaction.client.users.cache.find(u => u.tag === userOpt);
+			if (user === undefined) user = await interaction.client.users.fetch(userOpt);
 		}
 		catch {
-			interaction.reply('Something went wrong! Are you sure that was a valid user ID?');
+			interaction.reply('Could not find user. Use an ID instead.');
 			return;
 		}
-
+		const userInBlacklist = await blacklistedUsers.findOne({ userId: user.id });
 		if (subcommandGroup == 'add') {
 			if (userInBlacklist) {
 				interaction.reply(`${user.username}#${user.discriminator} is already blacklisted.`);
 				return;
 			}
-			if (userOpt == interaction.user.id) return interaction.reply('You cannot blacklist yourself.');
-			if (userOpt == interaction.client.user.id) return interaction.reply('You cannot blacklist the bot wtf.');
+			if (user.id === interaction.user.id) return interaction.reply('You cannot blacklist yourself.');
+			if (user.id === interaction.client.user.id) return interaction.reply('You cannot blacklist the bot wtf.');
 
 			await blacklistedUsers.insertOne({
 				username: `${user.username}#${user.discriminator}`,
-				userId: userOpt,
+				userId: user.id,
 				reason: reason,
 				notified: true,
 			});
@@ -36,8 +38,8 @@ module.exports = {
 				await user.send(`You have been blacklisted from using this bot for reason **${reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
 			}
 			catch {
-				await blacklistedUsers.updateOne({ userId: userOpt }, { $set: { notified: false } });
-				logger.info(`Could not notify ${user.username}#${user.discriminator} about blacklist.`);
+				await blacklistedUsers.updateOne({ userId: user.id }, { $set: { notified: false } });
+				logger.info(`Could not notify ${user.username}#${user.discriminator} about their blacklist.`);
 			}
 
 			interaction.reply(`**${user.username}#${user.discriminator}** has been blacklisted.`);
@@ -48,7 +50,7 @@ module.exports = {
 				return;
 			}
 
-			await blacklistedUsers.deleteOne({ userId: userOpt });
+			await blacklistedUsers.deleteOne({ userId: user.id });
 			interaction.reply(`**${user.username}#${user.discriminator}** has been removed from the blacklist.`);
 		}
 	},

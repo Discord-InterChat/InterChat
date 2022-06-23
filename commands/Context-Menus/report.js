@@ -2,10 +2,13 @@ const { ContextMenuCommandBuilder } = require('@discordjs/builders');
 const { Modal, MessageActionRow, TextInputComponent, InteractionCollector, MessageEmbed } = require('discord.js');
 const { getDb } = require('../../utils');
 module.exports = {
+	description: 'Report a user directly from the Chat Network!',
 	data: new ContextMenuCommandBuilder()
-		.setName('Report')
+		.setName('report')
+		// message type
 		.setType(3),
 	async execute(interaction) {
+		// args is the message the interaction is being performed on
 		const args = await interaction.channel.messages.cache.get(interaction.targetId);
 		const database = await getDb();
 		const connectedList = database.collection('connectedList');
@@ -37,8 +40,8 @@ module.exports = {
 						.setRequired(true)
 						.setCustomId('para')
 						.setStyle('PARAGRAPH')
-						.setLabel('Please describe the report in more detail')
-						.setMaxLength(1000),
+						.setLabel('Please enter a reason for the report')
+						.setMaxLength(950),
 				));
 
 		await interaction.showModal(modal);
@@ -51,23 +54,29 @@ module.exports = {
 			errors: ['time'],
 		});
 
-		// respond on modal submit
+		// respond to message
+		// when modal is submitted
 		collector.on('collect', async (i) => {
 			const components = i.fields.getTextInputValue('para');
 
+			// create embed with report info
+			// and send it to report channel
 			const embed = new MessageEmbed()
 				.setAuthor({ name: `${i.user.tag}`, iconURL: i.user.displayAvatarURL() })
 				.setTitle('New Report')
+				.setDescription('Please wait while we process your report...')
 				.setColor('#ff0000')
 				.addFields([
 					{ name: 'Reported By', value: `${i.user.tag}`, inline: true },
 					{ name: 'Reported From', value: `${i.guild.name}`, inline: true },
 					{ name: 'Report Info', value: `User: **${userInfo.username}#${userInfo.discriminator}** (${userId})\nServer: **${serverInfo.name}** (${serverId}) ` },
-					{ name: 'Details', value: `${components}` },
+					{ name: 'Details', value: '```' + components + '```' },
 				])
 				.setTimestamp();
-			await i.reply({ content: 'Thank you for your report!', ephemeral: true });
 			await reportChannel.send({ embeds: [embed] });
+
+			// reply to interaction
+			await i.reply({ content: 'Thank you for your report!', ephemeral: true });
 		});
 
 	},

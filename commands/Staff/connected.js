@@ -5,15 +5,15 @@ const mongoUtil = require('../../utils');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('connected')
-		.setDescription('Blacklist a user or server from using the bot. Staff-only')
+		.setDescription('Display the connected servers. (Staff only)')
 		.addStringOption(string =>
 			string
 				.setName('type')
 				.setDescription('The type of blacklist to list.')
 				.setRequired(true)
 				.addChoices(
-					{ name: 'User', value: 'user' },
-					{ name: 'Server', value: 'server' }),
+					{ name: 'Server', value: 'server' },
+					{ name: 'User', value: 'user' }),
 		),
 
 	async execute(interaction) {

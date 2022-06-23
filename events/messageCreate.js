@@ -1,7 +1,7 @@
 /* eslint-disable no-inline-comments */
 const { MessageEmbed } = require('discord.js');
 const logger = require('../logger');
-const { getDb, colors } = require('../utils');
+const { getDb, colors, developers, clean } = require('../utils');
 const { client } = require('../index');
 const { messageTypes } = require('../scripts/message/messageTypes');
 const wordFilter = require('../scripts/message/wordFilter');
@@ -12,6 +12,56 @@ module.exports = {
 	name: 'messageCreate',
 	async execute(message) {
 		if (message.author.bot) return;
+
+		// The actual eval command
+		if (message.content.startsWith('c!eval')) {
+			message.content = message.content.replace(/```js|```/g, '');
+
+			// Get our input arguments
+			const args = message.content.split(' ').slice(1);
+
+			// If the message author's ID does not equal
+			// our ownerID, get outta there!
+			// eslint-disable-next-line no-undef
+			if (!developers.includes(BigInt(message.author.id))) {return console.log('Someone used eval');}
+
+			// In case something fails, we to catch errors
+			// in a try/catch block
+			try {
+				// Evaluate (execute) our input
+				const evaled = eval(args.join(' '));
+
+				// Put our eval result through the function
+				// we defined above
+				const cleaned = await clean(client, evaled);
+
+
+				// create a new embed
+				const embed = new MessageEmbed()
+					.setColor('BLURPLE')
+					.setTitle('Evaluation')
+					.setFields([
+						{ name: 'Input', value: `\`\`\`js\n${args.join(' ')}\n\`\`\`` },
+						{ name: 'Output', value: `\`\`\`js\n${cleaned}\n\`\`\`` },
+					])
+					.setTimestamp();
+
+				// if cleaned includes [REDACTED] then send a colored codeblock
+				if (cleaned.includes('[REDACTED]')) embed.spliceFields(1, 1, { name: 'Output', value:  `\`\`\`ansi\n${cleaned}\n\`\`\` ` });
+
+
+				if (embed.length > 6000) return message.reply('Output too long to send. Logged to console. Check log file for more info.');
+
+				// Reply in the channel with our result
+				message.channel.send({ embeds: [embed] });
+			}
+			catch (err) {
+				// Reply in the channel with our error
+				message.channel.send(`\`ERROR\` \`\`\`xl\n${err}\n\`\`\``);
+			}
+
+			// End of our command
+		}
 
 		if (message.content.startsWith('c!help') || message.content.startsWith('c!connect') || message.content.startsWith('c!disconnect')) {
 			await message.reply('ChatBot does not respond to any commands with the prefix `c!` anymore since we have switched to slash commands! Please type / and check out the list of commands!');
@@ -36,6 +86,15 @@ module.exports = {
 
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
+			if (userInBlacklist) {
+				// if user is in blacklist an notified is false, send them a message saying they are blacklisted
+				if (!userInBlacklist.notified) {
+					message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+					blacklistedUsers.updateOne({ userId: message.author.id }, { $set: { notified: true } });
+				}
+				return;
+			}
+
 			// check if message contains slurs
 			if (message.content.toLowerCase().includes(wordList.words[0]) || message.content.toLowerCase().includes(wordList.words[1]) || message.content.toLowerCase().includes(wordList.words[2])) {
 				wordFilter.log(message);
@@ -45,14 +104,6 @@ module.exports = {
 			// check if message contains profanity
 			if (filter.isProfane(message.content)) message.content = await wordFilter.execute(message);
 
-			if (userInBlacklist) {
-				// if user is in blacklist an notified is false, send them a message saying they are blacklisted
-				if (!userInBlacklist.notified) {
-					message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
-					blacklistedUsers.updateOne({ userId: message.author.id }, { $set: { notified: true } });
-				}
-				return;
-			}
 
 			const allConnectedChannels = await connectedList.find();
 
@@ -95,10 +146,10 @@ module.exports = {
 							$in: deletedChannels, // NOTE: $in only takes array
 						},
 					});
-					/*
-					 * REVIEW: replace this with something that doesnt iterate twise idk lmao
-					 * REVIEW: This suddenly started to work, make sure it really does and isnt luck! Bug testing or something
-					*/
+
+					// replace this with something that doesnt iterate twise idk lmao
+					// REVIEW: This suddenly started to work, make sure it really does and isnt luck! Bug testing or something
+
 					return;
 				}
 				await messageTypes(client, message, channelObj, embed, setup);

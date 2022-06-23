@@ -6,7 +6,7 @@ module.exports = {
 		.setName('invite')
 		.setDescription('Invite the bot to your server'),
 	async execute(interaction) {
-		const Normal = new MessageActionRow()
+		const InviteButtons = new MessageActionRow()
 			.addComponents([
 				new MessageButton()
 					.setLabel('Normal')
@@ -14,10 +14,6 @@ module.exports = {
 					.setStyle('LINK')
 					.setEmoji(normal.invite)
 					.setDisabled(false),
-
-			]);
-		const Admin = new MessageActionRow()
-			.addComponents([
 				new MessageButton()
 					.setLabel('Administrator')
 					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'], permissions: Permissions.FLAGS.ADMINISTRATOR }))
@@ -26,6 +22,6 @@ module.exports = {
 					.setDisabled(false),
 
 			]);
-		await interaction.reply({ content: `Click the button to invite!\n\n${normal.invite} **Administrator** - For big servers with complex permission systems.\n**${normal.invite} Normal** - For normal functionality of the bot.  \n\n\n__Support Server__: https://discord.gg/6bhXQynAPs`, components: [Admin, Normal], ephemeral:true });
+		await interaction.reply({ content: `Click the button to invite!\n\n${normal.invite} **Administrator** - For big servers with complex permission systems.\n**${normal.invite} Normal** - For normal functionality of the bot.  \n\n\n__Support Server__: https://discord.gg/6bhXQynAPs`, components: [InviteButtons], ephemeral:true });
 	},
 };

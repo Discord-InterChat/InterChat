@@ -18,7 +18,7 @@ module.exports = {
 							.addStringOption(user =>
 								user
 									.setName('user')
-									.setDescription('The user ID to blacklist.')
+									.setDescription('The user ID to blacklist. User tag also works if they are already cached.')
 									.setRequired(true),
 							)
 							.addStringOption(string =>
@@ -54,11 +54,11 @@ module.exports = {
 					subcommand =>
 						subcommand
 							.setName('user')
-							.setDescription('Remove a user from the blacklist.')
+							.setDescription('Remove a user from the blacklist. Staff-only')
 							.addStringOption(user =>
 								user
 									.setName('user')
-									.setDescription('The user to remove from the blacklist.')
+									.setDescription('The user to remove from the blacklist. User tag also works.')
 									.setRequired(true),
 							)
 							.addStringOption(string =>

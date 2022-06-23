@@ -1,4 +1,3 @@
-/* eslint-disable no-inner-declarations */
 const { MessageEmbed } = require('discord.js');
 const { paginate } = require('../../utils');
 
@@ -14,25 +13,9 @@ module.exports = {
 		}
 
 		async function displayServers() {
-			// make this staff only [bug]
 			const connectedList = database.collection('connectedList');
 			const searchCursor = await connectedList.find();
 			const result = await searchCursor.toArray();
-			// const Embed = new MessageEmbed()
-			// 	.setColor('#0x2F3136')
-			// 	.setAuthor({
-			// 		name: 'Connected Servers:',
-			// 		iconURL: interaction.client.user.avatarURL(),
-			// 	})
-			// 	.setDescription(`Displaying the current connected servers: **${result.length}**`);
-			// for (let i = 0; i < result.length; i++) {
-			// 	Embed.addFields([
-			// 		{
-			// 			name: result[i].serverName,
-			// 			value: `${emoji.interaction.ID}: ${result[i].serverId}\n Channel: **${result[i].channelName}** (\`${result[i].channelId}\`)`,
-			// 		},
-			// 	]);
-			// }
 
 			function generateEmbed(db) {
 				const embeds = [];

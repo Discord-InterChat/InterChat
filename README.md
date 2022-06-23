@@ -36,3 +36,43 @@
 - [ ] New web dashboard for the bot
 - [ ] Privacy Policy & Terms Of Service page
 - [ ] Updated rules for better moderation of the bot
+
+
+## How to Deploy Slash Commands:
+### Normal way:
+```node deploy-commands.js -a```
+
+### Cool way:
+For this to work you will have to run a few commands before.
+Works for both Windows and Linux.
+
+#### Windows Setup:
+1. Run `npm link`
+3. Finally run `deploy` in the terminal!
+
+#### Linux Setup:
+1. Run `chmod +x deploy-commands.js` (optional)
+2. Run `sudo npm link`
+3. Finally run `deploy` in the terminal!
+
+*Note: To view the help command run, `deploy --help`*
+
+---
+
+### Usage: 
+
+#### 
+#### Deploy Public Commands (Default):
+```
+deploy
+```
+
+#### Staff commands that are only available in ChatBot HQ:
+```
+deploy --private
+```
+#### Private *and* normal commands:
+```
+deploy --all
+```
+

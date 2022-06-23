@@ -45,7 +45,7 @@ module.exports = {
 			}
 
 			await blacklistedServers.deleteOne({ serverId: serverOpt });
-			// Might wanna fetch server instead of showing name from db later [bug]
+			// FIXME: Might wanna fetch server instead of showing name from db later
 			interaction.reply(`The server **${serverInBlacklist.serverName}** has been removed from the blacklist.`);
 		}
 	},
