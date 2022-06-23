@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
+const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
 const dotenv = require('dotenv');
 const logger = require('./logger');
 const prompt = require('prompt');
+const { stripIndent } = require('common-tags');
 dotenv.config();
 
 const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
@@ -44,10 +45,10 @@ const deployPrivateCommands = async () => {
 		.catch((e) => console.error(e));
 };
 
+// create a CLI prompt for deployment
 async function commandLine() {
-
 	const args = process.argv[2]?.toLowerCase();
-	const help = `
+	const help = stripIndent`
 	Usage:
 		deploy [--private | -p]
 		deploy [--all | -all | --a | -a]
@@ -56,8 +57,6 @@ async function commandLine() {
 		-h, --help    Show this help message and exit.
 		-a, --all     Deploy both public and private commands.
 		-p, --private Deploy private commands.`;
-
-	// if (!args.startsWith('-') || !args.startsWith('--')) return console.log('Invalid argument provided. Please use \u001B[38;5;31mdeploy --help\u001B[0m for more information.');
 
 	switch (args) {
 
@@ -82,8 +81,12 @@ async function commandLine() {
 		console.log(help);
 		break;
 
+	case undefined:
+		deployCommands();
+		break;
+
 	default:
-		return args?.startsWith('-') || !args?.startsWith('-') ? console.log('Invalid argument provided. Please use \u001B[40;5;31mdeploy --help\u001B[0m for more information.') : deployCommands().catch(console.error);
+		console.log('Invalid argument provided. Please use \u001B[40;5;31mdeploy --help\u001B[0m for more information.');
 	}
 }
 
