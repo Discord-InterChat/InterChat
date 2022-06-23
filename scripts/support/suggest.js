@@ -35,7 +35,7 @@ module.exports = {
 					const suggestionChannel = await interaction.client.channels.fetch('908713477433073674');
 
 					await interaction.followUp('Thank you for your suggestion!');
-					const suggestionMsg = await suggestionChannel.send({ content: '<@&770256273488347176>', embeds: [embed] });
+					const suggestionMsg = await suggestionChannel.send({ embeds: [embed] });
 					suggestionMsg.react(normal.yes);
 					suggestionMsg.react(normal.neutral);
 					suggestionMsg.react(normal.no);
