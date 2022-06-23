@@ -13,11 +13,13 @@ module.exports = {
 	async execute(message) {
 		if (message.author.bot) return;
 
-		// Get our input arguments
-		const args = message.content.split(' ').slice(1);
-
 		// The actual eval command
 		if (message.content.startsWith('c!eval')) {
+			message.content = message.content.replace(/```js|```/g, '');
+
+			// Get our input arguments
+			const args = message.content.split(' ').slice(1);
+
 			// If the message author's ID does not equal
 			// our ownerID, get outta there!
 			// eslint-disable-next-line no-undef
@@ -38,15 +40,20 @@ module.exports = {
 				const embed = new MessageEmbed()
 					.setColor('BLURPLE')
 					.setTitle('Evaluation')
-					.setDescription(`\`\`\`ansi\n${cleaned}\n\`\`\``)
+					.setFields([
+						{ name: 'Input', value: `\`\`\`js\n${args.join(' ')}\n\`\`\`` },
+						{ name: 'Output', value: `\`\`\`js\n${cleaned}\n\`\`\`` },
+					])
 					.setTimestamp();
 
-
 				// if cleaned includes [REDACTED] then send a colored codeblock
-				if (cleaned.includes('[REDACTED]')) embed.setDescription(`\`\`\`ansi\n${cleaned}\n\`\`\``);
+				if (cleaned.includes('[REDACTED]')) embed.spliceFields(1, 1, { name: 'Output', value:  `\`\`\`ansi\n${cleaned}\n\`\`\` ` });
+
+
+				if (embed.length > 6000) return message.reply('Output too long to send. Logged to console. Check log file for more info.');
 
 				// Reply in the channel with our result
-				{message.channel.send({ embeds: [embed] });}
+				message.channel.send({ embeds: [embed] });
 			}
 			catch (err) {
 				// Reply in the channel with our error
@@ -79,6 +86,15 @@ module.exports = {
 
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
+			if (userInBlacklist) {
+				// if user is in blacklist an notified is false, send them a message saying they are blacklisted
+				if (!userInBlacklist.notified) {
+					message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+					blacklistedUsers.updateOne({ userId: message.author.id }, { $set: { notified: true } });
+				}
+				return;
+			}
+
 			// check if message contains slurs
 			if (message.content.toLowerCase().includes(wordList.words[0]) || message.content.toLowerCase().includes(wordList.words[1]) || message.content.toLowerCase().includes(wordList.words[2])) {
 				wordFilter.log(message);
@@ -88,14 +104,6 @@ module.exports = {
 			// check if message contains profanity
 			if (filter.isProfane(message.content)) message.content = await wordFilter.execute(message);
 
-			if (userInBlacklist) {
-				// if user is in blacklist an notified is false, send them a message saying they are blacklisted
-				if (!userInBlacklist.notified) {
-					message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
-					blacklistedUsers.updateOne({ userId: message.author.id }, { $set: { notified: true } });
-				}
-				return;
-			}
 
 			const allConnectedChannels = await connectedList.find();
 
