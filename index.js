@@ -12,6 +12,7 @@ mongoUtil.connect((err, mongoClient) => {
 });
 
 const client = new discord.Client({
+	ws: { properties: { $browser: 'Discord iOS' } },
 	intents: [
 		discord.Intents.FLAGS.GUILDS,
 		discord.Intents.FLAGS.GUILD_MESSAGES,
@@ -25,7 +26,7 @@ const client = new discord.Client({
 client.description = 'A growing discord bot which provides inter-server chat!';
 client.commands = new discord.Collection();
 client.version = require('./package.json').version;
-
+client.help = [];
 module.exports.client = client;
 module.exports.discord = discord;
 
@@ -36,6 +37,20 @@ fs.readdirSync('./commands').forEach((dir) => {
 			const command = require(`./commands/${dir}/${commandFile}`);
 			client.commands.set(command.data.name, command);
 		}
+		if (dir === 'private' || dir === 'Testing') return;
+		const cmds = commandFiles.map((command) => {
+			const file = (require(`./commands/${dir}/${command}`));
+			if (!file.data.name) return 'No name';
+
+			const name = file.data.name.replace('.js', '');
+
+			return `\`${name}\``;
+		});
+		const data = {
+			name: dir,
+			value: cmds.length === 0 ? 'No commands' : cmds.join(', '),
+		};
+		client.help.push(data);
 	}
 });
 
@@ -61,16 +76,16 @@ async function deleteChan() {
 
 	const channelsDelete = [];
 	channels.forEach(async (v, i) => {
-		let guild;
 		let channel;
 
-		try { channel = await guild.channels.fetch(v.channelId); }
-		catch (e) { if (e.message === 'Unknown Channel') channelsDelete.push(v.channelId); }
+		try { channel = await client.channels.fetch(v.channelId); }
+		catch (e) {
+			if (e.message === 'Unknown Channel') channelsDelete.push(v.channelId);
+			const deleteCursor = await connectedList.deleteMany({ channelId: { $in: channelsDelete } });
+			logger.info(`Hourly db clearence: Deleted ${deleteCursor.deletedCount} channels from the connectedList database`);
+		}
 	});
-	connectedList.deleteMany({ channelId: { $in: deleteChan } });
-	console.table(channels);
 }
-
 setInterval(deleteChan, 60 * 60 * 1000);
 
 
@@ -82,3 +97,29 @@ process.on('unhandledRejection', function(err) {
 });
 
 client.login(process.env.TOKEN);
+/*
+client.commands.filter(cmd => cmd.category).forEach(cmd => {})
+
+client.help = () => {
+	const dataArray = [];
+	fs.readdirSync('./commands').forEach((dir) => {
+		if (fs.statSync(`./commands/${dir}`).isDirectory()) {
+			const commandFiles = fs.readdirSync(`./commands/${dir}`).filter(file => file.endsWith('.js'));
+
+			const cmds = commandFiles.map((command) => {
+				const file = (require(`./commands/${dir}/${command}`));
+				if (!file.data.name) return 'No name';
+
+				const name = file.data.name.replace('.js', '');
+
+				return `\`${name}\``;
+			});
+			const data = {
+				name: dir,
+				value: cmds.length === 0 ? 'No commands' : cmds.join(', '),
+			};
+			dataArray.push(data);
+		}
+	});
+	return dataArray;
+}; */
