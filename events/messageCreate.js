@@ -86,6 +86,41 @@ module.exports = {
 
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
+			const database = getDb()
+			const collection = database.collection('message')
+			const messageid = message.id;
+			const userid = message.author.id;
+
+			collection.insertOne({
+				user: {
+					name: message.author.tag,
+					id: message.author.id 
+				},
+				message: {
+					id: message.id,
+					content: message.content
+				},
+				channel: {
+					name: message.channel.name,
+					id: message.id
+				},
+				guild: {
+					name: message.guild.name,
+					id: message.guild.id,
+				},
+				timestamp: message.createdTimestamp
+			}).then(() => {
+				setInterval(() => {
+					collection.deleteOne({'message.id': messageid });
+				}, 3000);
+			});
+
+			let usermessages = await collection.find({'user.id':userid}).toArray();
+			if(usermessages.length>1){
+				await message.client.users.cache.get(userid).send('stop spamming or you will face divine judgement or something');
+				return message.delete();
+			}
+
 			if (userInBlacklist) {
 				// if user is in blacklist an notified is false, send them a message saying they are blacklisted
 				if (!userInBlacklist.notified) {
