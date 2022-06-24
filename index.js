@@ -12,7 +12,7 @@ mongoUtil.connect((err, mongoClient) => {
 });
 
 const client = new discord.Client({
-	ws: { properties: { $browser: 'Discord iOS' } },
+	ws: { properties: { browser: 'Discord iOS' } },
 	intents: [
 		discord.Intents.FLAGS.GUILDS,
 		discord.Intents.FLAGS.GUILD_MESSAGES,
