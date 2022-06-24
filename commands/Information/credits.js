@@ -24,12 +24,12 @@ module.exports = {
 				},
 				{
 					name: 'Logo By',
-					value: `\`-\` ${members[0]}\n──────────────`,
+					value: `\`-\` ${members[2]}\n──────────────`,
 					inline: false,
 				},
 				{
 					name: 'Verified By',
-					value: `\`-\` ${members[3]}\n──────────────`,
+					value: `\`-\` ${members.at(-1)}\n──────────────`,
 					inline: false,
 				},
 				{
