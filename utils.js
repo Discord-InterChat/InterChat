@@ -52,16 +52,17 @@ module.exports = {
 	choice: (arr) => {
 		return arr[Math.floor(Math.random() * arr.length)];
 	},
-	toTitleCase: (str) => {
+	// Example: 'string'.toTitleCase()
+	toTitleCase: function() {
 		let upper = true;
 		let newStr = '';
-		for (let i = 0, l = str.length; i < l; i++) {
-			if (str[i] == ' ') {
+		for (let i = 0, l = this.length; i < l; i++) {
+			if (this[i] == ' ') {
 				upper = true;
-				newStr += str[i];
+				newStr += this[i];
 				continue;
 			}
-			newStr += upper ? str[i].toUpperCase() : str[i].toLowerCase();
+			newStr += upper ? this[i].toUpperCase() : this[i].toLowerCase();
 			upper = false;
 		}
 		return String(newStr);
@@ -82,8 +83,8 @@ module.exports = {
 			}
 		}
 	},
-	developers: [828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n, 736482645931720765n],
-	staff: [442653948630007808n, 446709111715921920n],
+	developers: [736482645931720765n, 828492978716409856n, 748190663597883392n, 701727675311587358n, 827745783964499978n], // makiyu, nik, genz, dev, supreme 828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n, 736482645931720765n
+	staff: [442653948630007808n, 336159680244219905n],
 	cbhq: '770256165300338709',
 	getCredits: async () => {
 		let creditArray = [];
@@ -253,3 +254,4 @@ module.exports = {
 		return text;
 	},
 };
+String.prototype.toTitleCase = module.exports.toTitleCase;
