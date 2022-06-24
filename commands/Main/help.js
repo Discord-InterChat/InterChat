@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
-const { colors } = require('../../utils');
+const { colors, toTitleCase } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -17,6 +17,7 @@ module.exports = {
 		if (!command_option) {
 			const embed = new MessageEmbed()
 				.setAuthor({ name: interaction.client.user.username + ' Help', iconURL: interaction.client.user.avatarURL() })
+				.setDescription('[Invite](https://discord.com/api/oauth2/authorize?client_id=769921109209907241&permissions=154820537425&scope=bot%20applications.commands) • [Support](https://discord.gg/6bhXQynAPs) • [Privacy](https://gist.github.com/dev-737/0141970e0d4a09b3c2b11e1321dca824)')
 				.setFields(interaction.client.help)
 				.setFooter({ text: 'Requested By: ' + interaction.user.tag, iconURL: interaction.user.avatarURL({ dynamic: true }) })
 				.setColor(colors('chatbot'))
@@ -33,7 +34,7 @@ module.exports = {
 		if (!command) return interaction.reply('Unkown command!');
 
 		const command_embed = new MessageEmbed()
-			.setTitle(command.data.name.toUpperCase() + ' Help')
+			.setTitle(command.data.name.toTitleCase() + ' Help')
 			.setDescription(command.data.description || command.description || 'No Description')
 			.setFooter({ text: '<> - Required | [] - Optional', iconURL: interaction.client.user.avatarURL })
 			.setColor(colors());
