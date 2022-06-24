@@ -6,19 +6,38 @@ module.exports = {
 		if (interaction.isAutocomplete()) {
 			if (interaction.commandName === 'help') {
 				const focusedValue = interaction.options.getFocused();
-				const choices = [];
+				let choices = [];
 				const ignore = ['server id', 'user id', 'test'];
-				const commands = interaction.client.commands.filter((cmd) => {
-					if (ignore.includes(cmd.data.name)) return false;
-					return true;
-				});
-				await commands.map((command) => choices.push(command.data.name));
-				const filtered = choices.filter(choice => choice.startsWith(focusedValue));
+				let filtered;
+
+				if (focusedValue === '') {
+					choices = [
+						{ name: '📍 Setup', value: 'setup' },
+						{ name: '📍 Help', value: 'help' },
+						{ name: '📍 Suggest', value: 'support' },
+						{ name: '📍 Report', value: 'support' },
+						{ name: '📍 Server', value: 'support' },
+						{ name: '📍 Connect', value: 'network' },
+						{ name: '📍 Disconnect', value: 'network' },
+					];
+					filtered = choices.filter(choice => choice.value.startsWith(focusedValue));
+				}
+
+				else {
+					const commands = interaction.client.commands.filter((cmd) => {
+						if (ignore.includes(cmd.data.name)) return false;
+						return true;
+					});
+					await commands.map((command) => choices.push(command.data.name));
+					filtered = choices.filter(choice => choice.startsWith(focusedValue));
+				}
+
 				await interaction.respond(
-					filtered.map(choice => ({ name: choice, value: choice })),
+					filtered.map(choice => ({ name: choice.name || choice, value: choice.value || choice })),
 				);
 			}
 		}
+
 		if (interaction.isCommand() || interaction.isContextMenu()) {
 		// Basic perm check, it wont cover all bugs
 			if (!interaction.guild.me.permissionsIn(interaction.channel).has('SEND_MESSAGES') && !interaction.guild.me.permissionsIn(interaction.channel).has('EMBED_LINKS')) {
