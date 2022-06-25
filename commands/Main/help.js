@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed } = require('discord.js');
 const { colors, toTitleCase } = require('../../utils');
+const bitfieldCalculator = require('discord-bitfield-calculator');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -28,7 +29,7 @@ module.exports = {
 		const command = interaction.client.commands.get(command_option);
 		const commanddata = command.data.toJSON();
 		const commandOps = commanddata.options;
-
+		const permissions = bitfieldCalculator.permissions(command.data.default_member_permissions).toString().replace('_', ' ').replace(',', ', ');
 		let options = '';
 
 		if (!command) return interaction.reply('Unkown command!');
@@ -36,6 +37,7 @@ module.exports = {
 		const command_embed = new MessageEmbed()
 			.setTitle(command.data.name.toTitleCase() + ' Help')
 			.setDescription(command.data.description || command.description || 'No Description')
+			.addFields([{ name: 'Permissions:', value: `**${ permissions || 'None'}**` }])
 			.setFooter({ text: '<> - Required | [] - Optional', iconURL: interaction.client.user.avatarURL })
 			.setColor(colors());
 
