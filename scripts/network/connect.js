@@ -1,9 +1,11 @@
 const { stripIndents } = require('common-tags');
 const logger = require('../../logger');
 const { normal } = require('../../emoji.json');
-
+const Filter = require('bad-words'),
+	filter = new Filter();
 module.exports = {
 	async execute(interaction, connectedList) {
+		if (filter.isProfane(interaction.guild.name)) return interaction.reply('I have detected words in the *server name* that are potentially offensive, Please correct them before using this chat!');
 		const findChannel = await connectedList.findOne({ channelId: interaction.channel.id });
 		const findServer = await connectedList.findOne({ serverId: interaction.guild.id });
 

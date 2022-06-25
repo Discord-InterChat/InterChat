@@ -5,6 +5,8 @@ const { getDb, colors, developers, clean } = require('../utils');
 const { client } = require('../index');
 const { messageTypes } = require('../scripts/message/messageTypes');
 const wordFilter = require('../scripts/message/wordFilter');
+
+// TODO Replace bad-words with leo-profanity as it provides the entire list of bad words it uses.
 const Filter = require('bad-words'),
 	filter = new Filter();
 
@@ -111,18 +113,14 @@ module.exports = {
 					id: message.guild.id,
 				},
 				timestamp: message.createdTimestamp,
-			}).then(() => {
-				setInterval(() => {
-					collection.deleteOne({ 'message.id': messageid });
-				}, 3000);
-			});
+			}).then(() => setInterval(() => { collection.deleteOne({ 'message.id': messageid }); }, 3000));
 
 			if (usermessages.length > 1) {
 				// await message.client.users.cache.get(userid).send('stop spamming or you will face divine judgement or something');
 				return;
 			}
 			if (userInBlacklist) {
-				// if user is in blacklist an notified is false, send them a message saying they are blacklisted
+				// if user is in blacklist and Notified is false, send them a message saying they are blacklisted
 				if (!userInBlacklist.notified) {
 					message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
 					blacklistedUsers.updateOne({ userId: message.author.id }, { $set: { notified: true } });
@@ -138,7 +136,7 @@ module.exports = {
 
 			// check if message contains profanity
 			if (filter.isProfane(message.content)) message.content = await wordFilter.execute(message);
-
+			if (filter.isProfane(message.guild.name)) return message.channel.send('I have detected words in the server name that are potentially offensive, Please fix them before using this chat!');
 
 			const allConnectedChannels = await connectedList.find();
 
