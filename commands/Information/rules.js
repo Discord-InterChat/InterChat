@@ -25,6 +25,7 @@ module.exports = {
 				11. Refrain from insulting other users.
 				12. Posting inappropriate content is not allowed, and will get you blacklisted. This includes images, videos, and messages.
 				13. Respect the staff and moderators of the chat network.
+				14. We ask that you only use English when using our ChatBot. Our staff can take action if necessary.
 
 				*If you have any questions, please join the support server.*
 				`)
