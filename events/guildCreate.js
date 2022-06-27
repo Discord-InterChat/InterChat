@@ -6,8 +6,6 @@ const { normal } = require('../emoji.json');
 const fetch = require('node-fetch');
 const dotenv = require('dotenv');
 const filter = require('leo-profanity');
-const logger = require('../logger');
-
 dotenv.config();
 
 module.exports = {
@@ -47,7 +45,7 @@ module.exports = {
 		}
 
 		const goalChannel = await client.channels.fetch('906460473065615403');
-		await goalChannel.send(`I have joined ${guild.name} :smiley:! ${500 - client.guilds.cache.size} to go!`);
+		await goalChannel.send(`${normal.join} I have joined ${guild.name}! ${500 - client.guilds.cache.size} to go!`);
 
 		const embed = new MessageEmbed()
 			.setTitle(`${normal.tada} Hi! Thanks for adding ChatBot to your server!`)
