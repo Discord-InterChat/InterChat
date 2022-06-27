@@ -6,6 +6,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('connected')
 		.setDescription('Display the connected servers. (Staff only)')
+		.setDefaultMemberPermissions('0')
 		.addStringOption(string =>
 			string
 				.setName('type')
