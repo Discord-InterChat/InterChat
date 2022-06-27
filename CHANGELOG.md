@@ -63,4 +63,3 @@ All notable changes to this project will be documented in this file.
 ## 2.3.1 - 2022-05-24
 ### Changed 
 - Reverted back to discord.js v13
-

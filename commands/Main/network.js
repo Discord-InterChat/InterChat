@@ -3,6 +3,7 @@ const mongoUtil = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
+		.setDMPermission(false)
 		.setName('network')
 		.setDescription('Manage the chat network for this server.')
 		.addSubcommand(subcommand =>

@@ -15,7 +15,7 @@ The words with initial capital letters have meanings defined under the following
 For the purposes of this Privacy Policy:
 
 
-- __Application__ refers to the Discord bot created by the Company, called ChatBot, accessible via the following link: https://discordapp.com/api/oauth2/authorize?client_id=XXXXXXXXXXXXXXXXXX&permissions=8&scope=bot.
+- __Application__ refers to the Discord bot created by the Company, called ChatBot, accessible via [this link](https://discord.com/api/oauth2/authorize?client_id=769921109209907241&permissions=154820537425&scope=bot%20applications.commands).
 
 - __Company__ referred to as "The Company", "We", "Us", or "Our" in this Agreement is ChatBot.
 

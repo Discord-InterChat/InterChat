@@ -5,6 +5,9 @@ const { getDb, colors, developers, clean } = require('../utils');
 const { client } = require('../index');
 const { messageTypes } = require('../scripts/message/messageTypes');
 const wordFilter = require('../scripts/message/wordFilter');
+const emoji = require('../emoji.json');
+
+// TODO Replace bad-words with leo-profanity as it provides the entire list of bad words it uses.
 const Filter = require('bad-words'),
 	filter = new Filter();
 
@@ -85,15 +88,16 @@ module.exports = {
 		const wordList = await restrictedWords.findOne({ name: 'blacklistedWords' });
 
 		// db for anti-spam
-		const collection = database.collection('message');
-		const messageid = message.id;
-		const userid = message.author.id;
-		const usermessages = await collection.find({ 'user.id': userid }).toArray();
+		const spamcollection = database.collection('message');
+
 
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
+			const messageid = message.id;
+			const userid = message.author.id;
+			const usermessages = await spamcollection.find({ 'user.id': userid }).toArray();
 
-			collection.insertOne({
+			spamcollection.insertOne({
 				user: {
 					name: message.author.tag,
 					id: message.author.id,
@@ -111,18 +115,23 @@ module.exports = {
 					id: message.guild.id,
 				},
 				timestamp: message.createdTimestamp,
-			}).then(() => {
-				setInterval(() => {
-					collection.deleteOne({ 'message.id': messageid });
-				}, 3000);
-			});
+			}).then(() => setInterval(() => { spamcollection.deleteOne({ 'message.id': messageid }); }, 3000));
 
 			if (usermessages.length > 1) {
-				// await message.client.users.cache.get(userid).send('stop spamming or you will face divine judgement or something');
-				return;
+				return message.react(emoji.normal.no).catch(() => {return;});
 			}
+
+			if (usermessages.length > 6) {
+				message.channel.send(emoji.interaction.exclamation + ' **I have disconnected this channel from the network as I have detected heavy spam.**');
+				return connectedList.deleteOne({ channelId: message.channel.id });
+			}
+
+			// TODO: Warning and timed blacklist system
+			// blacklist a user for a specific amount of time if they have over x warns
+			// might come in handy in other cases too.
+
 			if (userInBlacklist) {
-				// if user is in blacklist an notified is false, send them a message saying they are blacklisted
+				// if user is in blacklist and Notified is false, send them a message saying they are blacklisted
 				if (!userInBlacklist.notified) {
 					message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
 					blacklistedUsers.updateOne({ userId: message.author.id }, { $set: { notified: true } });
@@ -133,12 +142,12 @@ module.exports = {
 			// check if message contains slurs
 			if (message.content.toLowerCase().includes(wordList.words[0]) || message.content.toLowerCase().includes(wordList.words[1]) || message.content.toLowerCase().includes(wordList.words[2])) {
 				wordFilter.log(message);
-				return message.author.send('That word has been blacklisted by the developers.');
+				return;
 			}
 
 			// check if message contains profanity
 			if (filter.isProfane(message.content)) message.content = await wordFilter.execute(message);
-
+			if (filter.isProfane(message.guild.name)) return message.channel.send('I have detected words in the server name that are potentially offensive, Please fix them before using this chat!');
 
 			const allConnectedChannels = await connectedList.find();
 
