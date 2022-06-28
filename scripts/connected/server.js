@@ -1,7 +1,10 @@
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, CommandInteraction } = require('discord.js');
 const { paginate } = require('../../utils');
 
 module.exports = {
+	/**
+	 * @param {CommandInteraction} interaction
+	 */
 	async execute(interaction, database) {
 		const serverOpt = interaction.options.getString('type');
 
