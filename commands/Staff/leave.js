@@ -6,6 +6,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('leave')
 		.setDescription('Leaves the specified server. Staff-only.')
+		.setDefaultMemberPermissions('0')
 		.addStringOption(stringOption =>
 			stringOption
 				.setName('server')

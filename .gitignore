@@ -8,5 +8,5 @@ package-lock.json
 # archive
 /Archive/test.md
 
-# env
-.env
+/.env
+/todo.md

@@ -6,6 +6,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('blacklist')
 		.setDescription('Blacklist a user or server from using the bot. Staff-only')
+		.setDefaultMemberPermissions('0')
 		.addSubcommandGroup(subcommandGroup =>
 			subcommandGroup
 				.setName('add')

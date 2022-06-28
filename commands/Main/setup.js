@@ -14,7 +14,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setup')
 		.setDescription('Replies with your input!')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels | PermissionFlagsBits.KickMembers)
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
 		.addChannelOption(channelOption => channelOption
 			.setName('destination')
 			.setRequired(false)

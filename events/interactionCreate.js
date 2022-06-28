@@ -12,13 +12,13 @@ module.exports = {
 
 				if (focusedValue === '') {
 					choices = [
-						{ name: '📍 Setup', value: 'setup' },
-						{ name: '📍 Help', value: 'help' },
-						{ name: '📍 Suggest', value: 'support' },
-						{ name: '📍 Report', value: 'support' },
-						{ name: '📍 Server', value: 'support' },
-						{ name: '📍 Connect', value: 'network' },
-						{ name: '📍 Disconnect', value: 'network' },
+						{ name: '📌Setup', value: 'setup' },
+						{ name: '📌Help', value: 'help' },
+						{ name: '📌Suggest', value: 'support' },
+						{ name: '📌Report', value: 'support' },
+						{ name: '📌Server', value: 'support' },
+						{ name: '📌Connect', value: 'network' },
+						{ name: '📌Disconnect', value: 'network' },
 					];
 					filtered = choices.filter(choice => choice.value.startsWith(focusedValue));
 				}
@@ -39,8 +39,8 @@ module.exports = {
 		}
 
 		if (interaction.isCommand() || interaction.isContextMenu()) {
-		// Basic perm check, it wont cover all bugs
-			if (!interaction.guild.me.permissionsIn(interaction.channel).has('SEND_MESSAGES') && !interaction.guild.me.permissionsIn(interaction.channel).has('EMBED_LINKS')) {
+			// Basic perm check, it wont cover all bugs
+			if (interaction.guild && !interaction.guild?.me.permissionsIn(interaction.channel).has('SEND_MESSAGES') && !interaction.guild.me.permissionsIn(interaction.channel).has('EMBED_LINKS')) {
 				return interaction.reply({ content: 'I do not have the right permissions in this server to function properly! Please either re-invite me or grant me the right permissions.', ephemeral: true });
 			}
 			const command = interaction.client.commands.get(interaction.commandName);
