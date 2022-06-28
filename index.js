@@ -13,13 +13,15 @@ mongoUtil.connect((err, mongoClient) => {
 
 const client = new discord.Client({
 	ws: { properties: { browser: 'Discord iOS' } },
+	/* removed unused intents for performance issues
+		discord.Intents.FLAGS.DIRECT_MESSAGES,
+		discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+		discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+	*/
 	intents: [
 		discord.Intents.FLAGS.GUILDS,
 		discord.Intents.FLAGS.GUILD_MESSAGES,
-		discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
 		discord.Intents.FLAGS.GUILD_MEMBERS,
-		discord.Intents.FLAGS.DIRECT_MESSAGES,
-		discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
 	],
 });
 
