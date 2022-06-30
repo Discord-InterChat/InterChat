@@ -1,7 +1,7 @@
 const logger = require('./logger');
 const { MongoClient } = require('mongodb');
 const dotenv = require('dotenv');
-const { MessageActionRow } = require('discord.js');
+const { MessageActionRow, CommandInteraction, MessageEmbed } = require('discord.js');
 const emoji = require('./emoji.json');
 dotenv.config();
 
@@ -145,27 +145,34 @@ module.exports = {
 		}
 	},
 
-	paginate: async (interaction, pages, time = 60000) => {
+	/**
+	 * @param {CommandInteraction} interaction
+	 * @param {MessageEmbed[]} pages
+	 * @param {Number} time
+	 * @param {Object} emojis
+	 */
+	paginate: async (interaction, pages, emojis, time = 60000) => {
+		if (!typeof emojis === Object) throw new Error('emojis must be an object containing: next, exit, back');
 		if (!interaction || !pages || !(pages?.length > 0) || !(time > 10000)) throw new Error('Invalid Parameters');
 
 		// eslint-disable-next-line prefer-const
 		let index = 0, row = new MessageActionRow().addComponents([{
 			type: 'BUTTON',
 			customId: '1',
-			emoji: emoji.normal.back,
+			emoji: emojis?.back || emoji.normal.back,
 			style: 'SECONDARY',
 			disabled: true,
 
 		}, {
 			type: 'BUTTON',
 			customId: '3',
-			emoji: emoji.normal.delete,
+			emoji: emojis?.exit || emoji.normal.delete,
 			style: 'DANGER',
 
 		}, {
 			type: 'BUTTON',
 			customId: '2',
-			emoji: emoji.normal.next,
+			emoji: emojis?.next || emoji.normal.next,
 			style: 'SECONDARY',
 			disabled: pages.length <= index + 1,
 		}]);
@@ -197,19 +204,19 @@ module.exports = {
 			row.setComponents([{
 				type: 'BUTTON',
 				customId: '1',
-				emoji: emoji.normal.back,
+				emoji: emojis?.back || emoji.normal.back,
 				style: 'SECONDARY',
 				disabled: index === 0,
 
 			}, {
 				type: 'BUTTON',
 				customId: '3',
-				emoji: emoji.normal.delete,
+				emoji: emojis?.exit || emoji.normal.delete,
 				style: 'DANGER',
 
 			}, { type: 'BUTTON',
 				customId: '2',
-				emoji: emoji.normal.next,
+				emoji: emojis?.next || emoji.normal.next,
 				style: 'SECONDARY',
 				disabled: index === pages.length - 1,
 			}]);
