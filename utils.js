@@ -152,20 +152,20 @@ module.exports = {
 		let index = 0, row = new MessageActionRow().addComponents([{
 			type: 'BUTTON',
 			customId: '1',
-			emoji: emoji.interaction.back,
+			emoji: emoji.normal.back,
 			style: 'SECONDARY',
 			disabled: true,
 
 		}, {
 			type: 'BUTTON',
 			customId: '3',
-			emoji: emoji.interaction.delete,
+			emoji: emoji.normal.delete,
 			style: 'DANGER',
 
 		}, {
 			type: 'BUTTON',
 			customId: '2',
-			emoji: emoji.interaction.next,
+			emoji: emoji.normal.next,
 			style: 'SECONDARY',
 			disabled: pages.length <= index + 1,
 		}]);
@@ -197,19 +197,19 @@ module.exports = {
 			row.setComponents([{
 				type: 'BUTTON',
 				customId: '1',
-				emoji: emoji.interaction.back,
+				emoji: emoji.normal.back,
 				style: 'SECONDARY',
 				disabled: index === 0,
 
 			}, {
 				type: 'BUTTON',
 				customId: '3',
-				emoji: emoji.interaction.delete,
+				emoji: emoji.normal.delete,
 				style: 'DANGER',
 
 			}, { type: 'BUTTON',
 				customId: '2',
-				emoji: emoji.interaction.next,
+				emoji: emoji.normal.next,
 				style: 'SECONDARY',
 				disabled: index === pages.length - 1,
 			}]);
