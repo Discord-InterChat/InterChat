@@ -122,7 +122,7 @@ module.exports = {
 			}
 
 			if (usermessages.length > 6) {
-				message.channel.send(emoji.interaction.exclamation + ' **I have disconnected this channel from the network as I have detected heavy spam.**');
+				message.channel.send(emoji.normal.exclamation + ' **I have disconnected this channel from the network as I have detected heavy spam.**');
 				return connectedList.deleteOne({ channelId: message.channel.id });
 			}
 
@@ -145,8 +145,16 @@ module.exports = {
 				return;
 			}
 
+
+			// TODO
+			// if message contains profanity execute script
+			// edit the embed instead of changing the message content
+			// if guild has profanity disabeld and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
+
+
 			// check if message contains profanity
 			if (filter.isProfane(message.content)) message.content = await wordFilter.execute(message);
+			// dont send message if guild name is inappropriate
 			if (filter.isProfane(message.guild.name)) return message.channel.send('I have detected words in the server name that are potentially offensive, Please fix them before using this chat!');
 
 			const allConnectedChannels = await connectedList.find();
@@ -161,6 +169,7 @@ module.exports = {
 
 			await require('../scripts/message/addBadges').execute(message, database, embed);
 			await require('../scripts/message/messageContentModifiers').execute(message, embed);
+
 
 			// delete the message only if it doesn't contain images
 			if (message.attachments.first() === undefined) {
