@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, Guild } = require('discord.js');
 const { client } = require('../index');
 const mongoUtil = require('../utils');
 const { sendInFirst, colors } = require('../utils');
@@ -10,6 +10,10 @@ dotenv.config();
 
 module.exports = {
 	name: 'guildCreate',
+	/**
+	 * @param {Guild} guild
+	 * @returns
+	 */
 	async execute(guild) {
 		const database = mongoUtil.getDb();
 		const blacklistedServers = database.collection('blacklistedServers');
@@ -17,14 +21,10 @@ module.exports = {
 		const badword = filter.list().filter((name) => {return guild.name.includes(name);});
 
 		if (badword[0]) {
-			const uri = `https://discord.com/api/v9/guilds/${guild.id}/integrations`;
-			fetch(uri, {
-				method: 'get',
-				headers: { authorization: `Bot ${process.env.TOKEN}` } })
-				.then(res => res.json())
-				.then(async json => {
-					const filtered = await json.filter(bot => {return bot.account.id === client.user.id;});
-					const user = await client.users.fetch(filtered[0].user.id);
+			guild.fetchIntegrations()
+				.then(async res => {
+					const filtered = res.find(bot => {return bot.account.id === client.user.id;});
+					const user = await client.users.fetch(filtered.user.id);
 					try {
 						await user.send(`Unfortunately, the name of the server **${guild.name}** violates the ChatBot guidelines, therefore I must leave until it is corrected.`);
 					}
@@ -32,9 +32,8 @@ module.exports = {
 						await sendInFirst(guild, 'Unfortunately, the name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.');
 					}
 					await guild.leave();
-				})
-				.catch(console.error);
-			return;
+					return;
+				});
 		}
 
 		const serverInBlacklist = await blacklistedServers.findOne({ serverId: guild.id });

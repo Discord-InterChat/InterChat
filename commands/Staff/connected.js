@@ -14,7 +14,8 @@ module.exports = {
 				.setRequired(true)
 				.addChoices(
 					{ name: 'Server', value: 'server' },
-					{ name: 'User', value: 'user' }),
+					// { name: 'User', value: 'user' },
+				),
 		),
 
 	async execute(interaction) {

@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.3.1...v1.4.0) (2022-06-30)
+
+
+### Features
+
+* Add find command to get user/server by name ([7a7902a](https://github.com/dev-737/ChatBot-Beta/commit/7a7902abf338cc89f0fb89d593d97e458e51e5b3))
+
+
+### Bug Fixes
+
+* ChatBot now shows 0 connected ([2776461](https://github.com/dev-737/ChatBot-Beta/commit/27764616480203067ac642f3b6b3824dba03e5ef))
+* Disable User option in connected command ([7f30504](https://github.com/dev-737/ChatBot-Beta/commit/7f30504e556919de52896881a4c006f4f5b10497))
+* Seperated setup code to multiple script files ([9342aab](https://github.com/dev-737/ChatBot-Beta/commit/9342aab9b64983650bc48adabd6e3f39ef176931))
+* Use inbuild discord.js intergration fetch ([f0b0b1d](https://github.com/dev-737/ChatBot-Beta/commit/f0b0b1d11ac33baec33186686c8d1fa5c8c63056))
+
 ### [1.3.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.3.0...v1.3.1) (2022-06-28)
 
 ## [1.3.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.2.0...v1.3.0) (2022-06-28)
