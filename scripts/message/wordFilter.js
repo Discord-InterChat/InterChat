@@ -1,10 +1,14 @@
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, Message } = require('discord.js');
 const emoji = require('../../emoji.json');
-const { colors } = require('../../utils');
+const { colors, getDb } = require('../../utils');
 const Filter = require('bad-words'),
 	filter = new Filter();
 
 module.exports = {
+	/**
+	 * @param {Message} message
+	 * @returns
+	 */
 	async execute(message) {
 		try {
 			// filter bad words from message
