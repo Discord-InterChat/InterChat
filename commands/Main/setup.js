@@ -89,8 +89,6 @@ module.exports = {
 
 		let embed;
 		const db_guild = await collection.findOne({ 'guild.id': interaction.guild.id }); // collection.fineOne returns promise to be sure to await it
-		let db_guild_channel;
-
 
 		// Send the initial message
 		await interaction.reply({ content: `${emoji.normal.loading} Please wait...` });
@@ -99,8 +97,8 @@ module.exports = {
 		const message = await interaction.fetchReply();
 
 		// collectors and main setup function
-		require('../../scripts/setup/init').execute(interaction, destination, buttons, embeds, db_guild, message, collection, connectedList, db_guild_channel).catch(console.error);
-		require('../../scripts/setup/collectors').execute(interaction, message, db_guild, collection, db_guild_channel, embed, embeds, selectMenu, connectedList, buttonYesNo).catch(console.error);
+		require('../../scripts/setup/init').execute(interaction, destination, buttons, embeds, db_guild, message, collection, connectedList).catch(console.error);
+		require('../../scripts/setup/collectors').execute(interaction, message, db_guild, collection, embed, embeds, selectMenu, connectedList, buttonYesNo).catch(console.error);
 	},
 };
 

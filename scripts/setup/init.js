@@ -11,7 +11,7 @@ module.exports = {
 	 * @param {Message} message
 	 * @returns
 	 */
-	async execute(interaction, destination, buttons, embeds, guildInDB, message, collection, connectedList, channelInDB) {
+	async execute(interaction, destination, buttons, embeds, guildInDB, message, collection, connectedList) {
 		const date = new Date();
 		const timestamp = Math.round(date.getTime() / 1000);
 		const defaultEmbed = embeds.setDefault();
@@ -19,9 +19,15 @@ module.exports = {
 		const serverConnected = await connectedList.findOne({ serverId: interaction.guild.id });
 
 
-		if (serverConnected) {
+		if (destination && serverConnected) {
 			return interaction.editReply(
 				`${emoji.normal.no} This server is already connected to <#${serverConnected.channelId}>! Please disconnect from there first. `,
+			);
+		}
+
+		if (destination && guildInDB) {
+			return interaction.editReply(
+				`${emoji.normal.no} This server is already setup! Please reset the setup if you wish to redo it. `,
 			);
 		}
 
@@ -88,7 +94,7 @@ module.exports = {
 		if (guildInDB) {
 			// try to fetch the channel, if it does not exist delete from the databases'
 			try {
-				channelInDB = await interaction.guild.channels.fetch(guildInDB.channel.id);
+				await interaction.guild.channels.fetch(guildInDB.channel.id);
 			}
 			catch {
 				await collection.deleteOne({ 'channel.id': guildInDB.channel.id });

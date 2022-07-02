@@ -11,24 +11,28 @@ module.exports = {
      * @param {SelectMenuInteraction} selectMenu
      * @param {MessageButton} buttons
      */
-	async execute(interaction, message, guildInDB, collection, embed, embedGen, channelInDB, selectMenu, connectedList, buttons) {
+	async execute(interaction, message, guildInDB, collection, embed, embedGen, selectMenu, connectedList, buttons) {
 		// Create action row collectors
 		const filter = m => m.user.id == interaction.user.id;
 		const collector = message.createMessageComponentCollector({ filter, idle: 60000, max: 4 });
 
 		// Everything is in one collector since im lazy
 		collector.on('collect', async i => {
+			guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
+			let channelInDB = await interaction.guild.channels.fetch(guildInDB.channel.id);
+			const isConnected = await connectedList.findOne({ channelId : channelInDB.id });
+			let status = '';
+
+			channelInDB && isConnected ? status = emoji.normal.yes : status = emoji.normal.no;
+
 			i.deferUpdate();
 
 			// NOTE: Use i.customId to reference differnt buttons
 			if (i.isButton()) {
-				guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
-
 				if (i.customId == 'edit') {
-					channelInDB = await interaction.guild.channels.fetch(guildInDB.channel.id);
 					// Setting the fields for the embed
 					const fields = [
-						{ name: 'Details:', value: `**Status:** ${emoji.normal.yes}\n**Channel:** ${channelInDB}\n**Changed:** <t:${guildInDB.date.timestamp}:R>` },
+						{ name: 'Details:', value: `**Status:** ${status}\n**Channel:** ${channelInDB}\n**Changed:** <t:${guildInDB.date.timestamp}:R>` },
 						{ name: '**Style:**', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` },
 					];
 					// calling 'embedGen' class and setting fields
@@ -99,7 +103,7 @@ module.exports = {
 		// removing components from message when finished, idk how to disable them so...
 		collector.on('end', () => {
 			message.edit({ components: [] })
-				.catch(() => console.log('Interaction deleted, ignoring...'));
+				.catch(() => {return;});
 			return;
 		});
 	},
