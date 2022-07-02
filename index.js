@@ -7,7 +7,7 @@ dotenv.config();
 
 // eslint-disable-next-line no-unused-vars
 mongoUtil.connect((err, mongoClient) => {
-	if (err) console.log(err);
+	if (err) logger.error(err);
 	logger.info('Connected to MongoDB');
 });
 

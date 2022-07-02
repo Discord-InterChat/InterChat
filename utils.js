@@ -139,7 +139,7 @@ module.exports = {
 			return verification;
 		}
 		catch (e) {
-			console.log(e);
+			logger.error(e);
 			await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
 			return 0;
 		}
