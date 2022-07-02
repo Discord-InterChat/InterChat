@@ -26,7 +26,7 @@ module.exports = {
 			// If the message author's ID does not equal
 			// our ownerID, get outta there!
 			// eslint-disable-next-line no-undef
-			if (!developers.includes(BigInt(message.author.id))) {return console.log('Someone used eval');}
+			if (!developers.includes(BigInt(message.author.id))) return;
 
 			// In case something fails, we to catch errors
 			// in a try/catch block
