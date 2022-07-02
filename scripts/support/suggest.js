@@ -1,8 +1,11 @@
-const { MessageButton, MessageEmbed, MessageActionRow } = require('discord.js');
+const { MessageButton, MessageEmbed, MessageActionRow, CommandInteraction } = require('discord.js');
 const { colors } = require('../../utils');
 const { normal } = require('../../emoji.json');
 
 module.exports = {
+	/**
+	 * @param {CommandInteraction} interaction
+	 */
 	async execute(interaction) {
 		const row = new MessageActionRow()
 			.addComponents([
@@ -30,15 +33,48 @@ module.exports = {
 						.setAuthor({ name: `Suggested By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
 						.setFooter({ text: `From Server: ${interaction.guild.name}`, iconURL: interaction.guild.iconURL({ dynamic: true }) })
 						.setTimestamp()
-						.setColor(colors());
-					// FIXME: change channelId to cbhq later
-					const suggestionChannel = await interaction.client.channels.fetch('908713477433073674');
+						.setColor('#3bd0ff');
 
-					await interaction.followUp('Thank you for your suggestion!');
-					const suggestionMsg = await suggestionChannel.send({ embeds: [embed] });
-					suggestionMsg.react(normal.yes);
-					suggestionMsg.react(normal.neutral);
-					suggestionMsg.react(normal.no);
+					const suggestionChannel = await interaction.client.channels.fetch('991573351963295748');
+
+					if (interaction.options.getAttachment('attachment')) embed.setImage(interaction.options.getAttachment('attachment').url);
+
+					const reviewChannel = await interaction.client.channels.fetch('991577681365844000');
+					row.components[0].setEmoji(normal.yes).setLabel('Approve');
+					row.components[1].setEmoji(normal.no).setLabel('Deny');
+					const reviewMessage = await reviewChannel.send({ embeds: [embed], components: [row], fetchReply: true });
+					const reviewCollector = reviewMessage.createMessageComponentCollector({ time: 1000 * 1000 * 60, max: 3 });
+
+					reviewCollector.on('collect', async collected => {
+						collected.deferUpdate();
+						if (collected.customId === 'yes') {
+							const suggestionMsg = await suggestionChannel.send({ embeds: [embed] });
+							suggestionMsg.react(normal.yes);
+							suggestionMsg.react(normal.no);
+
+
+							const approveEmbed = new MessageEmbed()
+								.addFields({ name: 'Approver', value: i.user.tag })
+								.setTitle('ChatBot Suggestions')
+								.setDescription(`Your suggestion **${suggestion.split(' ').slice(0, 6).join(' ')}...** has been approved! You can view your suggestion in the <#908713477433073674> channel.`)
+								.setTimestamp()
+								.setURL('https://discord.gg/VEUPEy2nyq')
+								.setColor('#60ec11');
+
+							interaction.member.send({ embeds: [approveEmbed] });
+							return reviewCollector.stop();
+						}
+						else {
+							interaction.member.send(`Your suggestion **${suggestion.split(' ').slice(0, 4).join(' ')}...** has been rejected. If you have any questions please join the support server.\n**Common Reasons:** Already exists, inappropriate word/image usage.`);
+							return reviewCollector.stop();
+						}
+					});
+					reviewCollector.on('end', () => {
+						reviewMessage.edit({ content: `${normal.info} Suggestion reviewed by **${i.user.tag}**!`, components: [] });
+					});
+
+
+					await interaction.followUp('Thank you for your suggestion! It has been sent for review.');
 				}
 				else {
 					await interaction.followUp('Ok, discarding suggestion.');
@@ -50,7 +86,7 @@ module.exports = {
 		});
 		collector.on('end', async () => {
 			const reply = await interaction.fetchReply();
-			await reply.edit({ content: reply.content, components: [] });
+			await reply.edit({ components: [] });
 		});
 	},
 };
