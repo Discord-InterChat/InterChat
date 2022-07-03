@@ -2,14 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [1.5.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.0...v1.5.0) (2022-07-03)
+### [1.5.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.5.0...v1.5.1) (2022-07-03)
 
+## [1.4.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.0...v1.5.0) (2022-07-03)
 
 ### Features
 
 * Add image & review system for suggestions ([a342afb](https://github.com/dev-737/ChatBot-Beta/commit/a342afbed9e6a046e39fb7ce18b0a2060b09ec56))
 * Add option for custom emojis in pagination ([c35539f](https://github.com/dev-737/ChatBot-Beta/commit/c35539f14e92a984bc0ddb02bc36793f24021e3b))
-
 
 ### Bug Fixes
 
@@ -17,7 +17,6 @@ All notable changes to this project will be documented in this file. See [standa
 * Add icons category to emoji.json ([b1e55f6](https://github.com/dev-737/ChatBot-Beta/commit/b1e55f6bebedc46d44bdd8dc6cb499e08119c8db))
 
 ## [1.4.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.3.1...v1.4.0) (2022-06-30)
-
 
 ### Features
 
