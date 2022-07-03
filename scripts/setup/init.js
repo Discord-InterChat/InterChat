@@ -1,3 +1,4 @@
+const { stripIndents } = require('common-tags');
 const { CommandInteraction, MessageButton, Message, ChannelManager, GuildChannel, ThreadChannel } = require('discord.js');
 const { Embeds } = require('../../commands/Main/setup');
 const emoji = require('../../emoji.json');
@@ -17,6 +18,7 @@ module.exports = {
 		const defaultEmbed = embeds.setDefault();
 		const default_msg = ({ content: null, embeds: [defaultEmbed], components: [buttons] });
 		const serverConnected = await connectedList.findOne({ serverId: interaction.guild.id });
+		const allConnectedChannels = await connectedList.find({});
 
 		// if guild is already setup
 		if (destination && guildInDB) {
@@ -68,6 +70,16 @@ module.exports = {
 					'serverId': interaction.guild.id,
 					'serverName': interaction.guild.name,
 				});
+				await allConnectedChannels.forEach(channelEntry => {
+					interaction.client.channels.fetch(channelEntry.channelId).then(async chan => {
+						await chan.send(stripIndents`
+							A new server has joined us in the Network! ${emoji.normal.clipart}
+		
+							**Server Name:** __${interaction.guild.name}__
+							**Member Count:** __${interaction.guild.memberCount}__`);
+
+					});
+				});
 				return message.edit(default_msg);
 			}
 
@@ -85,6 +97,16 @@ module.exports = {
 				'channelName': destination.name,
 				'serverId': interaction.guild.id,
 				'serverName': interaction.guild.name,
+			});
+			await allConnectedChannels.forEach(channelEntry => {
+				interaction.client.channels.fetch(channelEntry.channelId).then(async chan => {
+					await chan.send(stripIndents`
+						A new server has joined us in the Network! ${emoji.normal.clipart}
+	
+						**Server Name:** __${interaction.guild.name}__
+						**Member Count:** __${interaction.guild.memberCount}__`);
+
+				});
 			});
 			message.edit(default_msg);
 		}
