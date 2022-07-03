@@ -2,14 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [1.4.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.5.1...v1.4.1) (2022-07-03)
-
 ## [1.4.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.0...v1.5.0) (2022-07-03)
+
 
 ### Features
 
 * Add image & review system for suggestions ([a342afb](https://github.com/dev-737/ChatBot-Beta/commit/a342afbed9e6a046e39fb7ce18b0a2060b09ec56))
 * Add option for custom emojis in pagination ([c35539f](https://github.com/dev-737/ChatBot-Beta/commit/c35539f14e92a984bc0ddb02bc36793f24021e3b))
+
 
 ### Bug Fixes
 
@@ -18,9 +18,11 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [1.4.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.3.1...v1.4.0) (2022-06-30)
 
+
 ### Features
 
 * Add find command to get user/server by name ([7a7902a](https://github.com/dev-737/ChatBot-Beta/commit/7a7902abf338cc89f0fb89d593d97e458e51e5b3))
+
 
 ### Bug Fixes
 
@@ -33,10 +35,12 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [1.3.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.2.0...v1.3.0) (2022-06-28)
 
+
 ### Features
 
 * Block network for servers with swear names ([13038ee](https://github.com/dev-737/ChatBot-Beta/commit/13038ee6c826e3b1810e5c6fc26f3808ac395c8f))
 * Help command now shows perms for command ([fa145e9](https://github.com/dev-737/ChatBot-Beta/commit/fa145e9a1bfbefe976f7e78846f6a5ff1725d147))
+
 
 ### Bug Fixes
 
@@ -53,77 +57,62 @@ All notable changes to this project will be documented in this file. See [standa
 * Update credits command ([69e9435](https://github.com/dev-737/ChatBot-Beta/commit/69e9435eb3c2fb90fe4f203b431afd612bbae4a6))
 
 ## [1.0.0] - 2022-06 -10
-
 ### Added
-
-* Added server-leave goal messages
-* Delete non-existing channels from DB every 1h
-* Add pagination function and update command permission function
-* Add end collector and minor bug fixes with setup command
-* Added modals to support report command
+- Added server-leave goal messages
+- Delete non-existing channels from DB every 1h
+- Add pagination function and update command permission function
+- Add end collector and minor bug fixes with setup command
+- Added modals to support report command
 
 ### Changed
-
-* Changed chatbot activity interval to 5 min
-* Updated discord error message ternary
-* Changed join goal to 500
-* Update connected servers to show 5 servers per embed, added pagination
+- Changed chatbot activity interval to 5 min
+- Updated discord error message ternary
+- Changed join goal to 500
+- Update connected servers to show 5 servers per embed, added pagination
 
 ### Fixed Or Removed
-
-* Fixed Issue with messages sending twice when the bot is kicked from server/channel
-* Removed taunt when you send `@everyone`
+- Fixed Issue with messages sending twice when the bot is kicked from server/channel
+- Removed taunt when you send `@everyone `
 
 [1.0.0]: https://github.com/dev-737/ChatBot-Beta/compare/v0.7.0...v0.8.0
 
+
 ## [1.1.0]
-
 ### Changed
-
-* Getting bot version directly from package.json
-* Pinging @everyone @here doesn't work anymore
-* Added profanity filter
-* Blacklisted n word
-
+- Getting bot version directly from package.json
+- Pinging @everyone @here doesn't work anymore
+- Added profanity filter
+- Blacklisted n word
 ### Planned
-
-* New badges
-* Top.gg voting rewards
+- New badges
+- Top.gg voting rewards
 
 [1.1.0]: https://github.com/dev-737/ChatBot-Beta/compare/v1.1.0...v1.2.0
 
 [1.2.0]
-
 ### Changed
 
 # Stable
-
 ## 2.3.0 - 2022-05-21
-
-### Changed
-
-* The `network` command will be replaced by `/setup` soon™️
+### Changed 
+- The `network` command will be replaced by `/setup` soon™️
 
 ### Added
-
-* Added setup
-* Updated to v14 of discord.js
-* View all connected servers with `/connected`
-* Option to clear all guild data from chatbot's database in setup command
-* Enabling and disabling embeds for each server is now fully functional
-* Sending tenor gifs with chatbot (beta)
-* Sending any attachment link with chatbot [.gif |  .png | .webg | .svg ] (beta)
-* Turn off embeds in global chat (beta)
+- Added setup
+- Updated to v14 of discord.js
+- View all connected servers with `/connected`
+- Option to clear all guild data from chatbot's database in setup command
+- Enabling and disabling embeds for each server is now fully functional
+- Sending tenor gifs with chatbot (beta)
+- Sending any attachment link with chatbot [.gif |  .png | .webg | .svg ] (beta)
+- Turn off embeds in global chat (beta)
 
 ### Fixes
+- Images should stay longer in the embed when you upload an image directly
+- Updated error handlers to stop bot from crashing
+- Fixed bug where chatbot crashes when kicked from a server
 
-* Images should stay longer in the embed when you upload an image directly
-
-* Updated error handlers to stop bot from crashing
-* Fixed bug where chatbot crashes when kicked from a server
 
 ## 2.3.1 - 2022-05-24
-
-### Changed
-
-* Reverted back to discord.js v13
+### Changed 
+- Reverted back to discord.js v13
