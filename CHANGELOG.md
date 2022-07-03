@@ -4,7 +4,6 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [1.4.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.0...v1.5.0) (2022-07-03)
 
-
 ### Features
 
 * Add image & review system for suggestions ([a342afb](https://github.com/dev-737/ChatBot-Beta/commit/a342afbed9e6a046e39fb7ce18b0a2060b09ec56))
