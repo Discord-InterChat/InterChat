@@ -2,12 +2,6 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [1.4.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.5.1...v1.4.1) (2022-07-03)
-
-
-### Bug Fixes
-
-* Fix join message not showing using setup ([27328f4](https://github.com/dev-737/ChatBot-Beta/commit/27328f49dfb397aba3e5d9dace04e7278446a78d))
 
 ## [1.4.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.0...v1.5.0) (2022-07-03)
 
@@ -16,9 +10,9 @@ All notable changes to this project will be documented in this file. See [standa
 * Add image & review system for suggestions ([a342afb](https://github.com/dev-737/ChatBot-Beta/commit/a342afbed9e6a046e39fb7ce18b0a2060b09ec56))
 * Add option for custom emojis in pagination ([c35539f](https://github.com/dev-737/ChatBot-Beta/commit/c35539f14e92a984bc0ddb02bc36793f24021e3b))
 
-
 ### Bug Fixes
 
+* Fix join message not showing using setup ([27328f4](https://github.com/dev-737/ChatBot-Beta/commit/27328f49dfb397aba3e5d9dace04e7278446a78d))
 * Add dynamic status update + new error message ([132ee2e](https://github.com/dev-737/ChatBot-Beta/commit/132ee2e893f94f948f16673a31d745c5cc8c0605))
 * Add icons category to emoji.json ([b1e55f6](https://github.com/dev-737/ChatBot-Beta/commit/b1e55f6bebedc46d44bdd8dc6cb499e08119c8db))
 
