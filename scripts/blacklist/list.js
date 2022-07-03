@@ -21,7 +21,7 @@ module.exports = {
 				Embed.addFields([
 					{
 						name: result[i].serverName,
-						value: `${emoji.normal.ID}: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`,
+						value: `${emoji.icons.id}: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`,
 					},
 				]);
 			}
@@ -41,7 +41,7 @@ module.exports = {
 				Embed.addFields([
 					{
 						name: result[i].username,
-						value: `${emoji.normal.ID}: ${result[i].userId}\nReason: ${result[i].reason}\n\n`,
+						value: `${emoji.icons.id}: ${result[i].userId}\nReason: ${result[i].reason}\n\n`,
 					},
 				]);
 			}

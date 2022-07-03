@@ -122,7 +122,7 @@ module.exports = {
 			}
 
 			if (usermessages.length > 6) {
-				message.channel.send(emoji.normal.exclamation + ' **I have disconnected this channel from the network as I have detected heavy spam.**');
+				message.channel.send(emoji.icons.exclamation + ' **I have disconnected this channel from the network as I have detected heavy spam.**');
 				return connectedList.deleteOne({ channelId: message.channel.id });
 			}
 
@@ -186,7 +186,7 @@ module.exports = {
 				}
 				catch (e) {
 					// if channels doesn't exist push to deletedChannels array
-					logger.error(e);
+					logger.info(`Deleting non-existant channel ${channelObj.channelId} from database.`);
 					deletedChannels.push(channelObj.channelId);
 					await connectedList.deleteMany({
 						channelId: {

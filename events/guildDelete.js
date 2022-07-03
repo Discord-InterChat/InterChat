@@ -1,6 +1,6 @@
 const { client } = require('../index');
 const utils = require('../utils');
-const { normal } = require('../emoji.json');
+const { icons } = require('../emoji.json');
 const mongoUtil = require('../utils');
 
 
@@ -13,7 +13,7 @@ module.exports = {
 
 		const cbhq = client.guilds.fetch(utils.cbhq);
 		const goalChannel = (await cbhq).channels.cache.get('906460473065615403');
-		await goalChannel.send(`${normal.leave} I have been kicked from ${guild.name}. ${500 - client.guilds.cache.size} to go!`);
+		await goalChannel.send(`${icons.leave} I have been kicked from ${guild.name}. ${500 - client.guilds.cache.size} to go!`);
 
 
 	},

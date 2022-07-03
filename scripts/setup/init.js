@@ -18,16 +18,16 @@ module.exports = {
 		const default_msg = ({ content: null, embeds: [defaultEmbed], components: [buttons] });
 		const serverConnected = await connectedList.findOne({ serverId: interaction.guild.id });
 
+		// if guild is already setup
+		if (destination && guildInDB) {
+			return interaction.editReply(
+				`${emoji.normal.no} This server is already setup! Please do not use the \`destination\` option or reset the setup if you wish to redo it. `,
+			);
+		}
 
 		if (destination && serverConnected) {
 			return interaction.editReply(
 				`${emoji.normal.no} This server is already connected to <#${serverConnected.channelId}>! Please disconnect from there first. `,
-			);
-		}
-
-		if (destination && guildInDB) {
-			return interaction.editReply(
-				`${emoji.normal.no} This server is already setup! Please reset the setup if you wish to redo it. `,
 			);
 		}
 
@@ -99,7 +99,7 @@ module.exports = {
 			catch {
 				await collection.deleteOne({ 'channel.id': guildInDB.channel.id });
 				await connectedList.deleteOne({ 'channelId': guildInDB.channel.id });
-				return message.edit(emoji.normal.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
+				return message.edit(emoji.icons.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
 			}
 			message.edit(default_msg);
 		}

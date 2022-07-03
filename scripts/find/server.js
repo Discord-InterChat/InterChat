@@ -1,6 +1,6 @@
 const { MessageActionRow, MessageSelectMenu, MessageEmbed, CommandInteraction, Guild } = require('discord.js');
 const { stripIndents } = require('common-tags');
-const { normal } = require('../../emoji.json');
+const { normal, icons } = require('../../emoji.json');
 
 module.exports = {
 	/**
@@ -30,8 +30,8 @@ module.exports = {
 				.setColor('#2F3136')
 				.addFields([
 					{ name: 'Server Info', value: stripIndents`\n
-                    ${normal.owner} **Owner:** ${owner.username}#${owner.discriminator}
-                    ${normal.join} **Member Count:** ${guild.memberCount}
+                    ${icons.owner} **Owner:** ${owner.username}#${owner.discriminator}
+                    ${icons.join} **Member Count:** ${guild.memberCount}
                     ${normal.neutral} **Connected: soon**
                     ${normal.neutral} **Network level: soon**
                     ` }]);

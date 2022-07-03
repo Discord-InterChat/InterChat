@@ -1,6 +1,6 @@
 const { MessageButton, MessageEmbed, MessageActionRow, CommandInteraction } = require('discord.js');
 const { colors } = require('../../utils');
-const { normal } = require('../../emoji.json');
+const { normal, icons } = require('../../emoji.json');
 
 module.exports = {
 	/**
@@ -70,7 +70,7 @@ module.exports = {
 						}
 					});
 					reviewCollector.on('end', () => {
-						reviewMessage.edit({ content: `${normal.info} Suggestion reviewed by **${i.user.tag}**!`, components: [] });
+						reviewMessage.edit({ content: `${icons.info} Suggestion reviewed by **${i.user.tag}**!`, components: [] });
 					});
 
 

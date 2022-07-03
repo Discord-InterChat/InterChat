@@ -42,7 +42,7 @@ module.exports = {
 				if (i.customId == 'reset') {
 					try {
 						const msg = await message.reply({
-							content: `${emoji.normal.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `, components: [buttons],
+							content: `${emoji.icons.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `, components: [buttons],
 						});
 						message.edit({ components: [] });
 
@@ -61,7 +61,7 @@ module.exports = {
 						});
 					}
 					catch (e) {
-						message.edit({ content: `${emoji.normal.exclamation} ${ e.message}!`, embeds: [], components: [] });
+						message.edit({ content: `${emoji.icons.exclamation} ${ e.message}!`, embeds: [], components: [] });
 						logger.error(e);
 					}
 				}

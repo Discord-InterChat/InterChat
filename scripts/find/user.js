@@ -1,6 +1,6 @@
 const { MessageActionRow, MessageSelectMenu, MessageEmbed, CommandInteraction, User } = require('discord.js');
 const { stripIndents } = require('common-tags');
-const { normal } = require('../../emoji.json');
+const { normal, icons } = require('../../emoji.json');
 
 
 module.exports = {
@@ -36,8 +36,8 @@ module.exports = {
 				.setColor('#2F3136')
 				.addFields([
 					{ name: 'User Info', value: stripIndents`\n
-                    ${normal.id} **ID:** ${user.id}
-                    ${normal.mention} **Tag:** ${user.tag}
+                    ${icons.id} **ID:** ${user.id}
+                    ${icons.mention} **Tag:** ${user.tag}
                     ${normal.neutral} **Level: soon**
                     ${normal.neutral} **Owns a Server With ChatBot: soon**
                     ` }]);
