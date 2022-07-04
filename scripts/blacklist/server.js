@@ -45,7 +45,8 @@ module.exports = {
 			}
 
 			await blacklistedServers.deleteOne({ serverId: serverOpt });
-			// FIXME: Might wanna fetch server instead of showing name from db later
+
+			// Using name from DB since the bot isn't in the server, so it doesn't have any of its data.
 			interaction.reply(`The server **${serverInBlacklist.serverName}** has been removed from the blacklist.`);
 		}
 	},

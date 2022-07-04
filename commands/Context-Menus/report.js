@@ -17,7 +17,6 @@ module.exports = {
 		// check if args.channel is in connectedList DB
 		if (!channelInDb) return await interaction.reply({ content: 'This command only works in **ChatBot Network** channels.', ephemeral: true });
 
-		// check if message was sent by the bot
 		if (args.author.id != interaction.client.user.id || !args.embeds[0] || !args.embeds[0].footer || !args.embeds[0].author || !args.embeds[0].author.url) return await interaction.reply({ content: 'Invalid usage.', ephemeral: true });
 
 		const msgFooter = args.embeds[0].footer.text.split('┃');

@@ -149,7 +149,7 @@ module.exports = {
 			// TODO
 			// if message contains profanity execute script
 			// edit the embed instead of changing the message content
-			// if guild has profanity disabeld and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
+			// if guild has profanity disabled and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
 
 
 			// check if message contains profanity
@@ -181,13 +181,14 @@ module.exports = {
 			// NOTE: Using the db used here in other chatbot's will end up deleting all servers when you send a message... so be careful XD
 			allConnectedChannels.forEach(async channelObj => {
 				try {
-					// trying to fetch all channels to see if they exist
 					await client.channels.fetch(channelObj.channelId);
 				}
-				catch (e) {
-					// if channels doesn't exist push to deletedChannels array
-					logger.info(`Deleting non-existant channel ${channelObj.channelId} from database.`);
+				catch {
+					logger.warn(`Deleting non-existant channel ${channelObj.channelId} from database.`);
+
 					deletedChannels.push(channelObj.channelId);
+
+					// FIXME: I have a feeling that this runs multiple times and only deletes 1 at a time...
 					await connectedList.deleteMany({
 						channelId: {
 							$in: deletedChannels,
@@ -199,10 +200,6 @@ module.exports = {
 							$in: deletedChannels, // NOTE: $in only takes array
 						},
 					});
-
-					// replace this with something that doesnt iterate twise idk lmao
-					// REVIEW: This suddenly started to work, make sure it really does and isnt luck! Bug testing or something
-
 					return;
 				}
 				await messageTypes(client, message, channelObj, embed, setup);
