@@ -13,7 +13,7 @@ module.exports = {
 	 * @param {Embeds} embedGen
 	 * @param {Collection} connectedList
 	 */
-	async execute(interaction, message, guildInDB, collection, embedGen, connectedList) {
+	async execute(interaction, message, collection, embedGen, connectedList) {
 		// components
 		const buttons = new MessageActionRow().addComponents([
 			new MessageButton().setCustomId('yes').setLabel('Yes').setStyle('SUCCESS'),
@@ -21,11 +21,12 @@ module.exports = {
 		]);
 		const selectMenu = new MessageActionRow().addComponents([
 			new MessageSelectMenu().setCustomId('customize').setPlaceholder('✨ Customize Setup').addOptions([
-				{ label: 'Message Style', emoji: emoji.icons.message, description: 'Customize the way message sent by ChatBot looks.', value: 'message_style' },
-				{ label: 'Profanity Filter', emoji: emoji.icons.info, description: 'Enable and disabled profanity filter for this server.', value: 'profanity_toggle' },
+				{ label: 'Message Style', emoji: emoji.icons.message, description: 'Customize the way message sent by ChatBot looks', value: 'message_style' },
+				{ label: 'Profanity Filter', emoji: emoji.icons.info, description: 'Enable and disabled profanity filter for this server', value: 'profanity_toggle' },
 			]),
 		]);
 
+		let guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
 		// Create action row collectors
 		const filter = m => m.user.id == interaction.user.id;
@@ -50,7 +51,7 @@ module.exports = {
 				if (i.customId == 'edit') {
 					// Setting the fields for the embed
 					const fields = [
-						{ name: 'Details', value: `**Status:** ${status}\n**Channel:** ${channelInDB}\n**Changed:** <t:${guildInDB.date.timestamp}:R>` },
+						{ name: 'Details', value: `**Connected:** ${status}\n**Channel:** ${channelInDB}\n**Last Edited:** <t:${guildInDB.date.timestamp}:R>` },
 						{ name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` },
 					];
 					// calling 'embedGen' class and setting fields

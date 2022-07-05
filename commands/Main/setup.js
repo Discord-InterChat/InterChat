@@ -23,13 +23,14 @@ module.exports = {
 		// Embed classes to make it easier to call and edit multiple embeds
 		class Embeds {
 			constructor() { /**/ }
-			setDefault() {
+			async setDefault() {
+				const db_guild = await setupList.findOne({ 'guild.id': interaction.guild.id });
 				const guildd = interaction.client.guilds.cache.get(db_guild?.guild.id);
 				const channel = guildd?.channels.cache.get(db_guild?.channel.id);
 
 				const embed = new MessageEmbed()
 					.setAuthor({ name: interaction.client.user.username, iconURL: interaction.client.user.avatarURL() })
-					.setTitle(`${emoji.normal.yes} Everything is setup!`)
+					.setTitle('This server is setup!')
 					.setDescription(`Channel: ${ channel || 'Unknown' }`)
 					.setColor('#3eb5fb')
 					.setThumbnail(interaction.guild.iconURL())
@@ -61,9 +62,9 @@ module.exports = {
 
 		// Declare
 		const database = getDb();
-		const collection = database.collection('setup');
+		const setupList = database.collection('setup');
 		const connectedList = database.collection('connectedList');
-		const db_guild = await collection.findOne({ 'guild.id': interaction.guild.id });
+
 		const embeds = new Embeds();
 
 		// Send the initial message
@@ -71,8 +72,8 @@ module.exports = {
 		const message = await interaction.fetchReply(); // Maybe consider using interaction.editReply() (add fetchReply: true in the initial reply)
 
 		// collectors and main setup function
-		require('../../scripts/setup/init').execute(interaction, embeds, db_guild, message, collection, connectedList).catch(console.error);
-		require('../../scripts/setup/collectors').execute(interaction, message, db_guild, collection, embeds, connectedList).catch(console.error);
+		require('../../scripts/setup/init').execute(interaction, embeds, message, setupList, connectedList).catch(console.error);
+		require('../../scripts/setup/collectors').execute(interaction, message, setupList, embeds, connectedList).catch(console.error);
 	},
 };
 

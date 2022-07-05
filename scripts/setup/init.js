@@ -13,7 +13,7 @@ module.exports = {
 	 * @param {Collection} connectedList
 	 * @returns
 	 */
-	async execute(interaction, embeds, guildInDB, message, setupCollection, connectedList) {
+	async execute(interaction, embeds, message, setupList, connectedList) {
 		// Buttons
 		const buttons = new MessageActionRow().addComponents([
 			new MessageButton().setCustomId('edit').setLabel('edit').setStyle('SECONDARY'),
@@ -22,9 +22,10 @@ module.exports = {
 
 		const date = new Date();
 		const timestamp = Math.round(date.getTime() / 1000);
-		const defaultEmbed = embeds.setDefault();
+		const defaultEmbed = await embeds.setDefault();
 		const default_msg = ({ content: null, embeds: [defaultEmbed], components: [buttons] });
 		const serverConnected = await connectedList.findOne({ serverId: interaction.guild.id });
+		let guildInDB = await setupList.findOne({ 'guild.id': interaction.guild.id });
 		const destination = interaction.options.getChannel('destination');
 		const allConnectedChannels = connectedList.find({});
 
@@ -63,7 +64,7 @@ module.exports = {
 				}
 
 				// Inserting the newly created channel to setup and connectedlist
-				await setupCollection.insertOne({
+				await setupList.insertOne({
 					guild: { name: interaction.guild.name, id: interaction.guild.id },
 					channel: { name: channel.name, id: channel.id },
 					date: { full: date, timestamp: timestamp },
@@ -91,7 +92,7 @@ module.exports = {
 			}
 
 			// insert data into setup & connectedList database if it is not a category
-			await setupCollection.insertOne({
+			await setupList.insertOne({
 				guild: { name: interaction.guild.name, id: interaction.guild.id },
 				channel: { name: destination.name, id: destination.id },
 				date: { full: date, timestamp: timestamp },
@@ -120,14 +121,14 @@ module.exports = {
 		}
 
 		// If channel is in database display the setup embed
-		guildInDB = await setupCollection.findOne({ 'guild.id': interaction.guild.id }); // fetch again to get updated data (VERY IMPORTANT)
+		guildInDB = await setupList.findOne({ 'guild.id': interaction.guild.id }); // fetch again to get updated data (VERY IMPORTANT)
 		if (guildInDB) {
 			// try to fetch the channel, if it does not exist delete from the databases'
 			try {
 				await interaction.guild.channels.fetch(guildInDB.channel.id);
 			}
 			catch {
-				await setupCollection.deleteOne({ 'channel.id': guildInDB.channel.id });
+				await setupList.deleteOne({ 'channel.id': guildInDB.channel.id });
 				await connectedList.deleteOne({ 'channelId': guildInDB.channel.id });
 				return message.edit(emoji.icons.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
 			}
