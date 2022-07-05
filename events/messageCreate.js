@@ -126,6 +126,10 @@ module.exports = {
 				return connectedList.deleteOne({ channelId: message.channel.id });
 			}
 
+			if (message.content.includes('discord.gg') || message.content.includes('discord.com/invite')) {
+				return message.react(emoji.normal.no);
+			}
+
 			// TODO: Warning and timed blacklist system
 			// blacklist a user for a specific amount of time if they have over x warns
 			// might come in handy in other cases too.
@@ -146,10 +150,12 @@ module.exports = {
 			}
 
 
-			// TODO
-			// if message contains profanity execute script
-			// edit the embed instead of changing the message content
-			// if guild has profanity disabled and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
+			/*
+			 TODO:
+			 if message contains profanity execute script
+			 edit the embed instead of changing the message content
+			 if guild has profanity disabled and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
+			*/
 
 
 			// check if message contains profanity
@@ -188,18 +194,12 @@ module.exports = {
 
 					deletedChannels.push(channelObj.channelId);
 
-					// FIXME: I have a feeling that this runs multiple times and only deletes 1 at a time...
-					await connectedList.deleteMany({
-						channelId: {
-							$in: deletedChannels,
-						},
-					});
+					// REVIEW: I have a feeling that this runs multiple times and only deletes 1 at a time...
+					await connectedList.deleteMany({ channelId: { $in: deletedChannels } });
+
 					// deleting the channels that was pushed to deletedChannels earlier, from the databse
-					await setup.deleteMany({
-						'channel.id': {
-							$in: deletedChannels, // NOTE: $in only takes array
-						},
-					});
+					await setup.deleteMany({ 'channel.id': { $in: deletedChannels } }); // NOTE: $in only takes array
+
 					return;
 				}
 				await messageTypes(client, message, channelObj, embed, setup);
