@@ -6,11 +6,13 @@ module.exports = {
 		.setName('invite')
 		.setDescription('Invite the bot to your server'),
 	async execute(interaction) {
+		const permissions = [Permissions.FLAGS.MANAGE_CHANNELS, Permissions.FLAGS.CHANGE_NICKNAME, Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.SEND_MESSAGES, Permissions.FLAGS.SEND_MESSAGES_IN_THREADS, Permissions.FLAGS.MANAGE_CHANNELS, Permissions.FLAGS.MANAGE_MESSAGES, Permissions.FLAGS.MANAGE_THREADS, Permissions.FLAGS.EMBED_LINKS, Permissions.FLAGS.ATTACH_FILES, Permissions.FLAGS.READ_MESSAGE_HISTORY, Permissions.FLAGS.USE_EXTERNAL_EMOJIS, Permissions.FLAGS.ADD_REACTIONS];
+
 		const InviteButtons = new MessageActionRow()
 			.addComponents([
 				new MessageButton()
 					.setLabel('Normal')
-					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'] }))
+					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'], permissions: permissions }))
 					.setStyle('LINK')
 					.setEmoji(normal.invite)
 					.setDisabled(false),
