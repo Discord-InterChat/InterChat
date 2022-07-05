@@ -1,42 +1,48 @@
 const { stripIndents } = require('common-tags');
-const { CommandInteraction, MessageButton, Message, ChannelManager, GuildChannel, ThreadChannel } = require('discord.js');
+const { CommandInteraction, MessageButton, Message, MessageActionRow } = require('discord.js');
+const { Collection } = require('mongodb');
 const { Embeds } = require('../../commands/Main/setup');
 const emoji = require('../../emoji.json');
 
 module.exports = {
 	/**
 	 * @param {CommandInteraction} interaction
-	 * @param {GuildChannel} destination
-	 * @param {MessageButton} buttons
 	 * @param {Embeds} embeds
 	 * @param {Message} message
+	 * @param {Collection} collection
+	 * @param {Collection} connectedList
 	 * @returns
 	 */
-	async execute(interaction, destination, buttons, embeds, guildInDB, message, collection, connectedList) {
+	async execute(interaction, embeds, guildInDB, message, setupCollection, connectedList) {
+		// Buttons
+		const buttons = new MessageActionRow().addComponents([
+			new MessageButton().setCustomId('edit').setLabel('edit').setStyle('SECONDARY'),
+			new MessageButton().setCustomId('reset').setLabel('reset').setStyle('DANGER'),
+		]);
+
 		const date = new Date();
 		const timestamp = Math.round(date.getTime() / 1000);
 		const defaultEmbed = embeds.setDefault();
 		const default_msg = ({ content: null, embeds: [defaultEmbed], components: [buttons] });
 		const serverConnected = await connectedList.findOne({ serverId: interaction.guild.id });
-		const allConnectedChannels = await connectedList.find({});
+		const destination = interaction.options.getChannel('destination');
+		const allConnectedChannels = connectedList.find({});
 
-		// if guild is already setup
 		if (destination && guildInDB) {
 			return interaction.editReply(
-				`${emoji.normal.no} This server is already setup! Please do not use the \`destination\` option or reset the setup if you wish to redo it. `,
+				`${emoji.normal.no} This server is already setup! Use the command without the \`destination\` option, or reset the setup if you wish to redo it.`,
 			);
 		}
 
 		if (destination && serverConnected) {
 			return interaction.editReply(
-				`${emoji.normal.no} This server is already connected to <#${serverConnected.channelId}>! Please disconnect from there first. `,
+				`${emoji.normal.no} This server is already connected to <#${serverConnected.channelId}>! Please disconnect from there first.`,
 			);
 		}
 
 		if (!guildInDB) {
 			if (!destination) return message.edit('Please specify a channel destination first!');
 
-			// If channel type is category create a channel inside it
 			if (destination.type == 'GUILD_CATEGORY') {
 				// Make a channel if it doesn't exist
 				let channel;
@@ -53,17 +59,18 @@ module.exports = {
 					});
 				}
 				catch (e) {
-					return message.edit(`${emoji.normal.no} Please make sure I have the following permissions: \`Manage Channels\`, \`Manage Permissions\` for this command to work!`);
+					return message.edit(`${emoji.normal.no} Please make sure I have the following permissions: \`Manage Channels\`, \`Manage Users\`, \`Manage Permissions\` for this command to work!`);
 				}
 
 				// Inserting the newly created channel to setup and connectedlist
-				await collection.insertOne({
+				await setupCollection.insertOne({
 					guild: { name: interaction.guild.name, id: interaction.guild.id },
 					channel: { name: channel.name, id: channel.id },
 					date: { full: date, timestamp: timestamp },
 					compact: false,
 					profFilter: true,
 				});
+
 				await connectedList.insertOne({
 					'channelId': channel.id,
 					'channelName': channel.name,
@@ -83,8 +90,8 @@ module.exports = {
 				return message.edit(default_msg);
 			}
 
-			// insert data into setup & connectedList database
-			await collection.insertOne({
+			// insert data into setup & connectedList database if it is not a category
+			await setupCollection.insertOne({
 				guild: { name: interaction.guild.name, id: interaction.guild.id },
 				channel: { name: destination.name, id: destination.id },
 				date: { full: date, timestamp: timestamp },
@@ -98,6 +105,7 @@ module.exports = {
 				'serverId': interaction.guild.id,
 				'serverName': interaction.guild.name,
 			});
+
 			await allConnectedChannels.forEach(channelEntry => {
 				interaction.client.channels.fetch(channelEntry.channelId).then(async chan => {
 					await chan.send(stripIndents`
@@ -112,14 +120,14 @@ module.exports = {
 		}
 
 		// If channel is in database display the setup embed
-		guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id }); // fetch again to get updated data (VERY IMPORTANT)
+		guildInDB = await setupCollection.findOne({ 'guild.id': interaction.guild.id }); // fetch again to get updated data (VERY IMPORTANT)
 		if (guildInDB) {
 			// try to fetch the channel, if it does not exist delete from the databases'
 			try {
 				await interaction.guild.channels.fetch(guildInDB.channel.id);
 			}
 			catch {
-				await collection.deleteOne({ 'channel.id': guildInDB.channel.id });
+				await setupCollection.deleteOne({ 'channel.id': guildInDB.channel.id });
 				await connectedList.deleteOne({ 'channelId': guildInDB.channel.id });
 				return message.edit(emoji.icons.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
 			}
