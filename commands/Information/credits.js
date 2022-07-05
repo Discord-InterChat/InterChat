@@ -12,6 +12,8 @@ module.exports = {
 			const member = await interaction.client.users.fetch(String(credit));
 			members.push(member);
 		}
+
+
 		const embed = new MessageEmbed()
 			.setAuthor({ name: `${interaction.client.user.tag} Credits`, iconURL: interaction.client.user.avatarURL() })
 			.setColor(colors())
@@ -19,12 +21,12 @@ module.exports = {
 			.addFields([
 				{
 					name: 'Developed By:',
-					value: `\`-\` ${members[0]}\n\`-\` ${members[1]}\n\`-\` ${members[2]}\n\`-\` ${members[4]}\n──────────────`,
+					value: `\`-\` ${members[1]}\n\`-\` ${members[3]}\n\`-\` ${members[4]}\n──────────────`,
 					inline: false,
 				},
 				{
 					name: 'Logo By',
-					value: `\`-\` ${members[2]}\n──────────────`,
+					value: `\`-\` ${members[1]}\n──────────────`,
 					inline: false,
 				},
 				{
@@ -34,7 +36,7 @@ module.exports = {
 				},
 				{
 					name: 'Staff',
-					value: `\`-\` ${members.at(-2)}\n\`-\` ${members.at(-1)}\n──────────────`,
+					value: `\`-\` ${members.at(-2)}\n──────────────`,
 					inline: false,
 				},
 			]);
