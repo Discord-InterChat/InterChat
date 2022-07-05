@@ -1,20 +1,38 @@
-const { CommandInteraction, MessageEmbed, MessageButton, SelectMenuInteraction } = require('discord.js');
+const { CommandInteraction, MessageButton, MessageActionRow, MessageSelectMenu, Message } = require('discord.js');
+const { Collection } = require('mongodb');
 const { Embeds } = require('../../commands/Main/setup');
 const emoji = require('../../emoji.json');
 const logger = require('../../logger');
 
 module.exports = {
 	/**
-     * @param {CommandInteraction} interaction
-     * @param {MessageEmbed} embed
-     * @param {Embeds} embedGen
-     * @param {SelectMenuInteraction} selectMenu
-     * @param {MessageButton} buttons
-     */
-	async execute(interaction, message, guildInDB, collection, embed, embedGen, selectMenu, connectedList, buttons) {
+	 *
+	 * @param {CommandInteraction} interaction
+	 * @param {Message} message
+	 * @param {Collection} collection
+	 * @param {Embeds} embedGen
+	 * @param {Collection} connectedList
+	 */
+	async execute(interaction, message, guildInDB, collection, embedGen, connectedList) {
+		// components
+		const buttons = new MessageActionRow().addComponents([
+			new MessageButton().setCustomId('yes').setLabel('Yes').setStyle('SUCCESS'),
+			new MessageButton().setCustomId('no').setLabel('No').setStyle('DANGER'),
+		]);
+		const selectMenu = new MessageActionRow().addComponents([
+			new MessageSelectMenu().setCustomId('customize').setPlaceholder('✨ Customize Setup').addOptions([
+				{ label: 'Message Style', emoji: emoji.icons.message, description: 'Customize the way message sent by ChatBot looks.', value: 'message_style' },
+				{ label: 'Profanity Filter', emoji: emoji.icons.info, description: 'Enable and disabled profanity filter for this server.', value: 'profanity_toggle' },
+			]),
+		]);
+
+
 		// Create action row collectors
 		const filter = m => m.user.id == interaction.user.id;
 		const collector = message.createMessageComponentCollector({ filter, idle: 60000, max: 4 });
+
+
+		let embed;
 
 		// Everything is in one collector since im lazy
 		collector.on('collect', async i => {
@@ -32,11 +50,11 @@ module.exports = {
 				if (i.customId == 'edit') {
 					// Setting the fields for the embed
 					const fields = [
-						{ name: 'Details:', value: `**Status:** ${status}\n**Channel:** ${channelInDB}\n**Changed:** <t:${guildInDB.date.timestamp}:R>` },
-						{ name: '**Style:**', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` },
+						{ name: 'Details', value: `**Status:** ${status}\n**Channel:** ${channelInDB}\n**Changed:** <t:${guildInDB.date.timestamp}:R>` },
+						{ name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` },
 					];
 					// calling 'embedGen' class and setting fields
-					embed = embedGen.setCustom('', fields);
+					embed = embedGen.setCustom(fields);
 					message.edit({ embeds: [embed], components: [selectMenu] });
 				}
 				if (i.customId == 'reset') {
@@ -81,7 +99,7 @@ module.exports = {
 						await collection.updateOne({ 'guild.id': interaction.guild.id }, { $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), compact: !compact } });
 						guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
-						embed.spliceFields(1, 1, { name: '**Style:**', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` });
+						embed.spliceFields(1, 1, { name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` });
 						message.edit({ embeds: [embed] });
 						return;
 					}
@@ -92,7 +110,7 @@ module.exports = {
 					await collection.updateOne({ 'guild.id': interaction.guild.id }, { $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), profFilter: !pfilter } });
 					guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
-					embed.spliceFields(1, 1, { name: '**Style:**', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` });
+					embed.spliceFields(1, 1, { name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` });
 					message.edit({ embeds: [embed] });
 					return;
 				}

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { CommandInteraction, MessageEmbed, SelectMenuInteraction, MessageActionRow, MessageSelectMenu } = require('discord.js');
+const { CommandInteraction } = require('discord.js');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('find')

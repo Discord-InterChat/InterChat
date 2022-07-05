@@ -1,5 +1,5 @@
 const { ContextMenuCommandBuilder } = require('@discordjs/builders');
-const { Modal, MessageActionRow, TextInputComponent, InteractionCollector, MessageEmbed } = require('discord.js');
+const { Modal, MessageActionRow, TextInputComponent, InteractionCollector, MessageEmbed, CommandInteraction } = require('discord.js');
 const { getDb } = require('../../utils');
 module.exports = {
 	description: 'Report a user directly from the Chat Network!',
@@ -7,9 +7,14 @@ module.exports = {
 		.setName('report')
 		// message type
 		.setType(3),
+	/**
+	* @param {CommandInteraction} interaction
+	* @returns
+	*/
 	async execute(interaction) {
-		// args is the message the interaction is being performed on
-		const args = await interaction.channel.messages.cache.get(interaction.targetId);
+		// The message the interaction is being performed on
+		const args = interaction.channel.messages.cache.get(interaction.targetId);
+
 		const database = await getDb();
 		const connectedList = database.collection('connectedList');
 		const channelInDb = await connectedList.findOne({ channelId: args.channel.id });
@@ -31,7 +36,6 @@ module.exports = {
 		// FIXME: change channelId to 821610981155012628 later
 		const reportChannel = await interaction.client.channels.fetch('976099718251831366');
 
-		// create modal
 		const modal = new Modal().setCustomId('modal').setTitle('Report').addComponents(
 			new MessageActionRow()
 				.addComponents(
@@ -53,8 +57,7 @@ module.exports = {
 			errors: ['time'],
 		});
 
-		// respond to message
-		// when modal is submitted
+		// respond to message when modal is submitted
 		collector.on('collect', async (i) => {
 			const components = i.fields.getTextInputValue('para');
 
