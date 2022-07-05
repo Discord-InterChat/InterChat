@@ -3,8 +3,10 @@ const { MongoClient } = require('mongodb');
 const dotenv = require('dotenv');
 const { MessageActionRow, CommandInteraction, MessageEmbed } = require('discord.js');
 const emoji = require('./emoji.json');
+const { Api } = require('@top-gg/sdk');
 dotenv.config();
 
+const topgg = new Api(process.env.TOPGG);
 const uri = process.env.MONGODB_URI;
 let _db;
 
@@ -103,6 +105,8 @@ module.exports = {
 		return _db;
 	},
 
+	topgg: topgg,
+
 	toHuman: (client) => {
 		let totalSeconds = (client.uptime / 1000);
 		const days = Math.floor(totalSeconds / 86400);
@@ -133,9 +137,8 @@ module.exports = {
 				verification = 1;
 			}
 			else {
-				return await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
+				await interaction.reply({ content: 'You do not have permissions to run this command!', ephemeral: true });
 			}
-
 			return verification;
 		}
 		catch (e) {
@@ -159,20 +162,20 @@ module.exports = {
 		let index = 0, row = new MessageActionRow().addComponents([{
 			type: 'BUTTON',
 			customId: '1',
-			emoji: emojis?.back || emoji.normal.back,
+			emoji: emojis?.back || emoji.icons.back,
 			style: 'SECONDARY',
 			disabled: true,
 
 		}, {
 			type: 'BUTTON',
 			customId: '3',
-			emoji: emojis?.exit || emoji.normal.delete,
+			emoji: emojis?.exit || emoji.icons.delete,
 			style: 'DANGER',
 
 		}, {
 			type: 'BUTTON',
 			customId: '2',
-			emoji: emojis?.next || emoji.normal.next,
+			emoji: emojis?.next || emoji.icons.next,
 			style: 'SECONDARY',
 			disabled: pages.length <= index + 1,
 		}]);
@@ -204,19 +207,19 @@ module.exports = {
 			row.setComponents([{
 				type: 'BUTTON',
 				customId: '1',
-				emoji: emojis?.back || emoji.normal.back,
+				emoji: emojis?.back || emoji.icons.back,
 				style: 'SECONDARY',
 				disabled: index === 0,
 
 			}, {
 				type: 'BUTTON',
 				customId: '3',
-				emoji: emojis?.exit || emoji.normal.delete,
+				emoji: emojis?.exit || emoji.icons.delete,
 				style: 'DANGER',
 
 			}, { type: 'BUTTON',
 				customId: '2',
-				emoji: emojis?.next || emoji.normal.next,
+				emoji: emojis?.next || emoji.icons.next,
 				style: 'SECONDARY',
 				disabled: index === pages.length - 1,
 			}]);
