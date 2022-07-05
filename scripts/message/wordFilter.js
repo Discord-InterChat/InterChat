@@ -1,6 +1,5 @@
-const { MessageEmbed, Message } = require('discord.js');
-const emoji = require('../../emoji.json');
-const { colors, getDb } = require('../../utils');
+const { MessageEmbed } = require('discord.js');
+const { colors } = require('../../utils');
 const Filter = require('bad-words'),
 	filter = new Filter();
 

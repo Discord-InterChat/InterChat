@@ -2,7 +2,6 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { stripIndents } = require('common-tags');
 const { MessageEmbed } = require('discord.js');
 const { colors } = require('../../utils');
-const { normal } = require('../../emoji.json');
 
 module.exports = {
 	data: new SlashCommandBuilder()

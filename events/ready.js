@@ -1,11 +1,13 @@
 const logger = require('../logger');
-const { getDb } = require('../utils');
+// const { topgg } = require('../utils');
 
 module.exports = {
 	name: 'ready',
 	once: true,
+	/**
+	 * @param {import ('discord.js').Client} client
+	 */
 	async execute(client) {
-
 		logger.info(`Logged in as ${client.user.tag}`);
 
 		const activities = [
@@ -19,6 +21,13 @@ module.exports = {
 
 			client.user.setActivity(newActivity);
 		}, 300000);
+
+
+		/* FIXME: Uncomment this when on main CB
+		topgg.postStats({
+			serverCount: client.guilds.cache.size,
+		}); */
+
 
 	},
 };

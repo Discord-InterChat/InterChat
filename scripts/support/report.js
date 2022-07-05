@@ -1,7 +1,6 @@
 const { MessageActionRow, MessageEmbed, Modal, MessageButton, TextInputComponent } = require('discord.js');
 const logger = require('../../logger');
-const { colors, paginate } = require('../../utils');
-const { v4: uuidv4 } = require('uuid');
+const { colors } = require('../../utils');
 
 module.exports = {
 	async execute(interaction) {
