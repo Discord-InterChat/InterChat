@@ -30,12 +30,13 @@ module.exports = {
 				const current = result.slice(i, k);
 
 				let j = i;
+				let l = i;
 				k += 5;
 
 				const fields = current.map(value => { return { name: `${++j}. ${value.serverName}`, value: `ServerID: ${value.serverId}\nChannel: ${value.channelName} \`(${value.channelId})\`` }; });
 
 				const embed = new MessageEmbed()
-					.setDescription(`Showing the current connected servers: ${j}-${k >= result.length ? result.length : k} / **${result.length}**`)
+					.setDescription(`Showing the current connected servers: ${++l}-${j} / **${result.length}**`)
 					.setColor(0x2F3136)
 					.setFields(fields);
 				embeds.push(embed);

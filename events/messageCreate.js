@@ -26,7 +26,7 @@ module.exports = {
 			// If the message author's ID does not equal
 			// our ownerID, get outta there!
 			// eslint-disable-next-line no-undef
-			if (!developers.includes(BigInt(message.author.id))) {return console.log('Someone used eval');}
+			if (!developers.includes(BigInt(message.author.id))) return;
 
 			// In case something fails, we to catch errors
 			// in a try/catch block
@@ -122,8 +122,12 @@ module.exports = {
 			}
 
 			if (usermessages.length > 6) {
-				message.channel.send(emoji.normal.exclamation + ' **I have disconnected this channel from the network as I have detected heavy spam.**');
+				message.channel.send(emoji.icons.exclamation + ' **I have disconnected this channel from the network as I have detected heavy spam.**');
 				return connectedList.deleteOne({ channelId: message.channel.id });
+			}
+
+			if (message.content.includes('discord.gg') || message.content.includes('discord.com/invite')) {
+				return message.react(emoji.normal.no);
 			}
 
 			// TODO: Warning and timed blacklist system
@@ -146,10 +150,12 @@ module.exports = {
 			}
 
 
-			// TODO
-			// if message contains profanity execute script
-			// edit the embed instead of changing the message content
-			// if guild has profanity disabeld and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
+			/*
+			 TODO:
+			 if message contains profanity execute script
+			 edit the embed instead of changing the message content
+			 if guild has profanity disabled and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
+			*/
 
 
 			// check if message contains profanity
@@ -181,27 +187,18 @@ module.exports = {
 			// NOTE: Using the db used here in other chatbot's will end up deleting all servers when you send a message... so be careful XD
 			allConnectedChannels.forEach(async channelObj => {
 				try {
-					// trying to fetch all channels to see if they exist
 					await client.channels.fetch(channelObj.channelId);
 				}
-				catch (e) {
-					// if channels doesn't exist push to deletedChannels array
-					logger.error(e);
-					deletedChannels.push(channelObj.channelId);
-					await connectedList.deleteMany({
-						channelId: {
-							$in: deletedChannels,
-						},
-					});
-					// deleting the channels that was pushed to deletedChannels earlier, from the databse
-					await setup.deleteMany({
-						'channel.id': {
-							$in: deletedChannels, // NOTE: $in only takes array
-						},
-					});
+				catch {
+					logger.warn(`Deleting non-existant channel ${channelObj.channelId} from database.`);
 
-					// replace this with something that doesnt iterate twise idk lmao
-					// REVIEW: This suddenly started to work, make sure it really does and isnt luck! Bug testing or something
+					deletedChannels.push(channelObj.channelId);
+
+					// REVIEW: I have a feeling that this runs multiple times and only deletes 1 at a time...
+					await connectedList.deleteMany({ channelId: { $in: deletedChannels } });
+
+					// deleting the channels that was pushed to deletedChannels earlier, from the databse
+					await setup.deleteMany({ 'channel.id': { $in: deletedChannels } }); // NOTE: $in only takes array
 
 					return;
 				}

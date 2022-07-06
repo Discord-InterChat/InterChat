@@ -1,6 +1,6 @@
 const { MessageActionRow, MessageSelectMenu, MessageEmbed, CommandInteraction, User } = require('discord.js');
 const { stripIndents } = require('common-tags');
-const { normal } = require('../../emoji.json');
+const { normal, icons } = require('../../emoji.json');
 
 
 module.exports = {
@@ -36,8 +36,8 @@ module.exports = {
 				.setColor('#2F3136')
 				.addFields([
 					{ name: 'User Info', value: stripIndents`\n
-                    ${normal.id} **ID:** ${user.id}
-                    ${normal.mention} **Tag:** ${user.tag}
+                    ${icons.id} **ID:** ${user.id}
+                    ${icons.mention} **Tag:** ${user.tag}
                     ${normal.neutral} **Level: soon**
                     ${normal.neutral} **Owns a Server With ChatBot: soon**
                     ` }]);
@@ -68,7 +68,7 @@ module.exports = {
 
 			const msg = await interaction.reply({ embeds: [embed], components: [menu], ephemeral: true, fetchReply: true });
 
-			const collector = msg.createMessageComponentCollector({ filter, idle: 3 * 1000, max: found.size });
+			const collector = msg.createMessageComponentCollector({ filter, idle: 30 * 1000, max: found.size });
 
 
 			collector.on('collect', async (i) => {
@@ -79,8 +79,7 @@ module.exports = {
 
 		else {
 			const user = found.size === 0 ? fetched : found.entries().next().value[1];
-			// const owns = await interaction.client.users.fetch(user.ownerId);
-			return await interaction.reply({ embeds: [embedGen(user)], ephemeral: true });
+			return await interaction.reply({ content: user.id, embeds: [embedGen(user)], ephemeral: true });
 		}
 	},
 };

@@ -7,17 +7,37 @@ dotenv.config();
 
 // eslint-disable-next-line no-unused-vars
 mongoUtil.connect((err, mongoClient) => {
-	if (err) console.log(err);
+	if (err) logger.error(err);
 	logger.info('Connected to MongoDB');
 });
 
+
+/*
+Custom client class that enumerates custom variables like client.commands.
+Inaccisable when accessing client through <Message>.client or <CommandInteraction>.client, so it is commented out for now.
+If there is a way to re-declare discord.js and add the new variables to the Base Client, like TS (declare module 'discord.js'),
+then that is the better option.
+
+class MySuperClient extends discord.Client {
+	constructor() {
+		super({
+			ws: { properties: { browser: 'Discord iOS' } },
+			intents: [
+				discord.Intents.FLAGS.GUILDS,
+				discord.Intents.FLAGS.GUILD_MESSAGES,
+				discord.Intents.FLAGS.GUILD_MEMBERS,
+			],
+		});
+		this.commands = new discord.Collection();
+		this.description = 'A growing discord bot which provides inter-server chat!';
+		this.version = require('./package.json').version;
+		this.help = [];
+		this.icons = emojis.icons;
+	}
+
+} */
+
 const client = new discord.Client({
-	ws: { properties: { browser: 'Discord iOS' } },
-	/* removed unused intents for performance issues
-		discord.Intents.FLAGS.DIRECT_MESSAGES,
-		discord.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-		discord.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-	*/
 	intents: [
 		discord.Intents.FLAGS.GUILDS,
 		discord.Intents.FLAGS.GUILD_MESSAGES,
@@ -25,12 +45,12 @@ const client = new discord.Client({
 	],
 });
 
-client.description = 'A growing discord bot which provides inter-server chat!';
 client.commands = new discord.Collection();
+client.description = 'A growing discord bot which provides inter-server chat!';
 client.version = require('./package.json').version;
 client.help = [];
-module.exports.client = client;
-module.exports.discord = discord;
+
+module.exports = { discord, client };
 
 fs.readdirSync('./commands').forEach((dir) => {
 	if (fs.statSync(`./commands/${dir}`).isDirectory()) {
@@ -71,16 +91,14 @@ for (const eventFile of eventFiles) {
 }
 
 
-async function deleteChan() {
+async function deleteChannels() {
 	const database = mongoUtil.getDb();
 	const connectedList = database.collection('connectedList');
 	const channels = await connectedList.find().toArray();
 
 	const channelsDelete = [];
-	channels.forEach(async (v, i) => {
-		let channel;
-
-		try { channel = await client.channels.fetch(v.channelId); }
+	channels.forEach(async (v) => {
+		try { await client.channels.fetch(v.channelId); }
 		catch (e) {
 			if (e.message === 'Unknown Channel') channelsDelete.push(v.channelId);
 			const deleteCursor = await connectedList.deleteMany({ channelId: { $in: channelsDelete } });
@@ -88,7 +106,7 @@ async function deleteChan() {
 		}
 	});
 }
-setInterval(deleteChan, 60 * 60 * 1000);
+setInterval(deleteChannels, 60 * 60 * 1000);
 
 
 process.on('uncaughtException', function(err) {
@@ -99,29 +117,3 @@ process.on('unhandledRejection', function(err) {
 });
 
 client.login(process.env.TOKEN);
-/*
-client.commands.filter(cmd => cmd.category).forEach(cmd => {})
-
-client.help = () => {
-	const dataArray = [];
-	fs.readdirSync('./commands').forEach((dir) => {
-		if (fs.statSync(`./commands/${dir}`).isDirectory()) {
-			const commandFiles = fs.readdirSync(`./commands/${dir}`).filter(file => file.endsWith('.js'));
-
-			const cmds = commandFiles.map((command) => {
-				const file = (require(`./commands/${dir}/${command}`));
-				if (!file.data.name) return 'No name';
-
-				const name = file.data.name.replace('.js', '');
-
-				return `\`${name}\``;
-			});
-			const data = {
-				name: dir,
-				value: cmds.length === 0 ? 'No commands' : cmds.join(', '),
-			};
-			dataArray.push(data);
-		}
-	});
-	return dataArray;
-}; */

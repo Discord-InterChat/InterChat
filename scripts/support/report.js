@@ -1,7 +1,6 @@
 const { MessageActionRow, MessageEmbed, Modal, MessageButton, TextInputComponent } = require('discord.js');
 const logger = require('../../logger');
-const { colors, paginate } = require('../../utils');
-const { v4: uuidv4 } = require('uuid');
+const { colors } = require('../../utils');
 
 module.exports = {
 	async execute(interaction) {
@@ -11,41 +10,37 @@ module.exports = {
 		const para = new TextInputComponent().setRequired('true').setStyle('PARAGRAPH').setMaxLength(1000).setCustomId('para');
 
 
-		const optionType = await interaction.options.getString('type');
+		const optionType = await interaction.options.getString('type').toLowerCase();
 
 		if (optionType === 'bug') {
-			para.setLabel('What is the bug about?').setLabel('Short description of the bug');
-			short.setLabel('Short description of the bug');
+			para.setLabel('What is the bug about').setPlaceholder('This bug affects... A fix could be...');
+			short.setLabel('Describe the bug').setPlaceholder('This bug is about...');
 
-			const row_para = new MessageActionRow().addComponents(para);
-			const row_short = new MessageActionRow().addComponents(short);
-			modal.addComponents(row_short, row_para).setCustomId('modal_bug');
+			modal.setCustomId('modal_bug');
 		}
 		if (optionType === 'server') {
 			para.setLabel('Please provide more info about the server').setPlaceholder('I am reporting this server because...');
 			short.setLabel('Server Name & ID').setPlaceholder('Ex: Land of ChatBots - 012345678909876543');
 
-			const row_para = new MessageActionRow().addComponents(para);
-			const row_short = new MessageActionRow().addComponents(short);
-			modal.addComponents(row_short, row_para).setCustomId('modal_server');
+			modal.setCustomId('modal_server');
 		}
 		if (optionType === 'user') {
 			para.setLabel('Please provide more info about the user').setPlaceholder('I am reporting this user because...');
 			short.setLabel('User ID').setPlaceholder('Ex: 012345678909876543');
 
-
-			const row_para = new MessageActionRow().addComponents(para);
-			const row_short = new MessageActionRow().addComponents(short);
-			modal.addComponents(row_short, row_para).setCustomId('modal_user');
+			modal.setCustomId('modal_user');
 		}
 		if (optionType === 'other') {
 			para.setLabel('Please provide us more details').setPlaceholder('Ask questions, requests, applications etc.');
 			short.setLabel('Title').setPlaceholder('Ex. New feature request for ChatBot');
 
-			const row_para = new MessageActionRow().addComponents(para);
-			const row_short = new MessageActionRow().addComponents(short);
-			modal.addComponents(row_short, row_para).setCustomId('modal_other');
+
+			modal.setCustomId('modal_other');
 		}
+
+		const row_para = new MessageActionRow().addComponents(para);
+		const row_short = new MessageActionRow().addComponents(short);
+		modal.addComponents(row_short, row_para);
 
 		await interaction.showModal(modal);
 		// to-text button
@@ -84,8 +79,7 @@ module.exports = {
 					.setTimestamp()
 					.setColor(colors());
 
-				// FIXME: change channelId to 821610981155012628 later
-				const reportChannel = await interaction.client.channels.fetch('976099224611606588');
+				const reportChannel = await interaction.client.channels.fetch('821610981155012628');
 
 				await i.reply('Thank you for your report!');
 

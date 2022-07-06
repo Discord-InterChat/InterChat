@@ -9,27 +9,30 @@
         "checkGreen": "<a:Check_green:772393366109290498>",
         "tada": "<a:tada:771245416736882708>",
         "shinyStaff": "<a:staff:789764656549068820>",
-        "join": "<:join:990488359279419443>",
-        "leave": "<:leave:990488356553097236>",
         "enabled": " <:enabled:991180941311619205>",
         "disabled": "<:disabled:991180939122180146>",
-        "store": "<:icons_store:978937006094712842>",
-        "comment": "<:comment:983962459406733312>", 
-        "colorstaff": "<:icons_colorstaff:978937000021332009>",
-        "mention": "<:mention:991909883903475822>",
-        "exclamation": "<:icons_exclamation:978937002760237056>",
-        "info": "<:icons_info:980432135385153537>",
-        "embed": "<:embed:979604415793221672>",
-        "message": "<:Message:979605439681536060>",
+        "embed": "<:embed:979604415793221672>",        
         "ID": "<:ID:979612704140574731>", 
         "loading": "<a:loaddark:972366633257553930>",
+        "bruhcat": "<:bruhcat:976368249858056223>",
+        "tick": "<:tick:972084759176040448>"
+    },
+
+    "icons": {
+        "comment": "<:comment:983962459406733312>", 
+        "colorstaff": "<:icons_colorstaff:978937000021332009>",
+        "join": "<:join:990488359279419443>",
+        "leave": "<:leave:990488356553097236>",
+        "mention": "<:mention:991909883903475822>",
+        "id": "<:id:991912629985628240>",
+        "owner": "<:owner:992026201478680596>",
         "next": "<:next:983284968992169984>",
         "back": "<:back:983284970804113478>",
         "delete": "<:delete:983284966983082014>",
-        "id": "<:id:991912629985628240>",
-        "owner": "<:owner:992026201478680596>",
-        "bruhcat": "<:bruhcat:976368249858056223>"
-
+        "store": "<:icons_store:978937006094712842>",
+        "exclamation": "<:icons_exclamation:978937002760237056>",
+        "info": "<:icons_info:980432135385153537>",
+        "message": "<:Message:979605439681536060>"
     },
 
     "badge": {
