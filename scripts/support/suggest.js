@@ -18,7 +18,7 @@ module.exports = {
 					.setLabel('No')
 					.setStyle('DANGER'),
 			]);
-		// TODO - Add attachment option to slash command so they can send pictures!
+
 		await interaction.reply({ content: 'Do you want to send this suggestion to the ChatBot HQ Server?', components: [row] });
 		const message = await interaction.fetchReply();
 		const collector = message.createMessageComponentCollector({ time: 10000, idle: 10000, max: 1 });
