@@ -9,7 +9,7 @@ const { PermissionFlagsBits } = require('discord-api-types/v10');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setup')
-		.setDescription('Replies with your input!')
+		.setDescription('Set me up to receive messages from a channel.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
 		.addChannelOption(channelOption => channelOption
 			.setName('destination')
