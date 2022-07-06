@@ -32,7 +32,7 @@ module.exports = {
 			.setColor(colors('chatbot'))
 			.setImage('https://images-ext-2.discordapp.net/external/k9bElI9Z2mxhi2DTO783PI-wj00ledbPPvzZE-gPG2k/https/media.discordapp.net/attachments/770258662694060032/799566242276704287/standard_9.gif?width=400&height=51')
 			.setAuthor({ name: interaction.client.user.tag, iconURL: interaction.client.user.avatarURL() })
-			.setFooter({ text: 'Note: Unspoken rules not explicitly mentioned here may apply as well.', iconURL: 'https://cdn.discordapp.com/emojis/950424770229440533.png?&quality=lossless' });
+			.setFooter({ text: 'Note: Rules not explicitly mentioned here may apply as well.', iconURL: 'https://cdn.discordapp.com/emojis/950424770229440533.png?&quality=lossless' });
 		await interaction.reply({ embeds: [embed], ephemeral: true });
 
 	},
