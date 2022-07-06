@@ -32,8 +32,12 @@ module.exports = {
 						await sendInFirst(guild, 'Unfortunately, the name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.');
 					}
 					await guild.leave();
-					return;
+				})
+				.catch(async () => {
+					await sendInFirst(guild, 'Unfortunately, the name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.');
+					await guild.leave();
 				});
+			return;
 		}
 
 		const serverInBlacklist = await blacklistedServers.findOne({ serverId: guild.id });
