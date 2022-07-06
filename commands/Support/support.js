@@ -35,12 +35,6 @@ module.exports = {
 							{ name: 'Server', value: 'server' },
 							{ name: 'Bug', value: 'Bug' },
 							{ name: 'Other', value: 'Other' }),
-				)
-				.addStringOption(option =>
-					option
-						.setName('report')
-						.setRequired(true)
-						.setDescription('A description of the report.'),
 				),
 		)
 		.addSubcommand(subcommand =>
