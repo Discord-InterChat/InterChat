@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.1...v1.5.0) (2022-07-06)
+
+
+### Features
+
+* Deploy commands by folder & guild ([a1b83ed](https://github.com/dev-737/ChatBot-Beta/commit/a1b83ed027386d7107dd533d06587d48d37b83e6))
+
+
+### Bug Fixes
+
+* Add catch so chatbot  leaves guild on error ([7557598](https://github.com/dev-737/ChatBot-Beta/commit/75575980447aec8fec198af5d54a7b72906e3eb1))
+* Add new invite link with required permissions ([6813497](https://github.com/dev-737/ChatBot-Beta/commit/6813497a6fe69d9ae59edc0ba3a8fbd2a70eb391))
+* Fix bug that didnt allow bug reports to work ([70b2a40](https://github.com/dev-737/ChatBot-Beta/commit/70b2a401dd2c09acd90ae7a3eeaa72d35a20efb8))
+* Include Thomas as author ([8fd25c4](https://github.com/dev-737/ChatBot-Beta/commit/8fd25c4ca2a4f942687ce6437d2b8e4e984b5414))
+* Perm-check letting normal users use staff cmd ([e8ff189](https://github.com/dev-737/ChatBot-Beta/commit/e8ff1896a318ab041d1b523cb32c1f465d93978d))
+* Remove unused option from report options ([3bea30b](https://github.com/dev-737/ChatBot-Beta/commit/3bea30b10b7c4163e2fa3e99001ad229ff4fed30))
+* Sending invite links are blocked now ([75dcf15](https://github.com/dev-737/ChatBot-Beta/commit/75dcf151726595ee6ca9580230be85218e4850dd))
+* Set component timeout to 30 seconds from 3 ([b965925](https://github.com/dev-737/ChatBot-Beta/commit/b965925391c8bbac5a9e3259aa806a69047ce77f))
+* Update credits ([74c7b0f](https://github.com/dev-737/ChatBot-Beta/commit/74c7b0fb29f5851d02cfa0c71ad61e765428ec1e))
+* Update guide gist ([df3dde5](https://github.com/dev-737/ChatBot-Beta/commit/df3dde570bdb6489b2e8da6494d6fd3aacb3f955))
+* Update rules footer ([d4745ea](https://github.com/dev-737/ChatBot-Beta/commit/d4745ea334be0cdd815e37d1af750442ab227f0f))
+* Update setup command description ([94c1093](https://github.com/dev-737/ChatBot-Beta/commit/94c10930f96c04130a00a0fadcd9fd2381aecabf))
+* Update setup embed style ([b714bf2](https://github.com/dev-737/ChatBot-Beta/commit/b714bf2dd4d5b203853a0e4c891b85b24bc128ff))
 
 ## [1.4.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.0...v1.4.1) (2022-07-03)
 
