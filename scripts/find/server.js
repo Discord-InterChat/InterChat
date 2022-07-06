@@ -59,7 +59,7 @@ module.exports = {
 
 			const msg = await interaction.reply({ embeds: [embed], components: [menu], ephemeral: true, fetchReply: true });
 
-			const collector = msg.createMessageComponentCollector({ filter, idle: 3 * 1000, max: found.size });
+			const collector = msg.createMessageComponentCollector({ filter, idle: 30 * 1000, max: found.size });
 
 
 			collector.on('collect', async (i) => {
