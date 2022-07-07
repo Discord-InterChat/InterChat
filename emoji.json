@@ -36,8 +36,10 @@
     },
 
     "badge": {
-        "developer": "<:badge_BotDeveloper:976725090056146994>",
-        "staff": "<:badge_DiscordStaff:976725090169421905>",
-        "premium": "<:badge_premium:978936996187738112>"
+        "developer": "<:badge_developer:994549313013284904>",
+        "staff": "<:badge_DiscordStaff:994444519489675365>",
+        "premium": "<:badge_BugHunter3:994262351266185317>",
+        "moderator": "<:badge_CertifiedModerator:994444514989182986>",
+        "bug_hunter": "<:badge_BugHunter31:994445137818169416>"
     }
 }
