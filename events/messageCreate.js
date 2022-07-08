@@ -1,5 +1,5 @@
 /* eslint-disable no-inline-comments */
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, Message } = require('discord.js');
 const logger = require('../logger');
 const { getDb, colors, developers, clean } = require('../utils');
 const { client } = require('../index');
@@ -13,6 +13,10 @@ const Filter = require('bad-words'),
 
 module.exports = {
 	name: 'messageCreate',
+	/**
+	 * @param {Message} message
+	 * @returns
+	 */
 	async execute(message) {
 		if (message.author.bot) return;
 
@@ -88,11 +92,13 @@ module.exports = {
 		const wordList = await restrictedWords.findOne({ name: 'blacklistedWords' });
 
 		// db for anti-spam
-		const spamcollection = database.collection('message');
+		// const spamcollection = database.collection('message');
 
 
 		// Checks if channel is in databse, rename maybe?
 		if (channelInNetwork) {
+			/*
+			FIXME: Make a better spam filter, this makes it slow
 			const messageid = message.id;
 			const userid = message.author.id;
 			const usermessages = await spamcollection.find({ 'user.id': userid }).toArray();
@@ -124,7 +130,7 @@ module.exports = {
 			if (usermessages.length > 6) {
 				message.channel.send(emoji.icons.exclamation + ' **I have disconnected this channel from the network as I have detected heavy spam.**');
 				return connectedList.deleteOne({ channelId: message.channel.id });
-			}
+			} */
 
 			if (message.content.includes('discord.gg') || message.content.includes('discord.com/invite')) {
 				return message.react(emoji.normal.no);
