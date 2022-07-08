@@ -51,8 +51,9 @@ module.exports = {
 				if (i.customId == 'edit') {
 					// Setting the fields for the embed
 					const fields = [
-						{ name: 'Details', value: `**Connected:** ${status}\n**Channel:** ${channelInDB}\n**Last Edited:** <t:${guildInDB.date.timestamp}:R>` },
-						{ name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` },
+						// eslint-disable-next-line no-multi-spaces
+						{ name: 'Details', value: `**Connected:** ${status}\n**Channel:** ${channelInDB}\n**Last Edited:** <t:${guildInDB.date.timestamp}:R>` },                                                                 // NOTE: change this to emoji.normal.disabled when you add the profanity filter toggler
+						{ name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}` },
 					];
 					// calling 'embedGen' class and setting fields
 					embed = embedGen.setCustom(fields);
