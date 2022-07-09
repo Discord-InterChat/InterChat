@@ -33,8 +33,7 @@ module.exports = {
 		const userInfo = await interaction.client.users.fetch(userId);
 		const serverInfo = await interaction.client.guilds.fetch(serverId);
 
-		// FIXME: change channelId to 821610981155012628 later
-		const reportChannel = await interaction.client.channels.fetch('976099718251831366');
+		const reportChannel = await interaction.client.channels.fetch('821610981155012628');
 
 		const modal = new Modal().setCustomId('modal').setTitle('Report').addComponents(
 			new MessageActionRow()

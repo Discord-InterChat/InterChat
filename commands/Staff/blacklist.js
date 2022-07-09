@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { PermissionFlagsBits } = require('discord-api-types/v10');
 const { staffPermissions } = require('../../utils');
 const mongoUtil = require('../../utils');
 
@@ -6,7 +7,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('blacklist')
 		.setDescription('Blacklist a user or server from using the bot. Staff-only')
-		.setDefaultMemberPermissions('0')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		.addSubcommandGroup(subcommandGroup =>
 			subcommandGroup
 				.setName('add')

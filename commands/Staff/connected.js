@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { PermissionFlagsBits } = require('discord-api-types/v10');
 const { staffPermissions } = require('../../utils');
 const mongoUtil = require('../../utils');
 
@@ -6,7 +7,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('connected')
 		.setDescription('Display the connected servers. (Staff only)')
-		.setDefaultMemberPermissions('0')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		.addStringOption(string =>
 			string
 				.setName('type')

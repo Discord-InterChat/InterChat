@@ -1,5 +1,5 @@
 const logger = require('../logger');
-// const { topgg } = require('../utils');
+const { topgg } = require('../utils');
 
 module.exports = {
 	name: 'ready',
@@ -23,11 +23,8 @@ module.exports = {
 		}, 300000);
 
 
-		/* FIXME: Uncomment this when on main CB
 		topgg.postStats({
 			serverCount: client.guilds.cache.size,
-		}); */
-
-
+		});
 	},
 };

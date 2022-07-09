@@ -9,9 +9,7 @@
     },
     "author": "Supreme1707, Makiyu, dev-737, ThomasShelby69",
     "license": "ISC",
-    "bin": {
-        "deploy": "deploy-commands.js"
-    },
+
     "dependencies": {
         "@discordjs/builders": "^0.15.0",
         "@discordjs/rest": "^0.5.0",
