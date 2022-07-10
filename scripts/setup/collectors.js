@@ -51,8 +51,9 @@ module.exports = {
 				if (i.customId == 'edit') {
 					// Setting the fields for the embed
 					const fields = [
-						{ name: 'Details', value: `**Connected:** ${status}\n**Channel:** ${channelInDB}\n**Last Edited:** <t:${guildInDB.date.timestamp}:R>` },
-						{ name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` },
+						// eslint-disable-next-line no-multi-spaces
+						{ name: 'Details', value: `**Connected:** ${status}\n**Channel:** ${channelInDB}\n**Last Edited:** <t:${guildInDB.date.timestamp}:R>` },                                                                 // NOTE: change this to emoji.normal.disabled when you add the profanity filter toggler
+						{ name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}` },
 					];
 					// calling 'embedGen' class and setting fields
 					embed = embedGen.setCustom(fields);
@@ -100,7 +101,7 @@ module.exports = {
 						await collection.updateOne({ 'guild.id': interaction.guild.id }, { $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), compact: !compact } });
 						guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
-						embed.spliceFields(1, 1, { name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` });
+						embed.spliceFields(1, 1, { name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}` });
 						message.edit({ embeds: [embed] });
 						return;
 					}
@@ -111,7 +112,7 @@ module.exports = {
 					await collection.updateOne({ 'guild.id': interaction.guild.id }, { $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), profFilter: !pfilter } });
 					guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
-					embed.spliceFields(1, 1, { name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}` });
+					embed.spliceFields(1, 1, { name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}` });
 					message.edit({ embeds: [embed] });
 					return;
 				}
