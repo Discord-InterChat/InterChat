@@ -1,5 +1,4 @@
 const { MessageButton, MessageEmbed, MessageActionRow, CommandInteraction } = require('discord.js');
-const { colors } = require('../../utils');
 const { normal, icons } = require('../../emoji.json');
 
 module.exports = {
@@ -35,11 +34,11 @@ module.exports = {
 						.setTimestamp()
 						.setColor('#3bd0ff');
 
-					const suggestionChannel = await interaction.client.channels.fetch('991573351963295748');
+					const suggestionChannel = await interaction.client.channels.fetch('908713477433073674');
 
 					if (interaction.options.getAttachment('attachment')) embed.setImage(interaction.options.getAttachment('attachment').url);
 
-					const reviewChannel = await interaction.client.channels.fetch('991577681365844000');
+					const reviewChannel = await interaction.client.channels.fetch('865067410271633408');
 					row.components[0].setEmoji(normal.yes).setLabel('Approve');
 					row.components[1].setEmoji(normal.no).setLabel('Deny');
 					const reviewMessage = await reviewChannel.send({ embeds: [embed], components: [row], fetchReply: true });
