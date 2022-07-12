@@ -6,7 +6,6 @@ const logger = require('../../logger');
 
 module.exports = {
 	/**
-	 *
 	 * @param {CommandInteraction} interaction
 	 * @param {Message} message
 	 * @param {Collection} collection
@@ -14,7 +13,7 @@ module.exports = {
 	 * @param {Collection} connectedList
 	 */
 	async execute(interaction, message, collection, embedGen, connectedList) {
-		// components
+
 		const buttons = new MessageActionRow().addComponents([
 			new MessageButton().setCustomId('yes').setLabel('Yes').setStyle('SUCCESS'),
 			new MessageButton().setCustomId('no').setLabel('No').setStyle('DANGER'),
@@ -26,48 +25,47 @@ module.exports = {
 			]),
 		]);
 
-		let guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
 		// Create action row collectors
 		const filter = m => m.user.id == interaction.user.id;
-		const collector = message.createMessageComponentCollector({ filter, idle: 60000, max: 4 });
+		const collector = message.createMessageComponentCollector({ filter, time: 60000 });
 
+		async function updateFieldData() {
+			const guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });	// Refresh guildInDB
+			const channelInDB = await interaction.guild.channels.fetch(guildInDB.channel.id);
+			const isConnected = await connectedList.findOne({ channelId : channelInDB.id });
+			const status = channelInDB && isConnected ? emoji.normal.yes : emoji.normal.no;
 
-		let embed;
+			const fields = [
+				{ name: 'Details', value: `**Connected:** ${status}\n**Channel:** ${channelInDB}\n**Last Edited:** <t:${guildInDB.date.timestamp}:R>` },
+				{ name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}` }, // NOTE: change this to emoji.normal.disabled when you add the profanity filter toggler
+			];
+			return fields;
+		}
+
+		async function refreshEmbed() {
+			const fields = await updateFieldData();
+			const embed = embedGen.setCustom(fields);
+			message.edit({ embeds: [embed], components: [selectMenu] });
+		}
+
 
 		// Everything is in one collector since im lazy
 		collector.on('collect', async i => {
-			guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
-			let channelInDB = await interaction.guild.channels.fetch(guildInDB.channel.id);
-			const isConnected = await connectedList.findOne({ channelId : channelInDB.id });
-			let status = '';
-
-			channelInDB && isConnected ? status = emoji.normal.yes : status = emoji.normal.no;
-
 			i.deferUpdate();
 
-			// NOTE: Use i.customId to reference differnt buttons
 			if (i.isButton()) {
-				if (i.customId == 'edit') {
-					// Setting the fields for the embed
-					const fields = [
-						// eslint-disable-next-line no-multi-spaces
-						{ name: 'Details', value: `**Connected:** ${status}\n**Channel:** ${channelInDB}\n**Last Edited:** <t:${guildInDB.date.timestamp}:R>` },                                                                 // NOTE: change this to emoji.normal.disabled when you add the profanity filter toggler
-						{ name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}` },
-					];
-					// calling 'embedGen' class and setting fields
-					embed = embedGen.setCustom(fields);
-					message.edit({ embeds: [embed], components: [selectMenu] });
-				}
+				if (i.customId == 'edit') refreshEmbed();
 				if (i.customId == 'reset') {
 					try {
 						const msg = await message.reply({
-							content: `${emoji.icons.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `, components: [buttons],
+							content: `${emoji.icons.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `,
+							components: [buttons],
 						});
 						message.edit({ components: [] });
 
 
-						const msg_collector = msg.createMessageComponentCollector({ filter: m => m.user.id == interaction.user.id, idle: 60000, max: 1 });
+						const msg_collector = msg.createMessageComponentCollector({ filter, idle: 10_000, max: 1 });
 
 						// Creating collector for yes/no button
 						msg_collector.on('collect', async collected => {
@@ -76,7 +74,7 @@ module.exports = {
 								await connectedList.deleteOne({ 'serverId': interaction.guild.id });
 								return msg.edit({ content: `${emoji.normal.yes} Successfully reset.`, components: [] });
 							}
-							msg.edit({ content: `${emoji.normal.no} Cancelled`, components: [] });
+							msg.edit({ content: `${emoji.normal.no} Cancelled.`, components: [] });
 							return;
 						});
 					}
@@ -88,41 +86,29 @@ module.exports = {
 			}
 
 
-			// NOTE: Reference multiple select menus with its 'value' (values[0])
-			if (i.isSelectMenu()) {
-				if (i.customId == 'customize' && i.values[0] === 'message_style') {
-					// NOTE: The reason why i'm calling guildInDB over and over is to get the latest db updates, this might create problems later though.
-					guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
-					channelInDB = await interaction.guild.channels.fetch(guildInDB.channel.id);
+			// Reference multiple select menus with its 'value' (values[0])
+			if (i.isSelectMenu() && i.customId == 'customize') {
+				// get the latest db updates
+				const guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
-					// NOTE: This checks If isEmbed value is true in databse
-					if (guildInDB) {
-						const compact = guildInDB.compact;
-						await collection.updateOne({ 'guild.id': interaction.guild.id }, { $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), compact: !compact } });
-						guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
-
-						embed.spliceFields(1, 1, { name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}` });
-						message.edit({ embeds: [embed] });
-						return;
-					}
-
+				// TODO: This had && guildinDB now it doesnt, test if it works
+				if (i.values[0] === 'message_style') {
+					await collection.updateOne({ 'guild.id': interaction.guild.id },
+						{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), compact: !guildInDB.compact } });
 				}
-				if (i.customId == 'customize' && i.values[0] === 'profanity_toggle') {
-					const pfilter = guildInDB.profFilter;
-					await collection.updateOne({ 'guild.id': interaction.guild.id }, { $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), profFilter: !pfilter } });
-					guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
-					embed.spliceFields(1, 1, { name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n **Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}` });
-					message.edit({ embeds: [embed] });
-					return;
+				if (i.values[0] === 'profanity_toggle') {
+					await collection.updateOne({ 'guild.id': interaction.guild.id },
+						{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), profFilter: !guildInDB.profFilter } });
 				}
+				return refreshEmbed();
 			}
 
 		});
 
 		// removing components from message when finished, idk how to disable them so...
-		collector.on('end', () => {
-			message.edit({ components: [] })
+		collector.on('end', async () => {
+			await message.edit({ components: [] })
 				.catch(() => {return;});
 			return;
 		});
