@@ -1,4 +1,5 @@
 const { ContextMenuCommandBuilder } = require('@discordjs/builders');
+const { stripIndents } = require('common-tags');
 const { Modal, MessageActionRow, TextInputComponent, InteractionCollector, MessageEmbed, CommandInteraction } = require('discord.js');
 const { getDb } = require('../../utils');
 module.exports = {
@@ -30,10 +31,10 @@ module.exports = {
 		const userId = msgAuthor[msgAuthor.length - 1];
 		const serverId = msgFooter[msgFooter.length - 1];
 
-		const userInfo = await interaction.client.users.fetch(userId);
-		const serverInfo = await interaction.client.guilds.fetch(serverId);
+		const reportedUser = await interaction.client.users.fetch(userId);
+		const reportedServer = await interaction.client.guilds.fetch(serverId);
 
-		const reportChannel = await interaction.client.channels.fetch('821610981155012628');
+		const reportsChannel = await interaction.client.channels.fetch('821610981155012628');
 
 		const modal = new Modal().setCustomId('modal').setTitle('Report').addComponents(
 			new MessageActionRow()
@@ -58,23 +59,27 @@ module.exports = {
 
 		// respond to message when modal is submitted
 		collector.on('collect', async (i) => {
-			const components = i.fields.getTextInputValue('para');
+			const reason = i.fields.getTextInputValue('para');
 
 			// create embed with report info
 			// and send it to report channel
 			const embed = new MessageEmbed()
-				.setAuthor({ name: `${i.user.tag}`, iconURL: i.user.displayAvatarURL() })
-				.setTitle('New Report')
-				.setDescription('Please wait while we process your report...')
+				.setAuthor({ name: `${reportedUser.tag} reported`, iconURL: reportedUser.displayAvatarURL() })
+				.setTitle('New User report')
+				.setDescription(`**Reason**: \`${reason}\``)
 				.setColor('#ff0000')
 				.addFields([
-					{ name: 'Reported By', value: `${i.user.tag}`, inline: true },
-					{ name: 'Reported From', value: `${i.guild.name}`, inline: true },
-					{ name: 'Report Info', value: `User: **${userInfo.username}#${userInfo.discriminator}** (${userId})\nServer: **${serverInfo.name}** (${serverId}) ` },
-					{ name: 'Details', value: '```' + components + '```' },
+					{ 
+						name: 'Report:', 
+						value: stripIndents`
+						**Reported User**: ${reportedUser.username}#${reportedUser.discriminator} (${reportedUser.id})
+						**User from server:**: ${reportedServer.name} (${reportedServer.id})
+						
+						**Reported Message**: \`\`\`${args.embeds[0].fields[0].value}\`\`\` ` },
+					{ name: 'Reported By:', value: `**User**: ${i.user.tag} (${i.member.id})\n**From**: ${i.guild.name} ${i.guild.id}`, },
 				])
 				.setTimestamp();
-			await reportChannel.send({ embeds: [embed] });
+			await reportsChannel.send({ embeds: [embed] });
 
 			// reply to interaction
 			await i.reply({ content: 'Thank you for your report!', ephemeral: true });
