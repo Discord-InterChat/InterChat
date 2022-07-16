@@ -69,14 +69,14 @@ module.exports = {
 				.setDescription(`**Reason**: \`${reason}\``)
 				.setColor('#ff0000')
 				.addFields([
-					{ 
-						name: 'Report:', 
+					{
+						name: 'Report:',
 						value: stripIndents`
 						**Reported User**: ${reportedUser.username}#${reportedUser.discriminator} (${reportedUser.id})
 						**User from server:**: ${reportedServer.name} (${reportedServer.id})
 						
 						**Reported Message**: \`\`\`${args.embeds[0].fields[0].value}\`\`\` ` },
-					{ name: 'Reported By:', value: `**User**: ${i.user.tag} (${i.member.id})\n**From**: ${i.guild.name} ${i.guild.id}`, },
+					{ name: 'Reported By:', value: `**User**: ${i.user.tag} (${i.member.id})\n**From**: ${i.guild.name} ${i.guild.id}` },
 				])
 				.setTimestamp();
 			await reportsChannel.send({ embeds: [embed] });
