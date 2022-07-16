@@ -2,14 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [2.5.4](https://github.com/Supreme1707/Discord-ChatBot/compare/v2.5.0...v2.5.4) (2022-07-16)
 
+# Stable
+
+### [2.5.4](https://github.com/Supreme1707/Discord-ChatBot/compare/v2.5.0...v2.5.4) (2022-07-16)
 
 ### Bug Fixes
 
 * context menu report now shows correct message ([ad531e7](https://github.com/Supreme1707/Discord-ChatBot/commit/ad531e7f98a3e019b5956f4d5184dcab37d68376))
 * Update suggestion channel ID ([3378799](https://github.com/Supreme1707/Discord-ChatBot/commit/337879970cb7beb2dbdda2549b5a0b8b120cd887))
 
+## 2.3.0 - 2022-05-21
+### Changed 
+- The `network` command will be replaced by `/setup` soon™️
+
+### Added
+- Added setup
+- Updated to v14 of discord.js
+- View all connected servers with `/connected`
+- Option to clear all guild data from chatbot's database in setup command
+- Enabling and disabling embeds for each server is now fully functional
+- Sending tenor gifs with chatbot (beta)
+- Sending any attachment link with chatbot [.gif |  .png | .webg | .svg ] (beta)
+- Turn off embeds in global chat (beta)
+
+### Fixes
+- Images should stay longer in the embed when you upload an image directly
+- Updated error handlers to stop bot from crashing
+- Fixed bug where chatbot crashes when kicked from a server
+
+
+## 2.3.1 - 2022-05-24
+### Changed 
+- Reverted back to discord.js v13
+
+# Beta
 ## [1.5.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.1...v1.5.0) (2022-07-06)
 
 
@@ -119,31 +146,3 @@ All notable changes to this project will be documented in this file. See [standa
 - Top.gg voting rewards
 
 [1.1.0]: https://github.com/dev-737/ChatBot-Beta/compare/v1.1.0...v1.2.0
-
-[1.2.0]
-### Changed
-
-# Stable
-## 2.3.0 - 2022-05-21
-### Changed 
-- The `network` command will be replaced by `/setup` soon™️
-
-### Added
-- Added setup
-- Updated to v14 of discord.js
-- View all connected servers with `/connected`
-- Option to clear all guild data from chatbot's database in setup command
-- Enabling and disabling embeds for each server is now fully functional
-- Sending tenor gifs with chatbot (beta)
-- Sending any attachment link with chatbot [.gif |  .png | .webg | .svg ] (beta)
-- Turn off embeds in global chat (beta)
-
-### Fixes
-- Images should stay longer in the embed when you upload an image directly
-- Updated error handlers to stop bot from crashing
-- Fixed bug where chatbot crashes when kicked from a server
-
-
-## 2.3.1 - 2022-05-24
-### Changed 
-- Reverted back to discord.js v13
