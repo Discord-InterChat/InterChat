@@ -1,6 +1,6 @@
 {
     "name": "discord-chatbot",
-    "version": "2.5.3",
+    "version": "2.5.4",
     "description": "A growing discord bot which provides inter-server chat! ",
     "main": "index.js",
     "scripts": {
@@ -9,7 +9,12 @@
     },
     "author": "Supreme1707, Makiyu, dev-737, ThomasShelby69",
     "license": "ISC",
-
+    "repository": {
+        "type": "git"
+    },
+    "bugs": {
+        "url": "https://github.com/dev-737/ChatBot-Beta/issues"
+    },
     "dependencies": {
         "@discordjs/builders": "^0.15.0",
         "@discordjs/rest": "^0.5.0",

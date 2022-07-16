@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.5.4](https://github.com/Supreme1707/Discord-ChatBot/compare/v2.5.0...v2.5.4) (2022-07-16)
+
+
+### Bug Fixes
+
+* context menu report now shows correct message ([ad531e7](https://github.com/Supreme1707/Discord-ChatBot/commit/ad531e7f98a3e019b5956f4d5184dcab37d68376))
+* Update suggestion channel ID ([3378799](https://github.com/Supreme1707/Discord-ChatBot/commit/337879970cb7beb2dbdda2549b5a0b8b120cd887))
+
 ## [1.5.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.1...v1.5.0) (2022-07-06)
 
 
