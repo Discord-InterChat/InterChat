@@ -1,11 +1,11 @@
-#!/usr/bin/env node
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
 const fs = require('fs');
-const dotenv = require('dotenv');
-const logger = require('./logger');
 const prompt = require('prompt');
 const { stripIndent } = require('common-tags');
+const dotenv = require('dotenv');
+const logger = require('./logger');
+
 dotenv.config();
 
 
