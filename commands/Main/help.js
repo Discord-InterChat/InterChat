@@ -38,7 +38,7 @@ module.exports = {
 			.setTitle(command.data.name.toTitleCase() + ' Help')
 			.setDescription(command.data.description || command.description || 'No Description')
 			.addFields([{ name: 'Permissions:', value: `**${ permissions || 'None'}**` }])
-			.setFooter({ text: '<> - Required | [] - Optional', iconURL: interaction.client.user.avatarURL })
+			.setFooter({ text: '<> - Required | [] - Optional', iconURL: interaction.client.user.avatarURL() })
 			.setColor(colors());
 
 		if (commandOps && commandOps[0]?.type != 1 && commandOps[0]?.type != 2) {
