@@ -5,12 +5,10 @@
     "main": "index.js",
     "author": "Supreme1707, Makiyu, dev-737, ThomasShelby69",
     "license": "ISC",
-
     "scripts": {
         "start": "nodemon .",
         "release": "standard-version"
     },
-
     "dependencies": {
         "@discordjs/rest": "^1.0.0",
         "@top-gg/sdk": "^3.1.3",
@@ -28,6 +26,7 @@
     "devDependencies": {
         "@types/common-tags": "^1.8.1",
         "eslint": "^8.20.0",
+        "jest": "^28.1.3",
         "prettier": "^2.7.1",
         "prompt": "^1.3.0",
         "standard-version": "^9.5.0"

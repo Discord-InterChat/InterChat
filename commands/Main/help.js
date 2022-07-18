@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { colors, toTitleCase } = require('../../utils');
 const bitfieldCalculator = require('discord-bitfield-calculator');
 
@@ -16,7 +16,7 @@ module.exports = {
 	async execute(interaction) {
 		const command_option = interaction.options.getString('command');
 		if (!command_option) {
-			const embed = new MessageEmbed()
+			const embed = new EmbedBuilder()
 				.setAuthor({ name: interaction.client.user.username + ' Help', iconURL: interaction.client.user.avatarURL() })
 				.setDescription('[Invite](https://discord.com/api/oauth2/authorize?client_id=769921109209907241&permissions=154820537425&scope=bot%20applications.commands) • [Support](https://discord.gg/6bhXQynAPs) • [Privacy](https://gist.github.com/dev-737/0141970e0d4a09b3c2b11e1321dca824)')
 				.setFields(interaction.client.help)
@@ -34,7 +34,7 @@ module.exports = {
 
 		if (!command) return interaction.reply('Unkown command!');
 
-		const command_embed = new MessageEmbed()
+		const command_embed = new EmbedBuilder()
 			.setTitle(command.data.name.toTitleCase() + ' Help')
 			.setDescription(command.data.description || command.description || 'No Description')
 			.addFields([{ name: 'Permissions:', value: `**${ permissions || 'None'}**` }])

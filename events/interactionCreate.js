@@ -1,9 +1,14 @@
+const { InteractionType, CommandInteraction } = require('discord.js');
 const logger = require('../logger');
 
 module.exports = {
 	name: 'interactionCreate',
+	/**
+	 * @param {CommandInteraction} interaction
+	 * @returns
+	 */
 	async execute(interaction) {
-		if (interaction.isAutocomplete()) {
+		if (interaction.type === InteractionType.ApplicationCommandAutocomplete) {
 			if (interaction.commandName === 'help') {
 				const focusedValue = interaction.options.getFocused();
 				let choices = [];
@@ -38,9 +43,9 @@ module.exports = {
 			}
 		}
 
-		if (interaction.isCommand() || interaction.isContextMenu()) {
+		if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
 			// Basic perm check, it wont cover all bugs
-			if (interaction.guild && !interaction.guild?.me.permissionsIn(interaction.channel).has('SEND_MESSAGES') && !interaction.guild.me.permissionsIn(interaction.channel).has('EMBED_LINKS')) {
+			if (interaction.guild && !interaction.guild.members.me.permissionsIn(interaction.channel).has('SEND_MESSAGES') && !interaction.guild.members.me.permissionsIn(interaction.channel).has('EMBED_LINKS')) {
 				return interaction.reply({ content: 'I do not have the right permissions in this server to function properly! Please either re-invite me or grant me the right permissions.', ephemeral: true });
 			}
 			const command = interaction.client.commands.get(interaction.commandName);

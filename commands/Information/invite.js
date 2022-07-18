@@ -1,25 +1,24 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageActionRow, MessageButton, Permissions } = require('discord.js');
+const { ActionRowBuilder, ButtonBuilder, PermissionFlagsBits, SlashCommandBuilder, ButtonStyle } = require('discord.js');
 const { normal } = require('../../emoji.json');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('invite')
 		.setDescription('Invite the bot to your server'),
 	async execute(interaction) {
-		const permissions = [Permissions.FLAGS.MANAGE_CHANNELS, Permissions.FLAGS.CHANGE_NICKNAME, Permissions.FLAGS.VIEW_CHANNEL, Permissions.FLAGS.SEND_MESSAGES, Permissions.FLAGS.SEND_MESSAGES_IN_THREADS, Permissions.FLAGS.MANAGE_CHANNELS, Permissions.FLAGS.MANAGE_MESSAGES, Permissions.FLAGS.MANAGE_THREADS, Permissions.FLAGS.EMBED_LINKS, Permissions.FLAGS.ATTACH_FILES, Permissions.FLAGS.READ_MESSAGE_HISTORY, Permissions.FLAGS.USE_EXTERNAL_EMOJIS, Permissions.FLAGS.ADD_REACTIONS, Permissions.FLAGS.MANAGE_GUILD];
+		const permissions = [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ChangeNickname, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageMessages, PermissionFlagsBits.ManageThreads, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.UseExternalEmojis, PermissionFlagsBits.AddReactions, PermissionFlagsBits.ManageGuild];
 
-		const InviteButtons = new MessageActionRow()
+		const InviteButtons = new ActionRowBuilder()
 			.addComponents([
-				new MessageButton()
+				new ButtonBuilder()
 					.setLabel('Normal')
 					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'], permissions: permissions }))
-					.setStyle('LINK')
+					.setStyle(ButtonStyle.Link)
 					.setEmoji(normal.invite)
 					.setDisabled(false),
-				new MessageButton()
+				new ButtonBuilder()
 					.setLabel('Administrator')
-					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'], permissions: Permissions.FLAGS.ADMINISTRATOR }))
-					.setStyle('LINK')
+					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'], permissions: PermissionFlagsBits.Administrator }))
+					.setStyle(ButtonStyle.Link)
 					.setEmoji(normal.chatbotStaff)
 					.setDisabled(false),
 

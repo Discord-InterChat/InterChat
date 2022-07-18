@@ -1,23 +1,22 @@
 'use strict';
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed, MessageActionRow, MessageButton, MessageSelectMenu, CommandInteraction } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder, ChatInputCommandInteraction, PermissionFlagsBits } = require('discord.js');
 const { getDb } = require('../../utils');
 const emoji = require('../../emoji.json');
-const { PermissionFlagsBits } = require('discord-api-types/v10');
 
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('setup')
 		.setDescription('Set me up to receive messages from a channel.')
-		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels) // REVIEW: Importing this from discord.js now it was discord-api-typs/v10 before
 		.addChannelOption(channelOption => channelOption
 			.setName('destination')
 			.setRequired(false)
 			.setDescription('Channel you want to setup chatbot to, select a category to create a new channel for chatbot')), // .addChannelTypes(Constants.ChannelTypes.GUILD_CATEGORY))
 
 	/**
-	* @param {CommandInteraction} interaction
+	* @param {ChatInputCommandInteraction} interaction
 	*/
 	async execute(interaction) {
 		// Embed classes to make it easier to call and edit multiple embeds
@@ -28,7 +27,7 @@ module.exports = {
 				const guildd = interaction.client.guilds.cache.get(db_guild?.guild.id);
 				const channel = guildd?.channels.cache.get(db_guild?.channel.id);
 
-				const embed = new MessageEmbed()
+				const embed = new EmbedBuilder()
 					.setAuthor({ name: interaction.client.user.username, iconURL: interaction.client.user.avatarURL() })
 					.setTitle('This server is setup!')
 					.setDescription(`Channel: ${ channel || 'Unknown' }`)
@@ -46,7 +45,7 @@ module.exports = {
 	 		* @returns
 	 		*/
 			setCustom(fields) {
-				const embed = new MessageEmbed()
+				const embed = new EmbedBuilder()
 					.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
 					.setColor('#3eb5fb')
 					.addFields(fields)
@@ -73,7 +72,7 @@ module.exports = {
 
 		// collectors and main setup function
 		require('../../scripts/setup/init').execute(interaction, embeds, message, setupList, connectedList).catch(console.error);
-		require('../../scripts/setup/collectors').execute(interaction, message, setupList, embeds, connectedList).catch(console.error);
+		require('../../scripts/setup/components').execute(interaction, message, setupList, embeds, connectedList).catch(console.error);
 	},
 };
 

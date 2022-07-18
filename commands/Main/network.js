@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
+const { SlashCommandBuilder, ChatInputCommandInteraction } = require('discord.js');
 const mongoUtil = require('../../utils');
 
 module.exports = {
@@ -16,6 +16,11 @@ module.exports = {
 				.setName('disconnect')
 				.setDescription('Disconnect from the chat network.'),
 		),
+	/**
+		 *
+		 * @param {ChatInputCommandInteraction} interaction
+		 * @returns
+		 */
 	async execute(interaction) {
 		const subcommand = interaction.options.getSubcommand();
 		const database = mongoUtil.getDb();

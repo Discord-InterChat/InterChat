@@ -4,11 +4,9 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [1.5.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.4.1...v1.5.0) (2022-07-06)
 
-
 ### Features
 
 * Deploy commands by folder & guild ([a1b83ed](https://github.com/dev-737/ChatBot-Beta/commit/a1b83ed027386d7107dd533d06587d48d37b83e6))
-
 
 ### Bug Fixes
 

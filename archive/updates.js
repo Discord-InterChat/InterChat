@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { normal } = require('../emoji.json');
 
@@ -8,7 +8,7 @@ module.exports = {
 		.setName('updates')
 		.setDescription('Notes on updates for ChatBot'),
 	async execute(interaction) {
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setTitle('Update Notes')
 			.setAuthor({ name: 'Requested By: ' + interaction.user.tag, iconURL: interaction.user.avatarURL({ dynamic: true }) })
 			.setFooter({ text: interaction.client.user.tag, iconURL: interaction.client.user.avatarURL() })

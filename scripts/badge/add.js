@@ -1,4 +1,11 @@
 module.exports = {
+	/**
+	 * @param {import('discord.js').ChatInputCommandInteraction} interaction
+	 * @param {import('mongodb').Collection} dbCollection
+	 * @param {import('discord.js').User} user
+	 * @param {*} badge
+	 * @returns
+	 */
 	async execute(interaction, dbCollection, user, badge) {
 		const userInCollection = await dbCollection.findOne({ userId: user.id });
 

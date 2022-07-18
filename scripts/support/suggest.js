@@ -1,22 +1,21 @@
-const { MessageButton, MessageEmbed, MessageActionRow, CommandInteraction } = require('discord.js');
-const { colors } = require('../../utils');
+const { ButtonBuilder, EmbedBuilder, ActionRowBuilder, ChatInputCommandInteraction, ButtonStyle } = require('discord.js');
 const { normal, icons } = require('../../emoji.json');
 
 module.exports = {
 	/**
-	 * @param {CommandInteraction} interaction
+	 * @param {ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction) {
-		const row = new MessageActionRow()
+		const row = new ActionRowBuilder()
 			.addComponents([
-				new MessageButton()
+				new ButtonBuilder()
 					.setCustomId('yes')
 					.setLabel('Yes')
-					.setStyle('SUCCESS'),
-				new MessageButton()
+					.setStyle(ButtonStyle.Success),
+				new ButtonBuilder()
 					.setCustomId('no')
 					.setLabel('No')
-					.setStyle('DANGER'),
+					.setStyle(ButtonStyle.Danger),
 			]);
 
 		await interaction.reply({ content: 'Do you want to send this suggestion to the ChatBot HQ Server?', components: [row] });
@@ -27,7 +26,7 @@ module.exports = {
 			if (i.user.id === interaction.user.id) {
 				if (i.customId === 'yes') {
 					const suggestion = interaction.options.getString('suggestion');
-					const embed = new MessageEmbed()
+					const embed = new EmbedBuilder()
 						.setTitle('New Suggestion')
 						.setDescription(suggestion)
 						.setAuthor({ name: `Suggested By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
@@ -53,7 +52,7 @@ module.exports = {
 							suggestionMsg.react(normal.no);
 
 
-							const approveEmbed = new MessageEmbed()
+							const approveEmbed = new EmbedBuilder()
 								.addFields({ name: 'Approver', value: i.user.tag })
 								.setTitle('ChatBot Suggestions')
 								.setDescription(`Your suggestion **${suggestion.split(' ').slice(0, 6).join(' ')}...** has been approved! You can view your suggestion in the <#908713477433073674> channel.`)

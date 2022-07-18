@@ -1,5 +1,5 @@
 /* eslint-disable no-inline-comments */
-const { MessageEmbed, Message } = require('discord.js');
+const { EmbedBuilder, Message } = require('discord.js');
 const logger = require('../logger');
 const { getDb, colors, developers, clean } = require('../utils');
 const { client } = require('../index');
@@ -44,7 +44,7 @@ module.exports = {
 
 
 				// create a new embed
-				const embed = new MessageEmbed()
+				const embed = new EmbedBuilder()
 					.setColor('BLURPLE')
 					.setTitle('Evaluation')
 					.setFields([
@@ -151,7 +151,7 @@ module.exports = {
 
 			// check if message contains slurs
 			if (message.content.toLowerCase().includes(wordList.words[0]) || message.content.toLowerCase().includes(wordList.words[1]) || message.content.toLowerCase().includes(wordList.words[2])) {
-				wordFilter.log(message);
+				await wordFilter.log(message);
 				return;
 			}
 
@@ -165,13 +165,13 @@ module.exports = {
 
 
 			// check if message contains profanity
-			if (filter.isProfane(message.content)) message.content = await wordFilter.execute(message);
+			if (filter.isProfane(message.content)) message.content = wordFilter.censor(message);
 			// dont send message if guild name is inappropriate
 			if (filter.isProfane(message.guild.name)) return message.channel.send('I have detected words in the server name that are potentially offensive, Please fix them before using this chat!');
 
 			const allConnectedChannels = await connectedList.find();
 
-			const embed = new MessageEmbed()
+			const embed = new EmbedBuilder()
 				.setTimestamp()
 				.setColor(colors())
 				.setAuthor({ name: message.author.tag, iconURL: message.author.avatarURL({ dynamic: true }), url: `https://discord.com/users/${message.author.id}` })

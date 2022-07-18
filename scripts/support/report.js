@@ -1,13 +1,13 @@
-const { MessageActionRow, MessageEmbed, Modal, MessageButton, TextInputComponent } = require('discord.js');
+const { ActionRowBuilder, EmbedBuilder, ButtonBuilder, TextInputBuilder, ModalBuilder, ButtonStyle, TextInputStyle } = require('discord.js');
 const logger = require('../../logger');
 const { colors } = require('../../utils');
 
 module.exports = {
 	async execute(interaction) {
-		const modal = new Modal().setTitle('Report');
+		const modal = new ModalBuilder().setTitle('Report');
 
-		const short = new TextInputComponent().setRequired('true').setStyle('SHORT').setMaxLength(300).setCustomId('short');
-		const para = new TextInputComponent().setRequired('true').setStyle('PARAGRAPH').setMaxLength(1000).setCustomId('para');
+		const short = new TextInputBuilder().setRequired(true).setStyle(TextInputStyle.Short).setMaxLength(300).setCustomId('short');
+		const para = new TextInputBuilder().setRequired(true).setStyle(TextInputStyle.Paragraph).setMaxLength(1000).setCustomId('para');
 
 
 		const optionType = await interaction.options.getString('type').toLowerCase();
@@ -26,7 +26,7 @@ module.exports = {
 		}
 		if (optionType === 'user') {
 			para.setLabel('Please provide more info about the user').setPlaceholder('I am reporting this user because...');
-			short.setLabel('User ID').setPlaceholder('Ex: 012345678909876543');
+			short.setLabel('User ID').setMaxLength(19).setPlaceholder('Ex: 012345678909876543');
 
 			modal.setCustomId('modal_user');
 		}
@@ -38,14 +38,14 @@ module.exports = {
 			modal.setCustomId('modal_other');
 		}
 
-		const row_para = new MessageActionRow().addComponents(para);
-		const row_short = new MessageActionRow().addComponents(short);
+		const row_para = new ActionRowBuilder().addComponents(para);
+		const row_short = new ActionRowBuilder().addComponents(short);
 		modal.addComponents(row_short, row_para);
 
 		await interaction.showModal(modal);
 		// to-text button
-		const textBtn = new MessageActionRow().addComponents([
-			new MessageButton().setCustomId('text').setLabel('text').setStyle('SECONDARY'),
+		const textBtn = new ActionRowBuilder().addComponents([
+			new ButtonBuilder().setCustomId('text').setLabel('text').setStyle(ButtonStyle.Secondary),
 		]);
 
 		// global modal collector
@@ -67,8 +67,7 @@ module.exports = {
 						return;
 					}
 				}
-
-				const embed = new MessageEmbed()
+				const embed = new EmbedBuilder()
 					.setDescription(`Type: **${i.customId.replace('modal_', '')}**`)
 					.setAuthor({ name: `Reported By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
 					.setFooter({ text: `From Server: ${interaction.guild.name}`, iconURL: interaction.guild.iconURL({ dynamic: true }) })
@@ -83,8 +82,8 @@ module.exports = {
 
 				await i.reply('Thank you for your report!');
 
-				// send to chatbot reports channel
-				const report = await reportChannel.send({ content: '<@&800698916995203104>', embeds: [embed], components: [textBtn] });
+				// send to chatbot reports channel '<@&800698916995203104>'
+				const report = await reportChannel.send({ content: '@Staff', embeds: [embed], components: [textBtn] });
 
 				const collector = report.createMessageComponentCollector({ time: 50_400_000, componentType: 'BUTTON' });
 

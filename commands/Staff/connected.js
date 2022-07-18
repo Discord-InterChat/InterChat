@@ -1,6 +1,5 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { staffPermissions } = require('../../utils');
-const mongoUtil = require('../../utils');
+const { SlashCommandBuilder } = require('discord.js');
+const { staffPermissions, getDb } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -21,7 +20,7 @@ module.exports = {
 	async execute(interaction) {
 		const perms = await staffPermissions(interaction);
 		if (perms === 0) return;
-		const database = mongoUtil.getDb();
+		const database = getDb();
 		require('../../scripts/connected/server').execute(interaction, database);
 
 	},

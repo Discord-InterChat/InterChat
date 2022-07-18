@@ -1,10 +1,10 @@
-const { MessageActionRow, MessageSelectMenu, MessageEmbed, CommandInteraction, Guild } = require('discord.js');
+const { ActionRowBuilder, SelectMenuBuilder, EmbedBuilder, ChatInputCommandInteraction, Guild } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { normal, icons } = require('../../emoji.json');
 
 module.exports = {
 	/**
-	 * @param {CommandInteraction} interaction
+	 * @param {ChatInputCommandInteraction} interaction
 	 * @param {Guild} option
 	 * @returns
 	 */
@@ -25,7 +25,7 @@ module.exports = {
 
 
 		const embedGen = (guild, owner) => {
-			return new MessageEmbed()
+			return new EmbedBuilder()
 				.setAuthor({ name: guild.name, iconURL: guild.iconURL() })
 				.setColor('#2F3136')
 				.addFields([
@@ -43,14 +43,14 @@ module.exports = {
 		if (found.size > 1) {
 			const mapFound = found.map(e => {return { label: e.name, value: e.name };});
 
-			const menu = new MessageActionRow().addComponents([
-				new MessageSelectMenu()
+			const menu = new ActionRowBuilder().addComponents([
+				new SelectMenuBuilder()
 					.setCustomId('servers')
 					.setPlaceholder('🔎 Found Server List')
 					.addOptions(mapFound),
 			]);
 
-			const embed = new MessageEmbed()
+			const embed = new EmbedBuilder()
 				.setTitle('Did you mean?')
 				.setColor('#2F3136')
 				.setDescription(found.map(e => e.name).join('\n'));

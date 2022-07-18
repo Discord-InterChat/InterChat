@@ -39,9 +39,10 @@ class MySuperClient extends discord.Client {
 
 const client = new discord.Client({
 	intents: [
-		discord.Intents.FLAGS.GUILDS,
-		discord.Intents.FLAGS.GUILD_MESSAGES,
-		discord.Intents.FLAGS.GUILD_MEMBERS,
+		discord.GatewayIntentBits.Guilds,
+		discord.GatewayIntentBits.GuildMessages,
+		discord.GatewayIntentBits.GuildMembers,
+		discord.GatewayIntentBits.MessageContent,
 	],
 });
 
@@ -50,7 +51,7 @@ client.description = 'A growing discord bot which provides inter-server chat!';
 client.version = require('./package.json').version;
 client.help = [];
 
-module.exports = { discord, client };
+module.exports.client = client;
 
 fs.readdirSync('./commands').forEach((dir) => {
 	if (fs.statSync(`./commands/${dir}`).isDirectory()) {
@@ -110,10 +111,10 @@ setInterval(deleteChannels, 60 * 60 * 1000);
 
 
 process.on('uncaughtException', function(err) {
-	logger.error('Excepton:', err);
+	logger.error('[Anti-Crash] - Excepton:', err);
 });
 process.on('unhandledRejection', function(err) {
-	logger.error('Rejection:', err);
+	logger.error('[Anti Crash] - Rejection:', err);
 });
 
 client.login(process.env.TOKEN);

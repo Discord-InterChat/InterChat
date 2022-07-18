@@ -1,4 +1,4 @@
-const { CommandInteraction, MessageButton, MessageActionRow, MessageSelectMenu, Message } = require('discord.js');
+const { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, SelectMenuBuilder, Message, ButtonStyle } = require('discord.js');
 const { Collection } = require('mongodb');
 const { Embeds } = require('../../commands/Main/setup');
 const emoji = require('../../emoji.json');
@@ -6,20 +6,19 @@ const logger = require('../../logger');
 
 module.exports = {
 	/**
-	 * @param {CommandInteraction} interaction
+	 * @param {ChatInputCommandInteraction} interaction
 	 * @param {Message} message
 	 * @param {Collection} collection
 	 * @param {Embeds} embedGen
 	 * @param {Collection} connectedList
 	 */
 	async execute(interaction, message, collection, embedGen, connectedList) {
-
-		const buttons = new MessageActionRow().addComponents([
-			new MessageButton().setCustomId('yes').setLabel('Yes').setStyle('SUCCESS'),
-			new MessageButton().setCustomId('no').setLabel('No').setStyle('DANGER'),
+		const buttons = new ActionRowBuilder().addComponents([
+			new ButtonBuilder().setCustomId('yes').setLabel('Yes').setStyle(ButtonStyle.Success),
+			new ButtonBuilder().setCustomId('no').setLabel('No').setStyle(ButtonStyle.Danger),
 		]);
-		const selectMenu = new MessageActionRow().addComponents([
-			new MessageSelectMenu().setCustomId('customize').setPlaceholder('✨ Customize Setup').addOptions([
+		const selectMenu = new ActionRowBuilder().addComponents([
+			new SelectMenuBuilder().setCustomId('customize').setPlaceholder('✨ Customize Setup').addOptions([
 				{ label: 'Message Style', emoji: emoji.icons.message, description: 'Customize the way message sent by ChatBot looks', value: 'message_style' },
 				{ label: 'Profanity Filter', emoji: emoji.icons.info, description: 'Enable and disabled profanity filter for this server', value: 'profanity_toggle' },
 			]),

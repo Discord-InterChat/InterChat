@@ -1,4 +1,4 @@
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 const emoji = require('../../emoji.json');
 module.exports = {
 	async execute(interaction, database) {
@@ -11,7 +11,7 @@ module.exports = {
 			const blacklistedServers = database.collection('blacklistedServers');
 			const searchCursor = await blacklistedServers.find();
 			const result = await searchCursor.toArray();
-			const Embed = new MessageEmbed()
+			const Embed = new EmbedBuilder()
 				.setColor('#0099ff')
 				.setAuthor({
 					name: 'Blacklisted Servers:',
@@ -31,7 +31,7 @@ module.exports = {
 			const blacklistedServers = database.collection('blacklistedUsers');
 			const searchCursor = await blacklistedServers.find();
 			const result = await searchCursor.toArray();
-			const Embed = new MessageEmbed()
+			const Embed = new EmbedBuilder()
 				.setColor('#0099ff')
 				.setAuthor({
 					name: 'Blacklisted Users:',

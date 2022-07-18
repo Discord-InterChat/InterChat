@@ -1,6 +1,5 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
 const { stripIndents } = require('common-tags');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const { colors } = require('../../utils');
 
 module.exports = {
@@ -8,7 +7,7 @@ module.exports = {
 		.setName('rules')
 		.setDescription('Sends rules of the bot and chat network'),
 	async execute(interaction) {
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setTitle('ChatBot Rules')
 			.setDescription(stripIndents`
 				1. No spamming or flooding.

@@ -1,8 +1,8 @@
 const logger = require('./logger');
-const { MongoClient } = require('mongodb');
 const dotenv = require('dotenv');
-const { MessageActionRow, CommandInteraction, MessageEmbed } = require('discord.js');
 const emoji = require('./emoji.json');
+const { MongoClient } = require('mongodb');
+const { ActionRowBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonStyle, ButtonBuilder } = require('discord.js');
 const { Api } = require('@top-gg/sdk');
 dotenv.config();
 
@@ -10,41 +10,44 @@ const topgg = new Api(process.env.TOPGG);
 const uri = process.env.MONGODB_URI;
 let _db;
 
+
 module.exports = {
+	topgg: topgg,
+
 	colors: (type = 'random') => {
 		const colorType = {
 			random: [
-				'DEFAULT',
-				'WHITE',
-				'AQUA',
-				'GREEN',
-				'BLUE',
-				'YELLOW',
-				'PURPLE',
-				'LUMINOUS_VIVID_PINK',
-				'FUCHSIA',
-				'GOLD',
-				'ORANGE',
-				'RED',
-				'GREY',
-				'NAVY',
-				'DARK_AQUA',
-				'DARK_GREEN',
-				'DARK_BLUE',
-				'DARK_PURPLE',
-				'DARK_VIVID_PINK',
-				'DARK_GOLD',
-				'DARK_ORANGE',
-				'DARK_RED',
-				'DARK_GREY',
-				'DARKER_GREY',
-				'LIGHT_GREY',
-				'DARK_NAVY',
-				'BLURPLE',
-				'GREYPLE',
-				'DARK_BUT_NOT_BLACK',
-				'NOT_QUITE_BLACK',
-				'RANDOM',
+				'Default',
+				'White',
+				'Aqua',
+				'Green',
+				'Blue',
+				'Yellow',
+				'Purple',
+				'LuminousVividPink',
+				'Fuchsia',
+				'Gold',
+				'Orange',
+				'Red',
+				'Grey',
+				'DarkNavy',
+				'DarkAqua',
+				'DarkGreen',
+				'DarkBlue',
+				'DarkPurple',
+				'DarkVividPink',
+				'DarkGold',
+				'DarkOrange',
+				'DarkRed',
+				'DarkGrey',
+				'DarkerGrey',
+				'LightGrey',
+				'DarkNavy',
+				'Blurple',
+				'Greyple',
+				'DarkButNotBlack',
+				'NotQuiteBlack',
+				'Random',
 			],
 			chatbot: '#5CB5F9',
 		};
@@ -88,6 +91,7 @@ module.exports = {
 	developers: [736482645931720765n, 828492978716409856n, 748190663597883392n, 701727675311587358n, 827745783964499978n], // makiyu, nik, genz, dev, supreme 828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n, 736482645931720765n
 	staff: [442653948630007808n, 336159680244219905n],
 	cbhq: '770256165300338709',
+
 	getCredits: async () => {
 		let creditArray = [];
 
@@ -95,6 +99,7 @@ module.exports = {
 
 		return creditArray;
 	},
+
 	connect: callback => {
 		MongoClient.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
 			_db = client.db('Discord-ChatBot');
@@ -104,8 +109,6 @@ module.exports = {
 	getDb: () => {
 		return _db;
 	},
-
-	topgg: topgg,
 
 	toHuman: (client) => {
 		let totalSeconds = (client.uptime / 1000);
@@ -149,8 +152,8 @@ module.exports = {
 	},
 
 	/**
-	 * @param {CommandInteraction} interaction
-	 * @param {MessageEmbed[]} pages
+	 * @param {ChatInputCommandInteraction} interaction
+	 * @param {EmbedBuilder[]} pages
 	 * @param {Number} time
 	 * @param {Object} emojis
 	 */
@@ -159,26 +162,11 @@ module.exports = {
 		if (!interaction || !pages || !(pages?.length > 0) || !(time > 10000)) throw new Error('Invalid Parameters');
 
 		// eslint-disable-next-line prefer-const
-		let index = 0, row = new MessageActionRow().addComponents([{
-			type: 'BUTTON',
-			customId: '1',
-			emoji: emojis?.back || emoji.icons.back,
-			style: 'SECONDARY',
-			disabled: true,
-
-		}, {
-			type: 'BUTTON',
-			customId: '3',
-			emoji: emojis?.exit || emoji.icons.delete,
-			style: 'DANGER',
-
-		}, {
-			type: 'BUTTON',
-			customId: '2',
-			emoji: emojis?.next || emoji.icons.next,
-			style: 'SECONDARY',
-			disabled: pages.length <= index + 1,
-		}]);
+		let index = 0, row = new ActionRowBuilder().addComponents([
+			new ButtonBuilder().setEmoji(emojis?.back || emoji.icons.back).setCustomId('1').setStyle(ButtonStyle.Secondary).setDisabled(true),
+			new ButtonBuilder().setEmoji(emojis?.exit || emoji.icons.delete).setCustomId('3').setStyle(ButtonStyle.Danger),
+			new ButtonBuilder().setEmoji(emojis?.next || emoji.icons.next).setCustomId('2').setStyle(ButtonStyle.Secondary).setDisabled(pages.length <= index + 1),
+		]);
 
 		let pagenumber = 0;
 		try {
@@ -204,25 +192,11 @@ module.exports = {
 			else col.stop();
 
 
-			row.setComponents([{
-				type: 'BUTTON',
-				customId: '1',
-				emoji: emojis?.back || emoji.icons.back,
-				style: 'SECONDARY',
-				disabled: index === 0,
-
-			}, {
-				type: 'BUTTON',
-				customId: '3',
-				emoji: emojis?.exit || emoji.icons.delete,
-				style: 'DANGER',
-
-			}, { type: 'BUTTON',
-				customId: '2',
-				emoji: emojis?.next || emoji.icons.next,
-				style: 'SECONDARY',
-				disabled: index === pages.length - 1,
-			}]);
+			row.setComponents([
+				new ButtonBuilder().setEmoji(emojis?.back || emoji.icons.back).setStyle(ButtonStyle.Secondary).setCustomId('1').setDisabled(index === 0),
+				new ButtonBuilder().setEmoji(emojis?.exit || emoji.icons.delete).setStyle(ButtonStyle.Danger).setCustomId('3'),
+				new ButtonBuilder().setEmoji(emojis?.next || emoji.icons.next).setStyle(ButtonStyle.Secondary).setCustomId('2').setDisabled(index === pages.length - 1),
+			]);
 
 			try {pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });}
 			catch {/**/}

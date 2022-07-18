@@ -1,12 +1,11 @@
-const { MessageEmbed, Client, Message, Channel } = require('discord.js');
-const { discord } = require('../..');
+const { EmbedBuilder, Client, Message, Channel } = require('discord.js');
 const logger = require('../../logger');
 
 /**
  * @param {Client} client The discord. client session/object, use interaction.client if you are in a command handler
  * @param {Message} message The discord message object not the message string
  * @param {Channel} channelObj Sending message in the right channel object
- * @param {MessageEmbed} embed The Embed you want to send to the channel
+ * @param {EmbedBuilder} embed The Embed you want to send to the channel
  */
 async function messageTypes(client, message, channelObj, embed, setupDb) {
 	const allChannel = await client.channels.fetch(channelObj.channelId);

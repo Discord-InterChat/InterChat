@@ -1,6 +1,6 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const logger = require('../../logger');
+const { SlashCommandBuilder } = require('discord.js');
 const { sendInFirst, staffPermissions } = require('../../utils');
+const logger = require('../../logger');
 
 module.exports = {
 	data: new SlashCommandBuilder()

@@ -6,7 +6,7 @@ package-lock.json
 /logs/
 
 # archive
-/Archive/test.md
+/archive/
 
 /.env
 /todo.md

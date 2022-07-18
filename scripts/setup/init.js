@@ -1,12 +1,12 @@
 const { stripIndents } = require('common-tags');
-const { CommandInteraction, MessageButton, Message, MessageActionRow } = require('discord.js');
+const { ChatInputCommandInteraction, ButtonBuilder, Message, ActionRowBuilder, ButtonStyle, ChannelType } = require('discord.js');
 const { Collection } = require('mongodb');
 const { Embeds } = require('../../commands/Main/setup');
 const emoji = require('../../emoji.json');
 
 module.exports = {
 	/**
-	 * @param {CommandInteraction} interaction
+	 * @param {ChatInputCommandInteraction} interaction
 	 * @param {Embeds} embeds
 	 * @param {Message} message
 	 * @param {Collection} collection
@@ -15,9 +15,9 @@ module.exports = {
 	 */
 	async execute(interaction, embeds, message, setupList, connectedList) {
 		// Buttons
-		const buttons = new MessageActionRow().addComponents([
-			new MessageButton().setCustomId('edit').setLabel('edit').setStyle('SECONDARY'),
-			new MessageButton().setCustomId('reset').setLabel('reset').setStyle('DANGER'),
+		const buttons = new ActionRowBuilder().addComponents([
+			new ButtonBuilder().setCustomId('edit').setLabel('edit').setStyle(ButtonStyle.Secondary),
+			new ButtonBuilder().setCustomId('reset').setLabel('reset').setStyle(ButtonStyle.Danger),
 		]);
 
 		const date = new Date();
@@ -56,18 +56,18 @@ module.exports = {
 		else {
 			if (!destination) return message.edit('Please specify a channel destination first!');
 
-			if (destination.type == 'GUILD_CATEGORY') {
+			if (destination.type === ChannelType.GuildCategory) {
 				// Make a channel if it doesn't exist
 				let channel;
 				try {
 					channel = await interaction.guild.channels.create('global-chat', {
-						type: 'GUILD_TEXT',
+						type: ChannelType.GuildText,
 						parent: destination.id,
 						position: 0,
 						permissionOverwrites: [{
 							type: 'member',
 							id: interaction.client.user.id,
-							allow: ['VIEW_CHANNEL', 'SEND_MESSAGES', 'MANAGE_MESSAGES', 'EMBED_LINKS', 'ATTACH_FILES', 'READ_MESSAGE_HISTORY', 'MANAGE_MESSAGES', 'ADD_REACTIONS', 'USE_EXTERNAL_EMOJIS'],
+							allow: ['ViewChannel', 'SendMessages', 'ManageMessages', 'EmbedLinks', 'AttachFiles', 'ReadMessageHistory', 'ManageMessages', 'AddReactions', 'UseExternalEmojis'],
 						}],
 					});
 				}

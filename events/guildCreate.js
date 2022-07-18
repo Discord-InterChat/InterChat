@@ -1,9 +1,8 @@
-const { MessageEmbed, Guild } = require('discord.js');
+const { EmbedBuilder, Guild } = require('discord.js');
 const { client } = require('../index');
 const mongoUtil = require('../utils');
 const { sendInFirst, colors } = require('../utils');
 const { normal, icons } = require('../emoji.json');
-const fetch = require('node-fetch');
 const dotenv = require('dotenv');
 const filter = require('leo-profanity');
 dotenv.config();
@@ -50,7 +49,7 @@ module.exports = {
 		const goalChannel = await client.channels.fetch('906460473065615403');
 		await goalChannel.send(`${icons.join} I have joined ${guild.name}! ${500 - client.guilds.cache.size} to go!`);
 
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setTitle(`${normal.tada} Hi! Thanks for adding ChatBot to your server!`)
 			.setDescription('To start chatting, make a channel and run `/network connect`!\n\nAnd if you are interested in the other commands use `/help`\n\nPS: There is only one main language supported by this bot, and that is English. You may be subject to disciplinary action if you don\'t follow it.\n\nNeed help? [Join the support server](https://discord.gg/6bhXQynAPs).\n**Please note that ChatBot is not AI, but a bot for chatting with other real discord servers.**')
 			.setColor(colors('chatbot'));

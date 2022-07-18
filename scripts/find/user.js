@@ -1,11 +1,11 @@
-const { MessageActionRow, MessageSelectMenu, MessageEmbed, CommandInteraction, User } = require('discord.js');
+const { ActionRowBuilder, SelectMenuBuilder, EmbedBuilder, ChatInputCommandInteraction, User } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { normal, icons } = require('../../emoji.json');
 
 
 module.exports = {
 	/**
-	 * @param {CommandInteraction} interaction
+	 * @param {ChatInputCommandInteraction} interaction
 	 * @param {User} option
 	 * @returns
 	 */
@@ -31,7 +31,7 @@ module.exports = {
 
 		// FIXME
 		const embedGen = (user) => {
-			return new MessageEmbed()
+			return new EmbedBuilder()
 				.setAuthor({ name: user.tag, iconURL: user.avatarURL() })
 				.setColor('#2F3136')
 				.addFields([
@@ -52,14 +52,14 @@ module.exports = {
 		if (found.size > 1) {
 			const mapFound = found.map(e => {return { label: e.tag, value: e.id };});
 
-			const menu = new MessageActionRow().addComponents([
-				new MessageSelectMenu()
+			const menu = new ActionRowBuilder().addComponents([
+				new SelectMenuBuilder()
 					.setCustomId('users')
 					.setPlaceholder('🔍 Found User List')
 					.addOptions(mapFound),
 			]);
 
-			const embed = new MessageEmbed()
+			const embed = new EmbedBuilder()
 				.setTitle('Did you mean?')
 				.setColor('#2F3136')
 				.setDescription(found.map(e => e.tag).join('\n'));

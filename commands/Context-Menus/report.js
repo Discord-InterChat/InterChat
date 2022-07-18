@@ -1,14 +1,13 @@
-const { ContextMenuCommandBuilder } = require('@discordjs/builders');
-const { Modal, MessageActionRow, TextInputComponent, InteractionCollector, MessageEmbed, CommandInteraction } = require('discord.js');
+const { ModalBuilder, ActionRowBuilder, TextInputComponent, InteractionCollector, EmbedBuilder, ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, TextInputStyle } = require('discord.js');
 const { getDb } = require('../../utils');
 module.exports = {
 	description: 'Report a user directly from the Chat Network!',
 	data: new ContextMenuCommandBuilder()
 		.setName('report')
 		// message type
-		.setType(3),
+		.setType(ApplicationCommandType.Message),
 	/**
-	* @param {CommandInteraction} interaction
+	* @param {MessageContextMenuCommandInteraction} interaction
 	* @returns
 	*/
 	async execute(interaction) {
@@ -36,34 +35,34 @@ module.exports = {
 		// FIXME: change channelId to 821610981155012628 later
 		const reportChannel = await interaction.client.channels.fetch('976099718251831366');
 
-		const modal = new Modal().setCustomId('modal').setTitle('Report').addComponents(
-			new MessageActionRow()
+		const modal = new ModalBuilder().setCustomId('modal').setTitle('Report').addComponents(
+			new ActionRowBuilder()
 				.addComponents(
 					new TextInputComponent()
 						.setRequired(true)
 						.setCustomId('para')
-						.setStyle('PARAGRAPH')
+						.setStyle(TextInputStyle.Paragraph)
 						.setLabel('Please enter a reason for the report')
 						.setMaxLength(950),
 				));
 
-		await interaction.showModal(modal);
+		await interaction.showModalBuilder(ModalBuilder);
 
-		// create modal input collector
+		// create ModalBuilder input collector
 		const collector = new InteractionCollector(interaction.client, {
 			max: 1,
-			filter: (i) => i.isModalSubmit && i.customId === 'modal' && i.user.id === interaction.user.id,
+			filter: (i) => i.isModalBuilderSubmit && i.customId === 'modal' && i.user.id === interaction.user.id,
 			time: 60_000,
 			errors: ['time'],
 		});
 
-		// respond to message when modal is submitted
+		// respond to message when ModalBuilder is submitted
 		collector.on('collect', async (i) => {
 			const components = i.fields.getTextInputValue('para');
 
 			// create embed with report info
 			// and send it to report channel
-			const embed = new MessageEmbed()
+			const embed = new EmbedBuilder()
 				.setAuthor({ name: `${i.user.tag}`, iconURL: i.user.displayAvatarURL() })
 				.setTitle('New Report')
 				.setDescription('Please wait while we process your report...')

@@ -1,10 +1,10 @@
-const { MessageEmbed, CommandInteraction } = require('discord.js');
+const { EmbedBuilder, ChatInputCommandInteraction } = require('discord.js');
 const { paginate } = require('../../utils');
 const { normal } = require('../../emoji.json');
 
 module.exports = {
 	/**
-	 * @param {CommandInteraction} interaction
+	 * @param {ChatInputCommandInteraction} interaction
 	 */
 	async execute(interaction, database) {
 		const serverOpt = interaction.options.getString('type');
@@ -24,18 +24,18 @@ module.exports = {
 			if (result.length === 0) return interaction.reply(`No connected servers yet ${normal.bruhcat} `);
 
 			const embeds = [];
-			let k = 5;
+			let itemsPerPage = 5;
 
-			for (let i = 0; i < result.length; i += 5) {
-				const current = result.slice(i, k);
+			for (let index = 0; index < result.length; index += 5) {
+				const current = result.slice(index, itemsPerPage);
 
-				let j = i;
-				let l = i;
-				k += 5;
+				let j = index;
+				let l = index;
+				itemsPerPage += 5;
 
 				const fields = current.map(value => { return { name: `${++j}. ${value.serverName}`, value: `ServerID: ${value.serverId}\nChannel: ${value.channelName} \`(${value.channelId})\`` }; });
 
-				const embed = new MessageEmbed()
+				const embed = new EmbedBuilder()
 					.setDescription(`Showing the current connected servers: ${++l}-${j} / **${result.length}**`)
 					.setColor(0x2F3136)
 					.setFields(fields);

@@ -1,5 +1,4 @@
-const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const utils = require('../../utils');
 const mongoUtil = require('../../utils');
 
@@ -28,7 +27,7 @@ module.exports = {
 		}
 
 
-		const embed = new MessageEmbed()
+		const embed = new EmbedBuilder()
 			.setColor(utils.colors())
 			.addFields([
 				{

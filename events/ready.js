@@ -20,8 +20,7 @@ module.exports = {
 			const newActivity = activities[randomIndex];
 
 			client.user.setActivity(newActivity);
-		}, 300000);
-
+		}, 300_000);
 
 		/* FIXME: Uncomment this when on main CB
 		topgg.postStats({
