@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { staffPermissions, getDb } = require('../../utils');
+const { checkPermissions, getDb } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -18,7 +18,7 @@ module.exports = {
 		),
 
 	async execute(interaction) {
-		const perms = await staffPermissions(interaction);
+		const perms = await checkPermissions(interaction);
 		if (perms === 0) return;
 		const database = getDb();
 		require('../../scripts/connected/server').execute(interaction, database);

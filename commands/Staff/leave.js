@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { sendInFirst, staffPermissions } = require('../../utils');
+const { sendInFirst, checkPermissions } = require('../../utils');
 const logger = require('../../logger');
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
 		)
 		.setDefaultMemberPermissions('0'),
 	async execute(interaction) {
-		const perms = await staffPermissions(interaction);
+		const perms = await checkPermissions(interaction);
 		if (perms === 0) return;
 		const serverOpt = interaction.options.getString('server');
 		const reason = interaction.options.getString('reason');

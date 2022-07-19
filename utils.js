@@ -126,7 +126,7 @@ module.exports = {
 		return uptime;
 	},
 
-	staffPermissions: async (interaction) => {
+	checkPermissions: async (interaction) => {
 		try {
 			const staff = '800698916995203104';
 			const developers = '770256273488347176';
@@ -179,9 +179,9 @@ module.exports = {
 			components: [row],
 			fetchReply: true,
 		};
-		const msg = interaction.replied ? await interaction.followUp(data) : await interaction.reply(data);
+		const listMessage = interaction.replied ? await interaction.followUp(data) : await interaction.reply(data);
 
-		const col = msg.createMessageComponentCollector({
+		const col = listMessage.createMessageComponentCollector({
 			filter: i => i.user.id === interaction.user.id,
 			time: 60000,
 		});
@@ -189,7 +189,7 @@ module.exports = {
 		col.on('collect', (i) => {
 			if (i.customId === '1') --pagenumber, index--;
 			else if (i.customId === '2') pagenumber++, index++;
-			else col.stop();
+			else return listMessage.edit({ components: [] }); col.stop();
 
 
 			row.setComponents([
@@ -204,12 +204,6 @@ module.exports = {
 			i.update({
 				components: [row],
 				embeds: [pages[index]],
-			});
-
-			col.on('end', () => {
-				msg.edit({
-					components: [],
-				});
 			});
 		});
 	},
