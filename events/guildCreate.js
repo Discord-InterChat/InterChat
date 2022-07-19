@@ -1,5 +1,4 @@
 const { EmbedBuilder, Guild } = require('discord.js');
-const { client } = require('../index');
 const mongoUtil = require('../utils');
 const { sendInFirst, colors } = require('../utils');
 const { normal, icons } = require('../emoji.json');
@@ -22,8 +21,8 @@ module.exports = {
 		if (badword[0]) {
 			guild.fetchIntegrations()
 				.then(async res => {
-					const filtered = res.find(bot => {return bot.account.id === client.user.id;});
-					const user = await client.users.fetch(filtered.user.id);
+					const filtered = res.find(bot => {return bot.account.id === guild.client.user.id;});
+					const user = await guild.client.users.fetch(filtered.user.id);
 					try {
 						await user.send(`Unfortunately, the name of the server **${guild.name}** violates the ChatBot guidelines, therefore I must leave until it is corrected.`);
 					}
@@ -46,8 +45,8 @@ module.exports = {
 			return;
 		}
 
-		const goalChannel = await client.channels.fetch('906460473065615403');
-		await goalChannel.send(`${icons.join} I have joined ${guild.name}! ${500 - client.guilds.cache.size} to go!`);
+		const goalChannel = await guild.client.channels.fetch('906460473065615403');
+		await goalChannel.send(`${icons.join} I have joined ${guild.name}! ${500 - guild.client.guilds.cache.size} to go!`);
 
 		const embed = new EmbedBuilder()
 			.setTitle(`${normal.tada} Hi! Thanks for adding ChatBot to your server!`)

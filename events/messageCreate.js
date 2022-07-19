@@ -1,10 +1,9 @@
 /* eslint-disable no-inline-comments */
 const { EmbedBuilder, Message } = require('discord.js');
-const logger = require('../logger');
 const { getDb, colors, developers, clean } = require('../utils');
-const { client } = require('../index');
 const { messageTypes } = require('../scripts/message/messageTypes');
 const wordFilter = require('../scripts/message/wordFilter');
+const logger = require('../logger');
 const emoji = require('../emoji.json');
 
 // TODO Replace bad-words with leo-profanity as it provides the entire list of bad words it uses.
@@ -40,7 +39,7 @@ module.exports = {
 
 				// Put our eval result through the function
 				// we defined above
-				const cleaned = await clean(client, evaled);
+				const cleaned = await clean(message.client, evaled);
 
 
 				// create a new embed
@@ -193,7 +192,7 @@ module.exports = {
 			// NOTE: Using the db used here in other chatbot's will end up deleting all servers when you send a message... so be careful XD
 			allConnectedChannels.forEach(async channelObj => {
 				try {
-					await client.channels.fetch(channelObj.channelId);
+					await message.client.channels.fetch(channelObj.channelId);
 				}
 				catch {
 					logger.warn(`Deleting non-existant channel ${channelObj.channelId} from database.`);
@@ -208,7 +207,7 @@ module.exports = {
 
 					return;
 				}
-				await messageTypes(client, message, channelObj, embed, setup);
+				await messageTypes(message.client, message, channelObj, embed, setup);
 
 			});
 		}
