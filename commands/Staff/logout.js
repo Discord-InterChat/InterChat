@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { staffPermissions } = require('../../utils');
+const { checkPermissions } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -7,7 +7,7 @@ module.exports = {
 		.setDescription('Logs the bot out.')
 		.setDefaultMemberPermissions('0'),
 	async execute(interaction) {
-		const perms = await staffPermissions(interaction);
+		const perms = await checkPermissions(interaction);
 		if (perms === 0) return;
 		await interaction.reply('Logged Out!');
 		await interaction.client.destroy();

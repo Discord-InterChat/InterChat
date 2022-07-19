@@ -51,8 +51,6 @@ client.description = 'A growing discord bot which provides inter-server chat!';
 client.version = require('./package.json').version;
 client.help = [];
 
-module.exports.client = client;
-
 fs.readdirSync('./commands').forEach((dir) => {
 	if (fs.statSync(`./commands/${dir}`).isDirectory()) {
 		const commandFiles = fs.readdirSync(`./commands/${dir}`).filter(file => file.endsWith('.js'));
@@ -116,5 +114,6 @@ process.on('uncaughtException', function(err) {
 process.on('unhandledRejection', function(err) {
 	logger.error('[Anti Crash] - Rejection:', err);
 });
+
 
 client.login(process.env.TOKEN);

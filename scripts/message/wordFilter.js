@@ -1,18 +1,29 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, Message } = require('discord.js');
 const { colors } = require('../../utils');
-const Filter = require('bad-words'), filter = new Filter();
+const Filter = require('bad-words'), prof_filter = new Filter();
+const leo_filter = require('leo-profanity');
 
 module.exports = {
+
+	check(message) {
+		if (prof_filter.isProfane(message.content || message)) return true;
+		leo_filter.list().forEach(word => {
+			if (message.content.includes(word) || message.content.includes(word)) return true;
+		});
+
+		return false;
+	},
+
 	/**
 	 * If the message contains bad words, it will be censored with asterisk(*).
 	 * @param {Message} message
-	 * @returns
+	 * @returns {string} filtered message
 	 */
 	censor(message) {
 		try {
 			// filter bad words from message
 			// and replace it with  *
-			const filtered = filter.clean(message.content).replaceAll('*', '\\*');
+			const filtered = prof_filter.clean(message.content).replaceAll('*', '\\*');
 
 			// log the real message to logs channel
 			module.exports.log(message);
@@ -22,20 +33,6 @@ module.exports = {
 
 		}
 		catch {/**/}
-	},
-
-	check(message) {
-		/*
-		 TODO
-		 if leo profanity says its bad, return true
-		 if bad-words says its bad, return true
-
-		Example code:
-		leo = (loop through all words in their library)
-		if (filter.isProfane(message.content) || leo-profanity.includes(message.content)) return true;
-		or something
-		it might not work because leo-profanity needs u to loop through their entire library and check one by one
-		*/
 	},
 
 	async log(message) {

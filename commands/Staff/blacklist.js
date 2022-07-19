@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { staffPermissions } = require('../../utils');
+const { checkPermissions } = require('../../utils');
 const mongoUtil = require('../../utils');
 
 module.exports = {
@@ -100,7 +100,7 @@ module.exports = {
 				),
 		),
 	async execute(interaction) {
-		const perms = await staffPermissions(interaction);
+		const perms = await checkPermissions(interaction);
 		if (perms === 0) return;
 		const subCommand = interaction.options.getSubcommand();
 		const database = mongoUtil.getDb();

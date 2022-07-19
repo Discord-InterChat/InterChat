@@ -5,8 +5,15 @@ package-lock.json
 # logs
 /logs/
 
-# archive
+# archived commands
 /archive/
 
+# enviroment variables
 /.env
-/todo.md
+
+# Unit testing
+/__tests__
+
+# misc
+/TopGG/
+/Privacy.md
