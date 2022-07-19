@@ -11,6 +11,9 @@ package-lock.json
 # enviroment variables
 /.env
 
+# Unit testing
+/__tests__
+
 # misc
 /TopGG/
 /Privacy.md

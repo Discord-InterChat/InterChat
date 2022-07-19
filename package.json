@@ -19,7 +19,6 @@
         "dotenv": "^16.0.1",
         "leo-profanity": "^1.5.1",
         "mongodb": "^4.8.0",
-        "node": "^18.5.0",
         "node-fetch": "^2.6.7",
         "winston": "^3.8.1"
     },
