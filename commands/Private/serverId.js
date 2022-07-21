@@ -10,7 +10,7 @@ module.exports = {
 		 * @returns
 		 */
 	async execute(interaction) {
-		const args = await interaction.channel.messages.cache.get(interaction.targetId);
+		const args = interaction.targetMessage;
 		if (args.author.id != interaction.client.user.id) return await interaction.reply({ content: 'Invalid usage.', ephemeral: true });
 		if (!args || !args.embeds[0] || !args.embeds[0].footer) return await interaction.reply({ content: 'Invalid usage.', ephemeral: true });
 

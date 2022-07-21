@@ -26,6 +26,7 @@ module.exports = {
 
 		const rankCard = new canvacord.Rank()
 			.setAvatar(target.avatarURL())
+			.setBackground('IMAGE', 'https://cdn.discordapp.com/attachments/824616172569493504/999660076321210428/blob-scene-haikei.png')
 			.setCurrentXP(user.xp).setLevel(user.level || 0)
 			.setRequiredXP(neededxp).setRank(user.position)
 			.setProgressBar(colors('chatbot'), 'COLOR')

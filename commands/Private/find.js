@@ -26,8 +26,6 @@ module.exports = {
 		const data = interaction.options.getString('name-id');
 		const type = interaction.options.getString('type');
 
-		if (!type) return interaction.reply('Type required.');
-
 		require(`../../scripts/find/${type}`).execute(interaction, data);
 	},
 };

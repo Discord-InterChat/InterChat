@@ -12,7 +12,7 @@ module.exports = {
 	*/
 	async execute(interaction) {
 		// The message the interaction is being performed on
-		const args = interaction.channel.messages.cache.get(interaction.targetId);
+		const args = interaction.targetMessage;
 
 		const database = await getDb();
 		const connectedList = database.collection('connectedList');
