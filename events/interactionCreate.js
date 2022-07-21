@@ -59,7 +59,8 @@ module.exports = {
 				logger.error(error);
 				const errorMsg = { content: 'There was an error while executing this command!', ephemeral: true, fetchReply: true };
 
-				if (interaction.replied) await interaction.followUp(errorMsg);
+				if (interaction.deferred) await interaction.followUp(errorMsg);
+				else if (interaction.replied) await interaction.channel.send(errorMsg);
 				else await interaction.reply(errorMsg);
 			}
 		}

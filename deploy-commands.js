@@ -10,7 +10,7 @@ dotenv.config();
 
 
 const clientID = '798748015435055134';
-const server = '853116027588051022';
+const server = '818348790435020810';
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
@@ -56,13 +56,14 @@ const deployStaffCommands = async () => {
 		.then(() => {
 			logger.info('Registered Staff application commands for \u001b[35mChatBot HQ\u001b[0m successfully');
 		})
-		.catch(console.error);
+		.catch(logger.error);
 };
 
 
 // create a CLI prompt for deployment
 const args = process.argv[2]?.toLowerCase();
 const help = stripIndent`
+Deploy Commands -
 	Usage:
 		deploy [--staff | -s]
 		deploy [--all | -all | --a | -a]
@@ -83,16 +84,16 @@ case '-all':
 case '--a':
 case '-a':
 	prompt.start();
-	console.log('Are you sure you want to deploy all commands? This will overwrite all commands and make private commands visible to every server. (y/n)');
+	logger.warn('Are you sure you want to deploy all commands? This will overwrite all commands and make private commands visible to every server. (y/n)');
 	prompt.get(['y/n'], (err, result) => {
-		result['y/n'] === 'y' ? deployCommands() && deployStaffCommands() : console.log('\n\033[31;1;4mDeployment aborted.\033[0m');
+		result['y/n'] === 'y' ? deployCommands() && deployStaffCommands() : logger.error('\n\033[31;1;4mDeployment aborted.\033[0m');
 	});
 	break;
 case '--help':
 case '-help':
 case '--h':
 case '-h':
-	console.log(help);
+	logger.info(help);
 	break;
 
 case undefined:
@@ -100,6 +101,6 @@ case undefined:
 	break;
 
 default:
-	console.log('Invalid argument provided. Please use \u001B[40;5;31mdeploy --help\u001B[0m for more information.');
+	logger.info('Invalid argument provided. Please use \u001B[40;5;31mdeploy --help\u001B[0m for more information.');
 }
 

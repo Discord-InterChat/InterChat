@@ -109,10 +109,10 @@ setInterval(deleteChannels, 60 * 60 * 1000);
 
 
 process.on('uncaughtException', function(err) {
-	logger.error('[Anti-Crash] - Excepton:', err);
+	console.error('[Anti-Crash] - Excepton:', err);
 });
 process.on('unhandledRejection', function(err) {
-	logger.error('[Anti Crash] - Rejection:', err);
+	console.error('[Anti Crash] - Rejection:', err);
 });
 
 

@@ -1,10 +1,12 @@
 /* eslint-disable no-inline-comments */
 const { EmbedBuilder, Message } = require('discord.js');
-const { getDb, colors, developers, clean } = require('../utils');
+const { getDb, colors, developers, clean, cbhq } = require('../utils');
 const { messageTypes } = require('../scripts/message/messageTypes');
 const wordFilter = require('../scripts/message/wordFilter');
 const logger = require('../logger');
 const emoji = require('../emoji.json');
+const Levels = require('discord-xp');
+Levels.setURL(process.env.MONGODB_URI);
 
 // TODO Replace bad-words with leo-profanity as it provides the entire list of bad words it uses.
 const Filter = require('bad-words'),
@@ -167,6 +169,13 @@ module.exports = {
 			if (filter.isProfane(message.content)) message.content = wordFilter.censor(message);
 			// dont send message if guild name is inappropriate
 			if (filter.isProfane(message.guild.name)) return message.channel.send('I have detected words in the server name that are potentially offensive, Please fix them before using this chat!');
+
+			const randomxp = Math.floor(Math.random() * 10) + 1;
+			const haslevelxp = await Levels.appendXp(message.author.id, cbhq, randomxp);
+			if (haslevelxp) {
+				const user = await Levels.fetch(message.author.id, cbhq);
+				message.reply(`🎉 Congrats you just levelled up to **${user.level}**!`);
+			}
 
 			const allConnectedChannels = await connectedList.find();
 
