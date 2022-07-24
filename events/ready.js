@@ -1,4 +1,6 @@
 const logger = require('../logger');
+const { mainGuilds } = require('../utils');
+require('dotenv').config();
 // const { topgg } = require('../utils');
 
 module.exports = {
@@ -8,25 +10,20 @@ module.exports = {
 	 * @param {import ('discord.js').Client} client
 	 */
 	async execute(client) {
+
 		logger.info(`Logged in as ${client.user.tag}`);
 
-		const activities = [
-			{ name: `${client.guilds.cache.size} servers! 👀`, type: 'WATCHING' },
-			{ name: `with ${client.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0)} users`, type: 'PLAYING' },
-		];
-		setInterval(() => {
-			// generate random number between 1 and list length.
-			const randomIndex = Math.floor(Math.random() * (activities.length - 1) + 1);
-			const newActivity = activities[randomIndex];
-
-			client.user.setActivity(newActivity);
-		}, 300_000);
+		// if bot is run using dev command (npm run dev) then deploy commands to known test servers
+		if (process.env.DEV) {
+			client.guilds.fetch(mainGuilds.botTest).then(guild => { guild.commands.set(client.commands.map(cmd => cmd.data));});
+			client.guilds.fetch(mainGuilds.cbTest).then(guild => { guild.commands.set(client.commands.map(cmd => cmd.data));});
+			logger.warn('Bot is in development mode. (/) Loading commands to development guilds...');
+		}
 
 		/* FIXME: Uncomment this when on main CB
 		topgg.postStats({
 			serverCount: client.guilds.cache.size,
 		}); */
-
 
 	},
 };
