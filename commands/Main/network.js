@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ChatInputCommandInteraction } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const mongoUtil = require('../../utils');
 
 module.exports = {
@@ -18,7 +18,7 @@ module.exports = {
 		),
 	/**
 		 *
-		 * @param {ChatInputCommandInteraction} interaction
+		 * @param {import 'discord.js'.ChatInputCommandInteraction} interaction
 		 * @returns
 		 */
 	async execute(interaction) {

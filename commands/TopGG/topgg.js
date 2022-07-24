@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ChatInputCommandInteraction } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 const { topgg } = require('../../utils');
 
 module.exports = {
@@ -6,7 +6,7 @@ module.exports = {
 		.setName('test')
 		.setDescription('topgg vote system'),
 	/**
-	* @param {ChatInputCommandInteraction} interaction
+	* @param {import 'discord.js'.ChatInputCommandInteraction} interaction
 	*/
 	async execute(interaction) {
 		const voted = await topgg.hasVoted(interaction.user.id);

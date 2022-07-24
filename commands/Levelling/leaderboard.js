@@ -1,4 +1,4 @@
-const { EmbedBuilder, SlashCommandBuilder, ChatInputCommandInteraction } = require('discord.js');
+const { EmbedBuilder, SlashCommandBuilder } = require('discord.js');
 const Levels = require('discord-xp');
 const { colors, mainGuilds } = require('../../utils');
 
@@ -7,7 +7,7 @@ module.exports = {
 		.setName('leaderboard')
 		.setDescription('Shows the leaderboard'),
 	/**
-	* @param {ChatInputCommandInteraction} interaction
+	* @param {import 'discord.js'.ChatInputCommandInteraction} interaction
 	*/
 	async execute(interaction) {
 		const rawLeaderboard = await Levels.fetchLeaderboard(mainGuilds.cbhq, 10);

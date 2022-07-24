@@ -105,5 +105,3 @@ process.on('unhandledRejection', function(err) {
 });
 
 client.login(process.env.TOKEN);
-
-throw new Error('This is a test error');

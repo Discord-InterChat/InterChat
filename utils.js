@@ -246,9 +246,8 @@ module.exports = {
 		const unknownChannels = [];
 		for (let i = 0; i < channels.length; i++) {
 			const element = channels[i];
-			let fetchedChannel;
 			try {
-				fetchedChannel = await client.channels.fetch(element.channelId);
+				await client.channels.fetch(element.channelId);
 			}
 			catch (e) {
 				if (e.message === 'Unknown Channel') {

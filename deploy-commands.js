@@ -50,7 +50,7 @@ const deployStaffCommands = async () => {
 
 	rest.put(Routes.applicationGuildCommands(clientID, server), { body: commands })
 		.then(() => {
-			const guild = rest.get(Routes.guild(server))
+			rest.get(Routes.guild(server))
 				.then(res => {return res.name;})
 				.then(name => logger.info(`Registered Staff application commands for \u001b[35m${name}\u001b[0m successfully`));
 		})

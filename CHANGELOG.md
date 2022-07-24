@@ -4,17 +4,15 @@ All notable changes to this project will be documented in this file. See [standa
 
 ## [1.6.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.5.0...v1.6.0) (2022-07-24)
 
-
 ### Features
 
-* Add new functions: sendInNetwork & deleteChannels ([c709586](https://github.com/dev-737/ChatBot-Beta/commit/c709586043353bd1ef68bce5b1ceb33bc9bed7f4))
+* Add new functions: `sendInNetwork` & `deleteChannels` ([c709586](https://github.com/dev-737/ChatBot-Beta/commit/c709586043353bd1ef68bce5b1ceb33bc9bed7f4))
 * Bot auto-deploys commands to test servers when run in DevMode ([0ba2489](https://github.com/dev-737/ChatBot-Beta/commit/0ba248994ce58d268574bb18cb66a30543e55994))
-
 
 ### Bug Fixes
 
 * Changed deploy-commands.js from executable to normal file ([a9e275d](https://github.com/dev-737/ChatBot-Beta/commit/a9e275dad421025d2fcca057f1ae2198be303e35))
-* I forgot avatarURL() was a function ([501e11a](https://github.com/dev-737/ChatBot-Beta/commit/501e11a8bfc3262139d73eda417ebc0e900e6cfa))
+* I forgot `avatarURL()` was a function ([501e11a](https://github.com/dev-737/ChatBot-Beta/commit/501e11a8bfc3262139d73eda417ebc0e900e6cfa))
 * Remove anti spam since it makes network slow ([d00f1b2](https://github.com/dev-737/ChatBot-Beta/commit/d00f1b2349267fd4c826099c80165ad5bf331a25))
 * **setup:**  Toggle profanity is disabled for now ([4d22ab5](https://github.com/dev-737/ChatBot-Beta/commit/4d22ab5802a4c510f5a25b42c02b5ae1665a85d6))
 * Update find command, fix previously known bug ([5e0804f](https://github.com/dev-737/ChatBot-Beta/commit/5e0804f59d9e07740596ced4a269bb8770b56e2f))

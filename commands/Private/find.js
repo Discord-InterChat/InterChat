@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, ChatInputCommandInteraction } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('find')
@@ -20,7 +20,7 @@ module.exports = {
 				.setDescription('The server name or ID.'),
 		),
 	/**
-    * @param {ChatInputCommandInteraction} interaction
+    * @param {import 'discord.js'.ChatInputCommandInteraction} interaction
     */
 	async execute(interaction) {
 		const data = interaction.options.getString('name-id');

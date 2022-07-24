@@ -1,6 +1,6 @@
 'use strict';
 const { SlashCommandBuilder } = require('discord.js');
-const { EmbedBuilder, ChatInputCommandInteraction, PermissionFlagsBits } = require('discord.js');
+const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { getDb } = require('../../utils');
 const emoji = require('../../emoji.json');
 const logger = require('../../logger');
@@ -17,7 +17,7 @@ module.exports = {
 			.setDescription('Channel you want to setup chatbot to, select a category to create a new channel for chatbot')), // .addChannelTypes(Constants.ChannelTypes.GUILD_CATEGORY))
 
 	/**
-	* @param {ChatInputCommandInteraction} interaction
+	* @param {import 'discord.js'.ChatInputCommandInteraction} interaction
 	*/
 	async execute(interaction) {
 		// Embed classes to make it easier to call and edit multiple embeds

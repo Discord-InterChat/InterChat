@@ -1,4 +1,5 @@
 const { EmbedBuilder, Client, Message, Channel } = require('discord.js');
+const { normal } = require('../../emoji.json');
 const logger = require('../../logger');
 
 /**
@@ -29,10 +30,10 @@ async function messageTypes(client, message, channelObj, embed, setupDb) {
 				avatarURL: message.author.avatarURL(),
 				allowedMentions: { parse: [] },
 			});
-			logger.info('semt');
+			logger.info('sent');
 		}
 		catch (error) {
-			logger.error('Error trying to send webhook message: ', error);
+			allChannel.send(`${normal.no} Unable to send webhook message! \n**Error:** ${error.message}`);
 		}
 	};
 
