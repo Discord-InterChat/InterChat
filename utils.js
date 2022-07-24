@@ -2,7 +2,7 @@ const logger = require('./logger');
 const dotenv = require('dotenv');
 const emoji = require('./emoji.json');
 const { MongoClient } = require('mongodb');
-const { ActionRowBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonStyle, ButtonBuilder } = require('discord.js');
+const { ActionRowBuilder, ChatInputCommandInteraction, EmbedBuilder, ButtonStyle, ButtonBuilder, Message, ContextMenuCommandInteraction } = require('discord.js');
 const { Api } = require('@top-gg/sdk');
 dotenv.config();
 
@@ -75,8 +75,8 @@ module.exports = {
 	sendInFirst: async (guild, message) => {
 		const channels = await guild.channels.fetch();
 		for (const channel of channels) {
-			if (channel[1].type == 'GUILD_TEXT') {
-				if (channel[1].permissionsFor(guild.me).has('SEND_MESSAGES')) {
+			if (channel[1].type == 'GuildText') {
+				if (channel[1].permissionsFor(guild.me).has('SendMessages')) {
 					try {
 						await channel[1].send(message);
 						break;
@@ -90,7 +90,7 @@ module.exports = {
 	},
 	developers: [736482645931720765n, 828492978716409856n, 748190663597883392n, 701727675311587358n, 827745783964499978n], // makiyu, nik, genz, dev, supreme 828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n, 736482645931720765n
 	staff: [442653948630007808n, 336159680244219905n],
-	cbhq: '770256165300338709',
+	mainGuilds: { cbhq: '770256165300338709', cbTest: '969920027421732874', botTest: '818348790435020810' },
 
 	getCredits: async () => {
 		let creditArray = [];
@@ -126,7 +126,7 @@ module.exports = {
 		return uptime;
 	},
 
-	checkPermissions: async (interaction) => {
+	checkIfStaff: async (interaction) => {
 		try {
 			const staff = '800698916995203104';
 			const developers = '770256273488347176';
@@ -230,6 +230,54 @@ module.exports = {
 		text = text.replace(mongoRegex, redact);
 		// Send off the cleaned up result
 		return text;
+	},
+
+	/**
+	 *
+	 * @param {import 'discord.js'.Client} client
+	 * @returns
+	 */
+	// function for deleting channels that chatbot doesn't have access to
+	deleteChannels: async (client) => {
+		const database = module.exports.getDb();
+		const connectedList = database.collection('connectedList');
+		const channels = await connectedList.find().toArray();
+
+		const unknownChannels = [];
+		for (let i = 0; i < channels.length; i++) {
+			const element = channels[i];
+			let fetchedChannel;
+			try {
+				fetchedChannel = await client.channels.fetch(element.channelId);
+			}
+			catch (e) {
+				if (e.message === 'Unknown Channel') {
+					unknownChannels.push(element.channelId);
+					continue;
+				}
+			}
+		}
+
+		if (unknownChannels.length > 0) {
+			const deleteCursor = await connectedList.deleteMany({ channelId: { $in: unknownChannels } });
+			return logger.info(`Deleted ${deleteCursor.deletedCount} channels from the connectedList database.`);
+		}
+	},
+
+	/**
+	 *
+	 * @param {ChatInputCommandInteraction | ContextMenuCommandInteraction | Message} interaction
+	 * @param {String} message
+	 */
+	sendInNetwork: async (interaction, message) => {
+		const database = module.exports.getDb();
+		const connectedList = database.collection('connectedList');
+		const channels = await connectedList.find().toArray();
+
+		await channels.forEach(channelEntry => {
+			interaction.client.channels.fetch(channelEntry.channelId)
+				.then(async channel => {await channel.send(message);});
+		});
 	},
 };
 String.prototype.toTitleCase = module.exports.toTitleCase;
