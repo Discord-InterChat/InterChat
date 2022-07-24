@@ -1,3 +1,4 @@
+'use strict';
 const discord = require('discord.js');
 const dotenv = require('dotenv');
 const fs = require('fs');
@@ -58,7 +59,7 @@ fs.readdirSync('./commands').forEach((dir) => {
 			const command = require(`./commands/${dir}/${commandFile}`);
 			client.commands.set(command.data.name, command);
 		}
-		if (dir === 'private' || dir === 'Testing') return;
+		if (dir === 'private' || dir === 'TopGG') return;
 		const cmds = commandFiles.map((command) => {
 			const file = (require(`./commands/${dir}/${command}`));
 			if (!file.data.name) return 'No name';
@@ -89,31 +90,20 @@ for (const eventFile of eventFiles) {
 	}
 }
 
+// use this function in /network connect when it errors
+// or use it in setup.js when it errors
+// TODO: Add disconnect and reconnect buttons to the setup.js page
 
-async function deleteChannels() {
-	const database = mongoUtil.getDb();
-	const connectedList = database.collection('connectedList');
-	const channels = await connectedList.find().toArray();
-
-	const channelsDelete = [];
-	channels.forEach(async (v) => {
-		try { await client.channels.fetch(v.channelId); }
-		catch (e) {
-			if (e.message === 'Unknown Channel') channelsDelete.push(v.channelId);
-			const deleteCursor = await connectedList.deleteMany({ channelId: { $in: channelsDelete } });
-			logger.info(`Hourly db clearence: Deleted ${deleteCursor.deletedCount} channels from the connectedList database`);
-		}
-	});
-}
-setInterval(deleteChannels, 60 * 60 * 1000);
+// setInterval(deleteChannels, 60 * 60 * 1000);
 
 
 process.on('uncaughtException', function(err) {
-	console.error('[Anti-Crash] - Excepton:', err);
+	logger.error('[Anti-Crash - Exception]:', err);
 });
 process.on('unhandledRejection', function(err) {
-	console.error('[Anti Crash] - Rejection:', err);
+	logger.error('[Anti Crash - Rejection]:', err);
 });
 
-
 client.login(process.env.TOKEN);
+
+throw new Error('This is a test error');

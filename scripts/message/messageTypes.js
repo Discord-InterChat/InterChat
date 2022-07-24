@@ -17,14 +17,22 @@ async function messageTypes(client, message, channelObj, embed, setupDb) {
 			const webhook = webhooks.find(wh => wh.token);
 
 			if (!webhook) {
-				return await allChannel.send(({ content: `**${message.author.tag}:** ${message.content}`, allowedMentions: { parse: [] } }));
+				return await allChannel.send(({
+					content: `**${message.author.tag}:** ${message.content}`,
+					allowedMentions: { parse: [] },
+				}));
 			}
 
-			await webhook.send({ content: message.content, username: message.author.username, avatarURL: message.author.avatarURL(), allowedMentions: { parse: [] } });
+			await webhook.send({
+				content: message.content,
+				username: message.author.username,
+				avatarURL: message.author.avatarURL(),
+				allowedMentions: { parse: [] },
+			});
 			logger.info('semt');
 		}
 		catch (error) {
-			console.error('Error trying to send webhook message: ', error);
+			logger.error('Error trying to send webhook message: ', error);
 		}
 	};
 

@@ -1,6 +1,6 @@
 const { EmbedBuilder, SlashCommandBuilder, ChatInputCommandInteraction } = require('discord.js');
 const Levels = require('discord-xp');
-const { colors, cbhq } = require('../../utils');
+const { colors, mainGuilds } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -10,7 +10,7 @@ module.exports = {
 	* @param {ChatInputCommandInteraction} interaction
 	*/
 	async execute(interaction) {
-		const rawLeaderboard = await Levels.fetchLeaderboard(cbhq, 10);
+		const rawLeaderboard = await Levels.fetchLeaderboard(mainGuilds.cbhq, 10);
 		const errorEmbed = new EmbedBuilder().setDescription('Nobody is in the leaderboard.');
 
 		if (rawLeaderboard == false) return await interaction.reply({ embeds: [errorEmbed] });

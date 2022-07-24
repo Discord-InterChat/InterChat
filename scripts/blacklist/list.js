@@ -27,9 +27,11 @@ module.exports = {
 			}
 			interaction.reply({ embeds: [Embed] });
 		}
+
+
 		async function displayUsers() {
-			const blacklistedServers = database.collection('blacklistedUsers');
-			const searchCursor = await blacklistedServers.find();
+			const blacklistedUsers = database.collection('blacklistedUsers');
+			const searchCursor = await blacklistedUsers.find();
 			const result = await searchCursor.toArray();
 			const Embed = new EmbedBuilder()
 				.setColor('#0099ff')

@@ -27,12 +27,18 @@ module.exports = {
 						await user.send(`Unfortunately, the name of the server **${guild.name}** violates the ChatBot guidelines, therefore I must leave until it is corrected.`);
 					}
 					catch {
-						await sendInFirst(guild, 'Unfortunately, the name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.');
+						await sendInFirst(
+							guild,
+							'Unfortunately, the name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.',
+						);
 					}
 					await guild.leave();
 				})
 				.catch(async () => {
-					await sendInFirst(guild, 'Unfortunately, the name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.');
+					await sendInFirst(
+						guild,
+						'Unfortunately, the name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.',
+					);
 					await guild.leave();
 				});
 			return;

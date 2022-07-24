@@ -12,37 +12,46 @@ module.exports = {
 
 		const optionType = await interaction.options.getString('type').toLowerCase();
 
-		if (optionType === 'bug') {
+		switch (optionType) {
+		case 'bug':
 			para.setLabel('What is the bug about').setPlaceholder('This bug affects... A fix could be...');
 			short.setLabel('Describe the bug').setPlaceholder('This bug is about...');
 
 			modal.setCustomId('modal_bug');
-		}
-		if (optionType === 'server') {
+			break;
+
+		case 'server':
 			para.setLabel('Please provide more info about the server').setPlaceholder('I am reporting this server because...');
 			short.setLabel('Server Name & ID').setPlaceholder('Ex: Land of ChatBots - 012345678909876543');
 
 			modal.setCustomId('modal_server');
-		}
-		if (optionType === 'user') {
+			break;
+
+		case 'user':
 			para.setLabel('Please provide more info about the user').setPlaceholder('I am reporting this user because...');
 			short.setLabel('User ID').setMaxLength(19).setPlaceholder('Ex: 012345678909876543');
 
 			modal.setCustomId('modal_user');
-		}
-		if (optionType === 'other') {
+			break;
+
+		case 'other':
 			para.setLabel('Please provide us more details').setPlaceholder('Ask questions, requests, applications etc.');
 			short.setLabel('Title').setPlaceholder('Ex. New feature request for ChatBot');
 
-
 			modal.setCustomId('modal_other');
+			break;
+
+		default:
+			break;
 		}
+
 
 		const row_para = new ActionRowBuilder().addComponents(para);
 		const row_short = new ActionRowBuilder().addComponents(short);
 		modal.addComponents(row_short, row_para);
 
 		await interaction.showModal(modal);
+
 		// to-text button
 		const textBtn = new ActionRowBuilder().addComponents([
 			new ButtonBuilder().setCustomId('text').setLabel('text').setStyle(ButtonStyle.Secondary),
@@ -69,8 +78,14 @@ module.exports = {
 				}
 				const embed = new EmbedBuilder()
 					.setDescription(`Type: **${i.customId.replace('modal_', '')}**`)
-					.setAuthor({ name: `Reported By: ${interaction.member.user.tag}`, iconURL: interaction.member.user.avatarURL({ dynamic: true }) })
-					.setFooter({ text: `From Server: ${interaction.guild.name}`, iconURL: interaction.guild.iconURL({ dynamic: true }) })
+					.setAuthor({
+						name: `Reported By: ${interaction.member.user.tag}`,
+						iconURL: interaction.member.user.avatarURL({ dynamic: true }),
+					})
+					.setFooter({
+						text: `From Server: ${interaction.guild.name}`,
+						iconURL: interaction.guild.iconURL({ dynamic: true }),
+					})
 					.addFields([
 						{ name: 'Title', value: componentShort },
 						{ name: 'Description', value: '```' + componentPara + '```' },
@@ -83,7 +98,7 @@ module.exports = {
 				await i.reply('Thank you for your report!');
 
 				// send to chatbot reports channel '<@&800698916995203104>'
-				const report = await reportChannel.send({ content: '@Staff', embeds: [embed], components: [textBtn] });
+				const report = await reportChannel.send({ embeds: [embed], components: [textBtn] });
 
 				const collector = report.createMessageComponentCollector({ time: 50_400_000, componentType: 'BUTTON' });
 

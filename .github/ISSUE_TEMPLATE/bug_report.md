@@ -12,6 +12,7 @@ A clear and concise description of what the bug is.
 
 **To Reproduce**
 Steps to reproduce the behavior:
+
 1. Go to '...'
 2. Click on '....'
 3. Use command '....'
@@ -27,5 +28,6 @@ If applicable, add screenshots to help explain your problem.
 Add any other context about the problem here.
 
 **How were you connected to the network?**
+
 - [ ] Setup
 - [ ] Connect (Manual)

@@ -3,6 +3,7 @@ const { ChatInputCommandInteraction, ButtonBuilder, Message, ActionRowBuilder, B
 const { Collection } = require('mongodb');
 const { Embeds } = require('../../commands/Main/setup');
 const emoji = require('../../emoji.json');
+const { sendInNetwork } = require('../../utils');
 
 module.exports = {
 	/**
@@ -67,7 +68,17 @@ module.exports = {
 						permissionOverwrites: [{
 							type: 'member',
 							id: interaction.client.user.id,
-							allow: ['ViewChannel', 'SendMessages', 'ManageMessages', 'EmbedLinks', 'AttachFiles', 'ReadMessageHistory', 'ManageMessages', 'AddReactions', 'UseExternalEmojis'],
+							allow: [
+								'ViewChannel',
+								'SendMessages',
+								'ManageMessages',
+								'EmbedLinks',
+								'AttachFiles',
+								'ReadMessageHistory',
+								'ManageMessages',
+								'AddReactions',
+								'UseExternalEmojis',
+							],
 						}],
 					});
 				}
@@ -90,16 +101,12 @@ module.exports = {
 					serverId: interaction.guild.id,
 					serverName: interaction.guild.name,
 				});
-				await allConnectedChannels.forEach(channelEntry => {
-					interaction.client.channels.fetch(channelEntry.channelId).then(async chan => {
-						await chan.send(stripIndents`
-							A new server has joined us in the Network! ${emoji.normal.clipart}
-		
-							**Server Name:** __${interaction.guild.name}__
-							**Member Count:** __${interaction.guild.memberCount}__`);
 
-					});
-				});
+				sendInNetwork(interaction, stripIndents`
+					A new server has joined us in the Network! ${emoji.normal.clipart}
+	
+					**Server Name:** __${interaction.guild.name}__
+					**Member Count:** __${interaction.guild.memberCount}__`);
 				return message.edit({ content: null, embeds: [await embeds.setDefault()], components: [buttons] });
 			}
 
@@ -119,16 +126,11 @@ module.exports = {
 				serverName: interaction.guild.name,
 			});
 
-			await allConnectedChannels.forEach(channelEntry => {
-				interaction.client.channels.fetch(channelEntry.channelId).then(async chan => {
-					await chan.send(stripIndents`
-						A new server has joined us in the Network! ${emoji.normal.clipart}
-	
-						**Server Name:** __${interaction.guild.name}__
-						**Member Count:** __${interaction.guild.memberCount}__`);
+			sendInNetwork(interaction, stripIndents`
+			A new server has joined us in the Network! ${emoji.normal.clipart}
 
-				});
-			});
+			**Server Name:** __${interaction.guild.name}__
+			**Member Count:** __${interaction.guild.memberCount}__`);
 		}
 
 		message.edit({ content: null, embeds: [await embeds.setDefault()], components: [buttons] });

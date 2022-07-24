@@ -2,10 +2,16 @@ const logger = require('../../logger');
 const Filter = require('bad-words'), filter = new Filter();
 const { stripIndents } = require('common-tags');
 const { normal } = require('../../emoji.json');
+const { sendInNetwork, deleteChannels } = require('../../utils');
 
 module.exports = {
 	async execute(interaction, connectedList) {
-		if (filter.isProfane(interaction.guild.name)) return interaction.reply('I have detected words in the *server name* that are potentially offensive, Please correct them before using this chat!');
+		if (filter.isProfane(interaction.guild.name)) {
+			return interaction.reply(
+				'I have detected words in the *server name* that are potentially offensive, Please correct them before using this chat!',
+			);
+		}
+
 		const findChannel = await connectedList.findOne({ channelId: interaction.channel.id });
 		const findServer = await connectedList.findOne({ serverId: interaction.guild.id });
 
@@ -14,9 +20,20 @@ module.exports = {
 			return;
 		}
 		if (findServer) {
-			// Bot crashes when channel is deleted in the same guild before disconnection [Bug]
-			const connectedChannel = await interaction.guild.channels.fetch(findServer.channelId);
-			await interaction.reply(`This server is already connected to the chat network in the channel ${connectedChannel}. Please disconnect from there first.`);
+			// [FIXED] Bot crashes when channel is deleted in the same guild before disconnection
+			// FIXME: Bot says channel is connected to undefined if its from the same server, because it is already inside
+			// the if statement, make it reset or something idk
+			let connectedChannel;
+			try {
+				connectedChannel = await interaction.guild.channels.fetch(findServer.channelId);
+			}
+			catch (err) {
+				deleteChannels(interaction.client);
+			}
+
+			await interaction.reply(
+				`This server is already connected to the chat network in the channel ${connectedChannel}. Please disconnect from there first.`,
+			);
 			return;
 		}
 
@@ -40,17 +57,11 @@ module.exports = {
 			await interaction.reply('An error occurred while connecting to the chat network.');
 		}
 
-		const allConnectedChannels = await connectedList.find({});
-
-		await allConnectedChannels.forEach(channelEntry => {
-			interaction.client.channels.fetch(channelEntry.channelId).then(async channel => {
-				await channel.send(stripIndents`
+		sendInNetwork(interaction, stripIndents`
 					A new server has joined us in the Network! ${normal.clipart}
 
 					**Server Name:** __${interaction.guild.name}__
-					**Member Count:** __${interaction.guild.memberCount}__`);
-
-			});
-		});
+					**Member Count:** __${interaction.guild.memberCount}__`,
+		);
 	},
 };

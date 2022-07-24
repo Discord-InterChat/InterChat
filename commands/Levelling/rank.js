@@ -1,7 +1,7 @@
 const Levels = require('discord-xp');
 const canvacord = require('canvacord');
 const { EmbedBuilder, SlashCommandBuilder, AttachmentBuilder } = require('discord.js');
-const { colors, cbhq } = require('../../utils');
+const { colors, mainGuilds } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -17,7 +17,7 @@ module.exports = {
 		const otheruser = interaction.options.getUser('user');
 		const target = otheruser || interaction.user;
 
-		const user = await Levels.fetch(target.id, cbhq, true);
+		const user = await Levels.fetch(target.id, mainGuilds.cbhq, true);
 		const errorEmbed = new EmbedBuilder().setDescription(`${user?.username || 'User'} doesn't have any xp.. Chat to gain some xp.`);
 
 		if (user == false) return await interaction.reply({ embeds: [errorEmbed] });

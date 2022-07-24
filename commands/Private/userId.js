@@ -5,14 +5,18 @@ module.exports = {
 		.setName('user id')
 		.setType(ApplicationCommandType.Message),
 	/**
-		 *
-		 * @param {MessageContextMenuCommandInteraction} interaction
-		 * @returns
-		 */
+	* @param {MessageContextMenuCommandInteraction} interaction
+	* @returns
+	*/
 	async execute(interaction) {
 		const args = interaction.targetMessage;
 		if (args.author.id != interaction.client.user.id) return await interaction.reply({ content: 'Invalid usage.', ephemeral: true });
-		if (!args || !args.embeds[0] || !args.embeds[0].author || !args.embeds[0].author.url) return await interaction.reply({ content: 'Invalid usage.', ephemeral: true });
+		if (!args || !args.embeds[0] || !args.embeds[0].author || !args.embeds[0].author.url) {
+			return await interaction.reply({
+				content: 'Invalid usage.',
+				ephemeral: true,
+			});
+		}
 
 		const msgAuthor = args.embeds[0].author.url.split('/');
 		const userId = msgAuthor[msgAuthor.length - 1];

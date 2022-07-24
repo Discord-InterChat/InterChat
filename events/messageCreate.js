@@ -1,6 +1,6 @@
 /* eslint-disable no-inline-comments */
 const { EmbedBuilder, Message } = require('discord.js');
-const { getDb, colors, developers, clean, cbhq } = require('../utils');
+const { getDb, colors, developers, clean, mainGuilds } = require('../utils');
 const { messageTypes } = require('../scripts/message/messageTypes');
 const wordFilter = require('../scripts/message/wordFilter');
 const logger = require('../logger');
@@ -171,9 +171,9 @@ module.exports = {
 			if (filter.isProfane(message.guild.name)) return message.channel.send('I have detected words in the server name that are potentially offensive, Please fix them before using this chat!');
 
 			const randomxp = Math.floor(Math.random() * 10) + 1;
-			const haslevelxp = await Levels.appendXp(message.author.id, cbhq, randomxp);
+			const haslevelxp = await Levels.appendXp(message.author.id, mainGuilds.cbhq, randomxp);
 			if (haslevelxp) {
-				const user = await Levels.fetch(message.author.id, cbhq);
+				const user = await Levels.fetch(message.author.id, mainGuilds.cbhq);
 				message.reply(`🎉 Congrats you just levelled up to **${user.level}**!`);
 			}
 
@@ -182,10 +182,16 @@ module.exports = {
 			const embed = new EmbedBuilder()
 				.setTimestamp()
 				.setColor(colors())
-				.setAuthor({ name: message.author.tag, iconURL: message.author.avatarURL({ dynamic: true }), url: `https://discord.com/users/${message.author.id}` })
-				.setFooter({ text: `From: ${message.guild}┃${message.guild.id}`, iconURL: message.guild.iconURL({ dynamic: true }) })
-				.addFields([
-					{ name: 'Message', value: message.content || '\u200B', inline: false }]);
+				.addFields([{ name: 'Message', value: message.content || '\u200B', inline: false }])
+				.setAuthor({
+					name: message.author.tag,
+					iconURL: message.author.avatarURL(),
+					url: `https://discord.com/users/${message.author.id}`,
+				})
+				.setFooter({
+					text: `From: ${message.guild}┃${message.guild.id}`,
+					iconURL: message.guild.iconURL(),
+				});
 
 			await require('../scripts/message/addBadges').execute(message, database, embed);
 			await require('../scripts/message/messageContentModifiers').execute(message, embed);

@@ -1,24 +1,19 @@
 const Levels = require('discord-xp');
-const { cbhq } = require('../../utils');
+const { mainGuilds } = require('../../utils');
 
 module.exports = {
+	/**
+	 *
+	 * @param {import ("discord.js").ChatInputCommandInteraction} interaction
+	 */
 	async execute(interaction) {
 		const subcommandGroup = interaction.options.getSubcommandGroup();
-		const userOpt = interaction.options.getString('user');
+		const userOpt = interaction.options.getMember('user');
 		const level = interaction.options.getInteger('level');
-
 		const user = await interaction.client.users.fetch(userOpt);
 
-		if (subcommandGroup == 'add') {
-			Levels.appendLevel(userOpt, cbhq, level);
-			interaction.reply(`I have added ${level} Level(s) to ${user.username}`);
-		}
-		else if (subcommandGroup == 'remove') {
-			Levels.subtractLevel(userOpt, cbhq, level);
-			interaction.reply(`I have removed ${level} Level(s) from ${user.username}`);
-		}
-		else if (subcommandGroup == 'set') {
-			Levels.setLevel(userOpt, cbhq, level);
+		if (subcommandGroup == 'set') {
+			Levels.setLevel(userOpt, mainGuilds.cbhq, level);
 			interaction.reply(`I have set ${level} Level(s) to ${user.username}`);
 		}
 	},

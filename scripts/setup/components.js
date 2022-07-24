@@ -18,10 +18,24 @@ module.exports = {
 			new ButtonBuilder().setCustomId('no').setLabel('No').setStyle(ButtonStyle.Danger),
 		]);
 		const selectMenu = new ActionRowBuilder().addComponents([
-			new SelectMenuBuilder().setCustomId('customize').setPlaceholder('✨ Customize Setup').addOptions([
-				{ label: 'Message Style', emoji: emoji.icons.message, description: 'Customize the way message sent by ChatBot looks', value: 'message_style' },
-				{ label: 'Profanity Filter', emoji: emoji.icons.info, description: 'Enable and disabled profanity filter for this server', value: 'profanity_toggle' },
-			]),
+			new SelectMenuBuilder()
+				.setCustomId('customize')
+				.setPlaceholder('✨ Customize Setup')
+				.addOptions([
+					{
+						label: 'Message Style',
+						emoji: emoji.icons.message,
+						description: 'Customize the way message sent by ChatBot looks',
+						value: 'message_style',
+					},
+
+					{
+						label: 'Profanity Filter',
+						emoji: emoji.icons.info,
+						description: 'Enable and disabled profanity filter for this server',
+						value: 'profanity_toggle',
+					},
+				]),
 		]);
 
 
@@ -36,8 +50,14 @@ module.exports = {
 			const status = channelInDB && isConnected ? emoji.normal.yes : emoji.normal.no;
 
 			const fields = [
-				{ name: 'Details', value: `**Connected:** ${status}\n**Channel:** ${channelInDB}\n**Last Edited:** <t:${guildInDB.date.timestamp}:R>` },
-				{ name: 'Style', value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}` }, // NOTE: change this to emoji.normal.disabled when you add the profanity filter toggler
+				{
+					name: 'Details',
+					value: `**Connected:** ${status}\n**Channel:** ${channelInDB}\n**Last Edited:** <t:${guildInDB.date.timestamp}:R>`,
+				},
+				{
+					name: 'Style',
+					value: `**Compact:** ${guildInDB.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildInDB.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}`,
+				}, // NOTE: change this to emoji.normal.disabled when you add the profanity filter toggler
 			];
 			return fields;
 		}
@@ -78,7 +98,7 @@ module.exports = {
 						});
 					}
 					catch (e) {
-						message.edit({ content: `${emoji.icons.exclamation} ${ e.message}!`, embeds: [], components: [] });
+						message.edit({ content: `${emoji.icons.exclamation} ${e.message}!`, embeds: [], components: [] });
 						logger.error(e);
 					}
 				}
@@ -90,7 +110,7 @@ module.exports = {
 				// get the latest db updates
 				const guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
-				// TODO: This had && guildinDB now it doesnt, test if it works
+				// REVIEW: This had && guildinDB now it doesnt, test if it works
 				if (i.values[0] === 'message_style') {
 					await collection.updateOne({ 'guild.id': interaction.guild.id },
 						{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), compact: !guildInDB.compact } });
