@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { checkPermissions } = require('../../utils');
+const { checkIfStaff } = require('../../utils');
 const mongoUtil = require('../../utils');
 
 module.exports = {
@@ -100,8 +100,9 @@ module.exports = {
 				),
 		),
 	async execute(interaction) {
-		const perms = await checkPermissions(interaction);
+		const perms = await checkIfStaff(interaction);
 		if (perms === 0) return;
+
 		const subCommand = interaction.options.getSubcommand();
 		const database = mongoUtil.getDb();
 		require(`../../scripts/blacklist/${subCommand}`).execute(interaction, database);

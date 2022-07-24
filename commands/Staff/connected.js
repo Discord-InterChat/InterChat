@@ -1,27 +1,17 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { checkPermissions, getDb } = require('../../utils');
+const { checkIfStaff } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('connected')
+		.setName('connected-list')
 		.setDescription('Display the connected servers. (Staff only)')
-		.setDefaultMemberPermissions('0')
-		.addStringOption(string =>
-			string
-				.setName('type')
-				.setDescription('The type of blacklist to list.')
-				.setRequired(true)
-				.addChoices(
-					{ name: 'Server', value: 'server' },
-					// { name: 'User', value: 'user' },
-				),
-		),
+		.setDefaultMemberPermissions('0'),
 
 	async execute(interaction) {
-		const perms = await checkPermissions(interaction);
+		const perms = await checkIfStaff(interaction);
 		if (perms === 0) return;
-		const database = getDb();
-		require('../../scripts/connected/server').execute(interaction, database);
+
+		require('../../scripts/connected/server').execute(interaction);
 
 	},
 };

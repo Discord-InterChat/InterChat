@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { checkPermissions } = require('../../utils');
+const { checkIfStaff } = require('../../utils');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -9,25 +9,7 @@ module.exports = {
 		.addSubcommandGroup(subcommandGroup =>
 			subcommandGroup
 				.setName('add')
-				.setDescription('Add Level/XP')
-				.addSubcommand(
-					subcommand =>
-						subcommand
-							.setName('level')
-							.setDescription('Add Level to user. Staff-only')
-							.addStringOption(user =>
-								user
-									.setName('user')
-									.setDescription('The user ID to add level.')
-									.setRequired(true),
-							)
-							.addIntegerOption(string =>
-								string
-									.setName('level')
-									.setDescription('Levels to add.')
-									.setRequired(true),
-							),
-				)
+				.setDescription('Add XP')
 				.addSubcommand(subcommand =>
 					subcommand
 						.setName('xp')
@@ -49,25 +31,7 @@ module.exports = {
 		.addSubcommandGroup(subcommandGroup =>
 			subcommandGroup
 				.setName('remove')
-				.setDescription('Remove Level/XP')
-				.addSubcommand(
-					subcommand =>
-						subcommand
-							.setName('level')
-							.setDescription('Remove Level to user. Staff-only')
-							.addStringOption(user =>
-								user
-									.setName('user')
-									.setDescription('The user ID to remove level.')
-									.setRequired(true),
-							)
-							.addIntegerOption(int =>
-								int
-									.setName('level')
-									.setDescription('Levels to remove.')
-									.setRequired(true),
-							),
-				)
+				.setDescription('Remove XP')
 				.addSubcommand(subcommand =>
 					subcommand
 						.setName('xp')
@@ -95,7 +59,7 @@ module.exports = {
 						subcommand
 							.setName('level')
 							.setDescription('Set Level to user. Staff-only')
-							.addStringOption(user =>
+							.addUserOption(user =>
 								user
 									.setName('user')
 									.setDescription('The user ID to set level.')
@@ -112,7 +76,7 @@ module.exports = {
 					subcommand
 						.setName('xp')
 						.setDescription('Set XP to user. Staff-only')
-						.addStringOption(user =>
+						.addUserOption(user =>
 							user
 								.setName('user')
 								.setDescription('The user ID to set level.')
@@ -127,7 +91,7 @@ module.exports = {
 				),
 		),
 	async execute(interaction) {
-		const perms = await checkPermissions(interaction);
+		const perms = await checkIfStaff(interaction);
 		if (perms === 0) return;
 		const subCommand = interaction.options.getSubcommand();
 		require(`../../scripts/level/${subCommand}`).execute(interaction);
