@@ -1,16 +1,14 @@
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v10');
-const fs = require('fs');
-const prompt = require('prompt');
 const { stripIndent } = require('common-tags');
-const dotenv = require('dotenv');
+const fs = require('fs');
 const logger = require('./logger');
-
-dotenv.config();
+require('dotenv').config();
 
 
 const clientID = '798748015435055134';
-const server = '818348790435020810';
+const server = process.argv[3]?.toLowerCase() || '818348790435020810';
+
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
@@ -28,10 +26,8 @@ const deployCommands = async () => {
 	});
 
 	rest.put(Routes.applicationCommands(clientID), { body: commands })
-		.then(() => {
-			logger.info('Registered all application commands successfully');
-		})
-		.catch(console.error);
+		.then(() => logger.info('Registered all application commands successfully'))
+		.catch(logger.error);
 };
 
 
@@ -54,7 +50,9 @@ const deployStaffCommands = async () => {
 
 	rest.put(Routes.applicationGuildCommands(clientID, server), { body: commands })
 		.then(() => {
-			logger.info('Registered Staff application commands for \u001b[35mChatBot HQ\u001b[0m successfully');
+			const guild = rest.get(Routes.guild(server))
+				.then(res => {return res.name;})
+				.then(name => logger.info(`Registered Staff application commands for \u001b[35m${name}\u001b[0m successfully`));
 		})
 		.catch(logger.error);
 };
@@ -62,16 +60,6 @@ const deployStaffCommands = async () => {
 
 // create a CLI prompt for deployment
 const args = process.argv[2]?.toLowerCase();
-const help = stripIndent`
-Deploy Commands -
-	Usage:
-		deploy [--staff | -s]
-		deploy [--all | -all | --a | -a]
-		deploy [--help | -help | --h | -h]
-	Options:
-		-h, --help    Show this help message and exit.
-		-a, --all     Deploy both public and private commands.
-		-s, --staff   Deploy private commands.`;
 
 switch (args) {
 case '--staff':
@@ -79,21 +67,19 @@ case '-s':
 	deployStaffCommands();
 	break;
 
-case '--all':
-case '-all':
-case '--a':
-case '-a':
-	prompt.start();
-	logger.warn('Are you sure you want to deploy all commands? This will overwrite all commands and make private commands visible to every server. (y/n)');
-	prompt.get(['y/n'], (err, result) => {
-		result['y/n'] === 'y' ? deployCommands() && deployStaffCommands() : logger.error('\n\033[31;1;4mDeployment aborted.\033[0m');
-	});
-	break;
 case '--help':
 case '-help':
 case '--h':
 case '-h':
-	logger.info(help);
+	logger.info(stripIndent`
+	Deploy Commands -
+		Usage:
+			deploy [--staff | -s] [guildId]
+			deploy [--help | -help | --h | -h] [guildId]
+		Options:
+			-h, --help    Show this help message and exit.
+			-s, --staff   Deploy private commands.
+			[guildId] - The guild ID to deploy to.`);
 	break;
 
 case undefined:
@@ -101,6 +87,6 @@ case undefined:
 	break;
 
 default:
-	logger.info('Invalid argument provided. Please use \u001B[40;5;31mdeploy --help\u001B[0m for more information.');
+	logger.error('Invalid argument provided. Please use \u001B[40;5;31mdeploy --help\u001B[0m for more information.');
 }
 
