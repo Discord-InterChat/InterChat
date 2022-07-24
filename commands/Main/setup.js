@@ -3,6 +3,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const { EmbedBuilder, ChatInputCommandInteraction, PermissionFlagsBits } = require('discord.js');
 const { getDb } = require('../../utils');
 const emoji = require('../../emoji.json');
+const logger = require('../../logger');
 
 
 module.exports = {
@@ -71,8 +72,8 @@ module.exports = {
 		const message = await interaction.fetchReply(); // Maybe consider using interaction.editReply() (add fetchReply: true in the initial reply)
 
 		// collectors and main setup function
-		require('../../scripts/setup/init').execute(interaction, embeds, message, setupList, connectedList).catch(console.error);
-		require('../../scripts/setup/components').execute(interaction, message, setupList, embeds, connectedList).catch(console.error);
+		require('../../scripts/setup/init').execute(interaction, embeds, message, setupList, connectedList).catch(logger.error);
+		require('../../scripts/setup/components').execute(interaction, message, setupList, embeds, connectedList).catch(logger.error);
 	},
 };
 

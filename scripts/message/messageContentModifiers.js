@@ -1,3 +1,5 @@
+const logger = require('../../logger');
+
 module.exports = {
 	async execute(message, embed) {
 
@@ -19,7 +21,7 @@ module.exports = {
 				]);
 			}
 			catch (e) {
-				console.error(e);
+				logger.error(e);
 			}
 		}
 
@@ -38,7 +40,7 @@ module.exports = {
 				.then(res => res.json())
 				.then(json => embed.setImage(json.results[0].media[0].gif.url))
 				.then(embed.setFields([{ name: 'Message ', value: message.content.replace(gif[0], '\u200B').trim() }]))
-				.catch(console.error);
+				.catch(logger.error);
 		}
 
 	},
