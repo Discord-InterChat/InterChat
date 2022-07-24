@@ -1,6 +1,7 @@
 const { ActionRowBuilder, SelectMenuBuilder, EmbedBuilder, ChatInputCommandInteraction, Guild } = require('discord.js');
 const { stripIndents } = require('common-tags');
-const { normal, icons } = require('../../emoji.json');
+const { icons } = require('../../emoji.json');
+const { getDb } = require('../../utils');
 
 module.exports = {
 	/**
@@ -9,13 +10,15 @@ module.exports = {
 	 * @returns
 	 */
 	async execute(interaction, option) {
-		let found = {};
-		let fetched;
+		const found = interaction.client.guilds.cache.filter(e => { return e.name.toLowerCase().includes(option.toLowerCase());});
+		const database = getDb();
+		const collection = database.collection('connectedList');
 
-		found = interaction.client.guilds.cache.filter(e => { return e.name.toLowerCase().includes(option.toLowerCase());});
+		let fetched;
 
 		if (found.size === 0) {
 			try {
+				// if provided option contains a snowflake (guild id), try to fetch the guild
 				fetched = await interaction.client.guilds.fetch(option);
 			}
 			catch {
@@ -24,17 +27,16 @@ module.exports = {
 		}
 
 
-		const embedGen = (guild, owner) => {
+		const embedGen = async (guild, owner) => {
+			const guildInDb = await collection.findOne({ serverId: guild.id });
 			return new EmbedBuilder()
 				.setAuthor({ name: guild.name, iconURL: guild.iconURL() })
 				.setColor('#2F3136')
 				.addFields([
 					{ name: 'Server Info', value: stripIndents`\n
                     ${icons.owner} **Owner:** ${owner.username}#${owner.discriminator}
-                    ${icons.join} **Member Count:** ${guild.memberCount}
-                    ${normal.neutral} **Connected: soon**
-                    ${normal.neutral} **Network level: soon**
-                    ` }]);
+                    ${icons.members} **Member Count:** ${guild.memberCount}
+                    ${guildInDb ? icons.connect : icons.disconnect} **Connected: ${guildInDb ? 'Yes' : 'No'}**` }]);
 		};
 
 		// send the only result if there is one
@@ -53,26 +55,43 @@ module.exports = {
 			const embed = new EmbedBuilder()
 				.setTitle('Did you mean?')
 				.setColor('#2F3136')
-				.setDescription(found.map(e => e.name).join('\n'));
+				.setDescription(found.map(e => e.name).slice(1, 11).join('\n'));
 
 			const filter = m => m.user.id == interaction.user.id;
 
-			const msg = await interaction.reply({ embeds: [embed], components: [menu], ephemeral: true, fetchReply: true });
+			const msg = await interaction.reply({
+				embeds: [embed],
+				components: [menu],
+				ephemeral: true,
+				fetchReply: true,
+			});
 
-			const collector = msg.createMessageComponentCollector({ filter, idle: 30 * 1000, max: found.size });
+			const collector = msg.createMessageComponentCollector({
+				filter,
+				idle: 30 * 1000,
+				max: found.size,
+			});
 
 
 			collector.on('collect', async (i) => {
 				const selected = found.find(f => f.name === i.values[0]);
 				const owner = await interaction.client.users.fetch(selected.ownerId);
-				return interaction.editReply({ content: selected.id, embeds: [embedGen(selected, owner)], components: [], ephemeral: true });
+				return interaction.editReply({
+					content: selected.id,
+					embeds: [await embedGen(selected, owner)],
+					components: [],
+					ephemeral: true,
+				});
 			});
 		}
 
 		else {
 			const server = found.size === 0 ? fetched : found.entries().next().value[1];
 			const owner = await interaction.client.users.fetch(server.ownerId);
-			return await interaction.reply({ embeds: [embedGen(server, owner)], ephemeral: true });
+			return await interaction.reply({
+				embeds: [await embedGen(server, owner)],
+				ephemeral: true,
+			});
 		}
 	},
 };

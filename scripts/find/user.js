@@ -1,7 +1,8 @@
 const { ActionRowBuilder, SelectMenuBuilder, EmbedBuilder, ChatInputCommandInteraction, User } = require('discord.js');
 const { stripIndents } = require('common-tags');
 const { normal, icons } = require('../../emoji.json');
-
+const Levels = require('discord-xp');
+const { mainGuilds } = require('../../utils');
 
 module.exports = {
 	/**
@@ -10,10 +11,8 @@ module.exports = {
 	 * @returns
 	 */
 	async execute(interaction, option) {
-		let found = {};
+		let found = interaction.client.users.cache.filter(e => { return e.tag.toLowerCase().includes(option.toLowerCase());});
 		let fetched;
-
-		found = interaction.client.users.cache.filter(e => { return e.username.toLowerCase().includes(option.toLowerCase());});
 
 		if (found.size === 0) {
 
@@ -30,7 +29,7 @@ module.exports = {
 		}
 
 		// FIXME
-		const embedGen = (user) => {
+		const embedGen = async (user) => {
 			return new EmbedBuilder()
 				.setAuthor({ name: user.tag, iconURL: user.avatarURL() })
 				.setColor('#2F3136')
@@ -38,9 +37,8 @@ module.exports = {
 					{ name: 'User Info', value: stripIndents`\n
                     ${icons.id} **ID:** ${user.id}
                     ${icons.mention} **Tag:** ${user.tag}
-                    ${normal.neutral} **Level: soon**
-                    ${normal.neutral} **Owns a Server With ChatBot: soon**
-                    ` }]);
+                    ${icons.activities} **Level**: ${(await Levels.fetch(user.id, mainGuilds.cbhq)).level || 0}
+                    ${normal.neutral} **Owns a Server With ChatBot: soon**` }]);
 		};
 
 		// send the only result if there is one
@@ -62,24 +60,42 @@ module.exports = {
 			const embed = new EmbedBuilder()
 				.setTitle('Did you mean?')
 				.setColor('#2F3136')
-				.setDescription(found.map(e => e.tag).join('\n'));
+				.setDescription(found.map(e => e.tag).slice(1, 11).join('\n'));
 
 			const filter = m => m.user.id == interaction.user.id;
 
-			const msg = await interaction.reply({ embeds: [embed], components: [menu], ephemeral: true, fetchReply: true });
+			const msg = await interaction.reply({
+				embeds: [embed],
+				components: [menu],
+				ephemeral: true,
+				fetchReply: true,
+			});
 
-			const collector = msg.createMessageComponentCollector({ filter, idle: 30 * 1000, max: found.size });
+			const collector = msg.createMessageComponentCollector({
+				filter,
+				idle: 30 * 1000,
+				max: found.size,
+			});
 
 
 			collector.on('collect', async (i) => {
 				const user = await interaction.client.users.fetch(i.values[0]);
-				return interaction.editReply({ content: user.id, embeds: [embedGen(user)], components: [], ephemeral: true });
+				return interaction.editReply({
+					content: user.id,
+					embeds: [await embedGen(user)],
+					components: [],
+					ephemeral: true,
+				});
 			});
 		}
 
 		else {
 			const user = found.size === 0 ? fetched : found.entries().next().value[1];
-			return await interaction.reply({ content: user.id, embeds: [embedGen(user)], ephemeral: true });
+			return await interaction.reply({
+				content: user.id,
+				embeds: [await embedGen(user)],
+				ephemeral: true,
+			});
 		}
 	},
 };
