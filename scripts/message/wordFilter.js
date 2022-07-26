@@ -26,7 +26,7 @@ module.exports = {
 			const filtered = prof_filter.clean(message.content).replaceAll('*', '\\*');
 
 			// log the real message to logs channel
-			module.exports.log(message);
+			module.exports.log(message, '1000730718474875020');
 
 			// return the new filtered message
 			return filtered;
@@ -34,14 +34,19 @@ module.exports = {
 		}
 		catch {/**/}
 	},
-
-	async log(message) {
-		const logChan = await message.client.channels.fetch('976099224611606588');
+	/**
+	 * Logs the *uncensored* message to a channel.
+	 * @param {Message} message Message that needs to be logged
+	 * @param {string} channelId The channel id of the logs channel
+	 */
+	async log(message, channelId) {
+		const rawContent = message.content;
+		const logChan = await message.client.channels.fetch(channelId);
 		const filterEmbed = new EmbedBuilder()
 			.setAuthor({ name: `${message.client.user.username} logs`, iconURL: message.client.user.avatarURL() })
 			.setTitle('Bad Word Detected')
 			.setColor(colors('chatbot'))
-			.setDescription(`||${message.content}||\n\n**Author:** \`${message.author.tag}\` (${message.author.id})\n**Server:** ${message.guild.name} (${message.guild.id})`);
+			.setDescription(`||${rawContent}||\n\n**Author:** \`${message.author.tag}\` (${message.author.id})\n**Server:** ${message.guild.name} (${message.guild.id})`);
 		await logChan.send({ embeds: [filterEmbed] });
 	},
 };

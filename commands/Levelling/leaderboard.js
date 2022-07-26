@@ -20,7 +20,10 @@ module.exports = {
 		const leaderArr = [];
 		leaderboard.map((e) => {
 			const postition = e.position === 1 ? '🥇' : e.position === 2 ? '🥈' : e.position === 3 ? '🥉' : `${e.position}.`;
-			leaderArr.push({ name: `\`${postition}\` ${e.username}#${e.discriminator}`, value: `Level: ${e.level}\nXP: ${e.xp.toLocaleString()}\n` });
+			leaderArr.push({
+				name: `\`${postition}\` ${e.username}#${e.discriminator}`,
+				value: `Level: ${e.level}\nXP: ${e.xp.toLocaleString()}\n`,
+			});
 		});
 
 		const leaderboardEmbed = new EmbedBuilder()

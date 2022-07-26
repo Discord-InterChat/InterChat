@@ -61,15 +61,19 @@ module.exports = {
 								.setColor('#60ec11');
 
 							interaction.member.send({ embeds: [approveEmbed] });
+							row.components.pop();
+							row.components[0].setDisabled(true).setLabel('Approved');
 							return reviewCollector.stop();
 						}
 						else {
 							interaction.member.send(`Your suggestion **${suggestion.split(' ').slice(0, 4).join(' ')}...** has been rejected. If you have any questions please join the support server.\n**Common Reasons:** Already exists, inappropriate word/image usage.`);
+							row.components.shift();
+							row.components[0].setDisabled(true).setLabel('Denied');
 							return reviewCollector.stop();
 						}
 					});
 					reviewCollector.on('end', () => {
-						reviewMessage.edit({ content: `${icons.info} Suggestion reviewed by **${i.user.tag}**!`, components: [] });
+						reviewMessage.edit({ content: `${icons.info} Suggestion reviewed by **${i.user.tag}**!`, components: [row] });
 					});
 
 

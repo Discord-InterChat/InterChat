@@ -11,6 +11,7 @@ module.exports = {
 		.setName('setup')
 		.setDescription('Set me up to receive messages from a channel.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels) // REVIEW: Importing this from discord.js now it was discord-api-typs/v10 before
+		.setDMPermission(false)
 		.addChannelOption(channelOption => channelOption
 			.setName('destination')
 			.setRequired(false)

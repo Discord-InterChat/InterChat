@@ -30,6 +30,7 @@ module.exports = {
 			.setCurrentXP(user.xp).setLevel(user.level || 0)
 			.setRequiredXP(neededxp).setRank(user.position)
 			.setProgressBar(colors('chatbot'), 'COLOR')
+			.setCustomStatusColor(colors('chatbot'))
 			.setUsername(target.username)
 			.setDiscriminator(target.discriminator);
 

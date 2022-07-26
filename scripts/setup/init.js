@@ -83,7 +83,9 @@ module.exports = {
 					});
 				}
 				catch {
-					return message.edit(`${emoji.normal.no} Please make sure I have the following permissions: \`Manage Channels\`, \`Manage Users\` for this command to work!`);
+					return message.edit(
+						`${emoji.normal.no} Please make sure I have the following permissions: \`Manage Channels\`, \`Manage Users\` for this command to work!`,
+					);
 				}
 
 				// Inserting the newly created channel to setup and connectedlist

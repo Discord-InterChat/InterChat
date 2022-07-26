@@ -15,9 +15,13 @@ module.exports = {
 
 		// if bot is run using dev command (npm run dev) then deploy commands to known test servers
 		if (process.env.DEV) {
-			client.guilds.fetch(mainGuilds.botTest).then(guild => { guild.commands.set(client.commands.map(cmd => cmd.data));});
-			client.guilds.fetch(mainGuilds.cbTest).then(guild => { guild.commands.set(client.commands.map(cmd => cmd.data));});
-			logger.warn('Bot is in development mode. (/) Loading commands to development guilds...');
+			logger.warn('Bot is in development mode.');
+
+			Object.values(mainGuilds)
+				.forEach(element => client.guilds.fetch(element)
+					.then(guild => {return guild.commands.set(client.commands.map(cmd => cmd.data));})
+					.then(() => logger.info('(/) Loaded all application commands to test guilds.'))
+					.catch(logger.error));
 		}
 
 		/* FIXME: Uncomment this when on main CB

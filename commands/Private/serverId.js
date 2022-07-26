@@ -11,8 +11,12 @@ module.exports = {
 		 */
 	async execute(interaction) {
 		const args = interaction.targetMessage;
-		if (args.author.id != interaction.client.user.id) return await interaction.reply({ content: 'Invalid usage.', ephemeral: true });
-		if (!args || !args.embeds[0] || !args.embeds[0].footer) return await interaction.reply({ content: 'Invalid usage.', ephemeral: true });
+		if (!args || !args.embeds[0] || !args.embeds[0].footer || args.author.id != interaction.client.user.id) {
+			return await interaction.reply({
+				content: 'Invalid usage.',
+				ephemeral: true,
+			});
+		}
 
 		const msgfooter = args.embeds[0].footer.text.split('┃');
 		const serverId = msgfooter[msgfooter.length - 1];

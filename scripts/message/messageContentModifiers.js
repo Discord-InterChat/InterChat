@@ -1,3 +1,4 @@
+const fetch = require('node-fetch');
 const logger = require('../../logger');
 
 module.exports = {
@@ -27,19 +28,17 @@ module.exports = {
 
 
 		const tenorRegex = /https:\/\/tenor\.com\/view\/.*-(\d+)/;
-		const isTenor = tenorRegex.test(message.content); // pretty much the same thing .match() does but returns boolian
-		if (isTenor) {
-			const fetch = require('node-fetch');
+		const gifMatch = message.content.match(tenorRegex);
 
-			const gif = message.content.match(tenorRegex);
-			const n = gif[0].split('-');
+		if (gifMatch) {
+			const n = gifMatch[0].split('-');
 			const id = n[n.length - 1];
 			const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=957PTLK8CNC0`;
 
 			fetch(api)
 				.then(res => res.json())
 				.then(json => embed.setImage(json.results[0].media[0].gif.url))
-				.then(embed.setFields([{ name: 'Message ', value: message.content.replace(gif[0], '\u200B').trim() }]))
+				.then(embed.setFields([{ name: 'Message ', value: message.content.replace(gifMatch[0], '\u200B').trim() }]))
 				.catch(logger.error);
 		}
 

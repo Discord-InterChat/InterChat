@@ -65,7 +65,12 @@ module.exports = {
 				let componentShort = i.fields.getTextInputValue('short');
 
 				if (i.customId === 'modal_user') {
-					if (/^[0-9]*$/gm.test(componentShort) == false) {return i.reply({ content: 'Please only provide a **User ID**. To see how to get user ID\'s please refer [this post](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-). Or you could also directly get it from chatbot messages [image:](https://imgur.com/a/w93gxgu)', ephemeral: true });}
+					if (/^[0-9]*$/gm.test(componentShort) == false) {
+						return i.reply({
+							content: 'Please only provide a **User ID**. To see how to get user ID\'s please refer [this post](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-). Or you could also directly get it from chatbot messages [image:](https://imgur.com/a/w93gxgu)',
+							ephemeral: true,
+						});
+					}
 
 					try {
 						const user = await interaction.client.users.fetch(componentShort);

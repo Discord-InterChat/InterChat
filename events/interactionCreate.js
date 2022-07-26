@@ -45,9 +45,14 @@ module.exports = {
 
 		if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
 			// Basic perm check, it wont cover all bugs
-			if (interaction.guild && !interaction.guild.members.me.permissionsIn(interaction.channel).has('SendMessages') && !interaction.guild.members.me.permissionsIn(interaction.channel).has('EMBED_LINKS')) {
+			if (
+				interaction.guild &&
+				!interaction.guild.members.me.permissionsIn(interaction.channel).has('SendMessages') &&
+				!interaction.guild.members.me.permissionsIn(interaction.channel).has('EmbedLinks')
+			) {
 				return interaction.reply({
-					content: 'I do not have the right permissions in this server to function properly! Please either re-invite me or grant me the right permissions.',
+					content:
+            'I do not have the right permissions in this server to function properly! Please either re-invite me or grant me the right permissions.',
 					ephemeral: true,
 				});
 			}

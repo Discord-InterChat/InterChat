@@ -59,20 +59,25 @@ fs.readdirSync('./commands').forEach((dir) => {
 			const command = require(`./commands/${dir}/${commandFile}`);
 			client.commands.set(command.data.name, command);
 		}
-		if (dir === 'private' || dir === 'TopGG') return;
+
+		const IgnoredDirs = ['Private', 'TopGG'];
+		if (IgnoredDirs.includes(dir)) return;
+
 		const cmds = commandFiles.map((command) => {
 			const file = (require(`./commands/${dir}/${command}`));
-			if (!file.data.name) return 'No name';
 
-			const name = file.data.name.replace('.js', '');
+			const name = file.data.name?.replace('.js', '') || 'No name';
 
 			return `\`${name}\``;
 		});
-		const data = {
+
+
+		client.help.push({
 			name: dir,
 			value: cmds.length === 0 ? 'No commands' : cmds.join(', '),
-		};
-		client.help.push(data);
+		});
+
+
 	}
 });
 
@@ -93,8 +98,6 @@ for (const eventFile of eventFiles) {
 // use this function in /network connect when it errors
 // or use it in setup.js when it errors
 // TODO: Add disconnect and reconnect buttons to the setup.js page
-
-// setInterval(deleteChannels, 60 * 60 * 1000);
 
 
 process.on('uncaughtException', function(err) {

@@ -12,8 +12,6 @@ let _db;
 
 
 module.exports = {
-	topgg: topgg,
-
 	colors: (type = 'random') => {
 		const colorType = {
 			random: [
@@ -57,7 +55,12 @@ module.exports = {
 	choice: (arr) => {
 		return arr[Math.floor(Math.random() * arr.length)];
 	},
-	// Example: 'string'.toTitleCase()
+
+
+	/**
+	 * @example const { toTitleCase } = require('./utils');
+	 * console.log('hello'.toTitleCase()); // Hello
+	 */
 	toTitleCase: function() {
 		let upper = true;
 		let newStr = '';
@@ -88,6 +91,8 @@ module.exports = {
 			}
 		}
 	},
+
+	topgg: topgg,
 	developers: [736482645931720765n, 828492978716409856n, 748190663597883392n, 701727675311587358n, 827745783964499978n], // makiyu, nik, genz, dev, supreme 828492978716409856n, 701727675311587358n, 526616688091987968n, 336159680244219905n, 808168843352080394n, 736482645931720765n
 	staff: [442653948630007808n, 336159680244219905n],
 	mainGuilds: { cbhq: '770256165300338709', cbTest: '969920027421732874', botTest: '818348790435020810' },
@@ -155,17 +160,23 @@ module.exports = {
 	 * @param {ChatInputCommandInteraction} interaction
 	 * @param {EmbedBuilder[]} pages
 	 * @param {Number} time
-	 * @param {Object} emojis
 	 */
-	paginate: async (interaction, pages, emojis, time = 60000) => {
-		if (!typeof emojis === Object) throw new Error('emojis must be an object containing: next, exit, back');
+	paginate: async (interaction, pages,
+		buttons =
+		{
+			back: emoji.icons.back,
+			exit: emoji.icons.delete,
+			next: emoji.icons.next,
+		},
+		time = 60000) => {
+		if (!typeof buttons === Object) throw new Error('buttons must be an object containing: next, exit, back');
 		if (!interaction || !pages || !(pages?.length > 0) || !(time > 10000)) throw new Error('Invalid Parameters');
 
 		// eslint-disable-next-line prefer-const
 		let index = 0, row = new ActionRowBuilder().addComponents([
-			new ButtonBuilder().setEmoji(emojis?.back || emoji.icons.back).setCustomId('1').setStyle(ButtonStyle.Secondary).setDisabled(true),
-			new ButtonBuilder().setEmoji(emojis?.exit || emoji.icons.delete).setCustomId('3').setStyle(ButtonStyle.Danger),
-			new ButtonBuilder().setEmoji(emojis?.next || emoji.icons.next).setCustomId('2').setStyle(ButtonStyle.Secondary).setDisabled(pages.length <= index + 1),
+			new ButtonBuilder().setEmoji(buttons.back).setCustomId('1').setStyle(ButtonStyle.Secondary).setDisabled(true),
+			new ButtonBuilder().setEmoji(buttons.exit).setCustomId('3').setStyle(ButtonStyle.Danger),
+			new ButtonBuilder().setEmoji(buttons.next).setCustomId('2').setStyle(ButtonStyle.Secondary).setDisabled(pages.length <= index + 1),
 		]);
 
 		let pagenumber = 0;
@@ -193,9 +204,9 @@ module.exports = {
 
 
 			row.setComponents([
-				new ButtonBuilder().setEmoji(emojis?.back || emoji.icons.back).setStyle(ButtonStyle.Secondary).setCustomId('1').setDisabled(index === 0),
-				new ButtonBuilder().setEmoji(emojis?.exit || emoji.icons.delete).setStyle(ButtonStyle.Danger).setCustomId('3'),
-				new ButtonBuilder().setEmoji(emojis?.next || emoji.icons.next).setStyle(ButtonStyle.Secondary).setCustomId('2').setDisabled(index === pages.length - 1),
+				new ButtonBuilder().setEmoji(buttons.back).setStyle(ButtonStyle.Secondary).setCustomId('1').setDisabled(index === 0),
+				new ButtonBuilder().setEmoji(buttons.exit).setStyle(ButtonStyle.Danger).setCustomId('3'),
+				new ButtonBuilder().setEmoji(buttons.next).setStyle(ButtonStyle.Secondary).setCustomId('2').setDisabled(index === pages.length - 1),
 			]);
 
 			try {pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });}
@@ -207,6 +218,8 @@ module.exports = {
 			});
 		});
 	},
+
+
 	clean: async (client, text) => {
 		// If our input is a promise, await it before continuing
 		if (text && text.constructor.name == 'Promise') text = await text;
@@ -233,13 +246,12 @@ module.exports = {
 	},
 
 	/**
-	 *
+	 * Delete channels that chatbot doesn't have access to
 	 * @param {import 'discord.js'.Client} client
 	 * @returns
 	 */
-	// function for deleting channels that chatbot doesn't have access to
 	deleteChannels: async (client) => {
-		const database = module.exports.getDb();
+		const database = _db;
 		const connectedList = database.collection('connectedList');
 		const channels = await connectedList.find().toArray();
 
@@ -269,7 +281,7 @@ module.exports = {
 	 * @param {String} message
 	 */
 	sendInNetwork: async (interaction, message) => {
-		const database = module.exports.getDb();
+		const database = _db;
 		const connectedList = database.collection('connectedList');
 		const channels = await connectedList.find().toArray();
 

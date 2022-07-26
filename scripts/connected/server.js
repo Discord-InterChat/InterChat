@@ -12,7 +12,7 @@ module.exports = {
 		const searchCursor = await connectedList.find();
 		const result = await searchCursor.toArray();
 
-		if (result.length === 0) return interaction.reply(`No connected servers yet ${normal.bruhcat} `);
+		if (result.length === 0) return interaction.reply(`No connected servers yet ${normal.bruhcat}`);
 
 		const embeds = [];
 		let itemsPerPage = 5;
@@ -26,7 +26,8 @@ module.exports = {
 
 			const fields = current.map(value => {
 				return {
-					name: `${++j}. ${value.serverName}`, value: `ServerID: ${value.serverId}\nChannel: ${value.channelName} \`(${value.channelId})\``,
+					name: `${++j}. ${value.serverName}`,
+					value: `ServerID: ${value.serverId}\nChannel: ${value.channelName} \`(${value.channelId})\``,
 				};
 			});
 
@@ -36,6 +37,7 @@ module.exports = {
 				.setFields(fields);
 			embeds.push(embed);
 		}
+
 		return paginate(interaction, embeds);
 
 
