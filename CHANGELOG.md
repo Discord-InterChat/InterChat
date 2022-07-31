@@ -51,7 +51,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 * Fix join message not showing using setup ([27328f4](https://github.com/dev-737/ChatBot-Beta/commit/27328f49dfb397aba3e5d9dace04e7278446a78d))
 * Add dynamic status update + new error message ([132ee2e](https://github.com/dev-737/ChatBot-Beta/commit/132ee2e893f94f948f16673a31d745c5cc8c0605))
-* Add icons category to emoji.json ([b1e55f6](https://github.com/dev-737/ChatBot-Beta/commit/b1e55f6bebedc46d44bdd8dc6cb499e08119c8db))
+* Add icons category to utils/emoji.json ([b1e55f6](https://github.com/dev-737/ChatBot-Beta/commit/b1e55f6bebedc46d44bdd8dc6cb499e08119c8db))
 
 ## [1.4.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.3.1...v1.4.0) (2022-06-30)
 

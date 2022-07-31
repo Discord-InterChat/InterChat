@@ -40,8 +40,8 @@ the "Comment Anchor" extension to highlight them in VS-Code.
 
 * [ ] A full documentation on gitbook instead of a gist
 * [ ] New web dashboard for the bot
-* [ ] Privacy Policy & Terms Of Service page
-* [ ] Updated rules for better moderation of the bot
+* [-] Privacy Policy & Terms Of Service page
+* [-] Updated rules for better moderation of the bot
 
 ## How to Deploy Slash Commands
 
