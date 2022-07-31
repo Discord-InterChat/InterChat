@@ -1,3 +1,4 @@
+// TODO: Remove this file from Developer folder
 const { ContextMenuCommandBuilder, ApplicationCommandType } = require('discord.js');
 
 module.exports = {

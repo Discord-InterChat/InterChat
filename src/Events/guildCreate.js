@@ -36,13 +36,13 @@ module.exports = {
 					const user = await guild.client.users.fetch(filtered.user.id);
 					try {
 						await user.send(
-							`Unfortunately, the name of the server **${guild.name}** violates the ChatBot guidelines, therefore I must leave until it is corrected.`,
+							`The name of the server **${guild.name}** violates the ChatBot guidelines, therefore I must leave until it is corrected.`,
 						);
 					}
 					catch {
 						await sendInFirst(
 							guild,
-							'Unfortunately, the name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.',
+							'The name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.',
 						);
 					}
 					await guild.leave();
@@ -50,7 +50,7 @@ module.exports = {
 				.catch(async () => {
 					await sendInFirst(
 						guild,
-						'Unfortunately, the name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.',
+						'The name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.',
 					);
 					await guild.leave();
 				});

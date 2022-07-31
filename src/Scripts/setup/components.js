@@ -125,7 +125,6 @@ module.exports = {
 
 		});
 
-		// removing components from message when finished, idk how to disable them so...
 		collector.on('end', async () => {
 			await message.edit({ components: [] })
 				.catch(() => {return;});

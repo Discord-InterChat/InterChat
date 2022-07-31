@@ -13,7 +13,7 @@ let _db;
 module.exports = {
 	/**
 	 *
-	 * @param {'random'|'chatbot'|'invisible'} type
+	 * @param {'random'|'chatbot'|'invisible'|undefined} type
 	 */
 	colors: (type = 'random') => {
 		const colorType = {
@@ -54,7 +54,9 @@ module.exports = {
 			invisible: '#2F3136',
 		};
 
-		return type === 'chatbot' ? colorType.chatbot : module.exports.choice(colorType.random);
+		// return the color type or a random color from the list
+		return type === 'chatbot' ? colorType.chatbot : type === 'invisible' ? colorType.invisible :
+			module.exports.choice(colorType.random);
 	},
 	choice: (arr) => {
 		return resolveColor(arr[Math.floor(Math.random() * arr.length)]);

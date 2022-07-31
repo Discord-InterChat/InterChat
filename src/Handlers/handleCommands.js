@@ -12,6 +12,7 @@ module.exports.loadCommands = async (client, reload = false) => {
 				client.commands.set(command.data.name, command);
 			}
 
+			// loading the help command
 			const IgnoredDirs = ['Developer', 'TopGG'];
 			if (IgnoredDirs.includes(dir)) return;
 
