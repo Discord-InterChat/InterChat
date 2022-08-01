@@ -1,6 +1,6 @@
 const logger = require('../logger');
-const { MongoClient } = require('mongodb');
-const { resolveColor, Message, ContextMenuCommandInteraction, ChatInputCommandInteraction, MessageContextMenuCommandInteraction, UserContextMenuCommandInteraction, Client } = require('discord.js');
+const { MongoClient, Db } = require('mongodb');
+const { resolveColor, Message, ContextMenuCommandInteraction, ChatInputCommandInteraction, MessageContextMenuCommandInteraction, UserContextMenuCommandInteraction, Client, ChannelType, Guild } = require('discord.js');
 const { Api } = require('@top-gg/sdk');
 require('dotenv').config();
 
@@ -62,11 +62,16 @@ module.exports = {
 		return resolveColor(arr[Math.floor(Math.random() * arr.length)]);
 	},
 
+	/**
+	 * Send a message to a guild
+	 * @param {Guild} guild
+	 * @param {Message} message
+	 */
 	sendInFirst: async (guild, message) => {
 		const channels = await guild.channels.fetch();
 		for (const channel of channels) {
-			if (channel[1].type == 'GuildText') {
-				if (channel[1].permissionsFor(guild.me).has('SendMessages')) {
+			if (channel[1].type == ChannelType.GuildText) {
+				if (channel[1].permissionsFor(guild.members.me).has('SendMessages')) {
 					try {
 						await channel[1].send(message);
 						break;
@@ -108,6 +113,10 @@ module.exports = {
 			return callback(err);
 		});
 	},
+	/**
+	 * Returns the database
+	 * @returns {Db}
+	 */
 	getDb: () => {
 		return _db;
 	},
