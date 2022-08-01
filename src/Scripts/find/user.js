@@ -26,8 +26,16 @@ module.exports = {
 			}
 		}
 
+
 		// FIXME
 		const embedGen = async (user) => {
+			const owns = [];
+			interaction.client.guilds.cache.forEach((guild) => {
+				if (guild.ownerId == user.id) {
+					owns.push(guild.name);
+				}
+			});
+
 			return new EmbedBuilder()
 				.setAuthor({ name: user.tag, iconURL: user.avatarURL() })
 				.setColor('#2F3136')
@@ -39,7 +47,7 @@ module.exports = {
                     ${icons.id} **ID:** ${user.id}
                     ${icons.mention} **Tag:** ${user.tag}
                     ${icons.activities} **Level**: ${(await Levels.fetch(user.id, mainGuilds.cbhq)).level || 0}
-                    ${normal.neutral} **Owner Of: soon**`,
+                    ${icons.owner} **Owns**: ${owns.length === 0 ? 'Not a server owner' : owns.join(', ')}`,
 					},
 				]);
 		};

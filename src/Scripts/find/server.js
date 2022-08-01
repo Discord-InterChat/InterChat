@@ -1,6 +1,6 @@
 const { ActionRowBuilder, SelectMenuBuilder, EmbedBuilder } = require('discord.js');
 const { stripIndents } = require('common-tags');
-const { icons } = require('../../utils/emoji.json');
+const emojis = require('../../utils/emoji.json');
 const { getDb } = require('../../utils/functions/utils');
 
 module.exports = {
@@ -28,10 +28,19 @@ module.exports = {
 				.setAuthor({ name: guild.name, iconURL: guild.iconURL() })
 				.setColor('#2F3136')
 				.addFields([
-					{ name: 'Server Info', value: stripIndents`\n
-                    ${icons.owner} **Owner:** ${owner.username}#${owner.discriminator}
-                    ${icons.members} **Member Count:** ${guild.memberCount}
-                    ${guildInDb ? icons.connect : icons.disconnect} **Connected: ${guildInDb ? 'Yes' : 'No'}**` }]);
+					{
+						name: 'Server Info',
+						value: stripIndents`\n
+                    	${emojis.icons.owner} **Owner:** ${owner.username}#${owner.discriminator} (${owner.id})
+                    	${emojis.icons.members} **Member Count:** ${guild.memberCount}`,
+					},
+					{
+						name: 'Network Info',
+						value: stripIndents`\n
+						${guildInDb ? emojis.icons.connect : emojis.icons.disconnect} **Connected: ${guildInDb ? 'Yes' : 'No'}**
+						${emojis.normal.clipart} **Channel: ${guildInDb?.channelName || 'Not Connected'} (\`${guildInDb?.channelId || ':('}\`)**`,
+					},
+				]);
 		};
 
 		// send the only result if there is one
