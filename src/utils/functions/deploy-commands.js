@@ -9,8 +9,8 @@ const discordIds = require('../discordIds.json');
 require('dotenv').config();
 
 
-const clientID = process.argv[4] == '--beta' ? discordIds.client.beta.id : discordIds.client.beta.id; // FIXME: Change this to stable chatbot ID
-const server = process.argv[3]?.toLowerCase() || process.argv[4] == '--beta' ? mainGuilds.cbTest : mainGuilds.cbhq; // FIXME: Change to main server
+const clientID = discordIds.client.beta.id; // FIXME: Change this to stable chatbot ID
+const server = process.argv[3]?.toLowerCase() || mainGuilds.cbhq; // FIXME: Change to main server
 const IgnoredDirs = ['Developer', 'TopGG', 'Staff'];
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
