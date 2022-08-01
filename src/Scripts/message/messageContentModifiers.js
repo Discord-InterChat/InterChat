@@ -1,18 +1,26 @@
 const fetch = require('node-fetch');
 const logger = require('../../utils/logger');
+const { AttachmentBuilder, Message } = require('discord.js');
 
 module.exports = {
-	async execute(message, embed) {
-		if (message.attachments.size > 0) {
-			if (message.attachments.size > 1) {
-				await message.reply(
-					'Due to Discord Embed limitations, only the first attachment will be sent.',
-				);
-			}
-			// .attachment should create a new link to image instead of using the deleted image url [review]
-			embed.setImage(message.attachments.first().proxyURL);
+	/**
+	 * @param {Message} message
+	 * @param {*} embed
+	 */
+	async attachmentModifiers(message, embed) {
+		if (message.attachments.size > 1) {
+			await message.reply('Due to Discord Embed limitations, only the first attachment will be sent.');
 		}
 
+		if (message.attachments.size > 0) {
+			const attachment = message.attachments.first();
+			const newAttachment = new AttachmentBuilder(attachment.url, { name: 'attachment.png' });
+			embed.setImage('attachment://attachment.png');
+			return newAttachment;
+		}
+	},
+
+	async execute(message, embed) {
 		// eslint-disable-next-line no-useless-escape
 		const regex = /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.gif|\.png|\.webp)/;
 		const match = message.content.match(regex);
