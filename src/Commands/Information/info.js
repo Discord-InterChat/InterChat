@@ -7,6 +7,8 @@ module.exports = {
 		.setName('info')
 		.setDescription('This command is used to get information about the bot.'),
 	async execute(interaction) {
+		await interaction.deferReply();
+
 		const members = [];
 		const credits = await getCredits();
 		for (const credit of credits) {
@@ -38,6 +40,8 @@ module.exports = {
 				{
 					name: 'Credits',
 					value: stripIndent`
+					Some emojis used on this bot are from [Icons discord server](https://discord.gg/aPvvhefmt3).
+				
 						${emojis.icons.botdev} **Developers:**
 						> \`-\` ${members[1].tag}
 						> \`-\` ${members[3].tag}
@@ -62,6 +66,6 @@ module.exports = {
 				},
 			]);
 
-		await interaction.reply({ embeds: [embed], ephemeral: true });
+		await interaction.followUp({ embeds: [embed] });
 	},
 };
