@@ -1,16 +1,13 @@
 const logger = require('../utils/logger');
 const { mainGuilds } = require('../utils/functions/utils');
-const { Client, ActivityType } = require('discord.js');
+const { ActivityType } = require('discord.js');
 require('dotenv').config();
 // const { topgg } = require('../utils');
 
 module.exports = {
 	name: 'ready',
 	once: true,
-	/**
-	 *
-	 * @param {Client} client
-	 */
+
 	async execute(client) {
 		// if bot is run using dev command (npm run dev) then deploy commands to known test servers
 		if (process.env.DEV) {

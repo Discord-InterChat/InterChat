@@ -12,6 +12,7 @@ module.exports = {
 		const blacklistedServers = database.collection('blacklistedServers');
 		const serverInBlacklist = await blacklistedServers.findOne({ serverId: guild.id });
 
+		// TODO Check why this returns string[] instead of boolean and maybe use badwords instead
 		const badword = filter.list().filter((name) => {
 			return guild.name.includes(name);
 		});
