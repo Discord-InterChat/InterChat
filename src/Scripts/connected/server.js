@@ -25,7 +25,11 @@ module.exports = {
 			const fields = current.map(value => {
 				return {
 					name: `${++j}. ${value.serverName}`,
-					value: `ServerID: ${value.serverId}\nChannel: ${value.channelName} \`(${value.channelId})\``,
+					value: `
+					ServerID: ${value.serverId}
+					Channel: ${value.channelName} \`(${value.channelId}\`)
+					Compact Mode: ${value.compact ? 'Enabled' : 'Disabled'}
+					`,
 				};
 			});
 

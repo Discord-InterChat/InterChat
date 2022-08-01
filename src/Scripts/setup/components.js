@@ -23,16 +23,16 @@ module.exports = {
 				.setPlaceholder('✨ Customize Setup')
 				.addOptions([
 					{
-						label: 'Message Style',
+						label: 'Compact',
 						emoji: emoji.icons.message,
-						description: 'Customize the way message sent by ChatBot looks',
-						value: 'message_style',
+						description: 'Disable embeds in the network to fit more messages.',
+						value: 'compact',
 					},
 
 					{
 						label: 'Profanity Filter',
 						emoji: emoji.icons.info,
-						description: 'Enable and disabled profanity filter for this server',
+						description: 'Disable profanity filter for this server. (Unavailable as of now)', // TODO - Add profanity filter toggling
 						value: 'profanity_toggle',
 					},
 				]),
@@ -44,7 +44,7 @@ module.exports = {
 		const collector = message.createMessageComponentCollector({ filter, time: 60000 });
 
 		async function updateFieldData() {
-			const guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });	// Refresh guildInDB
+			const guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 			const channelInDB = await interaction.guild.channels.fetch(guildInDB.channel.id);
 			const isConnected = await connectedList.findOne({ channelId : channelInDB.id });
 			const status = channelInDB && isConnected ? emoji.normal.yes : emoji.normal.no;
@@ -111,7 +111,7 @@ module.exports = {
 				const guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
 				// REVIEW: This had && guildinDB now it doesnt, test if it works
-				if (i.values[0] === 'message_style') {
+				if (i.values[0] === 'compact') {
 					await collection.updateOne({ 'guild.id': interaction.guild.id },
 						{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), compact: !guildInDB.compact } });
 				}
