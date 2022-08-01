@@ -52,7 +52,7 @@ module.exports = {
 			message.content.toLowerCase().includes(wordList.words[1]) ||
 			message.content.toLowerCase().includes(wordList.words[2])
 		) {
-			await wordFilter.log(message, discordIds.channel['chatbot-logs']);
+			await wordFilter.log(message, discordIds.channel.chatbotlogs);
 			return false;
 		}
 		// dont send message if guild name is inappropriate
