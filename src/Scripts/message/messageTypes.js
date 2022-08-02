@@ -10,13 +10,31 @@ module.exports = {
 	 * @param {import ('discord.js').EmbedBuilder} embed The Embed you want to send to the channel
 	 * @param {import ('mongodb').Db} setupDb Database of setup
 	 * @param {import ('discord.js').Attachment} attachments Message attachments
+	 * @returns {Promise<import ('discord.js').Message>}
 	 *
 	 */
 	execute: async (client, message, channelObj, embed, setupDb, attachments) => {
 		const allChannel = await client.channels.fetch(channelObj.channelId);
 		const channelInDB = await setupDb.findOne({ 'channel.id': allChannel.id });
 
-		const webhookAutomate = async (chan) => {
+		if (channelInDB && channelInDB.compact === true && allChannel == message.channel.id) {
+			return webhookAutomate(message.channel);
+		}
+		else if (channelInDB && channelInDB.compact === true && allChannel == channelInDB.channel.id) {
+			return webhookAutomate(allChannel);
+		}
+		// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images
+		else if (attachments) {
+			await message.channel.send('Warn: Sending images directly is currently experimental, so it might take a few seconds to send images!');
+			return await allChannel.send({ embeds: [embed], allowedMentions: { parse: ['roles'] }, files: [attachments] });
+		}
+
+		else {
+			return await allChannel.send({ embeds: [embed], allowedMentions: { parse: ['roles'] } });
+		}
+
+
+		async function webhookAutomate(chan) {
 			try {
 				const webhooks = await chan.fetchWebhooks();
 				const webhook = webhooks.find(wh => wh.token);
@@ -28,33 +46,27 @@ module.exports = {
 					}));
 				}
 
-				await webhook.send({
-					content: message.content,
-					username: message.author.username,
-					avatarURL: message.author.avatarURL(),
-					allowedMentions: { parse: [] },
-				});
-				logger.info('sent');
+				if (attachments) {
+					return await webhook.send({
+						content: message.content,
+						username: message.author.username,
+						avatarURL: message.author.avatarURL(),
+						files: [attachments],
+						allowedMentions: { parse: [] },
+					});
+				}
+				else {
+					return await webhook.send({
+						content: message.content,
+						username: message.author.username,
+						avatarURL: message.author.avatarURL(),
+						allowedMentions: { parse: [] },
+					});
+				}
 			}
 			catch (error) {
 				allChannel.send(`${normal.no} Unable to send webhook message! \n**Error:** ${error.message}`);
 			}
-		};
-
-		if (channelInDB && channelInDB.compact === true && allChannel == message.channel.id) {
-			webhookAutomate(message.channel);
-		}
-		else if (channelInDB && channelInDB.compact === true && allChannel == channelInDB.channel.id) {
-			webhookAutomate(allChannel);
-		}
-		// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images
-		else if (attachments) {
-			await message.channel.send('Warn: Sending images directly is currently experimental, so it might take a few seconds to send images!');
-			await allChannel.send({ embeds: [embed], allowedMentions: { parse: ['roles'] }, files: [attachments] });
-		}
-
-		else {
-			await allChannel.send({ embeds: [embed], allowedMentions: { parse: ['roles'] } });
 		}
 	},
 };

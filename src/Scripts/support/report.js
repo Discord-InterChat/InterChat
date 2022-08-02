@@ -59,6 +59,7 @@ module.exports = {
 		]);
 
 		// global modal collector
+		// FIXME: You really need to fix this
 		const filter = (i) => i.user.id === interaction.user.id;
 		interaction.awaitModalSubmit({ filter, time: 60000 })
 			.then(async i => {
