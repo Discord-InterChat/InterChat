@@ -3,7 +3,7 @@ const { ContextMenuCommandBuilder, ApplicationCommandType } = require('discord.j
 
 module.exports = {
 	data: new ContextMenuCommandBuilder()
-		.setName('user id')
+		.setName('User ID')
 		.setType(ApplicationCommandType.Message),
 	async execute(interaction) {
 		const args = interaction.targetMessage;

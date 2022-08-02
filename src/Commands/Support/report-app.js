@@ -15,7 +15,7 @@ const {
 module.exports = {
 	description: 'Report a user directly from the Chat Network!',
 	data: new ContextMenuCommandBuilder()
-		.setName('report')
+		.setName('Report')
 		.setType(ApplicationCommandType.Message),
 
 	async execute(interaction) {
