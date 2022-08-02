@@ -28,6 +28,8 @@ module.exports = {
 			channelId: message.channel.id,
 		});
 
+		const messageData = database.collection('messageData');
+
 		if (channelInNetwork) {
 			const checks = await require('../scripts/message/checks').execute(message, database);
 			if (checks === false) return;
@@ -35,7 +37,7 @@ module.exports = {
 			// check if message contains profanity and censor it if it does
 			message.content = wordFilter.checkAndCensor(message);
 
-			const allConnectedChannels = await connectedList.find();
+			const allConnectedChannels = await connectedList.find().toArray();
 
 			const embed = new EmbedBuilder()
 				.setTimestamp()
@@ -76,28 +78,26 @@ module.exports = {
 				logger.warn(err + ' cannot delete message');
 			}
 
-			// NOTE: Using the db used here in other chatbot's will end up deleting all servers when you send a message... so be careful XD
-			allConnectedChannels.forEach(async (channelObj) => {
+
+			const channelAndMessageIds = [];
+
+			for (const channelObj of allConnectedChannels) {
 				try {
 					await message.client.channels.fetch(channelObj.channelId);
 				}
 				catch {
 					await connectedList.deleteOne({ channelId: channelObj.channelId });
 					await setup.deleteOne({ 'channel.id': channelObj.channelId });
-					logger.warn(
-						`Deleted non-existant channel ${channelObj.channelId} from database.`,
-					);
+					logger.warn(`Deleted non-existant channel ${channelObj.channelId} from database.`);
 					return;
 				}
-				await require('../scripts/message/messageTypes').execute(
-					message.client,
-					message,
-					channelObj,
-					embed,
-					setup,
-					attachments,
-				);
-			});
+				// sending the messages to the connected channels
+				const msg = await require('../scripts/message/messageTypes').execute(message.client, message, channelObj, embed, setup, attachments);
+				channelAndMessageIds.push({ channelId: msg.channelId, messageId: msg.id });
+			}
+
+			// for editing and deleting messages
+			messageData.insertOne({ channelAndMessageIds });
 		}
 		else {
 			return;
