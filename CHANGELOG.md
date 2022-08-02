@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.6.1...v1.7.0) (2022-08-02)
+
+
+### Features
+
+* **Experimental** feature that will prevent images from expiring once sent to network ([eb2b813](https://github.com/dev-737/ChatBot-Beta/commit/eb2b8132b578e02a77213accb59ff2b862416c06))
+* Added ability to delete messages in network ([30b5135](https://github.com/dev-737/ChatBot-Beta/commit/30b513549dfa460146c7f50bd87626b09e68db28))
+* Added ablity to edit message in network (WIP only works for embeds) ([a4b5098](https://github.com/dev-737/ChatBot-Beta/commit/a4b5098c6d2cc576e7e1245330d3429a7e1c7deb))
+* Find command now shows more info ([245f0a8](https://github.com/dev-737/ChatBot-Beta/commit/245f0a8b42ce36aff537dc6ef0f5e804c22da196))
+* New disconnect command that lets you disconnect a server manually ([0b6b852](https://github.com/dev-737/ChatBot-Beta/commit/0b6b8526f8240c441a4206370c556a39f8545cac))
+
+
+### Bug Fixes
+
+* Defering the reply just in case ([ec9e4a9](https://github.com/dev-737/ChatBot-Beta/commit/ec9e4a934f0ddae060a4025c6940d4c79837fde6))
+* Fixed issues with deploy-commands.js clientID ([ebd4abb](https://github.com/dev-737/ChatBot-Beta/commit/ebd4abbf9f2a21ed72519bec2af69676e243f02a))
+* messageTypes function now returns sent values for editing/deleting messages to be possible ([dc4faf7](https://github.com/dev-737/ChatBot-Beta/commit/dc4faf715d0a1e6a9720df8bd7093371e9c1750a))
+* Update setup select menu options ([1c8df48](https://github.com/dev-737/ChatBot-Beta/commit/1c8df485f3529d8b01bd6cd9488fb552350846ae))
+
 ### [1.6.1](https://github.com/dev-737/ChatBot-Beta/compare/v1.6.0...v1.6.1) (2022-07-31)
 
 ## [1.6.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.5.0...v1.6.0) (2022-07-24)
