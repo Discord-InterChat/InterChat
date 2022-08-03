@@ -25,7 +25,7 @@ module.exports = {
 	},
 
 	async log(message) {
-		const logChan = await message.client.channels.fetch('976099224611606588');
+		const logChan = await message.client.channels.fetch('1002864642101624832');
 		const filterEmbed = new MessageEmbed()
 			.setAuthor({ name: `${message.client.user.username} logs`, iconURL: message.client.user.avatarURL() })
 			.setTitle('Bad Word Detected')
