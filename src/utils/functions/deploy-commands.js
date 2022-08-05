@@ -10,7 +10,7 @@ require('dotenv').config();
 
 
 const clientID = discordIds.client.beta.id; // FIXME: Change this to stable chatbot ID
-const server = process.argv[3]?.toLowerCase() || mainGuilds.cbhq; // FIXME: Change to main server
+const server = process.argv[3]?.toLowerCase() || mainGuilds.cbhq;
 const IgnoredDirs = ['Developer', 'TopGG', 'Staff'];
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);

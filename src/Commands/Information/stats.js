@@ -7,7 +7,7 @@ module.exports = {
 		.setDescription('Shows the bot\'s statistics'),
 	async execute(interaction) {
 
-		const uptime = utils.toHuman(interaction.client);
+		const uptime = utils.toHuman(interaction.client.uptime);
 		const database = utils.getDb();
 		const connectedList = database.collection('connectedList');
 		const count = await connectedList.count();

@@ -9,7 +9,6 @@ const { loadEvents } = require('./handlers/handleEvents.js');
 Levels.setURL(process.env.MONGODB_URI); // FIXME: Change this to your MongoDB Atlas URL
 require('dotenv').config();
 
-// eslint-disable-next-line no-unused-vars
 mongoUtil.connect((err, mongoClient) => {
 	if (err) logger.error(err);
 	logger.info('Connected to MongoDB');
