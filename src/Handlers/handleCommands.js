@@ -13,13 +13,13 @@ module.exports.loadCommands = async (client, reload = false) => {
 			}
 
 			// loading the help command
-			const IgnoredDirs = ['Developer', 'TopGG'];
+			const IgnoredDirs = ['Developer', 'Staff', 'TopGG'];
 			if (IgnoredDirs.includes(dir)) return;
 
 			const cmds = commandFiles.map((command) => {
 				const file = require(`../commands/${dir}/${command}`);
 
-				const name = file.data.name?.replace('.js', '') || 'No name';
+				const name = file.data.name || 'No name';
 
 				return `\`${name}\``;
 			});

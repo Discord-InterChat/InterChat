@@ -1,6 +1,6 @@
 const logger = require('../logger');
+const discord = require('discord.js');
 const { MongoClient, Db } = require('mongodb');
-const { resolveColor, Message, ContextMenuCommandInteraction, ChatInputCommandInteraction, MessageContextMenuCommandInteraction, UserContextMenuCommandInteraction, Client, ChannelType, Guild } = require('discord.js');
 const { Api } = require('@top-gg/sdk');
 require('dotenv').config();
 
@@ -59,18 +59,18 @@ module.exports = {
 			module.exports.choice(colorType.random);
 	},
 	choice: (arr) => {
-		return resolveColor(arr[Math.floor(Math.random() * arr.length)]);
+		return discord.resolveColor(arr[Math.floor(Math.random() * arr.length)]);
 	},
 
 	/**
 	 * Send a message to a guild
-	 * @param {Guild} guild
-	 * @param {Message} message
+	 * @param {discord.Guild} guild
+	 * @param {discord.Message} message
 	 */
 	sendInFirst: async (guild, message) => {
 		const channels = await guild.channels.fetch();
 		for (const channel of channels) {
-			if (channel[1].type == ChannelType.GuildText) {
+			if (channel[1].type == discord.ChannelType.GuildText) {
 				if (channel[1].permissionsFor(guild.members.me).has('SendMessages')) {
 					try {
 						await channel[1].send(message);
@@ -141,45 +141,36 @@ module.exports = {
 
 	/**
 	 *
-	 * @param {ChatInputCommandInteraction|MessageContextMenuCommandInteraction|UserContextMenuCommandInteraction} interaction
+	 * @param {discord.Client} client
+	 * @param {discord.GuildMember|discord.User} user
 	 * @param {boolean} onlyDeveloper
-	 * @returns
 	 */
-	checkIfStaff: async (interaction, onlyDeveloper = false) => {
+	checkIfStaff: async (client, user, onlyDeveloper = false) => {
 		try {
 			const staff = '800698916995203104';
 			const developers = '770256273488347176';
 
-			const guild = await interaction.client.guilds.fetch('770256165300338709');
-			const member = await guild.members.fetch(interaction.user.id);
-			const roles = member.guild.roles.cache;
-			let verification = 0;
+			const allowedRoles = [staff, developers];
 
-			if (onlyDeveloper === true && roles?.has(developers)) return (verification = 1);
+			const guild = await client.guilds.fetch('770256165300338709');
+			const member = await guild.members.fetch(user);
+			const roles = member.roles.cache;
 
-			if (roles?.has(developers) || roles?.has(staff)) {
-				verification = 1;
-			}
-			else {
-				await interaction.reply({
-					content: 'You do not have permissions to run this command!',
-					ephemeral: true,
-				});
-			}
-			return verification;
+			const isStaff = roles?.hasAny(...allowedRoles);
+			const isDev = roles?.has(developers);
+
+			if (onlyDeveloper && isDev) return true;
+			else if (isStaff) return true;
+			return false;
 		}
 		catch (e) {
-			await interaction.reply({
-				content: 'You do not have permissions to run this command!',
-				ephemeral: true,
-			});
-			return 0;
+			return false;
 		}
 	},
 
 	/**
 	 *
-	 * @param {Client} client
+	 * @param {discord.Client} client
 	 * @param {string} text
 	 * @returns
 	 */
@@ -210,7 +201,7 @@ module.exports = {
 
 	/**
 	 * Delete channels that chatbot doesn't have access to.
-	 * @param {Client} client
+	 * @param {discord.Client} client
 	 * @returns
 	 */
 	deleteChannels: async (client) => {
@@ -243,7 +234,7 @@ module.exports = {
 	},
 
 	/**
-	 * @param {ChatInputCommandInteraction | ContextMenuCommandInteraction | Message} interaction
+	 * @param {discord.ChatInputCommandInteraction | discord.ContextMenuCommandInteraction | discord.Message} interaction
 	 * @param {String} message
 	 */
 	sendInNetwork: async (interaction, message) => {

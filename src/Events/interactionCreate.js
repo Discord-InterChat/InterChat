@@ -1,4 +1,5 @@
 const { InteractionType } = require('discord.js');
+const { checkIfStaff } = require('../utils/functions/utils');
 const logger = require('../utils/logger');
 
 module.exports = {
@@ -45,9 +46,7 @@ module.exports = {
 			// Basic perm check, it wont cover all bugs
 			if (
 				interaction.guild &&
-				!interaction.guild.members.me
-					.permissionsIn(interaction.channel)
-					.has('SendMessages') &&
+				!interaction.guild.members.me.permissionsIn(interaction.channel).has('SendMessages') &&
 				!interaction.guild.members.me.permissionsIn(interaction.channel).has('EmbedLinks')
 			) {
 				return interaction.reply({
@@ -60,6 +59,18 @@ module.exports = {
 			if (!command) return;
 
 			try {
+				const noPermsMsg = {
+					content: 'You do not have the right permissions to use this command!',
+					ephemeral: true,
+				};
+				if (command.staff && await checkIfStaff(interaction.client, interaction.user) === false) {
+					interaction.reply(noPermsMsg);
+					return;
+				}
+				if (command.developer && await checkIfStaff(interaction.client, interaction.user, true) === false) {
+					interaction.reply(noPermsMsg);
+					return;
+				}
 				await command.execute(interaction);
 			}
 			catch (error) {

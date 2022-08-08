@@ -1,11 +1,9 @@
-const { checkIfStaff, sendInFirst } = require('../../utils/functions/utils');
+const { sendInFirst } = require('../../utils/functions/utils');
 const logger = require('../../utils/logger');
 
 module.exports = {
+	staff: true,
 	execute: async (interaction) => {
-		const perms = await checkIfStaff(interaction);
-		if (perms === 0) return;
-
 		const serverOpt = interaction.options.getString('server');
 		const reason = interaction.options.getString('reason');
 		let server;

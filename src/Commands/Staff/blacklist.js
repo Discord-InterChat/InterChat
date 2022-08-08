@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { checkIfStaff, getDb } = require('../../utils/functions/utils');
+const { getDb } = require('../../utils/functions/utils');
 
 module.exports = {
+	staff: true,
 	data: new SlashCommandBuilder()
 		.setName('blacklist')
 		.setDescription('Blacklist a user or server from using the bot. Staff-only')
@@ -99,9 +100,6 @@ module.exports = {
 				),
 		),
 	async execute(interaction) {
-		const perms = await checkIfStaff(interaction);
-		if (perms === 0) return;
-
 		const subCommand = interaction.options.getSubcommand();
 		const database = getDb();
 		require(`../../scripts/blacklist/${subCommand}`).execute(interaction, database);

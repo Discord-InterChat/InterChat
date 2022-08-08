@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { sendInFirst, checkIfStaff } = require('../../utils/functions/utils');
 const utils = require('../../utils/functions/utils');
 module.exports = {
+	staff: true,
 	data: new SlashCommandBuilder()
 		.setName('server')
 		.setDescription('Leaves the specified server. Staff-only.')

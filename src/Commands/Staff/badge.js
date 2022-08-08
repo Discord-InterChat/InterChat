@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { checkIfStaff, getDb } = require('../../utils/functions/utils');
+const { getDb } = require('../../utils/functions/utils');
 
 module.exports = {
+	staff: true,
 	data: new SlashCommandBuilder()
 		.setName('badge')
 		.setDescription('Manage the badges for a user. Staff-only.')
@@ -61,8 +62,6 @@ module.exports = {
 				),
 		),
 	async execute(interaction) {
-		const perms = await checkIfStaff(interaction);
-		if (perms === 0) return;
 		const subcommand = interaction.options.getSubcommand();
 		const user = interaction.options.getUser('user');
 		const badge = interaction.options.getString('badge');
