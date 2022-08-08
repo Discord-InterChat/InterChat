@@ -1,12 +1,12 @@
 {
     "name": "discord-chatbot",
-    "version": "1.7.0",
+    "version": "1.8.0",
     "description": "A growing Discord bot which provides inter-server chat!",
     "main": "src/index.js",
     "author": "Supreme1707, Makiyu, dev-737, ThomasShelby69",
     "license": "ISC",
     "scripts": {
-        "start": "nodemon .",
+        "start": "node .",
         "dev": "set DEV=true && nodemon .",
         "deploy": "node src/utils/functions/deploy-commands.js",
         "release": "standard-version",
@@ -20,6 +20,7 @@
         "discord-xp": "^1.1.16",
         "discord.js": "^14.1.2",
         "dotenv": "^16.0.1",
+        "express": "^4.18.1",
         "leo-profanity": "^1.5.1",
         "mongodb": "^4.8.1",
         "node-fetch": "^2.6.7",
