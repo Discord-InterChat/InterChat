@@ -71,8 +71,6 @@ module.exports = {
 
 		// Everything is in one collector since im lazy
 		collector.on('collect', async i => {
-			i.deferUpdate();
-
 			if (i.isButton()) {
 				if (i.customId == 'edit') refreshEmbed();
 				if (i.customId == 'reset') {
@@ -81,7 +79,7 @@ module.exports = {
 							content: `${emoji.icons.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though. `,
 							components: [buttons],
 						});
-						message.edit({ components: [] });
+						i.update({ components: [] });
 
 
 						const msg_collector = msg.createMessageComponentCollector({ filter, idle: 10_000, max: 1 });
@@ -91,15 +89,16 @@ module.exports = {
 							if (collected.customId === 'yes') {
 								await collection.deleteOne({ 'guild.id': interaction.guild.id });
 								await connectedList.deleteOne({ 'serverId': interaction.guild.id });
-								return msg.edit({ content: `${emoji.normal.yes} Successfully reset.`, components: [] });
+								collected.update({ content: `${emoji.normal.yes} Successfully reset.`, components: [] });
 							}
-							msg.edit({ content: `${emoji.normal.no} Cancelled.`, components: [] });
+							else {
+								collected.update({ content: `${emoji.normal.no} Cancelled.`, components: [] });
+							}
 							return;
 						});
 					}
 					catch (e) {
-						message.edit({ content: `${emoji.icons.exclamation} ${e.message}!`, embeds: [], components: [] });
-						logger.error(e);
+						i.update({ content: `${emoji.icons.exclamation} ${e.message}!`, embeds: [], components: [] });
 					}
 				}
 			}

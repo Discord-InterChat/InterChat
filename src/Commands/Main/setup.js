@@ -36,12 +36,6 @@ module.exports = {
 
 				return embed;
 			}
-
-			/**
-	 		* @param {String} description The embed Description
-	 		* @param {import('discord.js').EmbedField} fields Set embed Fields use the arrays inside objects to add multiple
-	 		* @returns
-	 		*/
 			setCustom(fields) {
 				const embed = new EmbedBuilder()
 					.setAuthor({ name: interaction.guild.name, iconURL: interaction.guild.iconURL() })
