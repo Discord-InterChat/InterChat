@@ -38,7 +38,7 @@ module.exports = {
 						name: 'Network Info',
 						value: stripIndents`\n
 						${guildInDb ? emojis.icons.connect : emojis.icons.disconnect} **Connected: ${guildInDb ? 'Yes' : 'No'}**
-						${emojis.normal.clipart} **Channel: ${guildInDb?.channelName || 'Not Connected'} (\`${guildInDb?.channelId || ':('}\`)**`,
+						${emojis.normal.clipart} **Channel(s): ${guildInDb?.channelName || 'Not Connected'} (\`${guildInDb?.channelId || ':('}\`)**`,
 					},
 				]);
 		};
@@ -84,7 +84,7 @@ module.exports = {
 			collector.on('collect', async (i) => {
 				const selected = found.find(f => f.name === i.values[0]);
 				const owner = await interaction.client.users.fetch(selected.ownerId);
-				return interaction.editReply({
+				return i.update({
 					content: selected.id,
 					embeds: [await embedGen(selected, owner)],
 					components: [],

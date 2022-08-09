@@ -1,11 +1,11 @@
 const fetch = require('node-fetch');
 const logger = require('../../utils/logger');
 const { AttachmentBuilder, Message } = require('discord.js');
+require('dotenv').config();
 
 module.exports = {
 	/**
 	 * @param {Message} message
-	 * @param {*} embed
 	 */
 	async attachmentModifiers(message, embed) {
 		if (message.attachments.size > 1) {
@@ -28,9 +28,7 @@ module.exports = {
 		if (match) {
 			embed.setImage(match[0]);
 			try {
-				embed.setFields([
-					{ name: 'Message ', value: message.content.replace(match[0], '\u200B').trim() },
-				]);
+				embed.setFields([{ name: 'Message ', value: message.content.replace(match[0], '\u200B').trim() }]);
 			}
 			catch (e) {
 				logger.error(e);
@@ -43,7 +41,7 @@ module.exports = {
 		if (gifMatch) {
 			const n = gifMatch[0].split('-');
 			const id = n[n.length - 1];
-			const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=957PTLK8CNC0`;
+			const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
 
 			fetch(api)
 				.then((res) => res.json())

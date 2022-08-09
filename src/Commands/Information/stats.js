@@ -27,6 +27,7 @@ module.exports = {
 
 
 		const embed = new EmbedBuilder()
+			.setAuthor({ name: `${interaction.client.user.username} Statistics`, iconURL: interaction.client.user.avatarURL() })
 			.setColor(utils.colors())
 			.addFields([
 				{
@@ -36,7 +37,7 @@ module.exports = {
 				},
 				{
 					name: 'Memory Usage',
-					value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB / 500 MB`,
+					value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB / 1 GB`,
 					inline: true,
 				},
 				{
@@ -84,8 +85,7 @@ module.exports = {
 					value: String(connectedMembers),
 					inline: true,
 				},
-			])
-			.setAuthor({ name: `${interaction.client.user.username} Statistics`, iconURL: interaction.client.user.avatarURL() });
+			]);
 		await interaction.reply({ embeds: [embed] });
 	},
 

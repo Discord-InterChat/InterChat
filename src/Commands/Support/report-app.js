@@ -30,7 +30,7 @@ module.exports = {
 		// check if args.channel is in connectedList DB
 		if (!channelInDb) {
 			return await interaction.reply({
-				content: 'This command only works in **ChatBot Network** channels.',
+				content: 'This command only works in connected **network** channels.',
 				ephemeral: true,
 			});
 		}
@@ -83,7 +83,7 @@ module.exports = {
 			time: 60_000,
 			errors: ['time'],
 			filter: (i) =>
-				i.isModalBuilderSubmit &&
+				i.isModalSubmit() &&
 				i.customId === 'modal' &&
 				i.user.id === interaction.user.id,
 		});

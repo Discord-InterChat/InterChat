@@ -22,7 +22,7 @@ module.exports = {
 				const filtered = badWordsFilter.clean(message.content).replaceAll('*', '\\*');
 
 				// log the real message to logs channel
-				module.exports.log(message.content, discordIds.channel.chatbotlogs); // REVIEW: Import the channel id from config file
+				module.exports.log(message, discordIds.channel.chatbotlogs);
 
 				// return the new filtered message
 				return filtered;
@@ -41,15 +41,16 @@ module.exports = {
 	 * @param {string} channelId The channel id of the logs channel
 	 */
 	async log(message, channelId) {
-		if (!message || channelId) return Error('Missing parameters!');
+		if (!message || !channelId) throw new Error('Missing parameters!');
+		if (!message.content) throw new TypeError('Invalid Message parameter. Pass the entire Message object not only the content!');
 
 		const rawContent = message.content;
 		const logChan = await message.client.channels.fetch(channelId);
-		const filterEmbed = new EmbedBuilder()
+		const logEmbed = new EmbedBuilder()
 			.setAuthor({ name: `${message.client.user.username} logs`, iconURL: message.client.user.avatarURL() })
 			.setTitle('Bad Word Detected')
 			.setColor(colors('chatbot'))
 			.setDescription(`||${rawContent}||\n\n**Author:** \`${message.author.tag}\` (${message.author.id})\n**Server:** ${message.guild.name} (${message.guild.id})`);
-		await logChan.send({ embeds: [filterEmbed] });
+		await logChan.send({ embeds: [logEmbed] });
 	},
 };

@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require('discord.js');
 const { getDb, colors } = require('../utils/functions/utils');
 const logger = require('../utils/logger');
+const messageContentModifiers = require('../scripts/message/messageContentModifiers');
 const evalScript = require('../scripts/message/evalScript');
 const wordFilter = require('../scripts/message/wordFilter');
 
@@ -60,13 +61,9 @@ module.exports = {
 				});
 
 			await require('../scripts/message/addBadges').execute(message, database, embed);
-			await require('../scripts/message/messageContentModifiers').execute(message, embed);
+			await messageContentModifiers.execute(message, embed);
 
-			const attachments =
-				await require('../scripts/message/messageContentModifiers').attachmentModifiers(
-					message,
-					embed,
-				);
+			const attachments = await messageContentModifiers.attachmentModifiers(message, embed);
 
 			// leveling system
 			await require('../scripts/message/levelling').execute(message);
@@ -97,7 +94,12 @@ module.exports = {
 			}
 
 			// for editing and deleting messages
-			messageData.insertOne({ channelAndMessageIds });
+			messageData.insertOne({
+				channelAndMessageIds,
+				timestamp: message.createdTimestamp,
+				authorId: message.author.id,
+				serverId: message.guild.id,
+			});
 		}
 		else {
 			return;
