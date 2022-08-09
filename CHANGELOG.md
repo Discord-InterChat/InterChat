@@ -2,13 +2,6 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [1.8.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.7.0...v1.8.0) (2022-08-08)
-
-
-### Features
-
-* Updated permission check  to be V14 compatible ([eb50cd1](https://github.com/dev-737/ChatBot-Beta/commit/eb50cd1bc62ef9c0d9ce210ed1b745c84bd46556))
-
 ## [1.7.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.6.1...v1.7.0) (2022-08-02)
 
 ### Features
