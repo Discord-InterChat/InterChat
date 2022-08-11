@@ -1,5 +1,4 @@
 const { normal } = require('../../utils/emoji.json');
-const logger = require('../../utils/logger');
 
 module.exports = {
 	/**
@@ -17,16 +16,16 @@ module.exports = {
 		const allChannel = await client.channels.fetch(channelObj.channelId);
 		const channelInDB = await setupDb.findOne({ 'channel.id': allChannel.id });
 
-		if (channelInDB && channelInDB.compact === true && allChannel == message.channel.id) {
+		if (channelInDB?.compact === true && allChannel == message.channel.id) {
 			return webhookAutomate(message.channel);
 		}
-		else if (channelInDB && channelInDB.compact === true && allChannel == channelInDB.channel.id) {
+		else if (channelInDB?.compact === true && allChannel == channelInDB.channel.id) {
 			return webhookAutomate(allChannel);
 		}
 		// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images
 		else if (attachments) {
 			await message.channel.send('Warn: Sending images directly is currently experimental, so it might take a few seconds to send images!');
-			return await allChannel.send({ embeds: [embed], allowedMentions: { parse: ['roles'] }, files: [attachments] });
+			return await allChannel.send({ embeds: [embed], files: [attachments], allowedMentions: { parse: ['roles'] } });
 		}
 
 		else {
@@ -35,34 +34,28 @@ module.exports = {
 
 
 		async function webhookAutomate(chan) {
+			const webhookMessage = {
+				content: message.content,
+				username: message.author.username,
+				avatarURL: message.author.avatarURL(),
+				allowedMentions: { parse: [] },
+			};
+			const normalMessage = {
+				content: `**${message.author.tag}:** ${message.content}`,
+				allowedMentions: { parse: [] },
+			};
+
+			if (attachments) {
+				webhookMessage.files = [attachments];
+				normalMessage.files = [attachments];
+			}
+
 			try {
 				const webhooks = await chan.fetchWebhooks();
 				const webhook = webhooks.find(wh => wh.token);
 
-				if (!webhook) {
-					return await allChannel.send(({
-						content: `**${message.author.tag}:** ${message.content}`,
-						allowedMentions: { parse: [] },
-					}));
-				}
-
-				if (attachments) {
-					return await webhook.send({
-						content: message.content,
-						username: message.author.username,
-						avatarURL: message.author.avatarURL(),
-						files: [attachments],
-						allowedMentions: { parse: [] },
-					});
-				}
-				else {
-					return await webhook.send({
-						content: message.content,
-						username: message.author.username,
-						avatarURL: message.author.avatarURL(),
-						allowedMentions: { parse: [] },
-					});
-				}
+				if (!webhook) return await allChannel.send(normalMessage);
+				else return await webhook.send(webhookMessage);
 			}
 			catch (error) {
 				allChannel.send(`${normal.no} Unable to send webhook message! \n**Error:** ${error.message}`);
