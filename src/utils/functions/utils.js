@@ -9,11 +9,10 @@ const topgg = new Api(process.env.TOPGG);
 const uri = process.env.MONGODB_URI;
 let _db;
 
-
 module.exports = {
 	/**
-	 *
-	 * @param {'random'|'chatbot'|'invisible'|undefined} type
+	 * Random color generator for embeds
+	 * @param {'random'|'chatbot'|'invisible'} [type]
 	 */
 	colors: (type = 'random') => {
 		const colorType = {
@@ -58,6 +57,10 @@ module.exports = {
 		return type === 'chatbot' ? colorType.chatbot : type === 'invisible' ? colorType.invisible :
 			module.exports.choice(colorType.random);
 	},
+	/**
+	 * Returns random color (resolved) from choice of Discord.JS default color string
+	 * @param {string[]} arr
+	 */
 	choice: (arr) => {
 		return discord.resolveColor(arr[Math.floor(Math.random() * arr.length)]);
 	},
@@ -65,7 +68,6 @@ module.exports = {
 	/**
 	 * Send a message to a guild
 	 * @param {discord.Guild} guild
-	 * @param {discord.Message} message
 	 */
 	sendInFirst: async (guild, message) => {
 		const channels = await guild.channels.fetch();
@@ -84,7 +86,8 @@ module.exports = {
 		}
 	},
 
-	topgg: topgg,
+	topgg,
+
 	developers: [
 		736482645931720765n,
 		828492978716409856n,
@@ -92,7 +95,10 @@ module.exports = {
 		701727675311587358n,
 		827745783964499978n,
 	],
-	staff: [442653948630007808n, 336159680244219905n],
+	staff: [
+		442653948630007808n,
+		336159680244219905n,
+	],
 	mainGuilds: {
 		cbhq: '770256165300338709',
 		cbTest: '969920027421732874',
@@ -121,6 +127,11 @@ module.exports = {
 		return _db;
 	},
 
+	/**
+	 * Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s)
+	 * @param {number} milliseconds
+	 * @returns {string}
+	 */
 	toHuman: (milliseconds) => {
 		let totalSeconds = milliseconds / 1000;
 		const days = Math.floor(totalSeconds / 86400);
@@ -129,18 +140,17 @@ module.exports = {
 		totalSeconds %= 3600;
 		const minutes = Math.floor(totalSeconds / 60);
 		const seconds = Math.floor(totalSeconds % 60);
-		let uptime;
+		let readable;
 
-		if (days == 0 && hours == 0 && minutes == 0) uptime = `${seconds} seconds`;
-		else if (days == 0 && hours == 0) uptime = `${minutes}m ${seconds}s`;
-		else if (days == 0) uptime = `${hours}h, ${minutes}m ${seconds}s`;
-		else uptime = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
+		if (days == 0 && hours == 0 && minutes == 0) readable = `${seconds} seconds`;
+		else if (days == 0 && hours == 0) readable = `${minutes}m ${seconds}s`;
+		else if (days == 0) readable = `${hours}h, ${minutes}m ${seconds}s`;
+		else readable = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
 
-		return uptime;
+		return readable;
 	},
 
 	/**
-	 *
 	 * @param {discord.Client} client
 	 * @param {discord.GuildMember|discord.User} user
 	 * @param {boolean} onlyDeveloper
@@ -202,7 +212,6 @@ module.exports = {
 	/**
 	 * Delete channels that chatbot doesn't have access to.
 	 * @param {discord.Client} client
-	 * @returns
 	 */
 	deleteChannels: async (client) => {
 		const database = _db;
@@ -227,9 +236,8 @@ module.exports = {
 			const deleteCursor = await connectedList.deleteMany({
 				channelId: { $in: unknownChannels },
 			});
-			return logger.info(
-				`Deleted ${deleteCursor.deletedCount} channels from the connectedList database.`,
-			);
+			logger.info(`Deleted ${deleteCursor.deletedCount} channels from the connectedList database.`);
+			return;
 		}
 	},
 
@@ -243,9 +251,8 @@ module.exports = {
 		const channels = await connectedList.find().toArray();
 
 		await channels.forEach((channelEntry) => {
-			interaction.client.channels.fetch(channelEntry.channelId).then(async (channel) => {
-				await channel.send(message);
-			});
+			interaction.client.channels.fetch(channelEntry.channelId)
+				.then(async (channel) => await channel.send(message));
 		});
 	},
 };
