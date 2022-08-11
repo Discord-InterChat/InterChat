@@ -18,7 +18,7 @@
         "canvacord": "^5.4.3",
         "common-tags": "^1.8.2",
         "discord-xp": "^1.1.16",
-        "discord.js": "^14.1.2",
+        "discord.js": "^14.2.0",
         "dotenv": "^16.0.1",
         "express": "^4.18.1",
         "leo-profanity": "^1.5.1",
