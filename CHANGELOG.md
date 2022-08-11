@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.7.6](https://github.com/dev-737/ChatBot-Beta/compare/v1.8.0...v1.7.6) (2022-08-11)
+
+
+### Bug Fixes
+
+* **azure:** Ignore `.git` folder to save space during production ([7d5d824](https://github.com/dev-737/ChatBot-Beta/commit/7d5d824b801ab7baee457d7817ec5abb3073f35c))
+* **goal:** Disabled mentions in goal messages ([c649dfb](https://github.com/dev-737/ChatBot-Beta/commit/c649dfb0f17073c0e07f7545189d6be14cdd37e9))
+* **support:** Fixed bugs with report command modal ([b42af19](https://github.com/dev-737/ChatBot-Beta/commit/b42af1941b774701cef0d449cc034774ef684a33))
+
 ## [1.7.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.6.1...v1.7.0) (2022-08-02)
 
 ### Features
