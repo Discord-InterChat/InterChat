@@ -1,23 +1,25 @@
 const logger = require('../utils/logger');
-const { mainGuilds } = require('../utils/functions/utils');
+const utils = require('../utils/functions/utils');
 const { ActivityType } = require('discord.js');
 require('dotenv').config();
-// const { topgg } = require('../utils');
+const { topgg } = require('../utils/functions/utils');
 
 module.exports = {
 	name: 'ready',
 	once: true,
 
 	async execute(client) {
-		// if bot is run using dev command (npm run dev) then deploy commands to known test servers
-		if (process.env.DEV) {
-			Object.values(mainGuilds)
-				.forEach(element => client.guilds.fetch(element)
-					.then(guild => {return guild.commands.set(client.commands.map(cmd => cmd.data));})
-					.then(() => logger.info('(/) Loaded all application commands to test guilds.'))
-					.catch(logger.error));
-			logger.warn('Bot is in development mode.');
+		async function clearOldMessages() {
+			const FOUR_HOURS = 60 * 60 * 4000; // four hours in milliseconds
+			const older_than = new Date(Date.now() - FOUR_HOURS); // 4 hours before now
+
+			const db = utils.getDb();
+			const messageInDb = db.collection('messageData');
+
+			await messageInDb.deleteMany({ timestamp: { $lte: older_than.getTime() } })
+				.deletedCount; // if timestamp is less or equal to 4 hours before now delete it
 		}
+		setInterval(clearOldMessages, 60 * 60 * 4500);
 
 		/* FIXME: Uncomment this when on main CB
 		topgg.postStats({
@@ -25,12 +27,13 @@ module.exports = {
 		}); */
 
 		client.user.setPresence({
-			activities: [{
-				name: client.version,
-				type: ActivityType.Playing,
-			}],
+			activities: [
+				{
+					name: client.version,
+					type: ActivityType.Playing,
+				},
+			],
 		});
 		logger.info(`Logged in as ${client.user.tag}`);
-
 	},
 };

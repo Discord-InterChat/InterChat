@@ -7,7 +7,7 @@
     "license": "ISC",
     "scripts": {
         "start": "node .",
-        "dev": "set DEV=true && nodemon .",
+        "dev": "nodemon .",
         "deploy": "node src/utils/functions/deploy-commands.js",
         "release": "standard-version",
         "lint": "eslint ."
