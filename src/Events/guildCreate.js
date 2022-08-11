@@ -1,4 +1,4 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, Guild, AuditLogEvent } = require('discord.js');
 const { sendInFirst, colors, getDb } = require('../utils/functions/utils');
 const { normal, icons } = require('../utils/emoji.json');
 const filter = require('leo-profanity');
@@ -7,6 +7,11 @@ require('dotenv').config();
 
 module.exports = {
 	name: 'guildCreate',
+	/**
+	 *
+	 * @param {Guild} guild
+	 * @returns
+	 */
 	async execute(guild) {
 		const database = getDb();
 		const blacklistedServers = database.collection('blacklistedServers');
@@ -19,8 +24,7 @@ module.exports = {
 
 
 		if (serverInBlacklist) {
-			await sendInFirst(
-				guild,
+			await sendInFirst(guild,
 				`This server is blacklisted in this bot for reason \`${serverInBlacklist.reason}\`. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`,
 			);
 			await guild.leave();
@@ -29,16 +33,15 @@ module.exports = {
 
 		else if (badword[0]) {
 			return guild
-				.fetchIntegrations()
+				.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
 				.then(async (res) => {
+					res.entries.find(bot => bot.id);
 					const filtered = res.find((bot) => {
 						return bot.account.id === guild.client.user.id;
 					});
 					const user = await guild.client.users.fetch(filtered.user.id);
 					try {
-						await user.send(
-							`The name of the server **${guild.name}** violates the ChatBot guidelines, therefore I must leave until it is corrected.`,
-						);
+						await user.send(`The name of the server **${guild.name}** violates the ChatBot guidelines, therefore I must leave until it is corrected.`);
 					}
 					catch {
 						await sendInFirst(
@@ -59,11 +62,10 @@ module.exports = {
 
 		else {
 			const goalChannel = await guild.client.channels.fetch(channelIds.channel.goal); // REVIEW Import from config
-			await goalChannel.send(
-				`${icons.join} I have joined ${guild.name}! ${
-					500 - guild.client.guilds.cache.size
-				} to go!`,
-			);
+			await goalChannel.send({
+				content: `${icons.join} I have joined ${guild.name}! ${500 - guild.client.guilds.cache.size} to go!`,
+				allowedMentions: { parse: ['everyone', 'roles'] },
+			});
 
 			const embed = new EmbedBuilder()
 				.setTitle(`${normal.tada} Hi! Thanks for adding ChatBot to your server!`)
