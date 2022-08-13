@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-# Stable
+### [2.5.6](https://github.com/Supreme1707/Discord-ChatBot/compare/v2.5.4...v2.5.6) (2022-08-13)
+
+
+### Bug Fixes
+
+* **find:** Fixed bug when multiple servers have same name ([e1cb9f4](https://github.com/Supreme1707/Discord-ChatBot/commit/e1cb9f423a38455b19d26b3ad6ebd12269619540))
+* Update log channel ID ([2673686](https://github.com/Supreme1707/Discord-ChatBot/commit/26736869f3ecfb59d4e7234ed3cba667697e5f78))
 
 ### [2.5.4](https://github.com/Supreme1707/Discord-ChatBot/compare/v2.5.0...v2.5.4) (2022-07-16)
 
