@@ -3,7 +3,6 @@ const { client } = require('../index');
 const mongoUtil = require('../utils');
 const { sendInFirst, colors } = require('../utils');
 const { normal, icons } = require('../emoji.json');
-const fetch = require('node-fetch');
 const dotenv = require('dotenv');
 const filter = require('leo-profanity');
 dotenv.config();

@@ -1,3 +1,9 @@
+const app = require('express')();
+const port = process.env.port || 8080;
+
+app.listen(port, () => logger.info(`Express app listening on port ${port}`));
+app.get('/', (req, res) => res.send('Welcome...!'));
+
 const discord = require('discord.js');
 const dotenv = require('dotenv');
 const fs = require('fs');

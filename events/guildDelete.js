@@ -1,13 +1,14 @@
 const { client } = require('../index');
 const utils = require('../utils');
 const { icons } = require('../emoji.json');
-const mongoUtil = require('../utils');
 
 
 module.exports = {
 	name: 'guildDelete',
 	async execute(guild) {
-		const database = mongoUtil.getDb();
+		if (!guild.available) return; // If the guild is half-deleted, don't do anything. This is a bug in discord.
+
+		const database = utils.getDb();
 		const connectedList = database.collection('connectedList');
 		connectedList.deleteOne({ serverId: guild.id });
 
