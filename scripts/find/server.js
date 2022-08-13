@@ -23,7 +23,6 @@ module.exports = {
 			}
 		}
 
-
 		const embedGen = (guild, owner) => {
 			return new MessageEmbed()
 				.setAuthor({ name: guild.name, iconURL: guild.iconURL() })
@@ -41,7 +40,7 @@ module.exports = {
 		// if there is more than one result send the map with all the results
 
 		if (found.size > 1) {
-			const mapFound = found.map(e => {return { label: e.name, value: e.name };});
+			const mapFound = found.map(e => {return { label: e.name, value: e.id };});
 
 			const menu = new MessageActionRow().addComponents([
 				new MessageSelectMenu()
