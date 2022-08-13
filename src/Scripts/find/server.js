@@ -14,6 +14,7 @@ module.exports = {
 		if (found.size === 0) {
 			try {
 				// if provided option contains a snowflake (guild id), try to fetch the guild
+				// REVIEW: I think guilds are cached, so this is not necessary (unless they don't in sharding ¯\_(ツ)_/¯)
 				fetched = await interaction.client.guilds.fetch(option);
 			}
 			catch {
@@ -21,7 +22,7 @@ module.exports = {
 			}
 		}
 
-
+		// TODO: Emojis from external servers are not supported by discord anymore. Remove this when it's fixed.
 		const embedGen = async (guild, owner) => {
 			const guildInDb = await collection.findOne({ serverId: guild.id });
 			return new EmbedBuilder()
@@ -45,9 +46,8 @@ module.exports = {
 
 		// send the only result if there is one
 		// if there is more than one result send the map with all the results
-
 		if (found.size > 1) {
-			const mapFound = found.map(e => {return { label: e.name, value: e.name };});
+			const mapFound = found.map(e => {return { label: e.name, value: e.id };});
 
 			const menu = new ActionRowBuilder().addComponents([
 				new SelectMenuBuilder()
@@ -73,20 +73,15 @@ module.exports = {
 				ephemeral: true,
 				fetchReply: true,
 			});
-
-			const collector = msg.createMessageComponentCollector({
-				filter,
-				idle: 30 * 1000,
-				max: found.size,
-			});
+			const collector = msg.createMessageComponentCollector({ filter, idle: 30 * 1000, max: found.size });
 
 
 			collector.on('collect', async (i) => {
-				const selected = found.find(f => f.name === i.values[0]);
-				const owner = await interaction.client.users.fetch(selected.ownerId);
+				const selectedGuild = found.get(i.values[0]);
+				const owner = await interaction.client.users.fetch(selectedGuild.ownerId);
 				return i.update({
-					content: selected.id,
-					embeds: [await embedGen(selected, owner)],
+					content: selectedGuild.id,
+					embeds: [await embedGen(selectedGuild, owner)],
 					components: [],
 					ephemeral: true,
 				});
@@ -100,10 +95,7 @@ module.exports = {
 		else {
 			const server = found.size === 0 ? fetched : found.entries().next().value[1];
 			const owner = await interaction.client.users.fetch(server.ownerId);
-			return await interaction.reply({
-				embeds: [await embedGen(server, owner)],
-				ephemeral: true,
-			});
+			return await interaction.reply({ embeds: [await embedGen(server, owner)], ephemeral: true });
 		}
 	},
 };
