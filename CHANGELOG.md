@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.7.7](https://github.com/dev-737/ChatBot-Beta/compare/v1.7.6...v1.7.7) (2022-08-13)
+
+
+### Bug Fixes
+
+* **devMode:** Only manual deploy allowed now ([12ad177](https://github.com/dev-737/ChatBot-Beta/commit/12ad177ca586b00d706045347cd7d7adaed89859))
+* **server:** Fixed `disconnect` command disconnecting wrong server ([e4dcc57](https://github.com/dev-737/ChatBot-Beta/commit/e4dcc57ec2fc6837a5a4902536efa7db696d866d))
+
 ### [1.7.6](https://github.com/dev-737/ChatBot-Beta/compare/v1.8.0...v1.7.6) (2022-08-11)
 
 
