@@ -3,17 +3,6 @@
         "source.fixAll.eslint": true
       },
       "eslint.validate": ["javascript"],
-
-      "editor.tokenColorCustomizations": {
-        "textMateRules": [
-          {
-            "scope": "comment",
-            "settings": {
-              "fontStyle": "italic"
-            }
-          }
-        ]
-      },
       "appService.zipIgnorePattern": [
         "node_modules{,/**}",
         ".vscode{,/**}",
