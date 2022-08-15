@@ -52,8 +52,9 @@ module.exports = {
 					logger.error(error);
 				}
 				if (numOfDocs > 1) {
-					await interaction.reply(
-						`This channel has been connected to the chat network. You are currently with ${numOfDocs} other servers, Enjoy! ${normal.clipart}`,
+					await interaction.reply(stripIndents`
+					This channel has been connected to the chat network. You are currently with ${numOfDocs} other servers, Enjoy! ${normal.clipart}
+					***⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with them. ⚠️***`,
 					);
 				}
 				else {

@@ -38,11 +38,6 @@ module.exports = {
 				]),
 		]);
 
-
-		// Create action row collectors
-		const filter = m => m.user.id == interaction.user.id;
-		const collector = message.createMessageComponentCollector({ filter, time: 60000 });
-
 		async function updateFieldData() {
 			const guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 			const channelInDB = await interaction.guild.channels.fetch(guildInDB.channel.id);
@@ -62,17 +57,19 @@ module.exports = {
 			return fields;
 		}
 
-		async function refreshEmbed() {
+		async function refreshEmbed(collectorInteraction = undefined) {
 			const fields = await updateFieldData();
 			const embed = embedGen.setCustom(fields);
-			message.edit({ embeds: [embed], components: [selectMenu] });
+			collectorInteraction ? collectorInteraction.update({ embeds: [embed], components: [selectMenu] }) : message.edit({ embeds: [embed], components: [selectMenu] });
 		}
 
-
+		// Create action row collectors
+		const filter = m => m.user.id == interaction.user.id;
+		const collector = message.createMessageComponentCollector({ filter, time: 60000 });
 		// Everything is in one collector since im lazy
 		collector.on('collect', async i => {
 			if (i.isButton()) {
-				if (i.customId == 'edit') refreshEmbed();
+				if (i.customId == 'edit') refreshEmbed(i);
 				if (i.customId == 'reset') {
 					try {
 						const msg = await message.reply({
@@ -119,7 +116,7 @@ module.exports = {
 					await collection.updateOne({ 'guild.id': interaction.guild.id },
 						{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), profFilter: !guildInDB.profFilter } });
 				}
-				return refreshEmbed();
+				return refreshEmbed(i);
 			}
 
 		});
