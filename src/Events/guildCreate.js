@@ -1,8 +1,9 @@
 const { EmbedBuilder, Guild, AuditLogEvent } = require('discord.js');
 const { sendInFirst, colors, getDb } = require('../utils/functions/utils');
 const { normal, icons } = require('../utils/emoji.json');
-const filter = require('leo-profanity');
+const badwordsList = require('badwords-list');
 const channelIds = require('../utils/discordIds.json');
+const { stripIndents } = require('common-tags');
 require('dotenv').config();
 
 module.exports = {
@@ -17,11 +18,7 @@ module.exports = {
 		const blacklistedServers = database.collection('blacklistedServers');
 		const serverInBlacklist = await blacklistedServers.findOne({ serverId: guild.id });
 
-		// TODO Check why this returns string[] instead of boolean and maybe use badwords instead
-		const badword = filter.list().filter((name) => {
-			return guild.name.includes(name);
-		});
-
+		const badword = badwordsList.array.some(word => guild.name.toLowerCase().includes(word.toLowerCase()));
 
 		if (serverInBlacklist) {
 			await sendInFirst(guild,
@@ -31,29 +28,24 @@ module.exports = {
 			return;
 		}
 
-		else if (badword[0]) {
+		else if (badword) {
 			return guild
 				.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
-				.then(async (res) => {
-					res.entries.find(bot => bot.id);
-					const filtered = res.find((bot) => {
-						return bot.account.id === guild.client.user.id;
-					});
-					const user = await guild.client.users.fetch(filtered.user.id);
+				.then(async (fetchedAuditLogs) => {
+					const filtered = fetchedAuditLogs.entries.find((bot) => bot.account.id === guild.client.user.id);
+					const user = filtered.executor;
 					try {
 						await user.send(`The name of the server **${guild.name}** violates the ChatBot guidelines, therefore I must leave until it is corrected.`);
 					}
 					catch {
-						await sendInFirst(
-							guild,
+						await sendInFirst(guild,
 							'The name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.',
 						);
 					}
 					await guild.leave();
 				})
 				.catch(async () => {
-					await sendInFirst(
-						guild,
+					await sendInFirst(guild,
 						'The name of this server violates the ChatBot guidelines, therefore I must leave until it is corrected.',
 					);
 					await guild.leave();
@@ -68,11 +60,19 @@ module.exports = {
 			});
 
 			const embed = new EmbedBuilder()
-				.setTitle(`${normal.tada} Hi! Thanks for adding ChatBot to your server!`)
-				.setDescription(
-					'To start chatting, make a channel and run `/network connect`!\n\nAnd if you are interested in the other commands use `/help`\n\nPS: There is only one main language supported by this bot, and that is English. You may be subject to disciplinary action if you don\'t follow it.\n\nNeed help? [Join the support server](https://discord.gg/6bhXQynAPs).\n**Please note that ChatBot is not AI, but a bot for chatting with other real discord servers.**',
+				.setTitle(`${normal.tada} Hi! Thanks for adding me to your server!`)
+				.setDescription(stripIndents`
+					To start chatting, make a channel and run \`/setup\`!
+
+					And if you are interested in the other commands use \`/help\`
+
+					**Please note that ChatBot is not AI, but a bot for chatting with other real discord servers.**
+					*PS: English is the only language supported by this bot. Failure to follow it may result in disciplinary action.*
+
+					Need help? [Join the support server](https://discord.gg/6bhXQynAPs).
+					`,
 				)
-				.setColor(colors('chatbot'));
+				.setColor(colors('invisible'));
 
 			await sendInFirst(guild, { embeds: [embed] });
 		}
