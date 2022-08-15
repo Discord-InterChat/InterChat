@@ -5,13 +5,29 @@ module.exports = {
 		.setName('invite')
 		.setDescription('Invite the bot to your server'),
 	async execute(interaction) {
-		const permissions = [PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageWebhooks, PermissionFlagsBits.ChangeNickname, PermissionFlagsBits.ViewChannel, PermissionFlagsBits.SendMessages, PermissionFlagsBits.SendMessagesInThreads, PermissionFlagsBits.ManageChannels, PermissionFlagsBits.ManageMessages, PermissionFlagsBits.ManageThreads, PermissionFlagsBits.EmbedLinks, PermissionFlagsBits.AttachFiles, PermissionFlagsBits.ReadMessageHistory, PermissionFlagsBits.UseExternalEmojis, PermissionFlagsBits.AddReactions, PermissionFlagsBits.ManageGuild];
+		const permissions = [
+			PermissionFlagsBits.ManageChannels,
+			PermissionFlagsBits.ManageWebhooks,
+			PermissionFlagsBits.ChangeNickname,
+			PermissionFlagsBits.ViewChannel,
+			PermissionFlagsBits.SendMessages,
+			PermissionFlagsBits.SendMessagesInThreads,
+			PermissionFlagsBits.ManageChannels,
+			PermissionFlagsBits.ManageMessages,
+			PermissionFlagsBits.ManageThreads,
+			PermissionFlagsBits.EmbedLinks,
+			PermissionFlagsBits.AttachFiles,
+			PermissionFlagsBits.ReadMessageHistory,
+			PermissionFlagsBits.UseExternalEmojis,
+			PermissionFlagsBits.AddReactions,
+			PermissionFlagsBits.ViewAuditLog,
+		];
 
 		const InviteButtons = new ActionRowBuilder()
 			.addComponents([
 				new ButtonBuilder()
 					.setLabel('Normal')
-					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'], permissions: permissions }))
+					.setURL(interaction.client.generateInvite({ scopes: ['applications.commands', 'bot'], permissions }))
 					.setStyle(ButtonStyle.Link)
 					.setEmoji(normal.invite)
 					.setDisabled(false),
