@@ -22,7 +22,6 @@ module.exports = {
 						.setName('badge')
 						.setRequired(true)
 						.setDescription('The badge to add')
-
 						.addChoices(
 							{ name: 'Developer', value: 'Developer' },
 							{ name: 'Staff', value: 'Staff' },
@@ -42,8 +41,8 @@ module.exports = {
 				.addStringOption(stringOption =>
 					stringOption
 						.setName('badge')
-						.setRequired(true)
 						.setDescription('The badge to remove')
+						.setRequired(true)
 						.addChoices(
 							{ name: 'Developer', value: 'Developer' },
 							{ name: 'Staff', value: 'Staff' },

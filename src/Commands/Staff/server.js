@@ -21,6 +21,12 @@ module.exports = {
 						.setName('reason')
 						.setDescription('The reason for leaving the server.')
 						.setRequired(true),
+				)
+				.addBooleanOption(boolOption =>
+					boolOption
+						.setName('notify')
+						.setDescription('Whether to notify the server about the leave.')
+						.setRequired(false),
 				),
 		)
 
