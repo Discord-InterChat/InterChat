@@ -1,10 +1,10 @@
-const { EmbedBuilder } = require('@discordjs/builders');
 const logger = require('../../utils/logger');
 const { clean, developers } = require('../../utils/functions/utils');
-const { resolveColor } = require('discord.js');
+const { EmbedBuilder } = require('discord.js');
 module.exports = {
 	async execute(message) {
 		// The actual eval command
+
 		message.content = message.content.replace(/```js|```/g, '');
 
 		// Get our input arguments
@@ -18,7 +18,6 @@ module.exports = {
 		// In case something fails, we to catch errors
 		// in a try/catch block
 		try {
-
 			const start = Date.now();
 
 			// Evaluate (execute) our input
@@ -32,7 +31,7 @@ module.exports = {
 			// create a new embed
 			const embed = new EmbedBuilder()
 				.setTitle('Evaluation')
-				.setColor(resolveColor('Blurple'))
+				.setColor('Blurple')
 				.setTimestamp();
 
 			if (cleaned.length > 3950) {
@@ -41,14 +40,14 @@ module.exports = {
 			}
 			else if (cleaned.length >= 1024) {
 				embed
-					.setColor(resolveColor('Yellow'))
-					.setDescription(`Due to discord's limitations only the output is shown.\n \`\`\`js\n${cleaned}\n\`\`\``);
+					.setColor('Yellow')
+					.setDescription(`Due to Discord's Embed limitations only the output is shown.\n \`\`\`js\n${cleaned}\n\`\`\``);
 			}
 			else {
 				embed.setFields([
 					{ name: 'Input', value: `\`\`\`js\n${args.join(' ')}\n\`\`\``, inline: true },
-					{ name: 'Execution Time:', value: `\`\`\`${stop - start}ms\`\`\``, inline: true },
 					{ name: 'Output', value: `\`\`\`js\n${cleaned}\n\`\`\`` },
+					{ name: 'Execution Time:', value: `\`\`\`${stop - start}ms\`\`\``, inline: true },
 				]);
 			}
 
