@@ -15,8 +15,7 @@ module.exports = {
 	async execute(interaction) {
 		const modal = new ModalBuilder()
 			.setTitle('Report')
-			// randomize the modal id to prevent conflicts with discord's ass of a modal handling system
-			.setCustomId(Math.random().toString(36).slice(2, 7));
+			.setCustomId(`modal_${interaction.user.id}`);
 
 		const short = new TextInputBuilder()
 			.setRequired(true)
@@ -35,32 +34,23 @@ module.exports = {
 		switch (optionType) {
 		case 'bug':
 			short.setLabel('Describe the bug').setPlaceholder('This bug is about...');
-			para.setLabel('What is the bug about').setPlaceholder(
-				'This bug affects... A fix could be...',
-			);
+			para.setLabel('What is the bug about').setPlaceholder('This bug affects... A fix could be...');
 			break;
 
 		case 'server':
 			short.setLabel('Server Name & ID').setPlaceholder('Ex: Land of ChatBots - 012345678909876543');
-			para.setLabel('Please provide more info about the server').setPlaceholder(
-				'I am reporting this server because...',
-			);
+			para.setLabel('Please provide more info about the server').setPlaceholder('I am reporting this server because...');
 			break;
 
 		case 'user':
 			short.setLabel('User ID').setMaxLength(19).setPlaceholder('Ex: 012345678909876543');
-			para.setLabel('Reason').setPlaceholder(
-				'I am reporting this user because...',
-			);
-
-			modal.setCustomId('modal_user');
+			para.setLabel('Reason').setPlaceholder('I am reporting this user because...');
+			modal.setCustomId(`user_${interaction.user.id}`);
 			break;
 
 		case 'other':
 			short.setLabel('Title').setPlaceholder('Ex. New feature request for ChatBot');
-			para.setLabel('Please provide us more detail').setPlaceholder(
-				'Ask questions, requests, applications etc.',
-			);
+			para.setLabel('Please provide us more detail').setPlaceholder('Ask questions, requests, applications etc.');
 			break;
 
 		default:
@@ -73,17 +63,8 @@ module.exports = {
 
 		await interaction.showModal(modal);
 
-		// to-text button
-		const textBtn = new ActionRowBuilder().addComponents([
-			new ButtonBuilder()
-				.setCustomId('text')
-				.setLabel('text')
-				.setStyle(ButtonStyle.Secondary),
-		]);
-
 		const filter = (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id;
-		interaction
-			.awaitModalSubmit({ filter, time: 60000 })
+		interaction.awaitModalSubmit({ filter, time: 60000 })
 			.catch(() => { return; })
 			.then(async (i) => {
 				const componentPara = i.fields.getTextInputValue('para');
@@ -98,7 +79,7 @@ module.exports = {
 					}
 
 					interaction.client.users.fetch(componentShort)
-						.then((user) => {componentShort = `${user.username}#${user.discriminator} - ${user.id}`;})
+						.then(user => componentShort = `${user.username}#${user.discriminator} - ${user.id}`)
 						.catch(() => {return i.reply({ content: 'Invalid User Provided.', ephemeral: true });});
 				}
 
@@ -125,23 +106,8 @@ module.exports = {
 
 				await i.reply('Thank you for your report!');
 
-				// send to chatbot reports channel '<@&800698916995203104>'
-				const report = await reportChannel.send({ embeds: [embed], components: [textBtn] });
-
-				const collector = report.createMessageComponentCollector({
-					time: 50_400_000,
-					componentType: ComponentType.Button,
-				});
-
-				collector.on('collect', async (r) => {
-					const reportEmbed = report.embeds[0];
-					const content = `**${reportEmbed.author.name}**\n${reportEmbed.description}\n\n**${reportEmbed.fields[0].name}**: ${reportEmbed.fields[0].value}\n**${reportEmbed.fields[1].name}:** ${reportEmbed.fields[1].value}`;
-					await r.reply({ content, ephemeral: true });
-				});
-
-				/*
-				  NOTE: User modals are bugged, it will send more than one message to the support channel. Its a discord issue.
-				*/
+				// send to chatbot reports channel
+				await reportChannel.send({ embeds: [embed] });
 			});
 	},
 };
