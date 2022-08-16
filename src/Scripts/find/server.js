@@ -22,7 +22,8 @@ module.exports = {
 			}
 		}
 
-		// TODO: Emojis from external servers are not supported by discord anymore. Remove this when it's fixed.
+		// TODO: Emojis from external servers are not supported by discord anymore (works with followUps tho).
+		// Remove this when it's fixed.
 		const embedGen = async (guild, owner) => {
 			const guildInDb = await collection.findOne({ serverId: guild.id });
 			return new EmbedBuilder()

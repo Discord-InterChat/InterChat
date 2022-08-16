@@ -1,5 +1,4 @@
-const { SlashCommandBuilder, ApplicationCommandOptionType, PermissionsBitField } = require('discord.js');
-const { EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, ApplicationCommandOptionType, PermissionsBitField, EmbedBuilder } = require('discord.js');
 const { colors } = require('../../utils/functions/utils');
 
 module.exports = {

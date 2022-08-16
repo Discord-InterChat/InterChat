@@ -1,10 +1,4 @@
 'use strict';
-const app = require('express')();
-const port = process.env.port || 8080;
-
-app.listen(port, () => logger.info(`Express app listening on port ${port}`));
-app.get('/', (req, res) => res.send('Welcome- wait what are you doing here???'));
-
 const discord = require('discord.js');
 const mongoUtil = require('./utils/functions/utils');
 const Levels = require('discord-xp');
@@ -45,5 +39,12 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (err) => {
 	logger.error('[Anti Crash - Rejection]:', err);
 });
+
+
+const app = require('express')();
+const port = process.env.PORT || 8080;
+
+app.listen(port, () => logger.info(`Express app listening on port ${port}`));
+app.get('/', (req, res) => res.status(200));
 
 client.login(process.env.TOKEN);
