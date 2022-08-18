@@ -1,9 +1,10 @@
 const { EmbedBuilder } = require('discord.js');
-const { getDb, colors } = require('../utils/functions/utils');
+const { getDb, colors, promisify } = require('../utils/functions/utils');
 const logger = require('../utils/logger');
 const messageContentModifiers = require('../scripts/message/messageContentModifiers');
 const evalScript = require('../scripts/message/evalScript');
 const wordFilter = require('../scripts/message/wordFilter');
+const messageTypes = require('../scripts/message/messageTypes');
 
 // TODO: edit the embed instead of changing the message content
 // if guild has profanity disabled and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
@@ -77,29 +78,44 @@ module.exports = {
 
 
 			const channelAndMessageIds = [];
+			const channelsToDelete = [];
 
 			for (const channelObj of allConnectedChannels) {
 				try {
 					await message.client.channels.fetch(channelObj.channelId);
 				}
 				catch {
-					await connectedList.deleteOne({ channelId: channelObj.channelId });
-					await setup.deleteOne({ 'channel.id': channelObj.channelId });
-					logger.warn(`Deleted non-existant channel ${channelObj.channelId} from database.`);
-					return;
+					channelsToDelete.push(channelObj.channelId);
+					logger.warn(`Found non-existant channel ${channelObj.channelId} from database.`);
+					continue;
 				}
 				// sending the messages to the connected channels
-				const msg = await require('../scripts/message/messageTypes').execute(message.client, message, channelObj, embed, setup, attachments);
-				channelAndMessageIds.push({ channelId: msg.channelId, messageId: msg.id });
+				const msg = messageTypes.execute(message.client, message, channelObj, embed, setup, attachments);
+				// push the entire promise, as we dont want to wait for it inside the loop
+				channelAndMessageIds.push(promisify(msg));
 			}
 
-			// for editing and deleting messages
-			messageData.insertOne({
-				channelAndMessageIds,
-				timestamp: message.createdTimestamp,
-				authorId: message.author.id,
-				serverId: message.guild.id,
-			});
+			// TODO Log channelsToDelete and debug before production
+			// TODO make a cleanup script for after message is sent
+			connectedList.deleteMany({ channelId: { $in: channelsToDelete } });
+			setup.deleteMany({ 'channel.id': { $in: channelsToDelete } });
+
+
+			Promise.all(channelAndMessageIds)
+				.then((data) => {
+					const messageDataObj = data.map((msg) => {
+						return { channelId: msg.channelId, messageId: msg.id };
+					});
+
+					// for editing and deleting messages
+					messageData.insertOne({
+						channelAndMessageIds: messageDataObj,
+						timestamp: message.createdTimestamp,
+						authorId: message.author.id,
+						serverId: message.guild.id,
+					});
+				})
+				.catch(logger.error);
 		}
 		else {
 			return;
