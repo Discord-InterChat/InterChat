@@ -31,11 +31,11 @@ module.exports = {
 						.setTimestamp()
 						.setColor('#3bd0ff');
 
-					const suggestionChannel = await interaction.client.channels.fetch(channelIds.channel.suggestions); // REVIEW Import from config
+					const suggestionChannel = await interaction.client.channels.fetch(channelIds.channel.suggestions);
 
 					if (interaction.options.getAttachment('attachment')) embed.setImage(interaction.options.getAttachment('attachment').url);
 
-					const reviewChannel = await interaction.client.channels.fetch(channelIds.channel.reviews); // REVIEW Import from config
+					const reviewChannel = await interaction.client.channels.fetch(channelIds.channel.reviews);
 					row.components[0].setEmoji(normal.yes).setLabel('Approve');
 					row.components[1].setEmoji(normal.no).setLabel('Deny');
 					const reviewMessage = await reviewChannel.send({ embeds: [embed], components: [row], fetchReply: true });

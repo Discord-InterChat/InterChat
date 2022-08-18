@@ -11,7 +11,7 @@ module.exports = {
 		connectedList.deleteOne({ serverId: guild.id });
 
 		const cbhq = guild.client.guilds.fetch(utils.mainGuilds.cbhq);
-		const goalChannel = (await cbhq).channels.cache.get(channelIds.channel.goal); // REVIEW Import from config
+		const goalChannel = (await cbhq).channels.cache.get(channelIds.channel.goal);
 		await goalChannel.send({
 			content: `${icons.leave} I have been kicked from ${guild.name}. ${500 - guild.client.guilds.cache.size} to go!`,
 			allowedMentions: { parse: ['everyone', 'roles'] },

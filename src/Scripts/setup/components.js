@@ -106,7 +106,7 @@ module.exports = {
 				// get the latest db updates
 				const guildInDB = await collection.findOne({ 'guild.id': interaction.guild.id });
 
-				// REVIEW: This had && guildinDB now it doesnt, test if it works
+				// This had && guildinDB now it doesnt, so far so good 💀
 				if (i.values[0] === 'compact') {
 					await collection.updateOne({ 'guild.id': interaction.guild.id },
 						{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), compact: !guildInDB.compact } });

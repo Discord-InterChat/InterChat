@@ -43,9 +43,13 @@ module.exports.paginate = async (interaction, pages,
 	});
 
 	col.on('collect', (i) => {
-		if (i.customId === '1') --pagenumber, index--;
-		else if (i.customId === '2') pagenumber++, index++;
-		else return listMessage.edit({ components: [] }); col.stop();
+		if (i.customId === '1') {--pagenumber, index--;}
+		else if (i.customId === '2') {pagenumber++, index++;}
+		else {
+			listMessage.edit({ components: [] });
+			col.stop();
+			return;
+		}
 
 
 		row.setComponents([

@@ -53,7 +53,7 @@ module.exports = {
 		}
 
 		else {
-			const goalChannel = await guild.client.channels.fetch(channelIds.channel.goal); // REVIEW Import from config
+			const goalChannel = await guild.client.channels.fetch(channelIds.channel.goal);
 			await goalChannel.send({
 				content: `${icons.join} I have joined ${guild.name}! ${500 - guild.client.guilds.cache.size} to go!`,
 				allowedMentions: { parse: ['everyone', 'roles'] },

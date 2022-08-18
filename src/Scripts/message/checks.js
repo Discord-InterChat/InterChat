@@ -15,10 +15,9 @@ module.exports = {
 
 		// db for blacklisted words
 		const restrictedWords = database.collection('restrictedWords');
-		const wordList = await restrictedWords.findOne({
-			name: 'blacklistedWords',
-		});
+		const wordList = await restrictedWords.findOne({ name: 'blacklistedWords' });
 
+		// FIXME: New antispam system needs to be implemented
 		antiSpam.execute(message);
 
 		if (userInBlacklist) {
@@ -38,10 +37,7 @@ module.exports = {
 		if (
 			message.content.includes('discord.gg') ||
 			message.content.includes('discord.com/invite') ||
-			message.content.includes('youtu.be') ||
-			message.content.includes('www.youtube.com') ||
-			message.content.includes('youtube.com')
-		) {
+			message.content.includes('dsc.gg')) {
 			message.react(emoji.normal.no);
 			return false;
 		}
