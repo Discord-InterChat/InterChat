@@ -3,6 +3,7 @@ const discord = require('discord.js');
 const mongoUtil = require('./utils/functions/utils');
 const Levels = require('discord-xp');
 const logger = require('./utils/logger');
+const packagejson = require('../package.json');
 const { loadCommands } = require('./handlers/handleCommands.js');
 const { loadEvents } = require('./handlers/handleEvents.js');
 
@@ -21,17 +22,22 @@ const client = new discord.Client({
 		discord.GatewayIntentBits.GuildMembers,
 		discord.GatewayIntentBits.MessageContent,
 	],
+	presence: {
+		status: 'online',
+		activities: [{
+			name: 'the Chat Network',
+			type: discord.ActivityType.Watching,
+		}],
+	},
 });
 
 client.commands = new discord.Collection();
-client.description = 'A growing discord bot which provides inter-server chat!';
-client.version = require('../package.json').version;
+client.description = packagejson.description;
+client.version = packagejson.version;
 client.help = [];
 
 loadCommands(client);
 loadEvents(client);
-
-// TODO: Add disconnect and reconnect buttons to the setup.js page
 
 process.on('uncaughtException', (err) => {
 	logger.error('[Anti-Crash - Exception]:', err);
@@ -45,6 +51,6 @@ const app = require('express')();
 const port = process.env.PORT || 8080;
 
 app.listen(port, () => logger.info(`Express app listening on port ${port}`));
-app.get('/', (req, res) => res.status(200));
+app.get('/', (req, res) => res.status(200).send('Acknowledged'));
 
 client.login(process.env.TOKEN);
