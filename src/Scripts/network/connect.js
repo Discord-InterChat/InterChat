@@ -30,11 +30,11 @@ module.exports = {
 			}
 			catch (err) {
 				deleteChannels(interaction.client);
+				interaction.reply('Connected channel has been deleted. Please rerun the command.');
+				return;
 			}
 
-			await interaction.reply(
-				`This server is already connected to the chat network in the channel ${connectedChannel}. Please disconnect from there first.`,
-			);
+			await interaction.reply(`This server is already connected to the chat network in the channel ${connectedChannel}. Please disconnect from there first.`);
 			return;
 		}
 
@@ -54,7 +54,7 @@ module.exports = {
 				if (numOfDocs > 1) {
 					await interaction.reply(stripIndents`
 					This channel has been connected to the chat network. You are currently with ${numOfDocs} other servers, Enjoy! ${normal.clipart}
-					***⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with them. ⚠️***`,
+					**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`,
 					);
 				}
 				else {

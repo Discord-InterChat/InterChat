@@ -117,7 +117,9 @@ module.exports = {
 				serverName: interaction.guild.name,
 			});
 
-			destination.send('***⚠️ This is not an AI Chat, but a chat network that allows you to connect to multiple servers and communicate with them. ⚠️***');
+			// TODO: Send a message to the channel saying that they are now connected to the network
+			// like in /network connect
+			destination.send('**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**');
 
 			sendInNetwork(interaction, stripIndents`
 			A new server has joined us in the Network! ${emoji.normal.clipart}
