@@ -255,6 +255,11 @@ module.exports = {
 				.then(async (channel) => await channel.send(message));
 		});
 	},
+	promisify: (data) => {
+		return new Promise(function(resolve, reject) {
+			return resolve(data);
+		});
+	},
 };
 
 // This works directly on strings, no need to import (eg: 'string'.toTitleCase() )
