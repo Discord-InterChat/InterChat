@@ -17,6 +17,7 @@ module.exports = {
 			.setDescription('Channel you want to setup chatbot to, select a category to create a new channel for chatbot')), // .addChannelTypes(Constants.ChannelTypes.GUILD_CATEGORY))
 
 	async execute(interaction) {
+		// TODO: Add disconnect and reconnect buttons to the setup.js page
 		// Embed classes to make it easier to call and edit multiple embeds
 		class Embeds {
 			constructor() { /**/ }
