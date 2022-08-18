@@ -50,7 +50,7 @@ module.exports = {
 
 		const reportsChannel = await interaction.client.channels.fetch(
 			channelIds.channel.reports,
-		); // REVIEW Import from config
+		);
 
 		const reportedUser = await interaction.client.users.fetch(
 			args.embeds[0].footer.text.split('┃')[-1],
