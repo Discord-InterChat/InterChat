@@ -2,22 +2,6 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [1.8.0](https://github.com/dev-737/ChatBot-Beta/compare/v1.7.7...v1.8.0) (2022-08-18)
-
-
-### Features
-
-* **server:** Leave notifications ([70ea972](https://github.com/dev-737/ChatBot-Beta/commit/70ea97276e4eec9f8d33ec7ac0d07d05694268a1))
-
-
-### Bug Fixes
-
-* **eval:** Using discord.js Embeds instead of builders ([6542ae2](https://github.com/dev-737/ChatBot-Beta/commit/6542ae22cf4f326da8c07cf13399724ee70303bf))
-* **find:** Fixed bug when multiple servers have same name ([94058a2](https://github.com/dev-737/ChatBot-Beta/commit/94058a2b654bfc7d4bcef1165196335e607fc3ff))
-* **goal:** Using auditlogs instead of intergration ([e8a24e7](https://github.com/dev-737/ChatBot-Beta/commit/e8a24e752ca909854532cc98e026fc011dd1799a))
-* **network:** alert about not being AI ([343b8bc](https://github.com/dev-737/ChatBot-Beta/commit/343b8bc171069b85ca64ea572999aa7a0167963a))
-* **report:** Modals now have unique `customId`s ([532784b](https://github.com/dev-737/ChatBot-Beta/commit/532784b413090e42eebf5fd4af5c06a8e8845345))
-
 ### [1.7.7](https://github.com/dev-737/ChatBot-Beta/compare/v1.7.6...v1.7.7) (2022-08-13)
 
 
