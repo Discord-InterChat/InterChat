@@ -1,21 +1,28 @@
-const { stripIndents } = require('common-tags');
 const { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, EmbedBuilder } = require('discord.js');
-const e = require('express');
-const { getDb } = require('../../utils/functions/utils');
+const { getDb, topgg } = require('../../utils/functions/utils');
+const emojis = require('../../utils/emoji.json');
 const logger = require('../../utils/logger');
-
-// only works for embeds
 
 module.exports = {
 	data: new ContextMenuCommandBuilder()
 		.setName('Edit Message')
 		.setType(ApplicationCommandType.Message),
 	/**
-    *
+	* ⚠️Voters only⚠️
+	*
+    * Edit messages throughout the network *(partially works for compact mode)*
     * @param {MessageContextMenuCommandInteraction} interaction
     */
 	async execute(interaction) {
 		const target = interaction.targetMessage;
+
+		if (!await topgg.hasVoted(interaction.user.id)) {
+			interaction.reply({
+				content: `${emojis.normal.no} You must vote to use this command.`,
+				ephemeral: true,
+			});
+			return;
+		}
 
 		const db = getDb();
 		const messageInDb = await db.collection('messageData').find({ channelAndMessageIds: { $elemMatch: { messageId: target.id } } }).toArray();
@@ -57,7 +64,7 @@ module.exports = {
 			.catch(() => {return;})
 			.then(i => {
 				const editMessage = i.fields.getTextInputValue('editMessage');
-				const targetEmbed = target.embeds[0]?.toJSON();
+				let targetEmbed = target.embeds[0]?.toJSON();
 
 				if (targetEmbed) {
 					targetEmbed.fields[0].value = editMessage;
@@ -80,22 +87,16 @@ module.exports = {
 								// if the FIRST message (message that the edit was performed on) does not have an embed
 								// but message in the other server does (i.e. First message is in compact mode but this one is not),
 								// then store this as a new embed and edit with the new message
-								// NOTE: this is not the best way to do it as we are repeatedly storing the same data to the variable multiple times, but it works
 								else if (!targetEmbed) {
-									const embed = message.embeds[0].toJSON();
-									embed.fields[0].value = editMessage;
-
-									await message.edit({ embeds: [embed] });
+									targetEmbed = message.embeds[0].toJSON();
+									targetEmbed.fields[0].value = editMessage;
 								}
-								// edit it with the new embed
-								else {
-									await message.edit({ embeds: [targetEmbed] });
-								}
+								await message.edit({ embeds: [targetEmbed] });
 							}).catch(logger.error);
 						}).catch(logger.error);
 					});
 				}
-				i.reply({ content: 'Message Edited.', ephemeral: true });
+				i.reply({ content: `${emojis.normal.yes} Message Edited.`, ephemeral: true });
 			});
 	},
 };
