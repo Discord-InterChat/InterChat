@@ -5,20 +5,29 @@ const discordIds = require('../../utils/discordIds.json');
 const Filter = require('bad-words'),
 	filter = new Filter();
 
+const usersMap = new Map();
+const blacklistsMap = new Map();
+
 module.exports = {
 	async execute(message, database) {
+		// true = pass, false = fail (checks)
+
 		// db for blacklisted users
 		const blacklistedUsers = database.collection('blacklistedUsers');
-		const userInBlacklist = await blacklistedUsers.findOne({
-			userId: message.author.id,
-		});
+		const userInBlacklist = await blacklistedUsers.findOne({ userId: message.author.id });
+
+		if (message.content.length > 1000) {
+			message.channel.send('Please keep your messages to 1000 characters or less.');
+			return false;
+		}
+		// FIXME: At the moment when a user is removed from blacklist,
+		// ONE of the spam messages gets through. (as it is not in the map at that second)
+		if (blacklistsMap.has(message.author.id)) return false;
 
 		// db for blacklisted words
 		const restrictedWords = database.collection('restrictedWords');
 		const wordList = await restrictedWords.findOne({ name: 'blacklistedWords' });
 
-		// FIXME: New antispam system needs to be implemented
-		antiSpam.execute(message);
 
 		if (userInBlacklist) {
 			// if user is in blacklist and Notified is false, send them a message saying they are blacklisted
@@ -33,6 +42,10 @@ module.exports = {
 			}
 			return false;
 		}
+
+		// anti-spam check (basic but works well 🤷)
+		const spam_filter = await antiSpam.execute(message, blacklistsMap, usersMap);
+		if (spam_filter === true) return false;
 
 		if (
 			message.content.includes('discord.gg') ||
