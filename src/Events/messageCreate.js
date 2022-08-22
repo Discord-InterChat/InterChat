@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const { getDb, colors, promisify } = require('../utils/functions/utils');
+const { getDb, colors } = require('../utils/functions/utils');
 const logger = require('../utils/logger');
 const messageContentModifiers = require('../scripts/message/messageContentModifiers');
 const evalScript = require('../scripts/message/evalScript');
@@ -69,12 +69,8 @@ module.exports = {
 			// leveling system
 			await require('../scripts/message/levelling').execute(message);
 
-			try {
-				await message.delete();
-			}
-			catch (err) {
-				logger.warn(err + ' cannot delete message');
-			}
+			try {await message.delete();}
+			catch {return;}
 
 
 			const channelAndMessageIds = [];
@@ -86,13 +82,13 @@ module.exports = {
 				}
 				catch {
 					channelsToDelete.push(channelObj.channelId);
-					logger.warn(`Found non-existant channel ${channelObj.channelId} from database.`);
+					logger.warn(`Found deleted channel ${channelObj.channelId} in database.`);
 					continue;
 				}
 				// sending the messages to the connected channels
 				const msg = messageTypes.execute(message.client, message, channelObj, embed, setup, attachments);
 				// push the entire promise, as we dont want to wait for it inside the loop
-				channelAndMessageIds.push(promisify(msg));
+				channelAndMessageIds.push(msg);
 			}
 
 			// TODO Log channelsToDelete and debug before production
