@@ -5,8 +5,11 @@
       "eslint.validate": ["javascript"],
       "appService.zipIgnorePattern": [
         "node_modules{,/**}",
+        "build{,/**}",
         ".vscode{,/**}",
         ".git",
         "__tests__",
+        "*.md",
+        ".env.example"
       ]
 }

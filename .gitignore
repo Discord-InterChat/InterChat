@@ -7,11 +7,18 @@
 # archived commands
 /archive/
 
-# enviroment variables
-/.env
+# Configuration
+.env
 
-# Unit testing
-/__tests__
+# Unit tests
+tests/
+__tests__/
+
+# Unit test coverage reports
+coverage/
+
+# Transpiled source code (production build)
+build/
 
 # misc
 /TopGG/
