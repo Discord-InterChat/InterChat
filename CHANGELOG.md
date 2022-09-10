@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0-alpha](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v1.9.0...v2.1.0) (2022-09-10)
+
+
+### Features
+
+* **core:** Codebase rewrite to TypeScript 🎉 ([#66](https://github.com/Discord-ChatBot/ChatBot-Beta/issues/66)) ([dfaee5d](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/dfaee5d848164d4d2e25d1088302e03b6f74ee01))
+
 ### [1.7.7](https://github.com/dev-737/ChatBot-Beta/compare/v1.7.6...v1.7.7) (2022-08-13)
 
 
