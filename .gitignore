@@ -1,12 +1,25 @@
 # dependencies
 /node_modules/
-package-lock.json
 
 # logs
 /logs/
 
-# archive
-/Archive/test.md
+# archived commands
+/archive/
 
-/.env
-/todo.md
+# Configuration
+.env
+
+# Unit tests
+tests/
+__tests__/
+
+# Unit test coverage reports
+coverage/
+
+# Transpiled source code (production build)
+build/
+
+# misc
+/TopGG/
+/Privacy.md

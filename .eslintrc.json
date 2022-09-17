@@ -1,13 +1,21 @@
 {
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+      ],
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "plugins": ["@typescript-eslint"],
     "env": {
         "node": true,
         "es6": true
     },
     "parserOptions": {
-        "ecmaVersion": 2021
+        "ecmaVersion": 2022
     },
     "rules": {
+        "@typescript-eslint/no-var-requires": "off",
         "no-unused-vars": [
             "off"  // NOTE: Enable later to see errors when var is unused
         ],
@@ -72,7 +80,7 @@
                 "maxBOF": 0
             }
         ],
-        "no-shadow": [
+        "@typescript-eslint/no-shadow": [
             "error",
             {
                 "allow": [
