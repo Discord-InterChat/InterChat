@@ -18,7 +18,7 @@ export async function loadCommands(client: Client) {
 			if (IgnoredDirs.includes(dir)) return;
 
 			const cmds = commandFiles.map(async (command: string) => {
-				const file = await import(`../commands/${dir}/${command}`);
+				const file = await import(`../Commands/${dir}/${command}`);
 
 				const name = file.default.data.name || 'No name';
 

@@ -1,19 +1,13 @@
 import { normal } from '../../Utils/emoji.json';
-import { Client, EmbedBuilder, AttachmentBuilder, Message, TextChannel, MessageMentionTypes, MessageOptions } from 'discord.js';
+import { Client, EmbedBuilder, AttachmentBuilder, Message, TextChannel, MessageMentionTypes, BaseMessageOptions } from 'discord.js';
 import { Collection } from 'mongodb';
 import { connectedListInterface } from '../../Utils/typings/types';
 
-interface WebhookMessageInterface extends MessageOptions {
+interface WebhookMessageInterface extends BaseMessageOptions {
 	content: string,
 	username: string,
 	files?: AttachmentBuilder[],
 	avatarURL: string,
-	allowedMentions: { parse: MessageMentionTypes[] },
-}
-
-interface NormalMessageInterface extends MessageOptions {
-	content: string,
-	files?: AttachmentBuilder[],
 	allowedMentions: { parse: MessageMentionTypes[] },
 }
 
@@ -50,10 +44,12 @@ export default {
 				avatarURL: String(message.author.avatarURL()),
 				allowedMentions: { parse: [] },
 			};
-			const normalMessage: NormalMessageInterface = {
+
+			const normalMessage: BaseMessageOptions = {
 				content: `**${message.author.tag}:** ${message.content}`,
 				allowedMentions: { parse: [] },
 			};
+
 
 			if (attachments) {
 				webhookMessage.files = [attachments];

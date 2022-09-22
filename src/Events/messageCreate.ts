@@ -35,7 +35,7 @@ export default {
 		const messageData = database?.collection('messageData');
 
 		if (channelInNetwork) {
-			const checks = await require('../scripts/message/checks').execute(message, database);
+			const checks = await require('../Scripts/message/checks').execute(message, database);
 			if (checks === false) return;
 
 			// check if message contains profanity and censor it if it does
@@ -61,13 +61,13 @@ export default {
 					iconURL: message.guild?.iconURL()?.toString(),
 				});
 
-			await require('../scripts/message/addBadges').execute(message, database, embed);
+			await require('../Scripts/message/addBadges').execute(message, database, embed);
 			await messageContentModifiers.execute(message, embed);
 
 			const attachments = await messageContentModifiers.attachmentModifiers(message, embed);
 
 			// leveling system
-			await require('../scripts/message/levelling').execute(message);
+			await require('../Scripts/message/levelling').execute(message);
 
 			try {await message.delete();}
 			catch {return;}

@@ -69,10 +69,10 @@ export default {
 		const userBadges = database?.collection('userBadges');
 
 		if (subcommand === 'list') {
-			require('../../scripts/badge/list').execute(interaction, userBadges, user);
+			require('../../Scripts/badge/list').execute(interaction, userBadges, user);
 		}
 		else {
-			require(`../../scripts/badge/${subcommand}`).execute(interaction, userBadges, user, badge);
+			require(`../../Scripts/badge/${subcommand}`).execute(interaction, userBadges, user, badge);
 		}
 	},
 };

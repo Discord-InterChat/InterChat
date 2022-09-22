@@ -39,6 +39,6 @@ export default {
 		),
 	async execute(interaction: ChatInputCommandInteraction) {
 		const subcommand = interaction.options.getSubcommand();
-		require(`../../scripts/support/${subcommand}`).execute(interaction);
+		require(`../../Scripts/support/${subcommand}`).execute(interaction);
 	},
 };

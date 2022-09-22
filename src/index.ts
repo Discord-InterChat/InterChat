@@ -5,11 +5,10 @@ import Levels from 'discord-xp';
 import mongoUtil from './Utils/functions/utils';
 import logger from './Utils/logger';
 import packagejson from '../package.json';
-import dotenv from 'dotenv';
+import 'dotenv/config';
 import { loadCommands } from './Handlers/handleCommands';
 import { loadEvents } from './Handlers/handleEvents';
 
-dotenv.config();
 Levels.setURL(process.env.MONGODB_URI as string); // FIXME: Change this to your MongoDB Atlas URL
 const app = express();
 const port = process.env.PORT || 8080;

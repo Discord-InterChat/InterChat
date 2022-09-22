@@ -1,5 +1,5 @@
 import logger from '../logger';
-import discord, { ColorResolvable, GuildMember } from 'discord.js';
+import discord from 'discord.js';
 import { MongoClient, Db, AnyError } from 'mongodb';
 import { Api } from '@top-gg/sdk';
 import { config } from 'dotenv';
@@ -103,11 +103,11 @@ export function choice(arr: discord.ColorResolvable[]) {
 /**
 * Send a message to a guild
 */
-export async function sendInFirst(guild: discord.Guild, message: string | discord.MessagePayload | discord.MessageOptions) {
+export async function sendInFirst(guild: discord.Guild, message: string | discord.MessagePayload | discord.BaseMessageOptions) {
 	const channels = await guild.channels.fetch();
 	for (const channel of channels) {
-		if (channel[1].type == discord.ChannelType.GuildText) {
-			if (channel[1].permissionsFor(guild.members.me as GuildMember)?.has('SendMessages')) {
+		if (channel[1]?.type == discord.ChannelType.GuildText) {
+			if (channel[1].permissionsFor(guild.members.me as discord.GuildMember)?.has('SendMessages')) {
 				try {
 					await channel[1].send(message);
 					break;

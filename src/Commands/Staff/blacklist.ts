@@ -102,7 +102,7 @@ export default {
 	async execute(interaction: ChatInputCommandInteraction) {
 		const subCommand = interaction.options.getSubcommand();
 		const database = getDb();
-		require(`../../scripts/blacklist/${subCommand}`).execute(interaction, database);
+		require(`../../Scripts/blacklist/${subCommand}`).execute(interaction, database);
 
 	},
 };

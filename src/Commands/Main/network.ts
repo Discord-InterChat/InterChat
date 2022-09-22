@@ -26,7 +26,7 @@ export default {
 			return await interaction.reply(`This server is blacklisted from using the ChatBot Chat Network for reason \`${serverInBlacklist.reason}\`! Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
 		}
 
-		const subcommandFile = require(`../../scripts/network/${subcommand}`);
+		const subcommandFile = require(`../../Scripts/network/${subcommand}`);
 		subcommandFile.execute(interaction, connectedList);
 	},
 };

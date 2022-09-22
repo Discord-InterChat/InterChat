@@ -17,6 +17,6 @@ export default {
 		const data = interaction.options.getString('name-id');
 		const type = interaction.options.getString('type');
 
-		require(`../../scripts/find/${type}`).execute(interaction, data);
+		require(`../../Scripts/find/${type}`).execute(interaction, data);
 	},
 };
