@@ -18,9 +18,6 @@ export default {
 		const db = getDb();
 		const messageInDb = await db?.collection('messageData').findOne({ channelAndMessageIds: { $elemMatch: { messageId: target.id } } }) as messageData | undefined;
 
-		console.log(messageInDb);
-
-
 		if ((staffUser || interaction.user.id === messageInDb?.authorId)) {
 			messageInDb?.channelAndMessageIds.forEach(async (element) => {
 				await interaction.client.channels.fetch(element.channelId).then(async (channel) => {

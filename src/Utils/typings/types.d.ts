@@ -1,6 +1,6 @@
 import { WithId, Document } from 'mongodb';
 
-export interface messageData extends WithId<Document>{
+export interface messageData extends WithId<Document> {
 	channelAndMessageIds: Array<{
 		channelId: string,
 		messageId: string

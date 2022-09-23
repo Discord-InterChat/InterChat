@@ -9,7 +9,7 @@ import 'dotenv/config';
 import { loadCommands } from './Handlers/handleCommands';
 import { loadEvents } from './Handlers/handleEvents';
 
-Levels.setURL(process.env.MONGODB_URI as string); // FIXME: Change this to your MongoDB Atlas URL
+Levels.setURL(process.env.MONGODB_URI as string);
 const app = express();
 const port = process.env.PORT || 8080;
 
@@ -44,6 +44,7 @@ process.on('unhandledRejection', (err) => {
 	logger.error('[Anti Crash - Rejection]:', err);
 });
 
+client.on('debug', console.log);
 
 client.login(process.env.TOKEN);
 app.listen(port, () => logger.info(`Express app listening on port ${port}`));

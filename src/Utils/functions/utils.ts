@@ -165,11 +165,12 @@ export function toHuman(milliseconds: number): string {
 	return readable;
 }
 
-/** Checks if a user is a ChatBot Staff or Developer
-* @param client Discord.JS client
-* @param user The user to check
-* @param onlyDeveloper Returns true only if the user is a developer
-*/
+/**
+ * Checks if a user is a ChatBot Staff or Developer
+ * @param client Discord.JS client
+ * @param user The user to check
+ * @param onlyDeveloper Check if the user is a developer
+ */
 export async function checkIfStaff(client: discord.Client, user: discord.GuildMember | discord.User, onlyDeveloper = false) {
 	try {
 		const staff = '800698916995203104';
