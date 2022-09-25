@@ -30,7 +30,7 @@ export default {
 		const user: LeaderboardUser = await Levels.fetch(target.id, constants.mainGuilds.cbhq, true) as unknown as LeaderboardUser;
 		const errorEmbed = new EmbedBuilder().setDescription(`${user?.username || 'User'} doesn't have any xp.. Chat to gain some xp.`);
 
-		if (!user) return await interaction.reply({ embeds: [errorEmbed] });
+		if (!user) return await interaction.followUp({ embeds: [errorEmbed] });
 
 		const neededxp = Levels.xpFor(user.level + 1);
 

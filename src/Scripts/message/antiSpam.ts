@@ -28,7 +28,7 @@ function blacklistUser(user: GuildMember|User, map: Map<string, BlacklistEntries
 	});
 }
 
-module.exports = {
+export = {
 	/**
 	 * Basic anti-spam that I got from youtube and StackOverflow, with my own tweaks.
 	*/

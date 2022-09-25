@@ -2,18 +2,18 @@ import wordFilter from '../../Utils/functions/wordFilter';
 import emoji from '../../Utils/emoji.json';
 import { Guild, Message } from 'discord.js';
 import { Db } from 'mongodb';
-const antiSpam = require('./antiSpam');
+import antiSpam from './antiSpam';
 
 const usersMap = new Map();
 const blacklistsMap = new Map();
 
-module.exports = {
-	async execute(message: Message, database: Db) {
+export = {
+	async execute(message: Message, database: Db | undefined) {
 		// true = pass, false = fail (checks)
 
 		// db for blacklisted users
-		const blacklistedUsers = database.collection('blacklistedUsers');
-		const userInBlacklist = await blacklistedUsers.findOne({ userId: message.author.id });
+		const blacklistedUsers = database?.collection('blacklistedUsers');
+		const userInBlacklist = await blacklistedUsers?.findOne({ userId: message.author.id });
 
 		if (message.content.length > 1000) {
 			message.channel.send('Please keep your messages to 1000 characters or less.');
@@ -24,8 +24,8 @@ module.exports = {
 		if (blacklistsMap.has(message.author.id)) return false;
 
 		// db for blacklisted words
-		const restrictedWords = database.collection('restrictedWords');
-		const wordList = await restrictedWords.findOne({ name: 'blacklistedWords' });
+		const restrictedWords = database?.collection('restrictedWords');
+		const wordList = await restrictedWords?.findOne({ name: 'blacklistedWords' });
 
 
 		if (userInBlacklist) {
@@ -34,7 +34,7 @@ module.exports = {
 				await message.author.send(
 					`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`,
 				);
-				blacklistedUsers.updateOne(
+				blacklistedUsers?.updateOne(
 					{ userId: message.author.id },
 					{ $set: { notified: true } },
 				);

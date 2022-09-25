@@ -10,9 +10,17 @@ export interface messageData extends WithId<Document> {
 	serverId: string
 }
 
-export interface connectedListInterface extends WithId<Document> {
+export interface connectedListDocument extends WithId<Document> {
 	channelId: string,
 	channelName: string,
 	serverId: string,
 	serverName: string
+}
+declare global {
+	interface String {
+		/**
+		 * Converts every word in a sentense to begin with a capital letter.
+		 */
+		toTitleCase(): string;
+	}
 }

@@ -1,7 +1,7 @@
 import { normal } from '../../Utils/emoji.json';
 import { Client, EmbedBuilder, AttachmentBuilder, Message, TextChannel, MessageMentionTypes, BaseMessageOptions } from 'discord.js';
 import { Collection } from 'mongodb';
-import { connectedListInterface } from '../../Utils/typings/types';
+import { connectedListDocument } from '../../Utils/typings/types';
 
 interface WebhookMessageInterface extends BaseMessageOptions {
 	content: string,
@@ -15,7 +15,7 @@ export default {
 	/**
 	 * This function converts a message to embeded or normal depending on the server settings. It also adds the attachments to the message.
 	 */
-	execute: async (client: Client, message: Message, channelObj: connectedListInterface, embed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
+	execute: async (client: Client, message: Message, channelObj: connectedListDocument, embed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
 		const allChannel = await client.channels.fetch(channelObj.channelId) as TextChannel;
 		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel?.id });
 

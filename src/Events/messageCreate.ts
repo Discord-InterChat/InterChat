@@ -5,7 +5,7 @@ import evalScript from '../Scripts/message/evalScript';
 import messageTypes from '../Scripts/message/messageTypes';
 import { EmbedBuilder, Message } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
-import { connectedListInterface } from '../Utils/typings/types';
+import { connectedListDocument } from '../Utils/typings/types';
 
 // TODO: edit the embed instead of changing the message content
 // if guild has profanity disabled and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
@@ -35,7 +35,7 @@ export default {
 		const messageData = database?.collection('messageData');
 
 		if (channelInNetwork) {
-			const checks = await require('../Scripts/message/checks').execute(message, database);
+			const checks = await (await import('../Scripts/message/checks')).execute(message, database);
 			if (checks === false) return;
 
 			// check if message contains profanity and censor it if it does
@@ -76,7 +76,7 @@ export default {
 			const channelAndMessageIds: Promise<Message<boolean> | undefined>[] = [];
 			const channelsToDelete: string[] = [];
 
-			for (const channelObj of allConnectedChannels as connectedListInterface[]) {
+			for (const channelObj of allConnectedChannels as connectedListDocument[]) {
 				try {
 					await message.client.channels.fetch(channelObj.channelId);
 				}

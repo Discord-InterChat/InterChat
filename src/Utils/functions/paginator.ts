@@ -37,10 +37,7 @@ export async function paginate(interaction: CommandInteraction, pages: EmbedBuil
 	};
 	const listMessage = interaction.replied ? await interaction.followUp(data) : await interaction.reply(data);
 
-	const col = listMessage.createMessageComponentCollector({
-		filter: i => i.user.id === interaction.user.id,
-		time: 60000,
-	});
+	const col = listMessage.createMessageComponentCollector({ filter: i => i.user.id === interaction.user.id, time });
 
 	col.on('collect', (i) => {
 		if (i.customId === '1') {--pagenumber, index--;}

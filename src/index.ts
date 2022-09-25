@@ -44,8 +44,6 @@ process.on('unhandledRejection', (err) => {
 	logger.error('[Anti Crash - Rejection]:', err);
 });
 
-client.on('debug', console.log);
-
 client.login(process.env.TOKEN);
 app.listen(port, () => logger.info(`Express app listening on port ${port}`));
 app.get('/', (_req, res) => res.send('Acknowledged'));

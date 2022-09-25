@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { connectedListInterface } from '../../Utils/typings/types';
+import { connectedListDocument } from '../../Utils/typings/types';
 import utils from '../../Utils/functions/utils';
 
 export default {
@@ -14,7 +14,7 @@ export default {
 		const allConnected = await connectedList?.find({}).toArray();
 
 		let connectedMembers = 0;
-		for (const guildEntry of allConnected as connectedListInterface[]) {
+		for (const guildEntry of allConnected as connectedListDocument[]) {
 			let guild;
 			try {
 				guild = await interaction.client.guilds.fetch(String(guildEntry.serverId));
