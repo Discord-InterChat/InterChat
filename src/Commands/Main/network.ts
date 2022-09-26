@@ -16,6 +16,7 @@ export default {
 				.setName('disconnect')
 				.setDescription('Disconnect from the chat network.'),
 		),
+	/** @deprecated Use setup command instead.*/
 	async execute(interaction: ChatInputCommandInteraction) {
 		const subcommand = interaction.options.getSubcommand();
 		const database = mongoUtil.getDb();
