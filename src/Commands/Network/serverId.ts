@@ -1,4 +1,3 @@
-// TODO: Remove this file from Developer folder
 import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCommandInteraction } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 import { messageData } from '../../Utils/typings/types';

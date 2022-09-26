@@ -19,7 +19,6 @@ export default {
 		const allChannel = await client.channels.fetch(channelObj.channelId) as TextChannel;
 		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel?.id });
 
-		// REVIEW it was allChannel === message.channel.id before aaaaaaa
 		if (channelInDB?.compact === true && allChannel?.id == message.channel.id) {
 			return webhookAutomate(message.channel as TextChannel);
 		}
@@ -58,7 +57,7 @@ export default {
 
 			try {
 				const webhooks = await chan.fetchWebhooks();
-				const webhook = webhooks.first(); // FIXME: Create custom webhook that only cb can access and save to db
+				const webhook = webhooks.first();
 
 				if (!webhook) return await allChannel?.send(normalMessage);
 				else return await webhook.send(webhookMessage);
