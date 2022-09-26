@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v2.0.0-alpha...v2.0.0) (2022-09-26)
+
+
+### Features
+
+* **network:** Setup and Network code overhaul ([d6d6194](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/d6d619498a82b0152a1113827a47ba8b67952261))
+* **release:** ChatBot-Beta v2.0.0-alpha ([fc6561f](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/fc6561fa257e35f036eaedb5db79b58fbd0533a8))
+
+
+### Bug Fixes
+
+* **anti-profanity:** Added more whitelisted workds ([e7fe4d5](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/e7fe4d5a99f7428f6cf3f5d174c515148e8f83b6))
+* **setup:** Fix bugs and add blacklist check ([989c355](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/989c3554fa4efb2729ce1cc933fa171ec9abc4fd))
+* **setup:** Setup refactor and optimizations ([1252275](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/125227533de8827645f959f3cfa0154edf88b1bf))
+
 ## [2.0.0-alpha](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v1.9.0...v2.1.0) (2022-09-10)
 
 
