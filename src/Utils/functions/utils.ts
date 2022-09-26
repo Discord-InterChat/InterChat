@@ -1,20 +1,16 @@
 import logger from '../logger';
-import discord from 'discord.js';
-import { MongoClient, Db, AnyError } from 'mongodb';
+import discord, { Guild, GuildTextBasedChannel } from 'discord.js';
+import { MongoClient, Db, AnyError, DeleteResult } from 'mongodb';
 import { Api } from '@top-gg/sdk';
-import { config } from 'dotenv';
 import util from 'util';
-config();
+import 'dotenv/config';
+import { connectedListDocument } from '../typings/types';
 
 const topgg = new Api(process.env.TOPGG as string);
 const uri = process.env.MONGODB_URI as string;
 let _db: Db | undefined;
 
-declare global {
-	interface String {
-		toTitleCase(): string;
-	}
-}
+
 String.prototype.toTitleCase = function() {
 	let upper = true;
 	let newStr = '';
@@ -131,11 +127,13 @@ export async function getCredits() {
 	return creditArray;
 }
 
-export function connect(callback: (err: AnyError | undefined) => void) {
-	MongoClient.connect(uri, (err, client) => {
-		_db = client?.db('Discord-ChatBot');
-		return callback(err);
-	});
+export function connect(callback: (err: AnyError | null, state: boolean) => unknown) {
+	MongoClient.connect(uri)
+		.then((client) => {
+			_db = client.db('Discord-ChatBot');
+			callback(null, true);
+		})
+		.catch((err) => {return callback(err, false);});
 }
 /**
 * Returns the database
@@ -290,5 +288,60 @@ export const constants = {
 	},
 };
 
+interface NetworkManagerOptions {
+	serverId?: string | null;
+	channelId?: string | null;
+}
 
-export default { colors, choice, sendInFirst, getCredits, connect, getDb, toHuman, checkIfStaff, clean, deleteChannels, constants };
+export class NetworkManager {
+
+	protected db = getDb();
+	connectedList = this.db?.collection('connectedList');
+
+	constructor() {/**/}
+
+
+	/**
+	 * Returns true if the server/channel is connected.
+	 */
+	async connected(options: NetworkManagerOptions) {
+		const InDb = await this.connectedList?.findOne(options) as connectedListDocument | undefined | null;
+		return InDb;
+	}
+
+	/**
+	 * Connect a channel to the network.
+	 *
+	 * Returns **null** if channel is already connected
+	 *
+	 * **This only inserts the server into the connectedList collection.**
+	 */
+	async connect(guild: Guild | null, channel: GuildTextBasedChannel | undefined | null) {
+		const channelExists = await this.connectedList?.findOne({ channelId: channel?.id });
+
+		if (channelExists) return null;
+		if (!guild || !channel) throw new Error('Invalid arguments  provided.');
+
+		return await this.connectedList?.insertOne({
+			channelId: channel?.id,
+			channelName: channel?.name,
+			serverId: guild?.id,
+			serverName: guild?.name,
+		});
+	}
+
+
+	/** Delete a document using the `channelId` or `serverId` from the connectedList collection */
+	async disconnect(options: NetworkManagerOptions): Promise<DeleteResult | undefined>
+	/**  Delete a document using the `serverId` from the connectedList collection*/
+	async disconnect(serverId: string | null): Promise<DeleteResult | undefined>
+	async disconnect(options: NetworkManagerOptions | string | null): Promise<DeleteResult | undefined> {
+		if (typeof options === 'string') {
+			return await this.connectedList?.deleteOne({ serverId: options });
+		}
+		else if (options?.channelId) {return await this.connectedList?.deleteOne({ channelId: options.channelId });}
+		else {return await this.connectedList?.deleteOne({ serverId: options?.serverId });}
+	}
+}
+
+export default { colors, choice, sendInFirst, getCredits, connect, getDb, toHuman, checkIfStaff, clean, deleteChannels, constants, NetworkManager };

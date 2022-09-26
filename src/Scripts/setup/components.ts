@@ -1,21 +1,58 @@
-import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
-import { Collection } from 'mongodb';
-import { Embeds } from '../../Commands/Main/setup';
+import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, SelectMenuBuilder, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder } from 'discord.js';
+import { Collection, Document } from 'mongodb';
+import { getDb, NetworkManager } from '../../Utils/functions/utils';
 import emoji from '../../Utils/emoji.json';
+import logger from '../../Utils/logger';
+import { connectedListDocument } from '../../Utils/typings/types';
 
 export = {
-	async execute(interaction: ChatInputCommandInteraction, collection: Collection | undefined, embedGen: Embeds, connectedList: Collection | undefined) {
-		const InitialMessage = await interaction.fetchReply();
-		const ChoiceButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
+	async execute(interaction: ChatInputCommandInteraction, collection: Collection | undefined, connectedList: Collection | undefined) {
+		const setupEmbedGenerator = new SetupEmbedGenerator(interaction, collection);
+
+		const setupActionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
+			new ButtonBuilder().setCustomId('reset').setLabel('Reset').setStyle(ButtonStyle.Danger),
+			new ButtonBuilder().setCustomId('reconnect').setStyle(ButtonStyle.Success).setLabel('Reconnect').setEmoji(emoji.icons.connect),
+			new ButtonBuilder().setCustomId('disconnect').setStyle(ButtonStyle.Success).setLabel('Disconnect').setEmoji(emoji.icons.disconnect),
+		]);
+
+		const choiceButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
 			new ButtonBuilder().setCustomId('yes').setLabel('Yes').setStyle(ButtonStyle.Success),
 			new ButtonBuilder().setCustomId('no').setLabel('No').setStyle(ButtonStyle.Danger),
 		]);
 
+		const customizeMenu = new ActionRowBuilder<SelectMenuBuilder>().addComponents([
+			new SelectMenuBuilder()
+				.setCustomId('customize')
+				.setPlaceholder('✨ Customize Setup')
+				.addOptions([
+					{
+						label: 'Compact Mode',
+						emoji: emoji.normal.clipart,
+						description: 'Disable embeds in the network to fit more messages.',
+						value: 'compact',
+					},
 
-		const guildConnected = await connectedList?.findOne({ guildId: interaction.guildId });
+					{
+						label: 'Profanity Filter',
+						emoji: '🤬',
+						description: 'Swears will not be censored in this server. (Unavailable as of now)', // TODO - Add profanity filter toggling
+						value: 'profanity_toggle',
+					},
+				]),
+		]);
+
+		const network = new NetworkManager();
+		const guildSetup = await collection?.findOne({ 'guild.id': interaction.guildId });
+		const guildConnected = await network.connected({ serverId: interaction.guildId });
+
+
+		if (!guildConnected) setupActionButtons.components.pop();
+		if (!guildSetup) return interaction.followUp('Server is not setup yet. Use `/setup channel` first.');
+
+		const setupMessage = await interaction.followUp({ embeds: [await setupEmbedGenerator.default()], components: [customizeMenu, setupActionButtons] });
 
 		// Create action row collectors
-		const setupCollector = InitialMessage.createMessageComponentCollector({
+		const setupCollector = setupMessage.createMessageComponentCollector({
 			filter: m => m.user.id == interaction.user.id,
 			time: 60_000,
 		});
@@ -23,33 +60,39 @@ export = {
 		// Everything is in one collector since im lazy
 		setupCollector.on('collect', async component => {
 			if (component.isButton()) {
+				// REVIEW: Make reconnect / disconnect / connect functions in a Class called network in utils file.
 				switch (component.customId) {
-				// TODO: Make network class to reconnect / disconnect / connect to network in Utils file.
-				case 'reconnect':
-					if (guildConnected) {
-						// If guild is connected give them an option to choose a different channel to connect to. Or just make a different "Change"
-						// button to switch network channels.
-						component.reply({ content: 'Guild already connected!', ephemeral: true });
-						return;
-					}
-					component.reply({ content: 'WIP!' });
-					break;
+				case 'reconnect': {
+					const channel = await interaction.client.channels.fetch(String(guildSetup?.channel.id))
+						.catch(() => {return null;}) as GuildTextBasedChannel | null;
 
+					if (guildConnected) {
+						network.disconnect(interaction.guildId);
+						logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
+					}
+
+					network.connect(interaction.guild, channel);
+					logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
+
+					component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
+					interaction.editReply({ embeds: [await setupEmbedGenerator.default()] });
+					break;
+				}
 
 				case 'disconnect':
-					connectedList?.deleteOne({ serverId: interaction.guild?.id })
-						.then(async () => {
-							component.reply({ content: 'Disconnected!', ephemeral: true });
-							interaction.editReply({ embeds: [await embedGen.default()] });
-						})
-						.catch(() => component.followUp({ content: 'An Error Occured! Report a bug using the `/support report` command.', ephemeral: true }));
+					new NetworkManager().disconnect(String(interaction.guildId));
+					setupActionButtons.components.pop();
+
+					component.reply({ content: 'Disconnected!', ephemeral: true });
+					interaction.editReply({ embeds: [await setupEmbedGenerator.default()], components: [customizeMenu, setupActionButtons] });
 					break;
+
 
 				case 'reset': {
 					try {
 						const resetConfirmMsg = await interaction.followUp({
-							content: `${emoji.icons.info} Are you sure? This will disconnect all connected channels and reset the setup. The channel itself will remain though.`,
-							components: [ChoiceButtons],
+							content: `${emoji.icons.info} Are you sure? You will have to re-setup to use the network again! All data will be lost.`,
+							components: [choiceButtons],
 						});
 						component.update({ components: [] });
 
@@ -107,7 +150,7 @@ export = {
 						await collection?.updateOne({ 'guild.id': interaction.guild?.id },
 							{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), profFilter: !guildInDB?.profFilter } });
 					}
-					component.update({ embeds: [await embedGen.default()] });
+					component.update({ embeds: [await setupEmbedGenerator.default()] });
 				}
 				}
 			}
@@ -121,3 +164,61 @@ export = {
 	},
 };
 
+
+// Embed classes to make it easier to call and edit multiple embeds
+class SetupEmbedGenerator {
+	private interaction: ChatInputCommandInteraction;
+	private setupList: Collection | undefined;
+	constructor(interaction: ChatInputCommandInteraction, setupList: Collection<Document> | undefined) {
+		this.interaction = interaction;
+		this.setupList = setupList;
+	}
+	async default() {
+		const db = getDb();
+		const connectedList = db?.collection('connectedList');
+
+		const guildSetupData = await this.setupList?.findOne({ 'guild.id': this.interaction?.guild?.id });
+		const guild = this.interaction.client.guilds.cache.get(guildSetupData?.guild.id);
+		const channel = guild?.channels.cache.get(guildSetupData?.channel.id);
+
+
+		const guildNetworkData = await connectedList?.findOne({ channelId : channel?.id }) as connectedListDocument | undefined | null;
+		const status = channel && guildNetworkData ? emoji.normal.yes : emoji.normal.no;
+
+
+		const embed = new EmbedBuilder()
+			.setAuthor({
+				name: `${this.interaction.client.user?.username.toString()} Setup`,
+				iconURL: this.interaction.client.user?.avatarURL()?.toString(),
+			})
+			.addFields(
+				{
+					name: 'Network State',
+					value: `**Connected:** ${status}\n**Channel:** ${channel}\n**Last Edited:** <t:${guildSetupData?.date.timestamp}:R>`,
+				},
+				{
+					name: 'Style',
+					value: `**Compact:** ${guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildSetupData?.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}`,
+				},
+			)
+			.setColor('#3eb5fb')
+			.setThumbnail(this.interaction.guild?.iconURL() || null)
+			.setTimestamp()
+			.setFooter({
+				text: this.interaction.user.tag,
+				iconURL: this.interaction.user.avatarURL() as string,
+			});
+
+		return embed;
+	}
+	customFields(fields: RestOrArray<APIEmbedField>) {
+		const embed = new EmbedBuilder()
+			.setAuthor({ name: this.interaction.guild?.name as string, iconURL: this.interaction.guild?.iconURL()?.toString() })
+			.setColor('#3eb5fb')
+			.addFields(...fields)
+			.setThumbnail(this.interaction.guild?.iconURL() || null)
+			.setTimestamp()
+			.setFooter({ text: `Requested by: ${this.interaction.user.tag}`, iconURL: this.interaction.user.avatarURL()?.toString() });
+		return embed;
+	}
+}
