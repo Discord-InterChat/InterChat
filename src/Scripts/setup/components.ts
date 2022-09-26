@@ -35,7 +35,7 @@ export = {
 					{
 						label: 'Profanity Filter',
 						emoji: '🤬',
-						description: 'Swears will not be censored in this server. (Unavailable as of now)', // TODO - Add profanity filter toggling
+						description: 'Toggle Swear censoring for this server.', // TODO - Add profanity filter toggling
 						value: 'profanity_toggle',
 					},
 				]),
@@ -45,6 +45,11 @@ export = {
 		const guildSetup = await collection?.findOne({ 'guild.id': interaction.guildId });
 		const guildConnected = await network.connected({ serverId: interaction.guildId });
 
+
+		if (!interaction.guild?.channels.cache.get(guildSetup?.channel.id)) {
+			collection?.deleteOne({ 'channel.id': guildSetup?.channel.id });
+			return await interaction.followUp('Connected channel has been deleted! Please use `/setup channel` and set a new one.');
+		}
 
 		if (!guildConnected) setupActionButtons.components.pop();
 		if (!guildSetup) return interaction.followUp('Server is not setup yet. Use `/setup channel` first.');
@@ -60,7 +65,6 @@ export = {
 		// Everything is in one collector since im lazy
 		setupCollector.on('collect', async component => {
 			if (component.isButton()) {
-				// REVIEW: Make reconnect / disconnect / connect functions in a Class called network in utils file.
 				switch (component.customId) {
 				case 'reconnect': {
 					const channel = await interaction.client.channels.fetch(String(guildSetup?.channel.id))

@@ -9,7 +9,7 @@ export default {
 		.setName('Edit Message')
 		.setType(ApplicationCommandType.Message),
 	/**
-	* ⚠️Voters only⚠️
+	* ⚠️Voter only⚠️
 	*
     * Edit messages throughout the network *(partially works for compact mode)*
     */
@@ -80,7 +80,7 @@ export default {
 							await channel.messages.fetch(element.messageId).then(async message => {
 								// if the message does not have an embed (i.e. its in compact mode) then edit the message directly
 								if (!message.embeds[0]) {
-									await message.edit({ content: `**${i.user.tag}:** ${editMessage}` });
+									message.edit({ content: `**${i.user.tag}:** ${editMessage}` });
 								}
 
 								// if the message that the edit was performed on does not have an embed
@@ -88,8 +88,8 @@ export default {
 								// then store this as a new embed and edit with the new message
 								else if (!targetEmbed) {
 									targetEmbed = message.embeds[0]?.toJSON();
-									targetEmbed.fields![0].value = editMessage;
-									await message.edit({ embeds: [targetEmbed] });
+									if (targetEmbed.fields) targetEmbed.fields[0].value = editMessage;
+									message.edit({ embeds: [targetEmbed] });
 								}
 
 								else {
@@ -100,6 +100,7 @@ export default {
 					});
 				}
 				i.reply({ content: `${emojis.normal.yes} Message Edited.`, ephemeral: true });
-			});
+			})
+			.catch(() => {return;});
 	},
 };

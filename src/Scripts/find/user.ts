@@ -27,7 +27,6 @@ module.exports = {
 		}
 
 
-		// FIXME
 		const embedGen = async (user: User) => {
 			const owns: string[] = [];
 			interaction.client.guilds.cache.forEach((guild) => {
@@ -51,11 +50,6 @@ module.exports = {
 					},
 				]);
 		};
-
-		// send the only result if there is one
-		// if there is more than one result send the map with all the results
-
-		// find user name, id, if they own a server with chatbot, discrim, user level
 
 		if (found.size > 1) {
 			const mapFound = found.map((e) => {

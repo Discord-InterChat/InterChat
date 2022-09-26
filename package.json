@@ -7,7 +7,7 @@
     "license": "ISC",
     "scripts": {
         "start": "node .",
-        "build": "tsc",
+        "build": "tsc -p .",
         "dev": "concurrently \"tsc -w\" \"nodemon build/src/index.js\"",
         "deploy": "tsc && node build/src/Utils/functions/deploy-commands.js",
         "release": "standard-version",

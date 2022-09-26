@@ -1,8 +1,8 @@
 import { stripIndents } from 'common-tags';
 import { ChannelType, ChatInputCommandInteraction, OverwriteType, GuildTextBasedChannel, CategoryChannel } from 'discord.js';
 import { Collection } from 'mongodb';
-import emoji from '../../Utils/emoji.json';
 import { NetworkManager } from '../../Utils/functions/utils';
+import emoji from '../../Utils/emoji.json';
 import logger from '../../Utils/logger';
 
 export = {
@@ -16,14 +16,17 @@ export = {
 		if (guildSetup) {
 			if (destination) {
 				if (await setupList?.findOne({ 'channel.id': destination.id })) {
-					await interaction.followUp({ content: `A setup for ${destination} is already present`, ephemeral: true });
+					await interaction.followUp({ content: `A setup for ${destination} is already present.`, ephemeral: true });
 					return;
 				}
 
+				await interaction.followUp('There is an existing channel setup... Change channel? (y/n)');
+
+				const msg =	await interaction.channel?.awaitMessages({ filter: (m) => m.author.id === interaction.user.id, max: 1, idle: 10_000 });
+				if (msg?.first()?.content.toLowerCase() !== 'y') return interaction.followUp('Cancelled.');
+
 				network.disconnect(interaction.guildId);
 				setupList?.deleteMany({ 'guild.id': interaction.guildId });
-				// TODO: Add more buttons asking for confirmation :)
-				await interaction.followUp('Found already setup channel... Re-setting to new channel.');
 			}
 
 			// try to fetch the channel, if it does not exist delete from the databases'
@@ -33,8 +36,6 @@ export = {
 			catch {
 				await setupList?.deleteOne({ 'channel.id': guildSetup.channel.id });
 				network.disconnect({ channelId: String(guildSetup.channel.id) });
-				await connectedList?.deleteOne({ 'channelId': guildSetup.channel.id });
-				// TODO: make a /setup view command?
 				return interaction.editReply(emoji.icons.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
 			}
 		}
@@ -92,11 +93,12 @@ export = {
 			if (numOfConnections && numOfConnections > 1) {
 				await channel?.send(stripIndents`
 						This channel has been connected to the chat network. You are currently with ${numOfConnections} other servers, Enjoy! ${emoji.normal.clipart}
-						**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`,
-				);
+						**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`);
 			}
 			else {
-				await channel?.send(`This channel has been connected to the chat network, though no one else is there currently... *cricket noises* ${emoji.normal.clipart}\n**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`);
+				await channel?.send(stripIndents`
+				This channel has been connected to the chat network, though no one else is there currently... *cricket noises* ${emoji.normal.clipart}
+				**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`);
 			}
 			logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
 		}
@@ -112,8 +114,6 @@ export = {
 
 			**Server Name:** __${interaction.guild?.name}__
 			**Member Count:** __${interaction.guild?.memberCount}__`);
-
-		// FIXME: Define embeds class in components.ts
 
 		(await import('./components')).execute(interaction, setupList, connectedList);
 	},

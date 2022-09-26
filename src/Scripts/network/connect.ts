@@ -1,8 +1,8 @@
 import logger from '../../Utils/logger';
+import filter from '../../Utils/functions/wordFilter';
 import { stripIndents } from 'common-tags';
 import { normal } from '../../Utils/emoji.json';
 import { deleteChannels, NetworkManager } from '../../Utils/functions/utils';
-import filter from '../../Utils/functions/wordFilter';
 import { ChatInputCommandInteraction } from 'discord.js';
 import { Collection } from 'mongodb';
 
@@ -21,9 +21,6 @@ module.exports = {
 			return;
 		}
 		if (findServer) {
-			// [FIXED] Bot crashes when channel is deleted in the same guild before disconnection
-			// FIXME: Bot says channel is connected to undefined if its from the same server, because it is already inside
-			// the if statement, make it reset or something idk
 			let connectedChannel;
 			try {
 				connectedChannel = await interaction.guild?.channels.fetch(findServer.channelId);

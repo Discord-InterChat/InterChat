@@ -12,8 +12,8 @@ module.exports = {
 
 		if (!foundByID) {
 			const foundByName = interaction.client.guilds.cache.filter((e) => e.name.toLowerCase()
-				.replace(/[^A-Za-z0-9]/, '')
-				.includes(option.toLowerCase()));
+				.replace(/[^A-Za-z0-9]/g, '')
+				.includes(option.toLowerCase().replace(/[^A-Za-z0-9]/g, '')));
 			// send the only result if there is one
 			// if there is more than one result send the map with all the results
 			if (foundByName.size > 1) {
@@ -72,10 +72,11 @@ module.exports = {
 			}
 
 			else if (foundByName.size === 1) {
-				const selectedGuild = foundByName.first() as Guild;
-				const owner = await interaction.client.users.fetch(selectedGuild.ownerId);
-				interaction.reply({
-					content: selectedGuild.id,
+				await interaction.deferReply({ ephemeral: true });
+				const selectedGuild = foundByName.first();
+				const owner = await interaction.client.users.fetch(String(selectedGuild?.ownerId));
+				interaction.followUp({
+					content: selectedGuild?.id,
 					embeds: [await embedGen(selectedGuild, owner)],
 					ephemeral: true,
 				});
@@ -100,17 +101,17 @@ module.exports = {
 
 
 		// TODO: Emojis from external servers are not supported by discord anymore (works with followUps tho).
-		async function embedGen(guild: Guild, owner: User) {
-			const guildInDb = await collection?.findOne({ serverId: guild.id });
+		async function embedGen(guild: Guild | undefined, owner: User) {
+			const guildInDb = await collection?.findOne({ serverId: guild?.id });
 			return new EmbedBuilder()
-				.setAuthor({ name: guild.name, iconURL: guild.iconURL()?.toString() })
+				.setAuthor({ name: String(guild?.name), iconURL: guild?.iconURL()?.toString() })
 				.setColor('#2F3136')
 				.addFields([
 					{
 						name: 'Server Info',
 						value: stripIndents`\n
 								${emojis.icons.owner} **Owner:** ${owner.username}#${owner.discriminator} (${owner.id})
-								${emojis.icons.members} **Member Count:** ${guild.memberCount}`,
+								${emojis.icons.members} **Member Count:** ${guild?.memberCount}`,
 					},
 					{
 						name: 'Network Info',

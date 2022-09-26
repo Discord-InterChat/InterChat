@@ -33,19 +33,29 @@ export default {
 		),
 
 	async execute(interaction: ChatInputCommandInteraction) {
-		// Declare
-		// FIXME: Dont send setupList and connectedList as a parameter. As it will lead to big problems if the data in the DB changes!
 		const database = getDb();
 		const setupList = database?.collection('setup');
 		const connectedList = database?.collection('connectedList');
+		const serverInBlacklist = await database?.collection('blacklistedServers').findOne({ serverId: interaction.guild?.id });
+		const userInBlacklist = await database?.collection('blacklistedUsers').findOne({ userId: interaction.user.id });
 
 		const subcommand = interaction.options.getSubcommand();
 
 		// send the initial reply
 		await interaction.deferReply();
 
+		if (serverInBlacklist) {
+			await interaction.reply(`This server is blacklisted from using the ChatBot Chat Network for reason \`${serverInBlacklist.reason}\`! Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+			return;
+		}
+		else if (userInBlacklist) {
+			await interaction.reply('You have been blacklisted from using the ChatBot Chat Network.');
+			return;
+		}
+
 		if (subcommand === 'view') {
 			(await import('../../Scripts/setup/components')).execute(interaction, setupList, connectedList);
+			return;
 		}
 		else {
 			const destination = interaction.options.getChannel('destination') as GuildTextBasedChannel | CategoryChannel;
