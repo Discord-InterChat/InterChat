@@ -1,6 +1,30 @@
 # ChatBot-Beta
 
-## Todo, Review, Note, and Fixme comments
+The Canary Version of the growing discord bot named 'ChatBot'
+---
+
+
+### How to Run:
+1. Run `npm install`
+2. Make a file called `.env` and fill it out with the appropriate contents:
+    ```env
+    # Bot token here
+    TOKEN= 
+
+    # Your mongodb connection string
+    MONGODB_URI= # mongodb+srv://<name>:<password>@uri
+
+    # Top.gg token goes here, not required if you don't have a bot on top.gg.
+    TOPGG= 
+
+    # Tenor api key (required for posting gifs) in global chat.
+    TENOR_KEY=
+    ```
+3. Run `npm run dev`
+
+If everything was done right, the bot should come online and responsive.
+
+### Todo, Review, Note, and Fixme comments
 
 These are comments to show the state of a piece of code. Install
 the "Comment Anchor" extension to highlight them in VS-Code.
@@ -18,42 +42,17 @@ the "Comment Anchor" extension to highlight them in VS-Code.
 * 1000 servers using chatbot
 * 101 votes on topgg in a month
 
-## Road Maps
+### Deploying Commands
+> * **Public Commands (Default):** `npm run deploy`
+> * **Staff commands:**  `npm run deploy --staff [guildID]`
+> * **Help:** `npm run deploy --help`
 
-### Network
-
-* [ ] Ability to edit/delete messages
-* [ ] Premium features using topgg as the subscription site
-* [ ] Private networks
-* [ ] Leveling system that gives perks as one uses the chat network more
-* [ ] New earnable badges
-* [ ] Level Badges
-
-### Moderation
-
-* [ ] Better profanity filter
-* [ ] A way to detect inappropriate images
-* [ ] A way for Moderators to delete Chat messages in every server
-* [ ] A way for Server Owners & Admins to delete messages sent by their server members.
-
-### Documentation
-
-* [ ] A full documentation on gitbook instead of a gist
-* [ ] New web dashboard for the bot
-* [-] Privacy Policy & Terms Of Service page
-* [-] Updated rules for better moderation of the bot
-
-## Deploying Commands
-
-* **Deploy Public Commands (Default):** `npm run deploy`
-
-* **Staff commands that are only available in ChatBot HQ:**  `npm run deploy --staff [guildID]`
-
-* **Help Command:** `npm run deploy --help`
+*[] = optional; <> = required;*
 
 *Note: You can also manually run the file using, `node deploy-commands.js`*
 
-## Commit Messages
+
+### Commit Messages
 
 Use [semantic commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716) in your commit messages as it will make auto-releases and changelog updates easier.
 
@@ -64,7 +63,8 @@ Use [semantic commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bc
 > * `fix`: (bug fix for the user, not a fix to a build script)
 >
 > * `docs`: (changes to the documentation)
-`style`: (formatting, missing semi colons, etc; no production code change)
+>
+> * `style`: (formatting, missing semi colons, etc; no production code change)
 >
 > * `refactor`: (refactoring production code, eg. renaming a variable)
 >
