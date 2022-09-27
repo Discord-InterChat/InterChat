@@ -90,12 +90,12 @@ export = {
 					.setTimestamp()
 					.setColor(colors());
 
-				const reportChannel = await interaction.client.channels.fetch(constants.channel.reports) as TextChannel;
+				const reportChannel = await interaction.client.channels.fetch(constants.channel.reports);
 
 				await i.reply('Thank you for your report!');
 
-				// send to chatbot reports channel
-				await reportChannel?.send({ embeds: [embed] });
+				if (reportChannel?.isTextBased()) await reportChannel?.send({ embeds: [embed] });
+				else return i.followUp({ content: 'An error occured when trying to report!', ephemeral: true });
 			})
 			.catch((err) => {
 				if (err.message.includes('ending with reason: time')) return;

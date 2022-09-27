@@ -8,6 +8,7 @@ import packagejson from '../package.json';
 import 'dotenv/config';
 import { loadCommands } from './Handlers/handleCommands';
 import { loadEvents } from './Handlers/handleEvents';
+import { handlErrors } from './Handlers/handleErrors';
 
 Levels.setURL(process.env.MONGODB_URI as string);
 const app = express();
@@ -36,13 +37,7 @@ client.help = [];
 
 loadCommands(client);
 loadEvents(client);
-
-process.on('uncaughtException', (err) => {
-	logger.error('[Anti-Crash - Exception]:', err);
-});
-process.on('unhandledRejection', (err) => {
-	logger.error('[Anti Crash - Rejection]:', err);
-});
+handlErrors(client);
 
 client.login(process.env.TOKEN);
 app.listen(port, () => logger.info(`Express app listening on port ${port}`));
