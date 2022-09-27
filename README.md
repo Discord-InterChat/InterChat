@@ -17,7 +17,7 @@ The Canary Version of the growing discord bot named 'ChatBot'
     # Top.gg token goes here, not required if you don't have a bot on top.gg.
     TOPGG= 
 
-    # Tenor api key (required for posting gifs) in global chat.
+    # Tenor api key (required for posting gifs in global chat.)
     TENOR_KEY=
     ```
 3. Run `npm run dev`
