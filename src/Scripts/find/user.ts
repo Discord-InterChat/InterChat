@@ -1,31 +1,13 @@
 import Levels from 'discord-xp';
-import { ActionRowBuilder, SelectMenuBuilder, EmbedBuilder, ChatInputCommandInteraction, User, ComponentType } from 'discord.js';
+import { EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { icons } from '../../Utils/emoji.json';
 import { constants } from '../../Utils/functions/utils';
 
 module.exports = {
 	async execute(interaction: ChatInputCommandInteraction, option: string) {
-		let found = interaction.client.users.cache.filter((e) => {
-			return e.tag.toLowerCase().includes(option.toLowerCase());
-		});
-		let fetched;
-
-		if (found.size === 0) {
-			found = interaction.client.users.cache.filter((e) => {
-				return option.toLowerCase().includes(e.username.toLowerCase());
-			});
-
-			if (found.size === 0) {
-				try {
-					fetched = await interaction.client.users.fetch(option);
-				}
-				catch {
-					return interaction.reply({ content: 'Unknown user.', ephemeral: true });
-				}
-			}
-		}
-
+		const fetchedUser = await interaction.client.users.fetch(option).catch(() => {return null;});
+		if (!fetchedUser) return interaction.reply({ content: 'Unknown user.', ephemeral: true });
 
 		const embedGen = async (user: User) => {
 			const owns: string[] = [];
@@ -51,63 +33,12 @@ module.exports = {
 				]);
 		};
 
-		if (found.size > 1) {
-			const mapFound = found.map((e) => {
-				return { label: e.tag, value: e.id };
-			});
 
-			const menu = new ActionRowBuilder<SelectMenuBuilder>().addComponents([
-				new SelectMenuBuilder()
-					.setCustomId('users')
-					.setPlaceholder('🔍 Select a user')
-					.addOptions(mapFound),
-			]);
+		return await interaction.reply({
+			content: fetchedUser.id,
+			embeds: [await embedGen(fetchedUser)],
+			ephemeral: true,
+		});
 
-			const embed = new EmbedBuilder()
-				.setTitle('Did you mean?')
-				.setColor('#2F3136')
-				.setDescription(found.map((e) => e.tag).slice(0, 10).join('\n'))
-				.setFooter({
-					text: 'Only showing 10 results. Use the drop down to see more.',
-					iconURL: interaction.client.user?.avatarURL()?.toString(),
-				});
-
-			const msg = await interaction.reply({
-				embeds: [embed],
-				components: [menu],
-				ephemeral: true,
-				fetchReply: true,
-			});
-
-			const collector = msg.createMessageComponentCollector({
-				filter: (m) => m.user.id == interaction.user.id,
-				componentType: ComponentType.SelectMenu,
-				idle: 30 * 1000,
-				max: found.size,
-			});
-
-			collector.on('collect', async (i) => {
-				const user = await interaction.client.users.fetch(i.values[0]);
-				interaction.editReply({
-					content: user.id,
-					embeds: [await embedGen(user)],
-					components: [],
-				});
-				return;
-			});
-
-			collector.on('end', () => {
-				interaction.editReply({ components: [] });
-				return;
-			});
-		}
-		else {
-			const user = found.size === 0 ? fetched : found.entries().next().value[1];
-			return await interaction.reply({
-				content: user.id,
-				embeds: [await embedGen(user)],
-				ephemeral: true,
-			});
-		}
 	},
 };
