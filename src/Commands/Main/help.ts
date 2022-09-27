@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ApplicationCommandOptionType, PermissionsBitField, EmbedBuilder, ChatInputCommandInteraction, SlashCommandStringOption, SlashCommandUserOption, PermissionsString } from 'discord.js';
+import { SlashCommandBuilder, ApplicationCommandOptionType, PermissionsBitField, EmbedBuilder, ChatInputCommandInteraction, SlashCommandStringOption, SlashCommandUserOption, PermissionsString, AutocompleteInteraction } from 'discord.js';
 import { colors } from '../../Utils/functions/utils';
 
 export default {
@@ -14,7 +14,6 @@ export default {
 		),
 	async execute(interaction: ChatInputCommandInteraction) {
 		const command_option = interaction.options.getString('command');
-
 
 		if (!command_option) {
 			const embed = new EmbedBuilder()
@@ -84,11 +83,8 @@ export default {
 
 				const data = {
 					name: `${command.data.name} ${subcommand.name}`,
-					value: `${
-						subcommand.description || 'No Description'
-					}\n**Usage: **\`/${command.data.name} ${subcommand.name}${
-						subOptions.length === 0 ? '' : subOptions.join('')
-					}\``,
+					value: `${subcommand.description || 'No Description'}\n**Usage: **\`/${command.data.name} ${subcommand.name}${
+						subOptions.length === 0 ? '' : subOptions.join('')}\``,
 				};
 
 				command_embed.addFields([data]);
@@ -96,5 +92,36 @@ export default {
 		}
 
 		return interaction.reply({ embeds: [command_embed] });
+	},
+	async autocomplete(interaction: AutocompleteInteraction) {
+		const focusedValue = interaction.options.getFocused();
+		let choices: Array<any> = [];
+		let filtered;
+
+		if (focusedValue === '') {
+			choices = [
+				{ name: '📌Setup', value: 'setup' },
+				{ name: '📌Help', value: 'help' },
+				{ name: '📌Suggest', value: 'support' },
+				{ name: '📌Report', value: 'support' },
+				{ name: '📌Connect', value: 'network' },
+				{ name: '📌Disconnect', value: 'network' },
+			];
+			choices = choices.concat(interaction.client.commands.map(command => { return { name: command.data.name, value: command.data.name };}));
+			filtered = choices.filter((choice) => choice.value.startsWith(focusedValue)).slice(0, 25);
+		}
+		else {
+			const commands = interaction.client.commands;
+			commands.map((command) => choices.push(command.data.name));
+			filtered = choices.filter((choice) => choice.startsWith(focusedValue));
+		}
+
+		await interaction.respond(
+			filtered.map((choice) => ({
+				name: choice.name || choice,
+				value: choice.value || choice,
+			})),
+		);
+
 	},
 };

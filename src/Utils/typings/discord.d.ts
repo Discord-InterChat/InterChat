@@ -5,7 +5,8 @@ type commands = {
 	staff?: boolean,
 	description?: string | undefined
 	data: discord.SlashCommandBuilder,
-	execute: (interaction: discord.ChatInputCommandInteraction | discord.MessageContextMenuCommandInteraction) => void|unknown
+	execute: (interaction: discord.ChatInputCommandInteraction | discord.MessageContextMenuCommandInteraction) => unknown
+	autocomplete?: (interaction: discord.AutocompleteInteraction) => unknown
 }
 
 declare module 'discord.js' {

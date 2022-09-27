@@ -5,42 +5,6 @@ import logger from '../Utils/logger';
 export default {
 	name: 'interactionCreate',
 	async execute(interaction: Interaction) {
-		if (interaction.isAutocomplete()) {
-			if (interaction.commandName === 'help') {
-				const focusedValue = interaction.options.getFocused();
-				let choices: Array<any> = [];
-				const ignore = ['server id', 'user id', 'test'];
-				let filtered;
-
-				if (focusedValue === '') {
-					choices = [
-						{ name: '📌Setup', value: 'setup' },
-						{ name: '📌Help', value: 'help' },
-						{ name: '📌Suggest', value: 'support' },
-						{ name: '📌Report', value: 'support' },
-						{ name: '📌Server', value: 'support' },
-						{ name: '📌Connect', value: 'network' },
-						{ name: '📌Disconnect', value: 'network' },
-					];
-					filtered = choices.filter((choice) => choice.value.startsWith(focusedValue));
-				}
-				else {
-					const commands = interaction.client.commands.filter((cmd) => {
-						if (ignore.includes(cmd.data.name)) return false;
-						return true;
-					});
-					commands.map((command) => choices.push(command.data.name));
-					filtered = choices.filter((choice) => choice.startsWith(focusedValue));
-				}
-
-				await interaction.respond(
-					filtered.map((choice) => ({
-						name: choice.name || choice,
-						value: choice.value || choice,
-					})),
-				);
-			}
-		}
 		if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
 		// Basic perm check, it wont cover all bugs
 			if (
@@ -86,6 +50,14 @@ export default {
 				else if (interaction.replied) await interaction.channel?.send(errorMsg);
 				else await interaction.reply(errorMsg);
 			}
+		}
+
+		else if (interaction.isAutocomplete()) {
+			const command = interaction.client.commands.get(interaction.commandName);
+
+			if (!command || !command.autocomplete) return;
+
+			command.autocomplete(interaction);
 		}
 	},
 };
