@@ -1,8 +1,10 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { AutocompleteInteraction, ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 export default {
+	staff: true,
 	data: new SlashCommandBuilder()
 		.setName('find')
 		.setDescription('Find users/servers by name or ID.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		.addStringOption((option) =>
 			option
 				.setName('type')
