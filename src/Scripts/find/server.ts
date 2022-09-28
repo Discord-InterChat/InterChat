@@ -1,4 +1,4 @@
-import { EmbedBuilder, ChatInputCommandInteraction, Guild, User, GuildMember } from 'discord.js';
+import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import emojis from '../../Utils/emoji.json';
 import { getDb } from '../../Utils/functions/utils';

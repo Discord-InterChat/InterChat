@@ -3,7 +3,7 @@ import { GuildMember, Message, User } from 'discord.js';
 const LIMIT = 4;
 const TIME = 60_000;
 const DIFF = 2000;
-const CHAR_REGEX = /(.)\1{9,}/g;
+const CHAR_REGEX = /(.)\1{15,}/g;
 
 type BlacklistEntries = {
 	user: GuildMember | User,
@@ -24,13 +24,13 @@ function blacklistUser(user: GuildMember|User, map: Map<string, BlacklistEntries
 		timer: setTimeout(() => {
 			map.delete(user.id);
 			console.log('Removed from blacklist');
-		}, 3000), // TIME),
+		}, 5000),
 	});
 }
 
 export = {
 	/**
-	 * Basic anti-spam that I got from youtube and StackOverflow, with my own tweaks.
+	 * Basic anti-spam that I got from youtube, with my own tweaks.
 	*/
 	async execute(message: Message, blacklistsMap: Map<string, BlacklistEntries>, usersMap: Map<string, UserEntries>) {
 		// true = spam, false = not spam
@@ -81,14 +81,14 @@ export = {
 				++msgCount;
 				console.log(msgCount, difference);
 				if (msgCount === LIMIT) {
-					message.channel.send(message.author.toString() + 'Warning: Spamming in this channel is forbidden.');
+					message.channel.send(message.author.toString() + ' Warning: Spamming in this channel is forbidden.');
 					// message.channel.bulkDelete(LIMIT);
 					blacklistUser(message.author, blacklistsMap);
 					returnValue = true;
 				}
 
 				if (message.content.length < 3 && difference < 1000 && lastMessage.content.length < 3) {
-					message.channel.send('Message is too short and difference is less than 700ms');
+					// message.channel.send('Message is too short and difference is less than 700ms');
 				}
 
 				if (message.content.length > 500 && msgCount === 2) {

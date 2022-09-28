@@ -8,7 +8,7 @@
     "scripts": {
         "start": "node .",
         "build": "tsc -p .",
-        "dev": "concurrently \"tsc -w\" \"nodemon build/src/index.js\"",
+        "dev": "tsc-watch --onSuccess \"node .\"",
         "deploy": "tsc && node build/src/Utils/functions/deploy-commands.js",
         "release": "standard-version",
         "lint": "eslint . --ext .ts"
@@ -38,11 +38,10 @@
         "@types/node-fetch": "^2.6.2",
         "@typescript-eslint/eslint-plugin": "^5.38.1",
         "@typescript-eslint/parser": "^5.38.1",
-        "concurrently": "^7.4.0",
+        "tsc-watch": "^5.0.3",
         "eslint": "^8.24.0",
         "jest": "^29.0.3",
         "prettier": "^2.7.1",
-        "standard-version": "^9.5.0",
-        "ts-node": "^10.9.1"
+        "standard-version": "^9.5.0"
     }
 }

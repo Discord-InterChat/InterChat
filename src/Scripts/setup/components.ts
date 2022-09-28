@@ -75,7 +75,7 @@ export = {
 						logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
 					}
 
-					network.connect(interaction.guild, channel);
+					await network.connect(interaction.guild, channel);
 					logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
 
 					component.reply({ content: 'Channel has been reconnected!', ephemeral: true });

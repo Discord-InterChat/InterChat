@@ -16,7 +16,7 @@ export async function handlErrors(client: Client) {
 export async function sendErrorToChannel(client: Client, embedTitle: string, ErrorStack: unknown, channel?: TextChannel | null) {
 	const errorChannel = await client.channels.fetch('1024313459187404830'); // FIXME: Change channelId in constants
 	const errorEmbed = new EmbedBuilder()
-		.setAuthor({ name: 'ChatBot Error Reports', iconURL: client.user?.avatarURL() || undefined })
+		.setAuthor({ name: 'ChatBot Error Logs', iconURL: client.user?.avatarURL() || undefined })
 		.setTitle(embedTitle)
 		.setDescription('```js\n' + ErrorStack + '```')
 		.setColor(colors('invisible'))

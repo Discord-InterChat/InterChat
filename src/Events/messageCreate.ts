@@ -35,11 +35,21 @@ export default {
 		const messageData = database?.collection('messageData');
 
 		if (channelInNetwork) {
-			const checks = await (await import('../Scripts/message/checks')).execute(message, database);
+			const checks = await require('../Scripts/message/checks').execute(message, database);
 			if (checks === false) return;
 
+			if (message.reference) {
+				const referredMessage = await message.fetchReference();
+				if (referredMessage.author.id === message.client.user.id
+					&& referredMessage.embeds
+					&& referredMessage.embeds[0].fields.length > 0
+				) {
+					message.content = `> ${referredMessage.embeds[0]?.fields[0]?.value || referredMessage.content}\n${message.content}`;
+				}
+			}
+
 			// check if message contains profanity and censor it if it does
-			message.content = wordFilter.censor(message.content);
+			if (wordFilter.check(message.content)) message.content = wordFilter.censor(message.content);
 
 			const allConnectedChannels = await connectedList?.find().toArray();
 
@@ -67,11 +77,7 @@ export default {
 			const attachments = await messageContentModifiers.attachmentModifiers(message, embed);
 
 			// leveling system
-			await require('../Scripts/message/levelling').execute(message);
-
-			try {await message.delete();}
-			catch {return;}
-
+			require('../Scripts/message/levelling').execute(message);
 
 			const channelAndMessageIds: Promise<Message<boolean> | undefined>[] = [];
 			const channelsToDelete: string[] = [];
@@ -85,11 +91,14 @@ export default {
 					logger.warn(`Found deleted channel ${channelObj.channelId} in database.`);
 					continue;
 				}
+
 				// sending the messages to the connected channels
 				const msg = messageTypes.execute(message.client, message, channelObj, embed, setup, attachments);
 				// push the entire promise, as we dont want to wait for it inside the loop
 				channelAndMessageIds.push(msg);
 			}
+
+			message.delete().catch(() => {return;});
 
 			// TODO make a cleanup script for after message is sent
 			connectedList?.deleteMany({ channelId: { $in: channelsToDelete } });

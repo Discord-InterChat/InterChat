@@ -11,10 +11,7 @@ export = {
 	*/
 	check(string?: string) {
 		if (!string) throw new Error('No string provided.');
-		for (const word of blacklistedWords) {
-			if (string?.includes(word)) return true;
-		}
-		return false;
+		return blacklistedWords.some(word => string.includes(word));
 	},
 
 	/**

@@ -17,7 +17,7 @@ export default {
 					channelOption
 						.setName('destination')
 						.setDescription('Channel you want to setup chatbot to, select a category to create a new channel for chatbot')
-						.setRequired(false)
+						.setRequired(true)
 						.addChannelTypes(
 							ChannelType.GuildText,
 							ChannelType.GuildCategory,

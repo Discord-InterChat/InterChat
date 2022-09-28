@@ -1,4 +1,4 @@
-import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, ChatInputCommandInteraction, TextChannel } from 'discord.js';
+import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, ChatInputCommandInteraction } from 'discord.js';
 import { colors, constants } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 

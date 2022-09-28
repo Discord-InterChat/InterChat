@@ -1,8 +1,7 @@
 import fetch from 'node-fetch';
 import logger from '../../Utils/logger';
 import { AttachmentBuilder, EmbedBuilder, Message } from 'discord.js';
-import { config } from 'dotenv';
-config();
+import 'dotenv/config';
 
 export default {
 	async attachmentModifiers(message: Message, embed: EmbedBuilder) {
