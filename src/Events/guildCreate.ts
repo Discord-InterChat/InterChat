@@ -1,6 +1,5 @@
 import { EmbedBuilder, AuditLogEvent, Guild, TextChannel } from 'discord.js';
 import { sendInFirst, colors, getDb, constants } from '../Utils/functions/utils';
-import { normal, icons } from '../Utils/emoji.json';
 import badwordsList from 'badwords-list';
 import { stripIndents } from 'common-tags';
 import { config } from 'dotenv';
@@ -14,6 +13,8 @@ export default {
 		const serverInBlacklist = await blacklistedServers?.findOne({ serverId: guild.id });
 
 		const badword = badwordsList.array.some((word: string) => { return guild.name.toLowerCase().includes(word.toLowerCase()) === true;});
+
+		const { normal, icons } = guild.client.emoji;
 
 		if (serverInBlacklist) {
 			await sendInFirst(guild,

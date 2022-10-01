@@ -1,7 +1,7 @@
 import { stripIndent } from 'common-tags';
 import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
 import { colors, getCredits } from '../../Utils/functions/utils';
-import emojis from '../../Utils/emoji.json';
+
 export default {
 	data: new SlashCommandBuilder()
 		.setName('info')
@@ -18,7 +18,7 @@ export default {
 
 		const embed = new EmbedBuilder()
 			.setColor(colors('chatbot'))
-			.setTitle(`${emojis.icons.info} ChatBot Information`)
+			.setTitle(`${interaction.client.emoji.icons.info} ChatBot Information`)
 			.setFooter({
 				text: `Requested by ${interaction.user.tag}`,
 				iconURL: interaction.user.avatarURL() as string,
@@ -42,22 +42,22 @@ export default {
 					value: stripIndent`
 					Some emojis used on this bot are from [Icons discord server](https://discord.gg/aPvvhefmt3).
 				
-						${emojis.icons.botdev} **Developers:**
+						${interaction.client.emoji.icons.botdev} **Developers:**
 						> \`-\` ${members[1].tag}
 						> \`-\` ${members[3].tag}
 						> \`-\` ${members[4].tag}
 
-						${emojis.icons.staff} **Staff:**
+						${interaction.client.emoji.icons.staff} **Staff:**
 						> \`-\` ${members.at(-2)?.tag}
 						*Psst. Join the support server to know more about how you can become a staff member!*
 
-						${emojis.normal.chatbot_circle} **Avatar:** 
+						${interaction.client.emoji.normal.chatbot_circle} **Avatar:** 
 						> \`-\` ${members.at(-2)?.tag}
 						
 					`,
 				},
 				{
-					name: `${emojis.icons.link} Important Links`,
+					name: `${interaction.client.emoji.icons.link} Important Links`,
 					value: stripIndent`
 					[Privacy Policy](https://bit.ly/3A2yVot)
 					[Terms](https://bit.ly/chatbot-terms)

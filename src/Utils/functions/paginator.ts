@@ -1,6 +1,4 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, CommandInteraction, Message } from 'discord.js';
-import emoji from '../../Utils/emoji.json';
-
 
 /**
  * @param pages - An array of embeds to be paginated
@@ -9,9 +7,9 @@ import emoji from '../../Utils/emoji.json';
 export async function paginate(interaction: CommandInteraction, pages: EmbedBuilder[],
 	buttons =
 	{
-		back: emoji.icons.back,
-		exit: emoji.icons.delete,
-		next: emoji.icons.next,
+		back: interaction.client.emoji.icons.back,
+		exit: interaction.client.emoji.icons.delete,
+		next: interaction.client.emoji.icons.next,
 	},
 	time = 60000) {
 	if (typeof buttons != 'object') throw new TypeError('buttons must be an object containing: next, exit, back');

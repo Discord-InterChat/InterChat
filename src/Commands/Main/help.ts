@@ -82,7 +82,7 @@ export default {
 				});
 
 				const data = {
-					name: `${command.data.name} ${subcommand.name}`,
+					name: `${subcommand.name}`,
 					value: `${subcommand.description || 'No Description'}\n**Usage: **\`/${command.data.name} ${subcommand.name}${
 						subOptions.length === 0 ? '' : subOptions.join('')}\``,
 				};
@@ -95,7 +95,7 @@ export default {
 	},
 	async autocomplete(interaction: AutocompleteInteraction) {
 		const focusedValue = interaction.options.getFocused();
-		let choices: Array<any> = [];
+		let choices: any[] = [];
 		let filtered;
 
 		if (focusedValue === '') {

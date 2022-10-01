@@ -1,6 +1,5 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCommandInteraction, TextChannel } from 'discord.js';
 import { getDb, checkIfStaff } from '../../Utils/functions/utils';
-import emojis from '../../Utils/emoji.json';
 import logger from '../../Utils/logger';
 import { stripIndents } from 'common-tags';
 import { messageData } from '../../Utils/typings/types';
@@ -33,7 +32,7 @@ export default {
 
 		else {
 			interaction.reply({
-				content: stripIndents`${emojis.normal.no} Unable to delete message.
+				content: stripIndents`${interaction.client.emoji.normal.no} Unable to delete message.
 				Common Reasons: Message Expired, Message not sent by You, Message not sent in network.`, ephemeral: true });
 		}
 	},

@@ -1,10 +1,11 @@
 import { ActionRowBuilder, ButtonBuilder, PermissionFlagsBits, SlashCommandBuilder, ButtonStyle, ChatInputCommandInteraction, OAuth2Scopes } from 'discord.js';
-import { normal } from '../../Utils/emoji.json';
+
 export default {
 	data: new SlashCommandBuilder()
 		.setName('invite')
 		.setDescription('Invite the bot to your server'),
 	async execute(interaction: ChatInputCommandInteraction) {
+		const { normal } = interaction.client.emoji;
 		const permissions = [
 			PermissionFlagsBits.ManageChannels,
 			PermissionFlagsBits.ManageWebhooks,

@@ -1,7 +1,6 @@
 import logger from '../../Utils/logger';
 import filter from '../../Utils/functions/wordFilter';
 import { stripIndents } from 'common-tags';
-import { normal } from '../../Utils/emoji.json';
 import { deleteChannels, NetworkManager } from '../../Utils/functions/utils';
 import { ChatInputCommandInteraction } from 'discord.js';
 import { Collection } from 'mongodb';
@@ -42,12 +41,12 @@ module.exports = {
 			const numOfDocs = await connectedList.countDocuments();
 			if (numOfDocs && numOfDocs > 1) {
 				await interaction.reply(stripIndents`
-					This channel has been connected to the chat network. You are currently with ${numOfDocs} other servers, Enjoy! ${normal.clipart}
+					This channel has been connected to the chat network. You are currently with ${numOfDocs} other servers, Enjoy! ${interaction.client.emoji.normal.clipart}
 					**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`,
 				);
 			}
 			else {
-				await interaction.reply(`This channel has been connected to the chat network, though no one else is there currently... *cricket noises* ${normal.clipart}`);
+				await interaction.reply(`This channel has been connected to the chat network, though no one else is there currently... *cricket noises* ${interaction.client.emoji.normal.clipart}`);
 			}
 
 			logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
@@ -58,7 +57,7 @@ module.exports = {
 		}
 
 		interaction.client.sendInNetwork(stripIndents`
-					A new server has joined us in the Network! ${normal.clipart}
+					A new server has joined us in the Network! ${interaction.client.emoji.normal.clipart}
 
 					**Server Name:** __${interaction.guild?.name}__
 					**Member Count:** __${interaction.guild?.memberCount}__`,

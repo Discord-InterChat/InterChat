@@ -1,6 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { Db } from 'mongodb';
-import emoji from '../../Utils/emoji.json';
 
 module.exports = {
 	async execute(interaction: ChatInputCommandInteraction, database: Db) {
@@ -23,7 +22,7 @@ module.exports = {
 				Embed.addFields([
 					{
 						name: result[i].serverName,
-						value: `${emoji.icons.id}: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`,
+						value: `${interaction.client.emoji.icons.id}: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`,
 					},
 				]);
 			}
@@ -45,7 +44,7 @@ module.exports = {
 				Embed.addFields([
 					{
 						name: result[i].username,
-						value: `${emoji.icons.id}: ${result[i].userId}\nReason: ${result[i].reason}\n\n`,
+						value: `${interaction.client.emoji.icons.id}: ${result[i].userId}\nReason: ${result[i].reason}\n\n`,
 					},
 				]);
 			}

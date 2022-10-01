@@ -1,4 +1,5 @@
 import discord from 'discord.js';
+import EmojiIDs from '../../Utils/emoji.json';
 
 type commands = {
 	developer?: boolean,
@@ -14,6 +15,7 @@ declare module 'discord.js' {
 		commands: discord.Collection<string, commands>,
 		description: string,
 		version: string,
+		emoji: typeof EmojiIDs,
 		help: Array<{name: string, value: string}>
 		sendInNetwork(message: string): Promise<void>;
 	}

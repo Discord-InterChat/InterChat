@@ -4,6 +4,7 @@ import express from 'express';
 import Levels from 'discord-xp';
 import mongoUtil from './Utils/functions/utils';
 import logger from './Utils/logger';
+import emojis from './Utils/emoji.json';
 import packagejson from '../package.json';
 import 'dotenv/config';
 import { loadCommands } from './Handlers/handleCommands';
@@ -33,6 +34,7 @@ const client = new discord.Client({
 client.commands = new discord.Collection();
 client.description = packagejson.description;
 client.version = packagejson.version;
+client.emoji = emojis;
 client.help = [];
 
 loadCommands(client);

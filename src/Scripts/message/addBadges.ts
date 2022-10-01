@@ -1,9 +1,9 @@
 import { EmbedBuilder, Message } from 'discord.js';
 import { Db } from 'mongodb';
-import emoji from '../../Utils/emoji.json';
 
 module.exports = {
 	async execute(message: Message, database: Db, embed: EmbedBuilder) {
+		const emoji = message.client.emoji;
 		const badges = await database.collection('userBadges').findOne({ userId: message.author.id });
 
 		if (!badges) return;

@@ -1,4 +1,3 @@
-import { normal } from '../../Utils/emoji.json';
 import { Client, EmbedBuilder, AttachmentBuilder, Message, TextChannel, MessageMentionTypes, BaseMessageOptions } from 'discord.js';
 import { Collection } from 'mongodb';
 import { connectedListDocument } from '../../Utils/typings/types';
@@ -62,8 +61,9 @@ export default {
 				if (!webhook) return await allChannel?.send(normalMessage);
 				else return await webhook.send(webhookMessage);
 			}
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			catch (error: any) {
-				allChannel.send(`${normal.no} Unable to send webhook message! \n**Error:** ${error.message}`);
+				allChannel.send(`${client.emoji.normal.no} Unable to send webhook message! \n**Error:** ${error.message}`);
 			}
 		}
 	},

@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 import { paginate } from '../../Utils/functions/paginator';
-import emojis from '../../Utils/emoji.json';
 
 module.exports = {
 	async execute(interaction: ChatInputCommandInteraction) {
@@ -10,7 +9,7 @@ module.exports = {
 		const searchCursor = connectedList?.find();
 		const result = await searchCursor?.toArray();
 
-		if (!result || result?.length === 0) return interaction.reply(`No connected servers yet ${emojis.normal.bruhcat}`);
+		if (!result || result?.length === 0) return interaction.reply(`No connected servers yet ${interaction.client.emoji.normal.bruhcat}`);
 
 		const embeds: EmbedBuilder[] = [];
 		let itemsPerPage = 5;

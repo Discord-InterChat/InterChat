@@ -1,6 +1,5 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, ChannelType } from 'discord.js';
 import { getDb, constants } from '../../Utils/functions/utils';
-import emojis from '../../Utils/emoji.json';
 import logger from '../../Utils/logger';
 import { messageData } from '../../Utils/typings/types';
 
@@ -18,7 +17,7 @@ export default {
 
 		if (!await constants.topgg.hasVoted(interaction.user.id)) {
 			interaction.reply({
-				content: `${emojis.normal.no} You must vote to use this command.`,
+				content: `${interaction.client.emoji.normal.no} You must vote to use this command.`,
 				ephemeral: true,
 			});
 			return;
@@ -99,7 +98,7 @@ export default {
 						}).catch(logger.error);
 					});
 				}
-				i.reply({ content: `${emojis.normal.yes} Message Edited.`, ephemeral: true });
+				i.reply({ content: `${interaction.client.emoji.normal.yes} Message Edited.`, ephemeral: true });
 			})
 			.catch(() => {return;});
 	},

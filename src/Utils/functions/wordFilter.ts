@@ -9,8 +9,8 @@ export = {
 	/**
 	 * Checks if a message contains any bad words.
 	*/
-	check(string?: string) {
-		if (!string) throw new Error('No string provided.');
+	check(string: string | undefined) {
+		if (!string) return false;
 		return blacklistedWords.some(word => string.includes(word));
 	},
 
