@@ -12,7 +12,7 @@ export default {
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('channel')
-				.setDescription('Set chatbot up.')
+				.setDescription('Setup the ChatBot Network.')
 				.addChannelOption((channelOption) =>
 					channelOption
 						.setName('destination')
@@ -30,19 +30,21 @@ export default {
 			subcommand
 				.setName('view')
 				.setDescription('View and edit your setup.'),
+		)
+
+		.addSubcommand(subcommand =>
+			subcommand
+				.setName('reset')
+				.setDescription('Reset the setup for this server.'),
 		),
 
 	async execute(interaction: ChatInputCommandInteraction) {
 		const database = getDb();
 		const setupList = database?.collection('setup');
-		const connectedList = database?.collection('connectedList');
 		const serverInBlacklist = await database?.collection('blacklistedServers').findOne({ serverId: interaction.guild?.id });
 		const userInBlacklist = await database?.collection('blacklistedUsers').findOne({ userId: interaction.user.id });
 
 		const subcommand = interaction.options.getSubcommand();
-
-		// send the initial reply
-		await interaction.deferReply();
 
 		if (serverInBlacklist) {
 			await interaction.reply(`This server is blacklisted from using the ChatBot Chat Network for reason \`${serverInBlacklist.reason}\`! Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
@@ -54,12 +56,15 @@ export default {
 		}
 
 		if (subcommand === 'view') {
-			(await import('../../Scripts/setup/components')).execute(interaction, setupList, connectedList);
+			(await import('../../Scripts/setup/displayEmbed')).execute(interaction, setupList);
 			return;
+		}
+		else if (subcommand === 'reset') {
+			(await import('../../Scripts/setup/reset')).execute(interaction, setupList);
 		}
 		else {
 			const destination = interaction.options.getChannel('destination') as GuildTextBasedChannel | CategoryChannel;
-			(await import('../../Scripts/setup/init')).execute(interaction, setupList, connectedList, destination).catch(logger.error);
+			(await import('../../Scripts/setup/init')).execute(interaction, setupList, destination).catch(logger.error);
 		}
 	},
 };

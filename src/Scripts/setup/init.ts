@@ -2,13 +2,16 @@ import { stripIndents } from 'common-tags';
 import { ChannelType, ChatInputCommandInteraction, OverwriteType, GuildTextBasedChannel, CategoryChannel } from 'discord.js';
 import { Collection } from 'mongodb';
 import { NetworkManager } from '../../Utils/functions/utils';
-import emoji from '../../Utils/emoji.json';
 import logger from '../../Utils/logger';
 
 export = {
-	async execute(interaction: ChatInputCommandInteraction, setupList: Collection | undefined, connectedList: Collection | undefined, destination: GuildTextBasedChannel | CategoryChannel | undefined) {
+	async execute(interaction: ChatInputCommandInteraction, setupList: Collection | undefined, destination: GuildTextBasedChannel | CategoryChannel | undefined) {
+		// send the initial reply
+		await interaction.deferReply();
+
 		const date = new Date();
 		const timestamp = Math.round(date.getTime() / 1000);
+		const emoji = interaction.client.emoji;
 
 		const guildSetup = await setupList?.findOne({ 'guild.id': interaction.guild?.id });
 		const network = new NetworkManager();
@@ -16,17 +19,17 @@ export = {
 		if (guildSetup) {
 			if (destination) {
 				if (await setupList?.findOne({ 'channel.id': destination.id })) {
-					await interaction.followUp({ content: `A setup for ${destination} is already present.`, ephemeral: true });
+					interaction.followUp(`A setup for ${destination} is already present.`);
 					return;
 				}
 
-				await interaction.followUp('There is an existing channel setup... Change channel? (y/n)');
+				await interaction.editReply('There is an existing channel setup... Change channel? (y/n)');
 
 				const msg =	await interaction.channel?.awaitMessages({ filter: (m) => m.author.id === interaction.user.id, max: 1, idle: 10_000 });
-				if (msg?.first()?.content.toLowerCase() !== 'y') return interaction.followUp('Cancelled.');
+				if (msg?.first()?.content.toLowerCase() !== 'y') return msg?.first()?.reply('Cancelled.');
 
 				network.disconnect(interaction.guildId);
-				setupList?.deleteMany({ 'guild.id': interaction.guildId });
+				await setupList?.deleteMany({ 'guild.id': interaction.guildId });
 			}
 
 			// try to fetch the channel, if it does not exist delete from the databases'
@@ -36,7 +39,7 @@ export = {
 			catch {
 				await setupList?.deleteOne({ 'channel.id': guildSetup.channel.id });
 				network.disconnect({ channelId: String(guildSetup.channel.id) });
-				return interaction.editReply(emoji.icons.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
+				interaction.editReply(emoji.icons.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
 			}
 		}
 
@@ -80,7 +83,6 @@ export = {
 		try {
 			// Inserting channel to setup and connectedlist
 			await network.connect(interaction.guild, channel);
-
 			await setupList?.insertOne({
 				guild: { name: interaction.guild?.name, id: interaction.guild?.id },
 				channel: { name: channel?.name, id: channel?.id },
@@ -89,7 +91,7 @@ export = {
 				profFilter: true,
 			});
 
-			const numOfConnections = await connectedList?.countDocuments();
+			const numOfConnections = await network.totalConnected();
 			if (numOfConnections && numOfConnections > 1) {
 				await channel?.send(stripIndents`
 						This channel has been connected to the chat network. You are currently with ${numOfConnections} other servers, Enjoy! ${emoji.normal.clipart}
@@ -106,7 +108,9 @@ export = {
 		catch (err: any) {
 			logger.error(err);
 			await interaction.followUp('An error occurred while connecting to the chat network.\n**Error:** ' + err.message);
-			return network.disconnect(interaction.guild?.id as string);
+			setupList?.deleteOne({ 'channel.id': channel?.id });
+			network.disconnect(interaction.guild?.id as string);
+			return;
 		}
 
 		interaction.client.sendInNetwork(stripIndents`
@@ -115,6 +119,6 @@ export = {
 			**Server Name:** __${interaction.guild?.name}__
 			**Member Count:** __${interaction.guild?.memberCount}__`);
 
-		(await import('./components')).execute(interaction, setupList, connectedList);
+		(await import('./displayEmbed')).execute(interaction, setupList);
 	},
 };
