@@ -49,8 +49,8 @@ export default {
 		}
 
 		else {
-			const goalChannel = await guild.client.channels.fetch(constants.channel.goal) as TextChannel;
-			await goalChannel?.send({
+			const goalChannel = guild.client.channels.cache.get(constants.channel.goal) as TextChannel;
+			goalChannel?.send({
 				content: `${icons.join} I have joined ${guild.name}! ${500 - guild.client.guilds.cache.size} to go!`,
 				allowedMentions: { parse: ['everyone', 'roles'] },
 			});
@@ -58,7 +58,7 @@ export default {
 			const embed = new EmbedBuilder()
 				.setTitle(`${normal.tada} Hi! Thanks for adding me to your server!`)
 				.setDescription(stripIndents`
-				To start chatting, make a channel and run \`</setup:978303442684624928>\`!
+				To start chatting, make a channel and run </setup:978303442684624928>!
 
 				And if you are interested in the other commands use \`/help\`.
 				
