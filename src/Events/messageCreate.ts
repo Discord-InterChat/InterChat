@@ -28,9 +28,7 @@ export default {
 
 		// db for setup data
 		const setup = database?.collection('setup');
-		const channelInNetwork = await connectedList?.findOne({
-			channelId: message.channel.id,
-		});
+		const channelInNetwork = await connectedList?.findOne({ channelId: message.channel.id });
 
 		const messageData = database?.collection('messageData');
 
@@ -42,9 +40,9 @@ export default {
 				const referredMessage = await message.fetchReference();
 				if (referredMessage.author.id === message.client.user.id
 					&& referredMessage.embeds
-					&& referredMessage.embeds[0].fields.length > 0
+					&& referredMessage.embeds[0].fields?.length > 0
 				) {
-					message.content = `> ${referredMessage.embeds[0]?.fields[0]?.value || referredMessage.content}\n${message.content}`;
+					message.content = `> ${referredMessage.embeds[0]?.fields[0]?.value}\n${message.content}`;
 				}
 			}
 
