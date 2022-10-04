@@ -296,15 +296,19 @@ interface NetworkManagerOptions {
 export class NetworkManager {
 
 	protected db = getDb();
-	connectedList = this.db?.collection('connectedList');
+	public connectedList = this.db?.collection('connectedList');
 
 	constructor() {/**/}
 
+	public async getServerData(filter: NetworkManagerOptions) {
+		const foundServerData = await this.connectedList?.findOne(filter);
+		return foundServerData;
+	}
 
 	/**
 	 * Returns true if the server/channel is connected.
 	 */
-	async connected(options: NetworkManagerOptions) {
+	public async connected(options: NetworkManagerOptions) {
 		const InDb = await this.connectedList?.findOne(options) as connectedListDocument | undefined | null;
 		return InDb;
 	}
@@ -316,7 +320,7 @@ export class NetworkManager {
 	 *
 	 * **This only inserts the server into the connectedList collection.**
 	 */
-	async connect(guild: Guild | null, channel: GuildTextBasedChannel | undefined | null) {
+	public async connect(guild: Guild | null, channel: GuildTextBasedChannel | undefined | null) {
 		const channelExists = await this.connectedList?.findOne({ channelId: channel?.id });
 
 		if (channelExists) return null;
@@ -332,7 +336,7 @@ export class NetworkManager {
 
 
 	/** Delete a document using the `channelId` or `serverId` from the connectedList collection */
-	async disconnect(options: NetworkManagerOptions): Promise<DeleteResult | undefined>
+	public async disconnect(options: NetworkManagerOptions): Promise<DeleteResult | undefined>
 	/**  Delete a document using the `serverId` from the connectedList collection*/
 	async disconnect(serverId: string | null): Promise<DeleteResult | undefined>
 	async disconnect(options: NetworkManagerOptions | string | null): Promise<DeleteResult | undefined> {
@@ -341,6 +345,11 @@ export class NetworkManager {
 		}
 		else if (options?.channelId) {return await this.connectedList?.deleteOne({ channelId: options.channelId });}
 		else {return await this.connectedList?.deleteOne({ serverId: options?.serverId });}
+	}
+
+	/** Returns a promise with the total number of connected servers.*/
+	public async totalConnected() {
+		return await this.connectedList?.countDocuments();
 	}
 }
 
