@@ -1,13 +1,17 @@
-import { ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, ForumChannel } from 'discord.js';
 import { colors, constants } from '../../Utils/functions/utils';
 
 export default {
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		const messageId = interaction.options.getString('messageid');
 		const keep = interaction.options.getBoolean('keepmessage');
-		const suggestionChannel = await interaction.client.channels.fetch(constants.channel.suggestions) as TextChannel | null;
-		const suggestionMessage = await suggestionChannel?.messages.fetch(String(messageId)).catch(() => {
-			interaction.reply('Unable to locate the message. Please make sure the message ID is valid.');
+		const postId = interaction.options.getString('postid');
+		const suggestionChannel = await interaction.client.channels.fetch(constants.channel.suggestions) as ForumChannel | null;
+		const suggestionPost = await suggestionChannel?.threads.fetch(String(postId)).catch(() => {
+			interaction.reply('Unable to locate the forum post.');
+		});
+
+		const suggestionMessage = await suggestionPost?.fetchStarterMessage().catch(() => {
+			interaction.reply('Unable to locate the posted message.');
 		});
 
 		if (suggestionMessage?.author.id != interaction.client.user?.id) {
@@ -24,14 +28,16 @@ export default {
 				],
 			});
 		}
-
 		else {
-			suggestionMessage?.delete().catch(() => {
+			try {
+				await suggestionMessage?.delete();
+			}
+			catch {
 				return interaction.reply('Unable to delete message!');
-			});
+			}
 		}
 
-		interaction.reply('🗑️ Suggestion discarded.');
-
+		await interaction.reply('🗑️ Suggestion discarded.');
+		suggestionPost?.setLocked(true, `Suggestion taken down by ${interaction.user.tag}`);
 	},
 };

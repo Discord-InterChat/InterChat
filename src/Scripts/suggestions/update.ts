@@ -1,31 +1,35 @@
-import { ChatInputCommandInteraction, EmbedBuilder, TextChannel } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, ForumChannel } from 'discord.js';
 import { constants } from '../../Utils/functions/utils';
+
+type suggestionStatus ='✅ Approved' | '🧑‍💻 Pending' | '✅ Implemented' | '❌ Rejected' | '🚫 Closed';
 
 export default {
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		const messageId = interaction.options.getString('messageid');
-		const status = interaction.options.getString('status');
+		const postId = interaction.options.getString('postid');
+		const status = interaction.options.getString('status') as suggestionStatus | null;
 		const reason = interaction.options.getString('reason');
-		const suggestionChannel = await interaction.client.channels.fetch(constants.channel.suggestions) as TextChannel | null;
-		const suggestionMessage = await suggestionChannel?.messages.fetch(String(messageId)).catch(() => {
-			interaction.reply('Unable to locate the message. Please make sure the message ID is valid.');
-			return;
-		});
+		const suggestionChannel = await interaction.client.channels.fetch(constants.channel.suggestions) as ForumChannel | null;
+		const suggestionPost = await suggestionChannel?.threads?.fetch(String(postId)).catch(() => { interaction.reply('Unable to locate the message. Please make sure the message ID is valid.');});
+		const suggestionMessage = await suggestionPost?.fetchStarterMessage();
 
-		if (!suggestionMessage ||
-			suggestionMessage.embeds.length < 1 ||
-			suggestionMessage.author.id != interaction.client.user?.id ||
-			suggestionMessage.embeds[0].description?.includes('taken down')
+		if (!suggestionMessage
+			|| suggestionMessage.embeds.length < 1
+			|| suggestionMessage.author.id != interaction.client.user?.id
+			|| suggestionMessage.embeds[0].description?.includes('taken down')
 		) {
 			await interaction.reply('Unable to locate the message. Please make sure the message ID is valid.');
 			return;
 		}
-		const suggestionEmbed = new EmbedBuilder(suggestionMessage.embeds[0].toJSON());
+		const suggestionEmbed = new EmbedBuilder(suggestionMessage?.embeds[0].toJSON());
 		suggestionEmbed.setFields({ name: 'Status', value: String(status), inline: true });
-		if (reason) suggestionEmbed.addFields({ name: 'Message From Staff/Developers', value: String(reason), inline: true });
-		await suggestionMessage.edit({ embeds: [suggestionEmbed] });
 
-		interaction.reply('Updated suggestion!');
+		if (reason) suggestionEmbed.addFields({ name: 'Message From Staff/Developers', value: String(reason), inline: true });
+
+		await suggestionMessage?.edit({ embeds: [suggestionEmbed] });
+
+		if (status === '🚫 Closed' || status === '❌ Rejected') suggestionPost?.setArchived(true, `Closed by ${interaction.user.tag}`);
+
+		interaction.reply({ content: 'Updated suggestion!', ephemeral: true }).catch();
 
 	},
 };

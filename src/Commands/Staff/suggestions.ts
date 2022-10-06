@@ -11,7 +11,7 @@ export default {
 				.setDescription('Set a status for suggestions. Eg. Pending, Approved, Implemented')
 				.addStringOption(messageOption =>
 					messageOption
-						.setName('messageid')
+						.setName('postid')
 						.setDescription('The ID of the suggestion message.')
 						.setRequired(true),
 				)
@@ -40,7 +40,7 @@ export default {
 				.setDescription('Delete the suggestion message. This is irreversible!')
 				.addStringOption(messageOption =>
 					messageOption
-						.setName('messageid')
+						.setName('postid')
 						.setDescription('The ID of the suggestion message.')
 						.setRequired(true),
 				)
