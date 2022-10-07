@@ -9,16 +9,16 @@ The Canary Version of the growing discord bot named 'ChatBot'
 2. Make a file called `.env` and fill it out with the appropriate contents:
     ```env
     # Bot token here
-    TOKEN= 
+    TOKEN=<your bot token here> 
 
     # Your mongodb connection string
-    MONGODB_URI= # mongodb+srv://<name>:<password>@uri
+    MONGODB_URI=<mongodb connection URI here> # it should look like this mongodb+srv://<name>:<password>@uri
 
     # Top.gg token goes here, not required if you don't have a bot on top.gg.
-    TOPGG= 
+    TOPGG=<your topgg bot access token>
 
     # Tenor api key (required for posting gifs in global chat.)
-    TENOR_KEY=
+    TENOR_KEY=<a tenor API key>
     ```
 3. Run `npm run dev`
 
@@ -43,9 +43,9 @@ the "Comment Anchor" extension to highlight them in VS-Code.
 * 101 votes on topgg in a month
 
 ### Deploying Commands
-> * **Public Commands (Default):** `npm run deploy`
-> * **Staff commands:**  `npm run deploy --staff [guildID]`
-> * **Help:** `npm run deploy --help`
+* **Public Commands (Default):** `npm run deploy`
+* **Staff commands:**  `npm run deploy --staff [guildID]`
+* **Help:** `npm run deploy --help`
 
 *[] = optional; <> = required;*
 
