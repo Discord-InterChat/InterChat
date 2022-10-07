@@ -280,10 +280,11 @@ export const constants = {
 
 	channel: {
 		chatbotlogs: '1002864642101624832',
+		errorlogs: '976099224611606588',
 		modlogs: '1000730718474875020',
 		reports: '821610981155012628',
 		goal: '906460473065615403',
-		suggestions: '908713477433073674',
+		suggestions: '1021256657528954900',
 		reviews: '1002874342343970946',
 	},
 };

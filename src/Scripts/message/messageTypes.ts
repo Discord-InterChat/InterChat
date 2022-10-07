@@ -11,9 +11,7 @@ interface WebhookMessageInterface extends BaseMessageOptions {
 }
 
 export default {
-	/**
-	 * This function converts a message to embeded or normal depending on the server settings. It also adds the attachments to the message.
-	 */
+	/** Converts a message to embeded or normal depending on the server settings. */
 	execute: async (client: Client, message: Message, channelObj: connectedListDocument, embed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
 		const allChannel = await client.channels.fetch(channelObj.channelId) as TextChannel;
 		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel?.id });

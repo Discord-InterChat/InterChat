@@ -9,7 +9,7 @@ import packagejson from '../package.json';
 import 'dotenv/config';
 import { loadCommands } from './Handlers/handleCommands';
 import { loadEvents } from './Handlers/handleEvents';
-import { handlErrors } from './Handlers/handleErrors';
+import { handleErrors } from './Handlers/handleErrors';
 
 Levels.setURL(process.env.MONGODB_URI as string);
 const app = express();
@@ -25,8 +25,8 @@ const client = new discord.Client({
 	presence: {
 		status: 'online',
 		activities: [{
-			name: 'the Chat Network',
-			type: discord.ActivityType.Watching,
+			name: `ChatBot v${packagejson.version}`,
+			type: discord.ActivityType.Playing,
 		}],
 	},
 });
@@ -39,7 +39,7 @@ client.help = [];
 
 loadCommands(client);
 loadEvents(client);
-handlErrors(client);
+handleErrors(client);
 
 client.login(process.env.TOKEN);
 app.listen(port, () => logger.info(`Express app listening on port ${port}`));

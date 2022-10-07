@@ -98,7 +98,9 @@ export default {
 
 			message.delete().catch(() => {return;});
 
-			// TODO make a cleanup script for after message is sent
+			// TODO make a cleanup script
+
+			// Deleting all found channels that are non existant
 			connectedList?.deleteMany({ channelId: { $in: channelsToDelete } });
 			setup?.deleteMany({ 'channel.id': { $in: channelsToDelete } });
 
