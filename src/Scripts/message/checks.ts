@@ -3,9 +3,6 @@ import { Guild, Message } from 'discord.js';
 import { Db } from 'mongodb';
 import antiSpam from './antiSpam';
 
-const usersMap = new Map();
-const blacklistsMap = new Map();
-
 export = {
 	async execute(message: Message, database: Db | undefined) {
 		// true = pass, false = fail (checks)
@@ -27,10 +24,6 @@ export = {
 			return false;
 		}
 
-		// FIXME: At the moment when a user is removed from blacklist,
-		// ONE of the spam messages gets through. (as it is not in the map at that second)
-		if (blacklistsMap.has(message.author.id)) return false;
-
 		// db for blacklisted words
 		const restrictedWords = database?.collection('restrictedWords');
 		const wordList = await restrictedWords?.findOne({ name: 'blacklistedWords' });
@@ -46,7 +39,7 @@ export = {
 		}
 
 		// anti-spam check (basic but works well 🤷)
-		const spam_filter = await antiSpam.execute(message, blacklistsMap, usersMap);
+		const spam_filter = await antiSpam.execute(message);
 		if (spam_filter === true) return false;
 
 		if (

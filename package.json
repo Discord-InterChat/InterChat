@@ -1,6 +1,6 @@
 {
     "name": "discord-chatbot",
-    "version": "2.0.0-alpha.1",
+    "version": "2.0.0-alpha.2",
     "description": "A growing Discord bot which provides inter-server chat!",
     "main": "build/src/index.js",
     "author": "Supreme1707, Makiyu, dev-737, ThomasShelby69",
@@ -33,12 +33,12 @@
     "devDependencies": {
         "@types/common-tags": "^1.8.1",
         "@types/express": "^4.17.14",
-        "@types/node": "^18.7.23",
+        "@types/node": "^18.8.3",
         "@types/node-fetch": "^2.6.2",
-        "@typescript-eslint/eslint-plugin": "^5.38.1",
-        "@typescript-eslint/parser": "^5.38.1",
+        "@typescript-eslint/eslint-plugin": "^5.39.0",
+        "@typescript-eslint/parser": "^5.39.0",
         "tsc-watch": "^5.0.3",
-        "eslint": "^8.24.0",
+        "eslint": "^8.25.0",
         "prettier": "^2.7.1",
         "standard-version": "^9.5.0"
     }

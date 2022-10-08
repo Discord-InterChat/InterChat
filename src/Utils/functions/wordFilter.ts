@@ -2,8 +2,8 @@ import { EmbedBuilder, Client, Guild, User, TextChannel } from 'discord.js';
 import { colors, constants } from '../../Utils/functions/utils';
 import badwords from 'badwords-list';
 
-const whiteListedWords = ['crap', 'hell', 'damn', 'balls'];
-const blacklistedWords = badwords.array.filter(word => whiteListedWords.includes(word) === false);
+const whiteListedWords = ['crap', 'hell', 'damn', 'balls', 'porn'];
+const blacklistedWords = badwords.array.filter(word => whiteListedWords.includes(word.toLowerCase()) === false);
 
 export = {
 	/**

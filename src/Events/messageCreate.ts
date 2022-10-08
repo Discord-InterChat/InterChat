@@ -3,7 +3,7 @@ import logger from '../Utils/logger';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import evalScript from '../Scripts/message/evalScript';
 import messageTypes from '../Scripts/message/messageTypes';
-import { EmbedBuilder, Message } from 'discord.js';
+import { EmbedBuilder, GuildMember, Message, User } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import { connectedListDocument } from '../Utils/typings/types';
 
@@ -15,10 +15,29 @@ import { connectedListDocument } from '../Utils/typings/types';
 // might come in handy in other cases too.
 
 
+type UserEntries = {
+	msgCount: number,
+	slowMsgCount: number,
+	lastMessage : Message,
+	timer : NodeJS.Timeout,
+}
+
+type BlacklistEntries = {
+	user: GuildMember | User,
+	timer: NodeJS.Timeout
+}
+
+export const usersMap = new Map<string, UserEntries>();
+export const blacklistsMap = new Map<string, BlacklistEntries>();
+
+
 export default {
 	name: 'messageCreate',
 	async execute(message: Message) {
-		if (message.author.bot) return;
+		// FIXME: At the moment when a user is removed from blacklist,
+		// ONE of the spam messages gets through. (as it is not in the map at that second)
+		if (message.author.bot || blacklistsMap.has(message.author.id)) return;
+
 		// FIXME c! on main cb
 		if (message.content.startsWith('cb!eval')) evalScript.execute(message);
 
@@ -117,13 +136,10 @@ export default {
 						timestamp: message.createdTimestamp,
 						authorId: message.author.id,
 						serverId: message.guild?.id,
+						expired: false,
 					});
 				})
-				.catch((e) => {
-					logger.error(e);
-				});
-
-
+				.catch(logger.error);
 		}
 		else {
 			return;
