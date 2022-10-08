@@ -10,20 +10,25 @@ export default {
 		.setName('Delete Message')
 		.setType(ApplicationCommandType.Message),
 	async execute(interaction: MessageContextMenuCommandInteraction) {
-
 		const target = interaction.targetMessage;
 		const staffUser = await checkIfStaff(interaction.client, interaction.user);
 
 		const db = getDb();
 		const messageInDb = await db?.collection('messageData').findOne({ channelAndMessageIds: { $elemMatch: { messageId: target.id } } }) as messageData | undefined;
 
+		if (!messageInDb || messageInDb?.expired && staffUser === false) return interaction.reply({ content: 'This message has expired.', ephemeral: true });
+
 		if ((staffUser || interaction.user.id === messageInDb?.authorId)) {
-			messageInDb?.channelAndMessageIds.forEach(async (element) => {
-				await interaction.client.channels.fetch(element.channelId).then(async (channel) => {
-					await (channel as TextChannel).messages.fetch(element.messageId).then(async (message) => {
-						await message.delete();
+			messageInDb?.channelAndMessageIds.forEach((element) => {
+				interaction.client.channels
+					.fetch(element.channelId)
+					.then((channel) => {
+						(channel as TextChannel)
+							.messages
+							.fetch(element.messageId)
+							.then((message) => message.delete().catch())
+							.catch((e) => logger.error(`Delete Message Command: ${e}`));
 					}).catch(logger.error);
-				}).catch(logger.error);
 			});
 
 
@@ -32,8 +37,9 @@ export default {
 
 		else {
 			interaction.reply({
-				content: stripIndents`${interaction.client.emoji.normal.no} Unable to delete message.
-				Common Reasons: Message Expired, Message not sent by You, Message not sent in network.`, ephemeral: true });
+				content: stripIndents`${interaction.client.emoji.normal.no} Unable to delete message.\nCommon Reasons: Message not sent by you, Message not sent in network.`,
+				ephemeral: true,
+			});
 		}
 	},
 };

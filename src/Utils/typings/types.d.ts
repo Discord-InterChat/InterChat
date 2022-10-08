@@ -1,13 +1,11 @@
 import { WithId, Document } from 'mongodb';
 
 export interface messageData extends WithId<Document> {
-	channelAndMessageIds: Array<{
-		channelId: string,
-		messageId: string
-	}>,
-	timestamp: number,
-	authorId: string,
-	serverId: string
+	channelAndMessageIds: {channelId: string, messageId: string}[],
+	timestamp: number;
+	authorId: string;
+	serverId: string;
+	expired: boolean;
 }
 
 export interface connectedListDocument extends WithId<Document> {
@@ -16,11 +14,10 @@ export interface connectedListDocument extends WithId<Document> {
 	serverId: string,
 	serverName: string
 }
+
 declare global {
 	interface String {
-		/**
-		 * Converts every word in a sentense to begin with a capital letter.
-		 */
+		/** Converts every word in a sentense to begin with a capital letter. */
 		toTitleCase(): string;
 	}
 }

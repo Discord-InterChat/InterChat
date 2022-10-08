@@ -1,17 +1,14 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, ChannelType } from 'discord.js';
 import { getDb, constants } from '../../Utils/functions/utils';
-import logger from '../../Utils/logger';
 import { messageData } from '../../Utils/typings/types';
+import logger from '../../Utils/logger';
 
 export default {
 	data: new ContextMenuCommandBuilder()
 		.setName('Edit Message')
 		.setType(ApplicationCommandType.Message),
-	/**
-	* ⚠️Voter only⚠️
-	*
-    * Edit messages throughout the network *(partially works for compact mode)*
-    */
+
+	/** Edit messages throughout the network *(partially works for compact mode) */
 	async execute(interaction: MessageContextMenuCommandInteraction) {
 		const target = interaction.targetMessage;
 
@@ -26,7 +23,7 @@ export default {
 		const db = getDb();
 		const messageInDb = await db?.collection('messageData').findOne({ channelAndMessageIds: { $elemMatch: { messageId: target.id } } }) as messageData | undefined;
 
-		if (!messageInDb) {
+		if (!messageInDb || messageInDb?.expired) {
 			interaction.reply({
 				content: 'This message has expired :(',
 				ephemeral: true,
