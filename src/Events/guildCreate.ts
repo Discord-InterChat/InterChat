@@ -51,7 +51,7 @@ export default {
 		else {
 			const goalChannel = guild.client.channels.cache.get(constants.channel.goal) as TextChannel;
 			goalChannel?.send({
-				content: `${icons.join} I have joined ${guild.name}! ${500 - guild.client.guilds.cache.size} to go!`,
+				content: `${icons.join} I have joined ${guild.name}! ${600 - guild.client.guilds.cache.size} to go!`,
 				allowedMentions: { parse: ['everyone', 'roles'] },
 			});
 

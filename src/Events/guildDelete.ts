@@ -12,7 +12,7 @@ export default {
 		const cbhq = guild.client.guilds.fetch(utils.constants.mainGuilds.cbhq);
 		const goalChannel = (await cbhq).channels.cache.get(utils.constants.channel.goal);
 		await (goalChannel as TextChannel)?.send({
-			content: `${guild.client.emoji.icons.leave} I have been kicked from ${guild.name}. ${500 - guild.client.guilds.cache.size} to go!`,
+			content: `${guild.client.emoji.icons.leave} I have been kicked from ${guild.name}. ${600 - guild.client.guilds.cache.size} to go!`,
 			allowedMentions: { parse: ['everyone', 'roles'] },
 		});
 	},
