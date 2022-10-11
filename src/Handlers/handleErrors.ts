@@ -7,8 +7,9 @@ export async function handleErrors(client: Client) {
 		if (client.isReady()) sendErrorToChannel(client, 'An Error Occured!', err.stack);
 		logger.error('[Anti-Crash - Exception]:', err);
 	});
-	process.on('unhandledRejection', async (err) => {
-		if (client.isReady()) sendErrorToChannel(client, 'A Request Got Rejected!', err);
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	process.on('unhandledRejection', async (err: any) => {
+		if (client.isReady()) sendErrorToChannel(client, 'A Request Got Rejected!', err.stack || err);
 		logger.error('[Anti Crash - Rejection]:', err);
 	});
 }
