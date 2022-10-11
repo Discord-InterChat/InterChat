@@ -9,7 +9,7 @@ export default {
 	once: true,
 
 	async execute(client: Client) {
-		constants.topgg.postStats({serverCount: client.guilds.cache.size});
+		constants.topgg.postStats({ serverCount: client.guilds.cache.size });
 
 		const db = utils.getDb();
 		const FOUR_HOURS = 60 * 60 * 4000;
