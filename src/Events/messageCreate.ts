@@ -10,7 +10,7 @@ import { connectedListDocument } from '../Utils/typings/types';
 // TODO: edit the embed instead of changing the message content
 // if guild has profanity disabled and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
 
-// Warning and timed blacklist system
+// TODO: Warning and timed blacklist system
 // blacklist a user for a specific amount of time if they have over x warns
 // might come in handy in other cases too.
 
@@ -41,7 +41,8 @@ export default {
 	async execute(message: Message) {
 		if (message.author.bot || blacklistsMap.has(message.author.id)) return;
 
-		if (message.content.startsWith('c!eval')) evalScript.execute(message);
+		// FIXME c! on main cb
+		if (message.content.startsWith('cb!eval')) evalScript.execute(message);
 
 		// main db where ALL connected channel data is stored
 		const database = getDb();

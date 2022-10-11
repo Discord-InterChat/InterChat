@@ -9,7 +9,7 @@ import { config } from 'dotenv';
 import { join } from 'path';
 config();
 
-const clientID = constants.client.stable.id;
+const clientID = constants.client.beta.id; // FIXME: Change this to stable chatbot ID
 const server = process.argv[3]?.toLowerCase() || constants.mainGuilds.cbhq;
 const IgnoredDirs = ['Developer', 'TopGG', 'Staff'];
 
