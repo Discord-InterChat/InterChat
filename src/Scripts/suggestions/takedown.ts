@@ -6,13 +6,23 @@ export default {
 		const keep = interaction.options.getBoolean('keepmessage');
 		const postId = interaction.options.getString('postid');
 		const suggestionChannel = await interaction.client.channels.fetch(constants.channel.suggestions) as ForumChannel | null;
-		const suggestionPost = await suggestionChannel?.threads.fetch(String(postId)).catch(() => {
-			interaction.reply('Unable to locate the forum post.');
-		});
 
-		const suggestionMessage = await suggestionPost?.fetchStarterMessage().catch(() => {
-			interaction.reply('Unable to locate the posted message.');
-		});
+		let suggestionPost;
+		let suggestionMessage;
+
+		try {
+			suggestionPost = await suggestionChannel?.threads.fetch(String(postId));
+		}
+		catch {
+			return interaction.reply('Unable to locate the forum post.');
+		}
+
+		try {
+			suggestionMessage = await suggestionPost?.fetchStarterMessage();
+		}
+		catch {
+			return interaction.reply('Unable to locate the posted message.');
+		}
 
 		if (suggestionMessage?.author.id != interaction.client.user?.id) {
 			await interaction.reply('Unable to locate the message. Please make sure the message ID is valid.');
@@ -29,15 +39,16 @@ export default {
 			});
 		}
 		else {
+			suggestionPost?.setLocked(true);
 			try {
 				await suggestionMessage?.delete();
 			}
 			catch {
-				return interaction.reply('Unable to delete message!');
+				interaction.channel?.send('Unable to delete message!');
 			}
 		}
 
 		await interaction.reply('🗑️ Suggestion discarded.');
-		suggestionPost?.setLocked(true, `Suggestion taken down by ${interaction.user.tag}`);
+		suggestionPost?.setArchived(true, `Suggestion taken down by ${interaction.user.tag}`);
 	},
 };

@@ -1,4 +1,5 @@
 import { EmbedBuilder, ActionRowBuilder, ChatInputCommandInteraction, TextInputBuilder, ModalBuilder, TextInputStyle, ChannelType } from 'discord.js';
+import { sendErrorToChannel } from '../../Handlers/handleErrors';
 import { colors, constants } from '../../Utils/functions/utils';
 
 export = {
@@ -6,7 +7,7 @@ export = {
 		const suggestionChannel = await interaction.client.channels.fetch(constants.channel.suggestions);
 
 		if (suggestionChannel?.type !== ChannelType.GuildForum) return interaction.reply('An error occured when trying to send your suggestion! Please join the server to manually suggest in the suggestion channel or report a bug.');
-		const suggestionTag = suggestionChannel.availableTags.find(tag => tag.name === 'Suggestion');
+		const suggestionTag = suggestionChannel.availableTags.find(tag => tag.name === 'Bot Related');
 
 
 		// modal
@@ -56,14 +57,20 @@ export = {
 				});
 
 
-			await suggestionChannel?.threads.create({
-				name: title,
-				appliedTags: suggestionTag ? [suggestionTag.id] : undefined,
-				message: {
-					content: 'This suggestion was sent using `/support suggest` command.',
-					embeds: [suggestionEmbed],
-				},
-			});
+			try {
+				await suggestionChannel?.threads.create({
+					name: title,
+					appliedTags: suggestionTag ? [suggestionTag.id] : undefined,
+					message: {
+						content: 'This suggestion was sent using `/support suggest`.',
+						embeds: [suggestionEmbed],
+					},
+				});
+			}
+			catch (err) {
+				sendErrorToChannel(modalInteraction.client, `Suggestion command failed for user ${modalInteraction.user.tag}`, err);
+				return modalInteraction.reply({ content: 'An error occured while making your suggestion! The developers have been alerted.' });
+			}
 			modalInteraction.reply({ content: 'Suggestion sent! Join the support server to see it.', ephemeral: true });
 		}).catch(() => {return;});
 
