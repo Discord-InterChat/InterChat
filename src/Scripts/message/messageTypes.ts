@@ -1,6 +1,7 @@
 import { Client, EmbedBuilder, AttachmentBuilder, Message, TextChannel, MessageMentionTypes, BaseMessageOptions } from 'discord.js';
 import { Collection } from 'mongodb';
-import { connectedListDocument } from '../../Utils/typings/types';
+import { connectedListDocument, setupDocument } from '../../Utils/typings/types';
+import {} from '../../Utils/typings/types';
 
 interface WebhookMessageInterface extends BaseMessageOptions {
 	content: string,
@@ -14,12 +15,12 @@ export default {
 	/** Converts a message to embeded or normal depending on the server settings. */
 	execute: async (client: Client, message: Message, channelObj: connectedListDocument, embed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
 		const allChannel = await client.channels.fetch(channelObj.channelId) as TextChannel;
-		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel?.id });
+		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel?.id }) as setupDocument | null | undefined;
 
 		if (channelInDB?.compact === true && allChannel?.id == message.channel.id) {
 			return webhookAutomate(message.channel as TextChannel);
 		}
-		else if (channelInDB?.compact === true && allChannel == channelInDB.channel.id) {
+		else if (channelInDB?.compact === true && allChannel.id == channelInDB.channel.id) {
 			return webhookAutomate(allChannel);
 		}
 		// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images

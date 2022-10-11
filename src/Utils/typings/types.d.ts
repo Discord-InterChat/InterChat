@@ -1,7 +1,7 @@
 import { WithId, Document } from 'mongodb';
 
 export interface messageData extends WithId<Document> {
-	channelAndMessageIds: {channelId: string, messageId: string}[],
+	channelAndMessageIds: {channelId: string; messageId: string}[];
 	timestamp: number;
 	authorId: string;
 	serverId: string;
@@ -9,10 +9,27 @@ export interface messageData extends WithId<Document> {
 }
 
 export interface connectedListDocument extends WithId<Document> {
-	channelId: string,
-	channelName: string,
-	serverId: string,
-	serverName: string
+	channelId: string;
+	channelName: string;
+	serverId: string;
+	serverName: string;
+}
+
+export interface setupDocument extends WithId<Document> {
+	guild: {
+		name: string;
+		id: string;
+	},
+	channel: {
+		name: string;
+		id: string;
+	},
+	date: {
+		full: Date
+		timestamp: number;
+	},
+	compact: boolean;
+	profFilter: boolean;
 }
 
 declare global {
