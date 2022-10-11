@@ -90,7 +90,7 @@ export = {
 					.setTimestamp()
 					.setColor(colors());
 
-				const reportChannel = await interaction.client.channels.fetch(constants.channel.reports);
+				const reportChannel = await interaction.client.channels.fetch(optionType === 'bug' ? constants.channel.bugreports : constants.channel.reports);
 
 				await i.reply('Thank you for your report!');
 
