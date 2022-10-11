@@ -27,15 +27,18 @@ type BlacklistEntries = {
 	timer: NodeJS.Timeout
 }
 
+type WarningEntries = {
+	warnCount: number,
+	timer: NodeJS.Timeout
+}
+
 export const usersMap = new Map<string, UserEntries>();
 export const blacklistsMap = new Map<string, BlacklistEntries>();
-
+export const warningsMap = new Map<string, WarningEntries>();
 
 export default {
 	name: 'messageCreate',
 	async execute(message: Message) {
-		// FIXME: At the moment when a user is removed from blacklist,
-		// ONE of the spam messages gets through. (as it is not in the map at that second)
 		if (message.author.bot || blacklistsMap.has(message.author.id)) return;
 
 		// FIXME c! on main cb
