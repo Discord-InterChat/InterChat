@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.5.7](https://github.com/Discord-ChatBot/Discord-ChatBot/compare/v2.5.6...v2.5.7) (2022-10-11)
+
 ### [2.5.6](https://github.com/Supreme1707/Discord-ChatBot/compare/v2.5.4...v2.5.6) (2022-08-13)
 
 
