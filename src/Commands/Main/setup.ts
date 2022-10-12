@@ -6,7 +6,7 @@ import logger from '../../Utils/logger';
 export default {
 	data: new SlashCommandBuilder()
 		.setName('setup')
-		.setDescription('Set me up to receive messages from a channel.')
+		.setDescription('Manage the chat network for this server.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
 		.setDMPermission(false)
 		.addSubcommand((subcommand) =>
