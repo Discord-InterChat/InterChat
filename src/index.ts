@@ -1,4 +1,3 @@
-'use strict';
 import discord from 'discord.js';
 import express from 'express';
 import Levels from 'discord-xp';

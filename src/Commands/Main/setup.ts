@@ -1,4 +1,3 @@
-'use strict';
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType, GuildTextBasedChannel, CategoryChannel } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';

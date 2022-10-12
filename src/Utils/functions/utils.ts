@@ -243,10 +243,8 @@ export async function deleteChannels(client: discord.Client) {
 	}
 
 	if (unknownChannels.length > 0) {
-		const deleteCursor = await connectedList.deleteMany({
-			channelId: { $in: unknownChannels },
-		});
-		logger.info(`Deleted ${deleteCursor.deletedCount} channels from the connectedList database.`);
+		const deletedChannels = await connectedList.deleteMany({ channelId: { $in: unknownChannels } });
+		logger.info(`Deleted ${deletedChannels.deletedCount} channels from the connectedList database.`);
 		return;
 	}
 }

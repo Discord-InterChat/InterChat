@@ -1,7 +1,6 @@
 import { Client, EmbedBuilder, AttachmentBuilder, Message, TextChannel, MessageMentionTypes, BaseMessageOptions } from 'discord.js';
 import { Collection } from 'mongodb';
 import { connectedListDocument, setupDocument } from '../../Utils/typings/types';
-import {} from '../../Utils/typings/types';
 
 interface WebhookMessageInterface extends BaseMessageOptions {
 	content: string,
@@ -25,7 +24,7 @@ export default {
 		}
 		// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images
 		else if (attachments) {
-			await message.channel.send('Warn: Sending images directly is currently experimental, so it might take a few seconds to send images!');
+			await message.channel.send('Warn: Sending images directly is currently experimental, so it might take a few seconds for chatbot to send images!');
 			return await allChannel?.send({ embeds: [embed], files: [attachments], allowedMentions: { parse: ['roles'] } });
 		}
 
