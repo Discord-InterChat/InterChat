@@ -96,7 +96,8 @@ export default {
 			const attachments = await messageContentModifiers.attachmentModifiers(message, embed);
 
 			// leveling system
-			require('../Scripts/message/levelling').execute(message);
+			// FIXME: Add levelling back when ready
+			// require('../Scripts/message/levelling').execute(message);
 
 			const channelAndMessageIds: Promise<Message<boolean> | undefined>[] = [];
 			const channelsToDelete: string[] = [];

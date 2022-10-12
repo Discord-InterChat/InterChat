@@ -11,7 +11,7 @@ config();
 
 const clientID = constants.client.stable.id;
 const server = process.argv[3]?.toLowerCase() || constants.mainGuilds.cbhq;
-const IgnoredDirs = ['Developer', 'TopGG', 'Staff'];
+const IgnoredDirs = ['Developer', 'TopGG', 'Staff', 'Levelling']; // FIXME: Remove levelling system from here when it is fully implemented
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN as string);
 
