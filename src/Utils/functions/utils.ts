@@ -171,17 +171,17 @@ export function toHuman(milliseconds: number): string {
  */
 export async function checkIfStaff(client: discord.Client, user: discord.GuildMember | discord.User, onlyDeveloper = false) {
 	try {
-		const staff = '800698916995203104';
-		const developers = '770256273488347176';
+		const staffRole = '800698916995203104';
+		const developerRole = '770256273488347176';
 
-		const allowedRoles = [staff, developers];
+		const allowedRoles = [staffRole, developerRole];
 
 		const guild = await client.guilds.fetch('770256165300338709');
 		const member = await guild.members.fetch(user);
 		const roles = member.roles.cache;
 
 		const isStaff = roles?.hasAny(...allowedRoles);
-		const isDev = roles?.has(developers);
+		const isDev = roles?.has(developerRole);
 
 		if (onlyDeveloper && isDev) return true;
 		else if (isStaff) return true;
