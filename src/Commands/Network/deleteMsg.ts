@@ -20,6 +20,8 @@ export default {
 
 		if ((staffUser || interaction.user.id === messageInDb?.authorId)) {
 			messageInDb?.channelAndMessageIds.forEach((element) => {
+				if (!element) return;
+
 				interaction.client.channels
 					.fetch(element.channelId)
 					.then((channel) => {

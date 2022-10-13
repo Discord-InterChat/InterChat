@@ -60,7 +60,7 @@ export default {
 			if (message.reference) {
 				const referredMessage = await message.fetchReference();
 				if (referredMessage.author.id === message.client.user.id
-					&& referredMessage.embeds
+					&& referredMessage.embeds[0]
 					&& referredMessage.embeds[0].fields?.length > 0
 				) {
 					message.content = `> ${referredMessage.embeds[0]?.fields[0]?.value}\n${message.content}`;
