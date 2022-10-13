@@ -24,7 +24,6 @@ export default {
 		}
 		// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images
 		else if (attachments) {
-			await message.channel.send('Warn: Sending images directly is currently experimental, so it might take a few seconds for chatbot to send images!');
 			return await allChannel?.send({ embeds: [embed], files: [attachments], allowedMentions: { parse: ['roles'] } });
 		}
 
