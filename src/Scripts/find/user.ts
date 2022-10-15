@@ -1,13 +1,13 @@
 import Levels from 'discord-xp';
 import { EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { icons } from '../../Utils/emoji.json';
 import { constants } from '../../Utils/functions/utils';
 
 module.exports = {
 	async execute(interaction: ChatInputCommandInteraction, option: string) {
 		const fetchedUser = await interaction.client.users.fetch(option).catch(() => {return null;});
 		if (!fetchedUser) return interaction.reply({ content: 'Unknown user.', ephemeral: true });
+		const { icons } = interaction.client.emoji;
 
 		const embedGen = async (user: User) => {
 			const owns: string[] = [];

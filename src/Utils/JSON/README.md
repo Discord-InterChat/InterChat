@@ -1,0 +1,1 @@
+> **Warning** Open badwords.json at your own risk. It contains sever slurs and swear words.

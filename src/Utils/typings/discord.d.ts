@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import EmojiIDs from '../../Utils/emoji.json';
+import EmojiIDs from '../../Utils/JSON/emoji.json';
 
 type commands = {
 	developer?: boolean,

@@ -1,6 +1,5 @@
 import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import emojis from '../../Utils/emoji.json';
 import { getDb } from '../../Utils/functions/utils';
 
 module.exports = {
@@ -26,6 +25,8 @@ async function embedGen(guild: Guild | undefined, GuildOwner: GuildMember | unde
 	const database = getDb();
 	const collection = database?.collection('connectedList');
 	const guildInDb = await collection?.findOne({ serverId: guild?.id });
+	const emojis = guild?.client.emoji;
+
 	return new EmbedBuilder()
 		.setAuthor({ name: String(guild?.name), iconURL: guild?.iconURL()?.toString() })
 		.setColor('#2F3136')
@@ -33,14 +34,14 @@ async function embedGen(guild: Guild | undefined, GuildOwner: GuildMember | unde
 			{
 				name: 'Server Info',
 				value: stripIndents`\n
-						${emojis.icons.owner} **Owner:** ${GuildOwner?.user.tag} (${GuildOwner?.id})
-						${emojis.icons.members} **Member Count:** ${guild?.memberCount}`,
+						${emojis?.icons.owner} **Owner:** ${GuildOwner?.user.tag} (${GuildOwner?.id})
+						${emojis?.icons.members} **Member Count:** ${guild?.memberCount}`,
 			},
 			{
 				name: 'Network Info',
 				value: stripIndents`\n
-						${guildInDb ? emojis.icons.connect : emojis.icons.disconnect} **Connected: ${guildInDb ? 'Yes' : 'No'}**
-						${emojis.normal.clipart} **Channel(s): ${guildInDb?.channelName || 'Not Connected'} (\`${guildInDb?.channelId || ':('}\`)**`,
+						${guildInDb ? emojis?.icons.connect : emojis?.icons.disconnect} **Connected: ${guildInDb ? 'Yes' : 'No'}**
+						${emojis?.normal.clipart} **Channel(s): ${guildInDb?.channelName || 'Not Connected'} (\`${guildInDb?.channelId || ':('}\`)**`,
 			},
 		]);
 }

@@ -1,9 +1,6 @@
 import { EmbedBuilder, Client, Guild, User, TextChannel } from 'discord.js';
 import { colors, constants } from '../../Utils/functions/utils';
-import badwords from 'badwords-list';
-
-const whiteListedWords = ['crap', 'hell', 'damn', 'balls', 'porn'];
-const blacklistedWords = badwords.array.filter(word => whiteListedWords.includes(word.toLowerCase()) === false);
+import { badwords } from '../badwords.json'
 
 export = {
 	/**
@@ -11,7 +8,7 @@ export = {
 	*/
 	check(string: string | undefined) {
 		if (!string) return false;
-		return blacklistedWords.some(word => string.includes(word));
+		return badwords.some(word => string.includes(word));
 	},
 
 	/**
@@ -21,7 +18,7 @@ export = {
 		// filter bad words from message
 		// and replace it with *
 		let filtered = message;
-		blacklistedWords.forEach((word) => {
+		badwords.forEach((word) => {
 			filtered = filtered
 				.replaceAll(new RegExp(`\\b${word}\\b`, 'g'), '\\*'.repeat(word.length));
 		});
@@ -38,7 +35,7 @@ export = {
 		const logEmbed = new EmbedBuilder()
 			.setAuthor({ name: `${client.user?.username} logs`, iconURL: client.user?.avatarURL()?.toString() })
 			.setTitle('Bad Word Detected')
-			.setColor(colors('chatbot'))
+			.setColor(colors('invisible'))
 			.setDescription(`||${rawContent}||\n\n**Author:** \`${author.tag}\` (${author.id})\n**Server:** ${guild.name} (${guild.id})`);
 		return await logChan?.send({ embeds: [logEmbed] });
 	},
