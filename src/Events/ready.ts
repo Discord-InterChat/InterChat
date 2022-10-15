@@ -2,7 +2,7 @@ import { Client } from 'discord.js';
 import logger from '../Utils/logger';
 import utils from '../Utils/functions/utils';
 import 'dotenv/config';
-import { constants } from '../Utils/functions/utils';
+// import { constants } from '../Utils/functions/utils';
 
 export default {
 	name: 'ready',
@@ -24,7 +24,7 @@ export default {
 			await messageData?.deleteMany({ expired: true });
 		}, 60 * 60 * 12_000);
 
-		constants.topgg.postStats({ serverCount: client.guilds.cache.size });
+		// constants.topgg.postStats({ serverCount: client.guilds.cache.size });
 
 		logger.info(`Logged in as ${client.user?.tag}!`);
 	},
