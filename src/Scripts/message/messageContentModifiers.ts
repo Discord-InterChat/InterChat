@@ -13,8 +13,10 @@ export default {
 			message.channel.send('Warn: Sending images directly is currently experimental, so it might take a few seconds for chatbot to send images!');
 
 			const attachment = message.attachments.first();
-			const newAttachment = new AttachmentBuilder(attachment?.url as string, { name: 'attachment.png' });
-			embed.setImage('attachment://attachment.png');
+			const extension = attachment?.contentType?.split('/')[1];
+			const newAttachment = new AttachmentBuilder(attachment?.url as string, { name: `attachment.${extension}` });
+			embed.setImage(`attachment://${newAttachment.name}`);
+
 			return newAttachment;
 		}
 	},
