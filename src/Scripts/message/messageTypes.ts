@@ -13,13 +13,10 @@ interface WebhookMessageInterface extends BaseMessageOptions {
 export default {
 	/** Converts a message to embeded or normal depending on the server settings. */
 	execute: async (client: Client, message: Message, channelObj: connectedListDocument, embed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
-		const allChannel = client.channels.cache.get(channelObj.channelId) as TextChannel;
+		const allChannel = await client.channels.fetch(channelObj.channelId) as TextChannel;
+		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel?.id }) as setupDocument | null | undefined;
 
-		if (!allChannel) return { unknownChannelId: channelObj.channelId };
-
-		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel.id }) as setupDocument | null | undefined;
-
-		if (channelInDB?.compact === true && allChannel.id == message.channel.id) {
+		if (channelInDB?.compact === true && allChannel?.id == message.channel.id) {
 			return webhookAutomate(message.channel as TextChannel);
 		}
 		else if (channelInDB?.compact === true && allChannel.id == channelInDB.channel.id) {
@@ -27,11 +24,11 @@ export default {
 		}
 		// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images
 		else if (attachments) {
-			return await allChannel.send({ embeds: [embed], files: [attachments], allowedMentions: { parse: ['roles'] } });
+			return await allChannel?.send({ embeds: [embed], files: [attachments], allowedMentions: { parse: ['roles'] } });
 		}
 
 		else {
-			return await allChannel.send({ embeds: [embed], allowedMentions: { parse: ['roles'] } });
+			return await allChannel?.send({ embeds: [embed], allowedMentions: { parse: ['roles'] } });
 		}
 
 
@@ -58,7 +55,7 @@ export default {
 				const webhooks = await chan.fetchWebhooks();
 				const webhook = webhooks.first();
 
-				if (!webhook) return await allChannel.send(normalMessage);
+				if (!webhook) return await allChannel?.send(normalMessage);
 				else return await webhook.send(webhookMessage);
 			}
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
