@@ -1,8 +1,8 @@
 import { EmbedBuilder, AuditLogEvent, Guild, TextChannel } from 'discord.js';
 import { sendInFirst, colors, getDb, constants } from '../Utils/functions/utils';
-import badwordsList from 'badwords-list';
 import { stripIndents } from 'common-tags';
 import { config } from 'dotenv';
+import wordFilter from '../Utils/functions/wordFilter';
 config();
 
 export default {
@@ -12,7 +12,7 @@ export default {
 		const blacklistedServers = database?.collection('blacklistedServers');
 		const serverInBlacklist = await blacklistedServers?.findOne({ serverId: guild.id });
 
-		const badword = badwordsList.array.some((word: string) => { return guild.name.toLowerCase().includes(word.toLowerCase()) === true;});
+		const badword = wordFilter.check(guild.name);
 
 		const { normal, icons } = guild.client.emoji;
 

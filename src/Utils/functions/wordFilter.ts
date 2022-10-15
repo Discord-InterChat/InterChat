@@ -1,6 +1,6 @@
 import { EmbedBuilder, Client, Guild, User, TextChannel } from 'discord.js';
 import { colors, constants } from '../../Utils/functions/utils';
-import { badwords } from '../badwords.json'
+import { badwords } from '../badwords.json';
 
 export = {
 	/**
@@ -8,7 +8,7 @@ export = {
 	*/
 	check(string: string | undefined) {
 		if (!string) return false;
-		return badwords.some(word => string.includes(word));
+		return badwords.some(word => string.toLowerCase().includes(word.toLowerCase()));
 	},
 
 	/**
