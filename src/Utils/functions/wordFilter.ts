@@ -1,6 +1,6 @@
 import { EmbedBuilder, Client, Guild, User, TextChannel } from 'discord.js';
 import { colors, constants } from '../../Utils/functions/utils';
-import { badwords } from '../badwords.json';
+import { badwords } from '../JSON/badwords.json';
 
 export = {
 	/**
