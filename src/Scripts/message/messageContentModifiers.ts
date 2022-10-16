@@ -26,6 +26,17 @@ export default {
 		const regex = /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png|\.webp)/;
 		const match = message.content.match(regex);
 
+		if (message.reference) {
+			const referredMessage = await message.fetchReference();
+			if (referredMessage.author.id === message.client.user.id
+				&& referredMessage.embeds[0]
+				&& referredMessage.embeds[0].fields?.length > 0
+			) {
+				message.content = `> ${referredMessage.embeds[0].fields[0].value}\n${message.content}`;
+				embed.setFields({ name: `Reply to ${referredMessage.author.tag}`, value: message.content });
+			}
+		}
+
 		if (match) {
 			embed.setImage(match[0]);
 			try {

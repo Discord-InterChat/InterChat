@@ -27,16 +27,15 @@ export = {
 	},
 
 	/**
-	 * Log the *uncensored* message to the logs channel.
+	 * Log the *uncensored* message to the log channel.
 	*/
-	async log(client: Client, author: User, guild: Guild, messageContent: string) {
-		const rawContent = messageContent;
+	async log(client: Client, author: User, guild: Guild | null, rawContent: string) {
 		const logChan = await client.channels.fetch(constants.channel.chatbotlogs) as TextChannel;
 		const logEmbed = new EmbedBuilder()
 			.setAuthor({ name: `${client.user?.username} logs`, iconURL: client.user?.avatarURL()?.toString() })
 			.setTitle('Bad Word Detected')
 			.setColor(colors('invisible'))
-			.setDescription(`||${rawContent}||\n\n**Author:** \`${author.tag}\` (${author.id})\n**Server:** ${guild.name} (${guild.id})`);
+			.setDescription(`||${rawContent}||\n\n**Author:** \`${author.tag}\` (${author.id})\n**Server:** ${guild?.name} (${guild?.id})`);
 		return await logChan?.send({ embeds: [logEmbed] });
 	},
 };

@@ -25,7 +25,7 @@ const client = new discord.Client({
 		status: 'online',
 		activities: [{
 			name: `ChatBot v${packagejson.version}`,
-			type: discord.ActivityType.Playing,
+			type: discord.ActivityType.Watching,
 		}],
 	},
 });

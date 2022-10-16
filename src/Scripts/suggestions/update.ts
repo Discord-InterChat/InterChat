@@ -21,9 +21,9 @@ export default {
 			return;
 		}
 		const suggestionEmbed = new EmbedBuilder(suggestionMessage?.embeds[0].toJSON());
-		suggestionEmbed.setFields({ name: 'Status', value: String(status), inline: true });
+		suggestionEmbed.setFields({ name: 'Status', value: String(status) });
 
-		if (reason) suggestionEmbed.addFields({ name: 'Message From Staff/Developers', value: String(reason), inline: true });
+		if (reason) suggestionEmbed.addFields({ name: 'Message From Staff/Developers', value: String(reason) });
 
 		await suggestionMessage?.edit({ embeds: [suggestionEmbed] });
 

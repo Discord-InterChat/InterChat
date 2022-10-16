@@ -1,4 +1,3 @@
-import wordFilter from '../Utils/functions/wordFilter';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import evalScript from '../Scripts/message/evalScript';
 import messageTypes from '../Scripts/message/messageTypes';
@@ -46,34 +45,21 @@ export default {
 
 		// main db where ALL connected channel data is stored
 		const database = getDb();
-		const connectedList = database?.collection('connectedList');
-
-		// db for setup data
 		const setup = database?.collection('setup');
-		const channelInNetwork = await connectedList?.findOne({ channelId: message.channel.id });
-
+		const connectedList = database?.collection('connectedList');
 		const messageData = database?.collection('messageData');
 
+
+		const channelInNetwork = await connectedList?.findOne({ channelId: message.channel.id });
+
 		if (channelInNetwork) {
+			// uncensored message for profanity toggle
+			const oldMessage = message.content;
+
 			const checks = await require('../Scripts/message/checks').execute(message, database);
 			if (checks === false) return;
 
 			const allConnectedChannels = connectedList?.find({});
-
-
-			if (message.reference) {
-				const referredMessage = await message.fetchReference();
-				if (referredMessage.author.id === message.client.user.id
-					&& referredMessage.embeds[0]
-					&& referredMessage.embeds[0].fields?.length > 0
-				) {
-					message.content = `> ${referredMessage.embeds[0]?.fields[0]?.value}\n${message.content}`;
-				}
-			}
-
-			// check if message contains profanity and censor it if it does
-			if (wordFilter.check(message.content)) message.content = wordFilter.censor(message.content);
-
 
 			const embed = new EmbedBuilder()
 				.setTimestamp()
@@ -94,8 +80,8 @@ export default {
 				});
 
 			await require('../Scripts/message/addBadges').execute(message, database, embed);
-			await messageContentModifiers.execute(message, embed);
 
+			await messageContentModifiers.execute(message, embed);
 			const attachments = await messageContentModifiers.attachmentModifiers(message, embed);
 
 			// leveling system
@@ -106,7 +92,7 @@ export default {
 
 			allConnectedChannels?.forEach(channelObj => {
 				// sending the messages to the connected channels
-				const msg = messageTypes.execute(message.client, message, channelObj as connectedListDocument, embed, setup, attachments);
+				const msg = messageTypes.execute(message, oldMessage, channelObj as connectedListDocument, embed, setup, attachments);
 				// push the entire promise, as we dont want to wait for it inside the loop
 				channelAndMessageIds.push(msg);
 			}).then(() => require('../Scripts/message/cleanup').default.execute(message, channelAndMessageIds, messageData, connectedList));
