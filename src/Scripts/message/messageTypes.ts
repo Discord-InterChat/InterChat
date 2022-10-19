@@ -14,18 +14,16 @@ export default {
 	/**
 	 * Converts a message to embeded or normal depending on the server settings.
 	 *
-	 * @param uncensoredMessage The uncensored, original message.
-	 * */
-	execute: async (message: Message, uncensoredMessage: string, channelObj: connectedListDocument, embed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
+	 * @param uncensoredEmbed An embed with the original message content. (uncensored)
+	 */
+	execute: async (message: Message, channelObj: connectedListDocument, embed: EmbedBuilder, uncensoredEmbed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
 		const allChannel = message.client.channels.cache.get(channelObj.channelId) as TextChannel;
 
 		if (!allChannel) return { unknownChannelId: channelObj.channelId };
 
 		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel.id }) as setupDocument | null | undefined;
 
-		if (channelInDB?.profFilter === false) {
-			embed = new EmbedBuilder(embed.data).setFields({ name: embed.data.fields?.at(0)?.name || 'Message', value: `${uncensoredMessage}` });
-		}
+		if (!channelInDB?.profFilter) embed = uncensoredEmbed;
 
 		if (channelInDB?.compact === true && allChannel.id == message.channel.id) {
 			return webhookAutomate(message.channel as TextChannel);
@@ -70,8 +68,8 @@ export default {
 				else return await webhook.send(webhookMessage);
 			}
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			catch (error: any) {
-				allChannel.send(`${message.client.emoji.normal.no} Unable to send webhook message! \n**Error:** ${error.message}`);
+			catch {
+				return await allChannel.send(normalMessage);
 			}
 		}
 	},

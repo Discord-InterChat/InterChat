@@ -14,7 +14,7 @@ export = {
 	/**
 	 * If the message contains bad words, it will be censored with asterisk(*).
 	 *
-	 * Code refrernced from: @web-mech/badwords
+	 * Code refrernced from [`@web-mech/badwords`](https://github.com/web-mech/badwords).
 	*/
 	censor(message: string): string {
 		const splitRegex = /\b/;

@@ -1,7 +1,7 @@
 import wordFilter from '../../Utils/functions/wordFilter';
+import antiSpam from './antiSpam';
 import { Message } from 'discord.js';
 import { Db } from 'mongodb';
-import antiSpam from './antiSpam';
 
 export = {
 	async execute(message: Message, database: Db | undefined) {
@@ -51,17 +51,12 @@ export = {
 			return false;
 		}
 
-		// check if message contains profanity and censor it if it does
-		if (wordFilter.check(message.content)) {
-			wordFilter.log(message.client, message.author, message.guild, message.content);
-			message.content = wordFilter.censor(message.content);
-		}
+		if (wordFilter.check(message.content)) wordFilter.log(message.client, message.author, message.guild, message.content);
 
-		// anti-spam check (basic but works well 🤷)
+		// anti-spam check (returns true if message is spam)
 		const spam_filter = await antiSpam.execute(message);
 		if (spam_filter === true) return false;
 
 		return true;
-
 	},
 };
