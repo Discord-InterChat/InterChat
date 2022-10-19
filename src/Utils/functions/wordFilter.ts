@@ -8,22 +8,23 @@ export = {
 	*/
 	check(string: string | undefined) {
 		if (!string) return false;
-		return badwords.some(word => string.toLowerCase().includes(word.toLowerCase()));
+		return badwords.some(word => string.split(/\b/).some(w => w.toLowerCase() === word.toLowerCase()));
 	},
 
 	/**
 	 * If the message contains bad words, it will be censored with asterisk(*).
+	 *
+	 * Code refrernced from: @web-mech/badwords
 	*/
 	censor(message: string): string {
+		const splitRegex = /\b/;
+		const specialChars = /[^a-zA-Z0-9|$|@]|\^/g;
+		const matchWord = /\w/g;
 		// filter bad words from message
 		// and replace it with *
-		let filtered = message;
-		badwords.forEach((word) => {
-			filtered = filtered
-				.replaceAll(new RegExp(`\\b${word}\\b`, 'g'), '\\*'.repeat(word.length));
-		});
-		// return the new filtered message
-		return filtered;
+		return message.split(splitRegex).map(word => {
+			return this.check(word) ? word.replace(specialChars, '').replace(matchWord, '\\*') : word;
+		}).join(splitRegex.exec(message)?.at(0));
 	},
 
 	/**
