@@ -234,6 +234,7 @@ export async function deleteChannels(client: discord.Client) {
 		try {
 			await client.channels.fetch(element.channelId);
 		}
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		catch (err: any) {
 			if (err.message === 'Unknown Channel') {
 				unknownChannels.push(element.channelId);
@@ -251,15 +252,6 @@ export async function deleteChannels(client: discord.Client) {
 
 export const constants = {
 	topgg,
-
-	client: {
-		stable: {
-			id: '769921109209907241',
-		},
-		beta: {
-			id: '798748015435055134',
-		},
-	},
 
 	developers: [
 		'736482645931720765',
