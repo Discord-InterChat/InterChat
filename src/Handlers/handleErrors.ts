@@ -2,15 +2,19 @@ import { Client, EmbedBuilder, TextChannel } from 'discord.js';
 import { colors, constants } from '../Utils/functions/utils';
 import logger from '../Utils/logger';
 
+interface ErrorLogData {
+	level: 'INFO' | 'ERROR' | 'WARN';
+	message: string;
+	stack?: string;
+	timestamp: string;
+	[key: string]: unknown;
+}
+
 export async function handleErrors(client: Client) {
-	process.on('uncaughtException', async (err) => {
-		if (client.isReady()) sendErrorToChannel(client, 'An Error Occured!', err.stack);
-		logger.error('[Anti-Crash - Exception]:', err);
-	});
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	process.on('unhandledRejection', async (err: any) => {
-		if (client.isReady()) sendErrorToChannel(client, 'A Request Got Rejected!', err.stack || err);
-		logger.error('[Anti Crash - Rejection]:', err);
+	process.on('uncaughtException', (err) => logger.error('[Anti-Crash - Exception]:', err));
+	process.on('unhandledRejection', (err) => logger.error('[Anti Crash - Rejection]:', err));
+	logger.on('data', (data: ErrorLogData) => {
+		if (data.level === 'ERROR' && client.isReady()) sendErrorToChannel(client, data.message, data.stack);
 	});
 }
 

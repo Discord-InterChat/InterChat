@@ -271,7 +271,7 @@ export const constants = {
 	channel: {
 		bugreports: '1006494592524369951',
 		chatbotlogs: '1002864642101624832',
-		errorlogs: '976099224611606588',
+		errorlogs: '1024313459187404830',
 		modlogs: '1000730718474875020',
 		reports: '821610981155012628',
 		goal: '906460473065615403',
