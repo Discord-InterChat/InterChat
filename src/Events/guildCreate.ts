@@ -1,8 +1,8 @@
 import { EmbedBuilder, AuditLogEvent, Guild, TextChannel } from 'discord.js';
 import { sendInFirst, colors, getDb, constants } from '../Utils/functions/utils';
-import badwordsList from 'badwords-list';
 import { stripIndents } from 'common-tags';
 import { config } from 'dotenv';
+import wordFilter from '../Utils/functions/wordFilter';
 config();
 
 export default {
@@ -12,7 +12,7 @@ export default {
 		const blacklistedServers = database?.collection('blacklistedServers');
 		const serverInBlacklist = await blacklistedServers?.findOne({ serverId: guild.id });
 
-		const badword = badwordsList.array.some((word: string) => { return guild.name.toLowerCase().includes(word.toLowerCase()) === true;});
+		const badword = wordFilter.check(guild.name);
 
 		const { normal, icons } = guild.client.emoji;
 
@@ -58,9 +58,9 @@ export default {
 			const embed = new EmbedBuilder()
 				.setTitle(`${normal.tada} Hi! Thanks for adding me to your server!`)
 				.setDescription(stripIndents`
-				To start chatting, make a channel and run </setup:978303442684624928>!
+				To start chatting, make a channel and run </setup channel:978303442684624928>!
 
-				And if you are interested in the other commands use \`/help\`.
+				And if you are interested in the other commands use </help:924659340898619398>.
 				
 				**Please note that ChatBot is not AI, but a bot for chatting with other real discord servers.**
 				

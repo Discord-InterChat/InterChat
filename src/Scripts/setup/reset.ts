@@ -6,7 +6,7 @@ export = {
 	async execute(interaction: ChatInputCommandInteraction, setupList: Collection | undefined) {
 		const network = new NetworkManager();
 
-		if (!await network.getServerData({ serverId: interaction.guildId })) {
+		if (!await setupList?.findOne({ 'guild.id': interaction.guildId })) {
 			return interaction.reply(`${interaction.client.emoji.normal.no} This server is not setup yet.`);
 		}
 

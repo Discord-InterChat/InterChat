@@ -1,9 +1,6 @@
 import { EmbedBuilder, Client, Guild, User, TextChannel } from 'discord.js';
 import { colors, constants } from '../../Utils/functions/utils';
-import badwords from 'badwords-list';
-
-const whiteListedWords = ['crap', 'hell', 'damn', 'balls', 'porn'];
-const blacklistedWords = badwords.array.filter(word => whiteListedWords.includes(word.toLowerCase()) === false);
+import { badwords } from '../JSON/badwords.json';
 
 export = {
 	/**
@@ -11,35 +8,35 @@ export = {
 	*/
 	check(string: string | undefined) {
 		if (!string) return false;
-		return blacklistedWords.some(word => string.includes(word));
+		return badwords.some(word => string.split(/\b/).some(w => w.toLowerCase() === word.toLowerCase()));
 	},
 
 	/**
 	 * If the message contains bad words, it will be censored with asterisk(*).
+	 *
+	 * Code refrernced from [`@web-mech/badwords`](https://github.com/web-mech/badwords).
 	*/
 	censor(message: string): string {
+		const splitRegex = /\b/;
+		const specialChars = /[^a-zA-Z0-9|$|@]|\^/g;
+		const matchWord = /\w/g;
 		// filter bad words from message
 		// and replace it with *
-		let filtered = message;
-		blacklistedWords.forEach((word) => {
-			filtered = filtered
-				.replaceAll(new RegExp(`\\b${word}\\b`, 'g'), '\\*'.repeat(word.length));
-		});
-		// return the new filtered message
-		return filtered;
+		return message.split(splitRegex).map(word => {
+			return this.check(word) ? word.replace(specialChars, '').replace(matchWord, '\\*') : word;
+		}).join(splitRegex.exec(message)?.at(0));
 	},
 
 	/**
-	 * Log the *uncensored* message to the logs channel.
+	 * Log the *uncensored* message to the log channel.
 	*/
-	async log(client: Client, author: User, guild: Guild, messageContent: string) {
-		const rawContent = messageContent;
+	async log(client: Client, author: User, guild: Guild | null, rawContent: string) {
 		const logChan = await client.channels.fetch(constants.channel.chatbotlogs) as TextChannel;
 		const logEmbed = new EmbedBuilder()
 			.setAuthor({ name: `${client.user?.username} logs`, iconURL: client.user?.avatarURL()?.toString() })
 			.setTitle('Bad Word Detected')
-			.setColor(colors('chatbot'))
-			.setDescription(`||${rawContent}||\n\n**Author:** \`${author.tag}\` (${author.id})\n**Server:** ${guild.name} (${guild.id})`);
+			.setColor(colors('invisible'))
+			.setDescription(`||${rawContent}||\n\n**Author:** \`${author.tag}\` (${author.id})\n**Server:** ${guild?.name} (${guild?.id})`);
 		return await logChan?.send({ embeds: [logEmbed] });
 	},
 };

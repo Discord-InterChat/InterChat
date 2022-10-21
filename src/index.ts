@@ -1,10 +1,9 @@
-'use strict';
 import discord from 'discord.js';
 import express from 'express';
 import Levels from 'discord-xp';
 import mongoUtil from './Utils/functions/utils';
 import logger from './Utils/logger';
-import emojis from './Utils/emoji.json';
+import emojis from './Utils/JSON/emoji.json';
 import packagejson from '../package.json';
 import 'dotenv/config';
 import { loadCommands } from './Handlers/handleCommands';
@@ -26,7 +25,7 @@ const client = new discord.Client({
 		status: 'online',
 		activities: [{
 			name: `ChatBot v${packagejson.version}`,
-			type: discord.ActivityType.Playing,
+			type: discord.ActivityType.Watching,
 		}],
 	},
 });

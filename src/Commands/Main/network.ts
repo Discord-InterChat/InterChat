@@ -1,33 +1,21 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import mongoUtil from '../../Utils/functions/utils';
 
 export default {
 	data: new SlashCommandBuilder()
 		.setName('network')
-		.setDescription('Manage the chat network for this server.')
+		.setDescription('Manage the chat network for this server. (deprecated)')
 		.setDMPermission(false)
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('connect')
-				.setDescription('Connect to the chat network.'),
+				.setDescription('Connect to the chat network. (deprecated)'),
 		)
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('disconnect')
-				.setDescription('Disconnect from the chat network.'),
+				.setDescription('Disconnect from the chat network. (deprecated)'),
 		),
-	/** @deprecated Use setup command instead.*/
 	async execute(interaction: ChatInputCommandInteraction) {
-		const subcommand = interaction.options.getSubcommand();
-		const database = mongoUtil.getDb();
-		const connectedList = database?.collection('connectedList');
-		const serverInBlacklist = await database?.collection('blacklistedServers').findOne({ serverId: interaction.guild?.id });
-
-		if (serverInBlacklist) {
-			return await interaction.reply(`This server is blacklisted from using the ChatBot Chat Network for reason \`${serverInBlacklist.reason}\`! Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
-		}
-
-		const subcommandFile = require(`../../Scripts/network/${subcommand}`);
-		subcommandFile.execute(interaction, connectedList);
+		interaction.reply('This command has been deprecated. Use `/setup channel` instead.');
 	},
 };

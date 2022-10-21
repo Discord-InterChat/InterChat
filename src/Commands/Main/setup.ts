@@ -1,4 +1,3 @@
-'use strict';
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType, GuildTextBasedChannel, CategoryChannel } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
@@ -6,7 +5,7 @@ import logger from '../../Utils/logger';
 export default {
 	data: new SlashCommandBuilder()
 		.setName('setup')
-		.setDescription('Set me up to receive messages from a channel.')
+		.setDescription('Manage the chat network for this server.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
 		.setDMPermission(false)
 		.addSubcommand((subcommand) =>

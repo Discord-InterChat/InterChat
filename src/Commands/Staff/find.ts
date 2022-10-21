@@ -15,16 +15,23 @@ export default {
 		.addStringOption((option) =>
 			option
 				.setRequired(true)
-				.setName('name-id')
+				.setName('name')
 				.setDescription('The name or ID of your target.')
 				.setAutocomplete(true),
+		)
+		.addBooleanOption((option) =>
+			option
+				.setName('hidden')
+				.setDescription('Whether or not to make the reply visible only to you. Defaults to true.'),
 		),
 	async execute(interaction: ChatInputCommandInteraction) {
-		const data = interaction.options.getString('name-id');
+		const targetId = interaction.options.getString('name');
 		const type = interaction.options.getString('type');
+		const hidden = interaction.options.getBoolean('hidden') ?? true;
 
-		require(`../../Scripts/find/${type}`).execute(interaction, data);
+		require(`../../Scripts/find/${type}`).execute(interaction, targetId, hidden);
 	},
+
 	async autocomplete(interaction: AutocompleteInteraction) {
 		const type = interaction.options.getString('type');
 		switch (type) {
@@ -60,7 +67,5 @@ export default {
 		default:
 			break;
 		}
-
-
 	},
 };

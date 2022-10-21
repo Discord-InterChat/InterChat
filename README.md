@@ -1,13 +1,17 @@
-# ChatBot-Beta
+# Discord-ChatBot
+A growing discord chat bot which provides a fun inter-server chat!
 
-The Canary Version of the growing discord bot named 'ChatBot'
----
+## Goals
+* 1000 servers using chatbot
+* 101 votes on topgg in a month
 
-
-### How to Run:
+## How to Run:
 1. Run `npm install`
 2. Make a file called `.env` and fill it out with the appropriate contents:
     ```env
+    # Your bot ID
+    CLIENT_ID=
+
     # Bot token here
     TOKEN=<your bot token here> 
 
@@ -24,7 +28,16 @@ The Canary Version of the growing discord bot named 'ChatBot'
 
 If everything was done right, the bot should come online and responsive.
 
-### Todo, Review, Note, and Fixme comments
+## Deploying Commands
+* **Public Commands (Default):** `npm run deploy`
+* **Staff commands:**  `npm run deploy --staff [guildID]`
+* **Help:** `npm run deploy --help`
+
+*[] = optional; <> = required;*
+
+*Note: You can also manually run the file using, `node deploy-commands.js`*
+
+## Todo, Review, Note, and Fixme comments
 
 These are comments to show the state of a piece of code. Install
 the "Comment Anchor" extension to highlight them in VS-Code.
@@ -37,22 +50,7 @@ the "Comment Anchor" extension to highlight them in VS-Code.
 
 4. `NOTE` - A note left for later, something important or something that shows how something is supposed to be used/works.
 
-### Goals
-
-* 1000 servers using chatbot
-* 101 votes on topgg in a month
-
-### Deploying Commands
-* **Public Commands (Default):** `npm run deploy`
-* **Staff commands:**  `npm run deploy --staff [guildID]`
-* **Help:** `npm run deploy --help`
-
-*[] = optional; <> = required;*
-
-*Note: You can also manually run the file using, `node deploy-commands.js`*
-
-
-### Commit Messages
+## Commit Messages
 
 Use [semantic commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716) in your commit messages as it will make auto-releases and changelog updates easier.
 

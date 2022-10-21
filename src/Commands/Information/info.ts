@@ -19,13 +19,7 @@ export default {
 		const embed = new EmbedBuilder()
 			.setColor(colors('chatbot'))
 			.setTitle(`${interaction.client.emoji.icons.info} ChatBot Information`)
-			.setFooter({
-				text: `Requested by ${interaction.user.tag}`,
-				iconURL: interaction.user.avatarURL() as string,
-			})
-			.setDescription(
-				'This is a bot that is used to chat with different servers without having to join them yourself!',
-			)
+			.setDescription('This is a bot that is used to chat with different servers without having to join them yourself!')
 			.addFields([
 				{
 					name: 'Invite',
@@ -41,7 +35,11 @@ export default {
 					name: 'Credits',
 					value: stripIndent`
 					Some emojis used on this bot are from [Icons discord server](https://discord.gg/aPvvhefmt3).
-				
+
+						${interaction.client.emoji.normal.chatbot_circle} **Avatar & Badges:** 
+						> \`-\` ${members[1].tag}
+						> \`-\` ${members.at(-2)?.tag}
+
 						${interaction.client.emoji.icons.botdev} **Developers:**
 						> \`-\` ${members[1].tag}
 						> \`-\` ${members[3].tag}
@@ -49,22 +47,22 @@ export default {
 
 						${interaction.client.emoji.icons.staff} **Staff:**
 						> \`-\` ${members.at(-2)?.tag}
-						*Psst. Join the support server to know more about how you can become a staff member!*
-
-						${interaction.client.emoji.normal.chatbot_circle} **Avatar:** 
-						> \`-\` ${members.at(-2)?.tag}
-						
+						*Psst. Join the support server to know more about how you can become a staff member!*	
 					`,
 				},
 				{
-					name: `${interaction.client.emoji.icons.link} Important Links`,
+					name: `${interaction.client.emoji.icons.link} Resuourses`,
 					value: stripIndent`
-					[Privacy Policy](https://bit.ly/3A2yVot)
-					[Terms](https://bit.ly/chatbot-terms)
-					[How-To](https://bit.ly/chatbot-terms)
+					[Guide](https://discord-chatbot.gitbook.io/guide/)
+					[Terms of Service](https://discord-chatbot.gitbook.io/chatbot/important/terms)
+					[Privacy Policy](https://discord-chatbot.gitbook.io/chatbot/important/privacy)
 					`,
 				},
-			]);
+			])
+			.setFooter({
+				text: `Requested by ${interaction.user.tag}`,
+				iconURL: interaction.user.avatarURL() as string,
+			});
 
 		await interaction.followUp({ embeds: [embed] });
 	},

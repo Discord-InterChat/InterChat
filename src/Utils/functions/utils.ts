@@ -171,17 +171,17 @@ export function toHuman(milliseconds: number): string {
  */
 export async function checkIfStaff(client: discord.Client, user: discord.GuildMember | discord.User, onlyDeveloper = false) {
 	try {
-		const staff = '800698916995203104';
-		const developers = '770256273488347176';
+		const staffRole = '800698916995203104';
+		const developerRole = '770256273488347176';
 
-		const allowedRoles = [staff, developers];
+		const allowedRoles = [staffRole, developerRole];
 
 		const guild = await client.guilds.fetch('770256165300338709');
 		const member = await guild.members.fetch(user);
 		const roles = member.roles.cache;
 
 		const isStaff = roles?.hasAny(...allowedRoles);
-		const isDev = roles?.has(developers);
+		const isDev = roles?.has(developerRole);
 
 		if (onlyDeveloper && isDev) return true;
 		else if (isStaff) return true;
@@ -234,6 +234,7 @@ export async function deleteChannels(client: discord.Client) {
 		try {
 			await client.channels.fetch(element.channelId);
 		}
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		catch (err: any) {
 			if (err.message === 'Unknown Channel') {
 				unknownChannels.push(element.channelId);
@@ -243,25 +244,14 @@ export async function deleteChannels(client: discord.Client) {
 	}
 
 	if (unknownChannels.length > 0) {
-		const deleteCursor = await connectedList.deleteMany({
-			channelId: { $in: unknownChannels },
-		});
-		logger.info(`Deleted ${deleteCursor.deletedCount} channels from the connectedList database.`);
+		const deletedChannels = await connectedList.deleteMany({ channelId: { $in: unknownChannels } });
+		logger.info(`Deleted ${deletedChannels.deletedCount} channels from the connectedList database.`);
 		return;
 	}
 }
 
 export const constants = {
 	topgg,
-
-	client: {
-		stable: {
-			id: '769921109209907241',
-		},
-		beta: {
-			id: '798748015435055134',
-		},
-	},
 
 	developers: [
 		'736482645931720765',
@@ -281,7 +271,7 @@ export const constants = {
 	channel: {
 		bugreports: '1006494592524369951',
 		chatbotlogs: '1002864642101624832',
-		errorlogs: '976099224611606588',
+		errorlogs: '1024313459187404830',
 		modlogs: '1000730718474875020',
 		reports: '821610981155012628',
 		goal: '906460473065615403',

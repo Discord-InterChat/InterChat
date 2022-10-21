@@ -1,46 +1,67 @@
 import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import emojis from '../../Utils/emoji.json';
-import { getDb } from '../../Utils/functions/utils';
+import { colors, getDb } from '../../Utils/functions/utils';
 
-module.exports = {
-	async execute(interaction: ChatInputCommandInteraction, option: string) {
-		await interaction.deferReply({ ephemeral: true });
-		const foundByID: Guild | undefined = interaction.client.guilds.cache.get(option);
+export = {
+	async execute(interaction: ChatInputCommandInteraction, serverId: string, hidden: boolean) {
+		await interaction.deferReply({ ephemeral: hidden });
+		const server: Guild | undefined = interaction.client.guilds.cache.get(serverId);
+		if (!server) return interaction.followUp('Unknown Server.');
 
-		if (!foundByID) return interaction.followUp('Unknown Server.');
-
-		const server = foundByID;
 		const owner = await server?.fetchOwner();
-		interaction.followUp({
-			content: server?.id,
-			embeds: [await embedGen(server, owner)],
-			ephemeral: true,
-		});
-		return;
 
+		const embed = await embedGen(server, owner);
+
+
+		await interaction.editReply({ content: server?.id, embeds: [embed] });
 	},
 };
 
-async function embedGen(guild: Guild | undefined, GuildOwner: GuildMember | undefined) {
+async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
 	const database = getDb();
-	const collection = database?.collection('connectedList');
-	const guildInDb = await collection?.findOne({ serverId: guild?.id });
+	const connectedList = database?.collection('connectedList');
+	const setupList = database?.collection('setup');
+	const blacklistedServers = database?.collection('blacklistedServers');
+
+	const guildInDb = await connectedList?.findOne({ serverId: guild.id });
+	const guildInSetup = await setupList?.findOne({ 'guild.id': guild.id });
+	const guildBlacklisted = await blacklistedServers?.findOne({ serverId: guild.id });
+
+	const guildBoostLevel = guild.premiumTier === 0 ? 'None' : guild.premiumTier === 1 ? 'Level 1' : guild.premiumTier === 2 ? 'Level 2' : guild.premiumTier === 3 ? 'Level 3' : 'Unknown';
+
+	const emojis = guild.client.emoji;
+
 	return new EmbedBuilder()
-		.setAuthor({ name: String(guild?.name), iconURL: guild?.iconURL()?.toString() })
-		.setColor('#2F3136')
+		.setAuthor({ name: `${guild.name}`, iconURL: guild.iconURL() || undefined })
+		.setDescription(guild.description || 'No Description')
+		.setColor(colors('invisible'))
+		.setThumbnail(guild.iconURL() || null)
+		.setImage(guild.bannerURL({ size: 1024 }) || null)
 		.addFields([
 			{
 				name: 'Server Info',
-				value: stripIndents`\n
-						${emojis.icons.owner} **Owner:** ${GuildOwner?.user.tag} (${GuildOwner?.id})
-						${emojis.icons.members} **Member Count:** ${guild?.memberCount}`,
+				value: stripIndents`
+				> **Server ID:** ${guild.id}
+				> **Owner:** ${GuildOwner?.user.tag} (${GuildOwner?.id})
+				> **Created:** <t:${Math.round(guild.createdTimestamp / 1000)}:R>
+				> **Language:** ${guild.preferredLocale}
+				> **Boost Level:** ${guildBoostLevel}
+				> **Member Count:** ${guild.memberCount}
+				`,
 			},
+
+			{
+				name: 'Server Features:',
+				value: guild.features.map(feat => '> ' + feat.replaceAll('_', ' ').toTitleCase() + '\n').join('') || `> ${emojis.normal.no} No Features`,
+			},
+
 			{
 				name: 'Network Info',
-				value: stripIndents`\n
-						${guildInDb ? emojis.icons.connect : emojis.icons.disconnect} **Connected: ${guildInDb ? 'Yes' : 'No'}**
-						${emojis.normal.clipart} **Channel(s): ${guildInDb?.channelName || 'Not Connected'} (\`${guildInDb?.channelId || ':('}\`)**`,
+				value: stripIndents`
+				> **Connected: ${guildInDb ? 'Yes' : 'No'}**
+				> **Setup:** ${guildInSetup ? 'Yes' : 'No'}
+				> **Blacklisted:** ${guildBlacklisted ? 'Yes' : 'No'}
+				> **Channel(s):** ${guildInDb ? `${guildInDb?.channelName} (${guildInDb?.channelId})` : 'Not Connected'}`,
 			},
 		]);
 }

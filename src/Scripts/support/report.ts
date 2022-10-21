@@ -54,7 +54,7 @@ export = {
 
 		await interaction.showModal(modal);
 
-		interaction.awaitModalSubmit({ filter: i => i.user.id === interaction.user.id && i.customId === modal.data.custom_id, time: 60000 })
+		interaction.awaitModalSubmit({ filter: i => i.user.id === interaction.user.id && i.customId === modal.data.custom_id, time: 60 * 5000 })
 			.then(async (i) => {
 				const componentPara = i.fields.getTextInputValue('para');
 				let componentShort = i.fields.getTextInputValue('short');
