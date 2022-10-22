@@ -1,6 +1,8 @@
 import fetch from 'node-fetch';
 import logger from '../../Utils/logger';
 import { AttachmentBuilder, EmbedBuilder, Message } from 'discord.js';
+import wordFilter from '../../Utils/functions/wordFilter';
+
 import 'dotenv/config';
 
 export default {
@@ -19,17 +21,15 @@ export default {
 
 			return newAttachment;
 		}
-	},
 
-	async execute(message: Message, embed: EmbedBuilder) {
-		// eslint-disable-next-line no-useless-escape
-		const regex = /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=\+\$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=\+\$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[\+~%\/.\w-_]*)?\??(?:[-\+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png|\.webp)/;
-		const match = message.content.match(regex);
 
-		if (match) {
-			embed.setImage(match[0]);
+		const imageURLRegex = /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png|\.webp)/;
+		const URLMatch = message.content.match(imageURLRegex);
+
+		if (URLMatch) {
+			embed.setImage(URLMatch[0]);
 			try {
-				embed.setFields([{ name: 'Message ', value: message.content.replace(match[0], '\u200B').trim() }]);
+				embed.setFields([{ name: 'Message', value: message.content.replace(URLMatch[0], '\u200B').trim() }]);
 			}
 			catch (e) {
 				logger.error(e);
@@ -43,17 +43,21 @@ export default {
 			const n = gifMatch[0].split('-');
 			const id = n[n.length - 1];
 			const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
+			const gifJSON = await (await fetch(api)).json();
 
-			fetch(api)
-				.then((res) => res.json())
-				.then((json) => {
-					embed.setImage(json.results[0].media[0].gif.url);
-					embed.setFields([{
-						name: 'Message ',
-						value: message.content.replace(gifMatch[0], '\u200B').trim(),
-					}]);
-				})
-				.catch(logger.error);
+			embed
+				.setImage(gifJSON.results[0].media[0].gif.url)
+				.setFields([{
+					name: 'Message',
+					value: message.content.replace(gifMatch[0], '\u200B').trim(),
+				}]);
+		}
+	},
+
+	async embedModifers(embed: EmbedBuilder) {
+		// check if message contains profanity and censor it if it does
+		if (wordFilter.check(embed.data.fields?.at(0)?.value)) {
+			embed.setFields({ name: 'Message', value: wordFilter.censor(String(embed.data.fields?.at(0)?.value)) });
 		}
 	},
 };

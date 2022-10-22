@@ -9,6 +9,9 @@ A growing discord chat bot which provides a fun inter-server chat!
 1. Run `npm install`
 2. Make a file called `.env` and fill it out with the appropriate contents:
     ```env
+    # Your bot ID
+    CLIENT_ID=
+
     # Bot token here
     TOKEN=<your bot token here> 
 

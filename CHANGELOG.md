@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.1.0-beta...v3.1.0) (2022-10-21)
+
+## [2.0.0](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v2.0.0-alpha.1...v2.0.0) (2022-10-12)
+
+
+### Features
+
+* Auto-Complete handler ([229bc83](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/229bc83521ad1464df3a907aaef1fbae855f0c88))
+* Basic Error Handler ([1196d46](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/1196d469f194962790b03333c9c6ba2154054a15))
+* Better Setup Command ([ebc6532](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/ebc653242e557fba9745a56700bf24a0a5cc63bc))
+* **find:** Implemented Autocomplete for find command instead of "Did you mean?" embed ([57cd006](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/57cd006812619e07830ecc70c7d83cacde5c31d7))
+* **network:** Add ability to quote (reply) to messages ([753a79c](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/753a79cd1c3840933c0c0fef344af1d3cbeb745d))
+* **network:** Added `NetworkManager ` class ([782f3a4](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/782f3a4e0883a2f816da898cbba57dc5f1c95f93))
+* **network:** ChatBot staff now have 12h to delete messages ([1a0001e](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/1a0001e0930fd74633b8675ce51d95d645eaab8c))
+* **suggest:** Using Forum channel for suggestions ([80cc8fe](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/80cc8fe728c932c0a1a4a08de72786e25487eafd))
+
+
+### Bug Fixes
+
+* **anti-spam:** Anti-Spam is now testing ready ([ee4f3ee](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/ee4f3ee3f7f48b2065f6795e47eb73f24f712656))
+* **anti-spam:** Updated anti-spam ([83f0005](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/83f0005b63d83350ee7fba5cc9be336d89dc889c))
+* **find:** Update command permissions ([fb4f296](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/fb4f2965e9749a0c43d5d5622c06c1a22c5683c3))
+* Fixed issues with replying to messages in the network ([b48ad37](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/b48ad37de44ebec7bba8ec2dfc47a49c9ec285b9))
+* Fixed rejections not showing stack in error handler ([4c99ee3](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/4c99ee35a14707e0908f38992b1f434301e2ea8b))
+* **guide:** Update link to new guide ([14fbce9](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/14fbce9d9b6d1158d31cd239ac6137f652357376))
+* **network:** Updated checks for better optimization ([a8aa41a](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/a8aa41a9e6e6651dadcef785ad02738e38b45ef6))
+* **report:** Bug reports no longer go to report channel ([2147d62](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/2147d62d66ee5146bb37ab7a7b2899ee0f558cda))
+* **suggest:** Archiving posts fixed for `takedown` ([4ff543f](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/4ff543fb4b2b7b29714dcfaaf4639523349f8362))
+
 ## [2.0.0-alpha.1](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v2.0.0-alpha...v2.0.0) (2022-09-26)
 
 

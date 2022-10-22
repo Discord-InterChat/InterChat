@@ -1,15 +1,14 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord.js';
 import { stripIndent } from 'common-tags';
+import { join } from 'path';
 import { constants } from './utils';
 
 import fs from 'fs';
 import logger from '../logger';
-import { config } from 'dotenv';
-import { join } from 'path';
-config();
+import 'dotenv/config';
 
-const clientID = constants.client.stable.id;
+const clientID = process.env.CLIENT_ID as string;
 const server = process.argv[3]?.toLowerCase() || constants.mainGuilds.cbhq;
 const IgnoredDirs = ['Developer', 'TopGG', 'Staff', 'Levelling']; // FIXME: Remove levelling system from here when it is fully implemented
 

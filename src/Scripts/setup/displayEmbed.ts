@@ -31,7 +31,7 @@ export = {
 					{
 						label: 'Profanity Filter',
 						emoji: '🤬',
-						description: 'Toggle Swear censoring for this server.', // TODO - Add profanity filter toggling
+						description: 'Toggle message censoring for this server.',
 						value: 'profanity_toggle',
 					},
 				]),
@@ -164,7 +164,7 @@ class SetupEmbedGenerator {
 				},
 				{
 					name: 'Style',
-					value: `**Compact:** ${guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildSetupData?.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}`,
+					value: `**Compact:** ${guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildSetupData?.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}`,
 				},
 			)
 			.setColor('#3eb5fb')

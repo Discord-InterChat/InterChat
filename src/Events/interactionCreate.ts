@@ -1,5 +1,4 @@
 import { ChannelType, Interaction } from 'discord.js';
-import { sendErrorToChannel } from '../Handlers/handleErrors';
 import { checkIfStaff } from '../Utils/functions/utils';
 import logger from '../Utils/logger';
 
@@ -41,9 +40,7 @@ export default {
 			}
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			catch (error: any) {
-				logger.error(error);
-
-				sendErrorToChannel(interaction.client, `Error In Command: ${interaction.commandName}`, error.stack || error);
+				logger.error(`Error while executing command ${interaction.commandName}: ${error}`);
 
 				const errorMsg = {
 					content: 'There was an error while executing this command! The developers have been notified.',
@@ -51,8 +48,8 @@ export default {
 					fetchReply: true,
 				};
 
-				if (interaction.deferred) interaction.followUp(errorMsg);
-				else if (interaction.replied) interaction.channel?.send(errorMsg);
+				if (interaction.deferred) await interaction.followUp(errorMsg);
+				else if (interaction.replied) await interaction.channel?.send(errorMsg);
 				else await interaction.reply(errorMsg);
 			}
 		}

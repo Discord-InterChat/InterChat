@@ -1,19 +1,10 @@
-import wordFilter from '../Utils/functions/wordFilter';
-import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import evalScript from '../Scripts/message/evalScript';
-import messageTypes from '../Scripts/message/messageTypes';
+import messageSendTypes from '../Scripts/message/messageTypes';
 import { EmbedBuilder, GuildMember, Message, User } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import { connectedListDocument } from '../Utils/typings/types';
 import { InvalidChannelId } from '../Scripts/message/cleanup';
-
-// TODO: edit the embed instead of changing the message content
-// if guild has profanity disabled and has embeds on set the embed to normal desc :DDDDDDDDDDDDD
-
-// Warning and timed blacklist system
-// blacklist a user for a specific amount of time if they have over x warns
-// might come in handy in other cases too.
-
+import { Collection } from 'mongodb';
 
 type UserEntries = {
 	msgCount: number,
@@ -45,43 +36,33 @@ export default {
 
 		// main db where ALL connected channel data is stored
 		const database = getDb();
-		const connectedList = database?.collection('connectedList');
-
-		// db for setup data
 		const setup = database?.collection('setup');
-		const channelInNetwork = await connectedList?.findOne({ channelId: message.channel.id });
-
+		const connectedList = database?.collection('connectedList') as Collection<connectedListDocument> | undefined;
 		const messageData = database?.collection('messageData');
 
+
+		const channelInNetwork = await connectedList?.findOne({ channelId: message.channel.id });
+
 		if (channelInNetwork) {
-			const checks = await require('../Scripts/message/checks').execute(message, database);
-			if (checks === false) return;
-
 			const allConnectedChannels = connectedList?.find({});
-
+			const checks = await require('../Scripts/message/checks').execute(message, database);
+			if (!checks) return;
 
 			if (message.reference) {
 				const referredMessage = await message.fetchReference();
-				if (referredMessage.author.id === message.client.user.id
-					&& referredMessage.embeds[0]
-					&& referredMessage.embeds[0].fields?.length > 0
+				if (
+					referredMessage.author.id === message.client.user.id &&
+					referredMessage.embeds[0] &&
+					referredMessage.embeds[0].fields?.length > 0
 				) {
-					message.content = `> ${referredMessage.embeds[0]?.fields[0]?.value}\n${message.content}`;
+					message.content = `> ${referredMessage.embeds[0].fields[0].value}\n${message.content}`;
 				}
 			}
-
-			// check if message contains profanity and censor it if it does
-			if (wordFilter.check(message.content)) message.content = wordFilter.censor(message.content);
-
 
 			const embed = new EmbedBuilder()
 				.setTimestamp()
 				.setColor(colors())
-				.addFields([{
-					name: 'Message',
-					value: message.content || '\u200B',
-					inline: false,
-				}])
+				.addFields([{ name: 'Message', value: message.content }])
 				.setAuthor({
 					name: message.author.tag,
 					iconURL: message.author.avatarURL()?.toString(),
@@ -93,22 +74,29 @@ export default {
 				});
 
 			await require('../Scripts/message/addBadges').execute(message, database, embed);
-			await messageContentModifiers.execute(message, embed);
 
-			const attachments = await messageContentModifiers.attachmentModifiers(message, embed);
+			const modifers = require('../Scripts/message/messageContentModifiers').default;
+			const attachments = await modifers.attachmentModifiers(message, embed);
+
+			// this embed remains untouched and is not changed in embedModifers
+			// required for profanity toggle
+			const uncensoredEmbed = new EmbedBuilder(embed.data);
+
+			// call this function after uncensoredEmbed is created or it will be modified
+			await modifers.embedModifers(embed);
 
 			// leveling system
 			// FIXME: Add levelling back when ready
 			// require('../Scripts/message/levelling').execute(message);
 
-			const channelAndMessageIds: Promise<Message | InvalidChannelId | undefined>[] = [];
+			const channelAndMessageIds: Promise<Message | InvalidChannelId>[] = [];
 
 			allConnectedChannels?.forEach(channelObj => {
 				// sending the messages to the connected channels
-				const msg = messageTypes.execute(message.client, message, channelObj as connectedListDocument, embed, setup, attachments);
+				const msg = messageSendTypes.execute(message, channelObj as connectedListDocument, embed, uncensoredEmbed, setup, attachments);
 				// push the entire promise, as we dont want to wait for it inside the loop
 				channelAndMessageIds.push(msg);
-			}).then(() => require('../Scripts/message/cleanup').default.execute(message, channelAndMessageIds, messageData, connectedList));
+			}).then(async () => require('../Scripts/message/cleanup').default.execute(message, channelAndMessageIds, messageData, connectedList));
 		}
 		else {
 			return;

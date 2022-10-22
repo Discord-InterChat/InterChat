@@ -8,7 +8,7 @@ const custom = format.printf((info) => {
 
 const infoFormat = format.combine(
 	format.timestamp({ format: '[on] DD MMMM, YYYY [at] hh:mm:ss.SSS' }),
-	format(info => {
+	format((info) => {
 		info.level = info.level.toUpperCase();
 		if (info.level === 'ERROR') return false;
 		return info;
@@ -16,31 +16,22 @@ const infoFormat = format.combine(
 	custom,
 );
 
+const combinedFormat = format.combine(
+	format.errors({ stack: true }),
+	format.timestamp({ format: '[on] DD MMMM, YYYY [at] hh:mm:ss.SSS' }),
+	format((info) => {
+		info.level = info.level.toUpperCase();
+		return info;
+	})(),
+	custom,
+);
+
 const logger = createLogger({
-	format: format.combine(
-		format.errors({ stack: true }),
-		format.timestamp({ format: '[on] DD MMMM, YYYY [at] hh:mm:ss.SSS' }),
-		format(info => {
-			info.level = info.level.toUpperCase();
-			return info;
-		})(),
-		custom,
-	),
+	format: combinedFormat,
 	transports: [
 		new transports.File({ filename: 'logs/discord.log', format: infoFormat }),
 		new transports.File({ filename: 'logs/error.log', level: 'error' }),
-
-		new transports.Console({
-			format: format.combine(
-				format.timestamp({ format: '[on] DD MMMM, YYYY [at] hh:mm:ss.SSS' }),
-				format(info => {
-					info.level = info.level.toUpperCase();
-					return info;
-				})(),
-				format.colorize(),
-				custom,
-			),
-		}),
+		new transports.Console({ format: format.combine(format.colorize(), custom) }),
 	],
 });
 
