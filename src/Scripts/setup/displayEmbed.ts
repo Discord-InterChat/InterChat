@@ -43,17 +43,14 @@ export = {
 		const guildSetup = await collection?.findOne({ 'guild.id': interaction.guildId });
 		const guildConnected = await network.connected({ serverId: interaction.guildId });
 
-
+		if (!guildSetup) return interaction.followUp('Server is not setup yet. Use `/setup channel` first.');
 		if (!interaction.guild?.channels.cache.get(guildSetup?.channel.id)) {
 			collection?.deleteOne({ 'channel.id': guildSetup?.channel.id });
 			return await interaction.followUp('Connected channel has been deleted! Please use `/setup channel` and set a new one.');
 		}
 
-
 		if (!guildConnected) setupActionButtons.components.pop();
-		if (!guildSetup) {
-			return interaction.followUp('Server is not setup yet. Use `/setup channel` first.');
-		}
+
 
 		const setupMessage = await interaction.editReply({ content: '', embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
 
