@@ -1,9 +1,9 @@
-import { EmbedBuilder, AttachmentBuilder, Message, TextChannel, MessageMentionTypes, BaseMessageOptions } from 'discord.js';
+import { EmbedBuilder, AttachmentBuilder, TextChannel, MessageMentionTypes, BaseMessageOptions } from 'discord.js';
 import { Collection } from 'mongodb';
+import { MessageInterface } from '../../Events/messageCreate';
 import { connectedListDocument, setupDocument } from '../../Utils/typings/types';
 
 interface WebhookMessageInterface extends BaseMessageOptions {
-	content: string,
 	username: string,
 	files?: AttachmentBuilder[],
 	avatarURL: string,
@@ -16,20 +16,23 @@ export default {
 	 *
 	 * @param uncensoredEmbed An embed with the original message content. (uncensored)
 	 */
-	execute: async (message: Message, channelObj: connectedListDocument, embed: EmbedBuilder, uncensoredEmbed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
+	execute: async (message: MessageInterface, channelObj: connectedListDocument, embed: EmbedBuilder, uncensoredEmbed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
 		const allChannel = message.client.channels.cache.get(channelObj.channelId) as TextChannel;
 
 		if (!allChannel) return { unknownChannelId: channelObj.channelId };
 
 		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel.id }) as setupDocument | null | undefined;
 
-		if (!channelInDB?.profFilter) embed = uncensoredEmbed;
+		if (!channelInDB?.profFilter) {
+			message.compactMessage = String(message.uncensoredCompactMessage);
+			embed = uncensoredEmbed;
+		}
 
 		if (channelInDB?.compact === true && allChannel.id == message.channel.id) {
-			return webhookAutomate(message.channel as TextChannel);
+			return sendCompact(message.channel as TextChannel);
 		}
 		else if (channelInDB?.compact === true && allChannel.id == channelInDB.channel.id) {
-			return webhookAutomate(allChannel);
+			return sendCompact(allChannel);
 		}
 		// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images
 		else if (attachments) {
@@ -41,16 +44,16 @@ export default {
 		}
 
 
-		async function webhookAutomate(chan: TextChannel) {
+		async function sendCompact(chan: TextChannel) {
 			const webhookMessage: WebhookMessageInterface = {
-				content: message.content,
+				content: message.compactMessage,
 				username: message.author.username,
 				avatarURL: String(message.author.avatarURL()),
 				allowedMentions: { parse: [] },
 			};
 
 			const normalMessage: BaseMessageOptions = {
-				content: `**${message.author.tag}:** ${message.content}`,
+				content: message.compactMessage,
 				allowedMentions: { parse: [] },
 			};
 

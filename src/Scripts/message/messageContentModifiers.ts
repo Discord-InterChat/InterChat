@@ -2,7 +2,7 @@ import fetch from 'node-fetch';
 import logger from '../../Utils/logger';
 import { AttachmentBuilder, EmbedBuilder, Message } from 'discord.js';
 import wordFilter from '../../Utils/functions/wordFilter';
-
+import { MessageInterface } from '../../Events/messageCreate';
 import 'dotenv/config';
 
 export default {
@@ -54,10 +54,14 @@ export default {
 		}
 	},
 
-	async embedModifers(embed: EmbedBuilder) {
+	async profanityCensor(embed: EmbedBuilder, message: MessageInterface) {
 		// check if message contains profanity and censor it if it does
 		if (wordFilter.check(embed.data.fields?.at(0)?.value)) {
 			embed.setFields({ name: 'Message', value: wordFilter.censor(String(embed.data.fields?.at(0)?.value)) });
+		}
+
+		if (wordFilter.check(message.compactMessage)) {
+			message.compactMessage = wordFilter.censor(String(message.compactMessage));
 		}
 	},
 };

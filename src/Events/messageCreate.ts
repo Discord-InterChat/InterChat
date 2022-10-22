@@ -1,3 +1,4 @@
+import modifers from '../Scripts/message/messageContentModifiers';
 import evalScript from '../Scripts/message/evalScript';
 import messageSendTypes from '../Scripts/message/messageTypes';
 import { EmbedBuilder, GuildMember, Message, User } from 'discord.js';
@@ -27,9 +28,14 @@ export const usersMap = new Map<string, UserEntries>();
 export const blacklistsMap = new Map<string, BlacklistEntries>();
 export const warningsMap = new Map<string, WarningEntries>();
 
+export interface MessageInterface extends Message<boolean>{
+	compactMessage?: string,
+	uncensoredCompactMessage?: string,
+}
+
 export default {
 	name: 'messageCreate',
-	async execute(message: Message) {
+	async execute(message: MessageInterface) {
 		if (message.author.bot || blacklistsMap.has(message.author.id)) return;
 
 		if (message.content.startsWith('c!eval')) evalScript.execute(message);
@@ -48,17 +54,6 @@ export default {
 			const checks = await require('../Scripts/message/checks').execute(message, database);
 			if (!checks) return;
 
-			if (message.reference) {
-				const referredMessage = await message.fetchReference();
-				if (
-					referredMessage.author.id === message.client.user.id &&
-					referredMessage.embeds[0] &&
-					referredMessage.embeds[0].fields?.length > 0
-				) {
-					message.content = `> ${referredMessage.embeds[0].fields[0].value}\n${message.content}`;
-				}
-			}
-
 			const embed = new EmbedBuilder()
 				.setTimestamp()
 				.setColor(colors())
@@ -73,17 +68,38 @@ export default {
 					iconURL: message.guild?.iconURL()?.toString(),
 				});
 
-			await require('../Scripts/message/addBadges').execute(message, database, embed);
+			message.compactMessage = `**${message.author.tag}:** ${message.content}`;
 
-			const modifers = require('../Scripts/message/messageContentModifiers').default;
+			if (message.reference) {
+				const messageReferred = await message.fetchReference().catch(() => null);
+				const messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: messageReferred?.id } } });
+
+				if (messageInDb && messageReferred) {
+					let embedMessage = messageReferred.embeds[0]?.fields[0]?.value;
+					const embedFieldName = messageReferred.embeds[0]?.fields[0]?.name;
+
+					const compactReferrence = messageReferred.content;
+
+					if (embedFieldName?.includes('Reply Message') && embedMessage) embedMessage = embedMessage?.split(/> .*/g)[1].trimStart();
+
+					message.content = embedMessage ? `> ${embedMessage}\n${message.content}` : compactReferrence ? `> ${compactReferrence}\n${message.content}` : message.content;
+					message.compactMessage = embedMessage ? `> ${embedMessage}\n` + message.compactMessage : compactReferrence ? `> ${compactReferrence}\n` + message.compactMessage : message.content;
+
+					embed.spliceFields(0, 1, {
+						name: 'Reply Message',
+						value: message.content,
+					});
+				}
+			}
+
+
+			await require('../Scripts/message/addBadges').execute(message, database, embed);
 			const attachments = await modifers.attachmentModifiers(message, embed);
 
-			// this embed remains untouched and is not changed in embedModifers
-			// required for profanity toggle
 			const uncensoredEmbed = new EmbedBuilder(embed.data);
+			message.uncensoredCompactMessage = message.compactMessage;
 
-			// call this function after uncensoredEmbed is created or it will be modified
-			await modifers.embedModifers(embed);
+			await modifers.profanityCensor(embed, message); // FIXME: Does not work for compact messages
 
 			// leveling system
 			// FIXME: Add levelling back when ready
