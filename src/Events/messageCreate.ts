@@ -57,7 +57,7 @@ export default {
 			const embed = new EmbedBuilder()
 				.setTimestamp()
 				.setColor(colors())
-				.addFields([{ name: 'Message', value: message.content }])
+				.addFields([{ name: 'Message', value: message.content || '\u200B' }])
 				.setAuthor({
 					name: message.author.tag,
 					iconURL: message.author.avatarURL()?.toString(),
