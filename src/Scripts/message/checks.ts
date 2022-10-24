@@ -2,6 +2,7 @@ import wordFilter from '../../Utils/functions/wordFilter';
 import antiSpam from './antiSpam';
 import { Message } from 'discord.js';
 import { Db } from 'mongodb';
+import { slurs } from '../../Utils/JSON/badwords.json';
 
 export = {
 	async execute(message: Message, database: Db | undefined) {
@@ -10,10 +11,6 @@ export = {
 		// collection for blacklisted users
 		const blacklistedUsers = database?.collection('blacklistedUsers');
 		const userInBlacklist = await blacklistedUsers?.findOne({ userId: message.author.id });
-
-		// collection for blacklisted words
-		const restrictedWords = database?.collection('restrictedWords');
-		const wordList = await restrictedWords?.findOne({ name: 'blacklistedWords' });
 
 		if (userInBlacklist) {
 			// if user is in blacklist and Notified is false, send them a message saying they are blacklisted
@@ -28,11 +25,7 @@ export = {
 		}
 
 		// check if message contains slurs
-		if (
-			message.content.toLowerCase().includes(wordList?.words[0]) ||
-			message.content.toLowerCase().includes(wordList?.words[1]) ||
-			message.content.toLowerCase().includes(wordList?.words[2])
-		) {
+		if (message.content.split(/\b/).some(word => slurs.includes(word.toLocaleLowerCase()))) {
 			wordFilter.log(message.client, message.author, message.guild, message.content);
 			return false;
 		}
