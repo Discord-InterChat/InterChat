@@ -31,7 +31,7 @@ export = {
 					{
 						label: 'Profanity Filter',
 						emoji: '🤬',
-						description: 'Toggle Swear censoring for this server.', // TODO - Add profanity filter toggling
+						description: 'Toggle message censoring for this server.',
 						value: 'profanity_toggle',
 					},
 				]),
@@ -43,17 +43,14 @@ export = {
 		const guildSetup = await collection?.findOne({ 'guild.id': interaction.guildId });
 		const guildConnected = await network.connected({ serverId: interaction.guildId });
 
-
+		if (!guildSetup) return interaction.followUp('Server is not setup yet. Use `/setup channel` first.');
 		if (!interaction.guild?.channels.cache.get(guildSetup?.channel.id)) {
 			collection?.deleteOne({ 'channel.id': guildSetup?.channel.id });
 			return await interaction.followUp('Connected channel has been deleted! Please use `/setup channel` and set a new one.');
 		}
 
-
 		if (!guildConnected) setupActionButtons.components.pop();
-		if (!guildSetup) {
-			return interaction.followUp('Server is not setup yet. Use `/setup channel` first.');
-		}
+
 
 		const setupMessage = await interaction.editReply({ content: '', embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
 
@@ -164,7 +161,7 @@ class SetupEmbedGenerator {
 				},
 				{
 					name: 'Style',
-					value: `**Compact:** ${guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildSetupData?.profFilter === true ? emoji.normal.force_enabled : emoji.normal.force_enabled}`,
+					value: `**Compact:** ${guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildSetupData?.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}`,
 				},
 			)
 			.setColor('#3eb5fb')

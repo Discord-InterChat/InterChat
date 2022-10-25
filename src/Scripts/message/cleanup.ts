@@ -1,13 +1,13 @@
 import { Message } from 'discord.js';
 import { Collection } from 'mongodb';
-import logger from '../../Utils/logger';
 import { connectedListDocument } from '../../Utils/typings/types';
+import logger from '../../Utils/logger';
 
 
 export interface InvalidChannelId {unknownChannelId?: string}
 
 export default {
-	execute: async (message: Message, channelAndMessageIds: Promise<Message | InvalidChannelId | undefined>[], messageData: Collection | undefined, connectedList: Collection<connectedListDocument> | undefined) => {
+	execute: async (message: Message, channelAndMessageIds: Promise<Message | InvalidChannelId>[], messageData: Collection | undefined, connectedList: Collection<connectedListDocument> | undefined) => {
 		message.delete().catch(() => null);
 		// All message data is stored in the database, so we can delete the message from the network later
 		Promise.allSettled(channelAndMessageIds)

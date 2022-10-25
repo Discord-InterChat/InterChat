@@ -1,6 +1,6 @@
 import { EmbedBuilder, ActionRowBuilder, ChatInputCommandInteraction, TextInputBuilder, ModalBuilder, TextInputStyle, ChannelType } from 'discord.js';
-import { sendErrorToChannel } from '../../Handlers/handleErrors';
 import { colors, constants } from '../../Utils/functions/utils';
+import logger from '../../Utils/logger';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction) {
@@ -68,8 +68,8 @@ export = {
 				});
 			}
 			catch (err) {
-				sendErrorToChannel(modalInteraction.client, `Suggestion command failed for user ${modalInteraction.user.tag}`, err);
-				return modalInteraction.reply({ content: 'An error occured while making your suggestion! The developers have been alerted.' });
+				logger.error('Error while creating suggestion post:', err);
+				return modalInteraction.reply({ content: 'An error occured while making your suggestion! The developers have been alerted.', ephemeral: true });
 			}
 			modalInteraction.reply({ content: 'Suggestion sent! Join the support server to see it.', ephemeral: true });
 		}).catch(() => {return;});

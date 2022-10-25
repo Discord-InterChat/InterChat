@@ -58,9 +58,9 @@ export default {
 			const embed = new EmbedBuilder()
 				.setTitle(`${normal.tada} Hi! Thanks for adding me to your server!`)
 				.setDescription(stripIndents`
-				To start chatting, make a channel and run </setup:978303442684624928>!
+				To start chatting, make a channel and run </setup channel:978303442684624928>!
 
-				And if you are interested in the other commands use \`/help\`.
+				And if you are interested in the other commands use </help:924659340898619398>.
 				
 				**Please note that ChatBot is not AI, but a bot for chatting with other real discord servers.**
 				

@@ -6,9 +6,8 @@ export = {
 	execute: async (interaction: ChatInputCommandInteraction) => {
 		const serverOpt = interaction.options.getString('server') as string;
 		const reason = interaction.options.getString('reason');
-		let notify = interaction.options.getBoolean('notify');
+		const notify = interaction.options.getBoolean('notify') ?? true; // if not set, default to true
 		let server;
-		notify ??= true; // if not set, default to true
 
 		try {
 			server = await interaction.client.guilds.fetch(serverOpt);
@@ -18,14 +17,14 @@ export = {
 			return;
 		}
 
-		await interaction.reply(`I have left the server ${server.name} due to reason "${reason}".`);
-
 		if (notify) {
 			await sendInFirst(server,
 				`I am leaving this server due to reason **${reason}**. Please contact the staff from the support server if you think that the reason is not valid.`,
 			);
 		}
 		await server.leave();
+		await interaction.reply(`I have left the server ${server.name} due to reason "${reason}".`);
+
 		logger.info(`Left server ${server.name} due to reason \`${reason}\``);
 	},
 };

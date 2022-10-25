@@ -6,7 +6,7 @@ export = {
 	async execute(interaction: ChatInputCommandInteraction, setupList: Collection | undefined) {
 		const network = new NetworkManager();
 
-		if (!await network.getServerData({ serverId: interaction.guildId })) {
+		if (!await setupList?.findOne({ 'guild.id': interaction.guildId })) {
 			return interaction.reply(`${interaction.client.emoji.normal.no} This server is not setup yet.`);
 		}
 
@@ -21,38 +21,31 @@ export = {
 		});
 
 
-		try {
-			const resetCollector = resetConfirmMsg.createMessageComponentCollector({
-				filter: (m) => m.user.id == interaction.user.id,
-				idle: 10_000,
-				max: 1,
-			});
+		const resetCollector = resetConfirmMsg.createMessageComponentCollector({
+			filter: (m) => m.user.id == interaction.user.id,
+			idle: 10_000,
+			max: 1,
+		});
 
-			// Creating collector for yes/no button
-			resetCollector.on('collect', async (collected) => {
-				if (collected.customId === 'yes') {
-					await setupList?.deleteOne({ 'guild.id': interaction.guild?.id });
-					network.disconnect(interaction.guildId);
+		// Creating collector for yes/no button
+		resetCollector.on('collect', async (collected) => {
+			if (collected.customId !== 'yes') return resetCollector.stop();
 
+			await setupList?.deleteOne({ 'guild.id': interaction.guild?.id });
+			await network.disconnect(interaction.guildId);
 
-					interaction.editReply({
-						content: `${interaction.client.emoji.normal.yes} Successfully reset.`,
-						components: [],
-					});
-				}
-				else {
-					collected.message.delete();
-				}
-				return;
-			});
-		}
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		catch (e: any) {
-			interaction.editReply({
-				content: `${interaction.client.emoji.icons.exclamation} ${e.message}!`,
-				embeds: [],
+			collected.update({
+				content: `${interaction.client.emoji.normal.yes} Successfully reset.`,
 				components: [],
 			});
-		}
+
+		});
+
+		resetCollector.on('end', () => {
+			interaction.editReply({
+				content: `${interaction.client.emoji.normal.no} Reset cancelled.`,
+				components: [],
+			});
+		});
 	},
 };
