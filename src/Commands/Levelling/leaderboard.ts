@@ -34,6 +34,6 @@ export default {
 			.setThumbnail(interaction.client.user?.avatarURL() as string)
 			.setFields(leaderArr);
 
-		return await interaction.reply({ embeds:[leaderboardEmbed] });
+		return await interaction.reply({ embeds:[leaderboardEmbed], ephemeral: true, });
 	},
 };
