@@ -29,9 +29,15 @@ A growing discord chat bot which provides a fun inter-server chat!
 If everything was done right, the bot should come online and responsive.
 
 ## Deploying Commands
+### npm
 * **Public Commands (Default):** `npm run deploy`
-* **Staff commands:**  `npm run deploy --staff [guildID]`
-* **Help:** `npm run deploy --help`
+* **Staff commands:**  `npm run deploy -- --staff [guildID]`
+* **Help:** `npm run deploy -- --help`
+
+### yarn
+* **Public Commands (Default):** `yarn deploy`
+* **Staff commands:**  `yarn deploy --staff [guildID]`
+* **Help:** `yarn deploy --help`
 
 *[] = optional; <> = required;*
 
