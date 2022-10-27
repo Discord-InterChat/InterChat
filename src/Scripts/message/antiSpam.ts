@@ -14,6 +14,7 @@ interface blacklistOptions {
 }
 
 async function addToBlacklist(user: User, options: blacklistOptions) {
+	clearTimeout(usersMap.get(user.id)?.timer);
 	usersMap.delete(user.id);
 
 	const duration = options.duration || 60 * 5000;
@@ -77,7 +78,7 @@ export = {
 				// Short message detection
 				if (message.content.length < 3 && lastMessage.content.length < 3 && slowMsgCount === LIMIT) {
 					addToBlacklist(message.author, { reason: 'Detected short messages consecutively.' });
-					message.channel.send(`${message.author} Please keep your messages longer than two charecters :/`);
+					message.channel.send(`${message.author} Please keep your messages longer than two charecters. You can send your next message in 5 minutes.`);
 					return true;
 				}
 

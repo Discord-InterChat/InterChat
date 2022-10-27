@@ -1,5 +1,5 @@
 import wordFilter from '../../Utils/functions/wordFilter';
-import antiSpam from './antiSpam';
+// import antiSpam from './antiSpam';
 import { Message } from 'discord.js';
 import { Db } from 'mongodb';
 import { slurs } from '../../Utils/JSON/badwords.json';
@@ -46,9 +46,9 @@ export = {
 
 		if (wordFilter.check(message.content)) wordFilter.log(message.client, message.author, message.guild, message.content);
 
-		// anti-spam check (returns true if message is spam)
-		const spam_filter = await antiSpam.execute(message);
-		if (spam_filter === true) return false;
+		// FIXME: There seems to be a memory leak in antispam. Needs to be fixed.
+		// const spam_filter = await antiSpam.execute(message);
+		// if (spam_filter === true) return false;
 
 		return true;
 	},
