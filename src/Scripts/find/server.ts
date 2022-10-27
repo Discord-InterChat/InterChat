@@ -1,27 +1,78 @@
-import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember } from 'discord.js';
+import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { checkIfStaff, colors, getDb } from '../../Utils/functions/utils';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, serverId: string, hidden: boolean) {
 		await interaction.deferReply({ ephemeral: hidden });
-		const server: Guild | undefined = interaction.client.guilds.cache.get(serverId);
-		if (!server) return interaction.followUp('Unknown Server.');
+
+		const server = await interaction.client.guilds.fetch(serverId).catch(() => null);
+		if (!server) return interaction.editReply('Unknown Server.');
 
 		const owner = await server?.fetchOwner();
 
-		const embed = await embedGen(server, owner);
+		const db = getDb();
+		const blacklistedServers = db?.collection('blacklistedServers');
 
+		const components = async () => {
+			const guildBlacklisted = await blacklistedServers?.findOne({ serverId: server.id });
 
-		await interaction.editReply({ content: server?.id, embeds: [embed] });
+			return new ActionRowBuilder<ButtonBuilder>({
+				components: [
+					new ButtonBuilder({
+						customId: guildBlacklisted ? 'unblacklist' : 'blacklist',
+						label: guildBlacklisted ? 'Unblacklist' : 'Blacklist',
+						style: guildBlacklisted ? ButtonStyle.Success : ButtonStyle.Danger,
+					}),
+					new ButtonBuilder({
+						customId: 'leave',
+						label: 'Leave Server',
+						style: ButtonStyle.Primary,
+					}),
+				],
+			});
+		};
+
+		const initalMessage = await interaction.editReply({
+			content: server?.id, embeds: [await embedGen(server, owner)], components: [await components()],
+		});
+
+		const collector = initalMessage.createMessageComponentCollector({
+			filter: async (i) => i.user.id === interaction.user.id && await checkIfStaff(i.client, i.user),
+		});
+
+		collector.on('collect', async (i) => {
+			switch (i.customId) {
+			case 'blacklist':
+				await blacklistedServers?.insertOne({
+					serverName: server.name,
+					serverId: server.id,
+					reason: 'Some Reason',
+				});
+				await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
+				i.followUp({ content: 'Server blacklisted.', ephemeral: hidden });
+				break;
+			case 'unblacklist':
+				await blacklistedServers?.deleteOne({ serverId: server.id });
+				await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
+				i.followUp({ content: 'Server removed from blacklist.', ephemeral: hidden });
+				break;
+			case 'leave':
+				i.reply({ content: 'Leaving Server....', ephemeral: hidden });
+				await server.leave();
+				break;
+			default:
+				break;
+			}
+		});
 	},
 };
 
 async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
 	const database = getDb();
 	const connectedList = database?.collection('connectedList');
-	const setupList = database?.collection('setup');
 	const blacklistedServers = database?.collection('blacklistedServers');
+	const setupList = database?.collection('setup');
 
 	const guildInDb = await connectedList?.findOne({ serverId: guild.id });
 	const guildInSetup = await setupList?.findOne({ 'guild.id': guild.id });

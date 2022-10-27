@@ -1,30 +1,77 @@
 import Levels from 'discord-xp';
-import { EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
+import {
+	EmbedBuilder, ChatInputCommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, User,
+} from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { colors, constants, getDb } from '../../Utils/functions/utils';
-
+import { checkIfStaff, colors, constants, getDb } from '../../Utils/functions/utils';
+import { Collection } from 'mongodb';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, userId: string, hidden: boolean) {
-		const fetchedUser = await interaction.client.users.fetch(userId).catch(console.log);
-		if (!fetchedUser) return interaction.reply({ content: 'Unknown user.', ephemeral: true });
+		const user = await interaction.client.users.fetch(userId).catch(console.log);
+		if (!user) return interaction.reply({ content: 'Unknown user.', ephemeral: true });
 
-		return await interaction.reply({
-			content: fetchedUser.id,
-			embeds: [await embedGen(fetchedUser)],
+		const db = getDb();
+		const blacklistedUsers = db?.collection('blacklistedUsers');
+
+		const components = async () => {
+			const userInBlacklist = await blacklistedUsers?.findOne({ userId: user.id });
+
+			return new ActionRowBuilder<ButtonBuilder>({
+				components: [
+					new ButtonBuilder({
+						customId: `${userInBlacklist ? 'unblacklist' : 'blacklist'}`,
+						label: `${userInBlacklist ? 'Unblacklist' : 'Blacklist'}`,
+						style: userInBlacklist ? ButtonStyle.Success : ButtonStyle.Danger,
+					}),
+				],
+			});
+		};
+
+		const userEmbed = await interaction.reply({
+			content: user.id,
+			embeds: [await embedGen(user, blacklistedUsers)],
+			components: [await components()],
 			ephemeral: hidden,
 		});
 
+		const collector = userEmbed.createMessageComponentCollector({
+			filter: async (i) => i.user.id === interaction.user.id && await checkIfStaff(i.client, i.user),
+		});
+
+		collector.on('collect', async (i) => {
+			switch (i.customId) {
+			case 'blacklist':
+				await blacklistedUsers?.insertOne({
+					username: `${user.username}#${user.discriminator}`,
+					userId: user.id,
+					reason: 'Some Reason',
+					notified: true,
+				});
+				await i.update({ embeds: [await embedGen(user, blacklistedUsers)], components: [await components()] });
+				i.followUp({ content: 'User blacklisted.', ephemeral: hidden });
+				break;
+			case 'unblacklist':
+				await blacklistedUsers?.deleteOne({ userId: user.id });
+				await i.update({ embeds: [await embedGen(user, blacklistedUsers)], components: [await components()] });
+				i.followUp({ content: 'User removed from blacklist.', ephemeral: hidden });
+				break;
+			default:
+				break;
+			}
+		});
 	},
 };
 
+async function embedGen(user: User, blacklistedUsers: Collection | undefined) {
+	const userInBlacklist = await blacklistedUsers?.findOne({ userId: user.id });
 
-const embedGen = async (user: User) => {
-	const { icons } = user.client.emoji;
+	const owns = user.client.guilds.cache
+		.filter((guild) => guild.ownerId == user.id)
+		.map((guild) => guild.name);
 
-	const owns = user.client.guilds.cache.filter((guild) => guild.ownerId == user.id).map((guild) => guild.name);
 	const level = (await Levels.fetch(user.id, constants.mainGuilds.cbhq)).level;
-	const userInBlacklist = await getDb()?.collection('blacklistedUsers').findOne({ userId: user.id });
+	const { icons } = user.client.emoji;
 
 	return new EmbedBuilder()
 		.setAuthor({ name: user.tag, iconURL: user.avatarURL()?.toString() })
@@ -35,18 +82,18 @@ const embedGen = async (user: User) => {
 			{
 				name: 'User',
 				value: stripIndents`
-				> ${icons.mention} **Tag:** ${user.tag}
-				> ${icons.id} **ID:** ${user.id}
-				> ${icons.members} **Created:** <t:${Math.round(user.createdTimestamp / 1000)}:R>
-				> ${icons.bot} **Bot:** ${user.bot}`,
+		> ${icons.mention} **Tag:** ${user.tag}
+		> ${icons.id} **ID:** ${user.id}
+		> ${icons.members} **Created:** <t:${Math.round(user.createdTimestamp / 1000)}:R>
+		> ${icons.bot} **Bot:** ${user.bot}`,
 			},
 
 			{
 				name: 'Network',
 				value: stripIndents`
-				> ${icons.activities} **Level**: ${level || 0}
-				> ${icons.owner} **Owns:** ${owns.length > 0 ? owns.join(', ') : 'None'}
-				> ${icons.delete} **Blacklisted:** ${userInBlacklist ? 'Yes' : 'No'}`,
+		> ${icons.activities} **Level**: ${level || 0}
+		> ${icons.owner} **Owns:** ${owns.length > 0 ? owns.join(', ') : 'None'}
+		> ${icons.delete} **Blacklisted:** ${userInBlacklist ? 'Yes' : 'No'}`,
 			},
 		]);
-};
+}
