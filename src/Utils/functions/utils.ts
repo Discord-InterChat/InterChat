@@ -269,7 +269,7 @@ export const constants = {
 	},
 
 	channel: {
-		bugreports: '1006494592524369951',
+		bugs: '1035135196053393418',
 		chatbotlogs: '1002864642101624832',
 		errorlogs: '1024313459187404830',
 		modlogs: '1000730718474875020',
