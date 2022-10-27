@@ -54,6 +54,7 @@ export default {
 					name: `${interaction.client.emoji.icons.link} Resuourses`,
 					value: stripIndent`
 					[Guide](https://discord-chatbot.gitbook.io/guide/)
+					[Vote](https://top.gg/bot/769921109209907241/vote)
 					[Terms of Service](https://discord-chatbot.gitbook.io/chatbot/important/terms)
 					[Privacy Policy](https://discord-chatbot.gitbook.io/chatbot/important/privacy)
 					`,

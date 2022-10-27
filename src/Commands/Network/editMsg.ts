@@ -14,7 +14,7 @@ export default {
 
 		if (!await constants.topgg.hasVoted(interaction.user.id)) {
 			interaction.reply({
-				content: `${interaction.client.emoji.normal.no} You must vote to use this command.`,
+				content: `${interaction.client.emoji.normal.no} You must [vote](https://top.gg/bot/769921109209907241/vote) to use this command.`,
 				ephemeral: true,
 			});
 			return;
