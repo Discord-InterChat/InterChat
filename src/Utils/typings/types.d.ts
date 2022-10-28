@@ -1,3 +1,4 @@
+import { MessageReference } from 'discord.js';
 import { WithId, Document } from 'mongodb';
 
 export interface messageData extends WithId<Document> {
@@ -5,6 +6,8 @@ export interface messageData extends WithId<Document> {
 	timestamp: number;
 	authorId: string;
 	serverId: string;
+	/** Message reference data */
+	reference: MessageReference | null;
 	expired: boolean;
 }
 

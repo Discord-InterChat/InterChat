@@ -1,7 +1,7 @@
-import { EmbedBuilder, AttachmentBuilder, TextChannel, MessageMentionTypes, BaseMessageOptions } from 'discord.js';
+import { EmbedBuilder, AttachmentBuilder, TextChannel, MessageMentionTypes, BaseMessageOptions, APIEmbed } from 'discord.js';
 import { Collection } from 'mongodb';
 import { MessageInterface } from '../../Events/messageCreate';
-import { connectedListDocument, setupDocument } from '../../Utils/typings/types';
+import { connectedListDocument, messageData, setupDocument } from '../../Utils/typings/types';
 
 interface WebhookMessageInterface extends BaseMessageOptions {
 	username: string,
@@ -16,15 +16,30 @@ export default {
 	 *
 	 * @param uncensoredEmbed An embed with the original message content. (uncensored)
 	 */
-	execute: async (message: MessageInterface, channelObj: connectedListDocument, embed: EmbedBuilder, uncensoredEmbed: EmbedBuilder, setupDb?: Collection, attachments?: AttachmentBuilder) => {
+	execute: async (
+		message: MessageInterface,
+		channelObj: connectedListDocument,
+		embedData: APIEmbed,
+		uncensoredEmbed: EmbedBuilder,
+		setupDb?: Collection,
+		attachments?: AttachmentBuilder,
+		referenceMessage?: messageData | null,
+	) => {
 		const allChannel = message.client.channels.cache.get(channelObj.channelId) as TextChannel;
 
 		if (!allChannel) return { unknownChannelId: channelObj.channelId };
 
+		let embed = new EmbedBuilder(embedData);
 		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel.id }) as setupDocument | null | undefined;
 
+		if (referenceMessage) {
+			const msgInDb = referenceMessage.channelAndMessageIds.find((dbmsg) => dbmsg.channelId === allChannel.id);
+
+			if (msgInDb) embed.setDescription(`[${message.client.emoji.icons.info}](https://discord-chatbot.gitbook.io/chatbot/guide/network/replying-to-a-message) [Jump To Message](https://discord.com/channels/${allChannel.guildId}/${msgInDb?.channelId}/${msgInDb?.messageId})`);
+		}
+
 		if (!channelInDB?.profFilter) {
-			message.compactMessage = String(message.uncensoredCompactMessage);
+			message.compactMessage = String(message.cleanCompactMessage);
 			embed = uncensoredEmbed;
 		}
 

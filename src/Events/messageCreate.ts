@@ -3,7 +3,7 @@ import evalScript from '../Scripts/message/evalScript';
 import messageSendTypes from '../Scripts/message/messageTypes';
 import { EmbedBuilder, GuildMember, Message, User } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
-import { connectedListDocument } from '../Utils/typings/types';
+import { connectedListDocument, messageData as messageDataInterface } from '../Utils/typings/types';
 import { InvalidChannelId } from '../Scripts/message/cleanup';
 import { Collection } from 'mongodb';
 
@@ -30,7 +30,8 @@ export const warningsMap = new Map<string, WarningEntries>();
 
 export interface MessageInterface extends Message<boolean>{
 	compactMessage?: string,
-	uncensoredCompactMessage?: string,
+	/** Uncensored compact message */
+	cleanCompactMessage?: string,
 }
 
 export default {
@@ -54,6 +55,34 @@ export default {
 			const checks = await require('../Scripts/message/checks').execute(message, database);
 			if (!checks) return;
 
+			message.compactMessage = `**${message.author.tag}:** ${message.content}`;
+
+			let messageInDb: messageDataInterface | null = null;
+
+			if (message.reference) {
+				const messageReferred = await message.fetchReference().catch(() => null);
+				messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: messageReferred?.id } } }) as messageDataInterface;
+
+				if (messageInDb && messageReferred) {
+					let embedMessage = messageReferred.embeds[0]?.fields[0]?.value;
+					let compactMessage = messageReferred.content;
+
+					if (messageInDb.reference) {
+						const replaceReply = (string: string) => {
+							// if for some reason the reply is edited and the reply format (> message) is not there
+							// return the original message and not undefined
+							return string?.split(/> .*/g)?.at(1)?.trimStart() || string;
+						};
+
+						embedMessage = replaceReply(embedMessage);
+						compactMessage = replaceReply(compactMessage);
+					}
+
+					message.content = `> ${embedMessage || compactMessage}\n${message.content}`;
+					message.compactMessage = `> ${embedMessage || compactMessage}\n${message.compactMessage}`;
+				}
+			}
+
 			const embed = new EmbedBuilder()
 				.setTimestamp()
 				.setColor(colors())
@@ -68,38 +97,13 @@ export default {
 					iconURL: message.guild?.iconURL()?.toString(),
 				});
 
-			message.compactMessage = `**${message.author.tag}:** ${message.content}`;
-
-			if (message.reference) {
-				const messageReferred = await message.fetchReference().catch(() => null);
-				const messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: messageReferred?.id } } });
-
-				if (messageInDb && messageReferred) {
-					let embedMessage = messageReferred.embeds[0]?.fields[0]?.value;
-					const embedFieldName = messageReferred.embeds[0]?.fields[0]?.name;
-
-					const compactReferrence = messageReferred.content;
-
-					if (embedFieldName?.includes('Reply Message') && embedMessage) embedMessage = embedMessage?.split(/> .*/g)[1].trimStart();
-
-					message.content = embedMessage ? `> ${embedMessage}\n${message.content}` : compactReferrence ? `> ${compactReferrence}\n${message.content}` : message.content;
-					message.compactMessage = embedMessage ? `> ${embedMessage}\n` + message.compactMessage : compactReferrence ? `> ${compactReferrence}\n` + message.compactMessage : message.content;
-
-					embed.spliceFields(0, 1, {
-						name: 'Reply Message',
-						value: message.content,
-					});
-				}
-			}
-
-
 			await require('../Scripts/message/addBadges').execute(message, database, embed);
 			const attachments = await modifers.attachmentModifiers(message, embed);
 
 			const uncensoredEmbed = new EmbedBuilder(embed.data);
-			message.uncensoredCompactMessage = message.compactMessage;
+			message.cleanCompactMessage = message.compactMessage;
 
-			await modifers.profanityCensor(embed, message); // FIXME: Does not work for compact messages
+			await modifers.profanityCensor(embed, message);
 
 			// leveling system
 			// FIXME: Add levelling back when ready
@@ -109,7 +113,7 @@ export default {
 
 			allConnectedChannels?.forEach(channelObj => {
 				// sending the messages to the connected channels
-				const msg = messageSendTypes.execute(message, channelObj as connectedListDocument, embed, uncensoredEmbed, setup, attachments);
+				const msg = messageSendTypes.execute(message, channelObj as connectedListDocument, embed.data, uncensoredEmbed, setup, attachments, messageInDb);
 				// push the entire promise, as we dont want to wait for it inside the loop
 				channelAndMessageIds.push(msg);
 			}).then(async () => require('../Scripts/message/cleanup').default.execute(message, channelAndMessageIds, messageData, connectedList));
