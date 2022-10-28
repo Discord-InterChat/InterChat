@@ -16,7 +16,7 @@ export default {
 
 			const attachment = message.attachments.first();
 			const extension = attachment?.contentType?.split('/')[1];
-			const newAttachment = new AttachmentBuilder(attachment?.url as string, { name: `attachment.${extension}` });
+			const newAttachment = new AttachmentBuilder(attachment?.url as string, { name: `${attachment?.name}.${extension}` });
 			embed.setImage(`attachment://${newAttachment.name}`);
 
 			return newAttachment;
