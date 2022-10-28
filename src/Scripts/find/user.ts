@@ -8,7 +8,7 @@ import { Collection } from 'mongodb';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, userId: string, hidden: boolean) {
-		const user = await interaction.client.users.fetch(userId).catch(console.log);
+		const user = await interaction.client.users.fetch(userId).catch(() => null);
 		if (!user) return interaction.reply({ content: 'Unknown user.', ephemeral: true });
 
 		const db = getDb();
