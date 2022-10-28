@@ -25,7 +25,7 @@ export = {
 		}
 
 		// check if message contains slurs
-		if (message.content.split(/\b/).some(word => slurs.includes(word.toLocaleLowerCase()))) {
+		if (slurs.some((slur) => message.content.toLowerCase().includes(slur))) {
 			wordFilter.log(message.client, message.author, message.guild, message.content);
 			return false;
 		}
