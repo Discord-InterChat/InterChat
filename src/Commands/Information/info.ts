@@ -19,7 +19,7 @@ export default {
 		const embed = new EmbedBuilder()
 			.setColor(colors('chatbot'))
 			.setTitle(`${interaction.client.emoji.icons.info} ChatBot Information`)
-			.setDescription('This is a bot that is used to chat with different servers without having to join them yourself!')
+			.setDescription('A bot that lets you talk to people from other servers from your own!')
 			.addFields([
 				{
 					name: 'Invite',
@@ -55,6 +55,7 @@ export default {
 					value: stripIndent`
 					[Guide](https://discord-chatbot.gitbook.io/guide/)
 					[Vote](https://top.gg/bot/769921109209907241/vote)
+					[App Directory](https://discord.com/application-directory/769921109209907241)
 					[Terms of Service](https://discord-chatbot.gitbook.io/chatbot/important/terms)
 					[Privacy Policy](https://discord-chatbot.gitbook.io/chatbot/important/privacy)
 					`,
