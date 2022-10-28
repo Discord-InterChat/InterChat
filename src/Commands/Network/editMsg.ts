@@ -23,7 +23,7 @@ export default {
 		const db = getDb();
 		const messageInDb = await db?.collection('messageData').findOne({ channelAndMessageIds: { $elemMatch: { messageId: target.id } } }) as messageData | undefined;
 
-		if (!messageInDb || messageInDb?.expired) {
+		if (!messageInDb || messageInDb.expired) {
 			interaction.reply({
 				content: 'This message has expired :(',
 				ephemeral: true,
@@ -32,15 +32,17 @@ export default {
 		}
 
 
-		if (interaction.user.id != messageInDb?.authorId) {
+		if (interaction.user.id != messageInDb.authorId) {
 			interaction.reply({ content: 'You are not the author of this message.', ephemeral: true });
 			return;
 		}
 
+		const replyRegex = /> .*/g;
+		const placeholder = target.embeds[0]?.fields[0]?.value || target.content.replace(`**${interaction.user.tag}:**`, '');
 
 		const modal = new ModalBuilder()
-			.setCustomId(Math.random().toString(36).slice(2, 7))
-			.setTitle('Report')
+			.setCustomId(interaction.id)
+			.setTitle('Edit Message')
 			.addComponents(
 				new ActionRowBuilder<TextInputBuilder>().addComponents(
 					new TextInputBuilder()
@@ -48,6 +50,7 @@ export default {
 						.setCustomId('editMessage')
 						.setStyle(TextInputStyle.Paragraph)
 						.setLabel('Please enter your new message.')
+						.setValue(placeholder.replace(replyRegex, '').trim())
 						.setMaxLength(950),
 				),
 			);
@@ -58,10 +61,15 @@ export default {
 		interaction.awaitModalSubmit({ filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id, time: 30_000 })
 			.then(i => {
 				const editMessage = i.fields.getTextInputValue('editMessage');
+
 				let targetEmbed = target.embeds[0]?.toJSON();
+				let compactMsg: string;
 
 				if (targetEmbed?.fields) {
-					targetEmbed.fields[0].value = editMessage;
+					// the message being replied to
+					const targetRef = targetEmbed.fields[0].value.match(replyRegex)?.at(0);
+
+					targetEmbed.fields[0].value = targetRef ? `${targetRef}\n${editMessage}` : editMessage;
 					targetEmbed.timestamp = new Date().toISOString();
 				}
 
@@ -69,29 +77,35 @@ export default {
 				// loop through all channels and fetch the messages to edit
 				// and edit each one as you go
 				// this might be a bit inefficient, but it's the easiest way to do it
-				if (messageInDb?.channelAndMessageIds) {
-					messageInDb?.channelAndMessageIds.forEach(async (element) => {
+				if (messageInDb.channelAndMessageIds) {
+					messageInDb.channelAndMessageIds.forEach(async (element) => {
 						await interaction.client.channels.fetch(element.channelId).then(async channel => {
 							if (channel?.type !== ChannelType.GuildText) return;
-							await channel.messages.fetch(element.messageId).then(async message => {
-								// if the message does not have an embed (i.e. its in compact mode) then edit the message directly
-								if (!message.embeds[0]) {
-									message.edit({ content: `**${i.user.tag}:** ${editMessage}` });
-								}
+							channel.messages.fetch(element.messageId)
+								.then(async message => {
+									if (!message.embeds[0] && !compactMsg) {
+										const temp = message.content.match(replyRegex);
+										compactMsg = temp ? `${temp?.at(0)}\n**${interaction.user.tag}:** ${editMessage}` : `**${interaction.user.tag}:** ${editMessage}`;
+									}
 
-								// if the message that the edit was performed on does not have an embed
-								// but message in the other server does (i.e. First message is in compact mode but this one is not),
-								// then store this as a new embed and edit with the new message
-								else if (!targetEmbed) {
-									targetEmbed = message.embeds[0]?.toJSON();
-									if (targetEmbed.fields) targetEmbed.fields[0].value = editMessage;
-									message.edit({ embeds: [targetEmbed] });
-								}
+									// if the message does not have an embed (i.e. its in compact mode) then edit the message content instead
+									if (!message.embeds[0]) {
+										message.edit({ content: compactMsg });
+									}
 
-								else {
-									message.edit({ embeds: [targetEmbed] });
-								}
-							}).catch(logger.error);
+									// First message is in compact mode but this one is not
+									// then store this as targetEmbed and use that to edit the other embeded messages
+									else if (!targetEmbed) {
+										targetEmbed = message.embeds[0]?.toJSON();
+										if (targetEmbed.fields) targetEmbed.fields[0].value = editMessage;
+										message.edit({ embeds: [targetEmbed] });
+									}
+
+									else {
+										message.edit({ embeds: [targetEmbed] });
+									}
+
+								}).catch(logger.error);
 						}).catch(logger.error);
 					});
 				}
