@@ -68,7 +68,12 @@ export default {
 				.setFooter({ text: 'PS: English is the only language supported by this bot. Those who don\'t adhere to it may be kicked from the network.' })
 				.setColor(colors('invisible'));
 
-			await sendInFirst(guild, { embeds: [embed] });
+			try {
+				await sendInFirst(guild, { embeds: [embed] });
+			}
+			catch {
+				return;
+			}
 		}
 	},
 };
