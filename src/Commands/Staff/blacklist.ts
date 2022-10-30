@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 
 export default {
@@ -6,7 +6,7 @@ export default {
 	data: new SlashCommandBuilder()
 		.setName('blacklist')
 		.setDescription('Blacklist a user or server from using the bot. Staff-only')
-		.setDefaultMemberPermissions('0')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		.addSubcommandGroup(subcommandGroup =>
 			subcommandGroup
 				.setName('add')

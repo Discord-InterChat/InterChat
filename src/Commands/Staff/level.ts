@@ -1,10 +1,10 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 
 export default {
 	staff: true,
 	data: new SlashCommandBuilder()
 		.setName('level')
-		.setDefaultMemberPermissions('0')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
 		.setDescription('Level managing command. Staff-only')
 		.addSubcommandGroup(subcommandGroup =>
 			subcommandGroup

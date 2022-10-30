@@ -1,11 +1,11 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 
 export default {
 	staff: true,
 	data: new SlashCommandBuilder()
 		.setName('connected-list')
 		.setDescription('Display the connected servers. (Staff only)')
-		.setDefaultMemberPermissions('0'),
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
 
 	async execute(interaction: ChatInputCommandInteraction) {
 		require('../../Scripts/connected/server').execute(interaction);
