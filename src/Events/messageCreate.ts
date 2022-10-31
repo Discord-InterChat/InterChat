@@ -64,22 +64,27 @@ export default {
 				messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: messageReferred?.id } } }) as messageDataInterface;
 
 				if (messageInDb && messageReferred) {
-					let embedMessage = messageReferred.embeds[0]?.fields[0]?.value;
-					let compactMessage = messageReferred.content;
+					let embed = messageReferred.embeds[0]?.fields[0]?.value;
+					let compact = messageReferred.content;
 
+					// if the message is a reply to another reply, remove the older reply :D
 					if (messageInDb.reference) {
 						const replaceReply = (string: string) => {
-							// if for some reason the reply is edited and the reply format (> message) is not there
+							// if for some reason the reply got edited and the reply format (> message) is not there
 							// return the original message and not undefined
-							return string?.split(/> .*/g)?.at(1)?.trimStart() || string;
+							return string?.split(/> .*/g).at(-1)?.trimStart() || string;
 						};
 
-						embedMessage = replaceReply(embedMessage);
-						compactMessage = replaceReply(compactMessage);
+						// messages that are being replied to
+						embed = replaceReply(embed);
+						compact = replaceReply(compact);
 					}
 
-					message.content = `> ${embedMessage || compactMessage}\n${message.content}`;
-					message.compactMessage = `> ${embedMessage || compactMessage}\n${message.compactMessage}`;
+					embed = embed?.replaceAll('\n', '\n> ');
+					compact = compact?.replaceAll('\n', '\n> ');
+
+					message.content = `> ${embed || compact}\n${message.content}`;
+					message.compactMessage = `> ${embed || compact}\n${message.compactMessage}`;
 				}
 			}
 
@@ -89,13 +94,14 @@ export default {
 				.addFields([{ name: 'Message', value: message.content || '\u200B' }])
 				.setAuthor({
 					name: message.author.tag,
-					iconURL: message.author.avatarURL()?.toString(),
+					iconURL: message.author.avatarURL() || message.author.defaultAvatarURL,
 					url: `https://discord.com/users/${message.author.id}`,
 				})
 				.setFooter({
 					text: `From: ${message.guild}┃${message.guild?.id}`,
 					iconURL: message.guild?.iconURL()?.toString(),
 				});
+
 
 			await require('../Scripts/message/addBadges').execute(message, database, embed);
 			const attachments = await modifers.attachmentModifiers(message, embed);
