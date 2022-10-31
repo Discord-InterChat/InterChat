@@ -18,76 +18,65 @@ export default {
 	 */
 	execute: async (
 		message: MessageInterface,
-		channelObj: connectedListDocument,
+		channel: connectedListDocument,
 		embedData: APIEmbed,
 		uncensoredEmbed: EmbedBuilder,
-		setupDb?: Collection,
-		attachments?: AttachmentBuilder,
-		referenceMessage?: messageData | null,
+		setupDb: Collection | undefined,
+		attachments: AttachmentBuilder | undefined,
+		referenceMessages: messageData | null,
 	) => {
-		const allChannel = message.client.channels.cache.get(channelObj.channelId) as TextChannel;
+		const channelObj = await message.client.channels.fetch(channel.channelId).catch(() => null) as TextChannel | null;
+		if (!channelObj) return { unknownChannelId: channel.channelId };
 
-		if (!allChannel) return { unknownChannelId: channelObj.channelId };
+		const embed = new EmbedBuilder(embedData);
+		const channelInDB = await setupDb?.findOne({ 'channel.id': channelObj.id }) as setupDocument | null | undefined;
 
-		let embed = new EmbedBuilder(embedData);
-		const channelInDB = await setupDb?.findOne({ 'channel.id': allChannel.id }) as setupDocument | null | undefined;
 
-		if (referenceMessage) {
-			const msgInDb = referenceMessage.channelAndMessageIds.find((dbmsg) => dbmsg.channelId === allChannel.id);
-
-			if (msgInDb) embed.setDescription(`[${message.client.emoji.icons.info}](https://discord-chatbot.gitbook.io/chatbot/guide/network/replying-to-a-message) [Jump To Message](https://discord.com/channels/${allChannel.guildId}/${msgInDb?.channelId}/${msgInDb?.messageId})`);
+		if (referenceMessages) {
+			const msgInDb = referenceMessages.channelAndMessageIds.find((dbmsg) => dbmsg.channelId === channelObj.id);
+			if (msgInDb) embed.setDescription(`[${message.client.emoji.icons.info}](https://discord-chatbot.gitbook.io/chatbot/guide/network/replying-to-a-message) [Jump To Message](https://discord.com/channels/${channelObj.guildId}/${msgInDb?.channelId}/${msgInDb?.messageId})`);
 		}
 
-		if (!channelInDB?.profFilter) {
-			message.compactMessage = String(message.cleanCompactMessage);
-			embed = uncensoredEmbed;
-		}
 
-		if (channelInDB?.compact === true && allChannel.id == message.channel.id) {
-			return sendCompact(message.channel as TextChannel);
+		if (channelInDB?.compact === true) {
+			return sendCompact(channelObj);
 		}
-		else if (channelInDB?.compact === true && allChannel.id == channelInDB.channel.id) {
-			return sendCompact(allChannel);
-		}
-		// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images
-		else if (attachments) {
-			return await allChannel.send({ embeds: [embed], files: [attachments], allowedMentions: { parse: ['roles'] } });
-		}
-
 		else {
-			return await allChannel.send({ embeds: [embed], allowedMentions: { parse: ['roles'] } });
+			// TODO: Make sending images a voter only feature, so that random people won't send inappropriate images
+			return await channelObj.send({
+				embeds: [channelInDB?.profFilter === true ? embed : uncensoredEmbed],
+				files: attachments ? [attachments] : [],
+				allowedMentions: { parse: ['roles'] },
+			});
 		}
 
 
-		async function sendCompact(chan: TextChannel) {
+		async function sendCompact(compactChannel: TextChannel) {
+			const content = channelInDB?.profFilter === true ? message.compactMessage : message.cleanCompactMessage;
+
 			const webhookMessage: WebhookMessageInterface = {
-				content: message.compactMessage,
+				content,
 				username: message.author.username,
-				avatarURL: String(message.author.avatarURL()),
+				files: attachments ? [attachments] : [],
+				avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
 				allowedMentions: { parse: [] },
 			};
 
 			const normalMessage: BaseMessageOptions = {
-				content: message.compactMessage,
+				content,
+				files: attachments ? [attachments] : [],
 				allowedMentions: { parse: [] },
 			};
 
-
-			if (attachments) {
-				webhookMessage.files = [attachments];
-				normalMessage.files = [attachments];
-			}
-
 			try {
-				const webhooks = await chan.fetchWebhooks();
+				const webhooks = await compactChannel.fetchWebhooks();
 				const webhook = webhooks.first();
+				if (webhook) return await webhook.send(webhookMessage);
 
-				if (!webhook) return await allChannel.send(normalMessage);
-				else return await webhook.send(webhookMessage);
+				return await compactChannel.send(normalMessage);
 			}
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			catch {
-				return await allChannel.send(normalMessage);
+				return await compactChannel.send(normalMessage);
 			}
 		}
 	},
