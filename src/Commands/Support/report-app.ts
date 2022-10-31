@@ -1,53 +1,49 @@
 import { stripIndents } from 'common-tags';
-import { getDb, constants } from '../../Utils/functions/utils';
-import { ModalBuilder, ActionRowBuilder, InteractionCollector, EmbedBuilder, ContextMenuCommandBuilder, ApplicationCommandType, TextInputStyle, TextInputBuilder, MessageContextMenuCommandInteraction, TextChannel, ModalSubmitInteraction, GuildMember } from 'discord.js';
+import { getDb, constants, colors } from '../../Utils/functions/utils';
+import {
+	ModalBuilder,
+	ActionRowBuilder,
+	EmbedBuilder,
+	ContextMenuCommandBuilder,
+	ApplicationCommandType,
+	TextInputStyle,
+	TextInputBuilder,
+	MessageContextMenuCommandInteraction,
+	GuildTextBasedChannel,
+} from 'discord.js';
+import { messageData as messageDataDocument } from '../../Utils/typings/types';
+import logger from '../../Utils/logger';
 
 export default {
 	description: 'Report a user directly from the Chat Network!',
-	data: new ContextMenuCommandBuilder()
-		.setName('Report')
-		.setType(ApplicationCommandType.Message),
-
+	data: new ContextMenuCommandBuilder().setName('Report').setType(ApplicationCommandType.Message),
 	async execute(interaction: MessageContextMenuCommandInteraction) {
 		// The message the interaction is being performed on
 		const args = interaction.targetMessage;
 
-		const connectedList = getDb()?.collection('connectedList');
-		const channelInDb = await connectedList?.findOne({
-			channelId: args.channel.id,
-		});
+		const messageData = getDb()?.collection('messageData');
+		const messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: args.id } } }) as messageDataDocument | null;
 
 		// check if args.channel is in connectedList DB
-		if (!channelInDb) {
+		if (!messageInDb) {
 			return await interaction.reply({
-				content: 'This command only works in connected **network** channels.',
+				content: 'This command only works on messages sent in the network. Please use `/support report` to report individual users/servers instead.',
 				ephemeral: true,
 			});
 		}
 
-		if (
-			args.author.id != interaction.client.user?.id ||
-			!args.embeds[0] ||
-			!args.embeds[0].footer ||
-			!args.embeds[0].author ||
-			!args.embeds[0].author.url
-		) {
-			return await interaction.reply({
-				content: 'Invalid usage.',
-				ephemeral: true,
-			});
+		if (messageInDb.authorId === interaction.user.id) {
+			return interaction.reply({ content: 'You cannot report yourself!', ephemeral: true });
 		}
 
-		const reportsChannel = await interaction.client.channels.fetch(constants.channel.reports);
+		const cbhq = await interaction.client.guilds.fetch(constants.mainGuilds.cbhq);
+		const reportsChannel = await cbhq.channels.fetch(constants.channel.reports) as GuildTextBasedChannel;
 
-		const reportedUser = await interaction.client.users.fetch(
-			args.embeds[0].footer.text.split('┃')[-1],
-		);
+		const reportedUser = await interaction.client.users.fetch(messageInDb.authorId);
+		const reportedServer = await interaction.client.guilds.fetch(messageInDb.serverId);
 
-		const reportedServer = await interaction.client.guilds.fetch(
-			args.embeds[0].author.url.split('/')[-1],
-		);
-
+		// network channelId in chatbot hq
+		const cbhqJumpMsg = messageInDb.channelAndMessageIds.find((x) => x.channelId === '821607665687330816');
 
 		const modal = new ModalBuilder()
 			.setCustomId('modal')
@@ -56,59 +52,53 @@ export default {
 				new ActionRowBuilder<TextInputBuilder>().addComponents(
 					new TextInputBuilder()
 						.setRequired(true)
-						.setCustomId('para')
+						.setCustomId('reason')
 						.setStyle(TextInputStyle.Paragraph)
-						.setLabel('Please enter a reason for the report')
-						.setMaxLength(950),
+						.setLabel('Enter the reaon for your report')
+						.setMaxLength(2000),
 				),
 			);
 
 		await interaction.showModal(modal);
 
-		// create ModalBuilder input collector
-		const collector = new InteractionCollector(interaction.client, {
-			max: 1,
-			time: 60_000,
-			filter: (i) =>
-				i.isModalSubmit() &&
-				i.customId === 'modal' &&
-				i.user.id === interaction.user.id,
-		});
-
-
-		// respond to message when ModalBuilder is submitted
-		collector.on('collect', async (i: ModalSubmitInteraction) => {
-			const reason = i.fields.getTextInputValue('para');
+		// respond to message when Modal is submitted
+		interaction.awaitModalSubmit({
+			time: 60_000 * 5,
+			filter: (i) => i.customId === 'modal' && i.user.id === interaction.user.id,
+		}).then(async (i) => {
+			const reason = i.fields.getTextInputValue('reason');
 
 			// create embed with report info
 			// and send it to report channel
 			const embed = new EmbedBuilder()
 				.setAuthor({
-					name: `${reportedUser.tag} reported`,
-					iconURL: reportedUser.displayAvatarURL(),
+					name: `${reportedUser.tag} was reported!`,
+					iconURL: reportedUser.avatarURL() || reportedUser.defaultAvatarURL,
 				})
-				.setTitle('New User report')
-				.setDescription(`**Reason**: \`${reason}\``)
-				.setColor('#ff0000')
-				.addFields([
-					{
-						name: 'Report:',
-						value: stripIndents`
-						**Reported User**: ${reportedUser.username}#${reportedUser.discriminator} (${reportedUser.id})
-						**User from server:**: ${reportedServer.name} (${reportedServer.id})
-						
-						**Reported Message**: \`\`\`${args.embeds[0].fields[0].value}\`\`\` `,
-					},
-					{
-						name: 'Reported By:',
-						value: `**User**: ${i.user.tag} (${(i.member as GuildMember)?.id})\n**From**: ${i.guild?.name} ${i.guild?.id}`,
-					},
-				])
+				.setDescription(`**Reason**: ${reason}`)
+				.addFields({
+					name: 'Reported User',
+					value: stripIndents`
+						**Tag**: ${reportedUser.tag}
+						**From**: ${reportedServer.name} (${reportedServer.id})
+						**Message**: [Jump to Message](https://discord.com/channels/${cbhq.id}/${cbhqJumpMsg?.channelId}/${cbhqJumpMsg?.messageId})
+						**Raw**: \`\`\`${args.embeds[0]?.fields[0]?.value || args.content}\`\`\`
+						`,
+				})
+				.setFooter({
+					text: `Reported by: ${interaction.user.tag} | ${interaction.user.id}`,
+					iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,
+				})
+				.setColor(colors('chatbot'))
 				.setTimestamp();
-			await (reportsChannel as TextChannel)?.send({ embeds: [embed] });
+
+			await reportsChannel?.send({ embeds: [embed] });
 
 			// reply to interaction
 			await i.reply({ content: 'Thank you for your report!', ephemeral: true });
+		}).catch((err) => {
+			if (err.message.includes('ending with reason: time')) return;
+			logger.error('Error in report-app:', err);
 		});
 	},
 };
