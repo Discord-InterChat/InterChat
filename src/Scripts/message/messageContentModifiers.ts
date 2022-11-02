@@ -15,8 +15,7 @@ export default {
 			message.channel.send('Warn: Sending images directly is currently experimental, so it might take a few seconds for chatbot to send images!');
 
 			const attachment = message.attachments.first();
-			const extension = attachment?.contentType?.split('/')[1];
-			const newAttachment = new AttachmentBuilder(attachment?.url as string, { name: `${attachment?.name}.${extension}` });
+			const newAttachment = new AttachmentBuilder(`${attachment?.url}`, { name: `${attachment?.name}` });
 			embed.setImage(`attachment://${newAttachment.name}`);
 
 			return newAttachment;
@@ -52,6 +51,10 @@ export default {
 					value: message.content.replace(gifMatch[0], '\u200B').trim(),
 				}]);
 		}
+
+		else if (message.embeds[0]?.provider?.name === 'YouTube' && message.embeds[0]?.data.thumbnail) {
+			embed.setImage(message.embeds[0].data.thumbnail.url);
+		}
 	},
 
 	async profanityCensor(embed: EmbedBuilder, message: MessageInterface) {
@@ -60,8 +63,6 @@ export default {
 			embed.setFields({ name: 'Message', value: wordFilter.censor(String(embed.data.fields?.at(0)?.value)) });
 		}
 
-		if (wordFilter.check(message.compactMessage)) {
-			message.compactMessage = wordFilter.censor(String(message.compactMessage));
-		}
+		message.censoredCompactMessage = wordFilter.censor(String(message.compactMessage));
 	},
 };
