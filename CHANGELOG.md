@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.3.0](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.2.0...v3.3.0) (2022-11-02)
+
+
+### Features
+
+* Display youtube thumbnails as image ([19b7c16](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/19b7c168b613b80ff22ac8c61357e3fd650b9828))
+* Editing webhook messages ([563a58d](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/563a58d20c26ad74c0fba431b54e94123bde30db))
+* **network:** Added webhook support ([743296f](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/743296f8522a4e34fae18b5bbe248e4999c0d776))
+
+
+### Bug Fixes
+
+* `User ID` context menu now works for compact messages ([abe1e43](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/abe1e4374d0d5a9276cd433b8514d7bf52d32392))
+* Fixed direct context menu reports not working ([64b6369](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/64b6369244ce047e33323daa56969e69a6151acb))
+* Fixed resetting setup showing cancelled on success ([06a782f](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/06a782fde50c177534588cb8123084fa8f2a0862))
+* replies wont overflow from quotes anymore ([11cf21b](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/11cf21b199be542aa175d5affdff6942644f2293))
+* Updated perms for staff commands ([54e3f72](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/54e3f724caba8e350f8c49778dca4e714bac06e5))
+
 ## [3.1.0](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.1.0-beta...v3.1.0) (2022-10-21)
 
 ## [2.0.0](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v2.0.0-alpha.1...v2.0.0) (2022-10-12)
