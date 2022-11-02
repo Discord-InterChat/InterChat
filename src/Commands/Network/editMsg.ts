@@ -68,6 +68,7 @@ export default {
 
 				let targetEmbed = target.embeds[0]?.toJSON();
 				let compactMsg: string;
+				let compactWebhookMsg: string;
 
 				if (targetEmbed?.fields) {
 					// the message being replied to
@@ -88,20 +89,14 @@ export default {
 								const channelSetup = await setupList?.findOne({ 'channel.id': channel.id });
 
 								// NOTE: This will error if user tries to edit compact message after disabling compact mode in setup
-								if (channelSetup?.webhook) {
-									if (channelSetup?.compact) {
-										const webhook = new WebhookClient({ id: channelSetup.webhook.id, token: channelSetup.webhook.token });
-										webhook.editMessage(element.messageId, { content: editMessage }).catch(e => logger.error('Editing Webhook [compact]', e));
-										return;
-									}
-									else if (targetEmbed && !channelSetup?.compact) {
-										const webhookEmbed = targetEmbed;
-										webhookEmbed.author = undefined;
+								if (targetEmbed && !channelSetup?.compact && channelSetup?.webhook) {
+									const webhookEmbed = targetEmbed;
+									webhookEmbed.author = undefined;
 
-										const webhook = new WebhookClient({ id: channelSetup.webhook.id, token: channelSetup.webhook.token });
-										webhook.editMessage(element.messageId, { embeds: [targetEmbed] }).catch(e => logger.error('Editing Webhook: [embeds]', e));
-										return;
-									}
+									const webhook = new WebhookClient({ id: channelSetup?.webhook.id, token: channelSetup?.webhook.token });
+									webhook.editMessage(element.messageId, { embeds: [targetEmbed] }).catch(e => logger.error('Editing Webhook: [embeds]', e));
+									return;
+
 								}
 
 								channel.messages.fetch(element.messageId)
@@ -116,16 +111,26 @@ export default {
 										if (channelSetup?.compact && !compactMsg) {
 											const temp = message.content.match(replyRegex);
 											compactMsg = temp ? `${temp.at(0)}\n**${interaction.user.tag}:** ${editMessage}` : `**${interaction.user.tag}:** ${editMessage}`;
+											compactWebhookMsg = temp ? `${temp.at(0)}\n${editMessage}` : editMessage;
 										}
 
-										if (channelSetup?.compact) {
-											message.edit(compactMsg);
+										if (channelSetup?.webhook && channelSetup.compact) {
+											const webhook = new WebhookClient({ id: channelSetup.webhook.id, token: channelSetup.webhook.token });
+											try {
+												await webhook.editMessage(element.messageId, { content: compactWebhookMsg });
+											}
+											catch (e) {
+												logger.error('Editing Webhook [compact]', e);
+											}
 										}
 
-										else if (channelSetup?.webhook) {
+										else if (channelSetup?.webhook && !channelSetup.compact) {
 											const webhook = new WebhookClient({ id: channelSetup.webhook.id, token: channelSetup.webhook.token });
 											webhook.editMessage(element.messageId, { embeds: [targetEmbed] });
-											return;
+										}
+
+										else if (channelSetup?.compact) {
+											message.edit(compactMsg);
 										}
 
 										else {

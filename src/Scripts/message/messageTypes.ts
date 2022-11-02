@@ -87,7 +87,7 @@ export default {
 			const content = channelInDB?.profFilter === true ? message.censoredCompactMessage : message.compactMessage;
 
 			const webhookMessage: WebhookCreateMessageOptions = {
-				content: content?.replace(`**${message.author.tag}:**`, ''),
+				content: content?.replaceAll(`**${message.author.tag}:**`, ''),
 				username: message.author.username,
 				files: attachments ? [attachments] : [],
 				components: replyButton ? [replyButton] : [],
