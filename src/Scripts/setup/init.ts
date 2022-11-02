@@ -89,6 +89,7 @@ export = {
 				date: { full: date, timestamp: timestamp },
 				compact: false,
 				profFilter: true,
+				webhook: null,
 			});
 
 			const numOfConnections = await network.totalConnected();

@@ -1,8 +1,9 @@
-import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, SelectMenuBuilder, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder } from 'discord.js';
+import { stripIndent } from 'common-tags';
+import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, SelectMenuBuilder, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType } from 'discord.js';
 import { Collection, Document } from 'mongodb';
 import { getDb, NetworkManager } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
-import { connectedListDocument } from '../../Utils/typings/types';
+import { connectedListDocument, setupDocument } from '../../Utils/typings/types';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, collection: Collection | undefined) {
@@ -32,7 +33,13 @@ export = {
 						label: 'Profanity Filter',
 						emoji: '🤬',
 						description: 'Toggle message censoring for this server.',
-						value: 'profanity_toggle',
+						value: 'profanity',
+					},
+					{
+						label: 'Webhook Messages',
+						emoji: emoji.icons.webhook,
+						description: 'Send network messages from webhooks instead of the bot.',
+						value: 'webhook',
 					},
 				]),
 		]);
@@ -49,7 +56,7 @@ export = {
 			return await interaction.followUp('Connected channel has been deleted! Please use `/setup channel` and set a new one.');
 		}
 
-		if (!guildConnected) setupActionButtons.components.pop();
+		if (!guildConnected) setupActionButtons.components.at(-1)?.setDisabled(true);
 
 
 		const setupMessage = await interaction.editReply({ content: '', embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
@@ -76,14 +83,16 @@ export = {
 					await network.connect(interaction.guild, channel);
 					logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
 
+					setupActionButtons.components.at(-1)?.setDisabled(false);
+
 					component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
-					interaction.editReply({ embeds: [await setupEmbed.default()] });
+					interaction.editReply({ embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
 					break;
 				}
 
 				case 'disconnect':
 					new NetworkManager().disconnect(String(interaction.guildId));
-					setupActionButtons.components.pop();
+					setupActionButtons.components.at(-1)?.setDisabled(true);
 
 					component.message.edit({ embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
 					component.reply({ content: 'Disconnected!', ephemeral: true });
@@ -98,18 +107,59 @@ export = {
 				switch (component.customId) {
 				case 'customize': {
 					// get the latest db updates
-					const guildInDB = await collection?.findOne({ 'guild.id': interaction.guild?.id });
+					const guildInDB = await collection?.findOne({ 'guild.id': interaction.guild?.id }) as setupDocument;
 
-					if (component.values[0] === 'compact') {
+					switch (component.values[0]) {
+					case 'compact':
 						await collection?.updateOne({ 'guild.id': interaction.guild?.id },
 							{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), compact: !guildInDB?.compact } });
-					}
+						break;
 
-					if (component.values[0] === 'profanity_toggle') {
+					case 'profanity':
 						await collection?.updateOne({ 'guild.id': interaction.guild?.id },
 							{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), profFilter: !guildInDB?.profFilter } });
+						break;
+
+					case 'webhook': {
+						const connectedChannel = await interaction.client.channels.fetch(guildInDB.channel.id).catch(() => null);
+
+						if (!connectedChannel || connectedChannel.type !== ChannelType.GuildText) {
+							await component.reply({ content: 'Cannot edit setup for selected channel. If you think this is a mistake report this to the developers.', ephemeral: true });
+							break;
+						}
+
+						if (guildInDB?.webhook) {
+							const deleteWebhook = await connectedChannel.fetchWebhooks();
+							deleteWebhook.find((webhook) => webhook.owner?.id === interaction.client.user.id)?.delete();
+
+							await collection?.updateOne({ 'channel.id': connectedChannel.id },
+								{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), webhook: null } });
+
+							await component.reply({ content: 'Webhook messages have been disabled.', ephemeral: true });
+							break;
+						}
+
+						const webhook = await connectedChannel.createWebhook({ name: 'ChatBot Network', avatar: interaction.client.user?.avatarURL() });
+
+						await collection?.updateOne(
+							{ 'guild.id': interaction.guild?.id },
+							{
+								$set: {
+									'date.timestamp': Math.round(new Date().getTime() / 1000),
+									webhook: {
+										id: webhook.id,
+										token: webhook.token,
+										url: webhook.url,
+									},
+								},
+							},
+						);
+						await component.reply({ content: 'Webhook has been initialized! Messages will now be sent with webhooks.', ephemeral: true });
+						break;
 					}
-					component.update({ embeds: [await setupEmbed.default()] });
+
+					}
+					component.replied || component.deferred ? interaction.editReply({ embeds: [await setupEmbed.default()] }) : component.update({ embeds: [await setupEmbed.default()] });
 				}
 				}
 			}
@@ -161,7 +211,11 @@ class SetupEmbedGenerator {
 				},
 				{
 					name: 'Style',
-					value: `**Compact:** ${guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled}\n**Profanity Filter:** ${guildSetupData?.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}`,
+					value: stripIndent`
+					**Compact:** ${guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled}
+					**Profanity Filter:** ${guildSetupData?.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}
+					**Webhook Messages:**  ${guildSetupData?.webhook ? emoji.normal.enabled : emoji.normal.disabled}
+					`,
 				},
 			)
 			.setColor('#3eb5fb')

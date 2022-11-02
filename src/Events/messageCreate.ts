@@ -1,10 +1,10 @@
 import modifers from '../Scripts/message/messageContentModifiers';
 import evalScript from '../Scripts/message/evalScript';
 import messageSendTypes from '../Scripts/message/messageTypes';
-import { EmbedBuilder, GuildMember, Message, User } from 'discord.js';
+import { APIMessage, EmbedBuilder, GuildMember, Message, User } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
-import { connectedListDocument, messageData as messageDataInterface } from '../Utils/typings/types';
-import { InvalidChannelId } from '../Scripts/message/cleanup';
+import { connectedListDocument, messageData as messageDataDocument, setupDocument } from '../Utils/typings/types';
+import { InvalidChannelId, InvalidWebhookId } from '../Scripts/message/cleanup';
 import { Collection } from 'mongodb';
 
 type UserEntries = {
@@ -30,8 +30,7 @@ export const warningsMap = new Map<string, WarningEntries>();
 
 export interface MessageInterface extends Message<boolean>{
 	compactMessage?: string,
-	/** Uncensored compact message */
-	cleanCompactMessage?: string,
+	censoredCompactMessage?: string,
 }
 
 export default {
@@ -43,9 +42,9 @@ export default {
 
 		// main db where ALL connected channel data is stored
 		const database = getDb();
-		const setup = database?.collection('setup');
+		const setup = database?.collection('setup') as Collection<setupDocument> | undefined;
 		const connectedList = database?.collection('connectedList') as Collection<connectedListDocument> | undefined;
-		const messageData = database?.collection('messageData');
+		const messageData = database?.collection('messageData') as Collection<messageDataDocument> | undefined;
 
 
 		const channelInNetwork = await connectedList?.findOne({ channelId: message.channel.id });
@@ -57,11 +56,12 @@ export default {
 
 			message.compactMessage = `**${message.author.tag}:** ${message.content}`;
 
-			let messageInDb: messageDataInterface | null = null;
+			let messageInDb: messageDataDocument | null = null;
 
+			// handle replies
 			if (message.reference) {
 				const messageReferred = await message.fetchReference().catch(() => null);
-				messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: messageReferred?.id } } }) as messageDataInterface;
+				messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: messageReferred?.id } } }) as messageDataDocument;
 
 				if (messageInDb && messageReferred) {
 					let embed = messageReferred.embeds[0]?.fields[0]?.value;
@@ -106,23 +106,21 @@ export default {
 			await require('../Scripts/message/addBadges').execute(message, database, embed);
 			const attachments = await modifers.attachmentModifiers(message, embed);
 
-			const uncensoredEmbed = new EmbedBuilder(embed.data);
-			message.cleanCompactMessage = message.compactMessage;
-
-			await modifers.profanityCensor(embed, message);
+			const censoredEmbed = new EmbedBuilder(embed.data);
+			await modifers.profanityCensor(censoredEmbed, message);
 
 			// leveling system
 			// FIXME: Add levelling back when ready
 			// require('../Scripts/message/levelling').execute(message);
 
-			const channelAndMessageIds: Promise<Message | InvalidChannelId>[] = [];
+			const channelAndMessageIds: Promise<Message | APIMessage | InvalidChannelId | InvalidWebhookId>[] = [];
 
 			allConnectedChannels?.forEach(channelObj => {
 				// sending the messages to the connected channels
-				const msg = messageSendTypes.execute(message, channelObj as connectedListDocument, embed.data, uncensoredEmbed, setup, attachments, messageInDb);
+				const msg = messageSendTypes.execute(message, channelObj, censoredEmbed, embed, setup, attachments, messageInDb);
 				// push the entire promise, as we dont want to wait for it inside the loop
 				channelAndMessageIds.push(msg);
-			}).then(async () => require('../Scripts/message/cleanup').default.execute(message, channelAndMessageIds, messageData, connectedList));
+			}).then(async () => require('../Scripts/message/cleanup').default.execute(message, channelAndMessageIds));
 		}
 		else {
 			return;

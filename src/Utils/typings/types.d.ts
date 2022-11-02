@@ -27,6 +27,11 @@ export interface setupDocument extends WithId<Document> {
 		name: string;
 		id: string;
 	},
+	webhook: {
+		id: string;
+		token: string;
+		url?: string;
+	} | null;
 	date: {
 		full: Date
 		timestamp: number;
