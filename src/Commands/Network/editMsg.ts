@@ -1,7 +1,10 @@
-import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, ChannelType } from 'discord.js';
+import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, ChannelType, WebhookClient } from 'discord.js';
 import { getDb, constants } from '../../Utils/functions/utils';
-import { messageData } from '../../Utils/typings/types';
+import { messageData, setupDocument } from '../../Utils/typings/types';
 import logger from '../../Utils/logger';
+import wordFiler from '../../Utils/functions/wordFilter';
+import { Collection } from 'mongodb';
+
 
 export default {
 	data: new ContextMenuCommandBuilder()
@@ -22,6 +25,7 @@ export default {
 
 		const db = getDb();
 		const messageInDb = await db?.collection('messageData').findOne({ channelAndMessageIds: { $elemMatch: { messageId: target.id } } }) as messageData | undefined;
+		const setupList = db?.collection('setup') as Collection<setupDocument>;
 
 		if (!messageInDb || messageInDb.expired) {
 			interaction.reply({
@@ -60,7 +64,7 @@ export default {
 		// get the new message from the user via the modal
 		interaction.awaitModalSubmit({ filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id, time: 30_000 })
 			.then(i => {
-				const editMessage = i.fields.getTextInputValue('editMessage');
+				const editMessage = wordFiler.censor(i.fields.getTextInputValue('editMessage'));
 
 				let targetEmbed = target.embeds[0]?.toJSON();
 				let compactMsg: string;
@@ -76,41 +80,64 @@ export default {
 
 				// loop through all channels and fetch the messages to edit
 				// and edit each one as you go
-				// this might be a bit inefficient, but it's the easiest way to do it
 				if (messageInDb.channelAndMessageIds) {
 					messageInDb.channelAndMessageIds.forEach(async (element) => {
-						await interaction.client.channels.fetch(element.channelId).then(async channel => {
-							if (channel?.type !== ChannelType.GuildText) return;
-							channel.messages.fetch(element.messageId)
-								.then(async message => {
-									if (!message.embeds[0] && !compactMsg) {
-										const temp = message.content.match(replyRegex);
-										compactMsg = temp ? `${temp?.at(0)}\n**${interaction.user.tag}:** ${editMessage}` : `**${interaction.user.tag}:** ${editMessage}`;
-									}
+						interaction.client.channels.fetch(element.channelId)
+							.then(async channel => {
+								if (!channel?.isTextBased()) return;
+								const channelSetup = await setupList?.findOne({ 'channel.id': channel.id });
 
-									// if the message does not have an embed (i.e. its in compact mode) then edit the message content instead
-									if (!message.embeds[0]) {
-										message.edit({ content: compactMsg });
+								// NOTE: This will error if user tries to edit compact message after disabling compact mode in setup
+								if (channelSetup?.webhook) {
+									if (channelSetup?.compact) {
+										const webhook = new WebhookClient({ id: channelSetup.webhook.id, token: channelSetup.webhook.token });
+										webhook.editMessage(element.messageId, { content: editMessage }).catch(e => logger.error('Editing Webhook [compact]', e));
+										return;
 									}
+									else if (targetEmbed && !channelSetup?.compact) {
+										const webhookEmbed = targetEmbed;
+										webhookEmbed.author = undefined;
 
-									// First message is in compact mode but this one is not
-									// then store this as targetEmbed and use that to edit the other embeded messages
-									else if (!targetEmbed) {
-										targetEmbed = message.embeds[0]?.toJSON();
-										if (targetEmbed.fields) targetEmbed.fields[0].value = editMessage;
-										message.edit({ embeds: [targetEmbed] });
+										const webhook = new WebhookClient({ id: channelSetup.webhook.id, token: channelSetup.webhook.token });
+										webhook.editMessage(element.messageId, { embeds: [targetEmbed] }).catch(e => logger.error('Editing Webhook: [embeds]', e));
+										return;
 									}
+								}
 
-									else {
-										message.edit({ embeds: [targetEmbed] });
-									}
+								channel.messages.fetch(element.messageId)
+									.then(async message => {
+										// First message is in compact mode but this one is not
+										// then store this as targetEmbed and use that to edit the other embeded messages
+										if (!channelSetup?.compact && !targetEmbed) {
+											targetEmbed = message.embeds[0]?.toJSON();
+											if (targetEmbed?.fields) targetEmbed.fields[0].value = editMessage;
+										}
 
-								}).catch(logger.error);
-						}).catch(logger.error);
+										if (channelSetup?.compact && !compactMsg) {
+											const temp = message.content.match(replyRegex);
+											compactMsg = temp ? `${temp.at(0)}\n**${interaction.user.tag}:** ${editMessage}` : `**${interaction.user.tag}:** ${editMessage}`;
+										}
+
+										if (channelSetup?.compact) {
+											message.edit(compactMsg);
+										}
+
+										else if (channelSetup?.webhook) {
+											const webhook = new WebhookClient({ id: channelSetup.webhook.id, token: channelSetup.webhook.token });
+											webhook.editMessage(element.messageId, { embeds: [targetEmbed] });
+											return;
+										}
+
+										else {
+											message.edit({ embeds: [targetEmbed] });
+										}
+
+									}).catch(logger.error);
+							}).catch(logger.error);
 					});
 				}
 				i.reply({ content: `${interaction.client.emoji.normal.yes} Message Edited.`, ephemeral: true });
 			})
-			.catch(() => {return;});
+			.catch(() => null);
 	},
 };
