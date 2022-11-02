@@ -29,7 +29,13 @@ export = {
 
 		// Creating collector for yes/no button
 		resetCollector.on('collect', async (collected) => {
-			if (collected.customId !== 'yes') return resetCollector.stop();
+			if (collected.customId !== 'yes') {
+				collected.update({
+					content: `${interaction.client.emoji.normal.no} Cancelled.`,
+					components: [],
+				});
+				return;
+			}
 
 			await setupList?.deleteOne({ 'guild.id': interaction.guild?.id });
 			await network.disconnect(interaction.guildId);
@@ -39,13 +45,6 @@ export = {
 				components: [],
 			});
 
-		});
-
-		resetCollector.on('end', () => {
-			interaction.editReply({
-				content: `${interaction.client.emoji.normal.no} Reset cancelled.`,
-				components: [],
-			});
 		});
 	},
 };
