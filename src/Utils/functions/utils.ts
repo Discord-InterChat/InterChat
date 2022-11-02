@@ -298,7 +298,7 @@ export class NetworkManager {
 	}
 
 	/**
-	 * Returns true if the server/channel is connected.
+	 * Returns found document if the server/channel is connected.
 	 */
 	public async connected(options: NetworkManagerOptions) {
 		const InDb = await this.connectedList?.findOne(options) as connectedListDocument | undefined | null;
