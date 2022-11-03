@@ -50,9 +50,6 @@ export default {
 			const webhookEmbed = embed.toJSON();
 			const uncensoredWebhookEmbed = uncensoredEmbed.toJSON();
 
-			webhookEmbed.author = undefined;
-			uncensoredWebhookEmbed.author = undefined;
-
 			webhookEmbed.footer = { text: `${message.guild?.name}`, icon_url: message.guild?.iconURL() || undefined };
 			uncensoredWebhookEmbed.footer = { text: `${message.guild?.name}`, icon_url: message.guild?.iconURL() || undefined };
 

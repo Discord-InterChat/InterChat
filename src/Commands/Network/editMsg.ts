@@ -90,13 +90,9 @@ export default {
 
 								// NOTE: This will error if user tries to edit compact message after disabling compact mode in setup
 								if (targetEmbed && !channelSetup?.compact && channelSetup?.webhook) {
-									const webhookEmbed = targetEmbed;
-									webhookEmbed.author = undefined;
-
 									const webhook = new WebhookClient({ id: channelSetup?.webhook.id, token: channelSetup?.webhook.token });
 									webhook.editMessage(element.messageId, { embeds: [targetEmbed] }).catch(e => logger.error('Editing Webhook: [embeds]', e));
 									return;
-
 								}
 
 								channel.messages.fetch(element.messageId)
