@@ -7,6 +7,8 @@ export default {
 		.setName('info')
 		.setDescription('This command is used to get information about the bot.'),
 	async execute(interaction: ChatInputCommandInteraction) {
+		const { normal, icons } = interaction.client.emoji;
+
 		await interaction.deferReply();
 
 		const members: User[] = [];
@@ -18,47 +20,44 @@ export default {
 
 		const embed = new EmbedBuilder()
 			.setColor(colors('chatbot'))
-			.setTitle(`${interaction.client.emoji.icons.info} ChatBot Information`)
+			.setTitle(`${icons.info} ChatBot Information`)
 			.setDescription('A bot that lets you talk to people from other servers from your own!')
 			.addFields([
-				{
-					name: 'Invite',
-					value: '</invite:924659340898619394>',
-					inline: true,
-				},
-				{
-					name: 'Support Server',
-					value: '</support server:924659341049626636>',
-					inline: true,
-				},
 				{
 					name: 'Credits',
 					value: stripIndent`
 					Some emojis used on this bot are from [Icons discord server](https://discord.gg/aPvvhefmt3).
 
-						${interaction.client.emoji.normal.chatbot_circle} **Avatar & Badges:** 
+						${normal.chatbot_circle} **Avatar & Badges:** 
 						> \`-\` ${members[1].tag}
 						> \`-\` ${members.at(-2)?.tag}
 
-						${interaction.client.emoji.icons.botdev} **Developers:**
+						${icons.botdev} **Developers:**
 						> \`-\` ${members[1].tag}
 						> \`-\` ${members[3].tag}
-						> \`-\` ${members[4].tag}
 
-						${interaction.client.emoji.icons.staff} **Staff:**
+						${icons.staff} **Staff:**
 						> \`-\` ${members.at(-2)?.tag}
 						*Psst. Join the support server to know more about how you can become a staff member!*	
 					`,
 				},
 				{
-					name: `${interaction.client.emoji.icons.link} Resuourses`,
+					name: `${icons.link} Resources`,
 					value: stripIndent`
 					[Guide](https://discord-chatbot.gitbook.io/guide/)
 					[Vote link](https://top.gg/bot/769921109209907241/vote)
 					[App Directory](https://discord.com/application-directory/769921109209907241)
+					`,
+					inline: true,
+				},
+				{
+					name: '\u200B',
+					value: stripIndent`
+					[Support Server](https://discord.gg/6bhXQynAPs)
 					[Privacy Policy](https://discord-chatbot.gitbook.io/chatbot/important/privacy)
 					[Terms of Service](https://discord-chatbot.gitbook.io/chatbot/important/terms)
 					`,
+					inline: true,
 				},
 			])
 			.setFooter({

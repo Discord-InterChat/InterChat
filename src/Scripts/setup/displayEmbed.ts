@@ -1,7 +1,7 @@
 import { stripIndent } from 'common-tags';
 import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, SelectMenuBuilder, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType } from 'discord.js';
 import { Collection, Document } from 'mongodb';
-import { getDb, NetworkManager } from '../../Utils/functions/utils';
+import { colors, getDb, NetworkManager } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 import { connectedListDocument, setupDocument } from '../../Utils/typings/types';
 
@@ -166,10 +166,7 @@ export = {
 		});
 
 		setupCollector.on('end', () => {
-			interaction.editReply({ components: [] }).catch((e) => {
-				if (e.message.includes('Unkown Message')) return;
-				logger.error(`[Setup] Encountered error when trying to delete components from message: ${e}`);
-			});
+			interaction.editReply({ components: [] }).catch(() => null);
 			return;
 		});
 
@@ -196,13 +193,13 @@ class SetupEmbedGenerator {
 		const emoji = this.interaction.client.emoji;
 
 		const guildNetworkData = await connectedList?.findOne({ channelId : channel?.id }) as connectedListDocument | undefined | null;
-		const status = channel && guildNetworkData ? this.interaction.client.emoji.normal.yes : emoji.normal.no;
+		const status = channel && guildNetworkData ? emoji.normal.yes : emoji.normal.no;
 
 
 		const embed = new EmbedBuilder()
 			.setAuthor({
-				name: `${this.interaction.client.user?.username.toString()} Setup`,
-				iconURL: this.interaction.client.user?.avatarURL()?.toString(),
+				name: `${this.interaction.guild?.name} Setup`,
+				iconURL: this.interaction.guild?.iconURL()?.toString(),
 			})
 			.addFields(
 				{
@@ -218,7 +215,7 @@ class SetupEmbedGenerator {
 					`,
 				},
 			)
-			.setColor('#3eb5fb')
+			.setColor(colors('chatbot'))
 			.setThumbnail(this.interaction.guild?.iconURL() || null)
 			.setTimestamp()
 			.setFooter({
@@ -231,7 +228,7 @@ class SetupEmbedGenerator {
 	customFields(fields: RestOrArray<APIEmbedField>) {
 		const embed = new EmbedBuilder()
 			.setAuthor({ name: this.interaction.guild?.name as string, iconURL: this.interaction.guild?.iconURL()?.toString() })
-			.setColor('#3eb5fb')
+			.setColor(colors('chatbot'))
 			.addFields(...fields)
 			.setThumbnail(this.interaction.guild?.iconURL() || null)
 			.setTimestamp()

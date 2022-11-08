@@ -25,7 +25,6 @@ export default {
 
 		const channelInDB = await setupDb?.findOne({ 'channel.id': channelObj.id });
 		let replyButton: ActionRowBuilder<ButtonBuilder> | undefined;
-		let webhook: WebhookClient | undefined;
 
 		if (referenceMessage) {
 			const msgInDb = referenceMessage.channelAndMessageIds.find((dbmsg) => dbmsg.channelId === channelObj.id);
@@ -37,9 +36,6 @@ export default {
 						.setURL(`https://discord.com/channels/${channelObj.guildId}/${msgInDb?.channelId}/${msgInDb?.messageId}`),
 				);
 		}
-
-
-		if (channelInDB?.webhook) webhook = new WebhookClient({ id: channelInDB.webhook.id, token: channelInDB.webhook.token });
 
 		// send the message
 		if (channelInDB?.compact === true) return await sendCompact(channelObj);
@@ -70,14 +66,17 @@ export default {
 				allowedMentions: { parse: ['roles'] },
 			};
 
-			try {
-				if (webhook) return await webhook.send(webhookMessage);
-				return await destination.send(normalMessage);
+			if (channelInDB?.webhook) {
+				const webhook = new WebhookClient({ id: channelInDB.webhook.id, token: channelInDB.webhook.token });
+				try {
+					return await webhook.send(webhookMessage);
+				}
+				catch {
+					destination.send(normalMessage).catch(logger.error);
+					return { unknownWebhookId: channelInDB?.webhook?.id };
+				}
 			}
-			catch {
-				destination.send(normalMessage).catch(logger.error);
-				return { unknownWebhookId: channelInDB?.webhook?.id };
-			}
+			return await destination.send(normalMessage);
 		}
 
 		async function sendCompact(compactChannel: TextChannel) {
@@ -99,13 +98,16 @@ export default {
 				allowedMentions: { parse: [] },
 			};
 
-			try {
-				if (webhook) return await webhook.send(webhookMessage);
-				return await compactChannel.send(normalMessage);
+			if (channelInDB?.webhook) {
+				const webhook = new WebhookClient({ id: channelInDB.webhook.id, token: channelInDB.webhook.token });
+				try {
+					return await webhook.send(webhookMessage);
+				}
+				catch {
+					return { unknownWebhookId: channelInDB.webhook?.id };
+				}
 			}
-			catch {
-				return await compactChannel.send(normalMessage);
-			}
+			return await compactChannel.send(normalMessage);
 		}
 	},
 };

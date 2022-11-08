@@ -6,8 +6,10 @@ export = {
 	async execute(interaction: ChatInputCommandInteraction, setupList: Collection | undefined) {
 		const network = new NetworkManager();
 
+		const { normal, icons } = interaction.client.emoji;
+
 		if (!await setupList?.findOne({ 'guild.id': interaction.guildId })) {
-			return interaction.reply(`${interaction.client.emoji.normal.no} This server is not setup yet.`);
+			return interaction.reply(`${normal.no} This server is not setup yet.`);
 		}
 
 		const choiceButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -16,7 +18,7 @@ export = {
 		]);
 
 		const resetConfirmMsg = await interaction.reply({
-			content: `${interaction.client.emoji.icons.info} Are you sure? You will have to re-setup to use the network again! All setup data will be lost.`,
+			content: `${icons.info} Are you sure? You will have to re-setup to use the network again! All setup data will be lost.`,
 			components: [choiceButtons],
 		});
 
@@ -31,7 +33,7 @@ export = {
 		resetCollector.on('collect', async (collected) => {
 			if (collected.customId !== 'yes') {
 				collected.update({
-					content: `${interaction.client.emoji.normal.no} Cancelled.`,
+					content: `${normal.no} Cancelled.`,
 					components: [],
 				});
 				return;
@@ -41,7 +43,7 @@ export = {
 			await network.disconnect(interaction.guildId);
 
 			collected.update({
-				content: `${interaction.client.emoji.normal.yes} Successfully reset.`,
+				content: `${normal.yes} Successfully reset.`,
 				components: [],
 			});
 
