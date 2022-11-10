@@ -1,11 +1,51 @@
 import fetch from 'node-fetch';
 import logger from '../../Utils/logger';
-import { AttachmentBuilder, EmbedBuilder, Message } from 'discord.js';
 import wordFilter from '../../Utils/functions/wordFilter';
+import { AttachmentBuilder, EmbedBuilder, Message } from 'discord.js';
 import { MessageInterface } from '../../Events/messageCreate';
+import { Collection } from 'mongodb';
+import { messageData as messageDataDocument } from '../../Utils/typings/types';
 import 'dotenv/config';
 
-export default {
+export = {
+	execute: async (message: MessageInterface, messageData: Collection<messageDataDocument> | null) => {
+		message.compact_message = `**${message.author.tag}:** ${message.content}`;
+
+		let messageInDb: messageDataDocument | null | undefined = null;
+		if (message.reference) {
+			const referredMessage = await message.fetchReference().catch(() => null);
+			messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: referredMessage?.id } } });
+
+			if (referredMessage) {
+				let embed = referredMessage.embeds[0]?.fields[0]?.value;
+				let compact = referredMessage.content;
+
+				// if the message is a reply to another reply, remove the older reply :D
+				if (messageInDb?.reference) {
+					const replaceReply = (string: string) => {
+					// if for some reason the reply got edited and the reply format (> message) is not there
+					// return the original message and not undefined
+						return string?.split(/> .*/g).at(-1)?.trimStart() || string;
+					};
+
+					// messages that are being replied to
+					embed = replaceReply(embed);
+					compact = replaceReply(compact);
+				}
+
+				embed = embed?.replaceAll('\n', '\n> ');
+				compact = compact?.replaceAll('\n', '\n> ');
+
+				message.content = `> ${embed || compact}\n${message.content}`;
+				message.compact_message = `> ${embed || compact}\n${message.compact_message}`;
+			}
+		}
+
+		message.censored_content = wordFilter.censor(message.content);
+		message.censored_compact_message = wordFilter.censor(message.compact_message);
+		return messageInDb;
+	},
+
 	async attachmentModifiers(message: Message, embed: EmbedBuilder) {
 		if (message.attachments.size > 1) {
 			await message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
@@ -55,14 +95,5 @@ export default {
 		else if (message.embeds[0]?.provider?.name === 'YouTube' && message.embeds[0]?.data.thumbnail) {
 			embed.setImage(message.embeds[0].data.thumbnail.url);
 		}
-	},
-
-	async profanityCensor(embed: EmbedBuilder, message: MessageInterface) {
-		// check if message contains profanity and censor it if it does
-		if (wordFilter.check(embed.data.fields?.at(0)?.value)) {
-			embed.setFields({ name: 'Message', value: wordFilter.censor(String(embed.data.fields?.at(0)?.value)) });
-		}
-
-		message.censoredCompactMessage = wordFilter.censor(String(message.compactMessage));
 	},
 };

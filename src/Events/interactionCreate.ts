@@ -40,7 +40,7 @@ export default {
 			}
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			catch (error: any) {
-				logger.error(`[${interaction.commandName} Command]:`, error);
+				logger.error(`[${interaction.commandName}]:`, error);
 
 				const errorMsg = {
 					content: 'There was an error while executing this command! The developers have been notified.',
