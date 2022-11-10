@@ -18,5 +18,6 @@ declare module 'discord.js' {
 		emoji: typeof EmojiIDs,
 		help: Array<{name: string, value: string}>
 		sendInNetwork(message: string): Promise<void>;
+		sendInNetwork(message: MessageCreateOptions): Promise<void>;
 	}
 }
