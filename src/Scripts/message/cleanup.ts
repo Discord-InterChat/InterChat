@@ -10,7 +10,7 @@ export interface InvalidWebhookId {unknownWebhookId?: string}
 
 
 export default {
-	execute: async (message: Message, channelAndMessageIds: Promise<Message | InvalidChannelId>[]) => {
+	execute: async (message: Message, channelAndMessageIds: Promise<Message | InvalidChannelId | InvalidWebhookId | APIMessage>[]) => {
 		message.delete().catch(() => null);
 		// All message data is stored in the database, so we can delete the message from the network later
 		Promise.allSettled(channelAndMessageIds)
@@ -29,16 +29,9 @@ export default {
 
 				// make a new array with data that contains the message id and channel id
 				// required for performing network actions (delete/edit messages)
-				let messageDataObj = fulfilledResults
-					.filter(msg => msg.value.channelId && msg.value.id)
-					.map((msg: PromiseFulfilledResult<Message>) => {return { channelId: msg.value.channelId, messageId: msg.value.id };});
-
-				const webhookDataObj = fulfilledResults
-					.filter(msg => msg.value.channel_id && msg.value.id)
-					.map((msg: PromiseFulfilledResult<APIMessage>) => {return { channelId: msg.value.channel_id, messageId: msg.value.id };});
-
-
-				if (webhookDataObj.length > 0) messageDataObj = messageDataObj.concat(webhookDataObj);
+				const messageDataObj = fulfilledResults
+					.filter(msg => (msg.value.channelId || msg.value.channel_id) && msg.value.id)
+					.map((msg: PromiseFulfilledResult<any>) => {return { channelId: msg.value.channelId || msg.value.channel_id, messageId: msg.value.id };});
 
 				const db = getDb();
 				const connectedList = db?.collection('connectedList') as Collection<connectedListDocument> | undefined;
