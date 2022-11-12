@@ -1,113 +1,99 @@
-import { EmbedBuilder, AttachmentBuilder, TextChannel, BaseMessageOptions, ActionRowBuilder, ButtonBuilder, ButtonStyle, WebhookClient, WebhookCreateMessageOptions } from 'discord.js';
-import { Collection } from 'mongodb';
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, WebhookClient } from 'discord.js';
 import { MessageInterface } from '../../Events/messageCreate';
-import logger from '../../Utils/logger';
-import { connectedListDocument, messageData, setupDocument } from '../../Utils/typings/types';
+import { getDb } from '../../Utils/functions/utils';
+import { connectedListDocument, messageData as messageDataDocument, setupDocument } from '../../Utils/typings/types';
+import { InvalidChannelId, InvalidWebhookId } from './cleanup';
 
-
-export default {
-	/**
-	 * Converts a message to embeded or normal depending on the server settings.
-	 *
-	 * @param uncensoredEmbed An embed with the original message content. (uncensored)
-	 */
+export = {
 	execute: async (
 		message: MessageInterface,
 		channel: connectedListDocument,
 		embed: EmbedBuilder,
-		uncensoredEmbed: EmbedBuilder,
-		setupDb: Collection<setupDocument> | undefined,
-		attachments: AttachmentBuilder | undefined,
-		referenceMessage: messageData | null,
+		attachments: AttachmentBuilder,
+		replyData: messageDataDocument | null | undefined,
 	) => {
-		const channelObj = await message.client.channels.fetch(channel.channelId).catch(() => null) as TextChannel | null;
-		if (!channelObj) return { unknownChannelId: channel.channelId };
+		const db = getDb();
+		const setupList = db?.collection<setupDocument>('setup');
+		const channelInSetup = await setupList?.findOne({ 'channel.id': channel?.channelId });
+		const channelToSend = await message.client.channels.fetch(channel.channelId).catch(() => null) as GuildTextBasedChannel | null;
 
-		const channelInDB = await setupDb?.findOne({ 'channel.id': channelObj.id });
-		let replyButton: ActionRowBuilder<ButtonBuilder> | undefined;
+		if (!channelToSend) return { unkownChannelId: channel?.channelId } as InvalidChannelId;
 
-		if (referenceMessage) {
-			const msgInDb = referenceMessage.channelAndMessageIds.find((dbmsg) => dbmsg.channelId === channelObj.id);
-			replyButton = new ActionRowBuilder<ButtonBuilder>()
-				.addComponents(
-					new ButtonBuilder()
-						.setLabel('Jump To Message')
-						.setStyle(ButtonStyle.Link)
-						.setURL(`https://discord.com/channels/${channelObj.guildId}/${msgInDb?.channelId}/${msgInDb?.messageId}`),
-				);
+		const replyInDb = replyData?.channelAndMessageIds.find((msg) => msg.channelId === channel.channelId);
+		const replyButton = replyInDb ?
+			new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
+				.setLabel('Jump')
+				.setStyle(ButtonStyle.Link)
+				.setURL(`https://discord.com/channels/${channelToSend.guildId}/${replyInDb.channelId}/${replyInDb.messageId}`))
+			: null;
+
+
+		if (channelInSetup?.webhook) return await sendWebhook();
+		else if (channelInSetup?.compact) return await sendCompact(channelToSend);
+		else return await sendEmbed(channelToSend);
+
+		async function sendCompact(destination: GuildTextBasedChannel) {
+			try {
+				return await destination.send({
+					content: channelInSetup?.profFilter ? message.censored_compact_message : message.compact_message,
+					components: replyButton ? [replyButton] : [],
+					files: attachments ? [attachments] : [],
+				});
+			}
+			catch (e) {
+				console.error(e);
+				return { unknownChannelId: destination.id } as InvalidChannelId;
+			}
 		}
+		async function sendEmbed(destination: GuildTextBasedChannel) {
+			const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content });
 
-		// send the message
-		if (channelInDB?.compact === true) return await sendCompact(channelObj);
-		else return await sendNormal(channelObj);
+			try {
+				return await destination.send({
+					embeds: [channelInSetup?.profFilter ? censoredEmbed : embed],
+					files: attachments ? [attachments] : [],
+					components: replyButton ? [replyButton] : [],
+					allowedMentions: { parse: ['roles', 'everyone'] },
+				});
+			}
+			catch (e) {
+				console.error(e);
+				return { unknownChannelId: destination.id } as InvalidChannelId;
+			}
+		}
+		async function sendWebhook() {
+			const webhook = new WebhookClient({ id: `${channelInSetup?.webhook?.id}`, token: `${channelInSetup?.webhook?.token}` });
+			const WebhookEmbed = new EmbedBuilder(embed.data)
+				.setFooter({ text: `${message.guild?.name}`, iconURL: message.guild?.iconURL() || undefined });
+			const censoredEmbed = new EmbedBuilder(WebhookEmbed.data)
+				.setFields({ name: 'Message', value: message.censored_content });
 
-
-		async function sendNormal(destination: TextChannel) {
-			const webhookEmbed = embed.toJSON();
-			const uncensoredWebhookEmbed = uncensoredEmbed.toJSON();
-
-			webhookEmbed.footer = { text: `${message.guild?.name}`, icon_url: message.guild?.iconURL() || undefined };
-			uncensoredWebhookEmbed.footer = { text: `${message.guild?.name}`, icon_url: message.guild?.iconURL() || undefined };
-
-
-			const webhookMessage: WebhookCreateMessageOptions = {
-				embeds: [channelInDB?.profFilter === true ? webhookEmbed : uncensoredWebhookEmbed],
-				files: attachments ? [attachments] : [],
-				components: replyButton ? [replyButton] : [],
-				avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
-				username: message.author.username,
-				allowedMentions: { parse: ['roles'] },
-			};
-
-			const normalMessage: BaseMessageOptions = {
-				embeds: [channelInDB?.profFilter === true ? embed : uncensoredEmbed],
-				files: attachments ? [attachments] : [],
-				components: replyButton ? [replyButton] : [],
-				allowedMentions: { parse: ['roles'] },
-			};
-
-			if (channelInDB?.webhook) {
-				const webhook = new WebhookClient({ id: channelInDB.webhook.id, token: channelInDB.webhook.token });
-				try {
-					return await webhook.send(webhookMessage);
+			try {
+				if (channelInSetup?.compact) {
+					return await webhook.send({
+						username: message.author.username,
+						avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
+						content: channelInSetup?.profFilter ? message.censored_content : message.content,
+						files: attachments ? [attachments] : [],
+						components: replyButton ? [replyButton] : [],
+						allowedMentions: { parse: ['roles', 'everyone'] },
+					});
 				}
-				catch {
-					destination.send(normalMessage).catch(logger.error);
-					return { unknownWebhookId: channelInDB?.webhook?.id };
+				else {
+					return await webhook.send({
+						username: message.author.username,
+						avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
+						embeds: [channelInSetup?.profFilter ? censoredEmbed : WebhookEmbed],
+						files: attachments ? [attachments] : [],
+						components: replyButton ? [replyButton] : [],
+						allowedMentions: { parse: ['roles', 'everyone'] },
+					});
 				}
 			}
-			return await destination.send(normalMessage);
-		}
-
-		async function sendCompact(compactChannel: TextChannel) {
-			const content = channelInDB?.profFilter === true ? message.censoredCompactMessage : message.compactMessage;
-
-			const webhookMessage: WebhookCreateMessageOptions = {
-				content: content?.replaceAll(`**${message.author.tag}:**`, ''),
-				username: message.author.username,
-				files: attachments ? [attachments] : [],
-				components: replyButton ? [replyButton] : [],
-				avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
-				allowedMentions: { parse: [] },
-			};
-
-			const normalMessage: BaseMessageOptions = {
-				content,
-				files: attachments ? [attachments] : [],
-				components: replyButton ? [replyButton] : [],
-				allowedMentions: { parse: [] },
-			};
-
-			if (channelInDB?.webhook) {
-				const webhook = new WebhookClient({ id: channelInDB.webhook.id, token: channelInDB.webhook.token });
-				try {
-					return await webhook.send(webhookMessage);
-				}
-				catch {
-					return { unknownWebhookId: channelInDB.webhook?.id };
-				}
+			catch (e) {
+				console.error(e);
+				return { unknownWebhookId: webhook.id } as InvalidWebhookId;
 			}
-			return await compactChannel.send(normalMessage);
 		}
 	},
 };

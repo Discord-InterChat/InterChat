@@ -29,7 +29,7 @@ export default {
 							.messages
 							.fetch(element.messageId)
 							.then((message) => message.delete().catch())
-							.catch((e) => logger.error(`Delete Message Command: ${e}`));
+							.catch((e) => logger.error('Delete Message Command:', e));
 					}).catch(logger.error);
 			});
 

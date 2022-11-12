@@ -1,5 +1,5 @@
 import logger from '../logger';
-import discord, { Guild, GuildTextBasedChannel } from 'discord.js';
+import discord from 'discord.js';
 import { MongoClient, Db, AnyError, DeleteResult } from 'mongodb';
 import { Api } from '@top-gg/sdk';
 import util from 'util';
@@ -26,7 +26,7 @@ String.prototype.toTitleCase = function() {
 	return String(newStr);
 };
 
-discord.Client.prototype.sendInNetwork = async function(message: string) {
+discord.Client.prototype.sendInNetwork = async function(message: string | discord.MessageCreateOptions) {
 	const database = _db;
 	const connectedList = database?.collection('connectedList');
 	const channels = await connectedList?.find().toArray();
@@ -312,7 +312,7 @@ export class NetworkManager {
 	 *
 	 * **This only inserts the server into the connectedList collection.**
 	 */
-	public async connect(guild: Guild | null, channel: GuildTextBasedChannel | undefined | null) {
+	public async connect(guild: discord.Guild | null, channel: discord.GuildTextBasedChannel | undefined | null) {
 		const channelExists = await this.connectedList?.findOne({ channelId: channel?.id });
 
 		if (channelExists) return null;
