@@ -28,8 +28,8 @@ export default {
 						.addChoices(
 							{ name: 'User', value: 'user' },
 							{ name: 'Server', value: 'server' },
-							{ name: 'Bug', value: 'Bug' },
-							{ name: 'Other', value: 'Other' }),
+							{ name: 'Bug', value: 'bug' },
+							{ name: 'Other', value: 'other' }),
 				),
 		)
 		.addSubcommand(subcommand =>
