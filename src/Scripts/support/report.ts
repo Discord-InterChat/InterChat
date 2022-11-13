@@ -1,155 +1,148 @@
-import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, ChatInputCommandInteraction, ChannelType, ForumChannel, TextChannel } from 'discord.js';
+import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, ChatInputCommandInteraction, ForumChannel, TextChannel } from 'discord.js';
 import { colors, constants } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction) {
-		const modal = new ModalBuilder()
-			.setTitle('Report')
-			.setCustomId(`modal_${interaction.user.id}`);
+		const reportType = interaction.options.getString('type', true) as 'user' | 'server' | 'bug' | 'other';
 
-		const short = new TextInputBuilder()
-			.setRequired(true)
-			.setStyle(TextInputStyle.Short)
-			.setMaxLength(300)
-			.setCustomId('short');
+		const reportSubmit = new ModalBuilder()
+			.setTitle('New Report')
+			.setCustomId(interaction.id)
+			.addComponents(
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					new TextInputBuilder()
+						.setCustomId('reportTitle')
+						.setLabel(reportType === 'user' ? 'User ID' : reportType === 'server' ? 'Server ID' : 'Report Title')
+						.setPlaceholder('The reason for this report.')
+						.setMinLength(17)
+						.setMaxLength(reportType === 'user' || reportType === 'server' ? 20 : 150)
+						.setStyle(TextInputStyle.Short)
+						.setRequired(true),
+				),
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					new TextInputBuilder()
+						.setCustomId('reportDescription')
+						.setLabel('Report Description')
+						.setPlaceholder('A more clear description of the report.')
+						.setMinLength(10)
+						.setMaxLength(950)
+						.setStyle(TextInputStyle.Paragraph)
+						.setRequired(true),
+				),
+			);
 
-		const para = new TextInputBuilder()
-			.setRequired(true)
-			.setStyle(TextInputStyle.Paragraph)
-			.setMaxLength(1000)
-			.setCustomId('para');
+		const reportChannel = await interaction.client.channels.fetch(constants.channel.reports).catch(() => null) as TextChannel | null;
+		const bugReportChannel = await interaction.client.channels.fetch(constants.channel.bugs).catch(() => null) as ForumChannel | null;
 
-		const optionType = interaction.options.getString('type')?.toLowerCase();
+		await interaction.showModal(reportSubmit);
 
-		switch (optionType) {
-		case 'bug':
-			short.setLabel('Title').setPlaceholder('This bug is about...');
-			para.setLabel('Description').setPlaceholder('This bug affects... A fix could be...');
-			break;
+		interaction.awaitModalSubmit({ time: 60000 * 5, filter: (i) => i.user.id === interaction.user.id && i.customId === reportSubmit.data.custom_id })
+			.then(async modalInteraction => {
+				const reportTitle = modalInteraction.fields.getTextInputValue('reportTitle');
+				const reportDescription = modalInteraction.fields.getTextInputValue('reportDescription');
 
-		case 'server':
-			short.setLabel('Server Name & ID').setPlaceholder('Ex: Land of ChatBots - 012345678909876543');
-			para.setLabel('Please provide more info about the server').setPlaceholder('I am reporting this server because...');
-			break;
+				switch (reportType) {
+				case 'bug': {
+					if (!bugReportChannel) {
+						logger.error('Bug report channel not found.');
+						return interaction.followUp({ content: 'Bug report channel not found.', ephemeral: true });
+					}
 
-		case 'user':
-			short.setLabel('User ID').setMaxLength(19).setPlaceholder('Ex: 012345678909876543');
-			para.setLabel('Reason').setPlaceholder('I am reporting this user because...');
-			modal.setCustomId(`user_${interaction.user.id}`);
-			break;
+					const bugReport = new EmbedBuilder()
+						.setColor(colors('invisible'))
+						.setTitle('New Bug Report')
+						.setFields(
+							{
+								name: 'Summary',
+								value: reportTitle,
+							},
+							{
+								name: 'Description',
+								value: reportDescription,
+							},
+						)
+						.setThumbnail(interaction.user.avatarURL({ size: 2048 }) ?? interaction.user.defaultAvatarURL)
+						.setFooter({ text: `Reported by ${interaction.user.tag} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
 
-		case 'other':
-			short.setLabel('Title').setPlaceholder('Ex. New feature request for ChatBot');
-			para.setLabel('Please provide us more detail').setPlaceholder('Ask questions, requests, applications etc.');
-			break;
-
-		default:
-			break;
-		}
-
-		const row_para = new ActionRowBuilder<TextInputBuilder>().addComponents(para);
-		const row_short = new ActionRowBuilder<TextInputBuilder>().addComponents(short);
-		modal.addComponents(row_short, row_para);
-
-		await interaction.showModal(modal);
-
-		let reportChannel: TextChannel | ForumChannel | null;
-
-		if (optionType === 'bug') {
-			try {
-				reportChannel = await interaction.client.channels.fetch(constants.channel.bugs) as ForumChannel;
-			}
-			catch (error) {
-				logger.error('Error in fetching bugreport channel!', error);
-				return interaction.reply({ content: 'An error occurred while fetching the channel!', ephemeral: true });
-			}
-		}
-
-		else {
-			try {
-				reportChannel = await interaction.client.channels.fetch(constants.channel.reports) as TextChannel;
-			}
-			catch (error) {
-				logger.error('Error in report command:', error);
-				return interaction.reply({ content: 'An error occurred while fetching the channel!', ephemeral: true });
-			}
-		}
-
-		interaction.awaitModalSubmit({ filter: i => i.user.id === interaction.user.id && i.customId === modal.data.custom_id, time: 60 * 10_000 })
-			.then(async (i) => {
-				const reportDescription = i.fields.getTextInputValue('para');
-				let reportTitle = i.fields.getTextInputValue('short');
-
-				if (i.customId === 'modal_user') {
-					if (/^[0-9]*$/gm.test(reportTitle) == false) {
-						i.reply({
-							content: 'Please only provide a **User ID**. To see how to get user ID\'s please refer [this post](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-). Or you could also directly get it from chatbot messages [image:](https://imgur.com/a/w93gxgu)',
+					await bugReportChannel.threads.create({
+						name: reportTitle, message: { embeds: [bugReport] },
+					});
+					break;
+				}
+				case 'user': {
+					const reportedUser = await interaction.client.users.fetch(reportTitle).catch(() => null);
+					if (!reportedUser) {
+						return modalInteraction.reply({
+							content: 'Invalid user ID. To find a user\'s ID in ChatBot, right click on a message (that was sent in the network) that you wish to report and click `Apps > User ID`. Or you can get it from the [embed author](https://i.imgur.com/AbTTlry.gif).',
 							ephemeral: true,
 						});
-						return;
 					}
 
-					try {
-						const user = await interaction.client.users.fetch(reportTitle);
-						reportTitle = `${user.username}#${user.discriminator} - ${user.id}`;
-					}
-					catch {
-						return i.reply({ content: 'Invalid User Provided.', ephemeral: true });
-					}
+					const userReport = new EmbedBuilder()
+						.setColor('Red')
+						.setTitle('New User Report')
+						.setFields(
+							{
+								name: 'Reported User',
+								value: `${reportedUser.tag} (${reportedUser.id})`,
+							},
+							{
+								name: 'Description',
+								value: reportDescription,
+							},
+						)
+						.setThumbnail(reportedUser.avatarURL({ size: 2048 }) ?? reportedUser.defaultAvatarURL)
+						.setFooter({ text: `Reported by ${interaction.user.tag} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+					await reportChannel?.send({ embeds: [userReport] });
+					break;
 				}
 
-				const embed = new EmbedBuilder()
-					.setDescription(`Type: **${optionType}**`)
-					.setAuthor({
-						name: `Reported By: ${i.user?.tag}`,
-						iconURL: i.user.avatarURL()?.toString(),
-					})
-					.setFooter({
-						text: `From Server: ${i.guild?.name}`,
-						iconURL: i.guild?.iconURL()?.toString(),
-					})
-					.addFields([
-						{ name: 'Title', value: reportTitle },
-						{ name: 'Description', value: '```' + reportDescription + '```' },
-					])
-					.setTimestamp()
-					.setColor(colors());
+				case 'server': {
+					const reportedServer = await interaction.client.guilds.fetch(reportTitle).catch(() => null);
+					if (!reportedServer) return modalInteraction.reply({ content: 'Invalid server ID.', ephemeral: true });
 
-				const bugEmbed = new EmbedBuilder()
-					.setTitle(reportTitle)
-					.setDescription(reportDescription)
-					.setColor(colors('chatbot'))
-					.setAuthor({
-						name: `${i.user?.tag}`,
-						iconURL: i.user.avatarURL()?.toString(),
-					})
-					.setFooter({
-						text: `From: ${i.guild?.name}`,
-						iconURL: i.guild?.iconURL()?.toString(),
-					});
-
-				if (reportChannel?.type === ChannelType.GuildForum) {
-					reportChannel.threads.create({
-						name: reportTitle,
-						message: { embeds: [bugEmbed] },
-					});
+					const serverReport = new EmbedBuilder()
+						.setColor('Red')
+						.setTitle('New Report')
+						.setFields(
+							{
+								name: 'Server ID',
+								value: `${reportedServer.name} (${reportedServer.id})`,
+							},
+							{
+								name: 'Description',
+								value: reportDescription,
+							},
+						)
+						.setThumbnail(reportedServer.iconURL({ size: 2048 }))
+						.setFooter({ text: `Reported by ${interaction.user.tag} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+					await reportChannel?.send({ embeds: [serverReport] });
 				}
-
-				else if (reportChannel?.isTextBased()) {
-					await reportChannel?.send({ embeds: [embed] });
+					break;
+				default: {
+					const otherReport = new EmbedBuilder()
+						.setColor(colors('random'))
+						.setTitle('New Report')
+						.setDescription('**Type:** Other')
+						.setFields(
+							{
+								name: 'Report Title',
+								value: reportTitle,
+							},
+							{
+								name: 'Description',
+								value: reportDescription,
+							},
+						)
+						.setThumbnail(interaction.user.avatarURL({ size: 2048 }) ?? interaction.user.defaultAvatarURL)
+						.setFooter({ text: `Reported by ${interaction.user.tag} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+					await reportChannel?.send({ embeds: [otherReport] });
+					break;
 				}
-
-				else {
-					return i.followUp({ content: 'An error occured when trying to send your report!', ephemeral: true });
 				}
+				await modalInteraction.reply({ content: 'Report submitted. Join the support server to get updates on your report.', ephemeral: true });
+			}).catch((error) => {if (!error.message.includes('ending with reason: time')) logger.error(error);});
 
-				await i.reply('Thank you for your report!');
-			})
-			.catch((err) => {
-				if (err.message.includes('ending with reason: time')) return;
-				interaction.followUp({ content: 'An error occured when trying to report!', ephemeral: true });
-				logger.error(err);
-			});
 	},
 };
