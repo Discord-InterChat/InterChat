@@ -31,7 +31,7 @@ export default {
 		// run the message through checks
 		if (!await checks.execute(message, db)) return;
 
-		// FIXME: A better way to get message data, because this function will be called for multiple other features in the future
+		// FIXME: Make better way to get message data, because this function will be called for multiple other features in the future
 		const replyInDb = await require('../Scripts/message/messageContentModifiers').execute(message, messageData);
 
 		const embed = new EmbedBuilder()

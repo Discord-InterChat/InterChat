@@ -3,6 +3,7 @@ import { MessageInterface } from '../../Events/messageCreate';
 import { getDb } from '../../Utils/functions/utils';
 import { connectedListDocument, messageData as messageDataDocument, setupDocument } from '../../Utils/typings/types';
 import { InvalidChannelId, InvalidWebhookId } from './cleanup';
+import logger from '../../Utils/logger';
 
 export = {
 	execute: async (
@@ -41,12 +42,12 @@ export = {
 				});
 			}
 			catch (e) {
-				console.error(e);
+				logger.error(e);
 				return { unknownChannelId: destination.id } as InvalidChannelId;
 			}
 		}
 		async function sendEmbed(destination: GuildTextBasedChannel) {
-			const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content });
+			const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content || '\u200B' });
 
 			try {
 				return await destination.send({
@@ -57,7 +58,7 @@ export = {
 				});
 			}
 			catch (e) {
-				console.error(e);
+				logger.error(e);
 				return { unknownChannelId: destination.id } as InvalidChannelId;
 			}
 		}
@@ -91,7 +92,7 @@ export = {
 				}
 			}
 			catch (e) {
-				console.error(e);
+				logger.error(e);
 				return { unknownWebhookId: webhook.id } as InvalidWebhookId;
 			}
 		}

@@ -46,14 +46,12 @@ export = {
 		return messageInDb;
 	},
 
-	async attachmentModifiers(message: Message, embed: EmbedBuilder) {
+	async attachmentModifiers(message: MessageInterface, embed: EmbedBuilder) {
 		if (message.attachments.size > 1) {
 			await message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
 		}
 
 		if (message.attachments.size > 0) {
-			message.channel.send('Warn: Sending images directly is currently experimental, so it might take a few seconds for chatbot to send images!');
-
 			const attachment = message.attachments.first();
 			const newAttachment = new AttachmentBuilder(`${attachment?.url}`, { name: `${attachment?.name}` });
 			embed.setImage(`attachment://${newAttachment.name}`);
@@ -66,13 +64,12 @@ export = {
 		const URLMatch = message.content.match(imageURLRegex);
 
 		if (URLMatch) {
-			embed.setImage(URLMatch[0]);
-			try {
-				embed.setFields([{ name: 'Message', value: message.content.replace(URLMatch[0], '\u200B').trim() }]);
-			}
-			catch (e) {
-				logger.error(e);
-			}
+			message.content = message.content.replace(URLMatch[0], '\u200B').trim();
+			message.censored_content = message.censored_content.replace(URLMatch[0], '\u200B').trim();
+
+			embed
+				.setImage(URLMatch[0])
+				.setFields([{ name: 'Message', value: message.content }]);
 		}
 
 		const tenorRegex = /https:\/\/tenor\.com\/view\/.*-(\d+)/;
@@ -84,12 +81,12 @@ export = {
 			const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
 			const gifJSON = await (await fetch(api)).json();
 
+			message.content = message.content.replace(gifMatch[0], '\u200B').trim();
+			message.censored_content = message.censored_content.replace(gifMatch[0], '\u200B').trim();
+
 			embed
 				.setImage(gifJSON.results[0].media[0].gif.url)
-				.setFields([{
-					name: 'Message',
-					value: message.content.replace(gifMatch[0], '\u200B').trim(),
-				}]);
+				.setFields([{ name: 'Message', value: message.content }]);
 		}
 
 		else if (message.embeds[0]?.provider?.name === 'YouTube' && message.embeds[0]?.data.thumbnail) {
