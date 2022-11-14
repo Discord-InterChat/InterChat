@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.3.2](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.3.0...v3.3.2) (2022-11-14)
+
+
+### Bug Fixes
+
+* **editMsg:** Fixed most bugs, and refactored code ([c1f1dec](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/c1f1dec659384689b78a6defebe61aad2d6a7937))
+* Fixed editing replies for webhook removing replied msg ([4bb7e6c](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/4bb7e6c32de6cafe91d69ddfe67d0e343adb0746))
+* Fixed issue with sending images without a message ([7ffe7b2](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/7ffe7b252e74474660e689d67a15f2f1cbd17fc4))
+* Fixed uncaught rejections flooding error channel ([16878a4](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/16878a4b5c46a3eba5c137d1992ddc843883d9a8))
+* New /info and join embeds ([7fe5643](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/7fe5643accb718ad52594e2a17d8cfabe8b24a95))
+* Removed anti-spam ([3018345](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/301834549b3b3deb16c42edf52b8eb7fabb2a174))
+* **report:** New report embeds ([7cdbcd7](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/7cdbcd712a70be07f1e8cf6cc00909c17c677057))
+
 ## [3.3.0](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.2.0...v3.3.0) (2022-11-02)
 
 
