@@ -16,7 +16,7 @@ export default {
 		if (message.author.bot || message.webhookId) return;
 
 		if (message.content.startsWith('c!eval')) {
-			require('../Scripts/message/evalScript').execute(message);
+			require('../Scripts/message/evalScript').default.execute(message);
 			return;
 		}
 

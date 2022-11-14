@@ -73,7 +73,7 @@ export = {
 				switch (component.customId) {
 				case 'reconnect': {
 					const channel = await interaction.client.channels.fetch(String(guildSetup?.channel.id))
-						.catch(() => {return null;}) as GuildTextBasedChannel | null;
+						.catch(() => null) as GuildTextBasedChannel | null;
 
 					if (guildConnected) {
 						network.disconnect(interaction.guildId);
@@ -91,8 +91,10 @@ export = {
 				}
 
 				case 'disconnect':
-					new NetworkManager().disconnect(String(interaction.guildId));
+					network.disconnect(String(interaction.guildId));
 					setupActionButtons.components.at(-1)?.setDisabled(true);
+
+					logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
 
 					component.message.edit({ embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
 					component.reply({ content: 'Disconnected!', ephemeral: true });

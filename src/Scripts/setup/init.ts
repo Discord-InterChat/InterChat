@@ -118,7 +118,7 @@ export = {
 			A new server has joined us in the Network! ${emoji.normal.clipart}
 
 			**Server Name:** __${interaction.guild?.name}__
-			**Member Count:** __${interaction.guild?.memberCount}__`).catch(() => null);
+			**Member Count:** __${interaction.guild?.memberCount}__`);
 
 		(await import('./displayEmbed')).execute(interaction, setupList);
 	},

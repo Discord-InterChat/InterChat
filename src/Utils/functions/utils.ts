@@ -1,10 +1,10 @@
 import logger from '../logger';
 import discord from 'discord.js';
-import { MongoClient, Db, AnyError, DeleteResult } from 'mongodb';
-import { Api } from '@top-gg/sdk';
 import util from 'util';
-import 'dotenv/config';
+import { Api } from '@top-gg/sdk';
+import { MongoClient, Db, AnyError, DeleteResult } from 'mongodb';
 import { connectedListDocument } from '../typings/types';
+import 'dotenv/config';
 
 const topgg = new Api(process.env.TOPGG as string);
 const uri = process.env.MONGODB_URI as string;
@@ -31,15 +31,16 @@ discord.Client.prototype.sendInNetwork = async function(message: string | discor
 	const connectedList = database?.collection('connectedList');
 	const channels = await connectedList?.find().toArray();
 
-	channels?.forEach((channelEntry) => {
-		this.channels.fetch(channelEntry.channelId)
-			.then(async (channel) => {
-				if (!channel?.isTextBased()) {
-					logger.error(`Channel ${channel?.id} is not text based!`);
-					return;
-				}
-				await channel.send(message);
-			});
+	channels?.forEach(async (channelEntry) => {
+		const channel = await this.channels.fetch(channelEntry.channelId);
+		if (!channel?.isTextBased()) {
+			logger.error(`Channel ${channel?.id} is not text based!`);
+			return;
+		}
+		await channel.send(message).catch((err) => {
+			if (!err.message.includes('Missing Access') || !err.message.includes('Missing Permissions')) return;
+			logger.error(err);
+		});
 	});
 };
 
@@ -101,19 +102,13 @@ export function choice(arr: discord.ColorResolvable[]) {
 */
 export async function sendInFirst(guild: discord.Guild, message: string | discord.MessagePayload | discord.BaseMessageOptions) {
 	const channels = await guild.channels.fetch();
-	for (const channel of channels) {
-		if (channel[1]?.type == discord.ChannelType.GuildText) {
-			if (channel[1].permissionsFor(guild.members.me as discord.GuildMember)?.has('SendMessages')) {
-				try {
-					await channel[1].send(message);
-					break;
-				}
-				catch (err) {
-					logger.error(err);
-				}
-			}
-		}
-	}
+
+	const channel = channels
+		.filter((chn) => chn?.isTextBased() && chn.permissionsFor(guild.members.me as discord.GuildMember).has('SendMessages'))
+		.first();
+
+	if (channel?.isTextBased()) channel.send(message).catch((e) => e.message.includes('Missing Access') || e.message.includes('Missing Permissions') ? null : logger.error(e));
+	else logger.error(`Channel ${channel?.id} is not text based!`);
 }
 
 export async function getCredits() {
@@ -316,7 +311,7 @@ export class NetworkManager {
 		const channelExists = await this.connectedList?.findOne({ channelId: channel?.id });
 
 		if (channelExists) return null;
-		if (!guild || !channel) throw new Error('Invalid arguments  provided.');
+		if (!guild || !channel) throw new Error('Invalid arguments provided.');
 
 		return await this.connectedList?.insertOne({
 			channelId: channel?.id,
