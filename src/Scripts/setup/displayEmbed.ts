@@ -1,16 +1,16 @@
+import { PrismaClient } from '@prisma/client';
 import { stripIndent } from 'common-tags';
-import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, SelectMenuBuilder, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType } from 'discord.js';
-import { Collection, Document } from 'mongodb';
+import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, SelectMenuBuilder, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType, ComponentType } from 'discord.js';
 import { colors, getDb, NetworkManager } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
-import { connectedListDocument, setupDocument } from '../../Utils/typings/types';
 
 export = {
-	async execute(interaction: ChatInputCommandInteraction, collection: Collection | undefined) {
+	async execute(interaction: ChatInputCommandInteraction, db: PrismaClient) {
 		// send the initial reply
 		if (!interaction.deferred) await interaction.deferReply();
 
 		const emoji = interaction.client.emoji;
+		const setupCollection = db.setup;
 
 		const setupActionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
 			new ButtonBuilder().setCustomId('reconnect').setStyle(ButtonStyle.Success).setLabel('Reconnect').setEmoji(emoji.icons.connect),
@@ -45,14 +45,14 @@ export = {
 		]);
 
 		const network = new NetworkManager();
-		const setupEmbed = new SetupEmbedGenerator(interaction, collection);
+		const setupEmbed = new SetupEmbedGenerator(interaction);
 
-		const guildSetup = await collection?.findOne({ 'guild.id': interaction.guildId });
-		const guildConnected = await network.connected({ serverId: interaction.guildId });
+		const guildSetup = await setupCollection?.findFirst({ where: { guildId: interaction.guildId?.toString() } });
+		const guildConnected = await network.getServerData({ serverId: interaction.guildId?.toString() });
 
 		if (!guildSetup) return interaction.followUp('Server is not setup yet. Use `/setup channel` first.');
-		if (!interaction.guild?.channels.cache.get(guildSetup?.channel.id)) {
-			collection?.deleteOne({ 'channel.id': guildSetup?.channel.id });
+		if (!interaction.guild?.channels.cache.get(guildSetup?.channelId)) {
+			setupCollection.delete({ where: { channelId: guildSetup?.channelId } });
 			return await interaction.followUp('Connected channel has been deleted! Please use `/setup channel` and set a new one.');
 		}
 
@@ -65,105 +65,109 @@ export = {
 		const setupCollector = setupMessage.createMessageComponentCollector({
 			filter: m => m.user.id == interaction.user.id,
 			time: 60_000,
+			componentType: ComponentType.Button,
 		});
 
-		// Everything is in one collector since im lazy
-		setupCollector.on('collect', async component => {
-			if (component.isButton()) {
-				switch (component.customId) {
-				case 'reconnect': {
-					const channel = await interaction.client.channels.fetch(String(guildSetup?.channel.id))
-						.catch(() => null) as GuildTextBasedChannel | null;
+		const selectMenuCollector = setupMessage.createMessageComponentCollector({
+			filter: m => m.user.id == interaction.user.id,
+			time: 60_000,
+			componentType: ComponentType.StringSelect,
+		});
 
-					if (guildConnected) {
-						network.disconnect(interaction.guildId);
-						logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
+
+		selectMenuCollector.on('collect', async component => {
+			// Reference multiple select menus with its 'value' (values[0])
+			switch (component.customId) {
+			case 'customize': {
+				// get the latest db updates
+				const guildInDB = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
+
+				switch (component.values[0]) {
+				case 'compact':
+					await setupCollection?.updateMany({
+						where: { guildId: interaction.guild?.id },
+						data: { date:new Date(), compact: !guildInDB?.compact },
+					});
+					break;
+
+				case 'profanity':
+					await setupCollection?.updateMany({
+						where: { guildId: interaction.guild?.id },
+						data: { date: new Date(), profFilter: !guildInDB?.profFilter },
+					});
+					break;
+
+				case 'webhook': {
+					const connectedChannel = await interaction.client.channels.fetch(`${guildInDB?.channelId}`).catch(() => null);
+
+					if (!connectedChannel || connectedChannel.type !== ChannelType.GuildText) {
+						await component.reply({ content: 'Cannot edit setup for selected channel. If you think this is a mistake report this to the developers.', ephemeral: true });
+						break;
 					}
 
-					await network.connect(interaction.guild, channel);
-					logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
+					if (guildInDB?.webhook) {
+						const deleteWebhook = await connectedChannel.fetchWebhooks();
+						deleteWebhook.find((webhook) => webhook.owner?.id === interaction.client.user.id)?.delete();
 
-					setupActionButtons.components.at(-1)?.setDisabled(false);
+						await setupCollection?.update({ where: { channelId: connectedChannel.id }, data: { date: new Date(), webhook: null } });
 
-					component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
-					interaction.editReply({ embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
+						await component.reply({ content: 'Webhook messages have been disabled.', ephemeral: true });
+						break;
+					}
+
+					const webhook = await connectedChannel.createWebhook({ name: 'ChatBot Network', avatar: interaction.client.user?.avatarURL() });
+
+					await setupCollection?.updateMany({
+						where: { guildId: interaction.guild?.id },
+						data: {
+							date: new Date(),
+							webhook: { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
+						},
+					},
+
+					);
+					await component.reply({ content: 'Webhook has been initialized! Messages will now be sent with webhooks.', ephemeral: true });
 					break;
 				}
 
-				case 'disconnect':
-					network.disconnect(String(interaction.guildId));
-					setupActionButtons.components.at(-1)?.setDisabled(true);
+				}
+				component.replied || component.deferred ? interaction.editReply({ embeds: [await setupEmbed.default()] }) : component.update({ embeds: [await setupEmbed.default()] });
+			}
+			}
+		});
 
+		setupCollector.on('collect', async component => {
+			switch (component.customId) {
+			case 'reconnect': {
+				const channel = await interaction.client.channels.fetch(String(guildSetup?.channelId))
+					.catch(() => null) as GuildTextBasedChannel | null;
+
+				if (guildConnected) {
+					network.disconnect(interaction.guildId);
 					logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
-
-					component.message.edit({ embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
-					component.reply({ content: 'Disconnected!', ephemeral: true });
-					break;
-				default:
-					break;
 				}
+
+				await network.connect(interaction.guild, channel);
+				logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
+
+				setupActionButtons.components.at(-1)?.setDisabled(false);
+
+				component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
+				interaction.editReply({ embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
+				break;
 			}
 
-			// Reference multiple select menus with its 'value' (values[0])
-			if (component.isSelectMenu()) {
-				switch (component.customId) {
-				case 'customize': {
-					// get the latest db updates
-					const guildInDB = await collection?.findOne({ 'guild.id': interaction.guild?.id }) as setupDocument;
+			case 'disconnect':
+				network.disconnect(String(interaction.guildId));
+				setupActionButtons.components.at(-1)?.setDisabled(true);
 
-					switch (component.values[0]) {
-					case 'compact':
-						await collection?.updateOne({ 'guild.id': interaction.guild?.id },
-							{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), compact: !guildInDB?.compact } });
-						break;
+				logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
 
-					case 'profanity':
-						await collection?.updateOne({ 'guild.id': interaction.guild?.id },
-							{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), profFilter: !guildInDB?.profFilter } });
-						break;
-
-					case 'webhook': {
-						const connectedChannel = await interaction.client.channels.fetch(guildInDB.channel.id).catch(() => null);
-
-						if (!connectedChannel || connectedChannel.type !== ChannelType.GuildText) {
-							await component.reply({ content: 'Cannot edit setup for selected channel. If you think this is a mistake report this to the developers.', ephemeral: true });
-							break;
-						}
-
-						if (guildInDB?.webhook) {
-							const deleteWebhook = await connectedChannel.fetchWebhooks();
-							deleteWebhook.find((webhook) => webhook.owner?.id === interaction.client.user.id)?.delete();
-
-							await collection?.updateOne({ 'channel.id': connectedChannel.id },
-								{ $set: { 'date.timestamp': Math.round(new Date().getTime() / 1000), webhook: null } });
-
-							await component.reply({ content: 'Webhook messages have been disabled.', ephemeral: true });
-							break;
-						}
-
-						const webhook = await connectedChannel.createWebhook({ name: 'ChatBot Network', avatar: interaction.client.user?.avatarURL() });
-
-						await collection?.updateOne(
-							{ 'guild.id': interaction.guild?.id },
-							{
-								$set: {
-									'date.timestamp': Math.round(new Date().getTime() / 1000),
-									webhook: {
-										id: webhook.id,
-										token: webhook.token,
-										url: webhook.url,
-									},
-								},
-							},
-						);
-						await component.reply({ content: 'Webhook has been initialized! Messages will now be sent with webhooks.', ephemeral: true });
-						break;
-					}
-
-					}
-					component.replied || component.deferred ? interaction.editReply({ embeds: [await setupEmbed.default()] }) : component.update({ embeds: [await setupEmbed.default()] });
-				}
-				}
+				component.message.edit({ embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
+				component.reply({ content: 'Disconnected!', ephemeral: true });
+				break;
+			default:
+				break;
 			}
 		});
 
@@ -179,24 +183,21 @@ export = {
 // Embed classes to make it easier to call and edit multiple embeds
 class SetupEmbedGenerator {
 	private interaction: ChatInputCommandInteraction;
-	private setupList: Collection | undefined;
-	constructor(interaction: ChatInputCommandInteraction, setupList: Collection<Document> | undefined) {
+	constructor(interaction: ChatInputCommandInteraction) {
 		this.interaction = interaction;
-		this.setupList = setupList;
 	}
 	async default() {
 		const db = getDb();
-		const connectedList = db?.collection('connectedList');
 
-		const guildSetupData = await this.setupList?.findOne({ 'guild.id': this.interaction?.guild?.id });
-		const guild = this.interaction.client.guilds.cache.get(guildSetupData?.guild.id);
-		const channel = guild?.channels.cache.get(guildSetupData?.channel.id);
+		const guildSetupData = await db.setup.findFirst({ where: { guildId: this.interaction?.guild?.id } });
+		const guild = this.interaction.client.guilds.cache.get(`${guildSetupData?.guildId}`);
+		const channel = guild?.channels.cache.get(`${guildSetupData?.channelId}`);
 
 		const emoji = this.interaction.client.emoji;
 
-		const guildNetworkData = await connectedList?.findOne({ channelId : channel?.id }) as connectedListDocument | undefined | null;
+		const guildNetworkData = await db.connectedList?.findFirst({ where: { channelId : channel?.id } });
 		const status = channel && guildNetworkData ? emoji.normal.yes : emoji.normal.no;
-
+		const lastEdited = Number(guildSetupData?.date.getTime());
 
 		const embed = new EmbedBuilder()
 			.setAuthor({
@@ -206,7 +207,7 @@ class SetupEmbedGenerator {
 			.addFields(
 				{
 					name: 'Network State',
-					value: `**Connected:** ${status}\n**Channel:** ${channel}\n**Last Edited:** <t:${guildSetupData?.date.timestamp}:R>`,
+					value: `**Connected:** ${status}\n**Channel:** ${channel}\n**Last Edited:** <t:${Math.round(lastEdited) / 1000 }:R>`,
 				},
 				{
 					name: 'Style',

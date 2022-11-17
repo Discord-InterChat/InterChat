@@ -39,9 +39,8 @@ export default {
 
 	async execute(interaction: ChatInputCommandInteraction) {
 		const database = getDb();
-		const setupList = database?.collection('setup');
-		const serverInBlacklist = await database?.collection('blacklistedServers').findOne({ serverId: interaction.guild?.id });
-		const userInBlacklist = await database?.collection('blacklistedUsers').findOne({ userId: interaction.user.id });
+		const serverInBlacklist = await database.blacklistedServers.findFirst({ where: { serverId: interaction.guild?.id } });
+		const userInBlacklist = await database.blacklistedUsers.findFirst({ where: { userId: interaction.user.id } });
 
 		const subcommand = interaction.options.getSubcommand();
 
@@ -55,15 +54,15 @@ export default {
 		}
 
 		if (subcommand === 'view') {
-			(await import('../../Scripts/setup/displayEmbed')).execute(interaction, setupList);
+			(await import('../../Scripts/setup/displayEmbed')).execute(interaction, database);
 			return;
 		}
 		else if (subcommand === 'reset') {
-			(await import('../../Scripts/setup/reset')).execute(interaction, setupList);
+			(await import('../../Scripts/setup/reset')).execute(interaction, database);
 		}
 		else {
 			const destination = interaction.options.getChannel('destination') as GuildTextBasedChannel | CategoryChannel;
-			(await import('../../Scripts/setup/init')).execute(interaction, setupList, destination).catch(logger.error);
+			(await import('../../Scripts/setup/init')).execute(interaction, destination, database).catch(logger.error);
 		}
 	},
 };

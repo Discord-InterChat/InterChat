@@ -1,14 +1,14 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction } from 'discord.js';
-import { Collection } from 'mongodb';
+import { PrismaClient } from '@prisma/client';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType } from 'discord.js';
 import { NetworkManager } from '../../Utils/functions/utils';
 
 export = {
-	async execute(interaction: ChatInputCommandInteraction, setupList: Collection | undefined) {
+	async execute(interaction: ChatInputCommandInteraction, db: PrismaClient) {
 		const network = new NetworkManager();
 
 		const { normal, icons } = interaction.client.emoji;
 
-		if (!await setupList?.findOne({ 'guild.id': interaction.guildId })) {
+		if (!await db.setup?.findFirst({ where: { guildId: interaction.guildId?.toString() } })) {
 			return interaction.reply(`${normal.no} This server is not setup yet.`);
 		}
 
@@ -25,6 +25,7 @@ export = {
 
 		const resetCollector = resetConfirmMsg.createMessageComponentCollector({
 			filter: (m) => m.user.id == interaction.user.id,
+			componentType: ComponentType.Button,
 			idle: 10_000,
 			max: 1,
 		});
@@ -39,7 +40,7 @@ export = {
 				return;
 			}
 
-			await setupList?.deleteOne({ 'guild.id': interaction.guild?.id });
+			await db.setup?.deleteMany({ where: { guildId: interaction.guild?.id } });
 			await network.disconnect(interaction.guildId);
 
 			collected.update({

@@ -1,10 +1,10 @@
+import { PrismaClient } from '@prisma/client';
 import { EmbedBuilder, Message } from 'discord.js';
-import { Db } from 'mongodb';
 
 export = {
-	async execute(message: Message, database: Db, embed: EmbedBuilder) {
+	async execute(message: Message, database: PrismaClient, embed: EmbedBuilder) {
 		const emoji = message.client.emoji;
-		const badges = await database.collection('userBadges').findOne({ userId: message.author.id });
+		const badges = await database.userBadges.findFirst({ where: { userId: message.author.id } });
 
 		if (!badges) return;
 

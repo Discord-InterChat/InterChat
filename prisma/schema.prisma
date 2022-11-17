@@ -14,8 +14,8 @@ type MessageDataChannelAndMessageIds {
 
 type MessageDataReference {
   channelId String
-  guildId   String
-  messageId String
+  guildId   String?
+  messageId String?
 }
 
 type SetupWebhook {
@@ -44,21 +44,21 @@ model blacklistedServers {
 }
 
 model blacklistedUsers {
-  userId   String @id @map("_id")
+  userId   String  @id @map("_id")
   notified Boolean
   reason   String
   username String
 }
 
 model connectedList {
-  id          String @id @default(auto()) @map("_id") @db.ObjectId
-  channelId   String
-  serverId    String
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  channelId String
+  serverId  String
 }
 
 model levels {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-//  v           Int      @map("__v")
+  //  v           Int      @map("__v")
   guildID     String
   lastUpdated DateTime @db.Date
   level       Int
@@ -83,11 +83,11 @@ model restrictedWords {
 }
 
 model setup {
-  id          String        @id @default(auto()) @map("_id") @db.ObjectId
-  channelId   String
-  compact     Boolean
-  date        DateTime @default(now())
-  guildId     String
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  channelId  String @unique
+  compact    Boolean
+  date       DateTime      @default(now())
+  guildId    String
   profFilter Boolean
   webhook    SetupWebhook?
 }

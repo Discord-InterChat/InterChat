@@ -1,21 +1,20 @@
 import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, WebhookClient } from 'discord.js';
 import { MessageInterface } from '../../Events/messageCreate';
 import { getDb } from '../../Utils/functions/utils';
-import { connectedListDocument, messageData as messageDataDocument, setupDocument } from '../../Utils/typings/types';
 import { InvalidChannelId, InvalidWebhookId } from './cleanup';
 import logger from '../../Utils/logger';
+import { connectedList, messageData } from '@prisma/client';
 
 export = {
 	execute: async (
 		message: MessageInterface,
-		channel: connectedListDocument,
+		channel: connectedList,
 		embed: EmbedBuilder,
-		attachments: AttachmentBuilder,
-		replyData: messageDataDocument | null | undefined,
+		attachments: AttachmentBuilder | undefined,
+		replyData: messageData | null | undefined,
 	) => {
 		const db = getDb();
-		const setupList = db?.collection<setupDocument>('setup');
-		const channelInSetup = await setupList?.findOne({ 'channel.id': channel?.channelId });
+		const channelInSetup = await db?.setup?.findFirst({ where: { channelId: channel?.channelId } });
 		const channelToSend = await message.client.channels.fetch(channel.channelId).catch(() => null) as GuildTextBasedChannel | null;
 
 		if (!channelToSend) return { unkownChannelId: channel?.channelId } as InvalidChannelId;

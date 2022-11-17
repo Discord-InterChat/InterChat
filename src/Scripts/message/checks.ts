@@ -1,26 +1,25 @@
 import wordFilter from '../../Utils/functions/wordFilter';
 import { Message } from 'discord.js';
-import { Db } from 'mongodb';
 import { slurs } from '../../Utils/JSON/badwords.json';
+import { PrismaClient } from '@prisma/client';
 
 export = {
-	async execute(message: Message, database: Db) {
+	async execute(message: Message, database: PrismaClient) {
 		// true = pass, false = fail (checks)
 
-		const blacklistedUsers = database.collection('blacklistedUsers');
-		const blacklistedServers = database.collection('blacklistedServers');
-		const userInBlacklist = await blacklistedUsers?.findOne({ userId: message.author.id });
-		const serverInBlacklist = await blacklistedServers?.findOne({ serverId: message.guildId });
+		const userInBlacklist = await database.blacklistedUsers?.findFirst({ where: { userId: message.author.id } });
+		const serverInBlacklist = await database.blacklistedServers?.findFirst({ where: { serverId: `${message.guildId}` } });
 
 		if (serverInBlacklist) return false;
 		if (userInBlacklist) {
 			// if user is in blacklist and Notified is false, send them a message saying they are blacklisted
 			if (!userInBlacklist.notified) {
-				blacklistedUsers?.updateOne(
-					{ userId: message.author.id },
-					{ $set: { notified: true } },
-				);
+				database.blacklistedUsers.update({
+					where: { userId: message.author.id },
+					data: { notified: true },
+				});
 			}
+
 			message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff if you think the reason is not valid.`);
 			return false;
 		}

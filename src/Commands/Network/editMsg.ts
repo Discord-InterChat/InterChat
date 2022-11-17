@@ -21,10 +21,11 @@ export default {
 			});
 			return;
 		}
+
 		const messageInDb = await prisma.messageData.findFirst({
 			where: {
 				channelAndMessageIds: {
-					every: {
+					some: {
 						messageId: {
 							equals: target.id,
 						},

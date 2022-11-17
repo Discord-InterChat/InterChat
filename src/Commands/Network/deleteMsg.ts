@@ -2,8 +2,6 @@ import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCo
 import { getDb, checkIfStaff } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 import { stripIndents } from 'common-tags';
-import { messageData } from '../../Utils/typings/types';
-
 
 export default {
 	data: new ContextMenuCommandBuilder()
@@ -14,7 +12,9 @@ export default {
 		const staffUser = await checkIfStaff(interaction.client, interaction.user);
 
 		const db = getDb();
-		const messageInDb = await db?.collection('messageData').findOne({ channelAndMessageIds: { $elemMatch: { messageId: target.id } } }) as messageData | undefined;
+		const messageInDb = await db?.messageData.findFirst({
+			where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
+		});
 
 		if (!messageInDb || messageInDb?.expired && staffUser === false) return interaction.reply({ content: 'This message has expired.', ephemeral: true });
 

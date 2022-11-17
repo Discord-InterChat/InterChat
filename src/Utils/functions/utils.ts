@@ -5,6 +5,8 @@ import { Api } from '@top-gg/sdk';
 import 'dotenv/config';
 import { prisma } from '../../db';
 import { Prisma, PrismaClient } from '@prisma/client';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 import _ from 'lodash/string';
 
 const topgg = new Api(process.env.TOPGG as string);
@@ -115,7 +117,7 @@ export async function getCredits() {
 /**
 * Returns the database
 */
-export function getDb(): PrismaClient | undefined {
+export function getDb(): PrismaClient {
 	return prisma;
 }
 
@@ -271,12 +273,8 @@ export class NetworkManager {
 	constructor() {/**/ }
 
 	public async getServerData(filter: NetworkManagerOptions) {
-		const foundServerData = await prisma.connectedList.findFirst({
-			where: {
-				serverId: filter.serverId,
-				channelId: filter.channelId,
-			},
-		});
+		const foundServerData = await prisma.connectedList.findFirst({ where: filter });
+
 		return foundServerData;
 	}
 
@@ -320,10 +318,10 @@ export class NetworkManager {
 	}
 
 	/** Delete a document using the `channelId` or `serverId` from the connectedList collection */
-	public async disconnect(options: NetworkManagerOptions): Promise<Prisma.BatchPayload>
+	public async disconnect(options: Prisma.connectedListCreateInput): Promise<Prisma.BatchPayload>
 	/**  Delete a document using the `serverId` from the connectedList collection*/
 	async disconnect(serverId: string | null): Promise<Prisma.BatchPayload>
-	async disconnect(options: NetworkManagerOptions | string | null): Promise<Prisma.BatchPayload> {
+	async disconnect(options: Prisma.connectedListCreateInput | string | null): Promise<Prisma.BatchPayload> {
 		if (typeof options === 'string') {
 			return await prisma.connectedList.deleteMany({
 				where: {
@@ -331,21 +329,8 @@ export class NetworkManager {
 				},
 			});
 		}
-		else if (options?.channelId) {
-			return await prisma.connectedList.deleteMany({
-				where: {
-					serverId: options.serverId,
-					channelId: options.channelId,
-				},
-			});
-		}
-		else {
-			return await prisma.connectedList.deleteMany({
-				where: {
-					serverId: options?.serverId,
-				},
-			});
-		}
+
+		return await prisma.connectedList.deleteMany({ where: options ?? undefined });
 	}
 
 	/** Returns a promise with the total number of connected servers.*/

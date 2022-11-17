@@ -1,8 +1,6 @@
 import { APIMessage, Message } from 'discord.js';
-import { Collection } from 'mongodb';
-import { connectedListDocument, setupDocument } from '../../Utils/typings/types';
-import logger from '../../Utils/logger';
 import { getDb } from '../../Utils/functions/utils';
+import logger from '../../Utils/logger';
 
 
 export interface InvalidChannelId {unknownChannelId?: string}
@@ -11,10 +9,11 @@ export interface InvalidWebhookId {unknownWebhookId?: string}
 
 export default {
 	execute: async (message: Message, channelAndMessageIds: Promise<Message | InvalidChannelId | InvalidWebhookId | APIMessage>[]) => {
+
 		message.delete().catch(() => null);
 		// All message data is stored in the database, so we can delete the message from the network later
 		Promise.allSettled(channelAndMessageIds)
-			.then((data) => {
+			.then(async (data) => {
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const fulfilledResults = data.filter(d => d.status === 'fulfilled' && d.value) as PromiseFulfilledResult<any>[];
 
@@ -34,23 +33,26 @@ export default {
 					.map((msg: PromiseFulfilledResult<any>) => {return { channelId: msg.value.channelId || msg.value.channel_id, messageId: msg.value.id };});
 
 				const db = getDb();
-				const connectedList = db?.collection('connectedList') as Collection<connectedListDocument> | undefined;
-				const messageData = db?.collection('messageData');
-				const setupList = db?.collection('setup') as Collection<setupDocument> | undefined;
 
 				// delete invalid channels from the database
-				connectedList?.deleteMany({ channelId: { $in: invalidChannelIds } });
-				setupList?.updateMany({ 'webhook.id' : { $in: invalidWebhooks } }, { $set: { webhook: null } });
+				await db.connectedList?.deleteMany({ where: { channelId: { in: String(invalidChannelIds) } } });
+				await db.setup.updateMany({
+					where: { webhook: { is: { id: { in: String(invalidWebhooks) } } } },
+					data: { webhook: null },
+				});
+
 
 				// store message data in db
 				if (message.guild) {
-					messageData?.insertOne({
-						channelAndMessageIds: messageDataObj,
-						timestamp: message.createdTimestamp,
-						authorId: message.author.id,
-						serverId: message.guild?.id,
-						reference: message.reference,
-						expired: false,
+					await db.messageData.create({
+						data: {
+							channelAndMessageIds: messageDataObj,
+							timestamp: message.createdTimestamp,
+							authorId: message.author.id,
+							serverId: message.guild?.id,
+							reference: message.reference,
+							expired: false,
+						},
 					});
 				}
 			})

@@ -1,22 +1,27 @@
 import fetch from 'node-fetch';
-import logger from '../../Utils/logger';
 import wordFilter from '../../Utils/functions/wordFilter';
-import { AttachmentBuilder, EmbedBuilder, Message } from 'discord.js';
+import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { MessageInterface } from '../../Events/messageCreate';
-import { Collection } from 'mongodb';
-import { messageData as messageDataDocument } from '../../Utils/typings/types';
 import 'dotenv/config';
+import { messageData, PrismaClient } from '@prisma/client';
 
 export = {
-	execute: async (message: MessageInterface, messageData: Collection<messageDataDocument> | null) => {
+	execute: async (message: MessageInterface, db: PrismaClient | null) => {
 		message.compact_message = `**${message.author.tag}:** ${message.content}`;
 
-		let messageInDb: messageDataDocument | null | undefined = null;
+		let messageInDb: messageData | null | undefined = null;
 		if (message.reference) {
 			const referredMessage = await message.fetchReference().catch(() => null);
-			messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: referredMessage?.id } } });
 
 			if (referredMessage) {
+				messageInDb = await db?.messageData.findFirst({
+					where: {
+						channelAndMessageIds: {
+							every: { messageId: referredMessage.id },
+						},
+					},
+				});
+
 				let embed = referredMessage.embeds[0]?.fields[0]?.value;
 				let compact = referredMessage.content;
 
