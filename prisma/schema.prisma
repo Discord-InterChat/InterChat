@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,66 +7,118 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model blacklistedServers {
-  serverName  String
-  serverId    String @id @map("_id")
+type MessageDataChannelAndMessageIds {
+  channelId String
+  messageId String
+}
+
+type MessageDataReference {
+  channelId String
+  guildId   String
+  messageId String
+}
+
+type SetupChannel {
+  id   String
+  name String
+}
+
+type SetupDate {
+  full      DateTime @db.Date
+  timestamp Int
+}
+
+type SetupGuild {
+  id   String
+  name String
+}
+
+type SetupWebhook {
+  id    String
+  token String
+  url   String
+}
+
+type UserDataUser {
+  id  String
+  tag String
+}
+
+type UserDataWarnings {
+  automated   Boolean
+  moderatorId String?
+  number      Int
   reason      String
+  timestamp   Int?
+}
+
+model blacklistedServers {
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
+  reason     String
+  serverId   String
+  serverName String
 }
 
 model blacklistedUsers {
-  username  String
-  userId    String @id @map("_id")
-  reason    String
-  notified  Boolean
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  notified Boolean
+  reason   String
+  userId   String
+  username String
 }
 
 model connectedList {
+  id          String @id @default(auto()) @map("_id") @db.ObjectId
   channelId   String
-  serverId    String @id @map("_id")
+  channelName String
+  serverId    String
+  serverName  String
 }
 
 model levels {
-  id              String @id @default(auto()) @map("_id") @db.ObjectId
-  xp              Int
-  level           Int
-  lastUpdated     DateTime  @updatedAt
-  userID          String
-  guildID         String
-//  __v             Int 
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  v           Int      @map("__v")
+  guildID     String
+  lastUpdated DateTime @db.Date
+  level       Int
+  userID      String
+  xp          Int
 }
 
 model messageData {
-  id              String @id @default(auto()) @map("_id") @db.ObjectId
-  channelAndMessageIds    Json[]
-  timestamp               Int
-  authorId                String
-  serverId                String
-  reference               Json[]
-  expired                 Boolean
+  id                   String                            @id @default(auto()) @map("_id") @db.ObjectId
+  authorId             String
+  channelAndMessageIds MessageDataChannelAndMessageIds[]
+  expired              Boolean
+  reference            MessageDataReference?
+  serverId             String
+  timestamp            Float
 }
 
 model restrictedWords {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  words         String[]
+  id    String   @id @default(auto()) @map("_id") @db.ObjectId
+  name  String
+  words String[]
 }
 
 model setup {
-  guildID       String @id @map("_id")
-  channelID     String @unique
-  date          DateTime  @default(now())
-  compact       Boolean
-  profFilter    Boolean
-  webhook       Json
+  id         String        @id @default(auto()) @map("_id") @db.ObjectId
+  channel    SetupChannel
+  compact    Boolean
+  date       SetupDate
+  guild      SetupGuild
+  profFilter Boolean
+  webhook    SetupWebhook?
 }
 
 model userBadges {
-  userId        String @id @map("_id")
-  badges        String[]
+  id     String   @id @default(auto()) @map("_id") @db.ObjectId
+  badges String[]
+  userId String
 }
 
 model userData {
-  id            String @id @default(auto()) @map("_id") @db.ObjectId
-  userId     String
-  guildId    String
-  warnings   Json[]
+  id       String             @id @default(auto()) @map("_id") @db.ObjectId
+  user     UserDataUser
+  warnings UserDataWarnings[]
 }
