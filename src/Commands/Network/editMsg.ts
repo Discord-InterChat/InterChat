@@ -1,8 +1,6 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
 import { constants } from '../../Utils/functions/utils';
 import { prisma } from '../../db';
-import { messageData, setupDocument } from '../../Utils/typings/types';
-import { Collection } from 'mongodb';
 import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
 import { Prisma } from '@prisma/client';
@@ -26,7 +24,11 @@ export default {
 		const messageInDb = await prisma.messageData.findFirst({
 			where: {
 				channelAndMessageIds: {
-					equals: { messageId: target.id },
+					every: {
+						messageId: {
+							equals: target.id,
+						},
+					},
 				},
 			},
 		});
@@ -87,13 +89,11 @@ export default {
 
 				// loop through all the channels in the network and edit the message
 
-				// TODO: needs to be any since all data is in JSON currently and I (Chanakan) don't want to change anything in the database
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				(messageInDb.channelAndMessageIds as Prisma.JsonArray).forEach(async (obj: any) => {
+				messageInDb.channelAndMessageIds.forEach(async obj => {
 					//					const channelSettings = await setupList.findOne<setupDocument>({ 'channel.id': obj.channelId });
 					const channelSettings = await prisma.setup.findFirst({
 						where: {
-							channelID: obj.channelId,
+							channelId: obj.channelId,
 						},
 					});
 					const channel = await interaction.client.channels.fetch(obj.channelId) as GuildTextBasedChannel;

@@ -18,21 +18,6 @@ type MessageDataReference {
   messageId String
 }
 
-type SetupChannel {
-  id   String
-  name String
-}
-
-type SetupDate {
-  full      DateTime @db.Date
-  timestamp Int
-}
-
-type SetupGuild {
-  id   String
-  name String
-}
-
 type SetupWebhook {
   id    String
   token String
@@ -53,31 +38,27 @@ type UserDataWarnings {
 }
 
 model blacklistedServers {
-  id         String @id @default(auto()) @map("_id") @db.ObjectId
-  reason     String
-  serverId   String
+  serverId   String @id @map("_id")
   serverName String
+  reason     String
 }
 
 model blacklistedUsers {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String @id @map("_id")
   notified Boolean
   reason   String
-  userId   String
   username String
 }
 
 model connectedList {
   id          String @id @default(auto()) @map("_id") @db.ObjectId
   channelId   String
-  channelName String
   serverId    String
-  serverName  String
 }
 
 model levels {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  v           Int      @map("__v")
+//  v           Int      @map("__v")
   guildID     String
   lastUpdated DateTime @db.Date
   level       Int
@@ -102,11 +83,11 @@ model restrictedWords {
 }
 
 model setup {
-  id         String        @id @default(auto()) @map("_id") @db.ObjectId
-  channel    SetupChannel
-  compact    Boolean
-  date       SetupDate
-  guild      SetupGuild
+  id          String        @id @default(auto()) @map("_id") @db.ObjectId
+  channelId   String
+  compact     Boolean
+  date        DateTime @default(now())
+  guildId     String
   profFilter Boolean
   webhook    SetupWebhook?
 }

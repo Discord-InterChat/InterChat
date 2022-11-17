@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ApplicationCommandOptionType, PermissionsBitField, EmbedBuilder, ChatInputCommandInteraction, SlashCommandStringOption, SlashCommandUserOption, PermissionsString, AutocompleteInteraction } from 'discord.js';
-import { colors } from '../../Utils/functions/utils';
+import { colors, toTitleCase } from '../../Utils/functions/utils';
 
 export default {
 	data: new SlashCommandBuilder()
@@ -48,7 +48,7 @@ export default {
 		if (!command) return interaction.reply('Unkown command!');
 
 		const command_embed = new EmbedBuilder()
-			.setTitle(command.data.name.toTitleCase() + ' Help')
+			.setTitle(toTitleCase(command.data.name) + ' Help')
 			.setDescription(
 				command.data.description || command.description as string || 'No Description',
 			)
@@ -77,14 +77,13 @@ export default {
 
 		if (commandOps && commandOps[0]?.type === ApplicationCommandOptionType.Subcommand) {
 			commandOps.forEach((subcommand: any) => {
-				const subOptions = subcommand.options.map((optionValue: SlashCommandStringOption|SlashCommandUserOption) => {
+				const subOptions = subcommand.options.map((optionValue: SlashCommandStringOption | SlashCommandUserOption) => {
 					return optionValue.required ? ` <${optionValue.name}>` : ` [${optionValue.name}]`;
 				});
 
 				const data = {
 					name: `${subcommand.name}`,
-					value: `${subcommand.description || 'No Description'}\n**Usage: **\`/${command.data.name} ${subcommand.name}${
-						subOptions.length === 0 ? '' : subOptions.join('')}\``,
+					value: `${subcommand.description || 'No Description'}\n**Usage: **\`/${command.data.name} ${subcommand.name}${subOptions.length === 0 ? '' : subOptions.join('')}\``,
 				};
 
 				command_embed.addFields([data]);
@@ -107,7 +106,7 @@ export default {
 				{ name: '📌Connect', value: 'network' },
 				{ name: '📌Disconnect', value: 'network' },
 			];
-			choices = choices.concat(interaction.client.commands.map(command => { return { name: command.data.name, value: command.data.name };}));
+			choices = choices.concat(interaction.client.commands.map(command => { return { name: command.data.name, value: command.data.name }; }));
 			filtered = choices.filter((choice) => choice.value.startsWith(focusedValue)).slice(0, 25);
 		}
 		else {

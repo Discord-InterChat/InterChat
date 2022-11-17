@@ -1,6 +1,6 @@
 import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { checkIfStaff, colors, getDb } from '../../Utils/functions/utils';
+import { checkIfStaff, colors, getDb, toTitleCase } from '../../Utils/functions/utils';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, serverId: string, hidden: boolean) {
@@ -12,10 +12,14 @@ export = {
 		const owner = await server?.fetchOwner();
 
 		const db = getDb();
-		const blacklistedServers = db?.collection('blacklistedServers');
+		const blacklistedServers = db?.blacklistedServers;
 
 		const components = async () => {
-			const guildBlacklisted = await blacklistedServers?.findOne({ serverId: server.id });
+			const guildBlacklisted = await blacklistedServers?.findFirst({
+				where: {
+					serverId: server.id,
+				},
+			});
 
 			return new ActionRowBuilder<ButtonBuilder>({
 				components: [
@@ -43,26 +47,26 @@ export = {
 
 		collector.on('collect', async (i) => {
 			switch (i.customId) {
-			case 'blacklist':
-				await blacklistedServers?.insertOne({
-					serverName: server.name,
-					serverId: server.id,
-					reason: 'Some Reason',
-				});
-				await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
-				i.followUp({ content: 'Server blacklisted.', ephemeral: hidden });
-				break;
-			case 'unblacklist':
-				await blacklistedServers?.deleteOne({ serverId: server.id });
-				await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
-				i.followUp({ content: 'Server removed from blacklist.', ephemeral: hidden });
-				break;
-			case 'leave':
-				i.reply({ content: 'Leaving Server....', ephemeral: hidden });
-				await server.leave();
-				break;
-			default:
-				break;
+				case 'blacklist':
+					await blacklistedServers?.insertOne({
+						serverName: server.name,
+						serverId: server.id,
+						reason: 'Some Reason',
+					});
+					await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
+					i.followUp({ content: 'Server blacklisted.', ephemeral: hidden });
+					break;
+				case 'unblacklist':
+					await blacklistedServers?.deleteOne({ serverId: server.id });
+					await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
+					i.followUp({ content: 'Server removed from blacklist.', ephemeral: hidden });
+					break;
+				case 'leave':
+					i.reply({ content: 'Leaving Server....', ephemeral: hidden });
+					await server.leave();
+					break;
+				default:
+					break;
 			}
 		});
 	},
@@ -103,7 +107,7 @@ async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
 
 			{
 				name: 'Server Features:',
-				value: guild.features.map(feat => '> ' + feat.replaceAll('_', ' ').toTitleCase() + '\n').join('') || `> ${emojis.normal.no} No Features`,
+				value: guild.features.map(feat => '> ' + toTitleCase(feat.replaceAll('_', ' ')) + '\n').join('') || `> ${emojis.normal.no} No Features`,
 			},
 
 			{

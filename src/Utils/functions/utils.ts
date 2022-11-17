@@ -2,34 +2,24 @@ import logger from '../logger';
 import discord from 'discord.js';
 import util from 'util';
 import { Api } from '@top-gg/sdk';
-import { MongoClient, Db, AnyError, DeleteResult } from 'mongodb';
-import { connectedListDocument } from '../typings/types';
 import 'dotenv/config';
+import { prisma } from '../../db';
+import { Prisma, PrismaClient } from '@prisma/client';
+import _ from 'lodash/string';
 
 const topgg = new Api(process.env.TOPGG as string);
-const uri = process.env.MONGODB_URI as string;
-let _db: Db | undefined;
 
+export function toTitleCase(txt: string) {
+	return _.startCase(_.toLower(txt));
+}
 
-String.prototype.toTitleCase = function() {
-	let upper = true;
-	let newStr = '';
-	for (let i = 0, l = this.length; i < l; i++) {
-		if (this[i] == ' ') {
-			upper = true;
-			newStr += this[i];
-			continue;
-		}
-		newStr += upper ? this[i].toUpperCase() : this[i].toLowerCase();
-		upper = false;
-	}
-	return String(newStr);
-};
+export function getGuildName(client: discord.Client, gid: string | null) {
+	if (!gid) return '';
+	return client.guilds.cache.get(gid)?.name;
+}
 
 discord.Client.prototype.sendInNetwork = async function(message: string | discord.MessageCreateOptions) {
-	const database = _db;
-	const connectedList = database?.collection('connectedList');
-	const channels = await connectedList?.find().toArray();
+	const channels = await prisma.connectedList.findMany();
 
 	channels?.forEach(async (channelEntry) => {
 		const channel = await this.channels.fetch(channelEntry.channelId);
@@ -122,19 +112,11 @@ export async function getCredits() {
 	return creditArray;
 }
 
-export function connect(callback: (err: AnyError | null, state: boolean) => unknown) {
-	MongoClient.connect(uri)
-		.then((client) => {
-			_db = client.db('Discord-ChatBot');
-			callback(null, true);
-		})
-		.catch((err) => {return callback(err, false);});
-}
 /**
 * Returns the database
 */
-export function getDb(): Db | undefined {
-	return _db;
+export function getDb(): PrismaClient | undefined {
+	return prisma;
 }
 
 /**
@@ -187,7 +169,8 @@ export async function checkIfStaff(client: discord.Client, user: discord.GuildMe
 	}
 }
 
-export async function clean(client: discord.Client, text: string) {
+// eslint-disable-next-line
+export async function clean(client: discord.Client, text: any) {
 	// If our input is a promise, await it before continuing
 	if (text && text.constructor.name == 'Promise') text = await text;
 
@@ -216,12 +199,7 @@ export async function clean(client: discord.Client, text: string) {
 * Delete channels from databse that chatbot doesn't have access to.
 */
 export async function deleteChannels(client: discord.Client) {
-	const database = _db;
-
-	if (!database) throw new Error('Database not connected');
-
-	const connectedList = database.collection('connectedList');
-	const channels = await connectedList.find().toArray();
+	const channels = await prisma.connectedList.findMany();
 
 	const unknownChannels = [];
 	for (let i = 0; i < channels?.length; i++) {
@@ -239,8 +217,14 @@ export async function deleteChannels(client: discord.Client) {
 	}
 
 	if (unknownChannels.length > 0) {
-		const deletedChannels = await connectedList.deleteMany({ channelId: { $in: unknownChannels } });
-		logger.info(`Deleted ${deletedChannels.deletedCount} channels from the connectedList database.`);
+		const deletedChannels = await prisma.connectedList.deleteMany({
+			where: {
+				channelId: {
+					in: unknownChannels,
+				},
+			},
+		});
+		logger.info(`Deleted ${deletedChannels.count} channels from the connectedList database.`);
 		return;
 	}
 }
@@ -276,29 +260,39 @@ export const constants = {
 };
 
 interface NetworkManagerOptions {
-	serverId?: string | null;
-	channelId?: string | null;
+	serverId?: string | undefined;
+	channelId?: string | undefined;
 }
 
 export class NetworkManager {
 
 	protected db = getDb();
-	public connectedList = this.db?.collection('connectedList');
 
-	constructor() {/**/}
+	constructor() {/**/ }
 
 	public async getServerData(filter: NetworkManagerOptions) {
-		const foundServerData = await this.connectedList?.findOne(filter);
+		const foundServerData = await prisma.connectedList.findFirst({
+			where: {
+				serverId: filter.serverId,
+				channelId: filter.channelId,
+			},
+		});
 		return foundServerData;
 	}
 
 	/**
 	 * Returns found document if the server/channel is connected.
 	 */
-	public async connected(options: NetworkManagerOptions) {
-		const InDb = await this.connectedList?.findOne(options) as connectedListDocument | undefined | null;
+
+	// duplicate work as above
+	/*	public async connected(options: NetworkManagerOptions) {
+		const InDb = await prisma.connectedList.findFirst({
+			where: {
+				serverId: options.
+			}
+		});
 		return InDb;
-	}
+	}*/
 
 	/**
 	 * Connect a channel to the network.
@@ -308,36 +302,54 @@ export class NetworkManager {
 	 * **This only inserts the server into the connectedList collection.**
 	 */
 	public async connect(guild: discord.Guild | null, channel: discord.GuildTextBasedChannel | undefined | null) {
-		const channelExists = await this.connectedList?.findOne({ channelId: channel?.id });
+		const channelExists = await prisma.connectedList.findFirst({
+			where: {
+				channelId: channel?.id,
+			},
+		});
 
 		if (channelExists) return null;
 		if (!guild || !channel) throw new Error('Invalid arguments provided.');
 
-		return await this.connectedList?.insertOne({
-			channelId: channel?.id,
-			channelName: channel?.name,
-			serverId: guild?.id,
-			serverName: guild?.name,
+		return await prisma.connectedList.create({
+			data: {
+				channelId: channel?.id,
+				serverId: guild?.id,
+			},
 		});
 	}
 
-
 	/** Delete a document using the `channelId` or `serverId` from the connectedList collection */
-	public async disconnect(options: NetworkManagerOptions): Promise<DeleteResult | undefined>
+	public async disconnect(options: NetworkManagerOptions): Promise<Prisma.BatchPayload>
 	/**  Delete a document using the `serverId` from the connectedList collection*/
-	async disconnect(serverId: string | null): Promise<DeleteResult | undefined>
-	async disconnect(options: NetworkManagerOptions | string | null): Promise<DeleteResult | undefined> {
+	async disconnect(serverId: string | null): Promise<Prisma.BatchPayload>
+	async disconnect(options: NetworkManagerOptions | string | null): Promise<Prisma.BatchPayload> {
 		if (typeof options === 'string') {
-			return await this.connectedList?.deleteOne({ serverId: options });
+			return await prisma.connectedList.deleteMany({
+				where: {
+					serverId: options,
+				},
+			});
 		}
-		else if (options?.channelId) {return await this.connectedList?.deleteOne({ channelId: options.channelId });}
-		else {return await this.connectedList?.deleteOne({ serverId: options?.serverId });}
+		else if (options?.channelId) {
+			return await prisma.connectedList.deleteMany({
+				where: {
+					serverId: options.serverId,
+					channelId: options.channelId,
+				},
+			});
+		}
+		else {
+			return await prisma.connectedList.deleteMany({
+				where: {
+					serverId: options?.serverId,
+				},
+			});
+		}
 	}
 
 	/** Returns a promise with the total number of connected servers.*/
 	public async totalConnected() {
-		return await this.connectedList?.countDocuments();
+		return await prisma.connectedList.count();
 	}
 }
-
-export default { colors, choice, sendInFirst, getCredits, connect, getDb, toHuman, checkIfStaff, clean, deleteChannels, constants, NetworkManager };
