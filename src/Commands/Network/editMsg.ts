@@ -1,6 +1,6 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
 import { constants } from '../../Utils/functions/utils';
-import { prisma } from '../../db';
+import { prisma } from '../../Utils/db';
 import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
 import { Prisma } from '@prisma/client';
@@ -89,7 +89,6 @@ export default {
 				});
 
 				// loop through all the channels in the network and edit the message
-
 				messageInDb.channelAndMessageIds.forEach(async obj => {
 					//					const channelSettings = await setupList.findOne<setupDocument>({ 'channel.id': obj.channelId });
 					const channelSettings = await prisma.setup.findFirst({

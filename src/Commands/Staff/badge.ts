@@ -66,7 +66,7 @@ export default {
 		const badge = interaction.options.getString('badge');
 
 		const database = getDb();
-		const userBadges = database?.collection('userBadges');
+		const userBadges = database?.userBadges;
 
 		if (subcommand === 'list') {
 			require('../../Scripts/badge/list').execute(interaction, userBadges, user);

@@ -1,24 +1,26 @@
 import { stripIndents } from 'common-tags';
 import { ChannelType, ChatInputCommandInteraction, OverwriteType, GuildTextBasedChannel, CategoryChannel } from 'discord.js';
-import { Collection } from 'mongodb';
+import { PrismaClient } from '@prisma/client';
 import { NetworkManager } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 
 export = {
-	async execute(interaction: ChatInputCommandInteraction, setupList: Collection | undefined, destination: GuildTextBasedChannel | CategoryChannel | undefined) {
+	async execute(interaction: ChatInputCommandInteraction, database: PrismaClient) {
 		// send the initial reply
 		await interaction.deferReply();
 
 		const date = new Date();
-		const timestamp = Math.round(date.getTime() / 1000);
 		const emoji = interaction.client.emoji;
 
-		const guildSetup = await setupList?.findOne({ 'guild.id': interaction.guild?.id });
+		const destination = interaction.options.getChannel('destination') as GuildTextBasedChannel | CategoryChannel;
+
+		const setupList = database.setup;
+		const guildSetup = await setupList.findFirst({ where: { guildId: interaction.guild?.id } });
 		const network = new NetworkManager();
 
 		if (guildSetup) {
 			if (destination) {
-				if (await setupList?.findOne({ 'channel.id': destination.id })) {
+				if (await setupList.findFirst({ where: { channelId: destination.id } })) {
 					interaction.followUp(`A setup for ${destination} is already present.`);
 					return;
 				}
@@ -29,17 +31,16 @@ export = {
 				if (msg?.first()?.content.toLowerCase() !== 'y') return msg?.first()?.reply('Cancelled.');
 
 				network.disconnect(interaction.guildId);
-				await setupList?.deleteMany({ 'guild.id': interaction.guildId });
+				await setupList?.deleteMany({ where: { guildId: interaction.guildId?.toString() } });
 			}
 
 			// try to fetch the channel, if it does not exist delete from the databases'
 			try {
-				await interaction.guild?.channels.fetch(guildSetup.channel.id);
+				await interaction.guild?.channels.fetch(guildSetup.channelId);
 			}
 			catch {
-				await setupList?.deleteOne({ 'channel.id': guildSetup.channel.id });
-				network.disconnect({ channelId: String(guildSetup.channel.id) });
-				interaction.editReply(emoji.icons.exclamation + ' Uh-Oh! The channel I have been setup to does not exist or is private.');
+				await setupList?.delete({ where: { channelId: guildSetup.channelId } });
+				network.disconnect({ channelId: guildSetup.channelId });
 			}
 		}
 
@@ -83,13 +84,15 @@ export = {
 		try {
 			// Inserting channel to setup and connectedlist
 			await network.connect(interaction.guild, channel);
-			await setupList?.insertOne({
-				guild: { name: interaction.guild?.name, id: interaction.guild?.id },
-				channel: { name: channel?.name, id: channel?.id },
-				date: { full: date, timestamp: timestamp },
-				compact: false,
-				profFilter: true,
-				webhook: null,
+			await setupList?.create({
+				data: {
+					guildId: String(interaction.guild?.id),
+					channelId: String(channel?.id),
+					date: date,
+					compact: false,
+					profFilter: true,
+					webhook: null,
+				},
 			});
 
 			const numOfConnections = await network.totalConnected();
@@ -109,7 +112,7 @@ export = {
 		catch (err: any) {
 			logger.error(err);
 			await interaction.followUp('An error occurred while connecting to the chat network.\n**Error:** ' + err.message);
-			setupList?.deleteOne({ 'channel.id': channel?.id });
+			setupList?.delete({ where: { channelId: channel?.id } });
 			network.disconnect(interaction.guild?.id as string);
 			return;
 		}
@@ -120,6 +123,6 @@ export = {
 			**Server Name:** __${interaction.guild?.name}__
 			**Member Count:** __${interaction.guild?.memberCount}__`);
 
-		(await import('./displayEmbed')).execute(interaction, setupList);
+		(await import('./displayEmbed')).execute(interaction, database);
 	},
 };

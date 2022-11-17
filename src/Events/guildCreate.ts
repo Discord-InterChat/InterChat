@@ -6,9 +6,8 @@ import wordFilter from '../Utils/functions/wordFilter';
 export default {
 	name: 'guildCreate',
 	async execute(guild: Guild) {
-		const database = getDb();
-		const blacklistedServers = database?.collection('blacklistedServers');
-		const serverInBlacklist = await blacklistedServers?.findOne({ serverId: guild.id });
+		const blacklistedServers = getDb().blacklistedServers;
+		const serverInBlacklist = await blacklistedServers?.findFirst({ where: { serverId: guild.id } });
 
 		const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 }).catch(() => null);
 		const badword = wordFilter.check(guild.name);

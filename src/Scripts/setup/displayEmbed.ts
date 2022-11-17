@@ -158,7 +158,7 @@ export = {
 			}
 
 			case 'disconnect':
-				network.disconnect(String(interaction.guildId));
+				await network.disconnect({ channelId: guildSetup.channelId });
 				setupActionButtons.components.at(-1)?.setDisabled(true);
 
 				logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
@@ -207,7 +207,7 @@ class SetupEmbedGenerator {
 			.addFields(
 				{
 					name: 'Network State',
-					value: `**Connected:** ${status}\n**Channel:** ${channel}\n**Last Edited:** <t:${Math.round(lastEdited) / 1000 }:R>`,
+					value: `**Connected:** ${status}\n**Channel:** ${channel}\n**Last Edited:** <t:${Math.round(lastEdited / 1000)}:R>`,
 				},
 				{
 					name: 'Style',

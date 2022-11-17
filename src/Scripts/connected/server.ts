@@ -1,13 +1,11 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb, getGuildName } from '../../Utils/functions/utils';
 import { paginate } from '../../Utils/functions/paginator';
 
 module.exports = {
 	async execute(interaction: ChatInputCommandInteraction) {
 		const database = getDb();
-		const connectedList = database?.collection('connectedList');
-		const searchCursor = connectedList?.find();
-		const result = await searchCursor?.toArray();
+		const result = await database.connectedList.findMany();
 
 		if (!result || result?.length === 0) return interaction.reply(`No connected servers yet ${interaction.client.emoji.normal.bruhcat}`);
 
@@ -22,25 +20,23 @@ module.exports = {
 			itemsPerPage += 5;
 
 			const fields = current.map(value => {
+				const serverName = getGuildName(interaction.client, value.serverId);
+				const channelName = interaction.client.channels.cache.get(value.channelId);
+
 				return {
-					name: `${++j}. ${value.serverName}`,
-					value: `
-					ServerID: ${value.serverId}
-					Channel: ${value.channelName} \`(${value.channelId}\`)
-					Compact Mode: ${value.compact ? 'Enabled' : 'Disabled'}
-					`,
+					name: `${++j}. ${serverName}`,
+					value: `ServerID: ${value.serverId}\nChannel: ${channelName} \`(${value.channelId}\`)`,
 				};
 			});
 
-			const embed = new EmbedBuilder()
-				.setDescription(`Showing the current connected servers: ${++l}-${j} / **${result.length}**`)
-				.setColor(0x2F3136)
-				.setFields(fields);
-			embeds.push(embed);
+			embeds.push(
+				new EmbedBuilder()
+					.setDescription(`Showing the current connected servers: ${++l}-${j} / **${result.length}**`)
+					.setColor(0x2F3136)
+					.setFields(fields),
+			);
 		}
 
 		return paginate(interaction, embeds);
-
-
 	},
 };

@@ -1,5 +1,4 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction } from 'discord.js';
-import utils from '../../Utils/functions/utils';
 
 export default {
 	staff: true,
@@ -45,8 +44,7 @@ export default {
 
 	async execute(interaction: ChatInputCommandInteraction) {
 		const subcommand = interaction.options.getSubcommand();
-		const database = utils.getDb();
 
-		await require(`../../Scripts/server/${subcommand}`).execute(interaction, database);
+		await require(`../../Scripts/server/${subcommand}`).execute(interaction);
 	},
 };

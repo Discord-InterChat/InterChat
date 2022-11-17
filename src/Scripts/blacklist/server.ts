@@ -1,15 +1,15 @@
+import { PrismaClient } from '@prisma/client';
 import { ChatInputCommandInteraction } from 'discord.js';
-import { Db } from 'mongodb';
 import { sendInFirst } from '../../Utils/functions/utils';
 
 module.exports = {
-	async execute(interaction: ChatInputCommandInteraction, database: Db) {
-		const serverOpt = interaction.options.getString('server');
-		const reason = interaction.options.getString('reason');
+	async execute(interaction: ChatInputCommandInteraction, database: PrismaClient) {
+		const serverOpt = interaction.options.getString('server', true);
+		const reason = interaction.options.getString('reason', true);
 		const subCommandGroup = interaction.options.getSubcommandGroup();
-		const blacklistedServers = database.collection('blacklistedServers');
-		const serverInBlacklist = await blacklistedServers.findOne({
-			serverId: serverOpt,
+		const blacklistedServers = database.blacklistedServers;
+		const serverInBlacklist = await blacklistedServers.findFirst({
+			where: { serverId: serverOpt },
 		});
 
 		if (subCommandGroup == 'add') {
@@ -23,10 +23,12 @@ module.exports = {
 				interaction.reply('Something went wrong! Are you sure that was a valid server ID?');
 				return;
 			}
-			await blacklistedServers.insertOne({
-				serverName: server.name,
-				serverId: serverOpt,
-				reason: reason,
+			await blacklistedServers.create({
+				data: {
+					serverName: server.name,
+					serverId: serverOpt,
+					reason,
+				},
 			});
 
 			await sendInFirst(
@@ -42,7 +44,7 @@ module.exports = {
 
 		else if (subCommandGroup == 'remove') {
 			if (!serverInBlacklist) return await interaction.reply('The server is not blacklisted.');
-			await blacklistedServers.deleteOne({ serverId: serverOpt });
+			await blacklistedServers.delete({ where: { serverId: serverOpt } });
 
 			// Using name from DB since the bot isn't in the server, so it doesn't have any of its data.
 			interaction.reply(`The server **${serverInBlacklist.serverName}** has been removed from the blacklist.`);

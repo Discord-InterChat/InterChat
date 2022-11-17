@@ -1,14 +1,14 @@
+import { PrismaClient } from '@prisma/client';
 import { ChatInputCommandInteraction } from 'discord.js';
-import { Db } from 'mongodb';
 import logger from '../../Utils/logger';
 
 module.exports = {
-	async execute(interaction: ChatInputCommandInteraction, database: Db) {
+	async execute(interaction: ChatInputCommandInteraction, database: PrismaClient) {
 		let userOpt = interaction.options.getString('user') as string;
-		const reason = interaction.options.getString('reason');
+		const reason = interaction.options.getString('reason', true);
 		const subcommandGroup = interaction.options.getSubcommandGroup();
 
-		const blacklistedUsers = database.collection('blacklistedUsers');
+		const blacklistedUsers = database.blacklistedUsers;
 		let user;
 
 		try {
@@ -20,7 +20,7 @@ module.exports = {
 		}
 		catch {return interaction.reply('Could not find user. Use an ID instead.');}
 
-		const userInBlacklist = await blacklistedUsers.findOne({ userId: user.id });
+		const userInBlacklist = await blacklistedUsers.findFirst({ where: { userId: user.id } });
 
 
 		if (subcommandGroup == 'add') {
@@ -31,11 +31,13 @@ module.exports = {
 			if (user.id === interaction.user.id) return interaction.reply('You cannot blacklist yourself.');
 			if (user.id === interaction.client.user?.id) return interaction.reply('You cannot blacklist the bot wtf.');
 
-			await blacklistedUsers.insertOne({
-				username: `${user.username}#${user.discriminator}`,
-				userId: user.id,
-				reason: reason,
-				notified: true,
+			await blacklistedUsers.create({
+				data: {
+					username: `${user.username}#${user.discriminator}`,
+					userId: user.id,
+					reason,
+					notified: true,
+				},
 			});
 
 			try {
@@ -44,7 +46,7 @@ module.exports = {
 				});
 			}
 			catch {
-				await blacklistedUsers.updateOne({ userId: user.id }, { $set: { notified: false } });
+				await blacklistedUsers.update({ where: { userId: user.id }, data: { notified: false } });
 				logger.info(`Could not notify ${user.username}#${user.discriminator} about their blacklist.`);
 			}
 
@@ -53,7 +55,7 @@ module.exports = {
 		else if (subcommandGroup == 'remove') {
 			if (!userInBlacklist) return interaction.reply(`The user ${user} is not blacklisted.`);
 
-			await blacklistedUsers.deleteOne({ userId: user.id });
+			await blacklistedUsers.delete({ where: { userId: user.id } });
 			interaction.reply(`**${user.username}#${user.discriminator}** has been removed from the blacklist.`);
 		}
 	},

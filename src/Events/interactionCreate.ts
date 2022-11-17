@@ -1,4 +1,4 @@
-import { ChannelType, Interaction } from 'discord.js';
+import { Interaction } from 'discord.js';
 import { checkIfStaff } from '../Utils/functions/utils';
 import logger from '../Utils/logger';
 
@@ -8,10 +8,9 @@ export default {
 		if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
 		// Basic perm check, it wont cover all bugs
 			if (
-				interaction.guild &&
-				interaction.channel?.type == ChannelType.GuildText &&
-				!interaction.guild.members.me?.permissionsIn(interaction.channel).has('SendMessages') &&
-				!interaction.guild.members.me?.permissionsIn(interaction.channel).has('EmbedLinks')
+				interaction.inCachedGuild() && interaction.channel?.isTextBased() &&
+				!interaction.guild?.members.me?.permissionsIn(interaction.channel).has('SendMessages') &&
+				!interaction.guild?.members.me?.permissionsIn(interaction.channel).has('EmbedLinks')
 			) {
 				return interaction.reply({
 					content: 'I do not have the right permissions in this server to function properly!',
@@ -48,9 +47,11 @@ export default {
 					fetchReply: true,
 				};
 
-				if (interaction.deferred) await interaction.followUp(errorMsg);
-				else if (interaction.replied) await interaction.channel?.send(errorMsg);
-				else await interaction.reply(errorMsg);
+				interaction.deferred
+					? await interaction.followUp(errorMsg)
+					: interaction.replied
+						? await interaction.channel?.send(errorMsg)
+						: await interaction.reply(errorMsg);
 			}
 		}
 

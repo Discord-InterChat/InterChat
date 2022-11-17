@@ -63,8 +63,5 @@ export default {
 			logger.error(err);
 			message.channel.send(`\`ERROR\` \`\`\`xl\n${err}\n\`\`\``);
 		}
-
-		// End of our command
-
 	},
 };

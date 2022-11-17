@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType, GuildTextBasedChannel, CategoryChannel } from 'discord.js';
+import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 
@@ -61,8 +61,7 @@ export default {
 			(await import('../../Scripts/setup/reset')).execute(interaction, database);
 		}
 		else {
-			const destination = interaction.options.getChannel('destination') as GuildTextBasedChannel | CategoryChannel;
-			(await import('../../Scripts/setup/init')).execute(interaction, destination, database).catch(logger.error);
+			(await import('../../Scripts/setup/init')).execute(interaction, database).catch(logger.error);
 		}
 	},
 };

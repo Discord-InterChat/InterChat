@@ -1,21 +1,17 @@
 import Levels from 'discord-xp';
-import {
-	EmbedBuilder, ChatInputCommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, User,
-} from 'discord.js';
+import { EmbedBuilder, ChatInputCommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, User, ComponentType } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { checkIfStaff, colors, constants, getDb } from '../../Utils/functions/utils';
-import { Collection } from 'mongodb';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, userId: string, hidden: boolean) {
 		const user = await interaction.client.users.fetch(userId).catch(() => null);
 		if (!user) return interaction.reply({ content: 'Unknown user.', ephemeral: true });
 
-		const db = getDb();
-		const blacklistedUsers = db?.collection('blacklistedUsers');
+		const blacklistedUsers = getDb().blacklistedUsers;
 
 		const components = async () => {
-			const userInBlacklist = await blacklistedUsers?.findOne({ userId: user.id });
+			const userInBlacklist = await blacklistedUsers?.findFirst({ where: { userId: user.id } });
 
 			return new ActionRowBuilder<ButtonBuilder>({
 				components: [
@@ -30,30 +26,34 @@ export = {
 
 		const userEmbed = await interaction.reply({
 			content: user.id,
-			embeds: [await embedGen(user, blacklistedUsers)],
+			embeds: [await embedGen(user)],
 			components: [await components()],
 			ephemeral: hidden,
 		});
 
 		const collector = userEmbed.createMessageComponentCollector({
 			filter: async (i) => i.user.id === interaction.user.id && await checkIfStaff(i.client, i.user),
+			componentType: ComponentType.Button,
 		});
 
 		collector.on('collect', async (i) => {
 			switch (i.customId) {
 			case 'blacklist':
-				await blacklistedUsers?.insertOne({
-					username: `${user.username}#${user.discriminator}`,
-					userId: user.id,
-					reason: 'Some Reason',
-					notified: true,
+				await blacklistedUsers?.create({
+					data: {
+						username: `${user.username}#${user.discriminator}`,
+						userId: user.id,
+						reason: 'Some Reason',
+						notified: true,
+					},
+
 				});
-				await i.update({ embeds: [await embedGen(user, blacklistedUsers)], components: [await components()] });
+				await i.update({ embeds: [await embedGen(user)], components: [await components()] });
 				i.followUp({ content: 'User blacklisted.', ephemeral: hidden });
 				break;
 			case 'unblacklist':
-				await blacklistedUsers?.deleteOne({ userId: user.id });
-				await i.update({ embeds: [await embedGen(user, blacklistedUsers)], components: [await components()] });
+				await blacklistedUsers?.delete({ where: { userId: user.id } });
+				await i.update({ embeds: [await embedGen(user)], components: [await components()] });
 				i.followUp({ content: 'User removed from blacklist.', ephemeral: hidden });
 				break;
 			default:
@@ -63,8 +63,8 @@ export = {
 	},
 };
 
-async function embedGen(user: User, blacklistedUsers: Collection | undefined) {
-	const userInBlacklist = await blacklistedUsers?.findOne({ userId: user.id });
+async function embedGen(user: User) {
+	const userInBlacklist = await getDb().blacklistedUsers?.findFirst({ where: { userId: user.id } });
 
 	const owns = user.client.guilds.cache
 		.filter((guild) => guild.ownerId == user.id)

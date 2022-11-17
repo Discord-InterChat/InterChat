@@ -11,7 +11,6 @@ import {
 	MessageContextMenuCommandInteraction,
 	GuildTextBasedChannel,
 } from 'discord.js';
-import { messageData as messageDataDocument } from '../../Utils/typings/types';
 import logger from '../../Utils/logger';
 
 export default {
@@ -19,10 +18,10 @@ export default {
 	data: new ContextMenuCommandBuilder().setName('Report').setType(ApplicationCommandType.Message),
 	async execute(interaction: MessageContextMenuCommandInteraction) {
 		// The message the interaction is being performed on
-		const args = interaction.targetMessage;
+		const target = interaction.targetMessage;
 
-		const messageData = getDb()?.collection('messageData');
-		const messageInDb = await messageData?.findOne({ channelAndMessageIds: { $elemMatch: { messageId: args.id } } }) as messageDataDocument | null;
+		const messageData = getDb().messageData;
+		const messageInDb = await messageData?.findFirst({ where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } } });
 
 		// check if args.channel is in connectedList DB
 		if (!messageInDb) {
@@ -82,7 +81,7 @@ export default {
 						**Tag**: ${reportedUser.tag}
 						**From**: ${reportedServer.name} (${reportedServer.id})
 						**Message**: [Jump to Message](https://discord.com/channels/${cbhq.id}/${cbhqJumpMsg?.channelId}/${cbhqJumpMsg?.messageId})
-						**Raw**: \`\`\`${args.embeds[0]?.fields[0]?.value || args.content}\`\`\`
+						**Raw**: \`\`\`${target.embeds[0]?.fields[0]?.value || target.content}\`\`\`
 						`,
 				})
 				.setFooter({

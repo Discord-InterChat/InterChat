@@ -3,7 +3,7 @@ import discord from 'discord.js';
 import util from 'util';
 import { Api } from '@top-gg/sdk';
 import 'dotenv/config';
-import { prisma } from '../../db';
+import { prisma } from '../db';
 import { Prisma, PrismaClient } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -318,10 +318,10 @@ export class NetworkManager {
 	}
 
 	/** Delete a document using the `channelId` or `serverId` from the connectedList collection */
-	public async disconnect(options: Prisma.connectedListCreateInput): Promise<Prisma.BatchPayload>
+	public async disconnect(options: NetworkManagerOptions): Promise<Prisma.BatchPayload>
 	/**  Delete a document using the `serverId` from the connectedList collection*/
 	async disconnect(serverId: string | null): Promise<Prisma.BatchPayload>
-	async disconnect(options: Prisma.connectedListCreateInput | string | null): Promise<Prisma.BatchPayload> {
+	async disconnect(options: NetworkManagerOptions | string | null): Promise<Prisma.BatchPayload> {
 		if (typeof options === 'string') {
 			return await prisma.connectedList.deleteMany({
 				where: {

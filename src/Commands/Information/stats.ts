@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { connectedListDocument } from '../../Utils/typings/types';
 import { stripIndents } from 'common-tags';
-import utils from '../../Utils/functions/utils';
+import { toHuman, getDb, colors } from '../../Utils/functions/utils';
 import os from 'os';
 
 export default {
@@ -9,19 +8,19 @@ export default {
 		.setName('stats')
 		.setDescription('Shows the bot\'s statistics'),
 	async execute(interaction: ChatInputCommandInteraction) {
-		const uptime = utils.toHuman(interaction.client?.uptime as number);
-		const osUptime = utils.toHuman(os.uptime() * 1000);
-		const database = utils.getDb();
-		const connectedList = database?.collection('connectedList');
-		const count = await connectedList?.countDocuments();
-		const allConnected = await connectedList?.find({}).toArray();
+		const uptime = toHuman(interaction.client?.uptime as number);
+		const osUptime = toHuman(os.uptime() * 1000);
+
+		const connectedList = getDb().connectedList;
+		const allConnected = await connectedList?.findMany({});
+		const count = await connectedList?.count();
 
 		const docsLink = 'https://discord-chatbot.gitbook.io/docs';
 		const inviteLink = 'https://discord.com/api/oauth2/authorize?client_id=769921109209907241&permissions=154820537425&scope=bot%20applications.commands';
 		const supportServer = 'https://discord.gg/6bhXQynAPs';
 
 		let connectedMembers = 0;
-		for (const guildEntry of allConnected as connectedListDocument[]) {
+		for (const guildEntry of allConnected) {
 			let guild;
 			try {
 				guild = await interaction.client.guilds.fetch(String(guildEntry.serverId));
@@ -29,12 +28,12 @@ export default {
 			catch {
 				continue;
 			}
-			connectedMembers = connectedMembers + guild.memberCount;
+			connectedMembers += guild.memberCount;
 		}
 
 		const embed = new EmbedBuilder()
 			.setAuthor({ name: `${interaction.client.user?.username} Statistics`, iconURL: interaction.client.user?.avatarURL() as string })
-			.setColor(utils.colors('chatbot'))
+			.setColor(colors('chatbot'))
 			.setDescription(`[Invite](${inviteLink}) • [Support](${supportServer}) • [Docs](${docsLink})`)
 			.addFields([
 				{

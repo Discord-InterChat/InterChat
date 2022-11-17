@@ -9,7 +9,7 @@ import { loadCommands } from './Handlers/handleCommands';
 import { loadEvents } from './Handlers/handleEvents';
 import { handleErrors } from './Handlers/handleErrors';
 
-Levels.setURL(process.env.MONGODB_URI as string || process.env.DATABASE_URL as string);
+Levels.setURL(process.env.MONGODB_URI as string);
 const app = express();
 const port = process.env.PORT || 8080;
 

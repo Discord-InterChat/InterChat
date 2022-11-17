@@ -1,17 +1,16 @@
+import { PrismaClient } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { Db } from 'mongodb';
 
 module.exports = {
-	async execute(interaction: ChatInputCommandInteraction, database: Db) {
+	async execute(interaction: ChatInputCommandInteraction, database: PrismaClient) {
 		const serverOpt = interaction.options.getString('type');
 
 		if (serverOpt == 'server') displayServers();
 		else if (serverOpt == 'user') displayUsers();
 
 		async function displayServers() {
-			const blacklistedServers = database.collection('blacklistedServers');
-			const searchCursor = await blacklistedServers.find();
-			const result = await searchCursor.toArray();
+			const result = await database.blacklistedServers.findMany();
+
 			const Embed = new EmbedBuilder()
 				.setColor('#0099ff')
 				.setAuthor({
@@ -31,15 +30,15 @@ module.exports = {
 
 
 		async function displayUsers() {
-			const blacklistedUsers = database.collection('blacklistedUsers');
-			const searchCursor = await blacklistedUsers.find();
-			const result = await searchCursor.toArray();
+			const result = await database.blacklistedUsers.findMany();
+
 			const Embed = new EmbedBuilder()
 				.setColor('#0099ff')
 				.setAuthor({
 					name: 'Blacklisted Users:',
 					iconURL: interaction.client.user?.avatarURL()?.toString(),
 				});
+
 			for (let i = 0; i < result.length; i++) {
 				Embed.addFields([
 					{

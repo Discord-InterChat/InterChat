@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, CommandInteraction, Message } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, CommandInteraction, Message, ComponentType } from 'discord.js';
 
 /**
  * @param pages - An array of embeds to be paginated
@@ -35,7 +35,7 @@ export async function paginate(interaction: CommandInteraction, pages: EmbedBuil
 	};
 	const listMessage = interaction.replied ? await interaction.followUp(data) : await interaction.reply(data);
 
-	const col = listMessage.createMessageComponentCollector({ filter: i => i.user.id === interaction.user.id, time });
+	const col = listMessage.createMessageComponentCollector({ filter: i => i.user.id === interaction.user.id, time, componentType: ComponentType.Button });
 
 	col.on('collect', (i) => {
 		if (i.customId === '1') {--pagenumber, index--;}

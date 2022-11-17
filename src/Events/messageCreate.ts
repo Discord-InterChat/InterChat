@@ -17,7 +17,7 @@ export default {
 	async execute(message: MessageInterface) {
 		if (message.author.bot || message.webhookId) return;
 
-		if (message.content.startsWith('c!eval')) {
+		if (message.content.startsWith('cb!eval')) {
 			require('../Scripts/message/evalScript').default.execute(message);
 			return;
 		}
