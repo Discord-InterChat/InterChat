@@ -1,10 +1,11 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
-import { getDb, constants } from '../../Utils/functions/utils';
+import { constants } from '../../Utils/functions/utils';
+import { prisma } from '../../db';
 import { messageData, setupDocument } from '../../Utils/typings/types';
 import { Collection } from 'mongodb';
 import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
-
+import { Prisma } from '@prisma/client';
 
 export default {
 	data: new ContextMenuCommandBuilder()
@@ -22,10 +23,13 @@ export default {
 			});
 			return;
 		}
-
-		const db = getDb();
-		const messageInDb = await db?.collection('messageData').findOne({ channelAndMessageIds: { $elemMatch: { messageId: target.id } } }) as messageData | undefined;
-		const setupList = db?.collection('setup') as Collection<setupDocument>;
+		const messageInDb = await prisma.messageData.findFirst({
+			where: {
+				channelAndMessageIds: {
+					equals: { messageId: target.id },
+				},
+			},
+		});
 
 		if (messageInDb?.expired) {
 			await interaction.reply({
@@ -82,8 +86,16 @@ export default {
 				});
 
 				// loop through all the channels in the network and edit the message
-				messageInDb.channelAndMessageIds.forEach(async obj => {
-					const channelSettings = await setupList.findOne<setupDocument>({ 'channel.id': obj.channelId });
+
+				// TODO: needs to be any since all data is in JSON currently and I (Chanakan) don't want to change anything in the database
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(messageInDb.channelAndMessageIds as Prisma.JsonArray).forEach(async (obj: any) => {
+					//					const channelSettings = await setupList.findOne<setupDocument>({ 'channel.id': obj.channelId });
+					const channelSettings = await prisma.setup.findFirst({
+						where: {
+							channelID: obj.channelId,
+						},
+					});
 					const channel = await interaction.client.channels.fetch(obj.channelId) as GuildTextBasedChannel;
 					const message = await channel?.messages?.fetch(obj.messageId).catch(() => null);
 
@@ -99,14 +111,17 @@ export default {
 						});
 					}
 
-					if (channelSettings?.webhook) {
-						const webhook = new WebhookClient({ id: channelSettings.webhook.id, token: channelSettings.webhook.token });
+					const hook = (channelSettings?.webhook as Prisma.JsonObject);
+
+					if (channelSettings?.webhook && hook.token && hook.id) {
+						const webhook = new WebhookClient({ id: hook.id.toString(), token: hook.token.toString() });
 
 						if (channelSettings.compact) {
 							webhook.editMessage(obj.messageId, {
 								content: reply
 									? `${reply}\n ${channelSettings.profFilter ? editMessage : censoredEditMessage}`
-									: channelSettings.profFilter ? editMessage : censoredEditMessage });
+									: channelSettings.profFilter ? editMessage : censoredEditMessage,
+							});
 						}
 						else {
 							webhook.editMessage(obj.messageId, { embeds: channelSettings.profFilter ? [censoredEmbed] : [editEmbed] });
@@ -128,6 +143,6 @@ export default {
 
 				i.reply({ content: `${interaction.client.emoji.normal.yes} Message Edited.`, ephemeral: true });
 			})
-			.catch((reason) => {if (!reason.message.includes('reason: time')) logger.error(reason);});
+			.catch((reason) => { if (!reason.message.includes('reason: time')) logger.error(reason); });
 	},
 };

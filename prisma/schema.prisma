@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model blacklistedServers {
+  serverName  String
+  serverId    String @id @map("_id")
+  reason      String
+}
+
+model blacklistedUsers {
+  username  String
+  userId    String @id @map("_id")
+  reason    String
+  notified  Boolean
+}
+
+model connectedList {
+  channelId   String
+  serverId    String @id @map("_id")
+}
+
+model levels {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  xp              Int
+  level           Int
+  lastUpdated     DateTime  @updatedAt
+  userID          String
+  guildID         String
+//  __v             Int 
+}
+
+model messageData {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  channelAndMessageIds    Json[]
+  timestamp               Int
+  authorId                String
+  serverId                String
+  reference               Json[]
+  expired                 Boolean
+}
+
+model restrictedWords {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  words         String[]
+}
+
+model setup {
+  guildID       String @id @map("_id")
+  channelID     String @unique
+  date          DateTime  @default(now())
+  compact       Boolean
+  profFilter    Boolean
+  webhook       Json
+}
+
+model userBadges {
+  userId        String @id @map("_id")
+  badges        String[]
+}
+
+model userData {
+  id            String @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String
+  guildId    String
+  warnings   Json[]
+}
