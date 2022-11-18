@@ -1,7 +1,7 @@
 import { stripIndents } from 'common-tags';
 import { ChannelType, ChatInputCommandInteraction, OverwriteType, GuildTextBasedChannel, CategoryChannel } from 'discord.js';
 import { PrismaClient } from '@prisma/client';
-import { NetworkManager } from '../../Utils/functions/utils';
+import { NetworkManager } from '../../Structures/network';
 import logger from '../../Utils/logger';
 
 export = {

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import logger from '../Utils/logger';
 import emojis from '../Utils/JSON/emoji.json';
-import packagejson from '../../package.json';
+import project from '../../package.json';
 import { Client, Collection, ActivityType, EmbedBuilder, TextChannel, MessageCreateOptions } from 'discord.js';
 import { join } from 'path';
 import { colors, constants } from '../Utils/functions/utils';
@@ -22,7 +22,7 @@ export class ChatBot extends Client {
 			presence: {
 				status: 'online',
 				activities: [{
-					name: `ChatBot v${packagejson.version}`,
+					name: `ChatBot v${project.version}`,
 					type: ActivityType.Watching,
 				}],
 			},
@@ -30,8 +30,8 @@ export class ChatBot extends Client {
 
 		this.commands = new Collection();
 		this.commandsArray = [];
-		this.description = packagejson.description;
-		this.version = packagejson.version;
+		this.description = project.description;
+		this.version = project.version;
 		this.emoji = emojis;
 	}
 

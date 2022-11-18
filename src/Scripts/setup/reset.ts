@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType } from 'discord.js';
-import { NetworkManager } from '../../Utils/functions/utils';
+import { NetworkManager } from '../../Structures/network';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, db: PrismaClient) {

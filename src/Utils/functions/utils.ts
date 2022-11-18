@@ -4,7 +4,7 @@ import util from 'util';
 import { Api } from '@top-gg/sdk';
 import 'dotenv/config';
 import { prisma } from '../db';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import _ from 'lodash/string';
@@ -233,77 +233,3 @@ export const constants = {
 		reviews: '1002874342343970946',
 	},
 };
-
-interface NetworkManagerOptions {
-	serverId?: string | undefined;
-	channelId?: string | undefined;
-}
-
-export class NetworkManager {
-
-	protected db = getDb();
-
-	constructor() {/**/ }
-
-	/** Returns found document from connectedList collection. */
-	public async getServerData(filter: NetworkManagerOptions) {
-		const foundServerData = await prisma.connectedList.findFirst({ where: filter });
-
-		return foundServerData;
-	}
-
-	// duplicate work as above
-	/*	public async connected(options: NetworkManagerOptions) {
-		const InDb = await prisma.connectedList.findFirst({
-			where: {
-				serverId: options.
-			}
-		});
-		return InDb;
-	}*/
-
-	/**
-	 * Insert a guild & channel into connectedList collection.
-	 *
-	 * Returns **null** if channel is already connected
-	 *
-	 */
-	public async connect(guild: discord.Guild | null, channel: discord.GuildTextBasedChannel | undefined | null) {
-		const channelExists = await prisma.connectedList.findFirst({
-			where: {
-				channelId: channel?.id,
-			},
-		});
-
-		if (channelExists) return null;
-		if (!guild || !channel) throw new Error('Invalid arguments provided.');
-
-		return await prisma.connectedList.create({
-			data: {
-				channelId: channel?.id,
-				serverId: guild?.id,
-			},
-		});
-	}
-
-	/** Delete a document using the `channelId` or `serverId` from the connectedList collection */
-	public async disconnect(options: NetworkManagerOptions): Promise<Prisma.BatchPayload>
-	/**  Delete a document using the `serverId` from the connectedList collection */
-	async disconnect(serverId: string | null): Promise<Prisma.BatchPayload>
-	async disconnect(options: NetworkManagerOptions | string | null): Promise<Prisma.BatchPayload> {
-		if (typeof options === 'string') {
-			return await prisma.connectedList.deleteMany({
-				where: {
-					serverId: options,
-				},
-			});
-		}
-
-		return await prisma.connectedList.deleteMany({ where: options ?? undefined });
-	}
-
-	/** Returns a promise with the total number of connected servers.*/
-	public async totalConnected() {
-		return await prisma.connectedList.count();
-	}
-}

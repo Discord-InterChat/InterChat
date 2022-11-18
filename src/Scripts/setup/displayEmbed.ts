@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { stripIndent } from 'common-tags';
 import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, SelectMenuBuilder, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType, ComponentType } from 'discord.js';
-import { colors, getDb, NetworkManager } from '../../Utils/functions/utils';
+import { NetworkManager } from '../../Structures/network';
+import { colors, getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 
 export = {
