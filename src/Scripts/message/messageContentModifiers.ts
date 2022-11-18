@@ -27,8 +27,8 @@ export = {
 				// if the message is a reply to another reply, remove the older reply :D
 				if (messageInDb?.reference) {
 					const replaceReply = (string: string) => {
-					// if for some reason the reply got edited and the reply format (> message) is not there
-					// return the original message and not undefined
+						// if for some reason the reply got edited and the reply format (> message) is not there
+						// return the original message and not undefined
 						return string?.split(/> .*/g).at(-1)?.trimStart() || string;
 					};
 
@@ -83,7 +83,7 @@ export = {
 			const n = gifMatch[0].split('-');
 			const id = n[n.length - 1];
 			const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
-			const gifJSON = await (await fetch(api)).json();
+			const gifJSON = (await (await fetch(api)).json()) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 			// message.content = message.content.replace(gifMatch[0], '\u200B').trim();
 			// message.censored_content = message.censored_content.replace(gifMatch[0], '\u200B').trim();
