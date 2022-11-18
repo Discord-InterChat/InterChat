@@ -12,16 +12,14 @@ module.exports = {
 		let user;
 
 		try {
-			if (/^<@.*>$/gm.test(userOpt)) userOpt = userOpt.replaceAll(/<@|!|>/g, '');
+			userOpt = userOpt.replaceAll(/<@|!|>/g, '');
 
 			user = interaction.client.users.cache.find(u => u.tag === userOpt);
-
 			if (user === undefined) user = await interaction.client.users.fetch(userOpt);
 		}
-		catch {return interaction.reply('Could not find user. Use an ID instead.');}
+		catch { return interaction.reply('Could not find user. Use an ID instead.'); }
 
 		const userInBlacklist = await blacklistedUsers.findFirst({ where: { userId: user.id } });
-
 
 		if (subcommandGroup == 'add') {
 			if (userInBlacklist) {
