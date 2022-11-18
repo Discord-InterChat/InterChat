@@ -1,6 +1,7 @@
 # dependencies
 /node_modules/
 .eslintcache
+.turbo
 # logs
 /logs/
 
@@ -23,3 +24,4 @@ build/
 # misc
 /TopGG/
 /Privacy.md
+.turbo

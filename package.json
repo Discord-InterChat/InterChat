@@ -8,7 +8,8 @@
   
   "scripts": {
     "start": "node .",
-    "build": "tsc -p .",
+    "tsc": "tsc -p .",
+    "build": "turbo tsc",
     "dev:watch": "tsc -p . -w",
     "dev:run": "nodemon .",
     "dev": "run-p dev:*",
@@ -48,6 +49,7 @@
     "prettier": "^2.7.1",
     "prisma": "^4.6.1",
     "standard-version": "^9.5.0",
+    "turbo": "^1.6.3",
     "typescript": "^4.8.4"
   },
   "config": {

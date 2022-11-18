@@ -1,0 +1,9 @@
+{
+  "pipeline": {
+    "tsc": {
+      "outputs": [
+        "build/**"
+      ]
+    }
+  }
+}
