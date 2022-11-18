@@ -24,7 +24,7 @@ export default {
 				.setDescription(
 					'[Invite](https://discord.com/api/oauth2/authorize?client_id=769921109209907241&permissions=154820537425&scope=bot%20applications.commands) • [Support](https://discord.gg/6bhXQynAPs) • [Privacy](https://gist.github.com/dev-737/0141970e0d4a09b3c2b11e1321dca824)',
 				)
-				.setFields(interaction.client.help)
+				.setFields(interaction.client.commandsArray)
 				.setFooter({
 					text: 'Requested By: ' + interaction.user.tag,
 					iconURL: interaction.user.avatarURL() as string,
@@ -94,33 +94,11 @@ export default {
 	},
 	async autocomplete(interaction: AutocompleteInteraction) {
 		const focusedValue = interaction.options.getFocused();
-		let choices: any[] = [];
-		let filtered;
 
-		if (focusedValue === '') {
-			choices = [
-				{ name: '📌Setup', value: 'setup' },
-				{ name: '📌Help', value: 'help' },
-				{ name: '📌Suggest', value: 'support' },
-				{ name: '📌Report', value: 'support' },
-				{ name: '📌Connect', value: 'network' },
-				{ name: '📌Disconnect', value: 'network' },
-			];
-			choices = choices.concat(interaction.client.commands.map(command => { return { name: command.data.name, value: command.data.name }; }));
-			filtered = choices.filter((choice) => choice.value.startsWith(focusedValue)).slice(0, 25);
-		}
-		else {
-			const commands = interaction.client.commands;
-			commands.map((command) => choices.push(command.data.name));
-			filtered = choices.filter((choice) => choice.startsWith(focusedValue));
-		}
+		const commands = interaction.client.commands;
+		const choices = commands.map((command) => command.data.name);
+		const filtered = choices.filter((choice) => choice.startsWith(focusedValue));
 
-		await interaction.respond(
-			filtered.map((choice) => ({
-				name: choice.name || choice,
-				value: choice.value || choice,
-			})),
-		);
-
+		await interaction.respond(filtered.map((choice) => ({ name: choice, value: choice })));
 	},
 };

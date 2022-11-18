@@ -1,9 +1,8 @@
-import fetch from 'node-fetch';
 import wordFilter from '../../Utils/functions/wordFilter';
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { MessageInterface } from '../../Events/messageCreate';
-import 'dotenv/config';
 import { messageData, PrismaClient } from '@prisma/client';
+import 'dotenv/config';
 
 export = {
 	execute: async (message: MessageInterface, db: PrismaClient | null) => {
@@ -56,11 +55,11 @@ export = {
 			await message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
 		}
 
-		if (message.attachments.size > 0) {
-			const attachment = message.attachments.first();
-			const newAttachment = new AttachmentBuilder(`${attachment?.url}`, { name: `${attachment?.name}` });
-			embed.setImage(`attachment://${newAttachment.name}`);
+		const attachment = message.attachments.first();
 
+		if (attachment?.contentType?.includes('mp4') === false) {
+			const newAttachment = new AttachmentBuilder(`${attachment.url}`, { name: `${attachment.name}` });
+			embed.setImage(`attachment://${newAttachment.name}`);
 			return newAttachment;
 		}
 
@@ -86,12 +85,12 @@ export = {
 			const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
 			const gifJSON = await (await fetch(api)).json();
 
-			message.content = message.content.replace(gifMatch[0], '\u200B').trim();
-			message.censored_content = message.censored_content.replace(gifMatch[0], '\u200B').trim();
+			// message.content = message.content.replace(gifMatch[0], '\u200B').trim();
+			// message.censored_content = message.censored_content.replace(gifMatch[0], '\u200B').trim();
 
 			embed
 				.setImage(gifJSON.results[0].media[0].gif.url)
-				.setFields([{ name: 'Message', value: message.content }]);
+				.setFields([{ name: 'Message', value: message.content.replace(gifMatch[0], '\u200B').trim() }]);
 		}
 
 		else if (message.embeds[0]?.provider?.name === 'YouTube' && message.embeds[0]?.data.thumbnail) {
