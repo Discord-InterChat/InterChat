@@ -9,13 +9,13 @@ export default {
 	once: true,
 	async execute(client: Client) {
 		const db = getDb();
-		const messageData = db?.messageData;
+		const messageData = db.messageData;
 		const FOUR_HOURS = 60 * 60 * 4000;
 
 		// set a property called "expired" to a document that is older than 4 hours.
 		setInterval(async () => {
 			const older_than_four = new Date(Date.now() - FOUR_HOURS); // 4 hours before now
-			await messageData?.updateMany({
+			await messageData.updateMany({
 				where: { timestamp: { lte: older_than_four.getTime() } },
 				data: { expired: true },
 			});

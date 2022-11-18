@@ -3,10 +3,12 @@
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended"
-      ],
+    ],
     "root": true,
     "parser": "@typescript-eslint/parser",
-    "plugins": ["@typescript-eslint"],
+    "plugins": [
+        "@typescript-eslint"
+    ],
     "env": {
         "node": true,
         "es6": true
@@ -17,7 +19,7 @@
     "rules": {
         "@typescript-eslint/no-var-requires": "off",
         "no-unused-vars": [
-            "off"  // NOTE: Enable later to see errors when var is unused
+            "off" // NOTE: Enable later to see errors when var is unused
         ],
         "arrow-spacing": [
             "warn",
