@@ -7,7 +7,7 @@
     "Supreme1707",
     "dev-737"
   ],
-  "license": "GPLv3",
+  "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "node .",
     "build": "tsc -p .",
