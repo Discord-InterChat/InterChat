@@ -14,7 +14,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "node .",
-    "tsc": "tsc -p .",
+    "tsc": "tsc --build",
     "build": "turbo tsc",
     "dev:watch": "tsc -p . -w",
     "dev:run": "nodemon .",
