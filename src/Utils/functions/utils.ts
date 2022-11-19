@@ -4,7 +4,7 @@ import util from 'util';
 import { Api } from '@top-gg/sdk';
 import 'dotenv/config';
 import { prisma } from '../db';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import _ from 'lodash/string';
@@ -20,25 +20,7 @@ export function getGuildName(client: discord.Client, gid: string | null) {
 	return client.guilds.cache.get(gid)?.name;
 }
 
-discord.Client.prototype.sendInNetwork = async function(message: string | discord.MessageCreateOptions) {
-	const channels = await prisma.connectedList.findMany();
-
-	channels?.forEach(async (channelEntry) => {
-		const channel = await this.channels.fetch(channelEntry.channelId);
-		if (!channel?.isTextBased()) {
-			logger.error(`Channel ${channel?.id} is not text based!`);
-			return;
-		}
-		await channel.send(message).catch((err) => {
-			if (!err.message.includes('Missing Access') || !err.message.includes('Missing Permissions')) return;
-			logger.error(err);
-		});
-	});
-};
-
-/**
-* Random color generator for embeds
-*/
+/** Random color generator for embeds */
 export function colors(type: 'random' | 'chatbot' | 'invisible' = 'random') {
 	const colorType = {
 		random: [
@@ -82,16 +64,12 @@ export function colors(type: 'random' | 'chatbot' | 'invisible' = 'random') {
 	return type === 'chatbot' ? colorType.chatbot : type === 'invisible' ? colorType.invisible :
 		choice(colorType.random);
 }
-/**
-* Returns random color (resolved) from choice of Discord.JS default color string
-*/
+/** Returns random color (resolved) from choice of Discord.JS default color string */
 export function choice(arr: discord.ColorResolvable[]) {
 	return discord.resolveColor(arr[Math.floor(Math.random() * arr.length)]);
 }
 
-/**
-* Send a message to a guild
-*/
+/** Send a message to a guild */
 export async function sendInFirst(guild: discord.Guild, message: string | discord.MessagePayload | discord.BaseMessageOptions) {
 	const channels = await guild.channels.fetch();
 
@@ -114,16 +92,12 @@ export async function getCredits() {
 	return creditArray;
 }
 
-/**
-* Returns the database
-*/
+/** Returns the database */
 export function getDb(): PrismaClient {
 	return prisma;
 }
 
-/**
-* Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s)
-*/
+/** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function toHuman(milliseconds: number): string {
 	let totalSeconds = milliseconds / 1000;
 	const days = Math.floor(totalSeconds / 86400);
@@ -197,9 +171,7 @@ export async function clean(client: discord.Client, text: any) {
 	return text;
 }
 
-/**
-* Delete channels from databse that chatbot doesn't have access to.
-*/
+/** Delete channels from databse that chatbot doesn't have access to.*/
 export async function deleteChannels(client: discord.Client) {
 	const channels = await prisma.connectedList.findMany();
 
@@ -261,81 +233,3 @@ export const constants = {
 		reviews: '1002874342343970946',
 	},
 };
-
-interface NetworkManagerOptions {
-	serverId?: string | undefined;
-	channelId?: string | undefined;
-}
-
-export class NetworkManager {
-
-	protected db = getDb();
-
-	constructor() {/**/ }
-
-	public async getServerData(filter: NetworkManagerOptions) {
-		const foundServerData = await prisma.connectedList.findFirst({ where: filter });
-
-		return foundServerData;
-	}
-
-	/**
-	 * Returns found document if the server/channel is connected.
-	 */
-
-	// duplicate work as above
-	/*	public async connected(options: NetworkManagerOptions) {
-		const InDb = await prisma.connectedList.findFirst({
-			where: {
-				serverId: options.
-			}
-		});
-		return InDb;
-	}*/
-
-	/**
-	 * Connect a channel to the network.
-	 *
-	 * Returns **null** if channel is already connected
-	 *
-	 * **This only inserts the server into the connectedList collection.**
-	 */
-	public async connect(guild: discord.Guild | null, channel: discord.GuildTextBasedChannel | undefined | null) {
-		const channelExists = await prisma.connectedList.findFirst({
-			where: {
-				channelId: channel?.id,
-			},
-		});
-
-		if (channelExists) return null;
-		if (!guild || !channel) throw new Error('Invalid arguments provided.');
-
-		return await prisma.connectedList.create({
-			data: {
-				channelId: channel?.id,
-				serverId: guild?.id,
-			},
-		});
-	}
-
-	/** Delete a document using the `channelId` or `serverId` from the connectedList collection */
-	public async disconnect(options: NetworkManagerOptions): Promise<Prisma.BatchPayload>
-	/**  Delete a document using the `serverId` from the connectedList collection*/
-	async disconnect(serverId: string | null): Promise<Prisma.BatchPayload>
-	async disconnect(options: NetworkManagerOptions | string | null): Promise<Prisma.BatchPayload> {
-		if (typeof options === 'string') {
-			return await prisma.connectedList.deleteMany({
-				where: {
-					serverId: options,
-				},
-			});
-		}
-
-		return await prisma.connectedList.deleteMany({ where: options ?? undefined });
-	}
-
-	/** Returns a promise with the total number of connected servers.*/
-	public async totalConnected() {
-		return await prisma.connectedList.count();
-	}
-}

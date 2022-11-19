@@ -7,23 +7,7 @@ A growing discord chat bot which provides a fun inter-server chat!
 
 ## How to Run:
 1. Run `npm install`
-2. Make a file called `.env` and fill it out with the appropriate contents:
-    ```env
-    # Your bot ID
-    CLIENT_ID=
-
-    # Bot token here
-    TOKEN=<your bot token here> 
-
-    # Your mongodb connection string
-    MONGODB_URI=<mongodb connection URI here> # it should look like this mongodb+srv://<name>:<password>@uri
-
-    # Top.gg token goes here, not required if you don't have a bot on top.gg.
-    TOPGG=<your topgg bot access token>
-
-    # Tenor api key (required for posting gifs in global chat.)
-    TENOR_KEY=<a tenor API key>
-    ```
+2. Make a file called `.env` and fill it out with the appropriate contents mentioned in env.example file.
 3. Run `npm run dev`
 
 If everything was done right, the bot should come online and responsive.
@@ -79,8 +63,8 @@ Use [semantic commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bc
 
 
 To make our lives easier and not having to remember the commit messages at all times, this repository is [commitizen](https://www.npmjs.com/package/commitizen) friendly! Commitizen is a commandline tool that guides you through the process of choosing your desired commit type.
+
 ![commitizen](https://commitizen-tools.github.io/commitizen/images/demo.gif)
 
-> Run `cz commit` or `git cz` to use commitizen.
-
- *Credits to @Chanakan55991 for the package info.*
+Run `npx cz commit` or `git cz` to commit using commitizen.
+> *Credits to @Chanakan55991 for the package info.*

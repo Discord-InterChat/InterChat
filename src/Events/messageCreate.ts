@@ -1,10 +1,11 @@
 import checks from '../Scripts/message/checks';
+import addBadges from '../Scripts/message/addBadges';
+import messageTypes from '../Scripts/message/messageTypes';
+import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import { APIMessage, EmbedBuilder, Message } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import { InvalidChannelId, InvalidWebhookId } from '../Scripts/message/cleanup';
-import addBadges from '../Scripts/message/addBadges';
-import messageContentModifiers from '../Scripts/message/messageContentModifiers';
-import messageTypes from '../Scripts/message/messageTypes';
+
 
 export interface MessageInterface extends Message<boolean>{
 	compact_message: string,
@@ -27,8 +28,6 @@ export default {
 
 		// ignore the message if it is not in an active network channel
 		if (!connected || !db) return;
-
-		// run the message through checks
 		if (!await checks.execute(message, db)) return;
 
 		// FIXME: Make better way to get message data, because this function will be called for multiple other features in the future
@@ -54,8 +53,10 @@ export default {
 		const channelAndMessageIds: Promise<InvalidChannelId | InvalidWebhookId | APIMessage | Message<true>>[] = [];
 		const allConnectedChannels = await db.connectedList.findMany({});
 
+		const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content });
+
 		allConnectedChannels?.forEach((channel) => {
-			const messageSendResult = messageTypes.execute(message, channel, embed, attachments, replyInDb);
+			const messageSendResult = messageTypes.execute(message, channel, embed, censoredEmbed, attachments, replyInDb);
 			channelAndMessageIds.push(messageSendResult);
 		});
 
