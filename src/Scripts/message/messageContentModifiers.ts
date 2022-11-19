@@ -83,7 +83,7 @@ export = {
 			const n = gifMatch[0].split('-');
 			const id = n[n.length - 1];
 			const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
-			const gifJSON = (await (await fetch(api)).json()) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+			const gifJSON = (await (await fetch(api)).json()); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 			// message.content = message.content.replace(gifMatch[0], '\u200B').trim();
 			// message.censored_content = message.censored_content.replace(gifMatch[0], '\u200B').trim();
