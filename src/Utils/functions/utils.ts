@@ -1,6 +1,5 @@
 import logger from '../logger';
 import discord from 'discord.js';
-import util from 'util';
 import { Api } from '@top-gg/sdk';
 import 'dotenv/config';
 import { prisma } from '../db';
