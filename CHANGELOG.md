@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.4.0](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.3.2...v3.4.0) (2022-11-21)
+
+
+### Features
+
+* Logging System for Network ([#99](https://github.com/Discord-ChatBot/ChatBot-Beta/issues/99)) ([2976e6f](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/2976e6f034ec632fa65212ba77f17faa4b2c85c4))
+
+
+### Bug Fixes
+
+* **eval:** removed eval ([4c3fd8b](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/4c3fd8bb235fbd572bd271a1d9b841a717ebf9c0))
+* **goal:** updated goal to 700 ([422d9e8](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/422d9e8e87334feec387d822579b3cecb38d04e1))
+* new custom client class, code refactors & several bug fixes ([7f5f06f](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/7f5f06f7d9279b7be46429ad79bc1a6002ce2a1a))
+* **script:** checking before replace is not necessary ([74f889a](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/74f889a95a12ed4cdce320d0c390b1451a05a1e8))
+* **script:** force any instead of unknown in fetch v3 ([37b534e](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/37b534e11ad5f1ece44a9d6ec06c1dfd5aa70781))
+
 ### [3.3.2](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.3.0...v3.3.2) (2022-11-14)
 
 
