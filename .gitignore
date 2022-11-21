@@ -1,7 +1,6 @@
 # dependencies
 /node_modules/
 .eslintcache
-.turbo
 tsconfig.tsbuildinfo
 
 # logs

@@ -11,6 +11,13 @@
       "name": "dev-737"
     }
   ],
+  "contributors": [
+    {
+      "name": "Chanakan55991",
+      "url": "https://github.com/Chanakan55991"
+    }
+  ],
+
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "node .",
