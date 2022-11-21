@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { EmbedBuilder, Message } from 'discord.js';
 
 export = {
-	async execute(message: Message, database: PrismaClient, embed: EmbedBuilder) {
+	async execute(message: Message, database: PrismaClient, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {
 		const emoji = message.client.emoji;
 		const badges = await database.userBadges.findFirst({ where: { userId: message.author.id } });
 
@@ -22,6 +22,7 @@ export = {
 				}
 			}
 			embed.setTitle(badgeString.slice(0, -1));
+			censoredEmbed.setTitle(badgeString.slice(0, -1));
 		}
 	},
 };

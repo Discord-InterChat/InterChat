@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { ChatInputCommandInteraction } from 'discord.js';
 import { sendInFirst } from '../../Utils/functions/utils';
+import { modActions } from '../networkLogs/modActions';
 
 module.exports = {
 	async execute(interaction: ChatInputCommandInteraction, database: PrismaClient) {
 		const serverOpt = interaction.options.getString('server', true);
-		const reason = interaction.options.getString('reason', true);
+		const reason = interaction.options.getString('reason');
 		const subCommandGroup = interaction.options.getSubcommandGroup();
 		const blacklistedServers = database.blacklistedServers;
 		const serverInBlacklist = await blacklistedServers.findFirst({
@@ -27,7 +28,7 @@ module.exports = {
 				data: {
 					serverName: server.name,
 					serverId: serverOpt,
-					reason,
+					reason: `${reason}`,
 				},
 			});
 
@@ -39,6 +40,12 @@ module.exports = {
 				content: `The server **${server.name}** has been blacklisted for reason \`${reason}\`.`,
 			});
 			await server.leave();
+			modActions(interaction.user, {
+				guild: { id: server.id, resolved: server },
+				action: 'blacklistServer',
+				timestamp: new Date(),
+				reason,
+			});
 		}
 
 
@@ -48,6 +55,14 @@ module.exports = {
 
 			// Using name from DB since the bot isn't in the server, so it doesn't have any of its data.
 			interaction.reply(`The server **${serverInBlacklist.serverName}** has been removed from the blacklist.`);
+
+
+			modActions(interaction.user, {
+				dbGuild: serverInBlacklist,
+				action: 'unblacklistServer',
+				timestamp: new Date(),
+				reason,
+			});
 		}
 	},
 };

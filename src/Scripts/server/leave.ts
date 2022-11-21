@@ -1,11 +1,12 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import { sendInFirst } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
+import { modActions } from '../networkLogs/modActions';
 
 export = {
 	execute: async (interaction: ChatInputCommandInteraction) => {
-		const serverOpt = interaction.options.getString('server') as string;
-		const reason = interaction.options.getString('reason');
+		const serverOpt = interaction.options.getString('server', true);
+		const reason = interaction.options.getString('reason', true);
 		const notify = interaction.options.getBoolean('notify') ?? true; // if not set, default to true
 		let server;
 
@@ -25,6 +26,15 @@ export = {
 		await server.leave();
 		await interaction.reply(`I have left the server ${server.name} due to reason "${reason}".`);
 
+		modActions(interaction.user, {
+			guild: {
+				id: server.id,
+				resolved: server,
+			},
+			action: 'leave',
+			timestamp: new Date(),
+			reason,
+		});
 		logger.info(`Left server ${server.name} due to reason \`${reason}\``);
 	},
 };

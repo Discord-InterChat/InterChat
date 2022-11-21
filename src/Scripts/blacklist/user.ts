@@ -1,11 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import { ChatInputCommandInteraction } from 'discord.js';
 import logger from '../../Utils/logger';
+import { modActions } from '../networkLogs/modActions';
 
 module.exports = {
 	async execute(interaction: ChatInputCommandInteraction, database: PrismaClient) {
 		let userOpt = interaction.options.getString('user') as string;
-		const reason = interaction.options.getString('reason', true);
+		const reason = interaction.options.getString('reason');
 		const subcommandGroup = interaction.options.getSubcommandGroup();
 
 		const blacklistedUsers = database.blacklistedUsers;
@@ -33,7 +34,7 @@ module.exports = {
 				data: {
 					username: `${user.username}#${user.discriminator}`,
 					userId: user.id,
-					reason,
+					reason: String(reason),
 					notified: true,
 				},
 			});
@@ -49,12 +50,27 @@ module.exports = {
 			}
 
 			interaction.reply(`**${user.username}#${user.discriminator}** has been blacklisted.`);
+
+
+			modActions(interaction.user, {
+				user,
+				action: 'blacklistUser',
+				timestamp: new Date(),
+				reason,
+			});
 		}
 		else if (subcommandGroup == 'remove') {
 			if (!userInBlacklist) return interaction.reply(`The user ${user} is not blacklisted.`);
 
 			await blacklistedUsers.delete({ where: { userId: user.id } });
 			interaction.reply(`**${user.username}#${user.discriminator}** has been removed from the blacklist.`);
+
+			modActions(interaction.user, {
+				user,
+				action: 'unblacklistUser',
+				timestamp: new Date(),
+				reason,
+			});
 		}
 	},
 };

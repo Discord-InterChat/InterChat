@@ -1,7 +1,9 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCommandInteraction, TextChannel } from 'discord.js';
 import { getDb, checkIfStaff } from '../../Utils/functions/utils';
-import logger from '../../Utils/logger';
 import { stripIndents } from 'common-tags';
+import logger from '../../Utils/logger';
+import { networkMessageDelete } from '../../Scripts/networkLogs/networkMsgDelete';
+
 
 export default {
 	data: new ContextMenuCommandBuilder()
@@ -33,7 +35,7 @@ export default {
 					}).catch(logger.error);
 			});
 
-
+			interaction.inCachedGuild() ? networkMessageDelete(interaction.member, target) : null;
 			interaction.reply({ content: 'Message deleted.', ephemeral: true });
 		}
 

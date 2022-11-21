@@ -3,11 +3,9 @@
 .eslintcache
 .turbo
 tsconfig.tsbuildinfo
+
 # logs
 /logs/
-
-# archived commands
-/archive/
 
 # Configuration
 .env
@@ -23,6 +21,5 @@ coverage/
 build/
 
 # misc
-/TopGG/
 /Privacy.md
 .turbo

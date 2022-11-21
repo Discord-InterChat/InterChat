@@ -4,8 +4,7 @@ import messageTypes from '../Scripts/message/messageTypes';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import { APIMessage, EmbedBuilder, Message } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
-import { InvalidChannelId, InvalidWebhookId } from '../Scripts/message/cleanup';
-
+import cleanup, { InvalidChannelId, InvalidWebhookId } from '../Scripts/message/cleanup';
 
 export interface MessageInterface extends Message<boolean>{
 	compact_message: string,
@@ -22,11 +21,9 @@ export default {
 		const connected = await db?.connectedList.findFirst({ where: { channelId: message.channelId } });
 
 		// ignore the message if it is not in an active network channel
-		if (!connected || !db) return;
+		if (!connected) return;
 		if (!await checks.execute(message, db)) return;
 
-		// FIXME: Make better way to get message data, because this function will be called for multiple other features in the future
-		const replyInDb = await messageContentModifiers.execute(message, db);
 
 		const embed = new EmbedBuilder()
 			.setTimestamp()
@@ -42,19 +39,27 @@ export default {
 				iconURL: message.guild?.iconURL()?.toString(),
 			});
 
-		await addBadges.execute(message, db, embed);
-		const attachments = await messageContentModifiers.attachmentModifiers(message, embed);
+
+		// Get data message being replied to from the db (for jump buttons)
+		const replyInDb = await messageContentModifiers.appendReply(message, db);
+		// initialize & define censored properties (message.censored_xxx)
+		await messageContentModifiers.execute(message);
+
+		const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content || '\u200B' });
+		const attachments = await messageContentModifiers.attachmentModifiers(message, embed, censoredEmbed);
+		await addBadges.execute(message, db, embed, censoredEmbed);
+
 
 		const channelAndMessageIds: Promise<InvalidChannelId | InvalidWebhookId | APIMessage | Message<true>>[] = [];
-		const allConnectedChannels = await db.connectedList.findMany({});
+		const allConnectedChannels = await db.connectedList.findMany();
 
-		const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content });
-
+		// send the message to all connected channels in apropriate format (webhook/compact/normal)
 		allConnectedChannels?.forEach((channel) => {
 			const messageSendResult = messageTypes.execute(message, channel, embed, censoredEmbed, attachments, replyInDb);
 			channelAndMessageIds.push(messageSendResult);
 		});
 
-		require('../Scripts/message/cleanup').default.execute(message, channelAndMessageIds);
+		// delete unknown channels & insert message into messageData collection for future use
+		cleanup.execute(message, channelAndMessageIds);
 	},
 };

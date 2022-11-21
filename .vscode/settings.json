@@ -3,15 +3,4 @@
         "source.fixAll.eslint": true
       },
       "eslint.validate": ["javascript"],
-      "appService.zipIgnorePattern": [
-        "node_modules{,/**}",
-        "build{,/**}",
-        "logs{,/**}",
-        ".vscode{,/**}",
-        ".git",
-        "__tests__",
-        "{*}.md",
-        ".env.example",
-        ".env"
-      ],
 }

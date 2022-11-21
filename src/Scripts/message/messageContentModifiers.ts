@@ -5,7 +5,12 @@ import { messageData, PrismaClient } from '@prisma/client';
 import 'dotenv/config';
 
 export = {
-	execute: async (message: MessageInterface, db: PrismaClient | null) => {
+	async execute(message: MessageInterface) {
+		message.censored_content = wordFilter.censor(message.content);
+		message.censored_compact_message = wordFilter.censor(message.compact_message);
+	},
+
+	async appendReply(message: MessageInterface, db: PrismaClient | null) {
 		message.compact_message = `**${message.author.tag}:** ${message.content}`;
 
 		let messageInDb: messageData | null | undefined = null;
@@ -16,7 +21,7 @@ export = {
 				messageInDb = await db?.messageData.findFirst({
 					where: {
 						channelAndMessageIds: {
-							every: { messageId: referredMessage.id },
+							some: { messageId: referredMessage.id },
 						},
 					},
 				});
@@ -43,14 +48,12 @@ export = {
 				message.content = `> ${embed || compact}\n${message.content}`;
 				message.compact_message = `> ${embed || compact}\n${message.compact_message}`;
 			}
-		}
 
-		message.censored_content = wordFilter.censor(message.content);
-		message.censored_compact_message = wordFilter.censor(message.compact_message);
+		}
 		return messageInDb;
 	},
 
-	async attachmentModifiers(message: MessageInterface, embed: EmbedBuilder) {
+	async attachmentModifiers(message: MessageInterface, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {
 		if (message.attachments.size > 1) {
 			await message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
 		}
@@ -60,6 +63,7 @@ export = {
 		if (attachment?.contentType?.includes('mp4') === false) {
 			const newAttachment = new AttachmentBuilder(`${attachment.url}`, { name: `${attachment.name}` });
 			embed.setImage(`attachment://${newAttachment.name}`);
+			censoredEmbed.setImage(`attachment://${newAttachment.name}`);
 			return newAttachment;
 		}
 
@@ -68,12 +72,12 @@ export = {
 		const URLMatch = message.content.match(imageURLRegex);
 
 		if (URLMatch) {
-			message.content = message.content.replace(URLMatch[0], '\u200B').trim();
-			message.censored_content = message.censored_content.replace(URLMatch[0], '\u200B').trim();
-
 			embed
 				.setImage(URLMatch[0])
-				.setFields([{ name: 'Message', value: message.content }]);
+				.setFields([{ name: 'Message', value: message.content.replace(URLMatch[0], '\u200B').trim() }]);
+			censoredEmbed
+				.setImage(URLMatch[0])
+				.setFields([{ name: 'Message', value: message.censored_content.replace(URLMatch[0], '\u200B').trim() }]);
 		}
 
 		const tenorRegex = /https:\/\/tenor\.com\/view\/.*-(\d+)/;
@@ -83,18 +87,19 @@ export = {
 			const n = gifMatch[0].split('-');
 			const id = n[n.length - 1];
 			const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
-			const gifJSON = (await (await fetch(api)).json()); // eslint-disable-line @typescript-eslint/no-explicit-any
-
-			// message.content = message.content.replace(gifMatch[0], '\u200B').trim();
-			// message.censored_content = message.censored_content.replace(gifMatch[0], '\u200B').trim();
+			const gifJSON = (await (await fetch(api)).json());
 
 			embed
 				.setImage(gifJSON.results[0].media[0].gif.url)
 				.setFields([{ name: 'Message', value: message.content.replace(gifMatch[0], '\u200B').trim() }]);
+			censoredEmbed
+				.setImage(gifJSON.results[0].media[0].gif.url)
+				.setFields([{ name: 'Message', value: message.censored_content.replace(gifMatch[0], '\u200B').trim() }]);
 		}
 
 		else if (message.embeds[0]?.provider?.name === 'YouTube' && message.embeds[0]?.data.thumbnail) {
 			embed.setImage(message.embeds[0].data.thumbnail.url);
+			censoredEmbed.setImage(message.embeds[0].data.thumbnail.url);
 		}
 	},
 };

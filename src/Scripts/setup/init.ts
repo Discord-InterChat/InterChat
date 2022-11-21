@@ -110,6 +110,8 @@ export = {
 		}
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		catch (err: any) {
+			if (err.message === 'Missing Permissions') return interaction.reply('I don\'t have the required permissions in this server to execute this command.');
+
 			logger.error(err);
 			await interaction.followUp('An error occurred while connecting to the chat network.\n**Error:** ' + err.message);
 			setupList?.delete({ where: { channelId: channel?.id } });

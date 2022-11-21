@@ -1,12 +1,12 @@
 import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
-import 'dotenv/config';
 import { prisma } from '../db';
 import { PrismaClient } from '@prisma/client';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import _ from 'lodash/string';
+import 'dotenv/config';
 
 const topgg = new Api(process.env.TOPGG as string);
 
@@ -197,9 +197,9 @@ export const constants = {
 
 	channel: {
 		bugs: '1035135196053393418',
-		chatbotlogs: '1002864642101624832',
+		networklogs: '1002864642101624832',
 		errorlogs: '1024313459187404830',
-		modlogs: '1000730718474875020',
+		modlogs: '1042265633896796231',
 		reports: '821610981155012628',
 		goal: '906460473065615403',
 		suggestions: '1021256657528954900',

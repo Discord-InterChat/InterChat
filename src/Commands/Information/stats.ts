@@ -40,7 +40,7 @@ export default {
 					name: 'System',
 					value: stripIndents`\`\`\`elm
 					CPU: ${os.cpus()[0].model}
-					Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB / 1.75 GB
+					Memory: ${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB / ${Math.round(os.totalmem() / 1024 / 1024 / 1024)} GB
 					Uptime: ${osUptime}
 					Discord.JS: ${require('discord.js/package.json').version}
 					Node.JS: ${process.version}

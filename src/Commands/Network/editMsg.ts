@@ -1,9 +1,9 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
+import { networkMsgUpdate } from '../../Scripts/networkLogs/networkMsgUpdate';
 import { constants } from '../../Utils/functions/utils';
 import { prisma } from '../../Utils/db';
 import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
-import { Prisma } from '@prisma/client';
 
 export default {
 	data: new ContextMenuCommandBuilder()
@@ -111,12 +111,12 @@ export default {
 						});
 					}
 
-					const hook = (channelSettings?.webhook as Prisma.JsonObject);
+					const hook = channelSettings?.webhook;
 
-					if (channelSettings?.webhook && hook.token && hook.id) {
+					if (hook?.token && hook.id) {
 						const webhook = new WebhookClient({ id: hook.id.toString(), token: hook.token.toString() });
 
-						if (channelSettings.compact) {
+						if (channelSettings?.compact) {
 							webhook.editMessage(obj.messageId, {
 								content: reply
 									? `${reply}\n ${channelSettings.profFilter ? editMessage : censoredEditMessage}`
@@ -124,7 +124,10 @@ export default {
 							});
 						}
 						else {
-							webhook.editMessage(obj.messageId, { embeds: channelSettings.profFilter ? [censoredEmbed] : [editEmbed] });
+							webhook.editMessage(obj.messageId, {
+								files: message?.attachments.first() ? [] : [],
+								embeds: channelSettings?.profFilter ? [censoredEmbed] : [editEmbed],
+							});
 						}
 					}
 
@@ -136,13 +139,24 @@ export default {
 					}
 
 					else {
-						message?.edit({ embeds: channelSettings?.profFilter ? [censoredEmbed] : [editEmbed] });
+						message?.edit({
+							files: [],
+							embeds: channelSettings?.profFilter ? [censoredEmbed] : [editEmbed],
+						});
 					}
 
 				});
 
 				i.reply({ content: `${interaction.client.emoji.normal.yes} Message Edited.`, ephemeral: true });
-			})
-			.catch((reason) => { if (!reason.message.includes('reason: time')) logger.error(reason); });
+
+				const newMessageObject = {
+					id: target.id,
+					content: editMessage,
+					timestamp: target.editedAt ?? target.createdAt,
+				};
+
+				interaction.inCachedGuild() ? networkMsgUpdate(interaction.member, target, newMessageObject) : null;
+
+			}).catch((reason) => {if (!reason.message.includes('reason: time')) logger.error(reason);});
 	},
 };

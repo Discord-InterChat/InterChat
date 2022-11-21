@@ -31,7 +31,7 @@ export = {
 	 * Log the *uncensored* message to the log channel.
 	*/
 	async log(client: Client, author: User, guild: Guild | null, rawContent: string) {
-		const logChan = await client.channels.fetch(constants.channel.chatbotlogs) as TextChannel;
+		const logChan = await client.channels.fetch(constants.channel.networklogs) as TextChannel;
 		const logEmbed = new EmbedBuilder()
 			.setAuthor({ name: `${client.user?.username} logs`, iconURL: client.user?.avatarURL()?.toString() })
 			.setTitle('Bad Word Detected')

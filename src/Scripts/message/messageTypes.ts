@@ -21,13 +21,13 @@ export = {
 		if (!channelToSend) return { unkownChannelId: channel?.channelId } as InvalidChannelId;
 
 		const replyInDb = replyData?.channelAndMessageIds.find((msg) => msg.channelId === channel.channelId);
+
 		const replyButton = replyInDb
 			? new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
 				.setLabel('Jump')
 				.setStyle(ButtonStyle.Link)
 				.setURL(`https://discord.com/channels/${channelToSend.guildId}/${replyInDb.channelId}/${replyInDb.messageId}`))
 			: null;
-
 
 		if (channelInSetup?.webhook) {
 			const webhook = new WebhookClient({ id: `${channelInSetup?.webhook?.id}`, token: `${channelInSetup?.webhook?.token}` });
