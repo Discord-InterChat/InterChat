@@ -12,6 +12,7 @@ interface ErrorLogData {
 	message: string;
 	stack?: string;
 	timestamp: string;
+
 	[key: string]: unknown;
 }
 
@@ -47,15 +48,13 @@ export class ChatBot extends Client {
 		const channels = await prisma.connectedList.findMany();
 
 		channels?.forEach(async (channelEntry) => {
-			const channel = await this.channels.fetch(channelEntry.channelId);
-			if (!channel?.isTextBased()) {
-				logger.error(`Channel ${channel?.id} is not text based!`);
-				return;
+			const channel = await this.channels.fetch(channelEntry.channelId).catch(() => null);
+			if (channel?.isTextBased()) {
+				await channel.send(message).catch((err) => {
+					if (!err.message.includes('Missing Access') || !err.message.includes('Missing Permissions')) return;
+					logger.error(err);
+				});
 			}
-			await channel.send(message).catch((err) => {
-				if (!err.message.includes('Missing Access') || !err.message.includes('Missing Permissions')) return;
-				logger.error(err);
-			});
 		});
 	}
 

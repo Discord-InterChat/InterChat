@@ -48,8 +48,8 @@ export = {
 		const network = new NetworkManager();
 		const setupEmbed = new SetupEmbedGenerator(interaction);
 
-		const guildSetup = await setupCollection?.findFirst({ where: { guildId: interaction.guildId?.toString() } });
-		const guildConnected = await network.getServerData({ serverId: interaction.guildId?.toString() });
+		const guildSetup = await setupCollection?.findFirst({ where: { guildId: interaction.guild?.id } });
+		const guildConnected = await network.getServerData({ serverId: interaction.guild?.id });
 
 		if (!guildSetup) return interaction.followUp('Server is not setup yet. Use `/setup channel` first.');
 		if (!interaction.guild?.channels.cache.get(guildSetup?.channelId)) {
