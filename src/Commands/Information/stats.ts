@@ -56,6 +56,7 @@ export default {
 					Commands: ${interaction.client.commands.size}
 					Bot Version: v${interaction.client.version}
 					\`\`\``,
+					inline: true,
 				},
 				{
 					name: 'Chat Network',
@@ -63,6 +64,7 @@ export default {
 					Servers: ${count}
 					Members: ${connectedMembers}
 					\`\`\``,
+					inline: true,
 				},
 			]);
 		await interaction.reply({ embeds: [embed] });

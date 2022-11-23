@@ -7,15 +7,22 @@ import logger from '../../Utils/logger';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, db: PrismaClient) {
-		// send the initial reply
 		if (!interaction.deferred) await interaction.deferReply();
 
 		const emoji = interaction.client.emoji;
 		const setupCollection = db.setup;
 
 		const setupActionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
-			new ButtonBuilder().setCustomId('reconnect').setStyle(ButtonStyle.Success).setLabel('Reconnect').setEmoji(emoji.icons.connect),
-			new ButtonBuilder().setCustomId('disconnect').setStyle(ButtonStyle.Danger).setLabel('Disconnect').setEmoji(emoji.icons.disconnect),
+			new ButtonBuilder()
+				.setCustomId('reconnect')
+				.setStyle(ButtonStyle.Success)
+				.setLabel('Reconnect')
+				.setEmoji(emoji.icons.connect),
+			new ButtonBuilder()
+				.setCustomId('disconnect')
+				.setStyle(ButtonStyle.Danger)
+				.setLabel('Disconnect')
+				.setEmoji(emoji.icons.disconnect),
 		]);
 
 		const customizeMenu = new ActionRowBuilder<SelectMenuBuilder>().addComponents([
@@ -51,32 +58,35 @@ export = {
 		const guildSetup = await setupCollection?.findFirst({ where: { guildId: interaction.guild?.id } });
 		const guildConnected = await network.getServerData({ serverId: interaction.guild?.id });
 
-		if (!guildSetup) return interaction.followUp('Server is not setup yet. Use `/setup channel` first.');
+		if (!guildSetup) return interaction.followUp(`${emoji.normal.no} Server is not setup yet. Use \`/setup channel\` first.`);
 		if (!interaction.guild?.channels.cache.get(guildSetup?.channelId)) {
 			setupCollection.delete({ where: { channelId: guildSetup?.channelId } });
-			return await interaction.followUp('Connected channel has been deleted! Please use `/setup channel` and set a new one.');
+			return await interaction.followUp(
+				`${emoji.normal.no} Network channel not found. Use \`/setup channel\` to set a new one.`,
+			);
 		}
 
 		if (!guildConnected) setupActionButtons.components.at(-1)?.setDisabled(true);
 
+		const setupMessage = await interaction.editReply({
+			content: '',
+			embeds: [await setupEmbed.default()],
+			components: [customizeMenu, setupActionButtons],
+		});
 
-		const setupMessage = await interaction.editReply({ content: '', embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
-
-		// Create action row collectors
-		const setupCollector = setupMessage.createMessageComponentCollector({
-			filter: m => m.user.id == interaction.user.id,
+		const buttonCollector = setupMessage.createMessageComponentCollector({
+			filter: (m) => m.user.id == interaction.user.id,
 			time: 60_000,
 			componentType: ComponentType.Button,
 		});
 
 		const selectMenuCollector = setupMessage.createMessageComponentCollector({
-			filter: m => m.user.id == interaction.user.id,
+			filter: (m) => m.user.id == interaction.user.id,
 			time: 60_000,
 			componentType: ComponentType.StringSelect,
 		});
 
-
-		selectMenuCollector.on('collect', async component => {
+		selectMenuCollector.on('collect', async (component) => {
 			// Reference multiple select menus with its 'value' (values[0])
 			switch (component.customId) {
 			case 'customize': {
@@ -87,7 +97,7 @@ export = {
 				case 'compact':
 					await setupCollection?.updateMany({
 						where: { guildId: interaction.guild?.id },
-						data: { date:new Date(), compact: !guildInDB?.compact },
+						data: { date: new Date(), compact: !guildInDB?.compact },
 					});
 					break;
 
@@ -99,24 +109,40 @@ export = {
 					break;
 
 				case 'webhook': {
-					const connectedChannel = await interaction.client.channels.fetch(`${guildInDB?.channelId}`).catch(() => null);
+					const connectedChannel = await interaction.client.channels
+						.fetch(`${guildInDB?.channelId}`)
+						.catch(() => null);
 
 					if (!connectedChannel || connectedChannel.type !== ChannelType.GuildText) {
-						await component.reply({ content: 'Cannot edit setup for selected channel. If you think this is a mistake report this to the developers.', ephemeral: true });
+						await component.reply({
+							content: 'Cannot edit setup for selected channel. If you think this is a mistake report this to the developers.',
+							ephemeral: true,
+						});
 						break;
 					}
 
 					if (guildInDB?.webhook) {
 						const deleteWebhook = await connectedChannel.fetchWebhooks();
-						deleteWebhook.find((webhook) => webhook.owner?.id === interaction.client.user.id)?.delete();
+						deleteWebhook
+							.find((webhook) => webhook.owner?.id === interaction.client.user.id)
+							?.delete();
 
-						await setupCollection?.update({ where: { channelId: connectedChannel.id }, data: { date: new Date(), webhook: null } });
+						await setupCollection?.update({
+							where: { channelId: connectedChannel.id },
+							data: { date: new Date(), webhook: null },
+						});
 
-						await component.reply({ content: 'Webhook messages have been disabled.', ephemeral: true });
+						await component.reply({
+							content: 'Webhook messages have been disabled.',
+							ephemeral: true,
+						});
 						break;
 					}
 
-					const webhook = await connectedChannel.createWebhook({ name: 'ChatBot Network', avatar: interaction.client.user?.avatarURL() });
+					const webhook = await connectedChannel.createWebhook({
+						name: 'ChatBot Network',
+						avatar: interaction.client.user?.avatarURL(),
+					});
 
 					await setupCollection?.updateMany({
 						where: { guildId: interaction.guild?.id },
@@ -124,37 +150,47 @@ export = {
 							date: new Date(),
 							webhook: { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
 						},
-					},
-
-					);
-					await component.reply({ content: 'Webhook has been initialized! Messages will now be sent with webhooks.', ephemeral: true });
+					});
+					await component.reply({
+						content: 'Webhook has been initialized! Messages will now be sent with webhooks.',
+						ephemeral: true,
+					});
 					break;
 				}
-
 				}
-				component.replied || component.deferred ? interaction.editReply({ embeds: [await setupEmbed.default()] }) : component.update({ embeds: [await setupEmbed.default()] });
+				component.replied || component.deferred
+					? interaction.editReply({ embeds: [await setupEmbed.default()] })
+					: component.update({ embeds: [await setupEmbed.default()] });
 			}
 			}
 		});
 
-		setupCollector.on('collect', async component => {
+		buttonCollector.on('collect', async (component) => {
 			switch (component.customId) {
 			case 'reconnect': {
-				const channel = await interaction.client.channels.fetch(String(guildSetup?.channelId))
-					.catch(() => null) as GuildTextBasedChannel | null;
+				const channel = (await interaction.client.channels
+					.fetch(String(guildSetup?.channelId))
+					.catch(() => null)) as GuildTextBasedChannel | null;
 
 				if (guildConnected) {
 					network.disconnect(interaction.guildId);
-					logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
+					logger.info(
+						`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`,
+					);
 				}
 
 				await network.connect(interaction.guild, channel);
-				logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
+				logger.info(
+					`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`,
+				);
 
 				setupActionButtons.components.at(-1)?.setDisabled(false);
 
 				component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
-				interaction.editReply({ embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
+				interaction.editReply({
+					embeds: [await setupEmbed.default()],
+					components: [customizeMenu, setupActionButtons],
+				});
 				break;
 			}
 
@@ -162,9 +198,14 @@ export = {
 				await network.disconnect({ channelId: guildSetup.channelId });
 				setupActionButtons.components.at(-1)?.setDisabled(true);
 
-				logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
+				logger.info(
+					`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`,
+				);
 
-				component.message.edit({ embeds: [await setupEmbed.default()], components: [customizeMenu, setupActionButtons] });
+				component.message.edit({
+					embeds: [await setupEmbed.default()],
+					components: [customizeMenu, setupActionButtons],
+				});
 				component.reply({ content: 'Disconnected!', ephemeral: true });
 				break;
 			default:
@@ -172,14 +213,12 @@ export = {
 			}
 		});
 
-		setupCollector.on('end', () => {
+		buttonCollector.on('end', () => {
 			interaction.editReply({ components: [] }).catch(() => null);
 			return;
 		});
-
 	},
 };
-
 
 // Embed classes to make it easier to call and edit multiple embeds
 class SetupEmbedGenerator {
@@ -189,16 +228,20 @@ class SetupEmbedGenerator {
 	}
 	async default() {
 		const db = getDb();
+		const emoji = this.interaction.client.emoji;
 
 		const guildSetupData = await db.setup.findFirst({ where: { guildId: this.interaction?.guild?.id } });
 		const guild = this.interaction.client.guilds.cache.get(`${guildSetupData?.guildId}`);
 		const channel = guild?.channels.cache.get(`${guildSetupData?.channelId}`);
+		const guildNetworkData = await new NetworkManager().getServerData({ channelId: channel?.id });
 
-		const emoji = this.interaction.client.emoji;
-
-		const guildNetworkData = await db.connectedList?.findFirst({ where: { channelId : channel?.id } });
+		// option enabled/disabled emojis
 		const status = channel && guildNetworkData ? emoji.normal.yes : emoji.normal.no;
-		const lastEdited = Number(guildSetupData?.date.getTime());
+		const compact = guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled;
+		const profanity = guildSetupData?.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled;
+		const webhook = guildSetupData?.webhook ? emoji.normal.enabled : emoji.normal.disabled;
+		const lastEditedTimestamp = Math.round(Number(guildSetupData?.date.getTime()) / 1000);
+
 
 		const embed = new EmbedBuilder()
 			.setAuthor({
@@ -208,14 +251,18 @@ class SetupEmbedGenerator {
 			.addFields(
 				{
 					name: 'Network State',
-					value: `**Connected:** ${status}\n**Channel:** ${channel}\n**Last Edited:** <t:${Math.round(lastEdited / 1000)}:R>`,
+					value: stripIndent`
+					**Connected:** ${status}
+					**Channel:** ${channel}
+					**Last Edited:** <t:${lastEditedTimestamp}:R>
+					`,
 				},
 				{
 					name: 'Style',
 					value: stripIndent`
-					**Compact:** ${guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled}
-					**Profanity Filter:** ${guildSetupData?.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled}
-					**Webhook Messages:**  ${guildSetupData?.webhook ? emoji.normal.enabled : emoji.normal.disabled}
+					**Compact:** ${compact}
+					**Profanity Filter:** ${profanity}
+					**Webhook Messages:**  ${webhook}
 					`,
 				},
 			)
@@ -224,19 +271,25 @@ class SetupEmbedGenerator {
 			.setTimestamp()
 			.setFooter({
 				text: this.interaction.user.tag,
-				iconURL: this.interaction.user.avatarURL() as string,
+				iconURL: this.interaction.user.avatarURL() ?? this.interaction.user.defaultAvatarURL,
 			});
 
 		return embed;
 	}
 	customFields(fields: RestOrArray<APIEmbedField>) {
 		const embed = new EmbedBuilder()
-			.setAuthor({ name: this.interaction.guild?.name as string, iconURL: this.interaction.guild?.iconURL()?.toString() })
 			.setColor(colors('chatbot'))
 			.addFields(...fields)
 			.setThumbnail(this.interaction.guild?.iconURL() || null)
 			.setTimestamp()
-			.setFooter({ text: `Requested by: ${this.interaction.user.tag}`, iconURL: this.interaction.user.avatarURL()?.toString() });
+			.setAuthor({
+				name: this.interaction.guild?.name as string,
+				iconURL: this.interaction.guild?.iconURL()?.toString(),
+			})
+			.setFooter({
+				text: `Requested by: ${this.interaction.user.tag}`,
+				iconURL: this.interaction.user.avatarURL() ?? this.interaction.user.defaultAvatarURL,
+			});
 		return embed;
 	}
 }

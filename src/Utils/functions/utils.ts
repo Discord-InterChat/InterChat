@@ -2,10 +2,7 @@ import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
 import { prisma } from '../db';
-import { PrismaClient } from '@prisma/client';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import _ from 'lodash/string';
+import _ from 'lodash';
 import 'dotenv/config';
 
 const topgg = new Api(process.env.TOPGG as string);
@@ -91,8 +88,8 @@ export async function getCredits() {
 	return creditArray;
 }
 
-/** Returns the database */
-export function getDb(): PrismaClient {
+/** Use the main database in your code by calling this function */
+export function getDb() {
 	return prisma;
 }
 
@@ -180,11 +177,9 @@ export const constants = {
 	topgg,
 
 	developers: [
-		'736482645931720765',
-		'828492978716409856',
 		'748190663597883392',
+		'828492978716409856',
 		'701727675311587358',
-		'827745783964499978',
 		'456961943505338369',
 	],
 	staff: ['442653948630007808', '336159680244219905'],
@@ -192,7 +187,6 @@ export const constants = {
 	mainGuilds: {
 		cbhq: '770256165300338709',
 		cbTest: '969920027421732874',
-		botTest: '818348790435020810',
 	},
 
 	channel: {

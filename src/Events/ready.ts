@@ -1,7 +1,6 @@
 import { Client } from 'discord.js';
-import logger from '../Utils/logger';
 import { getDb } from '../Utils/functions/utils';
-import 'dotenv/config';
+import logger from '../Utils/logger';
 // import { constants } from '../Utils/functions/utils';
 
 export default {

@@ -1,6 +1,9 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
+import init from '../../Scripts/setup/init';
+import reset from '../../Scripts/setup/reset';
+import displayEmbed from '../../Scripts/setup/displayEmbed';
 
 export default {
 	data: new SlashCommandBuilder()
@@ -8,6 +11,8 @@ export default {
 		.setDescription('Manage the chat network for this server.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
 		.setDMPermission(false)
+		.addSubcommand((subcommand) => subcommand.setName('reset').setDescription('Reset the setup for this server.'))
+		.addSubcommand((subcommand) => subcommand.setName('view').setDescription('View and edit your setup.'))
 		.addSubcommand((subcommand) =>
 			subcommand
 				.setName('channel')
@@ -15,7 +20,9 @@ export default {
 				.addChannelOption((channelOption) =>
 					channelOption
 						.setName('destination')
-						.setDescription('Channel you want to setup chatbot to, select a category to create a new channel for chatbot')
+						.setDescription(
+							'Channel you want to setup chatbot to, select a category to create a new channel for chatbot',
+						)
 						.setRequired(true)
 						.addChannelTypes(
 							ChannelType.GuildText,
@@ -24,17 +31,6 @@ export default {
 							ChannelType.PrivateThread,
 						),
 				),
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName('view')
-				.setDescription('View and edit your setup.'),
-		)
-
-		.addSubcommand(subcommand =>
-			subcommand
-				.setName('reset')
-				.setDescription('Reset the setup for this server.'),
 		),
 
 	async execute(interaction: ChatInputCommandInteraction) {
@@ -45,7 +41,9 @@ export default {
 		const subcommand = interaction.options.getSubcommand();
 
 		if (serverInBlacklist) {
-			await interaction.reply(`This server is blacklisted from using the ChatBot Chat Network for reason \`${serverInBlacklist.reason}\`! Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+			await interaction.reply(
+				'This server is blacklisted from using the ChatBot Chat Network.',
+			);
 			return;
 		}
 		else if (userInBlacklist) {
@@ -53,15 +51,10 @@ export default {
 			return;
 		}
 
-		if (subcommand === 'view') {
-			(await import('../../Scripts/setup/displayEmbed')).execute(interaction, database);
-			return;
-		}
-		else if (subcommand === 'reset') {
-			(await import('../../Scripts/setup/reset')).execute(interaction, database);
-		}
-		else {
-			(await import('../../Scripts/setup/init')).execute(interaction, database).catch(logger.error);
+		switch (subcommand) {
+		case 'view': displayEmbed.execute(interaction, database); break;
+		case 'reset': reset.execute(interaction, database); break;
+		default: init.execute(interaction, database).catch(logger.error);
 		}
 	},
 };

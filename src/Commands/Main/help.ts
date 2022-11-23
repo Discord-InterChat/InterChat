@@ -75,7 +75,7 @@ export default {
 			]);
 		}
 
-		if (commandOps && commandOps[0]?.type === ApplicationCommandOptionType.Subcommand) {
+		if (commandOps?.at(0)?.type === ApplicationCommandOptionType.Subcommand) {
 			commandOps.forEach((subcommand: any) => {
 				const subOptions = subcommand.options.map((optionValue: SlashCommandStringOption | SlashCommandUserOption) => {
 					return optionValue.required ? ` <${optionValue.name}>` : ` [${optionValue.name}]`;

@@ -18,6 +18,8 @@ export default {
 			members.push(member);
 		}
 
+		members.forEach((mem, ind) => console.log(ind, mem.tag));
+
 		const embed = new EmbedBuilder()
 			.setColor(colors('chatbot'))
 			.setTitle(`${icons.info} ChatBot Information`)
@@ -29,15 +31,16 @@ export default {
 					Some emojis used on this bot are from [Icons discord server](https://discord.gg/aPvvhefmt3).
 
 						${normal.chatbot_circle} **Avatar & Badges:** 
-						> \`-\` ${members[1].tag}
-						> \`-\` ${members.at(-2)?.tag}
+						> \`-\` ${members[0].tag}
+						> \`-\` ${members[4]?.tag}
 
 						${icons.botdev} **Developers:**
 						> \`-\` ${members[1].tag}
+						> \`-\` ${members[2].tag}
 						> \`-\` ${members[3].tag}
 
 						${icons.staff} **Staff:**
-						> \`-\` ${members.at(-2)?.tag}
+						> \`-\` ${members[4]?.tag}
 						*Psst. Join the support server to know more about how you can become a staff member!*	
 					`,
 				},
@@ -62,7 +65,7 @@ export default {
 			])
 			.setFooter({
 				text: `Requested by ${interaction.user.tag}`,
-				iconURL: interaction.user.avatarURL() as string,
+				iconURL: interaction.user.avatarURL() ?? interaction.user.defaultAvatarURL,
 			});
 
 		await interaction.followUp({ embeds: [embed] });

@@ -3,6 +3,7 @@ import { ChannelType, ChatInputCommandInteraction, OverwriteType, GuildTextBased
 import { PrismaClient } from '@prisma/client';
 import { NetworkManager } from '../../Structures/network';
 import logger from '../../Utils/logger';
+import displayEmbed from './displayEmbed';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, database: PrismaClient) {
@@ -25,9 +26,13 @@ export = {
 					return;
 				}
 
-				await interaction.editReply('There is an existing channel setup... Change channel? (y/n)');
+				await interaction.editReply('This server is already setup to another channel. Change channel? (y/n)');
 
-				const msg =	await interaction.channel?.awaitMessages({ filter: (m) => m.author.id === interaction.user.id, max: 1, idle: 10_000 });
+				const msg = await interaction.channel?.awaitMessages({
+					filter: (m) => m.author.id === interaction.user.id,
+					max: 1,
+					idle: 10_000,
+				});
 				if (msg?.first()?.content.toLowerCase() !== 'y') return msg?.first()?.reply('Cancelled.');
 
 				network.disconnect(interaction.guildId);
@@ -96,7 +101,7 @@ export = {
 			});
 
 			const numOfConnections = await network.totalConnected();
-			if (numOfConnections && numOfConnections > 1) {
+			if (numOfConnections > 1) {
 				await channel?.send(stripIndents`
 						This channel has been connected to the chat network. You are currently with ${numOfConnections} other servers, Enjoy! ${emoji.normal.clipart}
 						**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`);
@@ -110,8 +115,9 @@ export = {
 		}
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		catch (err: any) {
-			if (err.message === 'Missing Permissions') return interaction.reply('I don\'t have the required permissions in this server to execute this command.');
-
+			if (err.message === 'Missing Permissions' || err.message === 'Missing Access') {
+				return interaction.reply('I don\'t have the required permissions and/or access to the channel in this server to execute this command.');
+			}
 			logger.error(err);
 			await interaction.followUp('An error occurred while connecting to the chat network.\n**Error:** ' + err.message);
 			setupList?.delete({ where: { channelId: channel?.id } });
@@ -125,6 +131,6 @@ export = {
 			**Server Name:** __${interaction.guild?.name}__
 			**Member Count:** __${interaction.guild?.memberCount}__`);
 
-		(await import('./displayEmbed')).execute(interaction, database);
+		displayEmbed.execute(interaction, database);
 	},
 };
