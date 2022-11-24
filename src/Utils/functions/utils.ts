@@ -2,8 +2,10 @@ import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
 import { prisma } from '../db';
-import _ from 'lodash';
 import 'dotenv/config';
+// eslint-disable-next-line
+// @ts-ignore
+import _ from 'lodash/string';
 
 const topgg = new Api(process.env.TOPGG as string);
 
