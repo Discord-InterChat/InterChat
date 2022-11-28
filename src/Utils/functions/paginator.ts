@@ -12,8 +12,7 @@ export async function paginate(interaction: CommandInteraction, pages: EmbedBuil
 		next: interaction.client.emoji.icons.next,
 	},
 	time = 60000) {
-	if (typeof buttons != 'object') throw new TypeError('buttons must be an object containing: next, exit, back');
-	if (!interaction || !pages || !(pages?.length > 0) || !(time > 10000)) throw new Error('Invalid Parameters');
+	if (pages.length < 0 || time < 10000) throw new Error('Invalid Parameters');
 
 	// eslint-disable-next-line prefer-const
 	let index = 0, row = new ActionRowBuilder<ButtonBuilder>().addComponents([

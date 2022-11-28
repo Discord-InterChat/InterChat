@@ -59,6 +59,7 @@ export = {
 					content: channelInSetup?.profFilter ? message.censored_compact_message : message.compact_message,
 					components: replyButton ? [replyButton] : [],
 					files: attachments ? [attachments] : [],
+					allowedMentions: { parse: ['roles', 'everyone'] },
 				});
 			}
 			catch (e) {

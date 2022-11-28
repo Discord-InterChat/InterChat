@@ -55,7 +55,7 @@ export = {
 		const network = new NetworkManager();
 		const setupEmbed = new SetupEmbedGenerator(interaction);
 
-		const guildSetup = await setupCollection?.findFirst({ where: { guildId: interaction.guild?.id } });
+		const guildSetup = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
 		const guildConnected = await network.getServerData({ serverId: interaction.guild?.id });
 
 		if (!guildSetup) return interaction.followUp(`${emoji.normal.no} Server is not setup yet. Use \`/setup channel\` first.`);
@@ -87,82 +87,76 @@ export = {
 		});
 
 		selectMenuCollector.on('collect', async (component) => {
-			// Reference multiple select menus with its 'value' (values[0])
-			switch (component.customId) {
-			case 'customize': {
-				// get the latest db updates
-				const guildInDB = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
+			const guildInDB = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
 
-				switch (component.values[0]) {
-				case 'compact':
-					await setupCollection?.updateMany({
-						where: { guildId: interaction.guild?.id },
-						data: { date: new Date(), compact: !guildInDB?.compact },
-					});
-					break;
+			switch (component.values[0]) {
+			case 'compact':
+				await setupCollection?.updateMany({
+					where: { guildId: interaction.guild?.id },
+					data: { date: new Date(), compact: !guildInDB?.compact },
+				});
+				break;
 
-				case 'profanity':
-					await setupCollection?.updateMany({
-						where: { guildId: interaction.guild?.id },
-						data: { date: new Date(), profFilter: !guildInDB?.profFilter },
-					});
-					break;
+			case 'profanity':
+				await setupCollection?.updateMany({
+					where: { guildId: interaction.guild?.id },
+					data: { date: new Date(), profFilter: !guildInDB?.profFilter },
+				});
+				break;
 
-				case 'webhook': {
-					const connectedChannel = await interaction.client.channels
-						.fetch(`${guildInDB?.channelId}`)
-						.catch(() => null);
+			case 'webhook': {
+				const connectedChannel = await interaction.client.channels
+					.fetch(`${guildInDB?.channelId}`)
+					.catch(() => null);
 
-					if (!connectedChannel || connectedChannel.type !== ChannelType.GuildText) {
-						await component.reply({
-							content: 'Cannot edit setup for selected channel. If you think this is a mistake report this to the developers.',
-							ephemeral: true,
-						});
-						break;
-					}
-
-					if (guildInDB?.webhook) {
-						const deleteWebhook = await connectedChannel.fetchWebhooks();
-						deleteWebhook
-							.find((webhook) => webhook.owner?.id === interaction.client.user.id)
-							?.delete();
-
-						await setupCollection?.update({
-							where: { channelId: connectedChannel.id },
-							data: { date: new Date(), webhook: null },
-						});
-
-						await component.reply({
-							content: 'Webhook messages have been disabled.',
-							ephemeral: true,
-						});
-						break;
-					}
-
-					const webhook = await connectedChannel.createWebhook({
-						name: 'ChatBot Network',
-						avatar: interaction.client.user?.avatarURL(),
-					});
-
-					await setupCollection?.updateMany({
-						where: { guildId: interaction.guild?.id },
-						data: {
-							date: new Date(),
-							webhook: { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
-						},
-					});
+				if (!connectedChannel || connectedChannel.type !== ChannelType.GuildText) {
 					await component.reply({
-						content: 'Webhook has been initialized! Messages will now be sent with webhooks.',
+						content: 'Cannot edit setup for selected channel. If you think this is a mistake report this to the developers.',
 						ephemeral: true,
 					});
 					break;
 				}
+
+				if (guildInDB?.webhook) {
+					const deleteWebhook = await connectedChannel.fetchWebhooks();
+					deleteWebhook
+						.find((webhook) => webhook.owner?.id === interaction.client.user.id)
+						?.delete();
+
+					await setupCollection?.update({
+						where: { channelId: connectedChannel.id },
+						data: { date: new Date(), webhook: null },
+					});
+
+					await component.reply({
+						content: 'Webhook messages have been disabled.',
+						ephemeral: true,
+					});
+					break;
 				}
-				component.replied || component.deferred
-					? interaction.editReply({ embeds: [await setupEmbed.default()] })
-					: component.update({ embeds: [await setupEmbed.default()] });
+
+				const webhook = await connectedChannel.createWebhook({
+					name: 'ChatBot Network',
+					avatar: interaction.client.user?.avatarURL(),
+				});
+
+				await setupCollection?.updateMany({
+					where: { guildId: interaction.guild?.id },
+					data: {
+						date: new Date(),
+						webhook: { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
+					},
+				});
+				await component.reply({
+					content: 'Webhook has been initialized! Messages will now be sent with webhooks.',
+					ephemeral: true,
+				});
+				break;
 			}
 			}
+			component.replied || component.deferred
+				? interaction.editReply({ embeds: [await setupEmbed.default()] })
+				: component.update({ embeds: [await setupEmbed.default()] });
 		});
 
 		buttonCollector.on('collect', async (component) => {
@@ -237,8 +231,8 @@ class SetupEmbedGenerator {
 
 		// option enabled/disabled emojis
 		const status = channel && guildNetworkData ? emoji.normal.yes : emoji.normal.no;
-		const compact = guildSetupData?.compact === true ? emoji.normal.enabled : emoji.normal.disabled;
-		const profanity = guildSetupData?.profFilter === true ? emoji.normal.enabled : emoji.normal.disabled;
+		const compact = guildSetupData?.compact ? emoji.normal.enabled : emoji.normal.disabled;
+		const profanity = guildSetupData?.profFilter ? emoji.normal.enabled : emoji.normal.disabled;
 		const webhook = guildSetupData?.webhook ? emoji.normal.enabled : emoji.normal.disabled;
 		const lastEditedTimestamp = Math.round(Number(guildSetupData?.date.getTime()) / 1000);
 

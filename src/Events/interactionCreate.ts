@@ -1,26 +1,33 @@
-import { Interaction } from 'discord.js';
+import { GuildMember, Interaction, PermissionsBitField } from 'discord.js';
 import { checkIfStaff } from '../Utils/functions/utils';
 import logger from '../Utils/logger';
 
 export default {
 	name: 'interactionCreate',
 	async execute(interaction: Interaction) {
-		if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
-		// Basic perm check, it wont cover all bugs
+		if (interaction.isAutocomplete()) {
+			const command = interaction.client.commands.get(interaction.commandName);
+			if (command?.autocomplete) command.autocomplete(interaction);
+		}
+
+		else if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
+			const requiredPerms = new PermissionsBitField(['SendMessages', 'EmbedLinks']);
+
 			if (
-				interaction.inCachedGuild() && interaction.channel?.isTextBased() &&
-				!interaction.guild?.members.me?.permissionsIn(interaction.channel).has('SendMessages') &&
-				!interaction.guild?.members.me?.permissionsIn(interaction.channel).has('EmbedLinks')
+				interaction.inCachedGuild() &&
+				interaction.channel?.permissionsFor(interaction.guild?.members.me as GuildMember)
+					.has(requiredPerms)
 			) {
 				return interaction.reply({
-					content: 'I do not have the right permissions in this server to function properly!',
+					content: 'I do not have the right permissions in this channel to function properly!',
 					ephemeral: true,
 				});
 			}
+
+
 			const command = interaction.client.commands.get(interaction.commandName);
 
 			if (!command) return;
-
 
 			try {
 				const noPermsMsg = {
@@ -53,14 +60,6 @@ export default {
 						? await interaction.channel?.send(errorMsg)
 						: await interaction.reply(errorMsg);
 			}
-		}
-
-		else if (interaction.isAutocomplete()) {
-			const command = interaction.client.commands.get(interaction.commandName);
-
-			if (!command || !command.autocomplete) return;
-
-			command.autocomplete(interaction);
 		}
 	},
 };
