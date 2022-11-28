@@ -14,7 +14,7 @@ export = {
 		if (userInBlacklist) {
 			// if user is in blacklist and Notified is false, send them a message saying they are blacklisted
 			if (!userInBlacklist.notified) {
-				database.blacklistedUsers.update({
+				await database.blacklistedUsers.update({
 					where: { userId: message.author.id },
 					data: { notified: true },
 				});
