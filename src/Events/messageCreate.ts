@@ -21,9 +21,7 @@ export default {
 		const connected = await db?.connectedList.findFirst({ where: { channelId: message.channelId } });
 
 		// ignore the message if it is not in an active network channel
-		if (!connected) return;
-		if (!await checks.execute(message, db)) return;
-
+		if (!connected || !await checks.execute(message, db)) return;
 
 		const embed = new EmbedBuilder()
 			.setTimestamp()
@@ -42,7 +40,7 @@ export default {
 
 		// Get data message being replied to from the db (for jump buttons)
 		const replyInDb = await messageContentModifiers.appendReply(message, db);
-		// initialize & define censored properties (message.censored_xxx)
+		// define censored properties to message class (message.censored_xxxx)
 		await messageContentModifiers.execute(message);
 
 		const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content || '\u200B' });
