@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.4.1](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.4.0...v3.4.1) (2022-12-02)
+
+
+### Bug Fixes
+
+* **blacklist:** fixed blacklist notifying more than once ([87180f0](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/87180f0bec900ebd7d681c871af98e75c8cba259))
+* fixed "no permission" message sending when bot has correct perms ([4c8ebb4](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/4c8ebb40d5f9d0ecc2089506bb7d63e5dcc8f70e))
+* **network:** fixed everyone ping working for compact mode ([7751be1](https://github.com/Discord-ChatBot/ChatBot-Beta/commit/7751be1aa8a43e092f3336a45d136cf5eb5c0fb4))
+
 ## [3.4.0](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.3.2...v3.4.0) (2022-11-21)
 
 
