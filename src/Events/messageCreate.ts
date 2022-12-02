@@ -6,7 +6,7 @@ import { APIMessage, EmbedBuilder, Message } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import cleanup, { InvalidChannelId, InvalidWebhookId } from '../Scripts/message/cleanup';
 
-export interface MessageInterface extends Message<boolean>{
+export interface MessageInterface extends Message {
 	compact_message: string,
 	censored_compact_message: string,
 	censored_content: string,
@@ -38,9 +38,10 @@ export default {
 			});
 
 
-		// Get data message being replied to from the db (for jump buttons)
+		// Get data message being replied to from the db for jump buttons (message content is modified)
 		const replyInDb = await messageContentModifiers.appendReply(message, db);
-		// define censored properties to message class (message.censored_xxxx)
+
+		// define censored properties to message class (message.censored_xxxx) (message content is modified)
 		await messageContentModifiers.execute(message);
 
 		const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content || '\u200B' });

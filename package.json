@@ -25,7 +25,7 @@
     "dev:watch": "tsc -p . -w",
     "dev:run": "nodemon .",
     "dev": "run-p dev:*",
-    "deploy": "tsc && node build/src/Utils/functions/deploy-commands",
+    "deploy": "npm run build && node build/src/Utils/functions/deploy-commands",
     "release": "standard-version",
     "lint": "eslint --cache --fix .",
     "prepare": "husky install"
@@ -36,12 +36,12 @@
   },
   "dependencies": {
     "@napi-rs/canvas": "^0.1.30",
-    "@prisma/client": "^4.6.1",
+    "@prisma/client": "^4.7.1",
     "@top-gg/sdk": "^3.1.3",
     "canvacord": "^5.4.8",
     "common-tags": "^1.8.2",
     "discord-xp": "^1.1.16",
-    "discord.js": "^14.6.0",
+    "discord.js": "^14.7.1",
     "dotenv": "^16.0.3",
     "lodash": "^4.17.21",
     "winston": "^3.8.2"
@@ -49,10 +49,10 @@
   "devDependencies": {
     "@types/common-tags": "^1.8.1",
     "@types/express": "^4.17.14",
-    "@types/lodash": "^4.14.190",
-    "@types/node": "^18.11.9",
-    "@typescript-eslint/eslint-plugin": "^5.44.0",
-    "@typescript-eslint/parser": "^5.44.0",
+    "@types/lodash": "^4.14.191",
+    "@types/node": "^18.11.10",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "^8.28.0",
     "husky": "^8.0.2",
@@ -60,7 +60,7 @@
     "nodemon": "2.0.20",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.0",
-    "prisma": "^4.6.1",
+    "prisma": "^4.7.1",
     "standard-version": "^9.5.0",
     "turbo": "^1.6.3",
     "typescript": "^4.9.3"

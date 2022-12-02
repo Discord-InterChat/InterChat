@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { connectedList, Prisma } from '@prisma/client';
 import { Guild, GuildTextBasedChannel } from 'discord.js';
 import { prisma } from '../Utils/db';
 import { getDb } from '../Utils/functions/utils';
@@ -20,10 +20,17 @@ export class NetworkManager {
 		return foundServerData;
 	}
 
-	/** Insert a guild & channel into connectedList collection.
-   *
-   * Returns **null** if channel is already connected
-   * */
+	public async updateData(filter: NetworkManagerOptions, data: NetworkManagerOptions): Promise<connectedList>
+	public async updateData(channelId: string, data: NetworkManagerOptions): Promise<connectedList>
+	public async updateData(where: NetworkManagerOptions | string, data: NetworkManagerOptions) {
+		if (typeof where === 'string') return await prisma.connectedList.update({ where: { channelId: where }, data });
+		return await prisma.connectedList.updateMany({ where, data });
+	}
+
+	/**
+	 * Insert a guild & channel into connectedList collection.
+   	* Returns **null** if channel is already connected
+	*/
 	public async connect(guild: Guild | null, channel: GuildTextBasedChannel | undefined | null) {
 		const channelExists = await prisma.connectedList.findFirst({
 			where: {
@@ -45,8 +52,8 @@ export class NetworkManager {
 	/** Delete a document using the `channelId` or `serverId` from the connectedList collection */
 	public async disconnect(options: NetworkManagerOptions): Promise<Prisma.BatchPayload>;
 	/**  Delete a document using the `serverId` from the connectedList collection */
-	async disconnect(serverId: string | null): Promise<Prisma.BatchPayload>;
-	async disconnect(options: NetworkManagerOptions | string | null): Promise<Prisma.BatchPayload> {
+	public async disconnect(serverId: string | null): Promise<Prisma.BatchPayload>;
+	public async disconnect(options: NetworkManagerOptions | string | null): Promise<Prisma.BatchPayload> {
 		if (typeof options === 'string') {
 			return await prisma.connectedList.deleteMany({
 				where: { serverId: options },

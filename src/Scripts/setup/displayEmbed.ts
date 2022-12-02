@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { stripIndent } from 'common-tags';
-import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, SelectMenuBuilder, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType, ComponentType } from 'discord.js';
+import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction } from 'discord.js';
 import { NetworkManager } from '../../Structures/network';
 import { colors, getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
@@ -25,32 +25,29 @@ export = {
 				.setEmoji(emoji.icons.disconnect),
 		]);
 
-		const customizeMenu = new ActionRowBuilder<SelectMenuBuilder>().addComponents([
-			new SelectMenuBuilder()
+		const customizeMenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+			new StringSelectMenuBuilder()
 				.setCustomId('customize')
-				.setPlaceholder('✨ Customize Setup')
-				.addOptions([
-					{
-						label: 'Compact Mode',
-						emoji: emoji.normal.clipart,
-						description: 'Disable embeds in the network to fit more messages.',
-						value: 'compact',
-					},
-
-					{
-						label: 'Profanity Filter',
-						emoji: '🤬',
-						description: 'Toggle message censoring for this server.',
-						value: 'profanity',
-					},
-					{
-						label: 'Webhook Messages',
-						emoji: emoji.icons.webhook,
-						description: 'Send network messages from webhooks instead of the bot.',
-						value: 'webhook',
-					},
-				]),
+				.setPlaceholder('🛠️ Change Settings')
+				.addOptions(
+					new StringSelectMenuOptionBuilder()
+						.setLabel('Compact Mode')
+						.setEmoji({ name: 'chat_clipart', id: '772393314413707274' })
+						.setDescription('Disable embeds in the network to fit more messages.')
+						.setValue('compact'),
+					new StringSelectMenuOptionBuilder()
+						.setLabel('Profanity Filter')
+						.setEmoji({ name: '🤬' })
+						.setDescription('Toggle swear word censoring for this server.')
+						.setValue('profanity'),
+					new StringSelectMenuOptionBuilder()
+						.setLabel('Webhooks')
+						.setEmoji({ name: 'webhook', id: '1037323777643651104' })
+						.setDescription('Network messages will be sent using webhooks instead.')
+						.setValue('webhook'),
+				),
 		]);
+
 
 		const network = new NetworkManager();
 		const setupEmbed = new SetupEmbedGenerator(interaction);
@@ -60,10 +57,8 @@ export = {
 
 		if (!guildSetup) return interaction.followUp(`${emoji.normal.no} Server is not setup yet. Use \`/setup channel\` first.`);
 		if (!interaction.guild?.channels.cache.get(guildSetup?.channelId)) {
-			setupCollection.delete({ where: { channelId: guildSetup?.channelId } });
-			return await interaction.followUp(
-				`${emoji.normal.no} Network channel not found. Use \`/setup channel\` to set a new one.`,
-			);
+			await setupCollection.delete({ where: { channelId: guildSetup?.channelId } });
+			return await interaction.followUp(`${emoji.normal.no} Network channel not found. Use \`/setup channel\` to set a new one.`);
 		}
 
 		if (!guildConnected) setupActionButtons.components.at(-1)?.setDisabled(true);
@@ -74,19 +69,20 @@ export = {
 			components: [customizeMenu, setupActionButtons],
 		});
 
+		const filter = (m: Interaction) => m.user.id === interaction.user.id;
 		const buttonCollector = setupMessage.createMessageComponentCollector({
-			filter: (m) => m.user.id == interaction.user.id,
+			filter,
 			time: 60_000,
 			componentType: ComponentType.Button,
 		});
 
-		const selectMenuCollector = setupMessage.createMessageComponentCollector({
-			filter: (m) => m.user.id == interaction.user.id,
-			time: 60_000,
+		const selectCollector = setupMessage.createMessageComponentCollector({
+			filter,
+			idle: 60_000,
 			componentType: ComponentType.StringSelect,
 		});
 
-		selectMenuCollector.on('collect', async (component) => {
+		selectCollector.on('collect', async (component) => {
 			const guildInDB = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
 
 			switch (component.values[0]) {
@@ -134,12 +130,18 @@ export = {
 					});
 					break;
 				}
+				await component.reply({
+					content: `${emoji.normal.loading} Creating webhook...`,
+					ephemeral: true,
+				});
 
 				const webhook = await connectedChannel.createWebhook({
 					name: 'ChatBot Network',
 					avatar: interaction.client.user?.avatarURL(),
 				});
 
+
+				await component.editReply(`${emoji.normal.loading} Initializing & saving webhook data...`);
 				await setupCollection?.updateMany({
 					where: { guildId: interaction.guild?.id },
 					data: {
@@ -147,10 +149,7 @@ export = {
 						webhook: { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
 					},
 				});
-				await component.reply({
-					content: 'Webhook has been initialized! Messages will now be sent with webhooks.',
-					ephemeral: true,
-				});
+				await component.editReply(`${emoji.normal.yes} Webhooks have been ssuccessfully setup!`);
 				break;
 			}
 			}
@@ -207,7 +206,7 @@ export = {
 			}
 		});
 
-		buttonCollector.on('end', () => {
+		selectCollector.on('end', () => {
 			interaction.editReply({ components: [] }).catch(() => null);
 			return;
 		});
@@ -237,7 +236,7 @@ class SetupEmbedGenerator {
 		const lastEditedTimestamp = Math.round(Number(guildSetupData?.date.getTime()) / 1000);
 
 
-		const embed = new EmbedBuilder()
+		return new EmbedBuilder()
 			.setAuthor({
 				name: `${this.interaction.guild?.name} Setup`,
 				iconURL: this.interaction.guild?.iconURL()?.toString(),
@@ -267,11 +266,9 @@ class SetupEmbedGenerator {
 				text: this.interaction.user.tag,
 				iconURL: this.interaction.user.avatarURL() ?? this.interaction.user.defaultAvatarURL,
 			});
-
-		return embed;
 	}
 	customFields(fields: RestOrArray<APIEmbedField>) {
-		const embed = new EmbedBuilder()
+		return new EmbedBuilder()
 			.setColor(colors('chatbot'))
 			.addFields(...fields)
 			.setThumbnail(this.interaction.guild?.iconURL() || null)
@@ -284,6 +281,5 @@ class SetupEmbedGenerator {
 				text: `Requested by: ${this.interaction.user.tag}`,
 				iconURL: this.interaction.user.avatarURL() ?? this.interaction.user.defaultAvatarURL,
 			});
-		return embed;
 	}
 }

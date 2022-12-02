@@ -52,7 +52,7 @@ model blacklistedUsers {
 
 model connectedList {
   id        String @id @default(auto()) @map("_id") @db.ObjectId
-  channelId String
+  channelId String @unique
   serverId  String
 }
 

@@ -26,7 +26,6 @@ export default {
 						.setRequired(true)
 						.addChannelTypes(
 							ChannelType.GuildText,
-							ChannelType.GuildCategory,
 							ChannelType.PublicThread,
 							ChannelType.PrivateThread,
 						),
@@ -41,9 +40,7 @@ export default {
 		const subcommand = interaction.options.getSubcommand();
 
 		if (serverInBlacklist) {
-			await interaction.reply(
-				'This server is blacklisted from using the ChatBot Chat Network.',
-			);
+			await interaction.reply('This server is blacklisted from using the ChatBot Chat Network.');
 			return;
 		}
 		else if (userInBlacklist) {
