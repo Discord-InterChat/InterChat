@@ -38,26 +38,26 @@ export = {
 
 		collector.on('collect', async (i) => {
 			switch (i.customId) {
-			case 'blacklist':
-				await blacklistedUsers?.create({
-					data: {
-						username: `${user.username}#${user.discriminator}`,
-						userId: user.id,
-						reason: 'Some Reason',
-						notified: true,
-					},
+				case 'blacklist':
+					await blacklistedUsers?.create({
+						data: {
+							username: `${user.username}#${user.discriminator}`,
+							userId: user.id,
+							reason: 'Some Reason',
+							notified: true,
+						},
 
-				});
-				await i.update({ embeds: [await embedGen(user)], components: [await components()] });
-				i.followUp({ content: 'User blacklisted.', ephemeral: hidden });
-				break;
-			case 'unblacklist':
-				await blacklistedUsers?.delete({ where: { userId: user.id } });
-				await i.update({ embeds: [await embedGen(user)], components: [await components()] });
-				i.followUp({ content: 'User removed from blacklist.', ephemeral: hidden });
-				break;
-			default:
-				break;
+					});
+					await i.update({ embeds: [await embedGen(user)], components: [await components()] });
+					i.followUp({ content: 'User blacklisted.', ephemeral: hidden });
+					break;
+				case 'unblacklist':
+					await blacklistedUsers?.delete({ where: { userId: user.id } });
+					await i.update({ embeds: [await embedGen(user)], components: [await components()] });
+					i.followUp({ content: 'User removed from blacklist.', ephemeral: hidden });
+					break;
+				default:
+					break;
 			}
 		});
 	},

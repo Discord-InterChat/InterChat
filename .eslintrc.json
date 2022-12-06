@@ -1,33 +1,23 @@
 {
+    "env": {
+        "node": true,
+        "es2021": true
+    },
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/eslint-recommended",
         "plugin:@typescript-eslint/recommended"
     ],
-    "root": true,
     "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": "latest"
+    },
     "plugins": [
         "@typescript-eslint"
     ],
-    "env": {
-        "node": true,
-        "es6": true
-    },
-    "parserOptions": {
-        "ecmaVersion": 2022
-    },
     "rules": {
         "@typescript-eslint/no-var-requires": "off",
-        "no-unused-vars": [
-            "off" // NOTE: Enable later to see errors when var is unused
-        ],
-        "arrow-spacing": [
-            "warn",
-            {
-                "before": true,
-                "after": true
-            }
-        ],
+        "@typescript-eslint/no-unused-vars": "error",
+        "arrow-spacing": "error",
         "brace-style": [
             "error",
             "stroustrup",
@@ -51,10 +41,8 @@
             "property"
         ],
         "handle-callback-err": "off",
-        "indent": [
-            "error",
-            "tab"
-        ],
+        "indent": "off",
+        "@typescript-eslint/indent": ["error", "tab"],
         "keyword-spacing": "error",
         "max-nested-callbacks": [
             "error",

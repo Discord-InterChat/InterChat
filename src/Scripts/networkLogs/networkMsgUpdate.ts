@@ -3,9 +3,9 @@ import { EmbedBuilder, GuildMember, GuildTextBasedChannel, Message } from 'disco
 import { constants, getDb } from '../../Utils/functions/utils';
 
 interface messageOptions {
-    id: string;
-    content: string;
-    timestamp: Date;
+	id: string;
+	content: string;
+	timestamp: Date;
 }
 
 export async function networkMsgUpdate(member: GuildMember, oldMessage: Message, newMessage: messageOptions) {

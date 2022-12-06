@@ -35,37 +35,37 @@ export default {
 	async autocomplete(interaction: AutocompleteInteraction) {
 		const type = interaction.options.getString('type');
 		switch (type) {
-		case 'server': {
-			const guilds = interaction.client.guilds.cache;
-			const focusedValue = interaction.options.getFocused().toLowerCase();
-			const choices: {name: string, id: string}[] = [];
+			case 'server': {
+				const guilds = interaction.client.guilds.cache;
+				const focusedValue = interaction.options.getFocused().toLowerCase();
+				const choices: {name: string, id: string}[] = [];
 
-			guilds.map((guild) => choices.push({ name: guild.name, id: guild.id }));
-			const filtered = choices
-				.filter((choice) => choice.name.toLowerCase().includes(focusedValue) || choice.id.toLowerCase().includes(focusedValue))
-				.slice(0, 25)
-				.map((choice) => ({ name: choice.name, value: choice.id }));
+				guilds.map((guild) => choices.push({ name: guild.name, id: guild.id }));
+				const filtered = choices
+					.filter((choice) => choice.name.toLowerCase().includes(focusedValue) || choice.id.toLowerCase().includes(focusedValue))
+					.slice(0, 25)
+					.map((choice) => ({ name: choice.name, value: choice.id }));
 
-			interaction.respond(filtered);
-			break;
-		}
+				interaction.respond(filtered);
+				break;
+			}
 
-		case 'user': {
-			const users = interaction.client.users.cache;
-			const focusedValue = interaction.options.getFocused().toLowerCase();
-			const choices: {tag: string, id: string}[] = [];
+			case 'user': {
+				const users = interaction.client.users.cache;
+				const focusedValue = interaction.options.getFocused().toLowerCase();
+				const choices: {tag: string, id: string}[] = [];
 
-			users.map((user) => choices.push({ tag: user.tag, id: user.id }));
-			const filtered = choices
-				.filter((choice) => choice.tag.toLowerCase().includes(focusedValue) || choice.id.toLowerCase().includes(focusedValue))
-				.slice(0, 25)
-				.map((choice) => ({ name: choice.tag, value: choice.id }));
+				users.map((user) => choices.push({ tag: user.tag, id: user.id }));
+				const filtered = choices
+					.filter((choice) => choice.tag.toLowerCase().includes(focusedValue) || choice.id.toLowerCase().includes(focusedValue))
+					.slice(0, 25)
+					.map((choice) => ({ name: choice.tag, value: choice.id }));
 
-			interaction.respond(filtered);
-			break;
-		}
-		default:
-			break;
+				interaction.respond(filtered);
+				break;
+			}
+			default:
+				break;
 		}
 	},
 };

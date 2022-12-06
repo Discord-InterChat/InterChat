@@ -4,8 +4,8 @@ import { prisma } from '../Utils/db';
 import { getDb } from '../Utils/functions/utils';
 
 interface NetworkManagerOptions {
-  serverId?: string;
-  channelId?: string;
+	serverId?: string;
+	channelId?: string;
 }
 
 export class NetworkManager {

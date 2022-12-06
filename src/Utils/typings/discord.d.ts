@@ -11,7 +11,7 @@ type commands = {
 }
 
 declare module 'discord.js' {
-    export interface Client {
+	export interface Client {
 		commands: discord.Collection<string, commands>,
 		description: string,
 		version: string,

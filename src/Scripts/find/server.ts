@@ -48,28 +48,28 @@ export = {
 
 		collector.on('collect', async (i) => {
 			switch (i.customId) {
-			case 'blacklist':
-				await blacklistedServers?.create({
-					data: {
-						serverName: server.name,
-						serverId: server.id,
-						reason: 'Some Reason',
-					},
-				});
-				await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
-				i.followUp({ content: 'Server blacklisted.', ephemeral: hidden });
-				break;
-			case 'unblacklist':
-				await blacklistedServers?.delete({ where: { serverId: server.id } });
-				await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
-				i.followUp({ content: 'Server removed from blacklist.', ephemeral: hidden });
-				break;
-			case 'leave':
-				i.reply({ content: 'Leaving Server....', ephemeral: hidden });
-				await server.leave();
-				break;
-			default:
-				break;
+				case 'blacklist':
+					await blacklistedServers?.create({
+						data: {
+							serverName: server.name,
+							serverId: server.id,
+							reason: 'Some Reason',
+						},
+					});
+					await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
+					i.followUp({ content: 'Server blacklisted.', ephemeral: hidden });
+					break;
+				case 'unblacklist':
+					await blacklistedServers?.delete({ where: { serverId: server.id } });
+					await i.update({ embeds: [await embedGen(server, owner)], components: [await components()] });
+					i.followUp({ content: 'Server removed from blacklist.', ephemeral: hidden });
+					break;
+				case 'leave':
+					i.reply({ content: 'Leaving Server....', ephemeral: hidden });
+					await server.leave();
+					break;
+				default:
+					break;
 			}
 		});
 	},

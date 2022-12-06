@@ -18,16 +18,16 @@ const rest = new REST({ version: '10' }).setToken(process.env.TOKEN as string);
 const args = process.argv[2]?.toLowerCase();
 
 switch (args) {
-case '--staff':
-case '-s':
-	deployStaffCommands();
-	break;
+	case '--staff':
+	case '-s':
+		deployStaffCommands();
+		break;
 
-case '--help':
-case '-help':
-case '--h':
-case '-h':
-	logger.info(stripIndent`
+	case '--help':
+	case '-help':
+	case '--h':
+	case '-h':
+		logger.info(stripIndent`
 	Deploy Commands -
 		Usage:
 			deploy [--staff | -s] [guildId]
@@ -36,14 +36,14 @@ case '-h':
 			-h, --help    Show this help message and exit.
 			-s, --staff   Deploy staff commands.
 			[guildId] - The guild ID to deploy to.`);
-	break;
+		break;
 
-case undefined:
-	deployCommands();
-	break;
+	case undefined:
+		deployCommands();
+		break;
 
-default:
-	logger.error('Invalid argument provided. Please use \u001B[40;5;31mdeploy --help\u001B[0m for more information.');
+	default:
+		logger.error('Invalid argument provided. Please use \u001B[40;5;31mdeploy --help\u001B[0m for more information.');
 }
 
 
