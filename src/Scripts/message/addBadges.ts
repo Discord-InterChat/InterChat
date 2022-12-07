@@ -6,9 +6,7 @@ export = {
 		const emoji = message.client.emoji;
 		const badges = await database.userBadges.findFirst({ where: { userId: message.author.id } });
 
-		if (!badges) return;
-
-		if (badges.badges.length > 0) {
+		if (badges && badges.badges.length > 0) {
 			let badgeString = '';
 			for (const badge of badges.badges) {
 				if (badge === 'Developer') {

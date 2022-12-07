@@ -60,7 +60,7 @@ export = {
 		const network = new NetworkManager();
 		const setupEmbed = new SetupEmbedGenerator(interaction);
 
-		const guildSetup = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
+		let guildSetup = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
 		const guildConnected = await network.getServerData({ serverId: interaction.guild?.id });
 
 		if (!guildSetup) return interaction.followUp(`${emoji.normal.no} Server is not setup yet. Use \`/setup channel\` first.`);
@@ -91,26 +91,26 @@ export = {
 		});
 
 		selectCollector.on('collect', async (component) => {
-			const guildInDB = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
+			guildSetup = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
 
 			switch (component.values[0]) {
 				case 'compact':
 					await setupCollection?.updateMany({
 						where: { guildId: interaction.guild?.id },
-						data: { date: new Date(), compact: !guildInDB?.compact },
+						data: { date: new Date(), compact: !guildSetup?.compact },
 					});
 					break;
 
 				case 'profanity':
 					await setupCollection?.updateMany({
 						where: { guildId: interaction.guild?.id },
-						data: { date: new Date(), profFilter: !guildInDB?.profFilter },
+						data: { date: new Date(), profFilter: !guildSetup?.profFilter },
 					});
 					break;
 
 				case 'webhook': {
 					const connectedChannel = await interaction.client.channels
-						.fetch(`${guildInDB?.channelId}`)
+						.fetch(`${guildSetup?.channelId}`)
 						.catch(() => null);
 
 					if (connectedChannel?.type !== ChannelType.GuildText) {
@@ -121,13 +121,13 @@ export = {
 						break;
 					}
 
-					if (guildInDB?.webhook) {
+					if (guildSetup?.webhook) {
 						const deleteWebhook = await connectedChannel.fetchWebhooks();
 						deleteWebhook
 							.find((webhook) => webhook.owner?.id === interaction.client.user.id)
 							?.delete();
 
-						await setupCollection?.update({
+						guildSetup = await setupCollection?.update({
 							where: { channelId: connectedChannel.id },
 							data: { date: new Date(), webhook: null },
 						});
@@ -244,9 +244,9 @@ export = {
 						idle: 20_000,
 					});
 					newChannelSelect.once('collect', async (SelectInteraction) => {
-						await network.updateData({ channelId: guildInDB?.channelId }, { channelId: SelectInteraction?.values[0] });
-						await setupCollection.update({
-							where: { channelId: guildInDB?.channelId },
+						await network.updateData({ channelId: guildSetup?.channelId }, { channelId: SelectInteraction?.values[0] });
+						guildSetup = await setupCollection.update({
+							where: { channelId: guildSetup?.channelId },
 							data: { channelId: SelectInteraction?.values[0] },
 						});
 
@@ -290,7 +290,7 @@ export = {
 				}
 
 				case 'disconnect':
-					await network.disconnect({ channelId: guildSetup.channelId });
+					await network.disconnect({ channelId: guildSetup?.channelId });
 					setupActionButtons.components.at(-1)?.setDisabled(true);
 
 					logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
