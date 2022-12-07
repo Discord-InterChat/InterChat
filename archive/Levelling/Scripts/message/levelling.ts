@@ -1,6 +1,6 @@
 import Levels from 'discord-xp';
 import { Message } from 'discord.js';
-import { constants } from '../../Utils/functions/utils';
+import { constants } from '../../../../src/Utils/functions/utils';
 
 
 module.exports = {

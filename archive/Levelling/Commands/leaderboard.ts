@@ -1,6 +1,6 @@
 import Levels from 'discord-xp';
 import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { colors, constants } from '../../Utils/functions/utils';
+import { colors, constants } from '../../../src/Utils/functions/utils';
 
 export default {
 	data: new SlashCommandBuilder()

@@ -1,7 +1,7 @@
 import Levels from 'discord-xp';
 import canvacord from 'canvacord';
 import { EmbedBuilder, SlashCommandBuilder, AttachmentBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { colors, constants } from '../../Utils/functions/utils';
+import { colors, constants } from '../../../src/Utils/functions/utils';
 
 export default {
 	data: new SlashCommandBuilder()

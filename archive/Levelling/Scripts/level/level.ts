@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import Levels from 'discord-xp';
-import { constants } from '../../Utils/functions/utils';
+import { constants } from '../../../../src/Utils/functions/utils';
 
 module.exports = {
 	async execute(interaction: ChatInputCommandInteraction) {

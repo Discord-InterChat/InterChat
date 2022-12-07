@@ -1,7 +1,6 @@
-import Levels from 'discord-xp';
 import { EmbedBuilder, ChatInputCommandInteraction, ActionRowBuilder, ButtonBuilder, ButtonStyle, User, ComponentType } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { checkIfStaff, colors, constants, getDb } from '../../Utils/functions/utils';
+import { checkIfStaff, colors, getDb } from '../../Utils/functions/utils';
 
 export = {
 	async execute(interaction: ChatInputCommandInteraction, userId: string, hidden: boolean) {
@@ -70,7 +69,6 @@ async function embedGen(user: User) {
 		.filter((guild) => guild.ownerId == user.id)
 		.map((guild) => guild.name);
 
-	const level = (await Levels.fetch(user.id, constants.mainGuilds.cbhq)).level;
 	const { icons } = user.client.emoji;
 
 	return new EmbedBuilder()
@@ -91,7 +89,6 @@ async function embedGen(user: User) {
 			{
 				name: 'Network',
 				value: stripIndents`
-		> ${icons.activities} **Level**: ${level || 0}
 		> ${icons.owner} **Owns:** ${owns.length > 0 ? owns.join(', ') : 'None'}
 		> ${icons.delete} **Blacklisted:** ${userInBlacklist ? 'Yes' : 'No'}`,
 			},

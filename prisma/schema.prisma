@@ -56,15 +56,15 @@ model connectedList {
   serverId  String
 }
 
-model levels {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  //  v           Int      @map("__v")
-  guildID     String
-  lastUpdated DateTime @db.Date
-  level       Int
-  userID      String
-  xp          Int
-}
+// model levels {
+//   id          String   @id @default(auto()) @map("_id") @db.ObjectId
+//   //  v           Int      @map("__v")
+//   guildID     String
+//   lastUpdated DateTime @db.Date
+//   level       Int
+//   userID      String
+//   xp          Int
+// }
 
 model messageData {
   id                   String                            @id @default(auto()) @map("_id") @db.ObjectId
