@@ -8,7 +8,7 @@ export = {
 		// true = pass, false = fail (checks)
 
 		const userInBlacklist = await database.blacklistedUsers?.findFirst({ where: { userId: message.author.id } });
-		const serverInBlacklist = await database.blacklistedServers?.findFirst({ where: { serverId: `${message.guildId}` } });
+		const serverInBlacklist = await database.blacklistedServers?.findFirst({ where: { serverId: message.guild?.id } });
 
 		if (serverInBlacklist) return false;
 		if (userInBlacklist) {
@@ -18,9 +18,9 @@ export = {
 					where: { userId: message.author.id },
 					data: { notified: true },
 				});
+				message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff if you think the reason is not valid.`);
 			}
 
-			message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff if you think the reason is not valid.`);
 			return false;
 		}
 

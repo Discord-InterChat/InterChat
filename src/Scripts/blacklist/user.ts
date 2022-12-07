@@ -23,12 +23,13 @@ module.exports = {
 		const userInBlacklist = await blacklistedUsers.findFirst({ where: { userId: user.id } });
 
 		if (subcommandGroup == 'add') {
+			await interaction.deferReply();
 			if (userInBlacklist) {
-				interaction.reply(`${user.username}#${user.discriminator} is already blacklisted.`);
+				interaction.followUp(`${user.username}#${user.discriminator} is already blacklisted.`);
 				return;
 			}
-			if (user.id === interaction.user.id) return interaction.reply('You cannot blacklist yourself.');
-			if (user.id === interaction.client.user?.id) return interaction.reply('You cannot blacklist the bot wtf.');
+			if (user.id === interaction.user.id) return interaction.followUp('You cannot blacklist yourself.');
+			if (user.id === interaction.client.user?.id) return interaction.followUp('You cannot blacklist the bot wtf.');
 
 			await blacklistedUsers.create({
 				data: {
@@ -49,7 +50,7 @@ module.exports = {
 				logger.info(`Could not notify ${user.username}#${user.discriminator} about their blacklist.`);
 			}
 
-			interaction.reply(`**${user.username}#${user.discriminator}** has been blacklisted.`);
+			interaction.followUp(`**${user.username}#${user.discriminator}** has been blacklisted.`);
 
 
 			modActions(interaction.user, {
