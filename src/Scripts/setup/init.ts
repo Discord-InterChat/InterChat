@@ -12,32 +12,13 @@ export = {
 		const date = new Date();
 		const emoji = interaction.client.emoji;
 
-		const destination = interaction.options.getChannel('destination') as GuildTextBasedChannel;
+		const destination = interaction.options.getChannel('destination', true) as GuildTextBasedChannel;
 
 		const setupList = database.setup;
 		const guildSetup = await setupList.findFirst({ where: { guildId: interaction.guild?.id } });
 		const network = new NetworkManager();
 
-		if (!destination) return interaction.editReply('Please specify a channel destination first!');
-
-		if (guildSetup) {
-			if (await setupList.findFirst({ where: { channelId: destination.id } })) {
-				interaction.followUp(`${destination} is already setup. Did you mean to use \`/setup view\`?`);
-				return;
-			}
-
-			await interaction.editReply('This server is already setup to another channel. Change channel? (y/n)');
-
-			const msg = await interaction.channel?.awaitMessages({
-				filter: (m) => m.author.id === interaction.user.id,
-				max: 1,
-				idle: 10_000,
-			});
-			if (msg?.first()?.content.toLowerCase() !== 'y') return msg?.first()?.reply('Cancelled.');
-
-			network.disconnect(interaction.guildId);
-			await setupList?.deleteMany({ where: { guildId: interaction.guild?.id } });
-		}
+		if (guildSetup) return displayEmbed.execute(interaction, database);
 
 		try {
 			// Inserting channel to setup and connectedlist

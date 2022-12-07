@@ -49,9 +49,9 @@ export default {
 		}
 
 		switch (subcommand) {
-		case 'view': displayEmbed.execute(interaction, database); break;
-		case 'reset': reset.execute(interaction, database); break;
-		default: init.execute(interaction, database).catch(logger.error);
+			case 'view': displayEmbed.execute(interaction, database); break;
+			case 'reset': reset.execute(interaction, database); break;
+			default: init.execute(interaction, database).catch(logger.error);
 		}
 	},
 };

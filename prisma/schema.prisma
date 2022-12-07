@@ -89,6 +89,7 @@ model setup {
   date       DateTime      @default(now())
   guildId    String
   profFilter Boolean
+  invite     String?       @unique
   webhook    SetupWebhook?
 }
 
