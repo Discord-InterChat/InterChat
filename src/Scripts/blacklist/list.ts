@@ -1,53 +1,76 @@
 import { PrismaClient } from '@prisma/client';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { paginate } from '../../Utils/functions/paginator';
+import { colors } from '../../Utils/functions/utils';
 
 module.exports = {
 	async execute(interaction: ChatInputCommandInteraction, database: PrismaClient) {
 		const serverOpt = interaction.options.getString('type');
 
-		if (serverOpt == 'server') displayServers();
-		else if (serverOpt == 'user') displayUsers();
+		const embeds: EmbedBuilder[] = [];
+		let fields: APIEmbedField[] = [];
 
-		async function displayServers() {
+		const LIMIT = 5;
+		let counter = 0;
+
+
+		// loop through all data
+		// after counter hits limit (5) assign fields to an embed and push to to embeds array
+		// reset counter & clear fields array
+		// repeat until you reach the end
+
+		if (serverOpt == 'server') {
 			const result = await database.blacklistedServers.findMany();
 
-			const Embed = new EmbedBuilder()
-				.setColor('#0099ff')
-				.setAuthor({
-					name: 'Blacklisted Servers:',
-					iconURL: interaction.client.user?.avatarURL()?.toString(),
+			result.forEach((data, index) => {
+				console.log(data);
+
+				fields.push({
+					name: data.serverName,
+					value: `${interaction.client.emoji.icons.id}: ${data.serverId}\nReason: ${data.reason}\n\n`,
 				});
-			for (let i = 0; i < result.length; i++) {
-				Embed.addFields([
-					{
-						name: result[i].serverName,
-						value: `${interaction.client.emoji.icons.id}: ${result[i].serverId}\nReason: ${result[i].reason}\n\n`,
-					},
-				]);
-			}
-			interaction.reply({ embeds: [Embed] });
+
+				counter++;
+				if (counter >= LIMIT || index === result.length - 1) {
+					embeds.push(new EmbedBuilder()
+						.setFields(fields)
+						.setColor('#0099ff')
+						.setAuthor({
+							name: 'Blacklisted Servers:',
+							iconURL: interaction.client.user?.avatarURL()?.toString(),
+						}));
+
+					counter = 0;
+					fields = [];
+				}
+			});
 		}
-
-
-		async function displayUsers() {
+		else if (serverOpt == 'user') {
 			const result = await database.blacklistedUsers.findMany();
 
-			const Embed = new EmbedBuilder()
-				.setColor('#0099ff')
-				.setAuthor({
-					name: 'Blacklisted Users:',
-					iconURL: interaction.client.user?.avatarURL()?.toString(),
+			result.forEach((data, index) => {
+				fields.push({
+					name: data.username,
+					value: `${interaction.client.emoji.icons.id}: ${data.userId}\nReason: ${data.reason}`,
 				});
 
-			for (let i = 0; i < result.length; i++) {
-				Embed.addFields([
-					{
-						name: result[i].username,
-						value: `${interaction.client.emoji.icons.id}: ${result[i].userId}\nReason: ${result[i].reason}\n\n`,
-					},
-				]);
-			}
-			interaction.reply({ embeds: [Embed] });
+				counter++;
+				if (counter >= LIMIT || index === result.length - 1) {
+					embeds.push(new EmbedBuilder()
+						.setFields(fields)
+						.setColor(colors('chatbot'))
+						.setAuthor({
+							name: 'Blacklisted Users:',
+							iconURL: interaction.client.user?.avatarURL()?.toString(),
+						}));
+
+					counter = 0;
+					fields = [];
+				}
+			});
 		}
+
+		paginate(interaction, embeds);
+
 	},
 };
