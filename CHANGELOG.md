@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.5.0](https://github.com/Discord-ChatBot/ChatBot-Development/compare/v3.4.1...v3.5.0) (2022-12-08)
+
+
+### Features
+
+* **goal:** added embeds to goal messages ([0a1ab86](https://github.com/Discord-ChatBot/ChatBot-Development/commit/0a1ab8620eaa337c0352a17ae773cb4004e0567c))
+* server info context menu ([723f0ed](https://github.com/Discord-ChatBot/ChatBot-Development/commit/723f0ed415d1b7653a62ccf9366ec95de531a482))
+* **setup:** new options to set invite and change network channel ([79e8e40](https://github.com/Discord-ChatBot/ChatBot-Development/commit/79e8e40aa1ed6605a090867bddf954b8b8228f05))
+* user Info context menu ([067e649](https://github.com/Discord-ChatBot/ChatBot-Development/commit/067e6492ab70e952cadce1d8e4964dc4b3b68fa9))
+
+
+### Bug Fixes
+
+* **blacklist:** my life is a lie 87180f0 ([0424517](https://github.com/Discord-ChatBot/ChatBot-Development/commit/04245178e65b2f488eca82ceba9d53222029cd2f))
+* fix the bug with blacklist list, removed extra command from husky and more idk lmao ([0326735](https://github.com/Discord-ChatBot/ChatBot-Development/commit/0326735fe1dbdad586d6c917717077b17b1dbe03))
+* **invite:** added manage server as a required perm to default invite ([e507123](https://github.com/Discord-ChatBot/ChatBot-Development/commit/e50712314e736795ba968e068c5783763aee0928))
+* **setup:** fixed select menu becomming unresponsive when webhook is selected ([38219fe](https://github.com/Discord-ChatBot/ChatBot-Development/commit/38219fedbc3431abbbf99b05941f73816a72c684))
+* **setup:** guess I was a little careless ([09ebcf3](https://github.com/Discord-ChatBot/ChatBot-Development/commit/09ebcf3b2e3c72d954b5dfcc96529111c0b4d45d))
+
 ### [3.4.1](https://github.com/Discord-ChatBot/ChatBot-Beta/compare/v3.4.0...v3.4.1) (2022-12-02)
 
 
