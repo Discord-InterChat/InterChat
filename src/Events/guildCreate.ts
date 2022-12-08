@@ -12,14 +12,14 @@ export default {
 		const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 }).catch(() => null);
 		const badword = wordFilter.check(guild.name);
 
-		const { normal, icons } = guild.client.emoji;
+		const { tada, clipart } = guild.client.emoji.normal;
 
 		const embed = new EmbedBuilder()
-			.setTitle(`Thank you for inviting ChatBot!  ${normal.tada} `)
+			.setTitle(`Thank you for inviting ChatBot!  ${tada} `)
 			.setColor(colors('chatbot'))
 			.setFooter({ text: `Sent from ${guild.name}`, iconURL: guild.iconURL() || undefined })
 			.setDescription(stripIndents`
-			ChatBot allows you to talk to different servers from your own. It's a fun little inter-server chat that we call the ChatBot network ${normal.clipart}! 
+			ChatBot allows you to talk to different servers from your own. It's a fun little inter-server chat that we call the ChatBot network ${clipart}! 
 
 			• Use </setup channel:978303442684624928> for chatbot to guide you through the network setup process.
 			• Please follow our rules while using the network at all times.
@@ -58,9 +58,10 @@ export default {
 			return;
 		}
 
+		let inviter;
 		if (auditLog) {
 			const inviteLog = auditLog.entries.find((bot) => bot.target?.id === guild.client.user?.id);
-			const inviter = inviteLog?.executor;
+			inviter = inviteLog?.executor;
 			await inviter?.send({ embeds: [embed], components: [buttons] }).catch(() => {
 				sendInFirst(guild, { embeds: [embed], components: [buttons] }).catch(() => null);
 			});
@@ -70,9 +71,26 @@ export default {
 		}
 
 		const goalChannel = guild.client.channels.cache.get(constants.channel.goal) as TextChannel;
-		goalChannel?.send({
-			content: `${icons.join} I have joined ${guild.name}! ${700 - guild.client.guilds.cache.size} to go!`,
-			allowedMentions: { parse: ['everyone', 'roles'] },
+		const guildOwner = await guild.fetchOwner();
+
+		goalChannel.send({
+			embeds: [
+				new EmbedBuilder()
+					.setTitle('I have joined a new server! 🙌')
+					.setDescription(stripIndents`
+					**${700 - guild.client.guilds.cache.size}** servers more to go! ${tada}
+					
+					**Server Name:** ${guild.name} (${guild.id})
+					**Owner:** ${guildOwner.user.tag} (${guildOwner?.id})
+					**Created:** <t:${Math.round(guild.createdTimestamp / 1000)}:R>
+					**Language:** ${guild.preferredLocale}
+					**Member Count:** ${guild.memberCount}
+					`)
+					.setThumbnail(guild.iconURL())
+					.setFooter({ text: `Invited By: ${inviter?.tag || 'unknown'}`, iconURL: inviter?.avatarURL() ?? undefined })
+					.setTimestamp()
+					.setColor(colors()),
+			],
 		});
 	},
 };
