@@ -18,8 +18,6 @@ export default {
 			members.push(member);
 		}
 
-		members.forEach((mem, ind) => console.log(ind, mem.tag));
-
 		const embed = new EmbedBuilder()
 			.setColor(colors('chatbot'))
 			.setTitle(`${icons.info} ChatBot Information`)

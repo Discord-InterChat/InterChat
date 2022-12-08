@@ -13,7 +13,6 @@ module.exports = {
 		const LIMIT = 5;
 		let counter = 0;
 
-
 		// loop through all data
 		// after counter hits limit (5) assign fields to an embed and push to to embeds array
 		// reset counter & clear fields array
@@ -23,8 +22,6 @@ module.exports = {
 			const result = await database.blacklistedServers.findMany();
 
 			result.forEach((data, index) => {
-				console.log(data);
-
 				fields.push({
 					name: data.serverName,
 					value: `${interaction.client.emoji.icons.id}: ${data.serverId}\nReason: ${data.reason}\n\n`,
