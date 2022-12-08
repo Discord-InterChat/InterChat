@@ -13,7 +13,7 @@ export default {
 			PermissionFlagsBits.ViewChannel,
 			PermissionFlagsBits.SendMessages,
 			PermissionFlagsBits.SendMessagesInThreads,
-			PermissionFlagsBits.ManageChannels,
+			PermissionFlagsBits.ManageGuild,
 			PermissionFlagsBits.ManageMessages,
 			PermissionFlagsBits.ManageThreads,
 			PermissionFlagsBits.EmbedLinks,
