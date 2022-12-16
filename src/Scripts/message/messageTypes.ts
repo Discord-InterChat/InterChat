@@ -37,7 +37,7 @@ export = {
         avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
         files: attachments ? [attachments] : [],
         components: replyButton ? [replyButton] : [],
-        allowedMentions: { parse: ['roles', 'everyone'] },
+        allowedMentions: { parse: ['users'] },
       };
 
       channelInSetup?.compact
@@ -59,7 +59,7 @@ export = {
           content: channelInSetup?.profFilter ? message.censored_compact_message : message.compact_message,
           components: replyButton ? [replyButton] : [],
           files: attachments ? [attachments] : [],
-          allowedMentions: { parse: ['roles', 'everyone'] },
+          allowedMentions: { parse: ['users'] },
         });
       }
       catch (e) {
@@ -74,7 +74,7 @@ export = {
           embeds: [channelInSetup?.profFilter ? censoredEmbed : embed],
           files: attachments ? [attachments] : [],
           components: replyButton ? [replyButton] : [],
-          allowedMentions: { parse: ['roles', 'everyone'] },
+          allowedMentions: { parse: ['users'] },
         });
       }
       catch (e) {

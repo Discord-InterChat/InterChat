@@ -1,10 +1,10 @@
-import { PrismaClient } from '@prisma/client';
+import { stripIndents } from 'common-tags';
 import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { paginate } from '../../Utils/functions/paginator';
-import { colors } from '../../Utils/functions/utils';
+import { colors, getDb } from '../../Utils/functions/utils';
 
 module.exports = {
-  async execute(interaction: ChatInputCommandInteraction, database: PrismaClient) {
+  async execute(interaction: ChatInputCommandInteraction) {
     const serverOpt = interaction.options.getString('type');
 
     const embeds: EmbedBuilder[] = [];
@@ -19,12 +19,16 @@ module.exports = {
     // repeat until you reach the end
 
     if (serverOpt == 'server') {
-      const result = await database.blacklistedServers.findMany();
+      const result = await getDb().blacklistedServers.findMany();
 
       result.forEach((data, index) => {
         fields.push({
           name: data.serverName,
-          value: `${interaction.client.emoji.icons.id}: ${data.serverId}\nReason: ${data.reason}\n\n`,
+          value: stripIndents`
+          **ServerId:** ${data.serverId}
+          **Reason:** ${data.reason}
+          **Expires:** ${!data.expires ? 'Never.' : `<t:${Math.round(data.expires.getTime() / 1000)}:R>`}     
+          `,
         });
 
         counter++;
@@ -43,12 +47,16 @@ module.exports = {
       });
     }
     else if (serverOpt == 'user') {
-      const result = await database.blacklistedUsers.findMany();
+      const result = await getDb().blacklistedUsers.findMany();
 
       result.forEach((data, index) => {
         fields.push({
           name: data.username,
-          value: `${interaction.client.emoji.icons.id}: ${data.userId}\nReason: ${data.reason}`,
+          value: stripIndents`
+          **UserID:** ${data.userId}
+          **Reason:** ${data.reason}
+          **Expires:** ${!data.expires ? 'Never.' : `<t:${Math.round(data.expires.getTime() / 1000)}:R>`}
+          `,
         });
 
         counter++;
@@ -68,6 +76,5 @@ module.exports = {
     }
 
     paginate(interaction, embeds);
-
   },
 };

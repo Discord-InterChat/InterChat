@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
+import { AutocompleteInteraction, ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 
 export default {
@@ -20,14 +20,21 @@ export default {
                 user
                   .setName('user')
                   .setDescription('The user ID to blacklist. User tag also works if they are already cached.')
-                  .setRequired(true),
-              )
+                  .setRequired(true))
               .addStringOption(string =>
                 string
                   .setName('reason')
                   .setDescription('The reason for blacklisting the user.')
-                  .setRequired(true),
-              ),
+                  .setRequired(true))
+              .addNumberOption(option => option
+                .setName('minutes')
+                .setDescription('The number of minutes the user will be blakclisted for.'))
+              .addNumberOption(option => option
+                .setName('hours')
+                .setDescription('The number of hours the user will be blacklisted for.'))
+              .addNumberOption(option => option
+                .setName('days')
+                .setDescription('The number of hours the user will be blacklisted for.')),
         )
         .addSubcommand(subcommand =>
           subcommand
@@ -44,7 +51,16 @@ export default {
                 .setName('reason')
                 .setDescription('The reason for blacklisting the server.')
                 .setRequired(true),
-            ),
+            )
+            .addNumberOption(option => option
+              .setName('minutes')
+              .setDescription('The number of minutes the user will be blakclisted for.'))
+            .addNumberOption(option => option
+              .setName('hours')
+              .setDescription('The number of hours the user will be blacklisted for.'))
+            .addNumberOption(option => option
+              .setName('days')
+              .setDescription('The number of hours the user will be blacklisted for.')),
         ),
     )
     .addSubcommandGroup(subcommandGroup =>
@@ -60,6 +76,7 @@ export default {
                 user
                   .setName('user')
                   .setDescription('The user to remove from the blacklist. User tag also works.')
+                  .setAutocomplete(true)
                   .setRequired(true),
               )
               .addStringOption(string =>
@@ -101,8 +118,32 @@ export default {
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const subCommand = interaction.options.getSubcommand();
-    const database = getDb();
-    require(`../../Scripts/blacklist/${subCommand}`).execute(interaction, database);
+    require(`../../Scripts/blacklist/${subCommand}`).execute(interaction);
+  },
 
+  async autocomplete(interaction: AutocompleteInteraction) {
+    const action = interaction.options.getSubcommand() as 'user' | 'server';
+
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    let choices;
+
+    switch (action) {
+      case 'user': {
+        const allUsers = await getDb().blacklistedUsers.findMany();
+        choices = allUsers.map((user) => { return { name: user.username, value: user.userId }; });
+        break;
+      }
+      case 'server': {
+        const allServers = await getDb().blacklistedServers.findMany();
+        choices = allServers.map((server) => { return { name: server.serverName, value: server.serverId }; });
+        break;
+      }
+    }
+
+    const filtered = choices
+      .filter((choice) => choice.name.toLowerCase().includes(focusedValue) || choice.value.toLowerCase().includes(focusedValue))
+      .slice(0, 25);
+
+    interaction.respond(filtered);
   },
 };
