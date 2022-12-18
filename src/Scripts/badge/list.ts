@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { ChatInputCommandInteraction, User } from 'discord.js';
 
-module.exports = {
+export = {
   async execute(
     interaction: ChatInputCommandInteraction,
     dbCollection: Prisma.userBadgesDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>,

@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import { ChatInputCommandInteraction, User } from 'discord.js';
 
-module.exports = {
+export = {
   async execute(
     interaction: ChatInputCommandInteraction,
     dbCollection: Prisma.userBadgesDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>,
@@ -15,7 +15,7 @@ module.exports = {
 
       if (userBadges.includes(badge)) {
         userBadges.splice(userBadges.indexOf(badge), 1);
-        dbCollection.update({ where: { userId: user.id }, data: { badges: userBadges } });
+        await dbCollection.update({ where: { userId: user.id }, data: { badges: userBadges } });
         await interaction.reply(`Removed badge \`${badge}\` from user ${user.tag}.`);
       }
       else {

@@ -15,13 +15,18 @@ export interface MessageInterface extends Message {
 export default {
   name: 'messageCreate',
   async execute(message: MessageInterface) {
-    if (message.author.bot || message.webhookId) return;
+    if (message.author.bot || message.webhookId || message.system) return;
 
     const db = getDb();
     const connected = await db?.connectedList.findFirst({ where: { channelId: message.channelId } });
 
     // ignore the message if it is not in an active network channel
     if (!connected || !await checks.execute(message, db)) return;
+    if (message.stickers.size > 0 && !message.content) {
+      return message.reply(
+        'Unfortunately, the sending of stickers within the network is not a feature that is currently available. We apologize for any inconvenience this may cause.',
+      );
+    }
 
     const embed = new EmbedBuilder()
       .setTimestamp()

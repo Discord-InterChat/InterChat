@@ -90,10 +90,10 @@ export = {
       componentType: ComponentType.StringSelect,
     });
 
-    selectCollector.on('collect', async (component) => {
+    selectCollector.on('collect', async (settingsMenu) => {
       guildSetup = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
 
-      switch (component.values[0]) {
+      switch (settingsMenu.values[0]) {
         case 'compact':
           await setupCollection?.updateMany({
             where: { guildId: interaction.guild?.id },
@@ -114,7 +114,7 @@ export = {
             .catch(() => null);
 
           if (connectedChannel?.type !== ChannelType.GuildText) {
-            await component.reply({
+            await settingsMenu.reply({
               content: 'Cannot edit setup for selected channel. If you think this is a mistake report this to the developers.',
               ephemeral: true,
             });
@@ -132,13 +132,13 @@ export = {
               data: { date: new Date(), webhook: null },
             });
 
-            await component.reply({
+            await settingsMenu.reply({
               content: 'Webhook messages have been disabled.',
               ephemeral: true,
             });
             break;
           }
-          await component.reply({
+          await settingsMenu.reply({
             content: `${emoji.normal.loading} Creating webhook...`,
             ephemeral: true,
           });
@@ -149,7 +149,7 @@ export = {
           });
 
 
-          await component.editReply(`${emoji.normal.loading} Initializing & saving webhook data...`);
+          await settingsMenu.editReply(`${emoji.normal.loading} Initializing & saving webhook data...`);
           await setupCollection?.updateMany({
             where: { guildId: interaction.guild?.id },
             data: {
@@ -157,17 +157,17 @@ export = {
               webhook: { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
             },
           });
-          await component.editReply(`${emoji.normal.yes} Webhooks have been successfully setup!`);
+          await settingsMenu.editReply(`${emoji.normal.yes} Webhooks have been successfully setup!`);
           break;
         }
         case 'invite': {
           await interaction.followUp({
-            content: 'Hello there,\nSetting an invite allows users throughout the network view and join your server. At the moment visible only though the `Server Info` context menu, but will be available in other coming features. Servers that go against our </rules:924659340898619395> will be removed and blacklisted.',
+            content: 'Setting an invite allows users throughout the network view and join your server. At the moment visible only though the `Server Info` context menu, but will be available in other coming features. Servers that go against our </rules:924659340898619395> will be removed and blacklisted.',
             ephemeral: true,
           });
 
           const modal = new ModalBuilder()
-            .setCustomId(component.id)
+            .setCustomId(settingsMenu.id)
             .setTitle('Report')
             .addComponents(
               new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -182,10 +182,10 @@ export = {
               ),
             );
 
-          await component.showModal(modal);
+          await settingsMenu.showModal(modal);
 
           // respond to message when Modal is submitted
-          component.awaitModalSubmit({ time: 60_000, filter: (i) => i.customId === modal.data.custom_id })
+          settingsMenu.awaitModalSubmit({ time: 60_000, filter: (i) => i.customId === modal.data.custom_id })
             .then(async (i) => {
               const link = i.fields.getTextInputValue('invite_link');
 
@@ -226,14 +226,10 @@ export = {
               new ChannelSelectMenuBuilder()
                 .setCustomId('newChannelSelect')
                 .setPlaceholder('Select new channel')
-                .addChannelTypes(
-                  ChannelType.PublicThread,
-                  ChannelType.PrivateThread,
-                  ChannelType.GuildText,
-                ),
+                .addChannelTypes(ChannelType.GuildText),
             );
 
-          const changeMsg = await component.reply({
+          const changeMsg = await settingsMenu.reply({
             content: 'Please select a channel. You have 20 seconds to do so.',
             components: [channelMenu],
             ephemeral: true,
@@ -259,17 +255,17 @@ export = {
           break;
         }
       }
-      component.replied || component.deferred
+      settingsMenu.replied || settingsMenu.deferred
         ? interaction.editReply({ embeds: [await setupEmbed.default()] })
-        : component.update({ embeds: [await setupEmbed.default()] });
+        : settingsMenu.update({ embeds: [await setupEmbed.default()] });
     });
 
     buttonCollector.on('collect', async (component) => {
       switch (component.customId) {
         case 'reconnect': {
-          const channel = (await interaction.client.channels
+          const channel = await interaction.guild?.channels
             .fetch(String(guildSetup?.channelId))
-            .catch(() => null)) as GuildTextBasedChannel | null;
+            .catch(() => null) as GuildTextBasedChannel | null;
 
           if (guildConnected) {
             network.disconnect(interaction.guildId);
@@ -349,19 +345,19 @@ class SetupEmbedGenerator {
         {
           name: 'Network State',
           value: stripIndent`
-					**Connected:** ${status}
-					**Channel:** ${channel}
-					**Last Edited:** <t:${lastEditedTimestamp}:R>
-					`,
+	  **Connected:** ${status}
+	  **Channel:** ${channel}
+	  **Last Edited:** <t:${lastEditedTimestamp}:R>
+	  `,
           inline: true,
         },
         {
           name: 'Style',
           value: stripIndent`
-					**Compact:** ${compact}
-					**Profanity Filter:** ${profanity}
-					**Webhook Messages:**  ${webhook}
-					`,
+          **Compact:** ${compact}
+	  **Profanity Filter:** ${profanity}
+          **Webhook Messages:**  ${webhook}
+	`,
           inline: true,
         },
         {
