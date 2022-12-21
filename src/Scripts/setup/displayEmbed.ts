@@ -143,10 +143,20 @@ export = {
 						ephemeral: true,
 					});
 
-					const webhook = await connectedChannel.createWebhook({
-						name: 'ChatBot Network',
-						avatar: interaction.client.user?.avatarURL(),
-					});
+					let webhook;
+					try {
+						webhook = await connectedChannel.createWebhook({
+							name: 'ChatBot Network',
+							avatar: interaction.client.user?.avatarURL(),
+						});
+					}
+					catch {
+						interaction.reply({
+							content: 'Please grant me `Manage Webhook` permissions for this to work.',
+							ephemeral: true,
+						});
+						return;
+					}
 
 
 					await component.editReply(`${emoji.normal.loading} Initializing & saving webhook data...`);
