@@ -3,29 +3,29 @@ import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, User } 
 import { colors, getCredits } from '../../Utils/functions/utils';
 
 export default {
-	data: new SlashCommandBuilder()
-		.setName('info')
-		.setDescription('This command is used to get information about the bot.'),
-	async execute(interaction: ChatInputCommandInteraction) {
-		const { normal, icons } = interaction.client.emoji;
+  data: new SlashCommandBuilder()
+    .setName('info')
+    .setDescription('This command is used to get information about the bot.'),
+  async execute(interaction: ChatInputCommandInteraction) {
+    const { normal, icons } = interaction.client.emoji;
 
-		await interaction.deferReply();
+    await interaction.deferReply();
 
-		const members: User[] = [];
-		const credits = await getCredits();
-		for (const credit of credits) {
-			const member = await interaction.client.users.fetch(String(credit));
-			members.push(member);
-		}
+    const members: User[] = [];
+    const credits = await getCredits();
+    for (const credit of credits) {
+      const member = await interaction.client.users.fetch(String(credit));
+      members.push(member);
+    }
 
-		const embed = new EmbedBuilder()
-			.setColor(colors('chatbot'))
-			.setTitle(`${icons.info} ChatBot Information`)
-			.setDescription('A bot that lets you talk to people from other servers from your own!')
-			.addFields([
-				{
-					name: 'Credits',
-					value: stripIndent`
+    const embed = new EmbedBuilder()
+      .setColor(colors('chatbot'))
+      .setTitle(`${icons.info} ChatBot Information`)
+      .setDescription('A bot that lets you talk to people from other servers from your own!')
+      .addFields([
+        {
+          name: 'Credits',
+          value: stripIndent`
 					Some emojis used on this bot are from [Icons discord server](https://discord.gg/aPvvhefmt3).
 
 						${normal.chatbot_circle} **Avatar & Badges:** 
@@ -41,31 +41,31 @@ export default {
 						> \`-\` ${members[4]?.tag}
 						*Psst. Join the support server to know more about how you can become a staff member!*	
 					`,
-				},
-				{
-					name: `${icons.link} Resources`,
-					value: stripIndent`
+        },
+        {
+          name: `${icons.link} Resources`,
+          value: stripIndent`
 					[Guide](https://discord-chatbot.gitbook.io/guide/)
 					[Vote link](https://top.gg/bot/769921109209907241/vote)
 					[App Directory](https://discord.com/application-directory/769921109209907241)
 					`,
-					inline: true,
-				},
-				{
-					name: '\u200B',
-					value: stripIndent`
+          inline: true,
+        },
+        {
+          name: '\u200B',
+          value: stripIndent`
 					[Support Server](https://discord.gg/6bhXQynAPs)
 					[Privacy Policy](https://discord-chatbot.gitbook.io/chatbot/important/privacy)
 					[Terms of Service](https://discord-chatbot.gitbook.io/chatbot/important/terms)
 					`,
-					inline: true,
-				},
-			])
-			.setFooter({
-				text: `Requested by ${interaction.user.tag}`,
-				iconURL: interaction.user.avatarURL() ?? interaction.user.defaultAvatarURL,
-			});
+          inline: true,
+        },
+      ])
+      .setFooter({
+        text: `Requested by ${interaction.user.tag}`,
+        iconURL: interaction.user.avatarURL() ?? interaction.user.defaultAvatarURL,
+      });
 
-		await interaction.followUp({ embeds: [embed] });
-	},
+    await interaction.followUp({ embeds: [embed] });
+  },
 };

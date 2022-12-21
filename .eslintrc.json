@@ -42,7 +42,7 @@
         ],
         "handle-callback-err": "off",
         "indent": "off",
-        "@typescript-eslint/indent": ["error", "tab"],
+        "@typescript-eslint/indent": ["error", 2],
         "keyword-spacing": "error",
         "max-nested-callbacks": [
             "error",

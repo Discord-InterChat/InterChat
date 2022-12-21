@@ -5,27 +5,28 @@ import { stripIndents } from 'common-tags';
 
 
 export default {
-	name: 'guildDelete',
-	async execute(guild: Guild) {
-		const database = getDb();
-		await database.setup.deleteMany({ where: { guildId: guild.id } });
-		new NetworkManager().disconnect({ serverId: guild.id });
+  name: 'guildDelete',
+  async execute(guild: Guild) {
+    const database = getDb();
+    await database.setup.deleteMany({ where: { guildId: guild.id } });
+    new NetworkManager().disconnect({ serverId: guild.id });
 
-		const goalChannel = guild.client.channels.cache.get(constants.channel.goal) as TextChannel;
+    const goalChannel = guild.client.channels.cache.get(constants.channel.goal) as TextChannel;
 
-		goalChannel.send({
-			embeds: [
-				new EmbedBuilder()
-					.setTitle('I have been kicked from a server 😢')
-					.setDescription(stripIndents`
-					**${700 - guild.client.guilds.cache.size}** servers more to go! 💪
+    goalChannel.send({
+      embeds: [
+        new EmbedBuilder()
+          .setTitle('I have been kicked from a server 😢')
+          .setDescription(stripIndents`
+	    **${700 - guild.client.guilds.cache.size}** servers more to go! 💪
 					
-					**Server Name:** ${guild.name} (${guild.id})
-					**Member Count:** ${guild.memberCount}`)
-					.setThumbnail(guild.iconURL())
-					.setTimestamp()
-					.setColor(colors()),
-			],
-		});
-	},
+	    **Server Name:** ${guild.name} (${guild.id})
+	    **Member Count:** ${guild.memberCount}
+          `)
+          .setThumbnail(guild.iconURL())
+          .setTimestamp()
+          .setColor(colors()),
+      ],
+    });
+  },
 };

@@ -62,7 +62,7 @@ Use [semantic commit messages](https://gist.github.com/joshbuchea/6f47e86d2510bc
 * `chore`: (updating grunt tasks etc; no production code change)
 
 
-To make our lives easier and not having to remember the commit messages at all times, this repository is [commitizen](https://www.npmjs.com/package/commitizen) friendly! Commitizen is a commandline tool that guides you through the process of choosing your desired commit type.
+To make our lives easier by not having to remember the commit messages at all times, this repository is [commitizen](https://www.npmjs.com/package/commitizen) friendly! Commitizen is a commandline tool that guides you through the process of choosing your desired commit type.
 
 ![commitizen](https://commitizen-tools.github.io/commitizen/images/demo.gif)
 

@@ -38,15 +38,19 @@ type UserDataWarnings {
 }
 
 model blacklistedServers {
-  serverId   String @id @map("_id")
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  serverId   String    @unique
   serverName String
+  expires    DateTime?
   reason     String
 }
 
 model blacklistedUsers {
-  userId   String  @id @map("_id")
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String    @unique
   notified Boolean
   reason   String
+  expires  DateTime?
   username String
 }
 
