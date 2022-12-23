@@ -19,7 +19,7 @@ export function getGuildName(client: discord.Client, gid: string | null) {
 }
 
 /** Random color generator for embeds */
-export function colors(type: 'random' | 'chatbot' | 'invisible' = 'random') {
+export function colors(type: 'random' | 'christmas' | 'chatbot' | 'invisible' = 'random') {
   const colorType = {
     random: [
       'Default',
@@ -54,12 +54,13 @@ export function colors(type: 'random' | 'chatbot' | 'invisible' = 'random') {
       'NotQuiteBlack',
       'Random',
     ] as discord.ColorResolvable[],
+    christmas: ['#00B32C', '#D6001C', '#FFFFFF'] as discord.ColorResolvable[],
     chatbot: '#5CB5F9' as discord.HexColorString,
     invisible: '#2F3136' as discord.HexColorString,
   };
 
   // return the color type or a random color from the list
-  return type === 'chatbot' ? colorType.chatbot : type === 'invisible' ? colorType.invisible :
+  return type === 'chatbot' ? colorType.chatbot : type === 'invisible' ? colorType.invisible : type === 'christmas' ? choice(colorType.christmas) :
     choice(colorType.random);
 }
 /** Returns random color (resolved) from choice of Discord.JS default color string */

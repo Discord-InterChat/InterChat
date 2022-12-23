@@ -18,7 +18,7 @@ export = {
           where: { userId: message.author.id },
           data: { notified: true },
         });
-        message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff if you think the reason is not valid.`);
+        message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff if you think the reason is not valid.`).catch(() => null);
       }
 
       return false;
@@ -32,8 +32,8 @@ export = {
 
     if (
       message.content.includes('discord.gg') ||
-			message.content.includes('discord.com/invite') ||
-			message.content.includes('dsc.gg')) {
+      message.content.includes('discord.com/invite') ||
+      message.content.includes('dsc.gg')) {
       message.react(message.client.emoji.normal.no);
       return false;
     }
