@@ -25,7 +25,9 @@ export default {
             .addChoices(
               { name: 'Developer', value: 'Developer' },
               { name: 'Staff', value: 'Staff' },
-              { name: 'Voter', value: 'Voter' }),
+              { name: 'Voter', value: 'Voter' },
+              { name: 'Christmas2022', value: 'Christmas2022' },
+            ),
         ),
     )
     .addSubcommand(subcommand =>
@@ -46,7 +48,9 @@ export default {
             .addChoices(
               { name: 'Developer', value: 'Developer' },
               { name: 'Staff', value: 'Staff' },
-              { name: 'Voter', value: 'Voter' }),
+              { name: 'Voter', value: 'Voter' },
+              { name: 'Christmas2022', value: 'Christmas2022' },
+            ),
         ),
     )
     .addSubcommand(subcommand =>
