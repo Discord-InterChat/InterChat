@@ -22,6 +22,7 @@ export default {
 
     let userBadges = 'No Badges.';
 
+    // TODO: Make a function for this
     if (userBadgesRaw && userBadgesRaw.badges.length > 0) {
       userBadges = '';
       userBadgesRaw?.badges.forEach((badge) => {
@@ -31,6 +32,9 @@ export default {
             break;
           case 'Staff':
             userBadges += emoji.badge.staff + ' ';
+            break;
+          case 'Christmas2022':
+            userBadges += emoji.badge.christmas_2022 + ' ';
             break;
           default:
             break;
