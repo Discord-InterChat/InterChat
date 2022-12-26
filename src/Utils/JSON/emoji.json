@@ -58,12 +58,12 @@
     },
 
     "badge": {
-        "developer": "<:badge_developer:994549313013284904>",
-        "staff": "<:badge_DiscordStaff:994444519489675365>",
-        "premium": "<:badge_BugHunter3:994262351266185317>",
-        "voter": "<:topgg_voter:1050417727581474846",
-        "moderator": "<:badge_CertifiedModerator:994444514989182986>",
-        "bug_hunter": "<:badge_BugHunter31:994445137818169416>",
-        "christmas_2022": "<:Christmas2022:1056214953666814002>"
+        "Developer": "<:badge_developer:994549313013284904>",
+        "Staff": "<:badge_DiscordStaff:994444519489675365>",
+        "Premium": "<:badge_BugHunter3:994262351266185317>",
+        "Voter": "<:topgg_voter:1050417727581474846>",
+        "Moderator": "<:badge_CertifiedModerator:994444514989182986>",
+        "BugHunter": "<:badge_BugHunter31:994445137818169416>",
+        "Christmas2022": "<:Christmas2022:1056214953666814002>"
     }
 }

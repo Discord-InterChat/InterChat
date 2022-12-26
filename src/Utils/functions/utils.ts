@@ -6,6 +6,7 @@ import 'dotenv/config';
 // eslint-disable-next-line
 // @ts-ignore
 import _ from 'lodash/string';
+import { badge } from '../JSON/emoji.json';
 
 const topgg = new Api(process.env.TOPGG as string);
 
@@ -174,6 +175,16 @@ export async function deleteChannels(client: discord.Client) {
     logger.info(`Deleted ${deletedChannels.count} channels from the connectedList database.`);
     return;
   }
+}
+
+export function badgeToEmoji(badgeArr: string[]) {
+  let badgeString = '';
+  const tempbadge: { [key: string]: string } = badge;
+
+  badgeArr.forEach((badgeName) => {
+    if (badgeName in tempbadge) badgeString += tempbadge[badgeName];
+  });
+  return badgeString || null;
 }
 
 export const constants = {

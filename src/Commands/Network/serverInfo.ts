@@ -22,7 +22,7 @@ export default {
       where: { channelAndMessageIds: { some: { messageId: target } } },
     });
 
-    if (!messageInDb) return interaction.reply('This message has expired! Please try another message.');
+    if (!messageInDb) return interaction.reply({ content: 'This message has expired! Please try another message.', ephemeral: true });
     const server = await interaction.client.guilds.fetch(messageInDb.serverId).catch(() => null);
     if (!server) return interaction.reply('Unable to find server!');
 
