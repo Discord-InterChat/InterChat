@@ -6,7 +6,7 @@ import { APIMessage, EmbedBuilder, Message } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import cleanup, { InvalidChannelId, InvalidWebhookId } from '../Scripts/message/cleanup';
 
-export interface MessageInterface extends Message {
+export interface NetworkMessage extends Message {
   compact_message: string,
   censored_compact_message: string,
   censored_content: string,
@@ -14,7 +14,7 @@ export interface MessageInterface extends Message {
 
 export default {
   name: 'messageCreate',
-  async execute(message: MessageInterface) {
+  async execute(message: NetworkMessage) {
     if (message.author.bot || message.webhookId || message.system) return;
 
     const db = getDb();
@@ -30,7 +30,7 @@ export default {
 
     const embed = new EmbedBuilder()
       .setTimestamp()
-      .setColor(colors('christmas'))
+      .setColor(colors('invisible'))
       .addFields([{ name: 'Message', value: message.content || '\u200B' }])
       .setAuthor({
         name: message.author.tag,

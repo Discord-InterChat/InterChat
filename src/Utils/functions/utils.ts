@@ -136,7 +136,7 @@ export async function checkIfStaff(client: discord.Client, user: discord.GuildMe
     const isStaff = roles?.hasAny(...allowedRoles);
     const isDev = roles?.has(developerRole);
 
-    if (onlyDeveloper && isDev) return true;
+    if (onlyDeveloper && !isDev) return false;
     else if (isStaff) return true;
     return false;
   }

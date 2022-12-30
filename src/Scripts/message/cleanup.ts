@@ -1,62 +1,47 @@
 import { APIMessage, Message } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import logger from '../../Utils/logger';
-
 
 export interface InvalidChannelId {unknownChannelId?: string}
 export interface InvalidWebhookId {unknownWebhookId?: string}
 
-
 export default {
   execute: async (message: Message, channelAndMessageIds: Promise<Message | InvalidChannelId | InvalidWebhookId | APIMessage>[]) => {
-
     message.delete().catch(() => null);
     // All message data is stored in the database, so we can delete the message from the network later
-    Promise.allSettled(channelAndMessageIds)
-      .then(async (data) => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const fulfilledResults = data.filter(d => d.status === 'fulfilled' && d.value) as PromiseFulfilledResult<any>[];
+    const settledChannelMessages = await Promise.allSettled(channelAndMessageIds);
+    const invalidChannelIds: string[] = [];
+    const invalidWebhookIds: string[] = [];
+    const messageDataObj: { channelId: string, messageId: string }[] = [];
 
-        // make a new array that contains only the invalid channel ids
-        const invalidChannelIds = fulfilledResults
-          .filter(invalidChannel => invalidChannel.value.unknownChannelId)
-          .map((invalidChannel: PromiseFulfilledResult<InvalidChannelId>) => invalidChannel.value.unknownChannelId);
+    settledChannelMessages.forEach((result) => {
+      if (result.status === 'rejected' || !result.value) return;
+      // eslint-disable-next-line
+      const anyRes = result as any;
+      if (anyRes.value.unknownChannelId) invalidChannelIds.push(anyRes.value.unknownChannelId);
+      else if (anyRes.value.unknownWebhookId) invalidWebhookIds.push(anyRes.value.unknownWebhookId);
+      else if (anyRes.value.channelId || anyRes.value.channel_id) messageDataObj.push({ channelId: anyRes.value.channelId || anyRes.value.channel_id, messageId: anyRes.value.id });
+    });
 
-        const invalidWebhooks = fulfilledResults
-          .filter(invalidWebhook => invalidWebhook.value.unknownWebhookId)
-          .map((invalidWebhook: PromiseFulfilledResult<InvalidWebhookId>) => invalidWebhook.value.unknownWebhookId);
+    // delete invalid channels from the database
+    const db = getDb();
+    await db.connectedList?.deleteMany({ where: { channelId: { in: invalidChannelIds } } });
+    await db.setup.updateMany({
+      where: { webhook: { is: { id: { in: invalidWebhookIds } } } },
+      data: { webhook: null },
+    });
 
-        // make a new array with data that contains the message id and channel id
-        // required for performing network actions (delete/edit messages)
-        const messageDataObj = fulfilledResults
-          .filter(msg => (msg.value.channelId || msg.value.channel_id) && msg.value.id)
-          .map((msg: PromiseFulfilledResult<any>) => {return { channelId: msg.value.channelId || msg.value.channel_id, messageId: msg.value.id };});
-
-        const db = getDb();
-
-        // delete invalid channels from the database
-        await db.connectedList?.deleteMany({ where: { channelId: { in: String(invalidChannelIds) } } });
-        await db.setup.updateMany({
-          where: { webhook: { is: { id: { in: String(invalidWebhooks) } } } },
-          data: { webhook: null },
-        });
-
-
-        // store message data in db
-        if (message.guild) {
-          await db.messageData.create({
-            data: {
-              channelAndMessageIds: messageDataObj,
-              timestamp: message.createdTimestamp,
-              authorId: message.author.id,
-              serverId: message.guild?.id,
-              reference: message.reference,
-              expired: false,
-            },
-          });
-        }
-      })
-      .catch(logger.error);
-
+    // store message data in db
+    if (message.guild) {
+      await db.messageData.create({
+        data: {
+          channelAndMessageIds: messageDataObj,
+          timestamp: message.createdTimestamp,
+          authorId: message.author.id,
+          serverId: message.guild?.id,
+          reference: message.reference,
+          expired: false,
+        },
+      });
+    }
   },
 };

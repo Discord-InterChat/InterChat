@@ -24,28 +24,20 @@ export default {
         });
       }
 
-
       const command = interaction.client.commands.get(interaction.commandName);
-
       if (!command) return;
 
       try {
-        const noPermsMsg = {
-          content: 'You do not have the right permissions to use this command!',
-          ephemeral: true,
-        };
-        if (command.staff === true && await checkIfStaff(interaction.client, interaction.user) === false) {
-          interaction.reply(noPermsMsg);
-          return;
+        // Check if the user is staff/developer
+        if (command.staff || command.developer) {
+          const permCheck = await checkIfStaff(interaction.client, interaction.user, command.developer);
+          if (!permCheck) return interaction.reply({ content: 'You do not have the right permissions to use this command!', ephemeral: true });
         }
-        if (command.developer === true && await checkIfStaff(interaction.client, interaction.user, true) === false) {
-          interaction.reply(noPermsMsg);
-          return;
-        }
+
         await command.execute(interaction);
       }
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      catch (error: any) {
+
+      catch (error) {
         logger.error(`[${interaction.commandName}]:`, error);
 
         const errorMsg = {

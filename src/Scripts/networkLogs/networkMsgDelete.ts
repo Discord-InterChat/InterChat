@@ -26,7 +26,7 @@ export async function networkMessageDelete(deletedBy: GuildMember | null, messag
 
             ${emojis.dotRed} **Author:** ${author?.tag} (${author?.id})
             ${emojis.dotRed} **Deleted From:** ${message?.guild?.name} (${message?.guild?.id})
-			${emojis.dotRed} **Attachments:** ${attachmentLink ? `[Click to view](${attachmentLink})` : 'None.'}
+			      ${emojis.dotRed} **Attachments:** ${attachmentLink ? `[Click to view](${attachmentLink})` : 'None.'}
             ${emojis.dotRed} **Created At:** <t:${Math.round(message.createdAt.getTime() / 1000)}:R>`)
     .setFooter({ text: `Deleted By: ${deletedBy?.user.tag}`, iconURL: deletedBy?.user.avatarURL() || deletedBy?.user.defaultAvatarURL })
     .setImage(attachmentLink)

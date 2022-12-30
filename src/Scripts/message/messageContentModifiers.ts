@@ -1,16 +1,16 @@
 import wordFilter from '../../Utils/functions/wordFilter';
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
-import { MessageInterface } from '../../Events/messageCreate';
+import { NetworkMessage } from '../../Events/messageCreate';
 import { messageData, PrismaClient } from '@prisma/client';
 import 'dotenv/config';
 
 export = {
-  async execute(message: MessageInterface) {
+  async execute(message: NetworkMessage) {
     message.censored_content = wordFilter.censor(message.content);
     message.censored_compact_message = wordFilter.censor(message.compact_message);
   },
 
-  async appendReply(message: MessageInterface, db: PrismaClient | null) {
+  async appendReply(message: NetworkMessage, db: PrismaClient | null) {
     message.compact_message = `**${message.author.tag}:** ${message.content}`;
 
     let messageInDb: messageData | null | undefined = null;
@@ -53,7 +53,7 @@ export = {
     return messageInDb;
   },
 
-  async attachmentModifiers(message: MessageInterface, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {
+  async attachmentModifiers(message: NetworkMessage, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {
     if (message.attachments.size > 1) {
       await message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
     }
