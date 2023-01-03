@@ -14,10 +14,10 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Copy files over to home
-        run: rsync -r . ~/chatbot-prod --exclude .git
+        run: rsync -r . ~/chatbot-prod --exclude .git && cd ~/chatbot-prod
 
       - name: Install dependencies
-        run: npm ci
+        run: npm i
 
       - name: Do some magik
         run: ls -a
@@ -28,7 +28,7 @@ jobs:
 
     steps:      
       - name: Install dependencies
-        run: cd ~/chatbot-prod && npm i
+        run: ls -a && cd ~/chatbot-prod && npm i
 
       - name: Build code
         run: npm run build
