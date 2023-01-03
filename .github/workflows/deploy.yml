@@ -17,16 +17,13 @@ jobs:
         run: rsync -r . ~/chatbot-prod --exclude .git
 
       - name: Install dependencies
-        working-directory: ~/chatbot-prod
-        run: npm i
+        run: cd ~/chatbot-prod && npm i
 
       - name: Build code
-        working-directory: ~/chatbot-prod
-        run: npm run build
+        run: ncd ~/chatbot-prod && pm run build
 
       - name: Prune dev-Dependencies
-        working-directory: ~/chatbot-prod
-        run: npm prune --omit=dev
+        run: cd ~/chatbot-prod && npm prune --omit=dev
    
       - name: Run the code
         run: pm2 start ~/chatbot-prod/build/src/index.js --name chatbot-prod
