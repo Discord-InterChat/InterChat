@@ -1,6 +1,6 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
 import { networkMsgUpdate } from '../../Scripts/networkLogs/networkMsgUpdate';
-import { constants } from '../../Utils/functions/utils';
+import { checkIfStaff, constants } from '../../Utils/functions/utils';
 import { prisma } from '../../Utils/db';
 import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
@@ -13,8 +13,11 @@ export default {
   /** Edit messages throughout the network *(partially works for compact mode) */
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
+    const hasVoted = await constants.topgg.hasVoted(interaction.user.id);
+    const isStaff = await checkIfStaff(interaction.client, interaction.user);
 
-    if (!await constants.topgg.hasVoted(interaction.user.id)) {
+
+    if (!hasVoted && !isStaff) {
       interaction.reply({
         content: `${interaction.client.emoji.normal.no} You must [vote](https://top.gg/bot/769921109209907241/vote) to use this command.`,
         ephemeral: true,
