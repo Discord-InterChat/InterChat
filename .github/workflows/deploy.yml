@@ -16,19 +16,14 @@ jobs:
       - name: Copy files over to home
         run: rsync -r . ~/chatbot-prod --exclude .git && cd ~/chatbot-prod
 
-      - name: Install dependencies
-        run: npm i
-
-      - name: Do some magik
-        run: ls -a
-        
   build:
     name: Build deployed code
     runs-on: self-hosted
+    working-directory: ~/chatbot-prod
 
     steps:      
       - name: Install dependencies
-        run: ls -a && cd ~/chatbot-prod && npm i
+        run: npm i
 
       - name: Build code
         run: npm run build
@@ -36,9 +31,6 @@ jobs:
       - name: Prune dev-Dependencies
         run: npm prune --omit=dev
    
-      - name: Do some magik
-        run: ls .
-        
       - name: Run the code
         run: pm2 start ~/chatbot-prod/build/src/index.js --name chatbot-prod
 
