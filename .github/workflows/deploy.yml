@@ -20,7 +20,7 @@ jobs:
         run: cd ~/chatbot-prod && npm i
 
       - name: Build code
-        run: cd ~/chatbot-prod && pm run build
+        run: cd ~/chatbot-prod && npm run build
 
       - name: Prune dev-Dependencies
         run: cd ~/chatbot-prod && npm prune --omit=dev
