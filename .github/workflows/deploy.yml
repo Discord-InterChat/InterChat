@@ -1,0 +1,48 @@
+
+name: Deploy & Build
+on: 
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Checkout & Move
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Copy files over to home
+        run: rsync -r . chatbot-prod --exclude .git
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Do some magik
+        run: ls .
+        
+      - name: Run the code
+        run: pm2 start ~/test/index.js
+        
+  build:
+    name: Build deployed code
+    runs-on: self-hosted
+
+    steps:      
+      - name: Install dependencies
+        run: cd ~/chatbot-prod && npm i
+
+      - name: Build code
+        run: npm run build
+
+      - name: Prune dev-Dependencies
+        run: npm prune --omit=dev
+   
+      - name: Do some magik
+        run: ls .
+        
+      - name: Run the code
+        run: pm2 start ~/chatbot-prod/build/src/index.js --name chatbot-prod
+
+        
