@@ -12,20 +12,17 @@ jobs:
     steps:      
       - name: Checkout repository
         uses: actions/checkout@v3
-      
-      - name: Copy files over to home
-        run: rsync -r . ~/chatbot-prod --exclude .git
-
+        # note to self: Files are stored in ~/actions-runner/chatbot-production-build/Discord-ChatBot/Discord-ChatBot 
       - name: Install dependencies
-        run: cd ~/chatbot-prod && npm i
+        run: npm i
 
       - name: Build code
-        run: cd ~/chatbot-prod && npm run build
+        run: npm run build
 
       - name: Prune dev-Dependencies
-        run: cd ~/chatbot-prod && npm prune --omit=dev
+        run: npm prune --omit=dev
    
       - name: Run the code
-        run: pm2 start ~/chatbot-prod/build/src/index.js --name chatbot-prod
+        run: pm2 start ./build/src/index.js --name chatbot-prod
 
         
