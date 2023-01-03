@@ -14,16 +14,13 @@ jobs:
         uses: actions/checkout@v3
       
       - name: Copy files over to home
-        run: rsync -r . chatbot-prod --exclude .git
+        run: rsync -r . ~/chatbot-prod --exclude .git
 
       - name: Install dependencies
         run: npm ci
 
       - name: Do some magik
-        run: ls .
-        
-      - name: Run the code
-        run: pm2 start ~/test/index.js
+        run: ls -a
         
   build:
     name: Build deployed code
