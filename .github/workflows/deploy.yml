@@ -6,30 +6,26 @@ on: push
 
 jobs:
   deploy:
-    name: Checkout & Move
+    name: Deploy & build code
     runs-on: self-hosted
-    steps:
+
+    steps:      
       - name: Checkout repository
         uses: actions/checkout@v3
       
       - name: Copy files over to home
-        run: rsync -r . ~/chatbot-prod --exclude .git && cd ~/chatbot-prod
+        run: rsync -r . ~/chatbot-prod --exclude .git
 
-  build:
-    name: Build deployed code
-    runs-on: self-hosted
-    defaults:
-      run:
-        working-directory: ~/chatbot-prod
-
-    steps:      
       - name: Install dependencies
+        working-directory: ~/chatbot-prod
         run: npm i
 
       - name: Build code
+        working-directory: ~/chatbot-prod
         run: npm run build
 
       - name: Prune dev-Dependencies
+        working-directory: ~/chatbot-prod
         run: npm prune --omit=dev
    
       - name: Run the code
