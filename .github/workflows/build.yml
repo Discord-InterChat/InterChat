@@ -3,7 +3,16 @@ name: Restart ChatBot
 on: 
   push:
     branches: main
-
+    paths-ignore:
+      - archive/**
+      - CHANGELOG.md 
+      - README.md
+      - LICENCE
+      - eslintrc.json
+      - eslintignore
+      - .prettierrc 
+      - .gitignore
+      - .husky
 jobs:
   build:
     name: Build newer code
