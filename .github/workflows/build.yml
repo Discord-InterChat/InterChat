@@ -1,8 +1,8 @@
 
 name: Restart ChatBot
-on: push
-  # push:
-    # branches: [ main ]
+on: 
+  push:
+    branches: main
 
 jobs:
   build:
