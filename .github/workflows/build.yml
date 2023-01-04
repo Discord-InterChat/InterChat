@@ -15,20 +15,14 @@ jobs:
         # note to self: Files are stored in ~/actions-runner/chatbot-production-build/Discord-ChatBot/Discord-ChatBot 
       - name: Install dependencies
         run: npm i
-
-      - name: Stop pm2
-        run: pm2 stop build/src/index.js
         
       - name: Build code
-        run: npm run build
-
-      - name: Prune dev-Dependencies
-        run: npm prune --omit=dev
+        run: |
+              pm2 stop build/src/index.js
+              npm run build --if-present
+              npm prune --omit=dev
         
       - name: Update env & pm2 
         run: | 
               cp ~/important/chatbot-env .env
-              pm2 restart --update-env build/src/index.js --ignore-watch logs --watch
-
-      # pm2 *should* automatically restart the bot once the files changes... hopefully.
-        
+              cd build/ && pm2 restart --update-env src/index.js --ignore-watch logs --watch        
