@@ -1,32 +1,24 @@
-name: Build & Run Code
+name: Restart ChatBot
 on: push
   # push:
     # branches: [ main ]
 
 jobs:
-  build:
+  deploy:
     name: Deploy & build code
     runs-on: self-hosted
-
+    defaults:
+      run: 
+        working-directory: ~/chatbot-builds/
+      
     steps:      
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        # note to self: Files are stored in ~/actions-runner/chatbot-production-build/Discord-ChatBot/Discord-ChatBot 
+      - name: Update code
+        run: git pull origin main
         
       - name: Build code
         run: |
-          npm install
-          npm run build --if-present
-          npm prune --omit=dev
-        
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: cb-build
-          path: build
-      - name: Download a single artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: cb-build
-          path: ~/chatbot-builds/
-      
+              npm run build
+              npm prune --omit=dev
+
+      - name: Start chatbot 
+        run:  cd build/ && pm2 restart --update-env src/index.js --ignore-watch logs --watch
