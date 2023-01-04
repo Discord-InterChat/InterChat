@@ -21,8 +21,6 @@ jobs:
 
       - name: Prune dev-Dependencies
         run: npm prune --omit=dev
-   
-      - name: Run the code
-        run: pm2 start ./build/src/index.js --name chatbot-prod
-
+        
+      # pm2 *should* automatically restart the bot once the files changes... hopefully.
         
