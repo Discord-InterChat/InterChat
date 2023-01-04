@@ -16,6 +16,9 @@ jobs:
       - name: Install dependencies
         run: npm i
 
+      - name: Stop pm2
+        run: pm2 stop build/src/index.js
+        
       - name: Build code
         run: npm run build
 
@@ -24,7 +27,9 @@ jobs:
         
       - name: Update env & pm2 
         run: | 
-              cp ~/chatbot-env .env
-              cp ~/chatbot-prod-pm2.json .
+              cp ~/important/chatbot-env .env
+              cp ~/important/chatbot-prod-pm2.json .
+              pm2 restart build/src/index.js --watch
+
       # pm2 *should* automatically restart the bot once the files changes... hopefully.
         
