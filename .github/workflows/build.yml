@@ -1,5 +1,5 @@
 
-name: Deploy & Build
+name: Restart ChatBot
 on: push
   # push:
     # branches: [ main ]
@@ -28,8 +28,7 @@ jobs:
       - name: Update env & pm2 
         run: | 
               cp ~/important/chatbot-env .env
-              cp ~/important/chatbot-prod-pm2.json .
-              pm2 restart build/src/index.js --watch
+              pm2 restart --update-env build/src/index.js --ignore-watch logs --watch
 
       # pm2 *should* automatically restart the bot once the files changes... hopefully.
         
