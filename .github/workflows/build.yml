@@ -23,7 +23,7 @@ jobs:
         run: npm prune --omit=dev
         
       - name: Update env & pm2 
-      - run: | 
+        run: | 
               cp ~/chatbot-env .env
               cp ~/chatbot-prod-pm2.json .
       # pm2 *should* automatically restart the bot once the files changes... hopefully.
