@@ -21,6 +21,5 @@ jobs:
 
       - name: Prune dev-Dependencies
         run: npm prune --omit=dev
-        
       # pm2 *should* automatically restart the bot once the files changes... hopefully.
         
