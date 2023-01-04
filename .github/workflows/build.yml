@@ -5,8 +5,8 @@ on: push
     # branches: [ main ]
 
 jobs:
-  deploy:
-    name: Deploy & build code
+  build:
+    name: Build newer code
     runs-on: self-hosted
 
     steps:      
@@ -22,7 +22,7 @@ jobs:
               npm run build --if-present
               npm prune --omit=dev
         
-      - name: Update env & pm2 
+      - name: Update env & start bot 
         run: | 
               cp ~/important/chatbot-env .env
               cd build/ && pm2 restart --update-env src/index.js --ignore-watch logs --watch        
