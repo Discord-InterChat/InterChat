@@ -24,13 +24,9 @@ jobs:
         with:
           name: cb-build
           path: build
-  run:
-    name: Download & run code
-    runs-on: self-hosted
-    
-    steps:
       - name: Download a single artifact
         uses: actions/download-artifact@v3
         with:
           name: cb-build
           path: ~/chatbot-builds/
+      
