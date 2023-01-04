@@ -1,0 +1,37 @@
+
+name: Restart ChatBot
+on: 
+  push:
+    branches: main
+    paths-ignore:
+      - archive/**
+      - CHANGELOG.md 
+      - README.md
+      - LICENCE
+      - eslintrc.json
+      - eslintignore
+      - .prettierrc 
+      - .gitignore
+      - .husky
+jobs:
+  build:
+    name: Build newer code
+    runs-on: self-hosted
+
+    steps:      
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        # note to self: Files are stored in ~/actions-runner/chatbot-production-build/Discord-ChatBot/Discord-ChatBot 
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build code
+        run: |
+              pm2 stop build/src/index.js
+              npm run build --if-present
+              npm prune --omit=dev
+        
+      - name: Update env & start bot 
+        run: | 
+              cp ~/important/chatbot-env .env
+              cd build/ && pm2 restart --update-env src/index.js --ignore-watch logs --watch        
