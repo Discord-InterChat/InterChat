@@ -78,7 +78,7 @@ export default {
         new EmbedBuilder()
           .setTitle('I have joined a new server! 🙌')
           .setDescription(stripIndents`
-	        **${700 - guild.client.guilds.cache.size}** servers more to go! ${tada}
+	        **${800 - guild.client.guilds.cache.size}** servers more to go! ${tada}
 					
             **Server Name:** ${guild.name} (${guild.id})
 	        **Owner:** ${guildOwner.user.tag} (${guildOwner?.id})
