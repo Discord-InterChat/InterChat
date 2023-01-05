@@ -71,7 +71,7 @@ const createSendOptions = (message: NetworkMessage, attachments: AttachmentBuild
 // decides which type of (webhook) message to send depending on the settings of channel
 const createWebhookOptions = (message: NetworkMessage, attachments: AttachmentBuilder | undefined, replyButton: ActionRowBuilder<ButtonBuilder> | null, channelInSetup: setup, censoredEmbed: EmbedBuilder, embed: EmbedBuilder) => {
   const webhookMessage: WebhookCreateMessageOptions = {
-    username: message.author.username,
+    username: message.author.tag,
     avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
     files: attachments ? [attachments] : [],
     components: replyButton ? [replyButton] : [],
