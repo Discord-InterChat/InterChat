@@ -9,32 +9,21 @@ export default {
   data: new ContextMenuCommandBuilder()
     .setName('Edit Message')
     .setType(ApplicationCommandType.Message),
-
-  /** Edit messages throughout the network *(partially works for compact mode) */
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
     const hasVoted = await constants.topgg.hasVoted(interaction.user.id);
     const isStaff = await checkIfStaff(interaction.client, interaction.user);
 
-
     if (!hasVoted && !isStaff) {
       interaction.reply({
-        content: `${interaction.client.emoji.normal.no} You must [vote](https://top.gg/bot/769921109209907241/vote) to use this command.`,
+        content: `${interaction.client.emoji.normal.no} You must [vote](<https://top.gg/bot/769921109209907241/vote>) to use this command.`,
         ephemeral: true,
       });
       return;
     }
 
     const messageInDb = await prisma.messageData.findFirst({
-      where: {
-        channelAndMessageIds: {
-          some: {
-            messageId: {
-              equals: target.id,
-            },
-          },
-        },
-      },
+      where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
     });
 
     if (messageInDb?.expired) {
@@ -45,7 +34,7 @@ export default {
       return;
     }
 
-    if (interaction.user.id != messageInDb?.authorId) {
+    else if (interaction.user.id != messageInDb?.authorId) {
       await interaction.reply({ content: 'You are not the author of this message.', ephemeral: true });
       return;
     }
@@ -70,7 +59,6 @@ export default {
 
     await interaction.showModal(modal);
 
-    // TODO: Replies overrwtitten by new message :(
     interaction.awaitModalSubmit({ filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id, time: 30_000 })
       .then(i => {
         // get the input from user
@@ -78,32 +66,29 @@ export default {
         const censoredEditMessage = wordFiler.censor(editMessage);
 
         let editEmbed = new EmbedBuilder(target.embeds[0]?.toJSON());
-        let censoredEmbed = new EmbedBuilder(target.embeds[0]?.toJSON());
-
         const reply = editEmbed?.data.fields?.at(0)?.value.match(replyRegex)?.at(0) || target.content.match(replyRegex)?.at(0);
-        editEmbed?.setFields({
+
+        editEmbed.setFields({
           name: 'Message',
           value: reply ? `${reply}\n${editMessage}` : editMessage,
         });
-
-        censoredEmbed?.setFields({
-          name: 'Message',
-          value: reply ? `${reply}\n${censoredEditMessage}` : censoredEditMessage,
-        });
+        let censoredEmbed = new EmbedBuilder(target.embeds[0]?.toJSON())
+          .setFields({
+            name: 'Message',
+            value: reply ? `${reply}\n${censoredEditMessage}` : censoredEditMessage,
+          });
 
         // loop through all the channels in the network and edit the message
         messageInDb.channelAndMessageIds.forEach(async obj => {
-          //					const channelSettings = await setupList.findOne<setupDocument>({ 'channel.id': obj.channelId });
           const channelSettings = await prisma.setup.findFirst({
-            where: {
-              channelId: obj.channelId,
-            },
+            where: { channelId: obj.channelId },
           });
           const channel = await interaction.client.channels.fetch(obj.channelId) as GuildTextBasedChannel;
           const message = await channel?.messages?.fetch(obj.messageId).catch(() => null);
 
+          // if target message is in compact mode, get the normal mode from another message in the network
           if (!target.embeds[0] && message?.embeds[0]) {
-            target.embeds[0] = message.embeds[0];
+            target.embeds[0] = message.embeds[0]; // updating for message logs
             editEmbed = new EmbedBuilder(message.embeds[0].toJSON()).setFields({
               name: 'Message',
               value: reply ? `${reply}\n${editMessage}` : editMessage,
@@ -114,40 +99,28 @@ export default {
             });
           }
 
-          const hook = channelSettings?.webhook;
+          if (channelSettings?.webhook) {
+            const { id, token } = channelSettings.webhook;
 
-          if (hook?.token && hook.id) {
-            const webhook = new WebhookClient({ id: hook.id.toString(), token: hook.token.toString() });
+            const replyCompact = `${reply}\n ${channelSettings?.profFilter ? editMessage : censoredEditMessage}`;
+            const compact = channelSettings?.profFilter ? editMessage : censoredEditMessage;
+            const webhookEmbed = channelSettings?.profFilter ? censoredEmbed : editEmbed;
+            const webhook = new WebhookClient({ id, token });
 
-            if (channelSettings?.compact) {
-              webhook.editMessage(obj.messageId, {
-                content: reply
-                  ? `${reply}\n ${channelSettings.profFilter ? editMessage : censoredEditMessage}`
-                  : channelSettings.profFilter ? editMessage : censoredEditMessage,
-              });
-            }
-            else {
-              webhook.editMessage(obj.messageId, {
-                files: message?.attachments.first() ? [] : [],
-                embeds: channelSettings?.profFilter ? [censoredEmbed] : [editEmbed],
-              });
-            }
-          }
-
-          else if (channelSettings?.compact) {
-            const replyFormat = `${reply}\n**${i.user.tag}:** ${channelSettings.profFilter ? censoredEditMessage : editMessage}`;
-            const compactFormat = `**${i.user.tag}:** ${channelSettings.profFilter ? censoredEditMessage : editMessage}`;
-
-            message?.edit(reply ? replyFormat : compactFormat);
+            channelSettings?.compact
+              ? webhook.editMessage(obj.messageId, reply ? replyCompact : compact)
+              : webhook.editMessage(obj.messageId, { files: [], embeds: [webhookEmbed] });
           }
 
           else {
-            message?.edit({
-              files: [],
-              embeds: channelSettings?.profFilter ? [censoredEmbed] : [editEmbed],
-            });
-          }
+            const replyFormat = `${reply}\n**${i.user.tag}:** ${channelSettings?.profFilter ? censoredEditMessage : editMessage}`;
+            const compactFormat = `**${i.user.tag}:** ${channelSettings?.profFilter ? censoredEditMessage : editMessage}`;
+            const normalEmbed = channelSettings?.profFilter ? censoredEmbed : editEmbed;
 
+            channelSettings?.compact
+              ? message?.edit(reply ? replyFormat : compactFormat)
+              : message?.edit({ files: [], embeds: [normalEmbed] });
+          }
         });
 
         i.reply({ content: `${interaction.client.emoji.normal.yes} Message Edited.`, ephemeral: true });
@@ -160,6 +133,6 @@ export default {
 
         interaction.inCachedGuild() ? networkMsgUpdate(interaction.member, target, newMessageObject) : null;
 
-      }).catch((reason) => {if (!reason.message.includes('reason: time')) logger.error(reason);});
+      }).catch((reason) => !reason.message.includes('reason: time') ? logger.error(reason) : null);
   },
 };
