@@ -32,8 +32,6 @@ export = {
         // if the message is a reply to another reply, remove the older reply :D
         if (messageInDb?.reference) {
           const replaceReply = (string: string) => {
-            // if for some reason the reply got edited and the reply format (> message) is not there
-            // return the original message and not undefined
             return string?.split(/> .*/g).at(-1)?.trimStart() || string;
           };
 
@@ -54,20 +52,7 @@ export = {
   },
 
   async attachmentModifiers(message: NetworkMessage, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {
-    if (message.attachments.size > 1) {
-      await message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
-    }
-
-    const attachment = message.attachments.first();
-
-    if (attachment?.contentType?.includes('mp4') === false) {
-      const newAttachment = new AttachmentBuilder(`${attachment.url}`, { name: `${attachment.name}` });
-      embed.setImage(`attachment://${newAttachment.name}`);
-      censoredEmbed.setImage(`attachment://${newAttachment.name}`);
-      return newAttachment;
-    }
-
-
+    // Tenor Gifs / YouTube Thumbnails / Tenor Gifs
     const imageURLRegex = /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png|\.webp)/;
     const URLMatch = message.content.match(imageURLRegex);
 
@@ -85,9 +70,9 @@ export = {
 
     if (gifMatch) {
       const n = gifMatch[0].split('-');
-      const id = n[n.length - 1];
+      const id = n.at(-1);
       const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
-      const gifJSON = (await (await fetch(api)).json());
+      const gifJSON = await (await fetch(api)).json();
 
       embed
         .setImage(gifJSON.results[0].media[0].gif.url)
@@ -100,6 +85,18 @@ export = {
     else if (message.embeds[0]?.provider?.name === 'YouTube' && message.embeds[0]?.data.thumbnail) {
       embed.setImage(message.embeds[0].data.thumbnail.url);
       censoredEmbed.setImage(message.embeds[0].data.thumbnail.url);
+    }
+
+    // Attached Images (uploaded without url)
+    if (message.attachments.size > 1) message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
+
+    const attachment = message.attachments.first();
+
+    if (attachment?.contentType?.includes('mp4') === false) {
+      const newAttachment = new AttachmentBuilder(`${attachment.url}`, { name: `${attachment.name}` });
+      embed.setImage(`attachment://${newAttachment.name}`);
+      censoredEmbed.setImage(`attachment://${newAttachment.name}`);
+      return newAttachment; // return the new attachment buffer so we can send in the network
     }
   },
 };

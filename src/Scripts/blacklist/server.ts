@@ -1,6 +1,6 @@
-import { ChatInputCommandInteraction, Guild } from 'discord.js';
+import { ChatInputCommandInteraction, Guild, GuildTextBasedChannel } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
-import { getDb, sendInFirst } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
 
 module.exports = {
@@ -9,13 +9,15 @@ module.exports = {
     const reason = interaction.options.getString('reason', true);
     const subCommandGroup = interaction.options.getSubcommandGroup();
 
-    const { blacklistedServers } = getDb();
+    const { blacklistedServers, setup } = getDb();
     const serverInBlacklist = await blacklistedServers.findFirst({ where: { serverId: serverOpt } });
 
     if (subCommandGroup == 'add') {
       if (serverInBlacklist) return await interaction.reply('The server is already blacklisted.');
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
       if (!server) return interaction.reply('Invalid server ID.');
+
+      const serverSetup = await setup.findFirst({ where: { guildId: serverOpt } });
 
       const mins = interaction.options.getNumber('minutes');
       const hours = interaction.options.getNumber('hours');
@@ -49,11 +51,13 @@ module.exports = {
         }.bind(null, server));
       }
 
-      sendInFirst(
-        server,
-        `This server has been blacklisted from this bot for reason \`${reason}\`. Join the support server and contact staff to appeal your blacklist.`,
-      ).catch(() => null);
       await interaction.reply(`**${server.name}** has been blacklisted for reason \`${reason}\`.`);
+
+      if (serverSetup) {
+        const { channelId } = serverSetup;
+        const channel = await interaction.client.channels.fetch(channelId).catch(() => null) as GuildTextBasedChannel;
+        channel?.send(`This server has been blacklisted from the network for reason \`${reason}\`. Join the support server and contact staff to appeal your blacklist.`).catch(() => null);
+      }
       await server.leave();
 
       modActions(interaction.user, {

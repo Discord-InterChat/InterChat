@@ -34,7 +34,7 @@ export = {
       message.content.includes('discord.gg') ||
       message.content.includes('discord.com/invite') ||
       message.content.includes('dsc.gg')) {
-      message.react(message.client.emoji.normal.no);
+      message.react(message.client.emoji.normal.no).catch(() => null);
       return false;
     }
 
