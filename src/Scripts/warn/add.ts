@@ -38,6 +38,6 @@ export = {
 
     // TODO: Send nicer embed like elara
     const notified = await user.send(`**${emojis.icons.exclamation} You have been warned in the network for:** ${warning.reason}`).catch(() => null);
-    await interaction.editReply(` ${emojis.normal.yes} Warned ${user.tag}! ${notified ? 'Notified them about their warn.' : 'I couldn\'t DM them!'}`);
+    await interaction.editReply(` ${emojis.normal.yes} Warned ${user.tag}! ${notified ? 'Notified them about their warn.' : 'I couldn\'t DM them.'}`);
   },
 };
