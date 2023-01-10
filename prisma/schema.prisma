@@ -24,17 +24,12 @@ type SetupWebhook {
   url   String
 }
 
-type UserDataUser {
-  id  String
-  tag String
-}
-
 type UserDataWarnings {
   automated   Boolean
   moderatorId String?
-  number      Int
+  id          String
   reason      String
-  timestamp   Int?
+  timestamp   DateTime
 }
 
 model blacklistedServers {
@@ -102,8 +97,9 @@ model userBadges {
   badges String[]
 }
 
-model userData {
+model userWarns {
   id       String             @id @default(auto()) @map("_id") @db.ObjectId
-  user     UserDataUser
+  userId   String             @unique
+  userTag  String
   warnings UserDataWarnings[]
 }
