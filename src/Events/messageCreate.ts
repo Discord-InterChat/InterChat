@@ -22,11 +22,6 @@ export default {
 
     // ignore the message if it is not in an active network channel
     if (!connected || !await checks.execute(message, db)) return;
-    if (message.stickers.size > 0 && !message.content) {
-      return message.reply(
-        'Unfortunately, the sending of stickers within the network is not a feature that is currently available. We apologize for any inconvenience this may cause.',
-      );
-    }
 
     const embed = new EmbedBuilder()
       .setTimestamp()

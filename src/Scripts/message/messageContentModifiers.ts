@@ -92,9 +92,11 @@ export = {
 
     const attachment = message.attachments.first();
 
-    const newAttachment = new AttachmentBuilder(`${attachment?.url}`, { name: `${attachment?.name}` });
-    embed.setImage(`attachment://${newAttachment.name}`);
-    censoredEmbed.setImage(`attachment://${newAttachment.name}`);
-    return newAttachment; // return the new attachment buffer so we can send in the network
+    if (attachment?.contentType?.includes('mp4') === false) {
+      const newAttachment = new AttachmentBuilder(`${attachment.url}`, { name: `${attachment.name}` });
+      embed.setImage(`attachment://${newAttachment.name}`);
+      censoredEmbed.setImage(`attachment://${newAttachment.name}`);
+      return newAttachment; // return the new attachment buffer so we can send in the network
+    }
   },
 };

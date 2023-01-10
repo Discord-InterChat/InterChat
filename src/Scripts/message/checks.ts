@@ -44,6 +44,20 @@ export = {
       return false;
     }
 
+    if (message.stickers.size > 0 && !message.content) {
+      message.reply(
+        'Unfortunately, the sending of stickers within the network is not a feature that is currently available. We apologize for any inconvenience this may cause.',
+      );
+      return false;
+    }
+
+    // TODO
+    const attachmentType = message.attachments.first()?.contentType;
+    if (attachmentType?.includes('mp4') || attachmentType?.includes('mov') || attachmentType?.includes('webm')) {
+      message.reply('Sending videos has been temporarily disabled.');
+      return false;
+    }
+
     if (wordFilter.check(message.content)) wordFilter.log(message.client, message.author, message.guild, message.content);
 
     return true;
