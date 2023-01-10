@@ -23,7 +23,7 @@
     "tsc": "tsc --build",
     "build": "turbo tsc",
     "dev:watch": "tsc --build -w",
-    "dev:compile": "nodemon .",
+    "dev:start": "nodemon .",
     "dev": "npm-run-all build -p dev:*",
     "deploy": "turbo tsc && node build/src/Utils/functions/deploy-commands",
     "release": "standard-version",
