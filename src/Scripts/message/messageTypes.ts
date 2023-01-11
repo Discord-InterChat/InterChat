@@ -36,7 +36,6 @@ export = {
         return await webhook.send(webhookMessage);
       }
       catch (e) {
-        console.log('what');
         logger.error('Failed to send Webhook Message: ', e);
         return { unknownWebhookId: webhook.id } as InvalidWebhookId;
       }
