@@ -25,7 +25,7 @@ export default {
 	    • Please follow our rules while using the network at all times.
 	    • Unlock cool new features by voting on [top.gg](https://top.gg/bot/769921109209907241/vote)!
 	    • Appearance of network can be modified using the dropdown in the setup.
-        • If you want learn more about ChatBot, you can do so by reading our [guide](https://discord-chatbot.gitbook.io/guide/).
+      • If you want learn more about ChatBot, you can do so by reading our [guide](https://discord-chatbot.gitbook.io/guide/).
 
 
 	    We hope you enjoy using ChatBot! If you have any issues or want to know more about our bot join the [official support server](https://discord.gg/6bhXQynAPs).
@@ -78,14 +78,14 @@ export default {
         new EmbedBuilder()
           .setTitle('I have joined a new server! 🙌')
           .setDescription(stripIndents`
-	        **${800 - guild.client.guilds.cache.size}** servers more to go! ${tada}
+	          **${800 - guild.client.guilds.cache.size}** servers more to go! ${tada}
 					
             **Server Name:** ${guild.name} (${guild.id})
-	        **Owner:** ${guildOwner.user.tag} (${guildOwner?.id})
+	          **Owner:** ${guildOwner.user.tag} (${guildOwner?.id})
             **Created:** <t:${Math.round(guild.createdTimestamp / 1000)}:R>
             **Language:** ${guild.preferredLocale}
             **Member Count:** ${guild.memberCount}
-	`)
+            `)
           .setThumbnail(guild.iconURL())
           .setFooter({ text: `Invited By: ${inviter?.tag || 'unknown'}`, iconURL: inviter?.avatarURL() ?? undefined })
           .setTimestamp()

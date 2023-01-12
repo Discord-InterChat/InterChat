@@ -18,10 +18,10 @@ export default {
         new EmbedBuilder()
           .setTitle('I have been kicked from a server 😢')
           .setDescription(stripIndents`
-	    **${800 - guild.client.guilds.cache.size}** servers more to go! 💪
+	        **${800 - guild.client.guilds.cache.size}** servers more to go! 💪
 					
-	    **Server Name:** ${guild.name} (${guild.id})
-	    **Member Count:** ${guild.memberCount}
+	        **Server Name:** ${guild.name} (${guild.id})
+	        **Member Count:** ${guild.memberCount}
           `)
           .setThumbnail(guild.iconURL())
           .setTimestamp()

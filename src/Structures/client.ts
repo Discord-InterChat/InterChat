@@ -6,15 +6,7 @@ import { Client, Collection, ActivityType, EmbedBuilder, TextChannel, MessageCre
 import { join } from 'path';
 import { colors, constants } from '../Utils/functions/utils';
 import { prisma } from '../Utils/db';
-
-interface ErrorLogData {
-  level: 'INFO' | 'ERROR' | 'WARN';
-  message: string;
-  stack?: string;
-  timestamp: string;
-
-  [key: string]: unknown;
-}
+import * as Sentry from '@sentry/node';
 
 export class ChatBot extends Client {
   constructor() {
@@ -39,7 +31,9 @@ export class ChatBot extends Client {
   public async start() {
     this.loadCommands();
     this.loadEvents();
-    this.handleErrors();
+
+    // Error monitoring (sentry.io)
+    Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 1.0 });
 
     return await this.login(process.env.TOKEN);
   }
@@ -79,7 +73,6 @@ export class ChatBot extends Client {
           const command = require(`../Commands/${dir}/${commandFile}`);
 
           this.commands.set(command.default.data.name, command.default);
-
         }
 
         // loading the help command
@@ -112,14 +105,7 @@ export class ChatBot extends Client {
       else {
         this.on(event.default.name, (...args) => event.default.execute(...args, this));
       }
-    }
-  }
 
-  protected handleErrors() {
-    process.on('uncaughtException', (err) => logger.error('[Anti-Crash - Exception]:', err));
-    process.on('unhandledRejection', (err) => logger.error('[Anti Crash - Rejection]:', err));
-    logger.on('data', (data: ErrorLogData) => {
-      if (data.level === 'ERROR' && this.isReady()) this.sendErrorToChannel(this, data.message, data.stack);
-    });
+    }
   }
 }

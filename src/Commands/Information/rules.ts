@@ -12,12 +12,12 @@ export default {
       .setDescription(
         stripIndents`
         1. No spamming or flooding.
-        2. Excessive trolling, insulting users, and using profanity is not allowed.
         3. Advertising of any kind is prohibited.
         4. Private matters should not be discussed in the network.
         5. Do not make the chat uncomfortable for other users.
         6. Using slurs is not allowed on the network.
-        8. Posting explicit or NSFW content will result in immediate blacklisting from the server.
+        7. Trolling, insulting, and profanity is not allowed.
+        8. Posting explicit or NSFW content will result in an immediate blacklist.
         9. Trivialization of sensitive topics such as self-harm, suicide and others which may cause offense to other members is prohibited.
         
         *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,
@@ -25,6 +25,5 @@ export default {
       .setColor(colors('chatbot'))
       .setImage('https://i.imgur.com/D2pYagc.png');
     await interaction.reply({ embeds: [embed], ephemeral: true });
-
   },
 };

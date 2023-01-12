@@ -48,7 +48,6 @@ export default {
     const attachments = await messageContentModifiers.attachmentModifiers(message, embed, censoredEmbed);
     await addBadges.execute(message, db, embed, censoredEmbed);
 
-
     const channelAndMessageIds: Promise<InvalidChannelId | InvalidWebhookId | APIMessage | Message<true>>[] = [];
     const allConnectedChannels = await db.connectedList.findMany();
 
