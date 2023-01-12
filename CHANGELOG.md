@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.7.0](https://github.com/discord-chatbot/discord-chatbot/compare/v3.5.0...v3.7.0) (2023-01-12)
+
+
+### Features
+
+* **badge:** New christmas badge ([aaeab1b](https://github.com/discord-chatbot/discord-chatbot/commit/aaeab1bdf01ed8dffc73de28342a0ab02c1def24))
+* **dev:** announce command to send messages to the network! ([7c2de32](https://github.com/discord-chatbot/discord-chatbot/commit/7c2de327fe9b263148c167b339d8491f369fb599))
+* new christmas embed color scheme ([f788c7e](https://github.com/discord-chatbot/discord-chatbot/commit/f788c7e3c9090f78342b3a927f6dc1be790c8621))
+* Temp Blacklist ([#110](https://github.com/discord-chatbot/discord-chatbot/issues/110)) ([9c267b0](https://github.com/discord-chatbot/discord-chatbot/commit/9c267b0e340e6bce4cc990ff5368132473231923))
+* Warn Command & new dev script ([#9](https://github.com/discord-chatbot/discord-chatbot/issues/9)) ([6caffd9](https://github.com/discord-chatbot/discord-chatbot/commit/6caffd93f8cc22361f9a8a71925878edd1cb5b20))
+
+
+### Bug Fixes
+
+* **blacklist:** blacklist notified in network channel now ([3a6dbe0](https://github.com/discord-chatbot/discord-chatbot/commit/3a6dbe091173f96f5ec0ed1302f98481abf0632a))
+* Christmas badge cannot be claimed anymore ([a3eb291](https://github.com/discord-chatbot/discord-chatbot/commit/a3eb29144dff016a6f456551d697557e297bd428))
+* Disabled videos (and broke more stuff) ([080371d](https://github.com/discord-chatbot/discord-chatbot/commit/080371d6092756bd21ca0fab49617ed9fa18b7d2))
+* **editMsg:** Vote bypass for staff ([272975f](https://github.com/discord-chatbot/discord-chatbot/commit/272975fc9be3dc34c7e415578dd3dbbda8a0316e))
+* **network:** Removed thread, sticker, system message support ([#113](https://github.com/discord-chatbot/discord-chatbot/issues/113)) ([a329ab3](https://github.com/discord-chatbot/discord-chatbot/commit/a329ab376d7f7bd839593540ee0b1cc2c425cd28))
+* **setup:** fix issues with erros during webhook setup process ([61a0579](https://github.com/discord-chatbot/discord-chatbot/commit/61a0579e61d16983c924c7abe0fd75ad67868816))
+* use sentry for automated error reports ([5826438](https://github.com/discord-chatbot/discord-chatbot/commit/58264383592b4c2efe404f74cd8deaa7098674a4))
+* **userinfo:** Fixed issue with displaying badges ([ca903c8](https://github.com/discord-chatbot/discord-chatbot/commit/ca903c8c753603cc308719b3802b23f4b263db7f))
+* **warn:** removed arbitrary string acceptance for user option ([a951ac2](https://github.com/discord-chatbot/discord-chatbot/commit/a951ac25bc5627cca02e390156d63fafd8fa1ac9))
+* **webhooks:** fixed webhook auto-disabling issue ([e63f163](https://github.com/discord-chatbot/discord-chatbot/commit/e63f163c7ab39ea84c27736c9d049ac859cd36dd))
+* **webhooks:** Using user tag instead of username ([3f18111](https://github.com/discord-chatbot/discord-chatbot/commit/3f18111bc9f9754d7be12bc47c7c2e0c421706fe))
+
 ## [3.5.0](https://github.com/Discord-ChatBot/ChatBot-Development/compare/v3.4.1...v3.5.0) (2022-12-08)
 
 
