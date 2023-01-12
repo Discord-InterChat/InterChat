@@ -12,7 +12,7 @@ export default {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
     const hasVoted = await constants.topgg.hasVoted(interaction.user.id);
-    const isStaff = await checkIfStaff(interaction.client, interaction.user);
+    const isStaff = await checkIfStaff(interaction.user);
 
     if (!hasVoted && !isStaff) {
       interaction.reply({

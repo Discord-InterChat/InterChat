@@ -15,12 +15,38 @@ export default {
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const db = getDb();
-    const userId = interaction.options.getString('user') || interaction.user.id;
-    const userWarns = await db.userWarns.findFirst({ where: { userId } });
-    const user = await interaction.client.users.fetch(userId);
-
+    const userId = interaction.options.getString('user');
     const emojis = interaction.client.emoji;
 
+    // if user is not staff the ID they provided is someone else's
+    const staffUser = await checkIfStaff(interaction.user);
+    if (!staffUser && userId !== interaction.user.id) {
+      return interaction.reply({
+        content: `${emojis.normal.no} You do not have the necessary permissions to view warnings given to other users.`,
+        ephemeral: true,
+      });
+    }
+
+    // fetch the user from discord to check if they actually exist
+    const user = userId
+      ? await interaction.client.users.fetch(userId)
+        .catch(() => {
+          return interaction.client.users.cache.find((usr) => usr.tag === userId);
+        })
+      : interaction.user;
+
+    // reply with an error if they don't
+    if (!user) {
+      return interaction.reply({
+        content: `${emojis.normal.no} Invalid user provided.`,
+        ephemeral: true,
+      });
+    }
+
+    // check in Db if that entry exists
+    const userWarns = await db.userWarns.findFirst({ where: { userId: user.id } });
+
+    // reply with an error if that entry doesn't exist
     if (!userWarns?.warnings) {
       return interaction.reply({
         content: `${emojis.normal.yes} No warnings found!`,
@@ -52,7 +78,7 @@ export default {
       return { name: warn.userTag, value: warn.userId };
     });
 
-    const staffUser = await checkIfStaff(interaction.client, interaction.user);
+    const staffUser = await checkIfStaff(interaction.user);
 
     if (!staffUser) return interaction.respond([]);
 

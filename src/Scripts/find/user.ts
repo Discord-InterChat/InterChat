@@ -31,7 +31,7 @@ export = {
     });
 
     const collector = userEmbed.createMessageComponentCollector({
-      filter: async (i) => i.user.id === interaction.user.id && await checkIfStaff(i.client, i.user),
+      filter: async (i) => i.user.id === interaction.user.id && await checkIfStaff(i.user),
       componentType: ComponentType.Button,
     });
 

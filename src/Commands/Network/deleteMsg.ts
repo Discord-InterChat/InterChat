@@ -10,7 +10,7 @@ export default {
     .setType(ApplicationCommandType.Message),
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
-    const staffUser = await checkIfStaff(interaction.client, interaction.user);
+    const staffUser = await checkIfStaff(interaction.user);
 
     const db = getDb();
     const messageInDb = await db?.messageData.findFirst({

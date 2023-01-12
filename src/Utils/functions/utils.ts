@@ -122,14 +122,14 @@ export function toHuman(milliseconds: number): string {
  * @param user The user to check
  * @param onlyDeveloper Check if the user is a developer
  */
-export async function checkIfStaff(client: discord.Client, user: discord.GuildMember | discord.User, onlyDeveloper = false) {
+export async function checkIfStaff(user: discord.GuildMember | discord.User, onlyDeveloper = false) {
   try {
     const staffRole = '800698916995203104';
     const developerRole = '770256273488347176';
 
     const allowedRoles = [staffRole, developerRole];
 
-    const guild = await client.guilds.fetch('770256165300338709');
+    const guild = await user.client.guilds.fetch('770256165300338709');
     const member = await guild.members.fetch(user);
     const roles = member.roles.cache;
 
