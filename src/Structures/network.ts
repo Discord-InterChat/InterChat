@@ -29,7 +29,6 @@ export class NetworkManager {
 
   /**
    * Insert a guild & channel into connectedList collection.
-      * Returns **null** if channel is already connected
   */
   public async connect(guild: Guild | null, channel: GuildTextBasedChannel | undefined | null) {
     const channelExists = await prisma.connectedList.findFirst({
@@ -38,7 +37,7 @@ export class NetworkManager {
       },
     });
 
-    if (channelExists) return null;
+    if (channelExists) return undefined;
     if (!guild || !channel) throw new Error('Invalid arguments provided.');
 
     return await prisma.connectedList.create({

@@ -45,9 +45,7 @@ export = {
     }
 
     if (message.stickers.size > 0 && !message.content) {
-      message.reply(
-        'Unfortunately, the sending of stickers within the network is not a feature that is currently available. We apologize for any inconvenience this may cause.',
-      );
+      message.reply('Sending stickers within the network is not a feature that is currently available. We apologize for any inconvenience this may cause.');
       return false;
     }
 

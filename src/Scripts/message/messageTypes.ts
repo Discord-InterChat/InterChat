@@ -77,9 +77,13 @@ const createWebhookOptions = (message: NetworkMessage, attachments: AttachmentBu
     allowedMentions: { parse: ['users'] },
   };
 
-  channelInSetup?.compact
-    ? webhookMessage.content = channelInSetup?.profFilter ? message.censored_content : message.content
-    : webhookMessage.embeds = [channelInSetup?.profFilter ? censoredEmbed : embed];
-
+  if (channelInSetup.compact) {
+    webhookMessage.content = channelInSetup?.profFilter ? message.censored_content : message.content;
+  }
+  else {
+    webhookMessage.embeds = [channelInSetup?.profFilter ? censoredEmbed : embed];
+    webhookMessage.username = message.client.user.username;
+    webhookMessage.avatarURL = message.client.user.avatarURL() || undefined;
+  }
   return webhookMessage;
 };

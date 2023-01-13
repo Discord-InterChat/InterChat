@@ -16,7 +16,7 @@ export default {
 
       if (
         interaction.inCachedGuild() &&
-        !interaction.channel?.permissionsFor(interaction.guild?.members.me as GuildMember)
+        !interaction.channel?.permissionsFor(interaction.guild.members.me as GuildMember)
           .has(requiredPerms)
       ) {
         return interaction.reply({

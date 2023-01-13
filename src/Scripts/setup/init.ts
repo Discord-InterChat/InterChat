@@ -38,12 +38,12 @@ export = {
       if (numOfConnections > 1) {
         await destination?.send(stripIndents`
         This channel has been connected to the chat network. You are currently with ${numOfConnections} other servers, Enjoy! ${emoji.normal.clipart}
-	**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`);
+	      **⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`);
       }
       else {
         await destination?.send(stripIndents`
-	This channel has been connected to the chat network, though no one else is there currently... *cricket noises* ${emoji.normal.clipart}
-	**⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`);
+	      This channel has been connected to the chat network, though no one else is there currently... *cricket noises* ${emoji.normal.clipart}
+	      **⚠️ This is not an __AI Chat__, but a chat network that allows you to connect to multiple servers and communicate with *__real__* members. ⚠️**`);
       }
       logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
     }
