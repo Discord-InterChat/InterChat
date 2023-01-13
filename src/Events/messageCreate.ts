@@ -39,7 +39,7 @@ export default {
 
 
     // Get data message being replied to from the db for jump buttons (message content is modified)
-    const replyInDb = await messageContentModifiers.appendReply(message, db);
+    const replyInDb = await messageContentModifiers.appendReply(message, embed);
 
     // define censored properties to message class (message.censored_xxxx) (message content is modified)
     await messageContentModifiers.execute(message);

@@ -1,7 +1,8 @@
 import wordFilter from '../../Utils/functions/wordFilter';
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { NetworkMessage } from '../../Events/messageCreate';
-import { messageData, PrismaClient } from '@prisma/client';
+import { messageData } from '@prisma/client';
+import { getDb } from '../../Utils/functions/utils';
 import 'dotenv/config';
 
 export = {
@@ -10,7 +11,8 @@ export = {
     message.censored_compact_message = wordFilter.censor(message.compact_message);
   },
 
-  async appendReply(message: NetworkMessage, db: PrismaClient | null) {
+  async appendReply(message: NetworkMessage, uncenEmbed: EmbedBuilder) {
+    const db = getDb();
     message.compact_message = `**${message.author.tag}:** ${message.content}`;
 
     let messageInDb: messageData | null | undefined = null;
@@ -45,6 +47,7 @@ export = {
 
         message.content = `> ${embed || compact}\n${message.content}`;
         message.compact_message = `> ${embed || compact}\n${message.compact_message}`;
+        uncenEmbed.setFields({ name: 'Message', value: message.content });
       }
 
     }
