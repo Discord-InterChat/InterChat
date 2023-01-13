@@ -69,7 +69,7 @@ export = {
     const setupMessage = await interaction.editReply({
       content: interaction.guild?.channels.cache.get(guildSetup?.channelId)
         ? ''
-        : `${emoji.normal.no} Automatically disconnected due to error receiving network messages.`,
+        : `${emoji.normal.no} Automatically disconnected due to error receiving network messages. Change the channel to use the network.`,
       embeds: [await setupEmbed.default()],
       components: [customizeMenu, setupActionButtons],
     });
@@ -370,7 +370,7 @@ class SetupEmbedGenerator {
           name: 'Network State',
           value: stripIndent`
           **Connected:** ${status}
-          **Channel:** ${channel}
+          **Channel:** ${channel || 'None.'}
           **Last Edited:** <t:${lastEditedTimestamp}:R>
           `,
           inline: true,
