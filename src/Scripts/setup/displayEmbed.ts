@@ -64,15 +64,13 @@ export = {
     const guildConnected = await network.getServerData({ serverId: interaction.guild?.id });
 
     if (!guildSetup) return interaction.followUp(`${emoji.normal.no} Server is not setup yet. Use \`/setup channel\` first.`);
-    if (!interaction.guild?.channels.cache.get(guildSetup?.channelId)) {
-      await setupCollection.delete({ where: { channelId: guildSetup?.channelId } });
-      return await interaction.followUp(`${emoji.normal.no} Network channel not found. Use \`/setup channel\` to set a new one.`);
-    }
 
     if (!guildConnected) setupActionButtons.components.at(-1)?.setDisabled(true);
 
     const setupMessage = await interaction.editReply({
-      content: '',
+      content: interaction.guild?.channels.cache.get(guildSetup?.channelId)
+        ? ''
+        : `${emoji.normal.no} Automatically disconnected due to error receiving network messages.`,
       embeds: [await setupEmbed.default()],
       components: [customizeMenu, setupActionButtons],
     });
@@ -80,7 +78,7 @@ export = {
     const filter = (m: Interaction) => m.user.id === interaction.user.id;
     const buttonCollector = setupMessage.createMessageComponentCollector({
       filter,
-      time: 60_000,
+      idle: 60_000,
       componentType: ComponentType.Button,
     });
 
@@ -97,14 +95,14 @@ export = {
         case 'compact':
           await setupCollection?.updateMany({
             where: { guildId: interaction.guild?.id },
-            data: { date: new Date(), compact: !guildSetup?.compact },
+            data: { compact: !guildSetup?.compact },
           });
           break;
 
         case 'profanity':
           await setupCollection?.updateMany({
             where: { guildId: interaction.guild?.id },
-            data: { date: new Date(), profFilter: !guildSetup?.profFilter },
+            data: { profFilter: !guildSetup?.profFilter },
           });
           break;
 
@@ -115,7 +113,7 @@ export = {
 
           if (connectedChannel?.type !== ChannelType.GuildText) {
             await settingsMenu.reply({
-              content: 'Cannot edit setup for selected channel. If you think this is a mistake report this to the developers.',
+              content: 'Cannot edit setup for selected channel. If you think this is a mistake report it to the developers.',
               ephemeral: true,
             });
             break;
@@ -129,7 +127,7 @@ export = {
 
             guildSetup = await setupCollection?.update({
               where: { channelId: connectedChannel.id },
-              data: { date: new Date(), webhook: null },
+              data: { webhook: null },
             });
 
             await settingsMenu.reply({
@@ -163,7 +161,6 @@ export = {
           await setupCollection?.updateMany({
             where: { guildId: interaction.guild?.id },
             data: {
-              date: new Date(),
               webhook: { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
             },
           });
@@ -250,10 +247,21 @@ export = {
             idle: 20_000,
           });
           newChannelSelect.once('collect', async (SelectInteraction) => {
+            const channel = SelectInteraction.guild?.channels.cache.get(SelectInteraction?.values[0]);
+            let webhook = undefined;
+            if (channel?.type !== ChannelType.GuildText) return; // so TS doesnt complain
+            if (guildSetup?.webhook) {
+              channel.fetchWebhooks().then(promisehook => promisehook.find((hook) => hook.id === guildSetup?.webhook?.id)?.delete().catch(() => null)).catch(() => null);
+              webhook = await channel.createWebhook({ name: 'ChatBot Network' });
+            }
+
             await network.updateData({ channelId: guildSetup?.channelId }, { channelId: SelectInteraction?.values[0] });
             guildSetup = await setupCollection.update({
               where: { channelId: guildSetup?.channelId },
-              data: { channelId: SelectInteraction?.values[0] },
+              data: {
+                channelId: channel.id,
+                webhook: webhook ? { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } } : null,
+              },
             });
 
             await SelectInteraction?.update({
@@ -265,6 +273,8 @@ export = {
           break;
         }
       }
+      await setupCollection.updateMany({ where: { guildId: interaction.guild?.id }, data: { date: new Date() } });
+
       settingsMenu.replied || settingsMenu.deferred
         ? interaction.editReply({ embeds: [await setupEmbed.default()] })
         : settingsMenu.update({ embeds: [await setupEmbed.default()] });
@@ -355,19 +365,19 @@ class SetupEmbedGenerator {
         {
           name: 'Network State',
           value: stripIndent`
-	  **Connected:** ${status}
-	  **Channel:** ${channel}
-	  **Last Edited:** <t:${lastEditedTimestamp}:R>
-	  `,
+          **Connected:** ${status}
+          **Channel:** ${channel}
+          **Last Edited:** <t:${lastEditedTimestamp}:R>
+          `,
           inline: true,
         },
         {
           name: 'Style',
           value: stripIndent`
           **Compact:** ${compact}
-	  **Profanity Filter:** ${profanity}
+          **Profanity Filter:** ${profanity}
           **Webhook Messages:**  ${webhook}
-	`,
+          `,
           inline: true,
         },
         {

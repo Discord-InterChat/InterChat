@@ -18,7 +18,7 @@ export = {
     const channelInSetup = await db?.setup?.findFirst({ where: { channelId: channel?.channelId } });
     const channelToSend = await message.client.channels.fetch(channel.channelId).catch(() => null) as GuildTextBasedChannel | null;
 
-    if (!channelToSend) return { unkownChannelId: channel?.channelId } as InvalidChannelId;
+    if (!channelToSend) return { unknownChannelId: channel?.channelId } as InvalidChannelId;
 
     const replyInDb = replyData?.channelAndMessageIds.find((msg) => msg.channelId === channel.channelId);
 
