@@ -25,7 +25,7 @@ export default {
       return interaction.reply({ content: `${emojis.no} You are not the author of this message.`, ephemeral: true });
     }
 
-    await interaction.reply({ content: `${emojis.yes} Deletion in progess! This may take a couple of seconds.`, ephemeral: true }).catch(() => null);
+    await interaction.reply({ content: `${emojis.yes} Deletion in progess! This may take a few seconds.`, ephemeral: true }).catch(() => null);
 
     messageInDb.channelAndMessageIds.forEach((element) => {
       if (!element) return;

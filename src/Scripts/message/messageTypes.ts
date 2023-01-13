@@ -18,7 +18,7 @@ export = {
     const channelInSetup = await db?.setup?.findFirst({ where: { channelId: channel?.channelId } });
     const channelToSend = await message.client.channels.fetch(channel.channelId).catch(() => null) as GuildTextBasedChannel | null;
 
-    if (!channelToSend) return { unkownChannelId: channel?.channelId } as InvalidChannelId;
+    if (!channelToSend) return { unknownChannelId: channel?.channelId } as InvalidChannelId;
 
     const replyInDb = replyData?.channelAndMessageIds.find((msg) => msg.channelId === channel.channelId);
 
@@ -77,9 +77,13 @@ const createWebhookOptions = (message: NetworkMessage, attachments: AttachmentBu
     allowedMentions: { parse: ['users'] },
   };
 
-  channelInSetup?.compact
-    ? webhookMessage.content = channelInSetup?.profFilter ? message.censored_content : message.content
-    : webhookMessage.embeds = [channelInSetup?.profFilter ? censoredEmbed : embed];
-
+  if (channelInSetup.compact) {
+    webhookMessage.content = channelInSetup?.profFilter ? message.censored_content : message.content;
+  }
+  else {
+    webhookMessage.embeds = [channelInSetup?.profFilter ? censoredEmbed : embed];
+    webhookMessage.username = message.client.user.username;
+    webhookMessage.avatarURL = message.client.user.avatarURL() || undefined;
+  }
   return webhookMessage;
 };

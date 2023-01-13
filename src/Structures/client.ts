@@ -2,7 +2,7 @@ import fs from 'fs';
 import logger from '../Utils/logger';
 import emojis from '../Utils/JSON/emoji.json';
 import project from '../../package.json';
-import { Client, Collection, ActivityType, EmbedBuilder, TextChannel, MessageCreateOptions } from 'discord.js';
+import { Client, Collection, ActivityType, EmbedBuilder, MessageCreateOptions, GuildTextBasedChannel } from 'discord.js';
 import { join } from 'path';
 import { colors, constants } from '../Utils/functions/utils';
 import { prisma } from '../Utils/db';
@@ -52,10 +52,10 @@ export class ChatBot extends Client {
     });
   }
 
-  public async sendErrorToChannel(client: Client, embedTitle: string, ErrorStack: unknown, channel?: TextChannel | null) {
-    const errorChannel = await client.channels.fetch(constants.channel.errorlogs);
+  public async sendErrorToChannel(embedTitle: string, ErrorStack: unknown, channel?: GuildTextBasedChannel) {
+    const errorChannel = await this.channels.fetch(constants.channel.errorlogs);
     const errorEmbed = new EmbedBuilder()
-      .setAuthor({ name: 'ChatBot Error Logs', iconURL: client.user?.avatarURL() || undefined })
+      .setAuthor({ name: 'ChatBot Error Logs', iconURL: this.user?.avatarURL() || undefined })
       .setTitle(embedTitle)
       .setDescription('```js\n' + ErrorStack + '```')
       .setColor(colors('invisible'))
