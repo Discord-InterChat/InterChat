@@ -64,7 +64,6 @@ export = {
     const guildConnected = await network.getServerData({ serverId: interaction.guild?.id });
 
     if (!guildSetup) return interaction.followUp(`${emoji.normal.no} Server is not setup yet. Use \`/setup channel\` first.`);
-
     if (!guildConnected) setupActionButtons.components.at(-1)?.setDisabled(true);
 
     const setupMessage = await interaction.editReply({
@@ -149,10 +148,7 @@ export = {
             });
           }
           catch {
-            interaction.reply({
-              content: 'Please grant me `Manage Webhook` permissions for this to work.',
-              ephemeral: true,
-            });
+            interaction.editReply('Please grant me `Manage Webhook` permissions for this to work.');
             return;
           }
 
@@ -246,16 +242,24 @@ export = {
             componentType: ComponentType.ChannelSelect,
             idle: 20_000,
           });
-          newChannelSelect.once('collect', async (SelectInteraction) => {
-            const channel = SelectInteraction.guild?.channels.cache.get(SelectInteraction?.values[0]);
+          newChannelSelect.once('collect', async (select) => {
+            const oldchannel = select.guild?.channels.cache.get(`${guildSetup?.channelId}`);
+            const channel = select.guild?.channels.cache.get(select?.values[0]);
             let webhook = undefined;
-            if (channel?.type !== ChannelType.GuildText) return; // so TS doesnt complain
+
+            if (oldchannel?.type !== ChannelType.GuildText || channel?.type !== ChannelType.GuildText) return; // so TS doesnt complain
+
             if (guildSetup?.webhook) {
-              channel.fetchWebhooks().then(promisehook => promisehook.find((hook) => hook.id === guildSetup?.webhook?.id)?.delete().catch(() => null)).catch(() => null);
-              webhook = await channel.createWebhook({ name: 'ChatBot Network' });
+              // delete the old webhook
+              oldchannel?.fetchWebhooks().then(promisehook => {
+                promisehook.find((hook) => hook.owner?.id === hook.client.user?.id)?.delete().catch(() => null);
+              }).catch(() => null);
+
+              // create a webhook in the new channel
+              webhook = await channel.createWebhook({ name: 'ChatBot Network', avatar: select.client.user.avatarURL() });
             }
 
-            await network.updateData({ channelId: guildSetup?.channelId }, { channelId: SelectInteraction?.values[0] });
+            await network.updateData({ channelId: guildSetup?.channelId }, { channelId: select?.values[0] });
             guildSetup = await setupCollection.update({
               where: { channelId: guildSetup?.channelId },
               data: {
@@ -264,7 +268,7 @@ export = {
               },
             });
 
-            await SelectInteraction?.update({
+            await select?.update({
               content: 'Channel successfully set!',
               components: [],
             });

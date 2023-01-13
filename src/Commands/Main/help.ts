@@ -24,7 +24,7 @@ export default {
         .setDescription(
           '[Invite](https://discord.com/api/oauth2/authorize?client_id=769921109209907241&permissions=154820537425&scope=bot%20applications.commands) • [Support](https://discord.gg/6bhXQynAPs) • [Privacy](https://discord-chatbot.gitbook.io/chatbot/important/privacy)')
         .setFields(interaction.client.commandsArray)
-        .setFooter({ text: 'Use /help command to get more info about a command.' })
+        .setFooter({ text: 'Use /help <command> to get more info about a command.' })
         .setColor(colors('chatbot'))
         .setTimestamp();
 
