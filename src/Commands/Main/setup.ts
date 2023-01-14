@@ -2,6 +2,7 @@ import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, 
 import { getDb } from '../../Utils/functions/utils';
 import reset from '../../Scripts/setup/reset';
 import initialize from '../../Scripts/setup/initialize';
+import displaySettings from '../../Scripts/setup/displaySettings';
 
 export default {
   data: new SlashCommandBuilder()
@@ -42,6 +43,7 @@ export default {
 
     switch (subcommand) {
       case 'reset': reset.execute(interaction); break;
+      case 'view': displaySettings.execute(interaction); break;
       default: initialize.execute(interaction);
     }
   },
