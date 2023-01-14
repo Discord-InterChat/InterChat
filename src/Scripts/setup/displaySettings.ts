@@ -1,25 +1,29 @@
-import { PrismaClient } from '@prisma/client';
 import { stripIndent } from 'common-tags';
 import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
-import { NetworkManager } from '../../Structures/network';
+import { connect, disconnect, getServerData, updateData } from '../../Structures/network';
 import { colors, getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 
+// FIXME: Buttons go unresponsive if select menu is the only one that is in use.
+
 export = {
-  async execute(interaction: ChatInputCommandInteraction, db: PrismaClient) {
+  async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.deferred) await interaction.deferReply();
 
     const emoji = interaction.client.emoji;
-    const setupCollection = db.setup;
+    const { setup } = getDb();
+    const guildConnected = await getServerData({ serverId: interaction.guild?.id });
 
     const setupActionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
       new ButtonBuilder()
         .setCustomId('reconnect')
         .setStyle(ButtonStyle.Success)
+        .setDisabled(guildConnected ? true : false)
         .setEmoji(emoji.icons.connect),
       new ButtonBuilder()
         .setCustomId('disconnect')
         .setStyle(ButtonStyle.Danger)
+        .setDisabled(!guildConnected)
         .setEmoji(emoji.icons.disconnect),
     ]);
 
@@ -46,7 +50,7 @@ export = {
           new StringSelectMenuOptionBuilder()
             .setLabel('Set Invite')
             .setEmoji(emoji.icons.members as any)
-            .setDescription('Set a server invite so people can join your server!')
+            .setDescription('Set an invite for network users to join your server easily!')
             .setValue('invite'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Change Channel')
@@ -57,14 +61,10 @@ export = {
     ]);
 
 
-    const network = new NetworkManager();
     const setupEmbed = new SetupEmbedGenerator(interaction);
 
-    let guildSetup = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
-    const guildConnected = await network.getServerData({ serverId: interaction.guild?.id });
-
+    let guildSetup = await setup.findFirst({ where: { guildId: interaction.guild?.id } });
     if (!guildSetup) return interaction.followUp(`${emoji.normal.no} Server is not setup yet. Use \`/setup channel\` first.`);
-    if (!guildConnected) setupActionButtons.components.at(-1)?.setDisabled(true);
 
     const setupMessage = await interaction.editReply({
       content: interaction.guild?.channels.cache.get(guildSetup?.channelId)
@@ -75,11 +75,65 @@ export = {
     });
 
     const filter = (m: Interaction) => m.user.id === interaction.user.id;
+
+    /* ------------------- Button Responce collectors ---------------------- */
     const buttonCollector = setupMessage.createMessageComponentCollector({
       filter,
       idle: 60_000,
       componentType: ComponentType.Button,
     });
+
+    buttonCollector.on('collect', async (component) => {
+      switch (component.customId) {
+        case 'reconnect': {
+          const channel = await interaction.guild?.channels
+            .fetch(String(guildSetup?.channelId))
+            .catch(() => null) as GuildTextBasedChannel | null;
+
+          if (!channel) {
+            component.reply({ content: `${emoji.normal.no} Unable to find network channel!` });
+            return;
+          }
+
+          await connect(channel);
+          logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
+
+          // disable reconnect button
+          setupActionButtons.components.at(0)?.setDisabled(true);
+          // enable disconnect button
+          setupActionButtons.components.at(1)?.setDisabled(false);
+
+          component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
+          interaction.editReply({
+            embeds: [await setupEmbed.default()],
+            components: [customizeMenu, setupActionButtons],
+          });
+          break;
+        }
+
+        case 'disconnect':
+          await disconnect({ channelId: guildSetup?.channelId });
+          // enable reconnect button
+          setupActionButtons.components.at(0)?.setDisabled(false);
+          // disable disconnect button
+          setupActionButtons.components.at(1)?.setDisabled(true);
+
+
+          logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
+
+          component.message.edit({
+            embeds: [await setupEmbed.default()],
+            components: [customizeMenu, setupActionButtons],
+          });
+          component.reply({ content: 'Disconnected!', ephemeral: true });
+          break;
+
+        default:
+          break;
+      }
+    });
+
+    /* ------------------- SelectMenu Responce collectors ---------------------- */
 
     const selectCollector = setupMessage.createMessageComponentCollector({
       filter,
@@ -88,141 +142,26 @@ export = {
     });
 
     selectCollector.on('collect', async (settingsMenu) => {
-      guildSetup = await setupCollection.findFirst({ where: { guildId: interaction.guild?.id } });
+      guildSetup = await setup.findFirst({ where: { guildId: interaction.guild?.id } });
 
       switch (settingsMenu.values[0]) {
+        /* Compact / Normal mode toggle  */
         case 'compact':
-          await setupCollection?.updateMany({
+          await setup?.updateMany({
             where: { guildId: interaction.guild?.id },
             data: { compact: !guildSetup?.compact },
           });
           break;
 
+        /* Profanity toggle */
         case 'profanity':
-          await setupCollection?.updateMany({
+          await setup?.updateMany({
             where: { guildId: interaction.guild?.id },
             data: { profFilter: !guildSetup?.profFilter },
           });
           break;
 
-        case 'webhook': {
-          const connectedChannel = await interaction.client.channels
-            .fetch(`${guildSetup?.channelId}`)
-            .catch(() => null);
-
-          if (connectedChannel?.type !== ChannelType.GuildText) {
-            await settingsMenu.reply({
-              content: 'Cannot edit setup for selected channel. If you think this is a mistake report it to the developers.',
-              ephemeral: true,
-            });
-            break;
-          }
-
-          if (guildSetup?.webhook) {
-            const deleteWebhook = await connectedChannel.fetchWebhooks();
-            deleteWebhook
-              .find((webhook) => webhook.owner?.id === interaction.client.user.id)
-              ?.delete();
-
-            guildSetup = await setupCollection?.update({
-              where: { channelId: connectedChannel.id },
-              data: { webhook: null },
-            });
-
-            await settingsMenu.reply({
-              content: 'Webhook messages have been disabled.',
-              ephemeral: true,
-            });
-            break;
-          }
-          await settingsMenu.reply({
-            content: `${emoji.normal.loading} Creating webhook...`,
-            ephemeral: true,
-          });
-
-          let webhook;
-          try {
-            webhook = await connectedChannel.createWebhook({
-              name: 'ChatBot Network',
-              avatar: interaction.client.user?.avatarURL(),
-            });
-          }
-          catch {
-            interaction.editReply('Please grant me `Manage Webhook` permissions for this to work.');
-            return;
-          }
-
-
-          await settingsMenu.editReply(`${emoji.normal.loading} Initializing & saving webhook data...`);
-          await setupCollection?.updateMany({
-            where: { guildId: interaction.guild?.id },
-            data: {
-              webhook: { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
-            },
-          });
-          await settingsMenu.editReply(`${emoji.normal.yes} Webhooks have been successfully setup!`);
-          break;
-        }
-        case 'invite': {
-          await interaction.followUp({
-            content: 'Setting an invite allows users throughout the network view and join your server. At the moment visible only though the `Server Info` context menu, but will be available in other coming features. Servers that go against our </rules:924659340898619395> will be removed and blacklisted.',
-            ephemeral: true,
-          });
-
-          const modal = new ModalBuilder()
-            .setCustomId(settingsMenu.id)
-            .setTitle('Report')
-            .addComponents(
-              new ActionRowBuilder<TextInputBuilder>().addComponents(
-                new TextInputBuilder()
-                  .setCustomId('invite_link')
-                  .setStyle(TextInputStyle.Short)
-                  .setLabel('Invite Link')
-                  .setPlaceholder('Provide a invite link or code. Leave blank to remove.')
-                  .setValue('https://discord.gg/')
-                  .setMaxLength(35)
-                  .setRequired(false),
-              ),
-            );
-
-          await settingsMenu.showModal(modal);
-
-          // respond to message when Modal is submitted
-          settingsMenu.awaitModalSubmit({ time: 60_000, filter: (i) => i.customId === modal.data.custom_id })
-            .then(async (i) => {
-              const link = i.fields.getTextInputValue('invite_link');
-
-              if (!link) {
-                await setupCollection.updateMany({
-                  where: { guildId: i.guild?.id },
-                  data: { invite: { unset: true } },
-                });
-                interaction.editReply({ embeds: [await setupEmbed.default()] });
-                return i.reply({ content: 'Invite unset.', ephemeral: true });
-              }
-
-              const isValid = await i.client?.fetchInvite(link).catch(() => null);
-
-              if (!isValid || isValid.guild?.id !== i.guild?.id) {
-                return i.reply({
-                  content: 'Invalid Invite.',
-                  ephemeral: true,
-                });
-              }
-
-              await setupCollection.updateMany({
-                where: { guildId: i.guild?.id },
-                data: { invite: isValid.code },
-              });
-
-              i.reply({
-                content: 'Invite link successfully set!',
-                ephemeral: true,
-              });
-              interaction.editReply({ embeds: [await setupEmbed.default()] });
-            }).catch((e) => {if (!e.message.includes('reason: time')) logger.error(e);});
-          break;
-        }
+        /* Change channel request Response */
         case 'change_channel': {
           const channelMenu = new ActionRowBuilder<ChannelSelectMenuBuilder>()
             .addComponents(
@@ -259,8 +198,8 @@ export = {
               webhook = await channel.createWebhook({ name: 'ChatBot Network', avatar: select.client.user.avatarURL() });
             }
 
-            await network.updateData({ channelId: guildSetup?.channelId }, { channelId: select?.values[0] });
-            guildSetup = await setupCollection.update({
+            await updateData({ channelId: guildSetup?.channelId }, { channelId: select?.values[0] });
+            guildSetup = await setup.update({
               where: { channelId: guildSetup?.channelId },
               data: {
                 channelId: channel.id,
@@ -269,62 +208,140 @@ export = {
             });
 
             await select?.update({
-              content: 'Channel successfully set!',
+              content: 'Channel successfully changed!',
               components: [],
             });
             interaction.editReply({ embeds: [await setupEmbed.default()] });
           });
           break;
         }
+
+        /* Webhook Selection Response */
+        case 'webhook': {
+          const connectedChannel = await interaction.client.channels
+            .fetch(`${guildSetup?.channelId}`)
+            .catch(() => null);
+
+          if (connectedChannel?.type !== ChannelType.GuildText) {
+            await settingsMenu.reply({
+              content: 'Cannot edit setup for selected channel. If you think this is a mistake report it to the developers.',
+              ephemeral: true,
+            });
+            break;
+          }
+
+          if (guildSetup?.webhook) {
+            const deleteWebhook = await connectedChannel.fetchWebhooks();
+            deleteWebhook
+              .find((webhook) => webhook.owner?.id === interaction.client.user.id)
+              ?.delete();
+
+            guildSetup = await setup?.update({
+              where: { channelId: connectedChannel.id },
+              data: { webhook: null },
+            });
+
+            await settingsMenu.reply({
+              content: 'Webhook messages have been disabled.',
+              ephemeral: true,
+            });
+            break;
+          }
+          await settingsMenu.reply({
+            content: `${emoji.normal.loading} Creating webhook...`,
+            ephemeral: true,
+          });
+
+          let webhook;
+          try {
+            webhook = await connectedChannel.createWebhook({
+              name: 'ChatBot Network',
+              avatar: interaction.client.user?.avatarURL(),
+            });
+          }
+          catch {
+            interaction.editReply('Please grant me `Manage Webhook` permissions for this to work.');
+            return;
+          }
+
+
+          await settingsMenu.editReply(`${emoji.normal.loading} Initializing & saving webhook data...`);
+          await setup?.updateMany({
+            where: { guildId: interaction.guild?.id },
+            data: {
+              webhook: { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
+            },
+          });
+          await settingsMenu.editReply(`${emoji.normal.yes} Webhooks have been enabled!`);
+          break;
+        }
+
+        /* Invite Selection Response */
+        case 'invite': {
+          await interaction.followUp({
+            content: 'Setting an invite allows users throughout the network view and join your server. At the moment visible only though the `Server Info` context menu, but will be available in other coming features. Servers that go against our </rules:924659340898619395> will be removed and blacklisted.',
+            ephemeral: true,
+          });
+
+          const modal = new ModalBuilder()
+            .setCustomId(settingsMenu.id)
+            .setTitle('Report')
+            .addComponents(
+              new ActionRowBuilder<TextInputBuilder>().addComponents(
+                new TextInputBuilder()
+                  .setCustomId('invite_link')
+                  .setStyle(TextInputStyle.Short)
+                  .setLabel('Invite Link')
+                  .setPlaceholder('Provide a invite link or code. Leave blank to remove.')
+                  .setValue('https://discord.gg/')
+                  .setMaxLength(35)
+                  .setRequired(false),
+              ),
+            );
+
+          await settingsMenu.showModal(modal);
+
+          settingsMenu.awaitModalSubmit({ time: 60_000, filter: (i) => i.customId === modal.data.custom_id })
+            .then(async (i) => {
+              const link = i.fields.getTextInputValue('invite_link');
+
+              if (!link) {
+                await setup.updateMany({
+                  where: { guildId: i.guild?.id },
+                  data: { invite: { unset: true } },
+                });
+                interaction.editReply({ embeds: [await setupEmbed.default()] });
+                return i.reply({ content: 'Invite unset.', ephemeral: true });
+              }
+
+              const isValid = await i.client?.fetchInvite(link).catch(() => null);
+
+              if (!isValid || isValid.guild?.id !== i.guild?.id) {
+                return i.reply({
+                  content: 'Invalid Invite.',
+                  ephemeral: true,
+                });
+              }
+
+              await setup.updateMany({
+                where: { guildId: i.guild?.id },
+                data: { invite: isValid.code },
+              });
+
+              i.reply({
+                content: 'Invite link successfully set!',
+                ephemeral: true,
+              });
+              interaction.editReply({ embeds: [await setupEmbed.default()] });
+            }).catch((e) => {if (!e.message.includes('reason: time')) logger.error(e);});
+          break;
+        }
       }
-      await setupCollection.updateMany({ where: { guildId: interaction.guild?.id }, data: { date: new Date() } });
+      await setup.updateMany({ where: { guildId: interaction.guild?.id }, data: { date: new Date() } });
 
       settingsMenu.replied || settingsMenu.deferred
         ? interaction.editReply({ embeds: [await setupEmbed.default()] })
         : settingsMenu.update({ embeds: [await setupEmbed.default()] });
-    });
-
-    buttonCollector.on('collect', async (component) => {
-      switch (component.customId) {
-        case 'reconnect': {
-          const channel = await interaction.guild?.channels
-            .fetch(String(guildSetup?.channelId))
-            .catch(() => null) as GuildTextBasedChannel | null;
-
-          if (guildConnected) {
-            network.disconnect(interaction.guildId);
-            logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
-          }
-
-          await network.connect(interaction.guild, channel);
-          logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
-
-          setupActionButtons.components.at(-1)?.setDisabled(false);
-
-          component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
-          interaction.editReply({
-            embeds: [await setupEmbed.default()],
-            components: [customizeMenu, setupActionButtons],
-          });
-          break;
-        }
-
-        case 'disconnect':
-          await network.disconnect({ channelId: guildSetup?.channelId });
-          setupActionButtons.components.at(-1)?.setDisabled(true);
-
-          logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
-
-          component.message.edit({
-            embeds: [await setupEmbed.default()],
-            components: [customizeMenu, setupActionButtons],
-          });
-          component.reply({ content: 'Disconnected!', ephemeral: true });
-          break;
-
-        default:
-          break;
-      }
     });
 
     selectCollector.on('end', () => {
@@ -352,7 +369,7 @@ class SetupEmbedGenerator {
     const guildSetupData = await db.setup.findFirst({ where: { guildId: this.interaction?.guild?.id } });
     const guild = this.interaction.client.guilds.cache.get(`${guildSetupData?.guildId}`);
     const channel = guild?.channels.cache.get(`${guildSetupData?.channelId}`);
-    const guildNetworkData = await new NetworkManager().getServerData({ channelId: channel?.id });
+    const guildNetworkData = await getServerData({ channelId: channel?.id });
 
     // option enabled/disabled emojis
     const invite = guildSetupData?.invite ? `[\`${guildSetupData.invite}\`](https://discord.gg/${guildSetupData.invite})` : 'Not Set.';

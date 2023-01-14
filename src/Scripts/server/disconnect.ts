@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { NetworkManager } from '../../Structures/network';
 import { getDb, getGuildName } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
+import { disconnect } from '../../Structures/network';
 import logger from '../../Utils/logger';
 
 exports.execute = async (interaction: ChatInputCommandInteraction) => {
@@ -10,11 +10,10 @@ exports.execute = async (interaction: ChatInputCommandInteraction) => {
   const database = getDb();
   const connectedList = database.connectedList;
   const guildInDb = await connectedList.findFirst({ where: { serverId } });
-  const network = new NetworkManager();
 
   if (!guildInDb) return await interaction.reply('Server is not connected to the network.');
 
-  await network.disconnect({ serverId });
+  await disconnect({ serverId });
 
   modActions(interaction.user, {
     guild: { id: serverId },

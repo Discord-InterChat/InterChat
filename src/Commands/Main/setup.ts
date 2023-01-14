@@ -1,8 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, ChannelType } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import init from '../../Scripts/setup/init';
 import reset from '../../Scripts/setup/reset';
-import displayEmbed from '../../Scripts/setup/displayEmbed';
+import initialize from '../../Scripts/setup/initialize';
 
 export default {
   data: new SlashCommandBuilder()
@@ -42,9 +41,8 @@ export default {
     }
 
     switch (subcommand) {
-      case 'view': displayEmbed.execute(interaction, database); break;
-      case 'reset': reset.execute(interaction, database); break;
-      default: init.execute(interaction, database);
+      case 'reset': reset.execute(interaction); break;
+      default: initialize.execute(interaction);
     }
   },
 };

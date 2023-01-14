@@ -7,7 +7,7 @@ import { join } from 'path';
 import { colors, constants } from '../Utils/functions/utils';
 import { prisma } from '../Utils/db';
 import * as Sentry from '@sentry/node';
-
+import { stripIndents } from 'common-tags';
 export class ChatBot extends Client {
   constructor() {
     super({
@@ -26,6 +26,24 @@ export class ChatBot extends Client {
     this.description = project.description;
     this.version = project.version;
     this.emoji = emojis;
+    this.rulesEmbed = new EmbedBuilder()
+      .setTitle(`${this.emoji.normal.clipart} Network Rules`)
+      .setColor(colors('chatbot'))
+      .setImage('https://i.imgur.com/D2pYagc.png')
+      .setDescription(
+        stripIndents`
+          1. No spamming or flooding.
+          3. Advertising of any kind is prohibited.
+          4. Private matters should not be discussed in the network.
+          5. Do not make the chat uncomfortable for other users.
+          6. Using slurs is not allowed on the network.
+          7. Refrain from using bot commands in the network.
+          8. Trolling, insulting, and profanity is not allowed.
+          9. Posting explicit or NSFW content will result in an immediate blacklist.
+          10. Trivialization of sensitive topics such as self-harm, suicide and others which may cause offense to other members is prohibited.
+
+          *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,
+      );
   }
 
   public async start() {

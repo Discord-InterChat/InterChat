@@ -1,14 +1,13 @@
-import { PrismaClient } from '@prisma/client';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType } from 'discord.js';
-import { NetworkManager } from '../../Structures/network';
+import { disconnect } from '../../Structures/network';
+import { getDb } from '../../Utils/functions/utils';
 
 export = {
-  async execute(interaction: ChatInputCommandInteraction, db: PrismaClient) {
-    const network = new NetworkManager();
-
+  async execute(interaction: ChatInputCommandInteraction) {
     const { normal, icons } = interaction.client.emoji;
+    const { setup } = getDb();
 
-    if (!await db.setup?.findFirst({ where: { guildId: interaction.guildId?.toString() } })) {
+    if (!await setup?.findFirst({ where: { guildId: interaction.guildId?.toString() } })) {
       return interaction.reply(`${normal.no} This server is not setup yet.`);
     }
 
@@ -40,11 +39,11 @@ export = {
         return;
       }
 
-      await db.setup?.deleteMany({ where: { guildId: interaction.guild?.id } });
-      await network.disconnect(interaction.guildId);
+      await setup?.deleteMany({ where: { guildId: interaction.guild?.id } });
+      await disconnect({ serverId: interaction.guild?.id });
 
       collected.update({
-        content: `${normal.yes} Successfully reset.`,
+        content: `${normal.yes} Reset Complete.`,
         components: [],
       });
 

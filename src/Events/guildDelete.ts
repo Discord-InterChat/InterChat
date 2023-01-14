@@ -1,7 +1,7 @@
 import { colors, constants, getDb } from '../Utils/functions/utils';
 import { EmbedBuilder, Guild, TextChannel } from 'discord.js';
-import { NetworkManager } from '../Structures/network';
 import { stripIndents } from 'common-tags';
+import { disconnect } from '../Structures/network';
 
 
 export default {
@@ -9,7 +9,7 @@ export default {
   async execute(guild: Guild) {
     const database = getDb();
     await database.setup.deleteMany({ where: { guildId: guild.id } });
-    new NetworkManager().disconnect({ serverId: guild.id });
+    disconnect({ serverId: guild.id });
 
     const goalChannel = guild.client.channels.cache.get(constants.channel.goal) as TextChannel;
 
