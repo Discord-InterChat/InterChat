@@ -1,17 +1,7 @@
-import { stripIndents } from 'common-tags';
 import { getDb, constants, colors } from '../../Utils/functions/utils';
-import {
-  ModalBuilder,
-  ActionRowBuilder,
-  EmbedBuilder,
-  ContextMenuCommandBuilder,
-  ApplicationCommandType,
-  TextInputStyle,
-  TextInputBuilder,
-  MessageContextMenuCommandInteraction,
-  GuildTextBasedChannel,
-} from 'discord.js';
+import { ModalBuilder, ActionRowBuilder, EmbedBuilder, ContextMenuCommandBuilder, ApplicationCommandType, TextInputStyle, TextInputBuilder, MessageContextMenuCommandInteraction, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType, ButtonBuilder, ButtonStyle } from 'discord.js';
 import logger from '../../Utils/logger';
+import { captureException } from '@sentry/node';
 
 export default {
   description: 'Report a user directly from the Chat Network!',
@@ -37,67 +27,128 @@ export default {
 
     const cbhq = await interaction.client.guilds.fetch(constants.mainGuilds.cbhq);
     const reportsChannel = await cbhq.channels.fetch(constants.channel.reports) as GuildTextBasedChannel;
-
     const reportedUser = await interaction.client.users.fetch(messageInDb.authorId);
-    const reportedServer = await interaction.client.guilds.fetch(messageInDb.serverId);
 
     // network channelId in chatbot hq
     const cbhqJumpMsg = messageInDb.channelAndMessageIds.find((x) => x.channelId === '821607665687330816');
 
-    const modal = new ModalBuilder()
-      .setCustomId('modal')
-      .setTitle('Report')
-      .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setRequired(true)
-            .setCustomId('reason')
-            .setStyle(TextInputStyle.Paragraph)
-            .setLabel('Enter the reaon for your report')
-            .setMaxLength(2000),
-        ),
-      );
+    const emojis = interaction.client.emoji.normal;
 
-    await interaction.showModal(modal);
+    const confirmEmbed = new EmbedBuilder()
+      .setTitle('Report Type')
+      .setDescription('Thank you for submitting a report. In order for our staff team to investigate, please specify the reason for your report. If you are reporting a server or bug, please use the /support report command instead.')
+      .setFooter({ text: 'Submitting false reports will result in a warning.' })
+      .setColor(colors('chatbot'));
 
-    // respond to message when Modal is submitted
-    interaction.awaitModalSubmit({
-      time: 60_000 * 5,
-      filter: (i) => i.customId === 'modal' && i.user.id === interaction.user.id,
-    }).then(async (i) => {
-      const reason = i.fields.getTextInputValue('reason');
+    const typeSelect = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId('type')
+        .setPlaceholder('Choose a report type.')
+        .setMaxValues(2)
+        .addOptions([
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Harassment')
+            .setDescription('Verbal or written abuse or threats.')
+            .setValue('Harassment'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Bullying')
+            .setDescription('Repeated aggressive behavior that is intended to harm, intimidate, or control another person.')
+            .setValue('Bullying'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Toxicity')
+            .setDescription('Hate speech, discrimination, or offensive language.')
+            .setValue('Toxicity'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Spamming')
+            .setDescription('Repeated unwanted messages or links in chat.')
+            .setValue('Spamming'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Scamming')
+            .setDescription('Fraud or deceitful behavior.')
+            .setValue('Scamming'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Impersonation')
+            .setDescription('Pretending to be someone else.')
+            .setValue('Impersonation'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('NSFW Content')
+            .setDescription('Inappropriate or offensive content.')
+            .setValue('NSFW'),
+        ]),
+    );
 
-      // create embed with report info
-      // and send it to report channel
-      const embed = new EmbedBuilder()
-        .setAuthor({
-          name: `${reportedUser.tag} was reported!`,
-          iconURL: reportedUser.avatarURL() || reportedUser.defaultAvatarURL,
+    const message = await interaction.reply({
+      embeds: [confirmEmbed],
+      components: [typeSelect],
+      ephemeral: true,
+    });
+
+    const selectCollector = message.createMessageComponentCollector({
+      componentType: ComponentType.StringSelect,
+      idle: 60_000,
+    });
+
+    selectCollector.on('collect', async (i) => {
+      const selections = i.values;
+
+      const modal = new ModalBuilder()
+        .setCustomId(interaction.id)
+        .setTitle('Report')
+        .addComponents(
+          new ActionRowBuilder<TextInputBuilder>().addComponents(
+            new TextInputBuilder()
+              .setRequired(false)
+              .setCustomId('reason')
+              .setStyle(TextInputStyle.Paragraph)
+              .setLabel('Additional Details (OPTIONAL)')
+              .setMaxLength(2000),
+          ),
+        );
+
+      await i.showModal(modal);
+
+      i.awaitModalSubmit({ time: 60_000 * 5 })
+        .then(async (modalSubmit) => {
+          const reason = modalSubmit.fields.getTextInputValue('reason');
+
+          const embed = new EmbedBuilder()
+            .setTitle('User Reported')
+            .setDescription(`A new user report for \`${reportedUser.tag}\` was submitted.\n\n**Reported For:** ${selections.join(', ')}`)
+            .setColor(colors('chatbot'))
+            .setTimestamp()
+            .setFooter({
+              text: `By: ${modalSubmit.user.tag} | ${modalSubmit.user.id}.`,
+              iconURL: modalSubmit.user.avatarURL() || modalSubmit.user.defaultAvatarURL,
+            });
+
+          if (reason) embed.addFields({ name: 'Additional Details', value: reason });
+
+          const jumpButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+              .setLabel('Jump')
+              .setURL(`https://discord.com/channels/${cbhq.id}/${cbhqJumpMsg?.channelId}/${cbhqJumpMsg?.messageId}`)
+              .setStyle(ButtonStyle.Link),
+          );
+
+          await reportsChannel?.send({
+            embeds: [embed],
+            components: [jumpButton],
+          });
+          modalSubmit.reply({
+            content: `${emojis.yes} Your report has been successfully submitted! Join the support server to check the status of this report.`,
+            ephemeral: true,
+          });
         })
-        .setDescription(`**Reason**: ${reason}`)
-        .addFields({
-          name: 'Reported User',
-          value: stripIndents`
-						**Tag**: ${reportedUser.tag}
-						**From**: ${reportedServer.name} (${reportedServer.id})
-						**Message**: [Jump to Message](https://discord.com/channels/${cbhq.id}/${cbhqJumpMsg?.channelId}/${cbhqJumpMsg?.messageId})
-						**Raw**: \`\`\`${target.embeds[0]?.fields[0]?.value || target.content}\`\`\`
-						`,
-        })
-        .setFooter({
-          text: `Reported by: ${interaction.user.tag} | ${interaction.user.id}`,
-          iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,
-        })
-        .setColor(colors('chatbot'))
-        .setTimestamp();
-
-      await reportsChannel?.send({ embeds: [embed] });
-
-      // reply to interaction
-      await i.reply({ content: 'Thank you for your report!', ephemeral: true });
-    }).catch((err) => {
-      if (err.message.includes('ending with reason: time')) return;
-      logger.error('Error in report-app:', err);
+        .catch((e) => {
+          if (!e.message.includes('with reason: time')) {
+            logger.error(e);
+            captureException(e);
+            interaction.followUp({
+              content: `${emojis.no} An error occored while making the report.`,
+              ephemeral: true,
+            });
+          }
+        });
     });
   },
 };

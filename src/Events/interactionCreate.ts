@@ -1,7 +1,7 @@
 import { GuildMember, Interaction, PermissionsBitField } from 'discord.js';
 import { checkIfStaff } from '../Utils/functions/utils';
 import logger from '../Utils/logger';
-import * as Sentry from '@sentry/node';
+import { captureException } from '@sentry/node';
 
 export default {
   name: 'interactionCreate',
@@ -40,7 +40,7 @@ export default {
 
       catch (error) {
         logger.error(`[${interaction.commandName}]:`, error);
-        Sentry.captureException(error, {
+        captureException(error, {
           user: { id: interaction.user.id, username: interaction.user.tag },
           extra: { command: interaction.commandName },
         });
