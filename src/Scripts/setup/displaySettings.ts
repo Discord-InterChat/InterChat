@@ -61,7 +61,7 @@ export = {
     let guildSetup = await setup.findFirst({ where: { guildId: interaction.guild?.id } });
     const setupEmbed = new SetupEmbedGenerator(interaction);
 
-    if (!guildSetup) return interaction.followUp(`${emoji.normal.no} Server is not setup yet. Use \`/setup channel\` first.`);
+    if (!guildSetup) return interaction.followUp(`${emoji.normal.no} No network has been setup in this server. Use \`/setup channel\` first.`);
 
     const channelExists = interaction.client.channels.cache.get(guildSetup.channelId);
     if (!channelExists) disconnect({ channelId: guildSetup.channelId });
