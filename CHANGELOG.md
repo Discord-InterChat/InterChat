@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.8.0](https://github.com/Discord-ChatBot/Discord-ChatBot/compare/v3.7.0...v3.8.0) (2023-02-16)
+
+
+### Features
+
+* **setup:** onboarding for new setups ([fd731b3](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/fd731b359b7c4ac8611d5c042a95fa85b1e104aa))
+
+
+### Bug Fixes
+
+* **deletemsg:** fix interaction failure ([567efa7](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/567efa7dd06e0b46aa46819d7c51c618744bfd36))
+* Embed webhooks now use ChatBot's avatar ([fb05fbd](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/fb05fbd13e83cc7a2d1e09acbf40aee26b8f31d9))
+* fix missing replies in uncensored embed ([9217c67](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/9217c6741a5d9097d19d8fdb38239f41d1ddcd26))
+* fixed major bugs | [#10](https://github.com/Discord-ChatBot/Discord-ChatBot/issues/10) ([90feb68](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/90feb68422d53df383fd7dbbfa804352d2087661))
+* **network:** fix typo which let unknown channels stay in db ([d66eabc](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/d66eabcd269166145faff9a38c17588c09073a0c))
+* **report:** made report commands more user-friendly ([00f0b49](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/00f0b49afbcd5873569687efc28d1904cf3d4679))
+* **setup:** fix errors with /setup view ([cedfd29](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/cedfd299cab4555aadc976193d35e543ae7b7942))
+* **setup:** fix webhooks not updating when channel changed ([c536e98](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/c536e98d3c58ff0fa7e5bbc7290e4f77ebad1cfe))
+
 ## [3.7.0](https://github.com/discord-chatbot/discord-chatbot/compare/v3.5.0...v3.7.0) (2023-01-12)
 
 
