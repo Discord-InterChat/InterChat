@@ -26,11 +26,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Backup old logs
-        run: |
-              mkdir ~/console-logs/$(date +'%Y-%m-%d-%M')/
-              mv logs/* ~/console-logs/$(date +'%Y-%m-%d-%M')/
-
       - name: Build code
         run: |
               pm2 stop build/src/index.js
