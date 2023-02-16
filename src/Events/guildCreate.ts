@@ -71,15 +71,15 @@ export default {
       await sendInFirst(guild, { embeds: [embed], components: [buttons] }).catch(() => null);
     }
 
-    const goalChannel = guild.client.channels.cache.get(constants.channel.goal) as TextChannel;
+    const goalChannel = guild.client.channels.cache.get(constants.channel.goal) as TextChannel | undefined;
     const guildOwner = await guild.fetchOwner();
 
-    goalChannel.send({
+    goalChannel?.send({
       embeds: [
         new EmbedBuilder()
           .setTitle('I have joined a new server! 🙌')
           .setDescription(stripIndents`
-	          **${800 - guild.client.guilds.cache.size}** servers more to go! ${tada}
+	          **${900 - guild.client.guilds.cache.size}** servers more to go! ${tada}
 					
             **Server Name:** ${guild.name} (${guild.id})
 	          **Owner:** ${guildOwner.user.tag} (${guildOwner?.id})
