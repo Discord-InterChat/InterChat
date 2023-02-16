@@ -4,7 +4,7 @@ import messageTypes from '../Scripts/message/messageTypes';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import { APIMessage, EmbedBuilder, Message } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
-import cleanup, { InvalidChannelId, InvalidWebhookId } from '../Scripts/message/cleanup';
+import cleanup, { InvalidChannelId } from '../Scripts/message/cleanup';
 import { getServerData } from '../Structures/network';
 
 export interface NetworkMessage extends Message {
@@ -49,7 +49,7 @@ export default {
     const attachments = await messageContentModifiers.attachImageToEmbed(message, embed, censoredEmbed);
     await addBadges.execute(message, db, embed, censoredEmbed);
 
-    const channelAndMessageIds: Promise<InvalidChannelId | InvalidWebhookId | APIMessage | Message<true>>[] = [];
+    const channelAndMessageIds: Promise<InvalidChannelId | APIMessage | Message<true> | undefined>[] = [];
     const allConnectedChannels = await db.connectedList.findMany();
 
     // send the message to all connected channels in apropriate format (webhook/compact/normal)

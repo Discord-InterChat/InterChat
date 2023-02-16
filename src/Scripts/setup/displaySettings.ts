@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel } from 'discord.js';
 import { connect, disconnect, getServerData, updateData } from '../../Structures/network';
 import { colors, getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
@@ -62,10 +62,12 @@ export = {
     const setupEmbed = new SetupEmbedGenerator(interaction);
 
     if (!guildSetup) return interaction.followUp(`${emoji.normal.no} Server is not setup yet. Use \`/setup channel\` first.`);
-    if (!guildConnected) disconnect({ channelId: guildSetup.channelId });
+
+    const channelExists = interaction.client.channels.cache.get(guildSetup.channelId);
+    if (!channelExists) disconnect({ channelId: guildSetup.channelId });
 
     const setupMessage = await interaction.editReply({
-      content: guildConnected
+      content: channelExists
         ? ''
         : `${emoji.normal.no} Automatically disconnected due to error receiving network messages. Change the channel to use the network.`,
       embeds: [await setupEmbed.default()],
@@ -183,23 +185,21 @@ export = {
             const channel = select.guild?.channels.cache.get(select?.values[0]);
             let webhook = undefined;
 
-            if (oldchannel?.type !== ChannelType.GuildText || channel?.type !== ChannelType.GuildText) return; // so TS doesnt complain
-
             if (guildSetup?.webhook) {
               // delete the old webhook
-              oldchannel?.fetchWebhooks().then(promisehook => {
+              (oldchannel as TextChannel)?.fetchWebhooks().then(promisehook => {
                 promisehook.find((hook) => hook.owner?.id === hook.client.user?.id)?.delete().catch(() => null);
               }).catch(() => null);
 
               // create a webhook in the new channel
-              webhook = await channel.createWebhook({ name: 'ChatBot Network', avatar: select.client.user.avatarURL() });
+              webhook = await (channel as TextChannel)?.createWebhook({ name: 'ChatBot Network', avatar: select.client.user.avatarURL() });
             }
 
             await updateData({ channelId: guildSetup?.channelId }, { channelId: select?.values[0] });
             guildSetup = await setup.update({
               where: { channelId: guildSetup?.channelId },
               data: {
-                channelId: channel.id,
+                channelId: channel?.id,
                 webhook: webhook ? { set: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } } : null,
               },
             });
@@ -377,7 +377,7 @@ class SetupEmbedGenerator {
 
     return new EmbedBuilder()
       .setTitle('Edit Settings')
-      .setDescription(`Showing network settings for ${channel || 'None.'}.`)
+      .setDescription(`Showing network settings for ${channel || 'None'}.`)
       .addFields([
         { name: 'Channel', value: `${channel || `${emoji.normal.no} Error.`}`, inline: true },
         { name: 'Connected', value: connected, inline: true },

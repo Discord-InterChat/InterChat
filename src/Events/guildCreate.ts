@@ -2,6 +2,7 @@ import { EmbedBuilder, AuditLogEvent, Guild, ButtonBuilder, ActionRowBuilder, Bu
 import { sendInFirst, colors, getDb, constants } from '../Utils/functions/utils';
 import { stripIndents } from 'common-tags';
 import wordFilter from '../Utils/functions/wordFilter';
+import { captureException } from '@sentry/node';
 
 export default {
   name: 'guildCreate',
@@ -91,6 +92,6 @@ export default {
           .setTimestamp()
           .setColor(colors()),
       ],
-    });
+    }).catch((e) => captureException(e));
   },
 };

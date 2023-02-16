@@ -5,7 +5,7 @@ export interface InvalidChannelId {unknownChannelId?: string}
 export interface InvalidWebhookId {unknownWebhookId?: string}
 
 export default {
-  execute: async (message: Message, channelAndMessageIds: Promise<Message | InvalidChannelId | InvalidWebhookId | APIMessage>[]) => {
+  execute: async (message: Message, channelAndMessageIds: Promise<Message | InvalidChannelId | InvalidWebhookId | APIMessage | undefined>[]) => {
     message.delete().catch(() => null);
     // All message data is stored in the database, so we can delete the message from the network later
     const settledChannelMessages = await Promise.allSettled(channelAndMessageIds);

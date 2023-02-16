@@ -7,6 +7,11 @@ export = {
   async execute(message: Message, database: PrismaClient) {
     // true = pass, false = fail (checks)
 
+    if (message.content.length >= 1000) {
+      message.reply('Please keep your message shorter than 1000 characters long.');
+      return false;
+    }
+
     const userInBlacklist = await database.blacklistedUsers?.findFirst({ where: { userId: message.author.id } });
     const serverInBlacklist = await database.blacklistedServers?.findFirst({ where: { serverId: message.guild?.id } });
 
