@@ -15,12 +15,13 @@ export default {
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const db = getDb();
-    const userId = interaction.options.getString('user');
+    const userInput = interaction.options.getString('user') || interaction.user.id;
     const emojis = interaction.client.emoji;
 
     // if user is not staff the ID they provided is someone else's
     const staffUser = await checkIfStaff(interaction.user);
-    if (!staffUser && userId !== interaction.user.id) {
+
+    if (!staffUser && userInput !== interaction.user.id) {
       return interaction.reply({
         content: `${emojis.normal.no} You do not have the necessary permissions to view warnings given to other users.`,
         ephemeral: true,
@@ -28,15 +29,15 @@ export default {
     }
 
     // fetch the user from discord to check if they actually exist
-    const user = userId
-      ? await interaction.client.users.fetch(userId)
+    const resolvedUser = typeof userInput === 'string'
+      ? await interaction.client.users.fetch(userInput)
         .catch(() => {
-          return interaction.client.users.cache.find((usr) => usr.tag === userId);
+          return interaction.client.users.cache.find((usr) => usr.tag === userInput);
         })
       : interaction.user;
 
     // reply with an error if they don't
-    if (!user) {
+    if (!resolvedUser) {
       return interaction.reply({
         content: `${emojis.normal.no} Invalid user provided.`,
         ephemeral: true,
@@ -44,7 +45,7 @@ export default {
     }
 
     // check in Db if that entry exists
-    const userWarns = await db.userWarns.findFirst({ where: { userId: user.id } });
+    const userWarns = await db.userWarns.findFirst({ where: { userId: resolvedUser.id } });
 
     // reply with an error if that entry doesn't exist
     if (!userWarns?.warnings) {
@@ -64,7 +65,7 @@ export default {
       };
     });
     const embed = new EmbedBuilder()
-      .setAuthor({ name: `Warnings for ${user.tag}`, iconURL: user.avatarURL() || user.defaultAvatarURL })
+      .setAuthor({ name: `Warnings for ${resolvedUser.tag}`, iconURL: resolvedUser.avatarURL() || resolvedUser.defaultAvatarURL })
       .setDescription(`**Total Warnings:** ${userWarns.warnings.length}`)
       .setFields(warnList)
       .setColor('Random')
