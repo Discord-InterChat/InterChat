@@ -5,6 +5,7 @@ import messageContentModifiers from '../Scripts/message/messageContentModifiers'
 import { APIMessage, EmbedBuilder, Message } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import cleanup, { InvalidChannelId, InvalidWebhookId } from '../Scripts/message/cleanup';
+import { getServerData } from '../Structures/network';
 
 export interface NetworkMessage extends Message {
   compact_message: string,
@@ -18,7 +19,7 @@ export default {
     if (message.author.bot || message.webhookId || message.system) return;
 
     const db = getDb();
-    const connected = await db?.connectedList.findFirst({ where: { channelId: message.channelId } });
+    const connected = await getServerData({ channelId: message.channelId });
 
     // ignore the message if it is not in an active network channel
     if (!connected || !await checks.execute(message, db)) return;
