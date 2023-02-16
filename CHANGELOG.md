@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.8.1](https://github.com/Discord-ChatBot/Discord-ChatBot/compare/v3.8.0...v3.8.1) (2023-02-16)
+
+
+### Bug Fixes
+
+* **goal:** Fixed `undefined` leave messages ([2dadfaa](https://github.com/Discord-ChatBot/Discord-ChatBot/commit/2dadfaa88ea03db59e4a0b3bcd7d98692f795df0))
+
 ## [3.8.0](https://github.com/Discord-ChatBot/Discord-ChatBot/compare/v3.7.0...v3.8.0) (2023-02-16)
 
 
