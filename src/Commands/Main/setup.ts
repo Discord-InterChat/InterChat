@@ -11,7 +11,7 @@ export default {
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .setDMPermission(false)
     .addSubcommand((subcommand) => subcommand.setName('reset').setDescription('Reset the setup for this server.'))
-    .addSubcommand((subcommand) => subcommand.setName('view').setDescription('View and edit your setup.'))
+    .addSubcommand((subcommand) => subcommand.setName('edit').setDescription('Edit an already existing setup for this server.'))
     .addSubcommand((subcommand) =>
       subcommand
         .setName('channel')
@@ -43,7 +43,7 @@ export default {
 
     switch (subcommand) {
       case 'reset': reset.execute(interaction); break;
-      case 'view': displaySettings.execute(interaction); break;
+      case 'edit': displaySettings.execute(interaction); break;
       default: initialize.execute(interaction);
     }
   },

@@ -45,7 +45,7 @@ export default {
     await messageContentModifiers.execute(message);
 
     const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content || '\u200B' });
-    const attachments = await messageContentModifiers.attachmentModifiers(message, embed, censoredEmbed);
+    const attachments = await messageContentModifiers.attachImageToEmbed(message, embed, censoredEmbed);
     await addBadges.execute(message, db, embed, censoredEmbed);
 
     const channelAndMessageIds: Promise<InvalidChannelId | InvalidWebhookId | APIMessage | Message<true>>[] = [];
