@@ -26,7 +26,7 @@ export default {
 
     const embed = new EmbedBuilder()
       .setTimestamp()
-      .setColor(colors('invisible'))
+      .setColor(colors('random'))
       .addFields([{ name: 'Message', value: message.content || '\u200B' }])
       .setAuthor({
         name: message.author.tag,
