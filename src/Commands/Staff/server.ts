@@ -5,7 +5,7 @@ export default {
   data: new SlashCommandBuilder()
     .setName('server')
     .setDescription('Leaves the specified server. Staff-only.')
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
     .addSubcommand((subcommand) =>
       subcommand
         .setName('leave')
@@ -25,7 +25,7 @@ export default {
         .addBooleanOption(boolOption =>
           boolOption
             .setName('notify')
-            .setDescription('Whether to notify the server about the leave.')
+            .setDescription('Whether or not to notify the server about the leave. (Default: true)')
             .setRequired(false),
         ),
     )
@@ -33,13 +33,18 @@ export default {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('disconnect')
-        .setDescription('Disconnects from the specified server. Staff-only.')
+        .setDescription('Force disconnect from a specified server. Staff-only.')
         .addStringOption((stringOption) =>
           stringOption
             .setName('serverid')
             .setDescription('The server you want to disconnect from the network.')
             .setRequired(true),
         ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('connected-list')
+        .setDescription('Display the connected servers. (Staff only)'),
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {

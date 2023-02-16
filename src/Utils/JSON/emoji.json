@@ -2,9 +2,9 @@
     "normal": {
         "yes": "<:yes:977600103206498354>",
         "neutral": "<:neutral:977600034055016499>",
-	"no": "<:no:977600033740431410>",
+	    "no": "<:no:977600033740431410>",
         "chatbotStaff": "<:DiscordStaff:1032320201724809267>",
-	"invite": "<:add:1032318201134067722>", 
+	    "invite": "<:add:1032318201134067722>", 
         "clipart": "<:chat_clipart:772393314413707274>",
         "checkGreen": "<a:Check_green:772393366109290498>",
         "tada": "<a:tada:772393312652886017>",
@@ -28,7 +28,8 @@
         "dndMobile": "<:dndmobile:715050614047899741>",
         "idleMobile": "<:idlemobile:715050614278717500>",
         "description": "<:description:1035140306414342164>",
-        "slash": "<:slash:1049191025903685733>"
+        "slash": "<:slash:1049191025903685733>",
+        "reply": "<:reply:1064781138477985792>"
     },
 
 

@@ -1,8 +1,8 @@
 
-name: Restart ChatBot
+name: Deploy Code & Restart Bot
 on: 
   push:
-    branches: main
+    branches: [main]
     paths-ignore:
       - archive/**
       - CHANGELOG.md 
@@ -21,17 +21,23 @@ jobs:
     steps:      
       - name: Checkout repository
         uses: actions/checkout@v3
+
         # note to self: Files are stored in ~/actions-runner/chatbot-production-build/Discord-ChatBot/Discord-ChatBot 
       - name: Install dependencies
         run: npm ci
-        
+
+      - name: Backup old logs
+        run: |
+              mkdir ~/console-logs/$(date +'%Y-%m-%d-%M')/
+              mv logs/* ~/console-logs/$(date +'%Y-%m-%d-%M')/
+
       - name: Build code
         run: |
               pm2 stop build/src/index.js
               npm run build --if-present
               npm prune --omit=dev
-        
-      - name: Update env & start bot 
+
+      - name: Update env & Restart bot 
         run: | 
               cp ~/important/chatbot-env .env
               cd build/ && pm2 restart --update-env src/index.js --ignore-watch logs --watch        

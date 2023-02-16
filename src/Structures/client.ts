@@ -2,13 +2,13 @@ import fs from 'fs';
 import logger from '../Utils/logger';
 import emojis from '../Utils/JSON/emoji.json';
 import project from '../../package.json';
-import { Client, Collection, ActivityType, EmbedBuilder, MessageCreateOptions, GuildTextBasedChannel } from 'discord.js';
+import { Client, Collection, ActivityType, EmbedBuilder, MessageCreateOptions } from 'discord.js';
 import { join } from 'path';
-import { colors, constants } from '../Utils/functions/utils';
+import { colors } from '../Utils/functions/utils';
 import { prisma } from '../Utils/db';
 import * as Sentry from '@sentry/node';
 import { stripIndents } from 'common-tags';
-export class ChatBot extends Client {
+export class ExtendedClient extends Client {
   constructor() {
     super({
       intents: ['Guilds', 'GuildMessages', 'GuildMembers', 'MessageContent'],
@@ -46,14 +46,14 @@ export class ChatBot extends Client {
       );
   }
 
-  public async start() {
+  public async start(token?: string) {
     this.loadCommands();
     this.loadEvents();
 
     // Error monitoring (sentry.io)
     Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 1.0 });
 
-    return await this.login(process.env.TOKEN);
+    return await this.login(token || process.env.TOKEN);
   }
 
   public async sendInNetwork(message: string | MessageCreateOptions): Promise<void> {
@@ -68,19 +68,6 @@ export class ChatBot extends Client {
         });
       }
     });
-  }
-
-  public async sendErrorToChannel(embedTitle: string, ErrorStack: unknown, channel?: GuildTextBasedChannel) {
-    const errorChannel = await this.channels.fetch(constants.channel.errorlogs);
-    const errorEmbed = new EmbedBuilder()
-      .setAuthor({ name: 'ChatBot Error Logs', iconURL: this.user?.avatarURL() || undefined })
-      .setTitle(embedTitle)
-      .setDescription('```js\n' + ErrorStack + '```')
-      .setColor(colors('invisible'))
-      .setTimestamp();
-
-
-    return channel ? channel.send({ embeds: [errorEmbed] }) : errorChannel?.isTextBased() ? errorChannel?.send({ embeds: [errorEmbed] }) : undefined;
   }
 
   protected loadCommands() {

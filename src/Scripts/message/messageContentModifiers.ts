@@ -54,7 +54,7 @@ export = {
     return messageInDb;
   },
 
-  async attachmentModifiers(message: NetworkMessage, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {
+  async attachImageToEmbed(message: NetworkMessage, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {
     // Tenor Gifs / YouTube Thumbnails / Tenor Gifs
     const imageURLRegex = /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png|\.webp)/;
     const URLMatch = message.content.match(imageURLRegex);

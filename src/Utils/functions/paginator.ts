@@ -16,9 +16,9 @@ export async function paginate(interaction: CommandInteraction, pages: EmbedBuil
 
   // eslint-disable-next-line prefer-const
   let index = 0, row = new ActionRowBuilder<ButtonBuilder>().addComponents([
-    new ButtonBuilder().setEmoji(buttons.back).setCustomId('1').setStyle(ButtonStyle.Secondary).setDisabled(true),
-    new ButtonBuilder().setEmoji(buttons.exit).setCustomId('3').setStyle(ButtonStyle.Danger),
-    new ButtonBuilder().setEmoji(buttons.next).setCustomId('2').setStyle(ButtonStyle.Secondary).setDisabled(pages.length <= index + 1),
+    new ButtonBuilder().setEmoji(buttons.back).setCustomId('1').setStyle(ButtonStyle.Primary).setDisabled(true),
+    new ButtonBuilder().setEmoji(buttons.exit).setCustomId('3').setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder().setEmoji(buttons.next).setCustomId('2').setStyle(ButtonStyle.Primary).setDisabled(pages.length <= index + 1),
   ]);
 
   let pagenumber = 0;
@@ -32,7 +32,7 @@ export async function paginate(interaction: CommandInteraction, pages: EmbedBuil
     components: [row],
     fetchReply: true,
   };
-  const listMessage = interaction.replied ? await interaction.followUp(data) : await interaction.reply(data);
+  const listMessage = interaction.replied || interaction.deferred ? await interaction.followUp(data) : await interaction.reply(data);
 
   const col = listMessage.createMessageComponentCollector({ filter: i => i.user.id === interaction.user.id, idle: time, componentType: ComponentType.Button });
 
@@ -47,9 +47,9 @@ export async function paginate(interaction: CommandInteraction, pages: EmbedBuil
 
 
     row.setComponents([
-      new ButtonBuilder().setEmoji(buttons.back).setStyle(ButtonStyle.Secondary).setCustomId('1').setDisabled(index === 0),
-      new ButtonBuilder().setEmoji(buttons.exit).setStyle(ButtonStyle.Danger).setCustomId('3'),
-      new ButtonBuilder().setEmoji(buttons.next).setStyle(ButtonStyle.Secondary).setCustomId('2').setDisabled(index === pages.length - 1),
+      new ButtonBuilder().setEmoji(buttons.back).setStyle(ButtonStyle.Primary).setCustomId('1').setDisabled(index === 0),
+      new ButtonBuilder().setEmoji(buttons.exit).setStyle(ButtonStyle.Secondary).setCustomId('3'),
+      new ButtonBuilder().setEmoji(buttons.next).setStyle(ButtonStyle.Primary).setCustomId('2').setDisabled(index === pages.length - 1),
     ]);
 
     try {pages[pagenumber].setFooter({ text: `Page ${pagenumber + 1} / ${pages.length}` });}

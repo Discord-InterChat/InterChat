@@ -1,10 +1,17 @@
 import logger from '../../Utils/logger';
-import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, MessageCreateOptions, WebhookClient, WebhookCreateMessageOptions } from 'discord.js';
+import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, MessageCreateOptions, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import { NetworkMessage } from '../../Events/messageCreate';
 import { getDb } from '../../Utils/functions/utils';
-import { InvalidChannelId, InvalidWebhookId } from './cleanup';
+import { InvalidChannelId } from './cleanup';
 import { connectedList, messageData, setup } from '@prisma/client';
 
+/*
+ FIXME:
+ Rewrite this entire process of sending message to the network.
+  I have commented out the return values from two of the catch blocks
+  as it disconnects every channel if there is an error (eg. too long message; too huge file size to send),
+  this isn't a flaw with the code so that disconnection was unnecessary. And a ton of lost data from the db.
+*/
 export = {
   execute: async (
     message: NetworkMessage,
@@ -37,7 +44,8 @@ export = {
       }
       catch (e) {
         logger.error('Failed to send Webhook Message: ', e);
-        return { unknownWebhookId: webhook.id } as InvalidWebhookId;
+        return;
+        // return { unknownWebhookId: webhook.id } as InvalidWebhookId;
       }
     }
 
@@ -47,7 +55,8 @@ export = {
     }
     catch (e) {
       logger.error('Failed to send Message: ', e);
-      return { unknownChannelId: channelToSend.id } as InvalidChannelId;
+      return;
+      // return { unknownChannelId: channelToSend.id } as InvalidChannelId;
     }
   },
 };
@@ -69,7 +78,7 @@ const createSendOptions = (message: NetworkMessage, attachments: AttachmentBuild
 
 // decides which type of (webhook) message to send depending on the settings of channel
 const createWebhookOptions = (message: NetworkMessage, attachments: AttachmentBuilder | undefined, replyButton: ActionRowBuilder<ButtonBuilder> | null, channelInSetup: setup, censoredEmbed: EmbedBuilder, embed: EmbedBuilder) => {
-  const webhookMessage: WebhookCreateMessageOptions = {
+  const webhookMessage: WebhookMessageCreateOptions = {
     username: message.author.tag,
     avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
     files: attachments ? [attachments] : [],

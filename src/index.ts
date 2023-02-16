@@ -1,5 +1,5 @@
-import { ChatBot } from './Structures/client';
+import { ExtendedClient } from './Structures/client';
 
-const client = new ChatBot();
+const client = new ExtendedClient();
 
 client.start();

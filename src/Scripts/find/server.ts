@@ -113,7 +113,7 @@ async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
       {
         name: 'Network Info',
         value: stripIndents`
-				> **Connected: ${guildInDb ? 'Yes' : 'No'}**
+				> **Connected:** ${guildInDb ? 'Yes' : 'No'}
 				> **Setup:** ${guildInSetup ? 'Yes' : 'No'}
 				> **Blacklisted:** ${guildBlacklisted ? 'Yes' : 'No'}
 				> **Channel(s):** ${guildInDb ? `${channelName} (${guildInDb?.channelId})` : 'Not Connected'}`,
