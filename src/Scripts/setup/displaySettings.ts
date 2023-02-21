@@ -1,7 +1,41 @@
-import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, RestOrArray, APIEmbedField, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel } from 'discord.js';
+import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel } from 'discord.js';
 import { connect, disconnect, getServerData, updateData } from '../../Structures/network';
 import { colors, getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
+
+// function to make it easier to edit embeds with updated data
+async function setupEmbed(interaction: ChatInputCommandInteraction) {
+  const db = getDb();
+  const emoji = interaction.client.emoji;
+
+  const guildSetupData = await db.setup.findFirst({ where: { guildId: interaction?.guild?.id } });
+  const guild = interaction.client.guilds.cache.get(`${guildSetupData?.guildId}`);
+  const channel = guild?.channels.cache.get(`${guildSetupData?.channelId}`);
+  const guildNetworkData = await getServerData({ channelId: channel?.id });
+
+  // enabled/disabled emojis
+  const connected = guildNetworkData ? emoji.normal.yes : emoji.normal.no;
+  const profanity = guildSetupData?.profFilter ? emoji.normal.enabled : emoji.normal.disabled;
+  const webhook = guildSetupData?.webhook ? emoji.normal.enabled : emoji.normal.disabled;
+  const compact = guildSetupData?.compact ? emoji.normal.enabled : emoji.normal.disabled;
+  const invite = guildSetupData?.invite ? `Code: [\`${guildSetupData.invite}\`](https://discord.gg/${guildSetupData.invite})` : 'Not Set.';
+
+  return new EmbedBuilder()
+    .setTitle('Edit Settings')
+    .setDescription(`Showing network settings for ${channel || 'None'}.`)
+    .addFields([
+      { name: 'Channel', value: `${channel || `${emoji.normal.no} Error.`}`, inline: true },
+      { name: 'Connected', value: connected, inline: true },
+      { name: 'Invite', value: invite, inline: true },
+      { name: 'Compact', value: compact, inline: true },
+      { name: 'Profanity Filter', value: profanity, inline: true },
+      { name: 'Webhook', value: webhook, inline: true },
+    ])
+    .setColor(colors('chatbot'))
+    .setThumbnail(interaction.guild?.iconURL() || interaction.client.user.avatarURL())
+    .setTimestamp()
+    .setFooter({ text: 'Use to menu below to edit.' });
+}
 
 export = {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -30,27 +64,27 @@ export = {
         .addOptions(
           new StringSelectMenuOptionBuilder()
             .setLabel('Compact')
-            .setEmoji(emoji.normal.clipart as any)
+            .setEmoji(emoji.normal.clipart)
             .setDescription('Disable embeds in the network to fit more messages. Works with webhooks.')
             .setValue('compact'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Profanity Filter')
-            .setEmoji('🤬' as any)
+            .setEmoji('🤬')
             .setDescription('Toggle swear word censoring for this server.')
             .setValue('profanity'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Webhook')
-            .setEmoji(emoji.normal.webhook as any)
+            .setEmoji(emoji.normal.webhook)
             .setDescription('Network messages will be sent using webhooks instead.')
             .setValue('webhook'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Invite Link')
-            .setEmoji(emoji.icons.members as any)
+            .setEmoji(emoji.icons.members)
             .setDescription('Set an invite for network users to join your server easily!')
             .setValue('invite'),
           new StringSelectMenuOptionBuilder()
             .setLabel('Switch Channel')
-            .setEmoji(emoji.icons.store as any)
+            .setEmoji(emoji.icons.store)
             .setDescription('Set a different channel for the network.')
             .setValue('change_channel'),
         ),
@@ -59,8 +93,6 @@ export = {
 
     const { setup } = getDb();
     let guildSetup = await setup.findFirst({ where: { guildId: interaction.guild?.id } });
-    const setupEmbed = new SetupEmbedGenerator(interaction);
-
     if (!guildSetup) return interaction.followUp(`${emoji.normal.no} No network has been setup in this server. Use \`/setup channel\` first.`);
 
     const channelExists = interaction.client.channels.cache.get(guildSetup.channelId);
@@ -70,18 +102,22 @@ export = {
       content: channelExists
         ? ''
         : `${emoji.normal.no} Automatically disconnected due to error receiving network messages. Change the channel to use the network.`,
-      embeds: [await setupEmbed.default()],
+      embeds: [await setupEmbed(interaction)],
       components: [customizeMenu, setupActionButtons],
     });
 
     const filter = (m: Interaction) => m.user.id === interaction.user.id;
 
-    /* ------------------- Button Responce collectors ---------------------- */
     const buttonCollector = setupMessage.createMessageComponentCollector({
       filter,
       componentType: ComponentType.Button,
     });
-
+    const selectCollector = setupMessage.createMessageComponentCollector({
+      filter,
+      idle: 60_000 * 5,
+      componentType: ComponentType.StringSelect,
+    });
+    /* ------------------- Button Responce collectors ---------------------- */
     buttonCollector.on('collect', async (component) => {
       switch (component.customId) {
         case 'reconnect': {
@@ -104,7 +140,7 @@ export = {
 
           component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
           interaction.editReply({
-            embeds: [await setupEmbed.default()],
+            embeds: [await setupEmbed(interaction)],
             components: [customizeMenu, setupActionButtons],
           });
           break;
@@ -121,7 +157,7 @@ export = {
           logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
 
           component.message.edit({
-            embeds: [await setupEmbed.default()],
+            embeds: [await setupEmbed(interaction)],
             components: [customizeMenu, setupActionButtons],
           });
           component.reply({ content: 'Disconnected!', ephemeral: true });
@@ -133,13 +169,6 @@ export = {
     });
 
     /* ------------------- SelectMenu Responce collectors ---------------------- */
-
-    const selectCollector = setupMessage.createMessageComponentCollector({
-      filter,
-      idle: 60_000 * 5,
-      componentType: ComponentType.StringSelect,
-    });
-
     selectCollector.on('collect', async (settingsMenu) => {
       guildSetup = await setup.findFirst({ where: { guildId: interaction.guild?.id } });
 
@@ -208,7 +237,7 @@ export = {
               content: 'Channel successfully changed!',
               components: [],
             });
-            interaction.editReply({ embeds: [await setupEmbed.default()] });
+            interaction.editReply({ embeds: [await setupEmbed(interaction)] });
           });
           break;
         }
@@ -282,7 +311,7 @@ export = {
 
           const modal = new ModalBuilder()
             .setCustomId(settingsMenu.id)
-            .setTitle('Report')
+            .setTitle('Set Invite')
             .addComponents(
               new ActionRowBuilder<TextInputBuilder>().addComponents(
                 new TextInputBuilder()
@@ -307,7 +336,7 @@ export = {
                   where: { guildId: i.guild?.id },
                   data: { invite: { unset: true } },
                 });
-                interaction.editReply({ embeds: [await setupEmbed.default()] });
+                interaction.editReply({ embeds: [await setupEmbed(interaction)] });
                 return i.reply({ content: 'Invite unset.', ephemeral: true });
               }
 
@@ -329,16 +358,15 @@ export = {
                 content: 'Invite link successfully set!',
                 ephemeral: true,
               });
-              interaction.editReply({ embeds: [await setupEmbed.default()] });
+              interaction.editReply({ embeds: [await setupEmbed(interaction)] });
             }).catch((e) => {if (!e.message.includes('reason: time')) logger.error(e);});
           break;
         }
       }
-      await setup.updateMany({ where: { guildId: interaction.guild?.id }, data: { date: new Date() } });
 
       settingsMenu.replied || settingsMenu.deferred
-        ? interaction.editReply({ embeds: [await setupEmbed.default()] })
-        : settingsMenu.update({ embeds: [await setupEmbed.default()] });
+        ? interaction.editReply({ embeds: [await setupEmbed(interaction)] })
+        : settingsMenu.update({ embeds: [await setupEmbed(interaction)] });
     });
 
     selectCollector.on('end', () => {
@@ -346,64 +374,10 @@ export = {
       const disabledMenu: ActionRowBuilder<StringSelectMenuBuilder> = new ActionRowBuilder(customizeMenu);
       disabledMenu.components.forEach((menu) => menu.setDisabled(true));
       disabledBtns.components.forEach((button) => button.setDisabled(true));
+      buttonCollector.stop('Components disabled.');
 
       interaction.editReply({ components: [disabledMenu, disabledBtns] }).catch(() => null);
       return;
     });
   },
 };
-
-// Embed classes to make it easier to call and edit multiple embeds
-class SetupEmbedGenerator {
-  private interaction: ChatInputCommandInteraction;
-  constructor(interaction: ChatInputCommandInteraction) {
-    this.interaction = interaction;
-  }
-  async default() {
-    const db = getDb();
-    const emoji = this.interaction.client.emoji;
-
-    const guildSetupData = await db.setup.findFirst({ where: { guildId: this.interaction?.guild?.id } });
-    const guild = this.interaction.client.guilds.cache.get(`${guildSetupData?.guildId}`);
-    const channel = guild?.channels.cache.get(`${guildSetupData?.channelId}`);
-    const guildNetworkData = await getServerData({ channelId: channel?.id });
-
-    // enabled/disabled emojis
-    const connected = guildNetworkData ? emoji.normal.yes : emoji.normal.no;
-    const profanity = guildSetupData?.profFilter ? emoji.normal.enabled : emoji.normal.disabled;
-    const webhook = guildSetupData?.webhook ? emoji.normal.enabled : emoji.normal.disabled;
-    const compact = guildSetupData?.compact ? emoji.normal.enabled : emoji.normal.disabled;
-    const invite = guildSetupData?.invite ? `Code: [\`${guildSetupData.invite}\`](https://discord.gg/${guildSetupData.invite})` : 'Not Set.';
-
-    return new EmbedBuilder()
-      .setTitle('Edit Settings')
-      .setDescription(`Showing network settings for ${channel || 'None'}.`)
-      .addFields([
-        { name: 'Channel', value: `${channel || `${emoji.normal.no} Error.`}`, inline: true },
-        { name: 'Connected', value: connected, inline: true },
-        { name: 'Invite', value: invite, inline: true },
-        { name: 'Compact', value: compact, inline: true },
-        { name: 'Profanity Filter', value: profanity, inline: true },
-        { name: 'Webhook', value: webhook, inline: true },
-      ])
-      .setColor(colors('chatbot'))
-      .setThumbnail(this.interaction.guild?.iconURL() || this.interaction.client.user.avatarURL())
-      .setTimestamp()
-      .setFooter({ text: 'Use to menu below to edit.' });
-  }
-  customFields(fields: RestOrArray<APIEmbedField>) {
-    return new EmbedBuilder()
-      .setColor(colors('chatbot'))
-      .addFields(...fields)
-      .setThumbnail(this.interaction.guild?.iconURL() || null)
-      .setTimestamp()
-      .setAuthor({
-        name: this.interaction.guild?.name as string,
-        iconURL: this.interaction.guild?.iconURL()?.toString(),
-      })
-      .setFooter({
-        text: `Requested by: ${this.interaction.user.tag}`,
-        iconURL: this.interaction.user.avatarURL() ?? this.interaction.user.defaultAvatarURL,
-      });
-  }
-}
