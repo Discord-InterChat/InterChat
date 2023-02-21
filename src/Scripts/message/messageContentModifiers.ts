@@ -1,21 +1,14 @@
-import wordFilter from '../../Utils/functions/wordFilter';
 import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
 import { NetworkMessage } from '../../Events/messageCreate';
 import { messageData } from '@prisma/client';
 import { getDb } from '../../Utils/functions/utils';
 import 'dotenv/config';
 
-export = {
-  async execute(message: NetworkMessage) {
-    message.censored_content = wordFilter.censor(message.content);
-    message.censored_compact_message = wordFilter.censor(message.compact_message);
-  },
-
+export default {
   async appendReply(message: NetworkMessage, uncenEmbed: EmbedBuilder) {
     const db = getDb();
-    message.compact_message = `**${message.author.tag}:** ${message.content}`;
-
     let messageInDb: messageData | null | undefined = null;
+
     if (message.reference) {
       const referredMessage = await message.fetchReference().catch(() => null);
 

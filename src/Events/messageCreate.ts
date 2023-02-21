@@ -5,7 +5,7 @@ import messageContentModifiers from '../Scripts/message/messageContentModifiers'
 import { APIMessage, EmbedBuilder, Message } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import cleanup, { InvalidChannelId } from '../Scripts/message/cleanup';
-import { getServerData } from '../Structures/network';
+import { censor } from '../Utils/functions/wordFilter';
 
 export interface NetworkMessage extends Message {
   compact_message: string,
@@ -19,11 +19,13 @@ export default {
     if (message.author.bot || message.webhookId || message.system) return;
 
     const db = getDb();
-    const connected = await getServerData({ channelId: message.channelId });
+    const allConnectedChannels = await db.connectedList.findMany();
+    const connected = allConnectedChannels.find((c) => c.channelId === message.channelId);
 
     // ignore the message if it is not in an active network channel
     if (!connected || !await checks.execute(message, db)) return;
 
+    message.compact_message = `**${message.author.tag}:** ${message.content}`;
     const embed = new EmbedBuilder()
       .setTimestamp()
       .setColor(colors('random'))
@@ -39,18 +41,18 @@ export default {
       });
 
 
-    // Get data message being replied to from the db for jump buttons (message content is modified)
+    // Add quoted reply to original message and embed
     const replyInDb = await messageContentModifiers.appendReply(message, embed);
 
-    // define censored properties to message class (message.censored_xxxx) (message content is modified)
-    await messageContentModifiers.execute(message);
-
+    // Once reply is appended to the message, run it through the word fillter
+    message.censored_content = censor(message.content);
+    message.censored_compact_message = censor(message.compact_message);
     const censoredEmbed = new EmbedBuilder(embed.data).setFields({ name: 'Message', value: message.censored_content || '\u200B' });
+
     const attachments = await messageContentModifiers.attachImageToEmbed(message, embed, censoredEmbed);
     await addBadges.execute(message, db, embed, censoredEmbed);
 
     const channelAndMessageIds: Promise<InvalidChannelId | APIMessage | Message<true> | undefined>[] = [];
-    const allConnectedChannels = await db.connectedList.findMany();
 
     // send the message to all connected channels in apropriate format (webhook/compact/normal)
     allConnectedChannels?.forEach((channel) => {
