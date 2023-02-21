@@ -6,31 +6,11 @@ export default {
     .setDescription('Invite the bot to your server'),
   async execute(interaction: ChatInputCommandInteraction) {
     const { normal } = interaction.client.emoji;
-    const permissions = [
-      PermissionFlagsBits.ManageChannels,
-      PermissionFlagsBits.ManageWebhooks,
-      PermissionFlagsBits.ChangeNickname,
-      PermissionFlagsBits.ViewChannel,
-      PermissionFlagsBits.SendMessages,
-      PermissionFlagsBits.SendMessagesInThreads,
-      PermissionFlagsBits.ManageGuild,
-      PermissionFlagsBits.ManageMessages,
-      PermissionFlagsBits.ManageThreads,
-      PermissionFlagsBits.EmbedLinks,
-      PermissionFlagsBits.AttachFiles,
-      PermissionFlagsBits.ReadMessageHistory,
-      PermissionFlagsBits.UseExternalEmojis,
-      PermissionFlagsBits.AddReactions,
-      PermissionFlagsBits.ViewAuditLog,
-    ];
 
     const InviteButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
       new ButtonBuilder()
         .setLabel('Normal')
-        .setURL(interaction.client.generateInvite({
-          scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands],
-          permissions,
-        }))
+        .setURL(interaction.client.inviteLink)
         .setStyle(ButtonStyle.Link)
         .setEmoji(normal.invite)
         .setDisabled(false),
