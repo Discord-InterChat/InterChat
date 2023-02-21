@@ -18,6 +18,8 @@ export default {
       members.push(member);
     }
 
+    console.log(members.map((m) => m.tag));
+
     const embed = new EmbedBuilder()
       .setColor(colors('chatbot'))
       .setTitle(`${icons.info} ChatBot Information`)
@@ -30,7 +32,7 @@ export default {
 
 						${normal.chatbot_circle} **Avatar & Badges:** 
 						> \`-\` ${members[0].tag}
-						> \`-\` ${members[4]?.tag}
+						> \`-\` ${members.at(-1)?.tag}
 
 						${icons.botdev} **Developers:**
 						> \`-\` ${members[1].tag}
@@ -38,8 +40,8 @@ export default {
 						> \`-\` ${members[3].tag}
 
 						${icons.staff} **Staff:**
-						> \`-\` ${members[4]?.tag}
-						*Psst. Join the support server to know more about how you can become a staff member!*	
+						> \`-\` ${members.at(-2)?.tag}
+            > \`-\` ${members.at(-1)?.tag}
 					`,
         },
         {

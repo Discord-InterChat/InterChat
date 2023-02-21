@@ -191,7 +191,6 @@ export const constants = {
   topgg,
 
   developers: [
-    '748190663597883392',
     '828492978716409856',
     '701727675311587358',
     '456961943505338369',
@@ -213,4 +212,4 @@ export const constants = {
     suggestions: '1021256657528954900',
     reviews: '1002874342343970946',
   },
-};
+} as const;
