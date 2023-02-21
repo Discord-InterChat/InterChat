@@ -135,7 +135,7 @@ export = {
                 content: stripIndents`
                   ${emojis.no} I couldn't find a user with that ID.\n\n
                   **To find a user's ID within the network, please follow these instructions:**
-                  ${emojis.dotYellow} Right click on a message sent from the server in question select \`Apps > User Info\` or you can get it from the [embed author](https://i.imgur.com/AbTTlry.gif). Please double-check the ID and try again.
+                  ${emojis.dotYellow} Right click on a message sent from the user in question select \`Apps > User Info\` or you can get it from the [embed author](https://i.imgur.com/AbTTlry.gif). Please double-check the ID and try again.
                   `,
                 ephemeral: true,
               });
@@ -160,7 +160,7 @@ export = {
                 content: stripIndents`
                 ${emojis.no} I couldn't find a server with that ID.\n
                 **To find a server ID within the network, please follow these instructions:**
-                ${emojis.dotYellow}  Right click on a message sent by the user in question and select \`Apps > Server Info\`. Please double-check the ID and try again.
+                ${emojis.dotYellow}  Right click on a message sent by the server in question and select \`Apps > Server Info\`. Please double-check the ID and try again.
                 `,
                 ephemeral: true,
               });
