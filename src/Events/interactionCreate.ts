@@ -1,7 +1,7 @@
-import { GuildMember, Interaction, PermissionsBitField } from 'discord.js';
+import { Interaction } from 'discord.js';
 import { checkIfStaff } from '../Utils/functions/utils';
-import logger from '../Utils/logger';
 import { captureException } from '@sentry/node';
+import logger from '../Utils/logger';
 
 export default {
   name: 'interactionCreate',
@@ -12,12 +12,9 @@ export default {
     }
 
     else if (interaction.isChatInputCommand() || interaction.isMessageContextMenuCommand()) {
-      const requiredPerms = new PermissionsBitField(['SendMessages', 'EmbedLinks']);
-
       if (
         interaction.inCachedGuild() &&
-        !interaction.channel?.permissionsFor(interaction.guild.members.me as GuildMember)
-          .has(requiredPerms)
+        !interaction.channel?.permissionsFor(interaction.client.user)?.has(['SendMessages', 'EmbedLinks'])
       ) {
         return interaction.reply({
           content: 'I do not have the right permissions in this channel to function properly!',

@@ -120,7 +120,7 @@ export function toHuman(milliseconds: number): string {
  * Checks if a user is a ChatBot Staff or Developer
  * @param client Discord.JS client
  * @param user The user to check
- * @param onlyDeveloper Check if the user is a developer
+ * @param onlyDeveloper Only check if user is a developer
  */
 export async function checkIfStaff(user: discord.GuildMember | discord.User, onlyDeveloper = false) {
   try {

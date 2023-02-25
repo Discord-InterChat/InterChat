@@ -13,6 +13,7 @@ export = {
 
     const db = getDb();
     const blacklistedServers = db?.blacklistedServers;
+    const emoji = interaction.client.emoji.normal;
 
     const components = async () => {
       const guildBlacklisted = await blacklistedServers?.findFirst({
@@ -65,8 +66,9 @@ export = {
           i.followUp({ content: 'Server removed from blacklist.', ephemeral: hidden });
           break;
         case 'leave':
-          i.reply({ content: 'Leaving Server....', ephemeral: hidden });
+          i.reply({ content: 'Leaving Server...', ephemeral: hidden });
           await server.leave();
+          i.editReply(`${emoji.yes} Successfully left **${server.name}**.`);
           break;
         default:
           break;
@@ -76,14 +78,14 @@ export = {
 };
 
 async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
-  const database = getDb();
+  const { connectedList, setup, blacklistedServers } = getDb();
 
-  const guildInDb = await database.connectedList.findFirst({ where: { serverId: guild.id } });
-  const guildInSetup = await database.setup.findFirst({ where: { guildId: guild.id } });
-  const guildBlacklisted = await database.blacklistedServers.findFirst({ where: { serverId: guild.id } });
+  const guildInDb = await connectedList.findFirst({ where: { serverId: guild.id } });
+  const guildInSetup = await setup.findFirst({ where: { guildId: guild.id } });
+  const guildBlacklisted = await blacklistedServers.findFirst({ where: { serverId: guild.id } });
   const guildBoostLevel = guild.premiumTier === 0 ? 'None' : guild.premiumTier === 1 ? 'Level 1' : guild.premiumTier === 2 ? 'Level 2' : guild.premiumTier === 3 ? 'Level 3' : 'Unknown';
 
-  const emojis = guild.client.emoji;
+  const { yes, no } = guild.client.emoji.normal;
   const channelName = await guild.client.channels.fetch(String(guildInDb?.channelId)).catch(() => null);
 
   return new EmbedBuilder()
@@ -96,27 +98,28 @@ async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
       {
         name: 'Server Info',
         value: stripIndents`
-				> **Server ID:** ${guild.id}
-				> **Owner:** ${GuildOwner?.user.tag} (${GuildOwner?.id})
-				> **Created:** <t:${Math.round(guild.createdTimestamp / 1000)}:R>
-				> **Language:** ${guild.preferredLocale}
-				> **Boost Level:** ${guildBoostLevel}
-				> **Member Count:** ${guild.memberCount}
-				`,
+        > **Server ID:** ${guild.id}
+        > **Owner:** ${GuildOwner?.user.tag} (${GuildOwner?.id})
+        > **Created:** <t:${Math.round(guild.createdTimestamp / 1000)}:R>
+        > **Language:** ${guild.preferredLocale}
+        > **Boost Level:** ${guildBoostLevel}
+        > **Member Count:** ${guild.memberCount}
+        `,
       },
 
       {
         name: 'Server Features:',
-        value: guild.features.map(feat => '> ' + toTitleCase(feat.replaceAll('_', ' ')) + '\n').join('') || `> ${emojis.normal.no} No Features`,
+        value: guild.features.map(feat => '> ' + toTitleCase(feat.replaceAll('_', ' ')) + '\n').join('') || `> ${no} No Features Enabled`,
       },
 
       {
         name: 'Network Info',
         value: stripIndents`
-				> **Connected:** ${guildInDb ? 'Yes' : 'No'}
-				> **Setup:** ${guildInSetup ? 'Yes' : 'No'}
-				> **Blacklisted:** ${guildBlacklisted ? 'Yes' : 'No'}
-				> **Channel(s):** ${guildInDb ? `${channelName} (${guildInDb?.channelId})` : 'Not Connected'}`,
+        > **Connected:** ${guildInDb ? yes : no}
+        > **Setup:** ${guildInSetup ? yes : no}
+        > **Blacklisted:** ${guildBlacklisted ? yes : no}
+        > **Setup At:** ${guildInSetup ? `<t:${Math.round(guildInSetup.date?.getTime() / 1000)}:d>` : 'Not setup yet.'}
+        > **Channel(s):** ${guildInDb ? `${channelName} (${guildInDb?.channelId})` : 'Not Connected.'}`,
       },
     ]);
 }
