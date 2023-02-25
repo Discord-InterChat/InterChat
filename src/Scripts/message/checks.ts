@@ -7,25 +7,24 @@ export = {
   async execute(message: Message, database: PrismaClient) {
     // true = pass, false = fail (checks)
 
-    if (message.content.length >= 1000) {
-      message.reply('Please keep your message shorter than 1000 characters long.');
+    const userInBlacklist = await database.blacklistedUsers?.findFirst({
+      where: { userId: message.author.id },
+    });
+    const serverInBlacklist = await database.blacklistedServers?.findFirst({
+      where: { serverId: message.guild?.id },
+    });
+
+    if (userInBlacklist) {
+      if (!userInBlacklist.notified) {
+        message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**.`).catch(() => null);
+        await database.blacklistedUsers.update({ where: { userId: message.author.id }, data: { notified: true } });
+      }
       return false;
     }
-
-    const userInBlacklist = await database.blacklistedUsers?.findFirst({ where: { userId: message.author.id } });
-    const serverInBlacklist = await database.blacklistedServers?.findFirst({ where: { serverId: message.guild?.id } });
-
     if (serverInBlacklist) return false;
-    if (userInBlacklist) {
-      // if user is in blacklist and Notified is false, send them a message saying they are blacklisted
-      if (!userInBlacklist.notified) {
-        await database.blacklistedUsers.update({
-          where: { userId: message.author.id },
-          data: { notified: true },
-        });
-        message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**. Please join the support server and contact the staff if you think the reason is not valid.`).catch(() => null);
-      }
 
+    if (message.content.length > 1000) {
+      message.reply('Please keep your message shorter than 1000 characters long.');
       return false;
     }
 
@@ -38,8 +37,9 @@ export = {
     if (
       message.content.includes('discord.gg') ||
       message.content.includes('discord.com/invite') ||
-      message.content.includes('dsc.gg')) {
-      message.react(message.client.emoji.normal.no).catch(() => null);
+      message.content.includes('dsc.gg')
+    ) {
+      message.reply('Do not advertise or promote servers in the network. Set an invite in the setup instead!');
       return false;
     }
 
@@ -50,14 +50,16 @@ export = {
     }
 
     if (message.stickers.size > 0 && !message.content) {
-      message.reply('Sending stickers within the network is not a feature that is currently available. We apologize for any inconvenience this may cause.');
+      message.reply('Sending stickers is not in the network possible. We apologize for any inconvenience this may cause.');
       return false;
     }
 
     // TODO
     const attachmentType = message.attachments.first()?.contentType;
-    if (attachmentType?.includes('mp4') || attachmentType?.includes('mov') || attachmentType?.includes('webm')) {
-      message.reply('Sending videos has been temporarily disabled.');
+    const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+
+    if (attachmentType && !allowedTypes.includes(attachmentType)) {
+      message.reply('Only images and gifs are allowed to be sent within the network.');
       return false;
     }
 
