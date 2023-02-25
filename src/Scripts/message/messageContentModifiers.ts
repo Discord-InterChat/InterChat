@@ -5,7 +5,7 @@ import { getDb } from '../../Utils/functions/utils';
 import 'dotenv/config';
 
 export default {
-  async appendReply(message: NetworkMessage, uncenEmbed: EmbedBuilder) {
+  async appendReply(message: NetworkMessage) {
     const db = getDb();
     let messageInDb: messageData | null | undefined = null;
 
@@ -13,7 +13,7 @@ export default {
       const referredMessage = await message.fetchReference().catch(() => null);
 
       if (referredMessage) {
-        messageInDb = await db?.messageData.findFirst({
+        messageInDb = await db.messageData.findFirst({
           where: {
             channelAndMessageIds: {
               some: { messageId: referredMessage.id },
@@ -21,44 +21,44 @@ export default {
           },
         });
 
-        let embed = referredMessage.embeds[0]?.fields[0]?.value;
-        let compact = referredMessage.content;
+        // content of the message being replied to
+        let replyContent = referredMessage.embeds[0]?.fields[0]?.value || referredMessage.content;
 
         // if the message is a reply to another reply, remove the older reply :D
         if (messageInDb?.reference) {
-          const replaceReply = (string: string) => {
-            return string?.split(/> .*/g).at(-1)?.trimStart() || string;
-          };
-
-          // messages that are being replied to
-          embed = replaceReply(embed);
-          compact = replaceReply(compact);
+          replyContent = replyContent?.split(/> .*/g).at(-1)?.trimStart() || replyContent;
         }
 
-        embed = embed?.replaceAll('\n', '\n> ');
-        compact = compact?.replaceAll('\n', '\n> ');
+        replyContent = replyContent?.replaceAll('\n', '\n> ');
 
-        message.content = `> ${embed || compact}\n${message.content}`;
-        message.compact_message = `> ${embed || compact}\n${message.compact_message}`;
-        uncenEmbed.setFields({ name: 'Message', value: message.content });
+        const maxLength = 1000; // max length of an embed field (-24 just to be safe)
+        const prefixLength = 6; // length of "> ", "\n" and "..."
+        const availableLength = maxLength - prefixLength - message.content.length;
+
+        // if it is too long, cut it off to make room for the reply
+        if (replyContent.length > availableLength) {
+          replyContent = replyContent.slice(0, availableLength) + '...';
+        }
+
+        message.content = `> ${replyContent}\n${message.content}`;
+        message.compact_message = `> ${replyContent}\n${message.compact_message}`;
       }
-
     }
     return messageInDb;
   },
 
   async attachImageToEmbed(message: NetworkMessage, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {
-    // Tenor Gifs / YouTube Thumbnails / Tenor Gifs
+    // Tenor Gifs / Image URLs
     const imageURLRegex = /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png|\.webp)/;
     const URLMatch = message.content.match(imageURLRegex);
 
     if (URLMatch) {
       embed
         .setImage(URLMatch[0])
-        .setFields([{ name: 'Message', value: message.content.replace(URLMatch[0], '\u200B').trim() }]);
+        .setFields({ name: 'Message', value: message.content.replace(URLMatch[0], '\u200B').trim() });
       censoredEmbed
         .setImage(URLMatch[0])
-        .setFields([{ name: 'Message', value: message.censored_content.replace(URLMatch[0], '\u200B').trim() }]);
+        .setFields({ name: 'Message', value: message.censored_content.replace(URLMatch[0], '\u200B').trim() });
     }
 
     const tenorRegex = /https:\/\/tenor\.com\/view\/.*-(\d+)/;
@@ -72,23 +72,17 @@ export default {
 
       embed
         .setImage(gifJSON.results[0].media[0].gif.url)
-        .setFields([{ name: 'Message', value: message.content.replace(gifMatch[0], '\u200B').trim() }]);
+        .setFields({ name: 'Message', value: message.content.replace(gifMatch[0], '\u200B').trim() });
       censoredEmbed
         .setImage(gifJSON.results[0].media[0].gif.url)
-        .setFields([{ name: 'Message', value: message.censored_content.replace(gifMatch[0], '\u200B').trim() }]);
-    }
-
-    else if (message.embeds[0]?.provider?.name === 'YouTube' && message.embeds[0]?.data.thumbnail) {
-      embed.setImage(message.embeds[0].data.thumbnail.url);
-      censoredEmbed.setImage(message.embeds[0].data.thumbnail.url);
+        .setFields({ name: 'Message', value: message.censored_content.replace(gifMatch[0], '\u200B').trim() });
     }
 
     // Attached Images (uploaded without url)
-    if (message.attachments.size > 1) message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
-
     const attachment = message.attachments.first();
+    if (attachment) {
+      if (message.attachments.size > 1) message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
 
-    if (attachment?.contentType?.includes('mp4') === false) {
       const newAttachment = new AttachmentBuilder(`${attachment.url}`, { name: `${attachment.name}` });
       embed.setImage(`attachment://${newAttachment.name}`);
       censoredEmbed.setImage(`attachment://${newAttachment.name}`);

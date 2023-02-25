@@ -26,10 +26,14 @@ export default {
     if (!connected || !await checks.execute(message, db)) return;
 
     message.compact_message = `**${message.author.tag}:** ${message.content}`;
+
+    // Add quoted reply to original message and embed
+    const replyInDb = await messageContentModifiers.appendReply(message);
+
     const embed = new EmbedBuilder()
       .setTimestamp()
       .setColor(colors('random'))
-      .addFields([{ name: 'Message', value: message.content || '\u200B' }])
+      .addFields({ name: 'Message', value: message.content || '\u200B' })
       .setAuthor({
         name: message.author.tag,
         iconURL: message.author.avatarURL() || message.author.defaultAvatarURL,
@@ -39,10 +43,6 @@ export default {
         text: `From: ${message.guild}`,
         iconURL: message.guild?.iconURL()?.toString(),
       });
-
-
-    // Add quoted reply to original message and embed
-    const replyInDb = await messageContentModifiers.appendReply(message, embed);
 
     // Once reply is appended to the message, run it through the word fillter
     message.censored_content = censor(message.content);
