@@ -66,7 +66,7 @@ const createSendOptions = (message: NetworkMessage, attachments: AttachmentBuild
   const options: MessageCreateOptions = {
     files: attachments ? [attachments] : [],
     components: replyButton ? [replyButton] : [],
-    allowedMentions: { parse: ['users'] },
+    allowedMentions: { parse: [] },
   };
 
   channelInSetup?.compact
@@ -83,7 +83,7 @@ const createWebhookOptions = (message: NetworkMessage, attachments: AttachmentBu
     avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
     files: attachments ? [attachments] : [],
     components: replyButton ? [replyButton] : [],
-    allowedMentions: { parse: ['users'] },
+    allowedMentions: { parse: [] },
   };
 
   if (channelInSetup.compact) {
