@@ -1,6 +1,6 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
 import { networkMsgUpdate } from '../../Scripts/networkLogs/networkMsgUpdate';
-import { checkIfStaff, constants } from '../../Utils/functions/utils';
+import { checkIfStaff, topgg } from '../../Utils/functions/utils';
 import { prisma } from '../../Utils/db';
 import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
@@ -11,7 +11,7 @@ export default {
     .setType(ApplicationCommandType.Message),
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
-    const hasVoted = await constants.topgg.hasVoted(interaction.user.id);
+    const hasVoted = await topgg.hasVoted(interaction.user.id);
     const isStaff = await checkIfStaff(interaction.user);
 
     if (!hasVoted && !isStaff) {

@@ -1,9 +1,8 @@
 import { Client } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
 import { modActions } from '../Scripts/networkLogs/modActions';
-import { getDb } from '../Utils/functions/utils';
+import { getDb, topgg } from '../Utils/functions/utils';
 import logger from '../Utils/logger';
-// import { constants } from '../Utils/functions/utils';
 
 export default {
   name: 'ready',
@@ -90,6 +89,6 @@ export default {
         });
       });
     }
-    // constants.topgg.postStats({ serverCount: client.guilds.cache.size });
+    topgg.postStats({ serverCount: client.guilds.cache.size });
   },
 };

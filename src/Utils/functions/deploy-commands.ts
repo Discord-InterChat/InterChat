@@ -9,8 +9,8 @@ import logger from '../logger';
 import 'dotenv/config';
 
 const clientID = process.env.CLIENT_ID as string;
-const server = process.argv[3]?.toLowerCase() || constants.mainGuilds.cbhq;
-const IgnoredDirs = ['Developer', 'TopGG', 'Staff', 'Levelling']; // FIXME: Remove levelling system from here when it is fully implemented
+const server = process.argv[3]?.toLowerCase() || constants.guilds.cbhq;
+const IgnoredDirs = ['Developer', 'Staff', 'Levelling']; // FIXME: Remove levelling system from here when it is fully implemented
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN as string);
 

@@ -31,7 +31,7 @@ export async function networkMsgUpdate(member: GuildMember, oldMessage: Message,
             ${emoji.normal.dotYellow} **Server:** ${member.guild.name} (${member.guild.id})
             ${emoji.normal.dotYellow} **Attachments:** ${attachmentLink ? `[Click to view](${attachmentLink})` : 'None.'}
             ${emoji.normal.dotYellow} **Created At:** <t:${Math.round(newMessage.timestamp.getTime() / 1000)}:R>
-            [Jump To Message](https://discord.com/channels/${constants.mainGuilds.cbhq}/${cbhqJumpMsg?.channelId}/${cbhqJumpMsg?.messageId})`)
+            [Jump To Message](https://discord.com/channels/${constants.guilds.cbhq}/${cbhqJumpMsg?.channelId}/${cbhqJumpMsg?.messageId})`)
     .addFields(
       { 'name': 'Old', 'value': messageContent },
       { 'name': 'New', 'value': newMessage.content },

@@ -25,7 +25,7 @@ export default {
       return interaction.reply({ content: 'You cannot report yourself!', ephemeral: true });
     }
 
-    const cbhq = await interaction.client.guilds.fetch(constants.mainGuilds.cbhq);
+    const cbhq = await interaction.client.guilds.fetch(constants.guilds.cbhq);
     const reportsChannel = await cbhq.channels.fetch(constants.channel.reports) as GuildTextBasedChannel;
     const reportedUser = await interaction.client.users.fetch(messageInDb.authorId);
 

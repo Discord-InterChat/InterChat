@@ -6,9 +6,8 @@ import 'dotenv/config';
 // eslint-disable-next-line
 // @ts-ignore
 import _ from 'lodash/string';
-import { badge } from '../JSON/emoji.json';
-
-const topgg = new Api(process.env.TOPGG as string);
+import { badge, normal } from '../JSON/emoji.json';
+import { stripIndents } from 'common-tags';
 
 export function toTitleCase(txt: string) {
   return _.startCase(_.toLower(txt));
@@ -145,6 +144,7 @@ export async function checkIfStaff(user: discord.GuildMember | discord.User, onl
   }
 }
 
+// TODO: This is sooo outdated, but works for now
 /** Delete channels from databse that chatbot doesn't have access to.*/
 export async function deleteChannels(client: discord.Client) {
   const channels = await prisma.connectedList.findMany();
@@ -187,20 +187,30 @@ export function badgeToEmoji(badgeArr: string[]) {
   return badgeString || null;
 }
 
+export const topgg = new Api(process.env.TOPGG as string);
+export const rulesEmbed = new discord.EmbedBuilder()
+  .setTitle(`${normal.clipart} Network Rules`)
+  .setColor(colors('chatbot'))
+  .setImage('https://i.imgur.com/D2pYagc.png')
+  .setDescription(
+    stripIndents`
+          1. No spamming or flooding.
+          3. Advertising of any kind is prohibited.
+          4. Private matters should not be discussed in the network.
+          5. Do not make the chat uncomfortable for other users.
+          6. Using slurs is not allowed on the network.
+          7. Refrain from using bot commands in the network.
+          8. Trolling, insulting, and profanity is not allowed.
+          9. Posting explicit or NSFW content will result in an immediate blacklist.
+          10. Trivialization of sensitive topics such as self-harm, suicide and others which may cause offense to other members is prohibited.
+          11. Do not attempt to get around the Profanity Filter.
+          *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,
+  );
+
 export const constants = {
-  topgg,
-
-  developers: [
-    '828492978716409856',
-    '701727675311587358',
-    '456961943505338369',
-  ],
-  staff: ['597265261665714186', '442653948630007808' ],
-
-  mainGuilds: {
-    cbhq: '770256165300338709',
-    cbTest: '969920027421732874',
-  },
+  developers: ['828492978716409856', '701727675311587358', '456961943505338369'],
+  staff: ['597265261665714186', '442653948630007808'],
+  guilds: { cbhq: '770256165300338709' },
 
   channel: {
     bugs: '1035135196053393418',

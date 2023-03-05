@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ComponentType, ButtonInteraction } from 'discord.js';
-import { colors } from '../../Utils/functions/utils';
+import { colors, rulesEmbed } from '../../Utils/functions/utils';
 
 /* Make user accept and understand important info on first setup */
 export default {
@@ -57,7 +57,7 @@ export default {
       );
 
       const acceptOnboarding = await response.update({
-        embeds: [response.client.rulesEmbed],
+        embeds: [rulesEmbed],
         components: [acceptButton],
       });
 

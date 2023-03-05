@@ -17,7 +17,6 @@ declare module 'discord.js' {
     version: string,
     emoji: typeof EmojiIDs,
     commandsArray: Array<{name: string, value: string}>
-    rulesEmbed: discord.EmbedBuilder;
     inviteLink: string;
     sendInNetwork(message: string | MessageCreateOptions): Promise<void>;
   }
