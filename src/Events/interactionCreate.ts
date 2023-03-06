@@ -16,7 +16,7 @@ export default {
         interaction.inCachedGuild() &&
         !interaction.channel?.permissionsFor(interaction.client.user)?.has(['SendMessages', 'EmbedLinks'])
       ) {
-        return interaction.reply({
+        return await interaction.reply({
           content: 'I do not have the right permissions in this channel to function properly!',
           ephemeral: true,
         });
@@ -42,17 +42,19 @@ export default {
           extra: { command: interaction.commandName },
         });
 
-        const errorMsg = {
-          content: 'There was an error while executing this command! The developers have been notified.',
-          ephemeral: true,
-          fetchReply: true,
-        };
-
-        interaction.deferred
-          ? await interaction.followUp(errorMsg)
-          : interaction.replied
-            ? await interaction.channel?.send(errorMsg)
-            : await interaction.reply(errorMsg);
+        try {
+          const errorMsg = {
+            content: 'There was an error while executing this command! The developers have been notified.',
+            ephemeral: true,
+            fetchReply: true,
+          };
+          interaction.deferred
+            ? await interaction.followUp(errorMsg)
+            : interaction.replied
+              ? await interaction.channel?.send(errorMsg)
+              : await interaction.reply(errorMsg);
+        }
+        catch {return;}
       }
     }
   },

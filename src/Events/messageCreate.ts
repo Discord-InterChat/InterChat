@@ -60,7 +60,7 @@ export default {
       channelAndMessageIds.push(messageSendResult);
     });
 
-    // delete unknown channels & insert message into messageData collection for future use
+    // disconnect unknown channels & insert message into messageData collection for future use
     cleanup.execute(message, channelAndMessageIds);
   },
 };

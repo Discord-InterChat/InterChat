@@ -21,7 +21,7 @@ export default {
           permissions: PermissionFlagsBits.Administrator,
         }))
         .setStyle(ButtonStyle.Link)
-        .setEmoji(normal.chatbotStaff)
+        .setEmoji(normal.discordStaff)
         .setDisabled(false),
     ]);
     await interaction.reply({

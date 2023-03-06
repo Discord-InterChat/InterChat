@@ -24,7 +24,7 @@ export default {
 
     // delete invalid channels from the database
     const db = getDb();
-    await db.connectedList?.deleteMany({ where: { channelId: { in: invalidChannelIds } } });
+    // await db.connectedList?.deleteMany({ where: { channelId: { in: invalidChannelIds } } });
     await db.setup.updateMany({
       where: { webhook: { is: { id: { in: invalidWebhookIds } } } },
       data: { webhook: null },
@@ -37,7 +37,7 @@ export default {
           channelAndMessageIds: messageDataObj,
           timestamp: message.createdTimestamp,
           authorId: message.author.id,
-          serverId: message.guild?.id,
+          serverId: message.guild.id,
           reference: message.reference,
           expired: false,
         },

@@ -11,10 +11,10 @@ export class ExtendedClient extends Client {
     super({
       intents: ['Guilds', 'GuildMessages', 'GuildMembers', 'MessageContent'],
       presence: {
-        status: 'online',
+        status: 'idle',
         activities: [{
-          name: `ChatBot v${project.version}`,
-          type: ActivityType.Watching,
+          name: 'Formerly known as ChatBot',
+          type: ActivityType.Listening,
         }],
       },
     });

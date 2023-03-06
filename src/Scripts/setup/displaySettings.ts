@@ -221,7 +221,7 @@ export = {
               }).catch(() => null);
 
               // create a webhook in the new channel
-              webhook = await (channel as TextChannel)?.createWebhook({ name: 'ChatBot Network', avatar: select.client.user.avatarURL() });
+              webhook = await (channel as TextChannel)?.createWebhook({ name: 'InterChat Network', avatar: select.client.user.avatarURL() });
             }
 
             await updateData({ channelId: guildSetup?.channelId }, { channelId: select?.values[0] });
@@ -281,7 +281,7 @@ export = {
           let webhook;
           try {
             webhook = await connectedChannel.createWebhook({
-              name: 'ChatBot Network',
+              name: 'InterChat Network',
               avatar: interaction.client.user?.avatarURL(),
             });
           }

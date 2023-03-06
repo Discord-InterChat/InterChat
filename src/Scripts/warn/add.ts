@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import crypto from 'crypto';
+import { randomUUID } from 'crypto';
 
 export = {
   execute: async (interaction: ChatInputCommandInteraction) => {
@@ -13,7 +13,7 @@ export = {
     const emojis = interaction.client.emoji;
 
     const warning = {
-      id: crypto.randomBytes(16).toString('hex'),
+      id: randomUUID(),
       reason: interaction.options.getString('reason', true),
       moderatorId: interaction.user.id,
       timestamp: new Date(),

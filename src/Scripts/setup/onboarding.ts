@@ -11,9 +11,9 @@ export default {
     const embed = new EmbedBuilder()
       .setTitle('👋 Welcome to the Chat Network!')
       .setDescription(stripIndents`
-      🎉 Hey there! Before we get started, let's take a moment to learn about the ChatBot Chat Network.
+      🎉 Hey there! Before we get started, let's take a moment to learn about the Chat Network.
       
-      The Network serves as a bridge between channels on different servers, allowing members of this server to communicate with members of other servers through the setup channel. It is recommended to create a seperate channel for the network, as it may get cluttered. We hope you enjoy talking to other servers using the network!  ${emoji.normal.clipart}
+      The Network serves as a bridge between channels on different servers, allowing members of this server to communicate with members of other servers through the setup channel. It is recommended to create a seperate channel for the network, as it may get cluttered. We hope you enjoy talking to other servers using the network! ${emoji.normal.clipart}
 
       We strive to improve and evolve our bot. If you would like to contribute or have any suggestions for new features, feel free to let us know.
 

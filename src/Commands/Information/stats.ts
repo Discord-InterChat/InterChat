@@ -13,7 +13,7 @@ export default {
     const totalNetworkMessages = await messageData.count();
 
     const uptime = toHuman(interaction.client.uptime);
-    const docsLink = 'https://discord-chatbot.gitbook.io';
+    const docsLink = 'https://interchat.gitbook.io';
     const supportServer = 'https://discord.gg/6bhXQynAPs';
 
     const embed = new EmbedBuilder()
@@ -25,7 +25,7 @@ export default {
         { name: 'Uptime', value: uptime, inline: true },
         { name: 'Ping:', value: `${interaction.client.ws.ping}ms`, inline: true },
         { name: 'Bot Version:', value: `v${interaction.client.version}`, inline: true },
-        { name: 'Cached Servers:', value: `${interaction.client.guilds.cache.size}`, inline: true },
+        { name: 'Servers:', value: `${interaction.client.guilds.cache.size}`, inline: true },
         { name: 'Ram Usage:', value: `${Math.round(process.memoryUsage().heapUsed / 1024 / 1024)} MB / ${Math.round(totalmem() / 1024 / 1024 / 1024)} GB`, inline: true },
         { name: 'Commands', value: `${interaction.client.commands.size}`, inline: true },
       ]);
@@ -44,7 +44,6 @@ export default {
         .setStyle(ButtonStyle.Link)
         .setURL(interaction.client.inviteLink),
     );
-
 
     await interaction.reply({ embeds: [embed], components: [linksRow] });
   },

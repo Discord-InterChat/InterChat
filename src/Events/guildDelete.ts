@@ -1,8 +1,8 @@
 import { colors, constants, getDb } from '../Utils/functions/utils';
 import { EmbedBuilder, Guild, TextChannel } from 'discord.js';
+import { captureException } from '@sentry/node';
 import { stripIndents } from 'common-tags';
 import { disconnect } from '../Structures/network';
-import { captureException } from '@sentry/node';
 
 
 export default {
@@ -29,6 +29,6 @@ export default {
           .setTimestamp()
           .setColor(colors()),
       ],
-    }).catch((e) => captureException(e));
+    }).catch(captureException);
   },
 };

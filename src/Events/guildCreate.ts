@@ -1,8 +1,8 @@
 import { EmbedBuilder, AuditLogEvent, Guild, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from 'discord.js';
 import { sendInFirst, colors, getDb, constants } from '../Utils/functions/utils';
 import { stripIndents } from 'common-tags';
-import wordFilter from '../Utils/functions/wordFilter';
 import { captureException } from '@sentry/node';
+import wordFilter from '../Utils/functions/wordFilter';
 
 export default {
   name: 'guildCreate',
@@ -16,34 +16,34 @@ export default {
     const { tada, clipart } = guild.client.emoji.normal;
 
     const embed = new EmbedBuilder()
-      .setTitle(`Thank you for inviting ChatBot!  ${tada} `)
+      .setTitle(`Thank you for inviting me! ${tada} `)
       .setColor(colors('chatbot'))
       .setFooter({ text: `Sent from ${guild.name}`, iconURL: guild.iconURL() || undefined })
       .setDescription(stripIndents`
-	    ChatBot allows you to talk to different servers from your own. It's a fun little inter-server chat that we call the ChatBot network ${clipart}! 
+	    ${guild.client.user.username} allows you to talk to different servers from your own. It's a fun inter-server chat that we call the Chat Network ${clipart}! 
 
-	    • Use </setup channel:978303442684624928> for chatbot to guide you through the network setup process.
+	    • Use </setup channel:978303442684624928> for ${guild.client.user.username} to guide you through the network setup process.
 	    • Please follow our rules while using the network at all times.
 	    • Unlock cool new features by voting on [top.gg](https://top.gg/bot/769921109209907241/vote)!
 	    • Appearance of network can be modified using the dropdown in the setup.
-        • If you want learn more about ChatBot, you can do so by reading our [guide](https://discord-chatbot.gitbook.io/guide/).
+      • If you want learn more about ${guild.client.user.username}, you can do so by reading our [guide](https://interchat.gitbook.io/guide/).
 
 
-	    We hope you enjoy using ChatBot! If you have any issues or want to know more about our bot join the [official support server](https://discord.gg/6bhXQynAPs).
+	    We hope you enjoy using ${guild.client.user.username}! If you have any issues or want to know more about our bot join the [official support server](https://discord.gg/6bhXQynAPs).
 			`);
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setLabel('Guide')
-        .setURL('https://discord-chatbot.gitbook.io/chatbot/guide/')
+        .setURL('https://interchat.gitbook.io/guide')
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
         .setLabel('ToS')
-        .setURL('https://discord-chatbot.gitbook.io/chatbot/important/terms')
+        .setURL('https://interchat.gitbook.io/important/terms')
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
         .setLabel('Privacy')
-        .setURL('https://discord-chatbot.gitbook.io/chatbot/important/privacy')
+        .setURL('https://interchat.gitbook.io/important/privacy')
         .setStyle(ButtonStyle.Link),
     );
 
@@ -77,21 +77,21 @@ export default {
     goalChannel?.send({
       embeds: [
         new EmbedBuilder()
-          .setTitle('I have joined a new server! 🙌')
+          .setTitle('I have joined a new server!')
           .setDescription(stripIndents`
 	          **${1000 - guild.client.guilds.cache.size}** servers more to go! ${tada}
 					
             **Server Name:** ${guild.name} (${guild.id})
-	        **Owner:** ${guildOwner.user.tag} (${guildOwner?.id})
+	          **Owner:** ${guildOwner.user.tag} (${guildOwner?.id})
             **Created:** <t:${Math.round(guild.createdTimestamp / 1000)}:R>
             **Language:** ${guild.preferredLocale}
             **Member Count:** ${guild.memberCount}
             `)
           .setThumbnail(guild.iconURL())
-          .setFooter({ text: `Invited By: ${inviter?.tag || 'unknown'}`, iconURL: inviter?.avatarURL() ?? undefined })
+          .setFooter({ text: `Invited By: ${inviter?.tag || 'Unknown User'}`, iconURL: inviter?.avatarURL() ?? undefined })
           .setTimestamp()
           .setColor(colors()),
       ],
-    }).catch((e) => captureException(e));
+    }).catch(captureException);
   },
 };

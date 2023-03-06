@@ -15,11 +15,11 @@ export default {
     .addSubcommand((subcommand) =>
       subcommand
         .setName('channel')
-        .setDescription('Setup the ChatBot Network.')
+        .setDescription('Setup the InterChat Network.')
         .addChannelOption((channelOption) =>
           channelOption
             .setName('destination')
-            .setDescription('Channel you want to setup chatbot to, select a category to create a new channel for chatbot')
+            .setDescription('Select the channel you wish to use as the Network.')
             .setRequired(true)
             .addChannelTypes(ChannelType.GuildText),
         ),
@@ -33,11 +33,11 @@ export default {
     const subcommand = interaction.options.getSubcommand();
 
     if (serverInBlacklist) {
-      await interaction.reply('This server is blacklisted from using the ChatBot Chat Network.');
+      await interaction.reply('This server is blacklisted from using the Chat Network.');
       return;
     }
     else if (userInBlacklist) {
-      await interaction.reply('You have been blacklisted from using the ChatBot Chat Network.');
+      await interaction.reply('You have been blacklisted from using the Chat Network.');
       return;
     }
 
