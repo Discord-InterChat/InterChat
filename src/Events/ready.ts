@@ -14,19 +14,19 @@ export default {
     const db = getDb();
     const messageData = db.messageData;
 
-    // set a property called "expired" to a document that is older than 4 hours.
+    // set a property called "expired" to a document that is older than 12 hours.
     setInterval(async () => {
-      const older_than_four = new Date(Date.now() - 60 * 60 * 4000); // 4 hours before now
+      const older_than_four = new Date(Date.now() - 60 * 60 * 12_000); // 12 hours before now
       await messageData.updateMany({
         where: { timestamp: { lte: older_than_four.getTime() } },
         data: { expired: true },
       });
-    }, 60 * 60 * 4100);
+    }, 60 * 60 * 12_100);
 
-    // Delete all documents that have the property "expired" set to true.
+    // Delete all documents that has the property "expired" set to true.
     setInterval(async () => {
       await messageData?.deleteMany({ where: { expired: true } });
-    }, 60 * 60 * 12_000);
+    }, 60 * 60 * 24_000);
 
     if (client.isReady()) {
       const blacklistedServers = await db.blacklistedServers.findMany({ where: { expires: { isSet: true } } });
