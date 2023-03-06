@@ -53,19 +53,18 @@ export function colors(type: 'random' | 'christmas' | 'chatbot' | 'invisible' = 
       'DarkButNotBlack',
       'NotQuiteBlack',
       'Random',
-    ] as discord.ColorResolvable[],
-    christmas: ['#00B32C', '#D6001C', '#FFFFFF'] as discord.ColorResolvable[],
+    ] as (keyof typeof discord.Colors)[],
+    christmas: ['#00B32C', '#D6001C', '#FFFFFF'] as discord.HexColorString[],
     chatbot: '#5CB5F9' as discord.HexColorString,
     invisible: '#2F3136' as discord.HexColorString,
   };
 
   // return the color type or a random color from the list
-  return type === 'chatbot' ? colorType.chatbot : type === 'invisible' ? colorType.invisible : type === 'christmas' ? choice(colorType.christmas) :
-    choice(colorType.random);
+  return type === 'christmas' ? choice(colorType.christmas) : type === 'random' ? choice(colorType.random) : colorType[type];
 }
 /** Returns random color (resolved) from choice of Discord.JS default color string */
 export function choice(arr: discord.ColorResolvable[]) {
-  return discord.resolveColor(arr[Math.floor(Math.random() * arr.length)]);
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 /** Send a message to a guild */
@@ -76,8 +75,8 @@ export async function sendInFirst(guild: discord.Guild, message: string | discor
     .filter((chn) => chn?.isTextBased() && chn.permissionsFor(guild.members.me as discord.GuildMember).has('SendMessages'))
     .first();
 
-  if (channel?.isTextBased()) channel.send(message).catch((e) => e.message.includes('Missing Access') || e.message.includes('Missing Permissions') ? null : logger.error(e));
-  else logger.error(`Channel ${channel?.id} is not text based!`);
+  if (channel?.isTextBased()) await channel.send(message).catch((e) => !e.message.includes('Missing Access') || !e.message.includes('Missing Permissions') ? logger.error(e) : null);
+  return;
 }
 
 export async function getCredits() {
@@ -87,6 +86,9 @@ export async function getCredits() {
     constants.developers,
     constants.staff,
   );
+
+  // Exiryn (Mascot Artist)
+  creditArray.push('880978672037802014');
 
   return creditArray;
 }
@@ -116,7 +118,7 @@ export function toHuman(milliseconds: number): string {
 }
 
 /**
- * Checks if a user is a ChatBot Staff or Developer
+ * Checks if a user is a InterChat Staff or Developer
  * @param client Discord.JS client
  * @param user The user to check
  * @param onlyDeveloper Only check if user is a developer
@@ -192,19 +194,18 @@ export const rulesEmbed = new discord.EmbedBuilder()
   .setTitle(`${normal.clipart} Network Rules`)
   .setColor(colors('chatbot'))
   .setImage('https://i.imgur.com/D2pYagc.png')
-  .setDescription(
-    stripIndents`
-          1. No spamming or flooding.
-          3. Advertising of any kind is prohibited.
-          4. Private matters should not be discussed in the network.
-          5. Do not make the chat uncomfortable for other users.
-          6. Using slurs is not allowed on the network.
-          7. Refrain from using bot commands in the network.
-          8. Trolling, insulting, and profanity is not allowed.
-          9. Posting explicit or NSFW content will result in an immediate blacklist.
-          10. Trivialization of sensitive topics such as self-harm, suicide and others which may cause offense to other members is prohibited.
-          11. Do not attempt to get around the Profanity Filter.
-          *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,
+  .setDescription(stripIndents`
+    1. No spamming or flooding.
+    3. Advertising of any kind is prohibited.
+    4. Private matters should not be discussed in the network.
+    5. Do not make the chat uncomfortable for other users.
+    6. Using slurs is not allowed on the network.
+    7. Refrain from using bot commands in the network.
+    8. Trolling, insulting, and profanity is not allowed.
+    9. Posting explicit or NSFW content will result in an immediate blacklist.
+    10. Trivialization of sensitive topics such as self-harm, suicide and others which may cause offense to other members is prohibited.
+    11. Do not attempt to get around the Profanity Filter.
+    *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,
   );
 
 export const constants = {

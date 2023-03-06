@@ -20,33 +20,34 @@ export default {
 
     const embed = new EmbedBuilder()
       .setColor(colors('chatbot'))
-      .setTitle(`${icons.info} ChatBot Information`)
-      .setDescription('A bot that lets you talk to people from other servers from your own!')
+      .setTitle(`${icons.info} ${interaction.client.user.username} Information`)
+      .setDescription('A growing discord bot which provides a fun server-to-server chat! Talk to other servers from your own!')
       .addFields([
         {
           name: 'Credits',
           value: stripIndent`
 					Some emojis used on this bot are from [Icons discord server](https://discord.gg/aPvvhefmt3).
 
-						${normal.chatbot_circle} **Avatar & Badges:** 
-						> \`-\` ${members[0].tag}
-						> \`-\` ${members.at(-1)?.tag}
+						${normal.chatbot_circle} **Design:** 
+						> \`-\` ${members.at(-2)?.tag} (Avatar)
+						> \`-\` ${members[0].tag} (Avatar)
+            > \`-\` ${members.at(-1)?.tag} (Mascot)
 
 						${icons.botdev} **Developers:**
+						> \`-\` ${members[0].tag}
 						> \`-\` ${members[1].tag}
 						> \`-\` ${members[2].tag}
-						> \`-\` ${members[3].tag}
 
 						${icons.staff} **Staff:**
-						> \`-\` ${members.at(-2)?.tag}
-            > \`-\` ${members.at(-1)?.tag}
+						> \`-\` ${members.at(-3)?.tag}
+            > \`-\` ${members.at(-2)?.tag}
 					`,
         },
         {
           name: `${icons.link} Resources`,
           value: stripIndent`
-					[Guide](https://discord-chatbot.gitbook.io/guide/)
-					[Vote link](https://top.gg/bot/769921109209907241/vote)
+					[Guide](https://interchat.gitbook.io/guide)
+					[TopGG](https://top.gg/bot/769921109209907241)
 					[App Directory](https://discord.com/application-directory/769921109209907241)
 					`,
           inline: true,
@@ -55,8 +56,8 @@ export default {
           name: '\u200B',
           value: stripIndent`
 					[Support Server](https://discord.gg/6bhXQynAPs)
-					[Privacy Policy](https://discord-chatbot.gitbook.io/chatbot/important/privacy)
-					[Terms of Service](https://discord-chatbot.gitbook.io/chatbot/important/terms)
+					[Privacy Policy](https://interchat.gitbook.io/important/privacy)
+					[Terms of Service](https://interchat.gitbook.io/important/terms)
 					`,
           inline: true,
         },
