@@ -37,4 +37,4 @@ jobs:
       - name: Update env & Restart bot 
         run: | 
               cp ~/important/chatbot-env .env
-              cd build/ && pm2 restart --update-env src/index.js --ignore-watch logs --watch        
+              cd build/ && pm2 restart --update-env interchat-prod --ignore-watch logs --watch        
