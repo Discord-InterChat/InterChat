@@ -18,7 +18,10 @@ jobs:
     name: Build newer code
     runs-on: self-hosted
 
-    steps:      
+    steps: 
+      - name: Stop PM2
+        run: pm2 stop interchat-prod
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -28,7 +31,6 @@ jobs:
 
       - name: Build code
         run: |
-              pm2 stop build/src/index.js
               npm run build --if-present
               npm prune --omit=dev
 
