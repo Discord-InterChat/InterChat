@@ -1,7 +1,7 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCommandInteraction, TextChannel } from 'discord.js';
 import { getDb, checkIfStaff } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
-import { networkMessageDelete } from '../../Scripts/networkLogs/networkMsgDelete';
+import { networkMessageDelete } from '../../Scripts/networkLogs/msgDelete';
 
 export default {
   data: new ContextMenuCommandBuilder()
@@ -14,18 +14,18 @@ export default {
     const messageInDb = await db?.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
     });
-    const emojis = interaction.client.emoji.normal;
+    const emoji = interaction.client.emoji.normal;
 
     if (!messageInDb || (messageInDb?.expired && staffUser === false)) {
       return interaction.reply({ content: 'This message has expired.', ephemeral: true });
     }
 
-    // if the user tries to edit someone else' message and they arent staff
+    // if the user tries to delete someone else's message and they arent staff
     if (!staffUser && interaction.user.id !== messageInDb.authorId) {
-      return interaction.reply({ content: `${emojis.no} You are not the author of this message.`, ephemeral: true });
+      return interaction.reply({ content: `${emoji.no} You are not the author of this message.`, ephemeral: true });
     }
 
-    await interaction.reply({ content: `${emojis.yes} Deletion in progess! This may take a few seconds.`, ephemeral: true }).catch(() => null);
+    await interaction.reply({ content: `${emoji.yes} Deletion in progess! This may take a few seconds.`, ephemeral: true }).catch(() => null);
 
     messageInDb.channelAndMessageIds.forEach((element) => {
       if (!element) return;

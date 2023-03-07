@@ -1,5 +1,5 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
-import { networkMsgUpdate } from '../../Scripts/networkLogs/networkMsgUpdate';
+import { networkMsgUpdate } from '../../Scripts/networkLogs/msgUpdate';
 import { checkIfStaff, topgg } from '../../Utils/functions/utils';
 import { prisma } from '../../Utils/db';
 import wordFiler from '../../Utils/functions/wordFilter';

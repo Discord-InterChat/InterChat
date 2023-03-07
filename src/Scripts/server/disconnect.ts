@@ -18,7 +18,6 @@ exports.execute = async (interaction: ChatInputCommandInteraction) => {
   modActions(interaction.user, {
     guild: { id: serverId },
     action: 'disconnect',
-    timestamp: new Date(),
     reason: 'Force disconnect by moderator.',
   });
 

@@ -32,7 +32,6 @@ export = {
         resolved: server,
       },
       action: 'leave',
-      timestamp: new Date(),
       reason,
     });
     logger.info(`Left server ${server.name} due to reason \`${reason}\``);

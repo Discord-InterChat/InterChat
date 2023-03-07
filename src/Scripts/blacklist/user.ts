@@ -1,6 +1,6 @@
-import { ChatInputCommandInteraction, User } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, User } from 'discord.js';
 import { scheduleJob, cancelJob } from 'node-schedule';
-import { getDb } from '../../Utils/functions/utils';
+import { colors, getDb } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
 import logger from '../../Utils/logger';
 
@@ -9,26 +9,28 @@ export = {
     let userOpt = interaction.options.getString('user', true);
     const reason = interaction.options.getString('reason');
     const subcommandGroup = interaction.options.getSubcommandGroup();
+    const emoji = interaction.client.emoji.normal;
 
     let user;
     const blacklistedUsers = getDb().blacklistedUsers;
 
     try {
       userOpt = userOpt.replaceAll(/<@|!|>/g, '');
-
       user = interaction.client.users.cache.find(u => u.tag === userOpt);
       if (user === undefined) user = await interaction.client.users.fetch(userOpt);
     }
     catch { return interaction.reply('Could not find user. Use an ID instead.'); }
 
-    const userInBlacklist = await blacklistedUsers.findFirst({ where: { userId: user.id } });
 
+    const userInBlacklist = await blacklistedUsers.findFirst({ where: { userId: user.id } });
     if (subcommandGroup == 'add') {
+      await interaction.deferReply();
+
+      let expires: Date | undefined;
       const mins = interaction.options.getNumber('minutes');
       const hours = interaction.options.getNumber('hours');
       const days = interaction.options.getNumber('days');
 
-      await interaction.deferReply();
       if (userInBlacklist) {
         interaction.followUp(`${user.username}#${user.discriminator} is already blacklisted.`);
         return;
@@ -48,52 +50,69 @@ export = {
         });
       }
       else {
-        const date = new Date();
+        expires = new Date();
 
-        mins ? date.setMinutes(date.getMinutes() + mins) : null;
-        hours ? date.setHours(date.getHours() + hours) : null;
-        days ? date.setDate(date.getDate() + days) : null;
+        mins ? expires.setMinutes(expires.getMinutes() + mins) : null;
+        hours ? expires.setHours(expires.getHours() + hours) : null;
+        days ? expires.setDate(expires.getDate() + days) : null;
 
         await blacklistedUsers.create({
           data: {
             username: `${user.username}#${user.discriminator}`,
             userId: user.id,
             reason: String(reason),
-            expires: date,
             notified: true,
+            expires,
           },
         });
 
-        scheduleJob(`blacklist_user-${user.id}`, date, async function(usr: User) {
-          await getDb().blacklistedUsers.delete({ where: { userId: usr.id } });
+        scheduleJob(`blacklist_user-${user.id}`, expires, async function(usr: User) {
+          const db = getDb();
+          const userBeforeUnblacklist = await db.blacklistedUsers.findFirst({ where: { userId: usr.id } });
+
+          await db.blacklistedUsers.delete({ where: { userId: usr.id } });
 
           modActions(usr.client.user, {
             user: usr,
             action: 'unblacklistUser',
+            blacklistReason: userBeforeUnblacklist?.reason,
             reason: 'Blacklist expired for user.',
-            timestamp: new Date(),
           });
         }.bind(null, user));
       }
       try {
-        await user.send(`You have been blacklisted from using this bot for reason **${reason}**. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+        const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
+        const embed = new EmbedBuilder()
+          .setTitle(emoji.blobFastBan + ' Blacklist Notification')
+          .setDescription('You have been muted from talking in the network.')
+          .setColor(colors('chatbot'))
+          .setFields(
+            { name: 'Reason', value: String(reason), inline: true },
+            { name: 'Expires', value: expireString, inline: true },
+          )
+          .setFooter({ text: 'Join the support server to appeal the blacklist.' });
+
+        await user.send({ embeds: [embed] });
       }
       catch {
         await blacklistedUsers.update({ where: { userId: user.id }, data: { notified: false } });
-        logger.info(`Could not notify ${user.username}#${user.discriminator} about their blacklist.`);
+        logger.info(`Could not notify ${user.tag} about their blacklist.`);
       }
 
-      interaction.followUp(`**${user.username}#${user.discriminator}** has been blacklisted.`);
+      interaction.followUp(`**${user.tag}** has been blacklisted.`);
 
       modActions(interaction.user, {
         user,
         action: 'blacklistUser',
-        timestamp: new Date(),
+        expires,
         reason,
       });
     }
+
+
     else if (subcommandGroup == 'remove') {
-      if (!userInBlacklist) return interaction.reply(`The user ${user} is not blacklisted.`);
+      if (!userInBlacklist) return interaction.reply(`The user **${user.tag}** is not blacklisted.`);
+      const userBeforeUnblacklist = await blacklistedUsers.findFirst({ where: { userId: user.id } });
 
       await blacklistedUsers.delete({ where: { userId: user.id } });
       interaction.reply(`**${user.username}#${user.discriminator}** has been removed from the blacklist.`);
@@ -102,7 +121,7 @@ export = {
       modActions(interaction.user, {
         user,
         action: 'unblacklistUser',
-        timestamp: new Date(),
+        blacklistReason: userBeforeUnblacklist?.reason,
         reason,
       });
     }
