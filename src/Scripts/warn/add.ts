@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 import { randomUUID } from 'crypto';
 
@@ -36,8 +36,17 @@ export = {
       });
     }
 
-    // TODO: Send nicer embed like elara
-    const notified = await user.send(`**${emojis.icons.exclamation} You have been warned in the network for:** ${warning.reason}`).catch(() => null);
+    const notifyEmbed = new EmbedBuilder()
+      .setTitle('🔨 Warned!')
+      .setDescription('You have issued warn in the network.')
+      .addFields([
+        { name: 'Warning', value: String(userWarns ? userWarns.warnings.length + 1 : 1) },
+        { name: 'Reason', value: warning.reason },
+      ])
+      .setFooter({ text: 'Join the support server if you you think the reason is not valid.', iconURL: interaction.client.user.avatarURL() || undefined })
+      .setTimestamp();
+
+    const notified = await user.send({ embeds: [notifyEmbed] }).catch(() => null);
     await interaction.editReply(` ${emojis.normal.yes} Warned ${user.tag}! ${notified ? 'Notified them about their warn.' : 'I couldn\'t DM them.'}`);
   },
 };
