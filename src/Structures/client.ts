@@ -2,7 +2,7 @@ import fs from 'fs';
 import logger from '../Utils/logger';
 import emojis from '../Utils/JSON/emoji.json';
 import project from '../../package.json';
-import { Client, Collection, ActivityType, MessageCreateOptions, PermissionFlagsBits, OAuth2Scopes } from 'discord.js';
+import { Client, Collection, ActivityType, MessageCreateOptions } from 'discord.js';
 import { join } from 'path';
 import { prisma } from '../Utils/db';
 import * as Sentry from '@sentry/node';
@@ -33,27 +33,7 @@ export class ExtendedClient extends Client {
     // Error monitoring (sentry.io)
     Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 1.0 });
 
-    const login = await this.login(token || process.env.TOKEN);
-
-    const permissions = [
-      PermissionFlagsBits.ManageChannels,
-      PermissionFlagsBits.ManageWebhooks,
-      PermissionFlagsBits.ChangeNickname,
-      PermissionFlagsBits.ViewChannel,
-      PermissionFlagsBits.SendMessages,
-      PermissionFlagsBits.SendMessagesInThreads,
-      PermissionFlagsBits.ManageGuild,
-      PermissionFlagsBits.ManageMessages,
-      PermissionFlagsBits.ManageThreads,
-      PermissionFlagsBits.EmbedLinks,
-      PermissionFlagsBits.AttachFiles,
-      PermissionFlagsBits.ReadMessageHistory,
-      PermissionFlagsBits.UseExternalEmojis,
-      PermissionFlagsBits.AddReactions,
-      PermissionFlagsBits.ViewAuditLog,
-    ];
-    this.inviteLink = this.generateInvite({ scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands], permissions });
-    return login;
+    return await this.login(token || process.env.TOKEN);
   }
 
   public async sendInNetwork(message: string | MessageCreateOptions): Promise<void> {

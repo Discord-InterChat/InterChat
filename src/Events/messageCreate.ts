@@ -2,9 +2,9 @@ import checks from '../Scripts/message/checks';
 import addBadges from '../Scripts/message/addBadges';
 import messageTypes from '../Scripts/message/messageTypes';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
+import cleanup, { InvalidChannelId, InvalidWebhookId } from '../Scripts/message/cleanup';
 import { APIMessage, EmbedBuilder, Message } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
-import cleanup, { InvalidChannelId } from '../Scripts/message/cleanup';
 import { censor } from '../Utils/functions/wordFilter';
 
 export interface NetworkMessage extends Message {
@@ -52,7 +52,7 @@ export default {
     const attachments = await messageContentModifiers.attachImageToEmbed(message, embed, censoredEmbed);
     await addBadges.execute(message, db, embed, censoredEmbed);
 
-    const channelAndMessageIds: Promise<InvalidChannelId | APIMessage | Message<true> | undefined>[] = [];
+    const channelAndMessageIds: Promise<InvalidChannelId | InvalidWebhookId | APIMessage | Message<true> | undefined>[] = [];
 
     // send the message to all connected channels in apropriate format (webhook/compact/normal)
     allConnectedChannels?.forEach((channel) => {

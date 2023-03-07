@@ -2,7 +2,7 @@ import logger from '../../Utils/logger';
 import { ActionRowBuilder, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel, MessageCreateOptions, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import { NetworkMessage } from '../../Events/messageCreate';
 import { getDb } from '../../Utils/functions/utils';
-import { InvalidChannelId } from './cleanup';
+import { InvalidChannelId, InvalidWebhookId } from './cleanup';
 import { connectedList, messageData, setup } from '@prisma/client';
 
 /*
@@ -44,8 +44,7 @@ export = {
       }
       catch (e) {
         logger.error('Failed to send Webhook Message: ', e);
-        return;
-        // return { unknownWebhookId: webhook.id } as InvalidWebhookId;
+        return { unknownWebhookId: webhook.id } as InvalidWebhookId;
       }
     }
 
