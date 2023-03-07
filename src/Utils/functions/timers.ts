@@ -28,7 +28,6 @@ export default async function startTimers(client: Client) {
   const blacklistedServers = await db.blacklistedServers.findMany({ where: { expires: { isSet: true } } });
   const blacklistedUsers = await db.blacklistedUsers.findMany({ where: { expires: { isSet: true } } });
 
-  console.log('hey');
   // timer to unblacklist servers
   blacklistedServers.forEach(async (blacklist) => {
     if (!blacklist.expires) return;

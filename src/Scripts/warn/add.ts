@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { colors, getDb } from '../../Utils/functions/utils';
 import { randomUUID } from 'crypto';
 
 export = {
@@ -37,14 +37,15 @@ export = {
     }
 
     const notifyEmbed = new EmbedBuilder()
-      .setTitle('🔨 Warned!')
+      .setTitle('🔨 You have been warned!')
       .setDescription('You have issued warn in the network.')
       .addFields([
-        { name: 'Warning', value: String(userWarns ? userWarns.warnings.length + 1 : 1) },
-        { name: 'Reason', value: warning.reason },
+        { name: 'Warning', value: `#${userWarns ? userWarns.warnings.length + 1 : 1}`, inline: true },
+        { name: 'Reason', value: warning.reason, inline: true },
       ])
       .setFooter({ text: 'Join the support server if you you think the reason is not valid.', iconURL: interaction.client.user.avatarURL() || undefined })
-      .setTimestamp();
+      .setTimestamp()
+      .setColor(colors('invisible'));
 
     const notified = await user.send({ embeds: [notifyEmbed] }).catch(() => null);
     await interaction.editReply(` ${emojis.normal.yes} Warned ${user.tag}! ${notified ? 'Notified them about their warn.' : 'I couldn\'t DM them.'}`);
