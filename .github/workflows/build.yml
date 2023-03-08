@@ -1,5 +1,4 @@
-
-name: Deploy Code & Restart Bot
+name: Deploy Newer Code
 on: 
   push:
     branches: [main]
@@ -19,22 +18,31 @@ jobs:
     runs-on: self-hosted
 
     steps: 
-      - name: Stop PM2
-        run: pm2 stop interchat-prod
+      - name: Backup Logs & Stop PM2
+        run: |
+              cp -r ~/actions-runner/chatbot-production-builds/InterChat/InterChat/logs/ ~/console-logs/$(date +'%Y-%m-%d-%M')
+              pm2 stop interchat-prod
 
+        # note to self: Checks out to ~/actions-runner/chatbot-production-builds/InterChat/InterChat/
       - name: Checkout repository
         uses: actions/checkout@v3
 
-        # note to self: Files are stored in ~/actions-runner/chatbot-production-build/Discord-ChatBot/Discord-ChatBot 
       - name: Install dependencies
         run: npm ci
 
       - name: Build code
         run: |
               npm run build --if-present
-              npm prune --omit=dev
+              
+      - name: Deploy Commands
+        run: |
+            npm run deploy
+            npm run deploy -- -s
+            
+      - name: Prune Dev-dependencies
+        run: npm prune --omit=dev
 
-      - name: Update env & Restart bot 
+      - name: Restart InterChat 
         run: | 
-              cp ~/important/chatbot-env .env
+              cp ~/important/interchat-env .env
               cd build/ && pm2 restart --update-env interchat-prod --ignore-watch logs --watch        
