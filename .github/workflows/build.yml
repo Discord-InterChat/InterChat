@@ -36,6 +36,7 @@ jobs:
               
       - name: Deploy Commands
         run: |
+            cp ~/important/interchat-env .env
             npm run deploy
             npm run deploy -- -s
             
@@ -44,5 +45,4 @@ jobs:
 
       - name: Restart InterChat 
         run: | 
-              cp ~/important/interchat-env .env
               cd build/ && pm2 restart --update-env interchat-prod --ignore-watch logs --watch        
