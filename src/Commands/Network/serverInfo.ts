@@ -41,7 +41,7 @@ export default {
             **Owner:** ${owner.user.tag}
             **Created:** <t:${createdAt}:d> (<t:${createdAt}:R>)
             **Members:** ${server.memberCount}
-			**Invite Code:** ${guildSetup?.invite ? `[\`${guildSetup.invite}\`](https://discord.gg/${guildSetup.invite})` : 'Not Set.'}`)
+            **Invite:** ${guildSetup?.invite ? `[\`${guildSetup.invite}\`](https://discord.gg/${guildSetup.invite})` : 'Not Set.'}`)
       .setFooter({ text: `ID: ${server.id}` });
 
     let buttons;

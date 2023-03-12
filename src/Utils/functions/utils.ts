@@ -9,18 +9,22 @@ import _ from 'lodash/string';
 import { badge, normal } from '../JSON/emoji.json';
 import { stripIndents } from 'common-tags';
 
-export function toTitleCase(txt: string) {
-  return _.startCase(_.toLower(txt));
-}
+export const constants = {
+  developers: ['828492978716409856', '701727675311587358', '456961943505338369'],
+  staff: ['597265261665714186', '442653948630007808'],
+  guilds: { cbhq: '770256165300338709' },
 
-export function getGuildName(client: discord.Client, gid: string | null) {
-  if (!gid) return '';
-  return client.guilds.cache.get(gid)?.name;
-}
-
-/** Random color generator for embeds */
-export function colors(type: 'random' | 'christmas' | 'chatbot' | 'invisible' = 'random') {
-  const colorType = {
+  channel: {
+    bugs: '1035135196053393418',
+    networklogs: '1002864642101624832',
+    errorlogs: '1024313459187404830',
+    modlogs: '1042265633896796231',
+    reports: '821610981155012628',
+    goal: '906460473065615403',
+    suggestions: '1021256657528954900',
+    reviews: '1002874342343970946',
+  },
+  colors: {
     random: [
       'Default',
       'White',
@@ -54,29 +58,42 @@ export function colors(type: 'random' | 'christmas' | 'chatbot' | 'invisible' = 
       'NotQuiteBlack',
       'Random',
     ] as (keyof typeof discord.Colors)[],
-    christmas: ['#00B32C', '#D6001C', '#FFFFFF'] as discord.HexColorString[],
     chatbot: '#5CB5F9' as discord.HexColorString,
     invisible: '#2F3136' as discord.HexColorString,
-  };
+    christmas:['#00B32C', '#D6001C', '#FFFFFF'] as discord.HexColorString[],
+  },
+} as const;
 
-  // return the color type or a random color from the list
-  return type === 'christmas' ? choice(colorType.christmas) : type === 'random' ? choice(colorType.random) : colorType[type];
+export const topgg = new Api(process.env.TOPGG as string);
+
+
+export function toTitleCase(txt: string): string {
+  return _.startCase(_.toLower(txt));
 }
-/** Returns random color (resolved) from choice of Discord.JS default color string */
-export function choice(arr: discord.ColorResolvable[]) {
+
+export function getGuildName(client: discord.Client, gid: string | null) {
+  if (!gid) return '';
+  return client.guilds.cache.get(gid)?.name;
+}
+
+/** Random color generator for embeds */
+export function colors(type: keyof typeof constants.colors = 'random') {
+  return type === 'christmas' || type === 'random' ? choice(constants.colors[type]) : constants.colors[type] ;
+}
+/** Return a random element from an array */
+export function choice<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-/** Send a message to a guild */
+/** Send a message to the first text based channel in a guild */
 export async function sendInFirst(guild: discord.Guild, message: string | discord.MessagePayload | discord.BaseMessageOptions) {
   const channels = await guild.channels.fetch();
 
-  const channel = channels
-    .filter((chn) => chn?.isTextBased() && chn.permissionsFor(guild.members.me as discord.GuildMember).has('SendMessages'))
-    .first();
+  const channel = channels.find(chn =>
+    chn?.isTextBased() &&
+    chn.permissionsFor(guild.members.me as discord.GuildMember).has('SendMessages')) as discord.GuildTextBasedChannel | null | undefined;
 
-  if (channel?.isTextBased()) await channel.send(message).catch((e) => !e.message.includes('Missing Access') || !e.message.includes('Missing Permissions') ? logger.error(e) : null);
-  return;
+  await channel?.send(message).catch((e) => !e.message.includes('Missing Access') || !e.message.includes('Missing Permissions') ? logger.error(e) : null);
 }
 
 export async function getCredits() {
@@ -146,39 +163,6 @@ export async function checkIfStaff(user: discord.GuildMember | discord.User, onl
   }
 }
 
-// TODO: This is sooo outdated, but works for now
-/** Delete channels from databse that chatbot doesn't have access to.*/
-export async function deleteChannels(client: discord.Client) {
-  const channels = await prisma.connectedList.findMany();
-
-  const unknownChannels = [];
-  for (let i = 0; i < channels?.length; i++) {
-    const element = channels[i];
-    try {
-      await client.channels.fetch(element.channelId);
-    }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    catch (err: any) {
-      if (err.message === 'Unknown Channel') {
-        unknownChannels.push(element.channelId);
-        continue;
-      }
-    }
-  }
-
-  if (unknownChannels.length > 0) {
-    const deletedChannels = await prisma.connectedList.deleteMany({
-      where: {
-        channelId: {
-          in: unknownChannels,
-        },
-      },
-    });
-    logger.info(`Deleted ${deletedChannels.count} channels from the connectedList database.`);
-    return;
-  }
-}
-
 export function badgeToEmoji(badgeArr: string[]) {
   let badgeString = '';
   const tempbadge: { [key: string]: string } = badge;
@@ -189,7 +173,6 @@ export function badgeToEmoji(badgeArr: string[]) {
   return badgeString || null;
 }
 
-export const topgg = new Api(process.env.TOPGG as string);
 export const rulesEmbed = new discord.EmbedBuilder()
   .setTitle(`${normal.clipart} Network Rules`)
   .setColor(colors('chatbot'))
@@ -207,20 +190,3 @@ export const rulesEmbed = new discord.EmbedBuilder()
     11. Do not attempt to get around the Profanity Filter.
     *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,
   );
-
-export const constants = {
-  developers: ['828492978716409856', '701727675311587358', '456961943505338369'],
-  staff: ['597265261665714186', '442653948630007808'],
-  guilds: { cbhq: '770256165300338709' },
-
-  channel: {
-    bugs: '1035135196053393418',
-    networklogs: '1002864642101624832',
-    errorlogs: '1024313459187404830',
-    modlogs: '1042265633896796231',
-    reports: '821610981155012628',
-    goal: '906460473065615403',
-    suggestions: '1021256657528954900',
-    reviews: '1002874342343970946',
-  },
-} as const;

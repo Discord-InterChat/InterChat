@@ -31,7 +31,7 @@ export default {
 
         replyContent = replyContent?.replaceAll('\n', '\n> ');
 
-        const maxLength = 1000; // max length of an embed field (-24 just to be safe)
+        const maxLength = 1000; // max length of an embed field (minus 24 just to be safe)
         const prefixLength = 6; // length of "> ", "\n" and "..."
         const availableLength = maxLength - prefixLength - message.content.length;
 

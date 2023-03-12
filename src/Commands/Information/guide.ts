@@ -5,6 +5,6 @@ export default {
     .setName('guide')
     .setDescription('Sends link for the bot\'s guide.'),
   async execute(interaction: ChatInputCommandInteraction) {
-    await interaction.reply('Please refer to [this](https://interchat.gitbook.io/docs/guide) for the how-to guide.');
+    await interaction.reply('Please refer to [this](https://interchat.gitbook.io) for the how-to guide.');
   },
 };

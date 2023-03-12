@@ -21,6 +21,7 @@ export default {
     const embed = new EmbedBuilder()
       .setColor(colors('chatbot'))
       .setTitle(`${icons.info} ${interaction.client.user.username} Information`)
+      .setThumbnail(interaction.client.user.avatarURL())
       .setDescription('A growing discord bot which provides a fun server-to-server chat! Talk to other servers from your own!')
       .addFields([
         {
