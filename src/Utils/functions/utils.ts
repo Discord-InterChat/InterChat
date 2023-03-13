@@ -126,7 +126,7 @@ export function toHuman(milliseconds: number): string {
   const seconds = Math.floor(totalSeconds % 60);
   let readable;
 
-  if (days == 0 && hours == 0 && minutes == 0) readable = `${seconds} seconds`;
+  if (days == 0 && hours == 0 && minutes == 0) readable = `${seconds} ${seconds < 2000 ? 'second' : 'seconds'} `;
   else if (days == 0 && hours == 0) readable = `${minutes}m ${seconds}s`;
   else if (days == 0) readable = `${hours}h, ${minutes}m ${seconds}s`;
   else readable = `${days}d ${hours}h, ${minutes}m ${seconds}s`;

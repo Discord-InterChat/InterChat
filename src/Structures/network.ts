@@ -50,4 +50,8 @@ export async function updateData(where: NetworkOptions | string, data: NetworkOp
   return await connectedList.updateMany({ where, data });
 }
 
-export default { connect, disconnect, updateData, getServerData, totalConnected };
+export async function getAllNetworks() {
+  return await connectedList.findMany();
+}
+
+export default { connect, disconnect, updateData, getServerData, totalConnected, getAllNetworks };
