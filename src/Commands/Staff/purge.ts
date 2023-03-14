@@ -31,8 +31,8 @@ export default {
       subcommand
         .setName('user')
         .setDescription('Purge network messages sent by a particular user. Staff-only')
-        .addStringOption(server =>
-          server
+        .addStringOption(stringOption =>
+          stringOption
             .setName('user')
             .setDescription('The ID of the user.')
             .setRequired(true),
@@ -48,6 +48,25 @@ export default {
     .addSubcommand(
       subcommand =>
         subcommand
+          .setName('replies')
+          .setDescription('Purge messages from the network. Staff-only')
+          .addStringOption(stringOption =>
+            stringOption
+              .setName('replies-to')
+              .setDescription('Provide the message ID to delete its replies.')
+              .setRequired(true),
+          )
+          .addIntegerOption((opt) =>
+            opt
+              .setName('limit')
+              .setDescription('Number of messages to delete. Max: 100')
+              .setMaxValue(100)
+              .setRequired(false),
+          ),
+    )
+    .addSubcommand(
+      subcommand =>
+        subcommand
           .setName('any')
           .setDescription('Purge messages from the network. Staff-only')
           .addIntegerOption((opt) =>
@@ -57,28 +76,28 @@ export default {
               .setMaxValue(100)
               .setRequired(true),
           ),
-      // .addSubcommand(
-      //   subcommand =>
-      //     subcommand
-      //       .setName('after')
-      //       .setDescription('Purge messages after a certain message. Staff-only')
-      //       .addStringOption(user =>
-      //         user
-      //           .setName('message')
-      //           .setDescription('The ID of the starting message.')
-      //           .setRequired(true),
-      //       )
-      //       .addIntegerOption((opt) =>
-      //         opt
-      //           .setName('limit')
-      //           .setDescription('Number of messages to delete. Max: 100, Default: 10')
-      //           .setRequired(false),
-      //       ),
-
+    )
+    .addSubcommand(
+      subcommand =>
+        subcommand
+          .setName('after')
+          .setDescription('Purge messages after a certain message. Staff-only')
+          .addStringOption(stringOption =>
+            stringOption
+              .setName('message')
+              .setDescription('The ID of the starting message.')
+              .setRequired(true),
+          )
+          .addIntegerOption((intOption) =>
+            intOption
+              .setName('limit')
+              .setDescription('Number of messages to delete. Max: 100, Default: 10')
+              .setRequired(false),
+          ),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
-    const limit = interaction.options.getInteger('limit', true);
+    const limit = interaction.options.getInteger('limit') || undefined;
     const emoji = interaction.client.emoji;
     const { messageData } = getDb();
 
@@ -97,6 +116,30 @@ export default {
         messagesInDb = await messageData.findMany({ where: { authorId }, orderBy: { id: 'desc' }, take: limit });
         break;
       }
+      case 'after': {
+        const messageId = interaction.options.getString('message', true);
+        const fetchedMsg = await messageData.findFirst({ where: { channelAndMessageIds: { some: { messageId } } } });
+        if (fetchedMsg) {
+          messagesInDb = await messageData.findMany({
+            where: {
+              timestamp: {
+                gt: fetchedMsg.timestamp,
+              },
+            },
+            orderBy: { id: 'asc' },
+            take: limit,
+          });
+        }
+        break;
+      }
+
+      case 'replies': {
+        const messageId = interaction.options.getString('replies-to', true);
+        messagesInDb = await messageData.findMany({ where: { reference: { is: { messageId } } }, take: limit });
+        break;
+      }
+
+
       case 'any':
         messagesInDb = await messageData.findMany({ orderBy: { id: 'desc' }, take: limit });
         break;
@@ -113,7 +156,7 @@ export default {
       });
     }
     await interaction.reply({
-      content: `${emoji.normal.loading} Starting purge... This may take a while as it is a heavy operation.`,
+      content: `${emoji.normal.loading} Purging...\n**Tip:** The \`Delete Message\` context menu is faster for smaller deletes.`,
       ephemeral: true,
     });
 
