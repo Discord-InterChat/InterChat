@@ -42,9 +42,12 @@ export = {
       try {
         return await webhook.send(webhookMessage);
       }
-      catch (e) {
+      catch (e: any) {
         logger.error('Failed to send Webhook Message: ', e);
-        return { unknownWebhookId: webhook.id } as InvalidWebhookId;
+        if (e.message === 'Missing Permissions' || e.message === 'Unknown Webhook') {
+          return { unknownWebhookId: webhook.id } as InvalidWebhookId;
+        }
+        return;
       }
     }
 
