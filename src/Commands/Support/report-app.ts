@@ -113,11 +113,11 @@ export default {
 
           const embed = new EmbedBuilder()
             .setTitle('User Reported')
-            .setDescription(`A new user report for \`${reportedUser.tag}\` was submitted.\n\n**Reported For:** ${selections.join(', ')}`)
+            .setDescription(`A new user report for \`${reportedUser.tag}\` (${reportedUser.id}) was submitted.\n\n**Reported For:** ${selections.join(', ')}`)
             .setColor(colors('chatbot'))
             .setTimestamp()
             .setFooter({
-              text: `By: ${modalSubmit.user.tag} | ${modalSubmit.user.id}.`,
+              text: `Reported By: ${modalSubmit.user.tag} | ${modalSubmit.user.id}.`,
               iconURL: modalSubmit.user.avatarURL() || modalSubmit.user.defaultAvatarURL,
             });
 
@@ -135,7 +135,7 @@ export default {
             components: [jumpButton],
           });
           modalSubmit.reply({
-            content: `${emojis.yes} Your report has been successfully submitted! Join the support server to check the status of this report.`,
+            content: `${emojis.yes} Your report has been successfully submitted! Join the support server to check the status of your report.`,
             ephemeral: true,
           });
         })
