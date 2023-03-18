@@ -6,6 +6,7 @@ import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
 
 export default {
+  description: 'Edit a message that was sent in the network.',
   data: new ContextMenuCommandBuilder()
     .setName('Edit Message')
     .setType(ApplicationCommandType.Message),

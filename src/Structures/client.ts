@@ -20,7 +20,6 @@ export class ExtendedClient extends Client {
     });
 
     this.commands = new Collection();
-    this.commandsArray = [];
     this.description = project.description;
     this.version = project.version;
     this.emoji = emojis;
@@ -57,23 +56,9 @@ export class ExtendedClient extends Client {
         for (const commandFile of commandFiles) {
           const command = require(`../Commands/${dir}/${commandFile}`);
 
+          command.default.directory = dir;
           this.commands.set(command.default.data.name, command.default);
         }
-
-        // loading the help command
-        const IgnoredDirs = ['Developer', 'Staff'];
-        if (IgnoredDirs.includes(dir)) return;
-
-        const cmds = commandFiles.map((command: string) => {
-          const file = require(`../Commands/${dir}/${command}`);
-          const name = file.default.data.name || 'No name';
-          return `\`${name}\``;
-        });
-
-        this.commandsArray.push({
-          name: dir,
-          value: cmds.length === 0 ? 'No commands' : cmds.join(', '),
-        });
       }
     });
   }

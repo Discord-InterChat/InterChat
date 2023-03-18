@@ -4,6 +4,7 @@ import logger from '../../Utils/logger';
 import { networkMessageDelete } from '../../Scripts/networkLogs/msgDelete';
 
 export default {
+  description: 'Delete a message that was sent in the network.',
   data: new ContextMenuCommandBuilder()
     .setName('Delete Message')
     .setType(ApplicationCommandType.Message),

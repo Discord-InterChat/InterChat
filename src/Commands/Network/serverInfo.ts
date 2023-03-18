@@ -11,6 +11,7 @@ import { colors, getDb } from '../../Utils/functions/utils';
 import { stripIndent } from 'common-tags';
 
 export default {
+  description: 'Get information about a server in the network!',
   data: new ContextMenuCommandBuilder()
     .setName('Server Info')
     .setType(ApplicationCommandType.Message),

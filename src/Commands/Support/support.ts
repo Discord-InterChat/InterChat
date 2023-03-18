@@ -3,7 +3,7 @@ import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
 export default {
   data: new SlashCommandBuilder()
     .setName('support')
-    .setDescription('Contact the developers for suggestions/reports.')
+    .setDescription('Send the developers suggestions/reports.')
     .setDMPermission(false)
     .addSubcommand(subcommand =>
       subcommand

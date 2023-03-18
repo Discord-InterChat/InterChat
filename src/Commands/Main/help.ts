@@ -1,96 +1,124 @@
-import { SlashCommandBuilder, ApplicationCommandOptionType, PermissionsBitField, EmbedBuilder, ChatInputCommandInteraction, SlashCommandStringOption, SlashCommandUserOption, PermissionsString, AutocompleteInteraction } from 'discord.js';
-import { colors, toTitleCase } from '../../Utils/functions/utils';
+import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder, PermissionsBitField, PermissionsString, APISelectMenuOption, Client, ApplicationCommandType } from 'discord.js';
+import { checkIfStaff, colors, toTitleCase } from '../../Utils/functions/utils';
+import { InterchatCommand } from '../../Utils/typings/discord';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('help')
-    .setDescription('Want help? Here it comes!')
-    .addStringOption((option) =>
-      option
-        .setName('command')
-        .setRequired(false)
-        .setDescription('Name of command')
-        .setAutocomplete(true),
-    ),
+    .setDescription('Want help? Here it comes!'),
   async execute(interaction: ChatInputCommandInteraction) {
-    const command_option = interaction.options.getString('command');
-
-    if (!command_option) {
-      const embed = new EmbedBuilder()
-        .setAuthor({
-          name: interaction.client.user?.username + ' Help',
-          iconURL: interaction.client.user?.avatarURL() as string,
-        })
-        .setDescription(`[Invite](${interaction.client.inviteLink}) • [Support](https://discord.gg/6bhXQynAPs) • [Privacy](https://interchat.gitbook.io/important/privacy)`)
-        .setFields(interaction.client.commandsArray)
-        .setFooter({ text: 'Use /help <command> to get more info about a command.' })
-        .setColor(colors('chatbot'))
-        .setTimestamp();
-
-      return await interaction.reply({ embeds: [embed] });
-    }
-
-    // TODO: Rewrite this holy shi its bad
-    const command = interaction.client.commands.get(command_option);
-    const commanddata = command?.data.toJSON();
-    const commandOps = commanddata?.options;
-    const permissions = new PermissionsBitField(commanddata?.default_member_permissions as PermissionsString | undefined).toArray().join(', ');
-    let options = '';
-
-    if (!command) return interaction.reply('Unkown command!');
-
-    const command_embed = new EmbedBuilder()
-      .setTitle(toTitleCase(command.data.name) + ' Help')
-      .setDescription(
-        command.data.description || command.description as string || 'No Description',
-      )
-      .addFields([
-        { name: 'Permissions:', value: `**${permissions || 'None'}**` },
-      ])
-      .setFooter({
-        text: '<> - Required | [] - Optional',
-        iconURL: interaction.client.user?.avatarURL() as string,
-      })
-      .setColor(colors());
-
-
-    if (
-      commandOps &&
-      commandOps[0]?.type != ApplicationCommandOptionType.Subcommand &&
-      commandOps[0]?.type != ApplicationCommandOptionType.SubcommandGroup
-    ) {
-      commandOps.forEach((value) =>
-        value.required ? options += ` <${value.name}>` : options += ` [${value.name}]`,
-      );
-      command_embed.addFields([
-        { name: 'Usage: ', value: `\`/${command.data.name + options}\`` },
-      ]);
-    }
-
-    if (commandOps?.at(0)?.type === ApplicationCommandOptionType.Subcommand) {
-      commandOps.forEach((subcommand: any) => {
-        const subOptions = subcommand.options.map((optionValue: SlashCommandStringOption | SlashCommandUserOption) => {
-          return optionValue.required ? ` <${optionValue.name}>` : ` [${optionValue.name}]`;
-        });
-
-        const data = {
-          name: `${subcommand.name}`,
-          value: `${subcommand.description || 'No Description'}\n**Usage: **\`/${command.data.name} ${subcommand.name}${subOptions.length === 0 ? '' : subOptions.join('')}\``,
-        };
-
-        command_embed.addFields([data]);
-      });
-    }
-
-    return interaction.reply({ embeds: [command_embed] });
-  },
-  async autocomplete(interaction: AutocompleteInteraction) {
-    const focusedValue = interaction.options.getFocused();
-
     const commands = interaction.client.commands;
-    const choices = commands.map((command) => command.data.name);
-    const filtered = choices.filter((choice) => choice.startsWith(focusedValue));
+    const emojis = interaction.client.emoji.normal;
+    const isStaff = await checkIfStaff(interaction.user);
 
-    await interaction.respond(filtered.map((choice) => ({ name: choice, value: choice })));
+    const ignoreDirs = isStaff ? [] : ['Developer', 'Staff'];
+    const menuOptionsObj = commands.reduce((obj: Record<string, APISelectMenuOption>, command) => {
+      if (!ignoreDirs.includes(command.directory) && !obj[command.directory]) {
+        obj[command.directory] = { label: command.directory, value: command.directory };
+      }
+      return obj;
+    }, {});
+
+    const menuOptions = Object.values(menuOptionsObj);
+    menuOptions[0].default = true;
+
+    const categorySelect = new ActionRowBuilder<StringSelectMenuBuilder>()
+      .addComponents(new StringSelectMenuBuilder({ customId: 'categorySelect', options: menuOptions, placeholder: 'Select a Category' }));
+
+    const commandSelect = new ActionRowBuilder<StringSelectMenuBuilder>()
+      .addComponents(new StringSelectMenuBuilder({ customId: 'commandSelect', placeholder: 'Select a Command' }));
+
+    const firstCategory = menuOptions[0].label;
+    let allCommands = '';
+
+    commands.forEach(command => {
+      if (command.directory === firstCategory) {
+        allCommands += prettifyCommand(command, emojis);
+        commandSelect.components[0].addOptions({ label: toTitleCase(command.data.name), value: command.data.name });
+      }
+    });
+
+    const embed = new EmbedBuilder()
+      .setTitle(firstCategory + ' Commands')
+      .setAuthor({ name: `${interaction.client.user.username} Help`, iconURL: interaction.client.user.avatarURL() || undefined })
+      .setDescription(allCommands)
+      .setColor(colors('chatbot'))
+      .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+
+    const firstReply = await interaction.reply({ embeds: [embed], components: [categorySelect, commandSelect] });
+
+    const collector = firstReply.createMessageComponentCollector({ filter: i => i.user.id === interaction.user.id });
+    collector.on('collect', (i) => {
+      if (i.isStringSelectMenu()) {
+        switch (i.customId) {
+          case 'categorySelect': {
+            const category = i.values[0];
+
+            // reset values
+            allCommands = '';
+            commandSelect.components[0].setOptions();
+
+            commands.forEach((command) => {
+              if (command.directory === category) {
+                allCommands += prettifyCommand(command, emojis);
+                commandSelect.components[0].addOptions({ label: command.data.name, value: command.data.name });
+              }
+            });
+
+            const categoryEmbed = new EmbedBuilder()
+              .setTitle(category + ' Commands')
+              .setAuthor({ name: `${interaction.client.user.username} Help`, iconURL: interaction.client.user.avatarURL() || undefined })
+              .setDescription(allCommands)
+              .setColor(colors('chatbot'))
+              .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+
+            categorySelect.components[0].options.find(option => option.data.default)?.setDefault(false);
+            categorySelect.components[0].options.find(option => option.data.value === category)?.setDefault(true);
+
+            i.update({ embeds: [categoryEmbed], components: [categorySelect, commandSelect] });
+            break;
+          }
+          case 'commandSelect': {
+            const commandName = i.values[0];
+            const selectedCommand = commands.find(command => command.data.name === commandName);
+            const commandData = selectedCommand?.data.toJSON();
+            const permissions = new PermissionsBitField(commandData?.default_member_permissions as PermissionsString | undefined).toArray().join(', ');
+
+            const commandEmbed = new EmbedBuilder()
+              .setTitle(toTitleCase(commandName))
+              .setDescription(`${getCommandDescription(selectedCommand).description}`)
+              .setColor(colors('chatbot'))
+              .addFields({ name: 'Permissions Required', value: permissions || 'None.' });
+
+            i.update({ embeds: [commandEmbed] });
+            break;
+          }
+
+          default:
+            break;
+        }
+      }
+
+    });
   },
 };
+
+function getCommandDescription(command: InterchatCommand | undefined) {
+  const commandData = command?.data as any;
+  let description = command?.description;
+  let commandType: ApplicationCommandType = commandData.type;
+
+  if (!commandData.type) {
+    description = commandData.description;
+    commandType = ApplicationCommandType.ChatInput;
+  }
+
+  return { description, commandType };
+}
+
+function prettifyCommand(command: InterchatCommand, emojis: Client['emoji']['normal']) {
+  const commandDesc = getCommandDescription(command);
+  const commandType = commandDesc.commandType !== ApplicationCommandType.ChatInput ? ' ' + emojis.contextMenu : emojis.slashCommand;
+
+  return `${commandType} **${toTitleCase(command.data.name)}**\n${emojis.dividerEnd} ${commandDesc.description}\n`;
+}

@@ -19,9 +19,10 @@
         "chatbot_circle": "<:chatbot_circle:1077200892157243503>",
         "dotYellow": "<:yellowdot:986617776196190248>",
         "dotRed": "<:reddot:986617774006738944>",
-        "webhook": "<:webhook:1065979539320217621> ",
+        "dotBlue": "<:dotBlue:1086649062775865364>",
+        "webhook": "<:webhook:1065979539320217621>",
         "online_anim": "<a:online:983962418558435418>",
-        "idle_anim": "<a:idle:983962415567888445> ",
+        "idle_anim": "<a:idle:983962415567888445>",
         "dnd_anim": "<a:dnd:983962413646876682>", 
         "offline_anim": "<a:offline:983962407049244714>",
         "onlineMobile": "<:onlinemobile:715050614429712384>",
@@ -32,7 +33,11 @@
         "reply": "<:reply:1064781138477985792>",
         "blobFastBan": "<a:blob_fastban:1082322164763594822>",
         "back": "<:back:1082924285674401852>",
-        "forward": "<:forward:1082924287922536508>"
+        "forward": "<:forward:1082924287922536508>",
+        "dividerEnd": "<:divider_end:1077200586803527690>",
+        "contextMenu": "<:ContextMenuCommand:1086624007949930597>",
+        "slashCommand": "<:slashCommand:1086631449337266276>",
+        "blueLine": "<:blueLine:1086634970539360296>"
     },
 
 

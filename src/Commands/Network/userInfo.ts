@@ -3,6 +3,7 @@ import { badgeToEmoji, colors, getDb } from '../../Utils/functions/utils';
 import { profileImage } from 'discord-arts';
 
 export default {
+  description: 'Get information about a user in the network!',
   data: new ContextMenuCommandBuilder()
     .setName('User Info')
     .setType(ApplicationCommandType.Message),
