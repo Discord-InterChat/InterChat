@@ -18,14 +18,14 @@ export default {
       members.push(member);
     }
 
-    const linksDivider = stripIndent`${normal.blueLine.repeat(11)} **LINKS** ${normal.blueLine.repeat(11)}`;
-    const creditsDivider = stripIndent`${normal.blueLine.repeat(11)} **CREDITS** ${normal.blueLine.repeat(11)}`;
+    const linksDivider = stripIndent`${normal.blueLine.repeat(9)} **LINKS** ${normal.blueLine.repeat(9)}`;
+    const creditsDivider = stripIndent`${normal.blueLine.repeat(9)} **CREDITS** ${normal.blueLine.repeat(9)}`;
 
 
     const embed = new EmbedBuilder()
       .setColor(colors('chatbot'))
       .setTitle(`${icons.info} About ${interaction.client.user.username}`)
-      .setThumbnail(interaction.client.user.avatarURL())
+      .setThumbnail(interaction.client.user.avatarURL() || interaction.client.user.defaultAvatarURL)
       .setDescription(`
       A growing discord bot which provides a fun server-to-server chat! Talk to other servers from your own!
 
@@ -45,7 +45,7 @@ export default {
       ${normal.dotBlue} ${members.at(-2)?.tag}
 
       ${linksDivider}
-      [Guide](https://interchat.gitbook.io) • [Invite](${interaction.client.inviteLink}) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241) • [App Directory](https://discord.com/application-directory/769921109209907241) • [ToS](https://interchat.gitbook.io/important/terms) • [Privacy Policy](https://interchat.gitbook.io/important/privacy)
+      [Guide](https://interchat.gitbook.io) • [Invite](${interaction.client.inviteLink}) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241) • [App Directory](https://discord.com/application-directory/769921109209907241) • [ToS](https://interchat.gitbook.io/important/terms) • [Privacy](https://interchat.gitbook.io/important/privacy)
       `)
       .setFooter({
         text: `Requested by ${interaction.user.tag}`,
