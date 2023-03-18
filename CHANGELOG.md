@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.9.0](https://github.com/Discord-InterChat/Interchat/compare/v3.8.1...v3.9.0) (2023-03-18)
+
+
+### Features
+
+* Basic network purge command ([0bcb098](https://github.com/Discord-InterChat/Interchat/commit/0bcb0981bcc84ebf82883cd4a3d60fb1faf732f0))
+* New help command (very WIP) ([c8d3a3b](https://github.com/Discord-InterChat/Interchat/commit/c8d3a3bfbda9e3e0b6fe7f726cd7a3e0fc0a8c83))
+* **purge:** Add `replies` and `after` options ([a1dd0e3](https://github.com/Discord-InterChat/Interchat/commit/a1dd0e390fd124ecbef08dca3523f896d6d68aba))
+* **userInfo:** Cool new profile banner image ([a28fd20](https://github.com/Discord-InterChat/Interchat/commit/a28fd20e0d49af44b56923cd2656e70eb0f3992b))
+
+
+### Bug Fixes
+
+* **announce:** Small tweaks ([abd948d](https://github.com/Discord-InterChat/Interchat/commit/abd948d9fa0ebf8ad52273b39bde878ea9f0ec95))
+* Better pagination buttons ([ad5b51b](https://github.com/Discord-InterChat/Interchat/commit/ad5b51b0034433e6c5d92a3c4639124704c8dd93))
+* embeds for warn/blacklist notification ([afc41fa](https://github.com/Discord-InterChat/Interchat/commit/afc41faeb6ca59d78e5d557d7f027da5d94967c3))
+* **logs:** added more stuff to modlogs embed ([cc485a3](https://github.com/Discord-InterChat/Interchat/commit/cc485a3c4fedaba88344399f4fe3909bb2363650))
+* **msgData:** Changed delete interval to 24h ([326635f](https://github.com/Discord-InterChat/Interchat/commit/326635f43a2ae024fb9aa1de780a03f6bd89b3c4))
+* **network:** 1000 charecter message limit & only allowed gif/images in network ([a523b3f](https://github.com/Discord-InterChat/Interchat/commit/a523b3fbf501b0d7b7418a7d0be63db4a799b423))
+* **network:** Disallowed user mentions ([57d0c25](https://github.com/Discord-InterChat/Interchat/commit/57d0c25b77ae8b757f4190b6ef2f9370ba9b0bfd))
+* **network:** Webhook disabling hotfix ([fc8acfd](https://github.com/Discord-InterChat/Interchat/commit/fc8acfd48818e0838081004127f081002bb3a126))
+* New look for info command ([695c44a](https://github.com/Discord-InterChat/Interchat/commit/695c44aac47f17380b0f90646e41ef30616013e9))
+* **report:** Fixed typo ([84022ae](https://github.com/Discord-InterChat/Interchat/commit/84022aeeb2b4060decd56bf3511ae337dbb76a6c))
+* **stats:** Reverted embed style to original ([064b975](https://github.com/Discord-InterChat/Interchat/commit/064b9758f6a12306383d8bd3131c659689392856))
+* Updated credits ([eb06f40](https://github.com/Discord-InterChat/Interchat/commit/eb06f408e0d1b91e122c23bd07fccb690b7db42c))
+
 ### [3.8.1](https://github.com/Discord-ChatBot/Discord-ChatBot/compare/v3.8.0...v3.8.1) (2023-02-16)
 
 
