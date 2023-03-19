@@ -22,20 +22,19 @@ export default {
     const userBadgesRaw = await db.userBadges.findFirst({ where: { userId: user.id } });
     const createdAt = Math.round(user.createdTimestamp / 1000);
 
-    const userBadges = userBadgesRaw ? badgeToEmoji(userBadgesRaw?.badges) || 'No Badges.' : 'No Badges.';
+    const userBadges = userBadgesRaw?.badges ? badgeToEmoji(userBadgesRaw?.badges).join(' ') : 'No Badges.';
 
 
     const embed = new EmbedBuilder()
-      .setTitle(user.tag)
-      .setThumbnail(user.avatarURL() ?? user.defaultAvatarURL)
-      .setColor(colors('invisible'))
-      .setImage('attachment://customCard.png') // link to image that will be generated afterwards
+      .setAuthor({ name: user.tag, iconURL: user.avatarURL() ?? user.defaultAvatarURL })
       .setDescription(userBadges)
       .addFields({
         name: 'General Info',
         value: `**Name:** ${user.tag}\n**Bot Account:** ${user.bot}\n**Created:** <t:${createdAt}:D> (<t:${createdAt}:R>)`,
       })
-      .setFooter({ text:`ID: ${user.id}` });
+      .setImage('attachment://customCard.png') // link to image that will be generated afterwards
+      .setFooter({ text:`ID: ${user.id}` })
+      .setColor(colors('invisible'));
 
     await interaction.reply({ content: `${emoji.loading} Generating profile card...`, embeds: [embed], ephemeral: true });
 

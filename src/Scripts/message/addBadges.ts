@@ -7,7 +7,7 @@ export = {
     const badges = await database.userBadges.findFirst({ where: { userId: message.author.id } });
 
     if (badges && badges.badges.length > 0) {
-      const badgeString = badgeToEmoji(badges.badges);
+      const badgeString = badgeToEmoji(badges.badges).join(' ');
 
       embed.setTitle(badgeString);
       censoredEmbed.setTitle(badgeString);

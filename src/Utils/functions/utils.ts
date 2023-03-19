@@ -141,7 +141,6 @@ export function toHuman(milliseconds: number): string {
  * @param onlyDeveloper Only check if user is a developer
  */
 export async function checkIfStaff(user: discord.GuildMember | discord.User, onlyDeveloper = false) {
-  return true;
   try {
     const staffRole = '800698916995203104';
     const developerRole = '770256273488347176';
@@ -165,13 +164,13 @@ export async function checkIfStaff(user: discord.GuildMember | discord.User, onl
 }
 
 export function badgeToEmoji(badgeArr: string[]) {
-  let badgeString = '';
+  const badgeEmojis: string[] = [];
   const tempbadge: { [key: string]: string } = badge;
 
   badgeArr.forEach((badgeName) => {
-    if (badgeName in tempbadge) badgeString += tempbadge[badgeName];
+    if (badgeName in tempbadge) badgeEmojis.push(tempbadge[badgeName]);
   });
-  return badgeString || null;
+  return badgeEmojis;
 }
 
 export const rulesEmbed = new discord.EmbedBuilder()
