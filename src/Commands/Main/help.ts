@@ -26,7 +26,7 @@ export default {
       .addComponents(new StringSelectMenuBuilder({ customId: 'categorySelect', options: menuOptions, placeholder: 'Select a Category' }));
 
     const commandSelect = new ActionRowBuilder<StringSelectMenuBuilder>()
-      .addComponents(new StringSelectMenuBuilder({ customId: 'commandSelect', placeholder: 'Select a Command' }));
+      .addComponents(new StringSelectMenuBuilder({ customId: 'commandSelect', placeholder: 'Select a Command from this category' }));
 
     const firstCategory = menuOptions[0].label;
     let allCommands = '';
@@ -61,7 +61,7 @@ export default {
             commands.forEach((command) => {
               if (command.directory === category) {
                 allCommands += prettifyCommand(command, emojis);
-                commandSelect.components[0].addOptions({ label: command.data.name, value: command.data.name });
+                commandSelect.components[0].addOptions({ label: toTitleCase(command.data.name), value: command.data.name });
               }
             });
 
