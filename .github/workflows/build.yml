@@ -37,8 +37,7 @@ jobs:
       - name: Deploy Commands
         run: |
             cp ~/important/interchat-env .env
-            npm run deploy
-            npm run deploy -- -s
+            npm run deploy -- -b
             
       - name: Prune Dev-dependencies
         run: npm prune --omit=dev
