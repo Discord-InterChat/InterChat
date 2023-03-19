@@ -273,6 +273,7 @@ export = {
             });
             break;
           }
+
           await settingsMenu.reply({
             content: `${emoji.normal.loading} Creating webhook...`,
             ephemeral: true,
@@ -285,9 +286,10 @@ export = {
               avatar: interaction.client.user?.avatarURL(),
             });
           }
-          catch {
-            interaction.editReply('Please grant me `Manage Webhook` permissions for this to work.');
-            return;
+          catch (e: any) {
+            if (e.message.includes('Missing Permissions')) settingsMenu.editReply(emoji.normal.no + ' Please grant me `Manage Webhook` permissions for this to work.');
+            else settingsMenu.editReply(`${emoji.normal.no} **Error during webhook creation**: ${e.message}`);
+            break;
           }
 
 
