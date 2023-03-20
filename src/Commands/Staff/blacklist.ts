@@ -28,7 +28,8 @@ export default {
                   .setRequired(true))
               .addNumberOption(option => option
                 .setName('minutes')
-                .setDescription('The number of minutes the user will be blakclisted for.'))
+                .setDescription('The number of minutes the user will be blakclisted for.')
+                .setMinValue(1))
               .addNumberOption(option => option
                 .setName('hours')
                 .setDescription('The number of hours the user will be blacklisted for.'))
@@ -54,7 +55,8 @@ export default {
             )
             .addNumberOption(option => option
               .setName('minutes')
-              .setDescription('The number of minutes the user will be blakclisted for.'))
+              .setDescription('The number of minutes the user will be blakclisted for.')
+              .setMinValue(1))
             .addNumberOption(option => option
               .setName('hours')
               .setDescription('The number of hours the user will be blacklisted for.'))

@@ -1,6 +1,6 @@
-import { ChatInputCommandInteraction, EmbedBuilder, User } from 'discord.js';
-import { scheduleJob, cancelJob } from 'node-schedule';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { cancelJob } from 'node-schedule';
+import { colors, getDb, addUserBlacklist } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
 import logger from '../../Utils/logger';
 
@@ -38,48 +38,16 @@ export = {
       if (user.id === interaction.user.id) return interaction.followUp('You cannot blacklist yourself.');
       if (user.id === interaction.client.user?.id) return interaction.followUp('You cannot blacklist the bot wtf.');
 
-
-      if (!mins && !hours && !days) {
-        await blacklistedUsers.create({
-          data: {
-            username: `${user.username}#${user.discriminator}`,
-            userId: user.id,
-            reason: String(reason),
-            notified: true,
-          },
-        });
-      }
-      else {
+      if (mins || hours || days) {
         expires = new Date();
-
         mins ? expires.setMinutes(expires.getMinutes() + mins) : null;
         hours ? expires.setHours(expires.getHours() + hours) : null;
         days ? expires.setDate(expires.getDate() + days) : null;
-
-        await blacklistedUsers.create({
-          data: {
-            username: `${user.username}#${user.discriminator}`,
-            userId: user.id,
-            reason: String(reason),
-            notified: true,
-            expires,
-          },
-        });
-
-        scheduleJob(`blacklist_user-${user.id}`, expires, async function(usr: User) {
-          const db = getDb();
-          const userBeforeUnblacklist = await db.blacklistedUsers.findFirst({ where: { userId: usr.id } });
-
-          await db.blacklistedUsers.delete({ where: { userId: usr.id } });
-
-          modActions(usr.client.user, {
-            user: usr,
-            action: 'unblacklistUser',
-            blacklistReason: userBeforeUnblacklist?.reason,
-            reason: 'Blacklist expired for user.',
-          });
-        }.bind(null, user));
       }
+
+      await addUserBlacklist(interaction.user, user, String(reason), expires);
+      interaction.followUp(`**${user.tag}** has been blacklisted for reason \`${reason}\`.`);
+
       try {
         const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
         const embed = new EmbedBuilder()
@@ -98,15 +66,6 @@ export = {
         await blacklistedUsers.update({ where: { userId: user.id }, data: { notified: false } });
         logger.info(`Could not notify ${user.tag} about their blacklist.`);
       }
-
-      interaction.followUp(`**${user.tag}** has been blacklisted.`);
-
-      modActions(interaction.user, {
-        user,
-        action: 'blacklistUser',
-        expires,
-        reason,
-      });
     }
 
 

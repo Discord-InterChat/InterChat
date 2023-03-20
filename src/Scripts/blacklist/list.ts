@@ -27,7 +27,7 @@ module.exports = {
           value: stripIndents`
           **ServerId:** ${data.serverId}
           **Reason:** ${data.reason}
-          **Expires:** ${!data.expires ? 'Never.' : `<t:${Math.round(data.expires.getTime() / 1000)}:R>`}     
+          **Expires:** ${!data.expires ? 'Never.' : `<t:${Math.ceil(data.expires.getTime() / 1000)}:R>`}     
           `,
         });
 
@@ -55,7 +55,7 @@ module.exports = {
           value: stripIndents`
           **UserID:** ${data.userId}
           **Reason:** ${data.reason}
-          **Expires:** ${!data.expires ? 'Never.' : `<t:${Math.round(data.expires.getTime() / 1000)}:R>`}
+          **Expires:** ${!data.expires ? 'Never.' : `<t:${Math.ceil(data.expires.getTime() / 1000)}:R>`}
           `,
         });
 

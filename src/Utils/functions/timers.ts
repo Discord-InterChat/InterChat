@@ -3,7 +3,7 @@ import { scheduleJob } from 'node-schedule';
 import { modActions } from '../../Scripts/networkLogs/modActions';
 import { getDb } from './utils';
 
-/** A function to start timers for blacklist expiry etc. */
+/** A function to start timers for blacklist expiry, messageData cleanup, etc. */
 export default async function startTimers(client: Client) {
   const db = getDb();
   const messageData = db.messageData;

@@ -19,7 +19,7 @@ export async function getServerData(filter: NetworkOptions) {
 export async function connect(channel: GuildTextBasedChannel) {
   const channelExists = await connectedList.findFirst({
     where: {
-      channelId: channel?.id,
+      channelId: channel.id,
     },
   });
 
@@ -27,7 +27,7 @@ export async function connect(channel: GuildTextBasedChannel) {
 
   return await connectedList.create({
     data: {
-      channelId: channel?.id,
+      channelId: channel.id,
       serverId: channel.guildId,
     },
   });

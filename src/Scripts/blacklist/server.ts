@@ -1,6 +1,5 @@
-import { ChatInputCommandInteraction, Guild } from 'discord.js';
-import { scheduleJob } from 'node-schedule';
-import { getDb } from '../../Utils/functions/utils';
+import { ChatInputCommandInteraction } from 'discord.js';
+import { getDb, addServerBlacklist } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
 
 module.exports = {
@@ -13,10 +12,11 @@ module.exports = {
     const serverInBlacklist = await blacklistedServers.findFirst({ where: { serverId: serverOpt } });
 
     if (subCommandGroup == 'add') {
-      if (serverInBlacklist) return await interaction.reply('The server is already blacklisted.');
+      await interaction.deferReply();
+      if (serverInBlacklist) return await interaction.followUp('The server is already blacklisted.');
 
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
-      if (!server) return interaction.reply('Invalid server ID.');
+      if (!server) return interaction.followUp('Invalid server ID.');
 
       const serverSetup = await setup.findFirst({ where: { guildId: serverOpt } });
 
@@ -25,35 +25,15 @@ module.exports = {
       const hours = interaction.options.getNumber('hours');
       const days = interaction.options.getNumber('days');
 
-      if (!mins && !hours && !days) {
-        await blacklistedServers.create({
-          data: {
-            serverName: server.name,
-            serverId: serverOpt,
-            reason: String(reason),
-          },
-        });
-      }
-      else {
+      if (mins || hours || days) {
         expires = new Date();
         mins ? expires.setMinutes(expires.getMinutes() + mins) : null;
         hours ? expires.setHours(expires.getHours() + hours) : null;
         days ? expires.setDate(expires.getDate() + days) : null;
-
-        await blacklistedServers.create({
-          data: {
-            serverName: server.name,
-            serverId: serverOpt,
-            expires,
-            reason: String(reason),
-          },
-        });
-        scheduleJob(`blacklist_server-${server.id}`, expires, async function(guild: Guild) {
-          await getDb().blacklistedServers.delete({ where: { serverId: guild.id } });
-        }.bind(null, server));
       }
 
-      await interaction.reply(`**${server.name}** has been blacklisted for reason \`${reason}\`.`);
+      await addServerBlacklist(interaction.user, server, String(reason), expires);
+      interaction.followUp(`**${server.name}** has been blacklisted for reason \`${reason}\`.`);
 
       // TODO: Use embeds for notifications?
       if (serverSetup) {
@@ -62,13 +42,6 @@ module.exports = {
         if (channel?.isTextBased()) channel.send(`This server has been blacklisted from the network for reason \`${reason}\`. Join the support server and contact staff to appeal your blacklist.`).catch(() => null);
       }
       await server.leave();
-
-      modActions(interaction.user, {
-        guild: { id: server.id, resolved: server },
-        action: 'blacklistServer',
-        expires,
-        reason: String(reason),
-      });
     }
     else if (subCommandGroup == 'remove') {
       if (!serverInBlacklist) return await interaction.reply('The server is not blacklisted.');

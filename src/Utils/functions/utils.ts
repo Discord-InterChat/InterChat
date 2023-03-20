@@ -8,6 +8,8 @@ import 'dotenv/config';
 import _ from 'lodash/string';
 import { badge, normal } from '../JSON/emoji.json';
 import { stripIndents } from 'common-tags';
+import { scheduleJob } from 'node-schedule';
+import { modActions } from '../../Scripts/networkLogs/modActions';
 
 export const constants = {
   developers: ['828492978716409856', '701727675311587358', '456961943505338369'],
@@ -171,6 +173,83 @@ export function badgeToEmoji(badgeArr: string[]) {
     if (badgeName in tempbadge) badgeEmojis.push(tempbadge[badgeName]);
   });
   return badgeEmojis;
+}
+
+export async function addUserBlacklist(moderator: discord.User, user: discord.User | string, reason: string, expires?: Date) {
+  if (typeof user === 'string') user = await moderator.client.users.fetch(user);
+
+  const dbUser = await prisma.blacklistedUsers.create({
+    data: {
+      reason,
+      userId: user.id,
+      username: user.username,
+      notified: true,
+      expires,
+    },
+  });
+
+  // set an unblacklist timer if there is an expire duration
+  if (expires) {
+    scheduleJob(`blacklist_user-${user.id}`, expires, async () => {
+      const tempUser = user as discord.User;
+      await prisma.blacklistedUsers.delete({ where: { userId: tempUser.id } });
+
+      modActions(tempUser.client.user, {
+        user: tempUser,
+        action: 'unblacklistUser',
+        blacklistReason: dbUser.reason,
+        reason: 'Blacklist expired for user.',
+      });
+    });
+  }
+
+  // Send action to logs channel
+  modActions(moderator, {
+    user,
+    action: 'blacklistUser',
+    expires,
+    reason,
+  }).catch(() => null);
+
+  return dbUser;
+}
+
+
+export async function addServerBlacklist(moderator: discord.User, guild: discord.Guild | string, reason: string, expires?: Date) {
+  if (typeof guild === 'string') guild = await moderator.client.guilds.fetch(guild);
+
+  const dbGuild = await prisma.blacklistedServers.create({
+    data: {
+      reason,
+      serverId: guild.id,
+      serverName: guild.name,
+      expires,
+    },
+  });
+
+  // set an unblacklist timer if there is an expire duration
+  if (expires) {
+    scheduleJob(`blacklist_server-${guild.id}`, expires, async () => {
+      const tempGuild = guild as discord.Guild;
+      await prisma.blacklistedServers.delete({ where: { serverId: tempGuild.id } });
+
+      modActions(tempGuild.client.user, {
+        dbGuild,
+        action: 'unblacklistServer',
+        timestamp: new Date(),
+        reason: 'Blacklist expired for user.' });
+    });
+  }
+
+  // Send action to logs channel
+  modActions(moderator, {
+    guild: { id: guild.id, resolved: guild },
+    action: 'blacklistServer',
+    expires,
+    reason,
+  }).catch(() => null);
+
+  return dbGuild;
 }
 
 export const rulesEmbed = new discord.EmbedBuilder()
