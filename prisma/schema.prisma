@@ -103,3 +103,10 @@ model userWarns {
   userTag  String
   warnings UserDataWarnings[]
 }
+
+model Levels {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @unique
+  xp     Int
+  level  Int
+}
