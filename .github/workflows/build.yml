@@ -20,7 +20,7 @@ jobs:
     steps: 
       - name: Backup Logs & Stop PM2
         run: |
-              cp -r ~/actions-runner/chatbot-production-builds/InterChat/InterChat/logs/ ~/console-logs/$(date +'%Y-%m-%d-%M')
+              [ -d "~/actions-runner/chatbot-production-builds/InterChat/InterChat/logs/" ] cp -r ~/actions-runner/chatbot-production-builds/InterChat/InterChat/logs/ ~/console-logs/$(date +'%Y-%m-%d-%M')
               pm2 stop interchat-prod
 
         # note to self: Checks out to ~/actions-runner/chatbot-production-builds/InterChat/InterChat/
