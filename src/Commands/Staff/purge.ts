@@ -92,6 +92,7 @@ export default {
             intOption
               .setName('limit')
               .setDescription('Number of messages to delete. Max: 100, Default: 10')
+              .setMaxValue(100)
               .setRequired(false),
           ),
     ),

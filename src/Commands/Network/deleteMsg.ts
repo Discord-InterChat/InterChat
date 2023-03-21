@@ -1,4 +1,4 @@
-import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCommandInteraction, TextChannel } from 'discord.js';
+import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCommandInteraction } from 'discord.js';
 import { getDb, checkIfStaff } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 import { networkMessageDelete } from '../../Scripts/networkLogs/msgDelete';
@@ -34,10 +34,10 @@ export default {
       interaction.client.channels
         .fetch(element.channelId)
         .then((channel) => {
-          (channel as TextChannel).messages
-            .fetch(element.messageId)
-            .then((message) => message.delete())
-            .catch((e) => logger.error('Delete Message:', e));
+          if (channel?.isTextBased()) {
+            channel.messages.delete(element.messageId)
+              .catch((e) => logger.error('Delete Message:', e));
+          }
         })
         .catch(logger.error);
     });
