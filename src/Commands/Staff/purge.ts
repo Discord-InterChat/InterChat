@@ -97,7 +97,7 @@ export default {
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
-    const limit = interaction.options.getInteger('limit') || undefined;
+    const limit = interaction.options.getInteger('limit') || 100;
     const emoji = interaction.client.emoji;
     const { messageData } = getDb();
 
@@ -126,7 +126,6 @@ export default {
                 gt: fetchedMsg.timestamp,
               },
             },
-            orderBy: { id: 'asc' },
             take: limit,
           });
         }
@@ -155,16 +154,14 @@ export default {
         ephemeral: true,
       });
     }
-    await interaction.reply({
-      content: `${emoji.normal.loading} Purging...\n**Tip:** The \`Delete Message\` context menu is faster for smaller deletes.`,
-      ephemeral: true,
-    });
+    const initialReply = await interaction.reply(`${emoji.normal.loading} Purging...\n**Tip:** The \`Delete Message\` context menu is faster for smaller deletes.`);
 
     let erroredMessageCount = 0;
-    const deletedMessagesArr: string[][] = [];
+    let deletedMessageCount = 0;
+    const deletedMessagesArr: string[] = [];
+
     const startTime = performance.now();
     const allNetworks = await getAllNetworks();
-
     for (const network of allNetworks) {
       try {
         const channel = await interaction.client.channels.fetch(network.channelId);
@@ -179,7 +176,8 @@ export default {
           if (messageIds.length < 1) continue;
 
           await channel.bulkDelete(messageIds);
-          deletedMessagesArr.push(messageIds);
+          deletedMessagesArr.push(messageIds[0]);
+          deletedMessageCount += messageIds.length;
         }
       }
       catch (e) {
@@ -189,26 +187,24 @@ export default {
       }
     }
 
-    const deletedMessages = deletedMessagesArr.flatMap((e) => e);
     const resultEmbed = new EmbedBuilder()
       .setTitle(`${emoji.icons.delete} Purge Results`)
       .setDescription(`Finished purging from **${allNetworks.length}** networks.`)
       .addFields([
-        { name: 'Total Purged', value: `\`\`\`js\n${deletedMessages.length}\`\`\``, inline: true },
+        { name: 'Total Purged', value: `\`\`\`js\n${deletedMessageCount}\`\`\``, inline: true },
         { name: 'Errored Purges', value: `\`\`\`js\n${erroredMessageCount}\`\`\``, inline: true },
-        { name: 'Avg. purged/network', value: `\`\`\`js\n${deletedMessagesArr[0].length}\`\`\``, inline: true },
-        { name: 'Purge Limit', value: `\`\`\`js\n${limit}\`\`\``, inline: true },
+        { name: 'Purge Limit', value: `\`\`\`js\n${limit || 'None'}\`\`\``, inline: true },
         { name: 'Time Took', value: `\`\`\`elm\n${toHuman(performance.now() - startTime)}\`\`\``, inline: true },
       ])
       .setFooter({ text: `Purged By: ${interaction.user.tag}`, iconURL: interaction.user.avatarURL() || undefined })
       .setTimestamp()
       .setColor('Orange');
 
-    interaction.followUp({ embeds: [resultEmbed] }).catch(captureException);
+    initialReply.edit({ content: '', embeds: [resultEmbed] }).catch(captureException);
 
     // Remove the deleted messages from the database
     await messageData.deleteMany({
-      where: { channelAndMessageIds: { some: { messageId: { in: deletedMessages } } } },
-    });
+      where: { channelAndMessageIds: { some: { messageId: { in: deletedMessagesArr } } } },
+    }).catch(captureException);
   },
 };
