@@ -5,7 +5,7 @@ import { colors, rulesEmbed } from '../../Utils/functions/utils';
 /* Make user accept and understand important info on first setup */
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
-    const emoji = interaction.client.emoji;
+    const emoji = interaction.client.emotes;
     // TODO: Don't let user use setup twice, they will be able to connect twice!
 
     const embed = new EmbedBuilder()

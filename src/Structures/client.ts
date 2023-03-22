@@ -6,6 +6,7 @@ import { Client, Collection, ActivityType, MessageCreateOptions } from 'discord.
 import { join } from 'path';
 import { prisma } from '../Utils/db';
 import * as Sentry from '@sentry/node';
+
 export class ExtendedClient extends Client {
   constructor() {
     super({
@@ -14,8 +15,8 @@ export class ExtendedClient extends Client {
       presence: {
         status: 'online',
         activities: [{
-          name: project.version,
-          type: ActivityType.Listening,
+          name: `InterChat ${project.version}`,
+          type: ActivityType.Watching,
         }],
       },
     });
@@ -23,7 +24,7 @@ export class ExtendedClient extends Client {
     this.commands = new Collection();
     this.description = project.description;
     this.version = project.version;
-    this.emoji = emojis;
+    this.emotes = emojis;
   }
 
   public async start(token?: string) {

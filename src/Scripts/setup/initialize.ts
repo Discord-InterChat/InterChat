@@ -11,7 +11,7 @@ export = {
     await interaction.deferReply();
 
     const date = new Date();
-    const emoji = interaction.client.emoji.normal;
+    const emoji = interaction.client.emotes.normal;
     const destination = interaction.options.getChannel('destination', true) as GuildTextBasedChannel;
 
     const { setup } = getDb();

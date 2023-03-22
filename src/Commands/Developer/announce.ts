@@ -74,7 +74,7 @@ export default {
             btn.reply('Message announced to the network!');
             return;
           }
-          await btn.reply({ content: `${interaction.client.emoji.normal.no} Cancelled.` });
+          await btn.reply({ content: `${interaction.client.emotes.normal.no} Cancelled.` });
           i.editReply({ components: [] });
         });
 

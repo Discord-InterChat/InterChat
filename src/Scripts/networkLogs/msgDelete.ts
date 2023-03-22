@@ -5,7 +5,7 @@ import { getDb, constants } from '../../Utils/functions/utils';
 
 export async function networkMessageDelete(deletedBy: GuildMember | null, message: Message) {
   const db = getDb();
-  const emojis = message.client.emoji.normal;
+  const emojis = message.client.emotes.normal;
   const messageInDb = await db?.messageData.findFirst({
     where: { channelAndMessageIds: { some: { messageId: { equals: message.id } } } },
   });

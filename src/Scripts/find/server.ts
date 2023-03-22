@@ -13,7 +13,7 @@ export = {
 
     const db = getDb();
     const blacklistedServers = db?.blacklistedServers;
-    const emoji = interaction.client.emoji.normal;
+    const emoji = interaction.client.emotes.normal;
 
     const components = async () => {
       const guildBlacklisted = await blacklistedServers?.findFirst({
@@ -85,7 +85,7 @@ async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
   const guildBlacklisted = await blacklistedServers.findFirst({ where: { serverId: guild.id } });
   const guildBoostLevel = guild.premiumTier === 0 ? 'None' : guild.premiumTier === 1 ? 'Level 1' : guild.premiumTier === 2 ? 'Level 2' : guild.premiumTier === 3 ? 'Level 3' : 'Unknown';
 
-  const { yes, no } = guild.client.emoji.normal;
+  const { yes, no } = guild.client.emotes.normal;
   const channelName = await guild.client.channels.fetch(String(guildInDb?.channelId)).catch(() => null);
 
   return new EmbedBuilder()

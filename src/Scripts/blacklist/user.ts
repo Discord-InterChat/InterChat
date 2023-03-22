@@ -9,7 +9,7 @@ export = {
     let userOpt = interaction.options.getString('user', true);
     const reason = interaction.options.getString('reason');
     const subcommandGroup = interaction.options.getSubcommandGroup();
-    const emoji = interaction.client.emoji.normal;
+    const emoji = interaction.client.emotes.normal;
 
     let user;
     const blacklistedUsers = getDb().blacklistedUsers;

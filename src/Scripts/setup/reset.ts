@@ -4,7 +4,7 @@ import { getDb } from '../../Utils/functions/utils';
 
 export = {
   async execute(interaction: ChatInputCommandInteraction) {
-    const { normal, icons } = interaction.client.emoji;
+    const { normal, icons } = interaction.client.emotes;
     const { setup } = getDb();
 
     if (!await setup?.findFirst({ where: { guildId: interaction.guildId?.toString() } })) {

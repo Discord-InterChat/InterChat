@@ -5,12 +5,12 @@ export default {
     .setName('invite')
     .setDescription('Invite the bot to your server'),
   async execute(interaction: ChatInputCommandInteraction) {
-    const { normal } = interaction.client.emoji;
+    const { normal } = interaction.client.emotes;
 
     const InviteButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
       new ButtonBuilder()
         .setLabel('Normal')
-        .setURL(interaction.client.inviteLink)
+        .setURL(interaction.client.invite)
         .setStyle(ButtonStyle.Link)
         .setEmoji(normal.invite)
         .setDisabled(false),

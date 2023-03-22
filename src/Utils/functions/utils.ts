@@ -1,15 +1,14 @@
+import startCase from 'lodash/startCase';
+import toLower from 'lodash/toLower';
 import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
 import { prisma } from '../db';
-import 'dotenv/config';
-// eslint-disable-next-line
-// @ts-ignore
-import _ from 'lodash/string';
 import { badge, normal } from '../JSON/emoji.json';
 import { stripIndents } from 'common-tags';
 import { scheduleJob } from 'node-schedule';
 import { modActions } from '../../Scripts/networkLogs/modActions';
+import 'dotenv/config';
 
 export const constants = {
   developers: ['828492978716409856', '701727675311587358', '456961943505338369'],
@@ -70,7 +69,7 @@ export const topgg = new Api(process.env.TOPGG as string);
 
 
 export function toTitleCase(txt: string): string {
-  return _.startCase(_.toLower(txt));
+  return startCase(toLower(txt));
 }
 
 export function getGuildName(client: discord.Client, gid: string | null) {

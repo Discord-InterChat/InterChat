@@ -13,7 +13,7 @@ export default {
     const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 }).catch(() => null);
     const badword = wordFilter.check(guild.name);
 
-    const { tada, clipart } = guild.client.emoji.normal;
+    const { tada, clipart } = guild.client.emotes.normal;
 
     const embed = new EmbedBuilder()
       .setTitle(`Thank you for inviting me! ${tada} `)

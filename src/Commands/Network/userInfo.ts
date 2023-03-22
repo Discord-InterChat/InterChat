@@ -10,7 +10,7 @@ export default {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const db = getDb();
     const target = interaction.targetId;
-    const emoji = interaction.client.emoji.normal;
+    const emoji = interaction.client.emotes.normal;
     const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: target } } },
     });

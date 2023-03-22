@@ -16,8 +16,9 @@ declare module 'discord.js' {
     commands: discord.Collection<string, InterchatCommand>,
     description: string,
     version: string,
-    emoji: typeof EmojiIDs,
-    inviteLink: string;
+    emotes: typeof EmojiIDs,
+    /* An invite link generated for the client */
+    invite: string;
     sendInNetwork(message: string | MessageCreateOptions): Promise<void>;
   }
 }

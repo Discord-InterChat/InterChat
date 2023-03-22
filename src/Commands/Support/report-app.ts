@@ -32,7 +32,7 @@ export default {
     // network channelId in chatbot hq
     const cbhqJumpMsg = messageInDb.channelAndMessageIds.find((x) => x.channelId === '821607665687330816');
 
-    const emojis = interaction.client.emoji.normal;
+    const emojis = interaction.client.emotes.normal;
 
     const confirmEmbed = new EmbedBuilder()
       .setTitle('Report Type')

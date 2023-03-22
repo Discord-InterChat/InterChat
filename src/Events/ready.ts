@@ -27,7 +27,7 @@ export default {
       PermissionFlagsBits.AddReactions,
       PermissionFlagsBits.ViewAuditLog,
     ];
-    client.inviteLink = client.generateInvite({ scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands], permissions });
+    client.invite = client.generateInvite({ scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands], permissions });
     topgg.postStats({ serverCount: client.guilds.cache.size });
     startTimers(client);
   },

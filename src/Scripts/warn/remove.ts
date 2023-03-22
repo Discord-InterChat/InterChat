@@ -8,7 +8,7 @@ export = {
     const user = interaction.options.getUser('user', true);
     const userWarns = await db.userWarns.findFirst({ where: { userId: user.id } });
 
-    const emojis = interaction.client.emoji;
+    const emojis = interaction.client.emotes;
 
     if (!userWarns?.warnings.some((warn) => warn.id === warnId)) {
       return interaction.reply({

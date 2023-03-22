@@ -6,7 +6,7 @@ import logger from '../../Utils/logger';
 // function to make it easier to edit embeds with updated data
 async function setupEmbed(interaction: ChatInputCommandInteraction) {
   const db = getDb();
-  const emoji = interaction.client.emoji;
+  const emoji = interaction.client.emotes;
 
   const guildSetupData = await db.setup.findFirst({ where: { guildId: interaction?.guild?.id } });
   const guild = interaction.client.guilds.cache.get(`${guildSetupData?.guildId}`);
@@ -41,7 +41,7 @@ export = {
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.deferred) await interaction.deferReply();
 
-    const emoji = interaction.client.emoji;
+    const emoji = interaction.client.emotes;
     const guildConnected = await getServerData({ serverId: interaction.guild?.id });
 
     const setupActionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([

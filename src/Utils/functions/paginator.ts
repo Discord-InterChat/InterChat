@@ -6,13 +6,13 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, CommandInte
 export async function paginate(interaction: CommandInteraction, pages: EmbedBuilder[],
   buttons =
   {
-    back: interaction.client.emoji.normal.back,
+    back: interaction.client.emotes.normal.back,
     exit: '🛑',
-    next: interaction.client.emoji.normal.forward,
+    next: interaction.client.emotes.normal.forward,
   },
   stopAfter = 60000) {
   if (pages.length < 1) {
-    interaction.reply({ content: `${interaction.client.emoji.normal.tick} No more pages to display!`, ephemeral: true });
+    interaction.reply({ content: `${interaction.client.emotes.normal.tick} No more pages to display!`, ephemeral: true });
     return;
   }
 

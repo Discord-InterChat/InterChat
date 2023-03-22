@@ -25,7 +25,7 @@ const embedGen = async (user: User) => {
     .filter((guild) => guild.ownerId == user.id)
     .map((guild) => guild.name);
 
-  const { icons } = user.client.emoji;
+  const { icons } = user.client.emotes;
 
   return new EmbedBuilder()
     .setAuthor({ name: user.tag, iconURL: user.avatarURL()?.toString() })

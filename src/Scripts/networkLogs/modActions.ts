@@ -52,7 +52,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
   if (!action.reason) action.reason = 'No reason provided.';
 
   const modLogs = await moderator.client.channels.fetch(constants.channel.modlogs);
-  const emoji = moderator.client.emoji;
+  const emoji = moderator.client.emotes;
 
   if (!modLogs?.isTextBased()) return captureMessage('Modlogs channel is not text based. (modActions.ts)', 'warning');
 

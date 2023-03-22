@@ -7,7 +7,7 @@ import logger from '../../Utils/logger';
 export = {
   async execute(interaction: ChatInputCommandInteraction) {
     const reportType = interaction.options.getString('type', true) as 'user' | 'server' | 'bug' | 'other';
-    const emojis = interaction.client.emoji.normal;
+    const emojis = interaction.client.emotes.normal;
 
     const reportSubmit = new ModalBuilder()
       .setTitle('New Report')

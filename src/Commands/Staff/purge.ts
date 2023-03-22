@@ -99,7 +99,7 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
     const limit = interaction.options.getInteger('limit') || 100;
-    const emoji = interaction.client.emoji;
+    const emoji = interaction.client.emotes;
     const { messageData } = getDb();
 
 

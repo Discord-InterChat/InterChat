@@ -15,7 +15,7 @@ export default {
     const messageInDb = await db?.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
     });
-    const emoji = interaction.client.emoji.normal;
+    const emoji = interaction.client.emotes.normal;
 
     if (!messageInDb || (messageInDb?.expired && staffUser === false)) {
       return interaction.reply({ content: 'This message has expired.', ephemeral: true });

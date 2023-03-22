@@ -16,7 +16,7 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const db = getDb();
     const userInput = interaction.options.getString('user') || interaction.user.id;
-    const emojis = interaction.client.emoji;
+    const emojis = interaction.client.emotes;
 
     // if user is not staff the ID they provided is someone else's
     const staffUser = await checkIfStaff(interaction.user);

@@ -21,7 +21,7 @@ export async function networkMsgUpdate(member: GuildMember, oldMessage: Message,
   let messageContent = oldMessage.embeds[0]?.fields[0]?.value || oldMessage.content.replace(`**${member.user.tag}:**`, '');
   messageContent = messageContent.replace(/> .*/g, '').trim();
 
-  const emoji = member.client.emoji;
+  const emoji = member.client.emotes;
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: member.user.tag, iconURL: member.user.avatarURL()?.toString() })

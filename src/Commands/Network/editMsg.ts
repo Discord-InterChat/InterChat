@@ -17,7 +17,7 @@ export default {
 
     if (!hasVoted && !isStaff) {
       interaction.reply({
-        content: `${interaction.client.emoji.normal.no} You must [vote](<https://top.gg/bot/769921109209907241/vote>) to use this command.`,
+        content: `${interaction.client.emotes.normal.no} You must [vote](<https://top.gg/bot/769921109209907241/vote>) to use this command.`,
         ephemeral: true,
       });
       return;
@@ -124,7 +124,7 @@ export default {
           }
         });
 
-        i.reply({ content: `${interaction.client.emoji.normal.yes} Message Edited.`, ephemeral: true });
+        i.reply({ content: `${interaction.client.emotes.normal.yes} Message Edited.`, ephemeral: true });
 
         const newMessageObject = {
           id: target.id,

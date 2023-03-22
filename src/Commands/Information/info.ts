@@ -7,7 +7,7 @@ export default {
     .setName('info')
     .setDescription('Learn more about InterChat.'),
   async execute(interaction: ChatInputCommandInteraction) {
-    const { normal, icons } = interaction.client.emoji;
+    const { normal, icons } = interaction.client.emotes;
 
     await interaction.deferReply();
 
@@ -45,7 +45,7 @@ export default {
       ${normal.dotBlue} ${members.at(-2)?.tag}
 
       ${linksDivider}
-      [Guide](https://interchat.gitbook.io) • [Invite](${interaction.client.inviteLink}) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241) • [App Directory](https://discord.com/application-directory/769921109209907241) • [ToS](https://interchat.gitbook.io/important/terms) • [Privacy](https://interchat.gitbook.io/important/privacy)
+      [Guide](https://interchat.gitbook.io) • [Invite](${interaction.client.invite}) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241) • [App Directory](https://discord.com/application-directory/769921109209907241) • [ToS](https://interchat.gitbook.io/important/terms) • [Privacy](https://interchat.gitbook.io/important/privacy)
       `)
       .setFooter({
         text: `Requested by ${interaction.user.tag}`,

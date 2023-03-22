@@ -8,7 +8,7 @@ export default {
     .setDescription('Want help? Here it comes!'),
   async execute(interaction: ChatInputCommandInteraction) {
     const commands = interaction.client.commands;
-    const emojis = interaction.client.emoji.normal;
+    const emojis = interaction.client.emotes.normal;
     const isStaff = await checkIfStaff(interaction.user);
 
     const ignoreDirs = isStaff ? [] : ['Developer', 'Staff'];
@@ -33,7 +33,7 @@ export default {
 
     commands.forEach(command => {
       if (command.directory === firstCategory) {
-        allCommands += prettifyCommand(command, emojis);
+        allCommands += prettifyHelp(command, emojis);
         commandSelect.components[0].addOptions({ label: toTitleCase(command.data.name), value: command.data.name });
       }
     });
@@ -60,7 +60,7 @@ export default {
 
             commands.forEach((command) => {
               if (command.directory === category) {
-                allCommands += prettifyCommand(command, emojis);
+                allCommands += prettifyHelp(command, emojis);
                 commandSelect.components[0].addOptions({ label: toTitleCase(command.data.name), value: command.data.name });
               }
             });
@@ -104,11 +104,11 @@ export default {
 };
 
 function getCommandDescription(command: InterchatCommand | undefined) {
-  const commandData = command?.data as any;
+  const commandData: any = command?.data;
   let description = command?.description;
   let commandType: ApplicationCommandType = commandData.type;
 
-  if (!commandData.type) {
+  if (!commandData?.type) {
     description = commandData.description;
     commandType = ApplicationCommandType.ChatInput;
   }
@@ -116,7 +116,7 @@ function getCommandDescription(command: InterchatCommand | undefined) {
   return { description, commandType };
 }
 
-function prettifyCommand(command: InterchatCommand, emojis: Client['emoji']['normal']) {
+function prettifyHelp(command: InterchatCommand, emojis: Client['emotes']['normal']) {
   const commandDesc = getCommandDescription(command);
   const commandType = commandDesc.commandType !== ApplicationCommandType.ChatInput ? ' ' + emojis.contextMenu : emojis.slashCommand;
 

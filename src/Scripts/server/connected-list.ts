@@ -11,7 +11,7 @@ module.exports = {
     const allNetworks = (await database.connectedList.findMany()).reverse();
     const allSetups = await database.setup.findMany();
 
-    if (!allNetworks || allNetworks?.length === 0) return interaction.editReply(`No connected servers yet ${interaction.client.emoji.normal.bruhcat}`);
+    if (!allNetworks || allNetworks?.length === 0) return interaction.editReply(`No connected servers yet ${interaction.client.emotes.normal.bruhcat}`);
 
     const embeds: EmbedBuilder[] = [];
     let itemsPerPage = 5;

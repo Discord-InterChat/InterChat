@@ -42,7 +42,7 @@ export default {
       new ButtonBuilder()
         .setLabel('Invite')
         .setStyle(ButtonStyle.Link)
-        .setURL(interaction.client.inviteLink),
+        .setURL(interaction.client.invite),
     );
 
     await interaction.reply({ embeds: [embed], components: [linksRow] });

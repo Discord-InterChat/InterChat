@@ -50,7 +50,7 @@ export default {
       buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setURL(`https://discord.gg/${guildSetup?.invite}`)
-        .setEmoji(interaction.client.emoji.icons.join)
+        .setEmoji(interaction.client.emotes.icons.join)
         .setLabel('Join'));
     }
     await interaction.reply({

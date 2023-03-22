@@ -61,7 +61,7 @@
 
 // 			if (userWarnings && userWarnings?.warnCount >= MAX_WARNS) {
 // 				const logChannel = message.client.channels.cache.get(constants.channel.chatbotlogs);
-// 				if (logChannel?.isTextBased()) logChannel.send(`${message.client.emoji.normal.no} **User ${message.author.tag} (${message.author.id}) has been blacklisted for 30 minutes for ${MAX_WARNS} consecutive warnings related to spamming.**`);
+// 				if (logChannel?.isTextBased()) logChannel.send(`${message.client.emotes.normal.no} **User ${message.author.tag} (${message.author.id}) has been blacklisted for 30 minutes for ${MAX_WARNS} consecutive warnings related to spamming.**`);
 // 				addToBlacklist(message.author, { reason: 'More than 5 warns in a minute', duration: 60 * 60 * 500 });
 // 				return;
 // 			}
