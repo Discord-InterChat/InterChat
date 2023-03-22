@@ -10,6 +10,7 @@ export class ExtendedClient extends Client {
   constructor() {
     super({
       intents: ['Guilds', 'GuildMessages', 'GuildMembers', 'MessageContent'],
+      allowedMentions: { parse: [], repliedUser: true },
       presence: {
         status: 'online',
         activities: [{
