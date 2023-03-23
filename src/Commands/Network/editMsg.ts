@@ -17,7 +17,7 @@ export default {
 
     if (!hasVoted && !isStaff) {
       interaction.reply({
-        content: `${interaction.client.emotes.normal.no} You must [vote](<https://top.gg/bot/769921109209907241/vote>) to use this command.`,
+        content: `${interaction.client.emotes.normal.no} You must [vote](<https://top.gg/bot/${interaction.client.user.id}/vote>) to use this command.`,
         ephemeral: true,
       });
       return;
@@ -27,7 +27,7 @@ export default {
       where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
     });
 
-    if (messageInDb?.expired) {
+    if (!messageInDb) {
       await interaction.reply({
         content: 'This message has expired :(',
         ephemeral: true,

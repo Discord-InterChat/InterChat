@@ -69,7 +69,6 @@ model messageData {
   id                   String                            @id @default(auto()) @map("_id") @db.ObjectId
   authorId             String
   channelAndMessageIds MessageDataChannelAndMessageIds[]
-  expired              Boolean
   reference            MessageDataReference?
   serverId             String
   timestamp            Float

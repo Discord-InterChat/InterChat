@@ -39,7 +39,6 @@ export default {
           authorId: message.author.id,
           serverId: message.guild.id,
           reference: message.reference,
-          expired: false,
         },
       });
     }

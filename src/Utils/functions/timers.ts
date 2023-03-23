@@ -6,21 +6,12 @@ import { getDb } from './utils';
 /** A function to start timers for blacklist expiry, messageData cleanup, etc. */
 export default async function startTimers(client: Client) {
   const db = getDb();
-  const messageData = db.messageData;
 
-  // set a property called "expired" to a document that is older than 12 hours.
-  setInterval(async () => {
-    const older_than_four = new Date(Date.now() - 60 * 60 * 12_000); // 12 hours before now
-    await messageData.updateMany({
-      where: { timestamp: { lte: older_than_four.getTime() } },
-      data: { expired: true },
-    });
-  }, 60 * 60 * 12_100);
-
-  // Delete all documents that has the property "expired" set to true.
-  setInterval(async () => {
-    await messageData?.deleteMany({ where: { expired: true } });
-  }, 60 * 60 * 24_000);
+  // Delete all documents that are older than 24 hours old.
+  scheduleJob('messageExpired', { hour: 24, second: 5 }, async () => {
+    const olderThan = new Date(Date.now() - 60 * 60 * 24_000);
+    await db.messageData.deleteMany({ where: { timestamp: { lte: olderThan.getTime() } } });
+  });
 
   // Timers that start only if the bot is logged in.
   if (!client.isReady()) return;

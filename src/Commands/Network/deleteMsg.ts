@@ -17,9 +17,7 @@ export default {
     });
     const emoji = interaction.client.emotes.normal;
 
-    if (!messageInDb || (messageInDb?.expired && staffUser === false)) {
-      return interaction.reply({ content: 'This message has expired.', ephemeral: true });
-    }
+    if (!messageInDb) return interaction.reply({ content: 'This message has expired.', ephemeral: true });
 
     // if the user tries to delete someone else's message and they arent staff
     if (!staffUser && interaction.user.id !== messageInDb.authorId) {
