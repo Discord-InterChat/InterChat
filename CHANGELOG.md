@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.10.0](https://github.com/Discord-InterChat/Interchat/compare/v3.9.0...v3.10.0) (2023-03-23)
+
+
+### Features
+
+* Anti-Spam System (Beta) ([410b2ea](https://github.com/Discord-InterChat/Interchat/commit/410b2ea558053f1a82ee3852a1590d1493691f74))
+
+
+### Bug Fixes
+
+*  nobody will ever know ([4408500](https://github.com/Discord-InterChat/Interchat/commit/44085006bc416ba74469a726aa16f00c4046676e))
+* **addUserBlacklist:** option to notify user ([e2c120e](https://github.com/Discord-InterChat/Interchat/commit/e2c120eac02ab4915fc23f00f0c2db0761a99f1f))
+* Better setup error messages ([fbc5f20](https://github.com/Discord-InterChat/Interchat/commit/fbc5f20e834e256f222a2e041f6f4e532f3f43de))
+* Fixed everyone ping bug ([02d91f2](https://github.com/Discord-InterChat/Interchat/commit/02d91f2910d452c95ff6204797fcbe5905f1d014))
+* **info:** fixed text overflow ([bc772a8](https://github.com/Discord-InterChat/Interchat/commit/bc772a8147838877eca0af75f6844e0df8b3d5d0))
+* **purge:** Fixed bugs ([e64bd8a](https://github.com/Discord-InterChat/Interchat/commit/e64bd8ace118bac468f85148c495d9342b350737))
+* **purge:** set 100 maxValue to`limit`option ([06975d5](https://github.com/Discord-InterChat/Interchat/commit/06975d52840501139586a91c111e73833dc37714))
+
 ## [3.9.0](https://github.com/Discord-InterChat/Interchat/compare/v3.8.1...v3.9.0) (2023-03-18)
 
 
