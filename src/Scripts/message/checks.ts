@@ -1,4 +1,5 @@
 import wordFilter from '../../Utils/functions/wordFilter';
+import antiSpam from './antispam';
 import { Message } from 'discord.js';
 import { slurs } from '../../Utils/JSON/badwords.json';
 import { PrismaClient } from '@prisma/client';
@@ -23,6 +24,10 @@ export = {
     }
     if (serverInBlacklist) return false;
 
+    if (antiSpam(message.author)) {
+      message.react(message.client.emotes.icons.timeout);
+      return false;
+    }
     if (message.content.length > 1000) {
       message.reply('Please keep your message shorter than 1000 characters long.');
       return false;
