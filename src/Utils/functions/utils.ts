@@ -174,8 +174,9 @@ export function badgeToEmoji(badgeArr: string[]) {
   return badgeEmojis;
 }
 
-export async function addUserBlacklist(moderator: discord.User, user: discord.User | string, reason: string, expires?: Date) {
+export async function addUserBlacklist(moderator: discord.User, user: discord.User | string, reason: string, expires?: Date | number, notifyUser = true) {
   if (typeof user === 'string') user = await moderator.client.users.fetch(user);
+  if (typeof expires === 'number') expires = new Date(Date.now() + expires);
 
   const dbUser = await prisma.blacklistedUsers.create({
     data: {
@@ -209,6 +210,25 @@ export async function addUserBlacklist(moderator: discord.User, user: discord.Us
     expires,
     reason,
   }).catch(() => null);
+
+  if (notifyUser) {
+    const emotes = user.client.emotes.normal;
+    const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
+    const embed = new discord.EmbedBuilder()
+      .setTitle(emotes.blobFastBan + ' Blacklist Notification')
+      .setDescription('You have been muted from talking in the network.')
+      .setColor(colors('chatbot'))
+      .setFields(
+        { name: 'Reason', value: String(reason), inline: true },
+        { name: 'Expires', value: expireString, inline: true },
+      )
+      .setFooter({ text: 'Join the support server to appeal the blacklist.' });
+
+    user.send({ embeds: [embed] }).catch(async () => {
+      await prisma.blacklistedUsers.update({ where: { userId: (user as discord.User).id }, data: { notified: false } });
+      logger.info(`Could not notify ${(user as discord.User).tag} about their blacklist.`);
+    });
+  }
 
   return dbUser;
 }

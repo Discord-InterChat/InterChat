@@ -1,15 +1,13 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction } from 'discord.js';
 import { cancelJob } from 'node-schedule';
-import { colors, getDb, addUserBlacklist } from '../../Utils/functions/utils';
+import { getDb, addUserBlacklist } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
-import logger from '../../Utils/logger';
 
 export = {
   async execute(interaction: ChatInputCommandInteraction) {
     let userOpt = interaction.options.getString('user', true);
     const reason = interaction.options.getString('reason');
     const subcommandGroup = interaction.options.getSubcommandGroup();
-    const emoji = interaction.client.emotes.normal;
 
     let user;
     const blacklistedUsers = getDb().blacklistedUsers;
@@ -47,25 +45,6 @@ export = {
 
       await addUserBlacklist(interaction.user, user, String(reason), expires);
       interaction.followUp(`**${user.tag}** has been blacklisted for reason \`${reason}\`.`);
-
-      try {
-        const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
-        const embed = new EmbedBuilder()
-          .setTitle(emoji.blobFastBan + ' Blacklist Notification')
-          .setDescription('You have been muted from talking in the network.')
-          .setColor(colors('chatbot'))
-          .setFields(
-            { name: 'Reason', value: String(reason), inline: true },
-            { name: 'Expires', value: expireString, inline: true },
-          )
-          .setFooter({ text: 'Join the support server to appeal the blacklist.' });
-
-        await user.send({ embeds: [embed] });
-      }
-      catch {
-        await blacklistedUsers.update({ where: { userId: user.id }, data: { notified: false } });
-        logger.info(`Could not notify ${user.tag} about their blacklist.`);
-      }
     }
 
 
