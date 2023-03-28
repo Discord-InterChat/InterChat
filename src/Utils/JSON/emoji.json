@@ -69,6 +69,17 @@
         "timeout": "<:timeout:1088474245908152461>"
     },
 
+    "mascot": {
+        "cry": "<:chipi_cry:1065863977957072977>",
+        "flushed": "<:chipi_flushed:1065863982679871580>",
+        "forwn": "<:chipi_frown:1065864007187189760>",
+        "huh": "<:chipi_huh:1065863996244246559>",
+        "neutral": "<:chipi_neutral:1065864014942441493>",
+        "rage": "<:chipi_rage:1065864002405683210>",
+        "smile": "<:chipi_smile:1065867304480559144>",
+        "ugh": "<:chipi_ugh:1065863991815049316>"
+    },
+
     "badge": {
         "Developer": "<:badge_developer:994549313013284904>",
         "Staff": "<:badge_DiscordStaff:994444519489675365>",
