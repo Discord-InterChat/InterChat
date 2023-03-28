@@ -1,4 +1,4 @@
-import { EmbedBuilder, AuditLogEvent, Guild, ButtonBuilder, ActionRowBuilder, ButtonStyle, TextChannel } from 'discord.js';
+import { EmbedBuilder, AuditLogEvent, Guild, ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
 import { sendInFirst, colors, getDb, constants } from '../Utils/functions/utils';
 import { stripIndents } from 'common-tags';
 import { captureException } from '@sentry/node';
@@ -8,29 +8,31 @@ export default {
   name: 'guildCreate',
   async execute(guild: Guild) {
     const blacklistedServers = getDb().blacklistedServers;
-    const serverInBlacklist = await blacklistedServers?.findFirst({ where: { serverId: guild.id } });
+    const serverInBlacklist = await blacklistedServers?.findFirst({
+      where: { serverId: guild.id },
+    });
 
-    const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 }).catch(() => null);
+    const auditLog = await guild
+      .fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
+      .catch(() => null);
     const badword = wordFilter.check(guild.name);
 
-    const { tada, clipart } = guild.client.emotes.normal;
+    const { normal, mascot } = guild.client.emotes;
 
     const embed = new EmbedBuilder()
-      .setTitle(`Thank you for inviting me! ${tada} `)
-      .setColor(colors('chatbot'))
-      .setFooter({ text: `Sent from ${guild.name}`, iconURL: guild.iconURL() || undefined })
+      .setTitle(`Thank you for inviting me! ${normal.tada}`)
       .setDescription(stripIndents`
-	    ${guild.client.user.username} allows you to talk to different servers from your own. It's a fun inter-server chat that we call the Chat Network ${clipart}! 
-
-	    • Use </setup channel:978303442684624928> for ${guild.client.user.username} to guide you through the network setup process.
-	    • Please follow our rules while using the network at all times.
-	    • Unlock cool new features by voting on [top.gg](https://top.gg/bot/769921109209907241/vote)!
-	    • Appearance of network can be modified using the dropdown in the setup.
-      • If you want learn more about ${guild.client.user.username}, you can do so by reading our [guide](https://interchat.gitbook.io/guide/).
-
-
-	    We hope you enjoy using ${guild.client.user.username}! If you have any issues or want to know more about our bot join the [official support server](https://discord.gg/6bhXQynAPs).
-			`);
+        ${guild.client.user.username} allows you to talk to different servers from your own. It's a fun inter-server chat that is called the InterChat Network ${normal.clipart}! 
+        
+        • Use </setup channel:978303442684624928> for me to guide you through the network setup process.
+        • Please follow the network </rules:924659340898619395> while using the network at all times.
+        • Unlock cool new features by voting on [top.gg](https://top.gg/bot/769921109209907241/vote)!
+        • If you want learn more about me, you can do so by reading the [guide](https://interchat.gitbook.io/guide/).
+        
+        Hope you enjoy using the Network! If you have any issues or want to know more about me join the [official support server](https://discord.gg/6bhXQynAPs).
+			`)
+      .setColor(colors('chatbot'))
+      .setFooter({ text: `Sent for ${guild.name}`, iconURL: guild.iconURL() || undefined });
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
@@ -48,13 +50,18 @@ export default {
     );
 
     if (serverInBlacklist) {
-      await sendInFirst(guild, `This server is blacklisted in this bot for reason \`${serverInBlacklist.reason}\`. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`);
+      await sendInFirst(
+        guild,
+        `This server is blacklisted from this bot for reason \`${serverInBlacklist.reason}\`. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`,
+      );
       await guild.leave();
       return;
     }
-
     else if (badword) {
-      await sendInFirst(guild, 'The server name contains one or more bad words. Please change the name and try inviting me again.');
+      await sendInFirst(
+        guild,
+        'The server name contains one or more bad words. Please change the name and try inviting me again.',
+      );
       await guild.leave();
       return;
     }
@@ -71,26 +78,18 @@ export default {
       await sendInFirst(guild, { embeds: [embed], components: [buttons] }).catch(() => null);
     }
 
-    const goalChannel = guild.client.channels.cache.get(constants.channel.goal) as TextChannel | undefined;
-    const guildOwner = await guild.fetchOwner();
+    const goalChannel = guild.client.channels.cache.get(constants.channel.goal);
+    if (!goalChannel?.isTextBased()) return;
 
-    goalChannel?.send({
+    goalChannel.send({
+      content: `${mascot.flushed} I have joined ${guild.name}! **${1000 - guild.client.guilds.cache.size}** servers to go! ${guild.client.emotes.normal.tada}`,
       embeds: [
         new EmbedBuilder()
-          .setTitle('I have joined a new server!')
-          .setDescription(stripIndents`
-	          **${1000 - guild.client.guilds.cache.size}** servers more to go! ${tada}
-					
-            **Server Name:** ${guild.name} (${guild.id})
-	          **Owner:** ${guildOwner.user.tag} (${guildOwner?.id})
-            **Created:** <t:${Math.round(guild.createdTimestamp / 1000)}:R>
-            **Language:** ${guild.preferredLocale}
-            **Member Count:** ${guild.memberCount}
-            `)
-          .setThumbnail(guild.iconURL())
-          .setFooter({ text: `Invited By: ${inviter?.tag || 'Unknown User'}`, iconURL: inviter?.avatarURL() ?? undefined })
-          .setTimestamp()
-          .setColor(colors()),
+          .setAuthor({
+            name: `${guild.name} ${inviter ? `• ${inviter.tag}` : ''}`,
+            iconURL: guild.iconURL() || undefined,
+          })
+          .setColor(colors('invisible')),
       ],
     }).catch(captureException);
   },
