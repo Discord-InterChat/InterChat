@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/node';
 import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { getAllNetworks } from '../../Structures/network';
+import { getAllConnections } from '../../Structures/network';
 import { getDb, toHuman } from '../../Utils/functions/utils';
 
 export default {
@@ -162,7 +162,7 @@ export default {
     const deletedMessagesArr: string[] = [];
 
     const startTime = performance.now();
-    const allNetworks = await getAllNetworks();
+    const allNetworks = await getAllConnections();
     for (const network of allNetworks) {
       try {
         const channel = await interaction.client.channels.fetch(network.channelId);

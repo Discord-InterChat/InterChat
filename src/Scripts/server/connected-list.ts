@@ -1,15 +1,15 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getDb, getGuildName } from '../../Utils/functions/utils';
+import { getGuildName } from '../../Utils/functions/utils';
 import { paginate } from '../../Utils/functions/paginator';
 import { stripIndent } from 'common-tags';
+import { getAllConnections } from '../../Structures/network';
 
 module.exports = {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
-    const database = getDb();
-    const allNetworks = (await database.connectedList.findMany()).reverse();
-    const allSetups = await database.setup.findMany();
+    // get all networks (sort newest first)
+    const allNetworks = (await getAllConnections()).reverse();
 
     if (!allNetworks || allNetworks?.length === 0) return interaction.editReply(`No connected servers yet ${interaction.client.emotes.normal.bruhcat}`);
 
@@ -27,7 +27,7 @@ module.exports = {
       const fields = current.map(connection => {
         const serverName = getGuildName(interaction.client, connection.serverId);
         const channelName = interaction.client.channels.cache.get(connection.channelId);
-        const setup = allSetups.find((settings) => settings.channelId === connection.channelId);
+        const setup = allNetworks.find((settings) => settings.channelId === connection.channelId);
         let value = stripIndent`
         ServerID: ${connection.serverId}
         Channel: ${channelName} \`(${connection.channelId}\`)

@@ -4,6 +4,7 @@ import { checkIfStaff, topgg } from '../../Utils/functions/utils';
 import { prisma } from '../../Utils/db';
 import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
+import { getConnection } from '../../Structures/network';
 
 export default {
   description: 'Edit a message that was sent in the network.',
@@ -81,9 +82,7 @@ export default {
 
         // loop through all the channels in the network and edit the message
         messageInDb.channelAndMessageIds.forEach(async obj => {
-          const channelSettings = await prisma.setup.findFirst({
-            where: { channelId: obj.channelId },
-          });
+          const channelSettings = await getConnection({ channelId: obj.channelId });
           const channel = await interaction.client.channels.fetch(obj.channelId) as GuildTextBasedChannel;
           const message = await channel?.messages?.fetch(obj.messageId).catch(() => null);
 

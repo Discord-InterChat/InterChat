@@ -1,7 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, GuildTextBasedChannel } from 'discord.js';
-import { connect, totalConnected, disconnect } from '../../Structures/network';
-import { getDb } from '../../Utils/functions/utils';
+import { totalConnected, disconnect, getConnection, createConnection } from '../../Structures/network';
 import logger from '../../Utils/logger';
 import displayEmbed from './displaySettings';
 import onboarding from './onboarding';
@@ -14,8 +13,7 @@ export = {
     const emoji = interaction.client.emotes.normal;
     const destination = interaction.options.getChannel('destination', true) as GuildTextBasedChannel;
 
-    const { setup } = getDb();
-    const guildInSetup = await setup.findFirst({ where: { guildId: interaction.guild?.id } });
+    const guildInSetup = await getConnection({ serverId: interaction.guild?.id });
 
     if (guildInSetup) return displayEmbed.execute(interaction);
 
@@ -24,17 +22,14 @@ export = {
     if (!onboardingStatus) return;
 
     try {
-      // Inserting channel to setup and connectedlist
-      await connect(destination);
-      await setup?.create({
-        data: {
-          guildId: String(interaction.guild?.id),
-          channelId: destination?.id,
-          date: date,
-          compact: false,
-          profFilter: true,
-          webhook: null,
-        },
+      // Inserting channel to connectedlist
+      await createConnection({
+        channelId: destination.id,
+        serverId: destination.guild.id,
+        connected: true,
+        profFilter: true,
+        compact: false,
+        date,
       });
 
       const numOfConnections = await totalConnected();
@@ -55,8 +50,7 @@ export = {
       else {
         interaction.followUp(`An error occurred while connecting to the chat network! \`\`\`js\n${err.message}\`\`\``);
       }
-      disconnect({ serverId: interaction.guild?.id });
-      await setup?.delete({ where: { channelId: destination?.id } });
+      disconnect(destination.id);
       return;
     }
 

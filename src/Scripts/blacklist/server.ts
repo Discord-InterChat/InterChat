@@ -1,4 +1,5 @@
 import { ChatInputCommandInteraction } from 'discord.js';
+import { getConnection } from '../../Structures/network';
 import { getDb, addServerBlacklist } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
 
@@ -8,7 +9,7 @@ module.exports = {
     const reason = interaction.options.getString('reason');
     const subCommandGroup = interaction.options.getSubcommandGroup();
 
-    const { blacklistedServers, setup } = getDb();
+    const { blacklistedServers } = getDb();
     const serverInBlacklist = await blacklistedServers.findFirst({ where: { serverId: serverOpt } });
 
     if (subCommandGroup == 'add') {
@@ -18,7 +19,7 @@ module.exports = {
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
       if (!server) return interaction.followUp('Invalid server ID.');
 
-      const serverSetup = await setup.findFirst({ where: { guildId: serverOpt } });
+      const serverSetup = await getConnection({ serverId: serverOpt });
 
       let expires: Date | undefined;
       const mins = interaction.options.getNumber('minutes');

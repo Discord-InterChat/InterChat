@@ -1,6 +1,7 @@
 import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { checkIfStaff, colors, getDb, toTitleCase } from '../../Utils/functions/utils';
+import { getConnection } from '../../Structures/network';
 
 export = {
   async execute(interaction: ChatInputCommandInteraction, serverId: string, hidden: boolean) {
@@ -78,12 +79,16 @@ export = {
 };
 
 async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
-  const { connectedList, setup, blacklistedServers } = getDb();
+  const { blacklistedServers } = getDb();
 
-  const guildInDb = await connectedList.findFirst({ where: { serverId: guild.id } });
-  const guildInSetup = await setup.findFirst({ where: { guildId: guild.id } });
+  const guildInDb = await getConnection({ serverId: guild.id });
   const guildBlacklisted = await blacklistedServers.findFirst({ where: { serverId: guild.id } });
-  const guildBoostLevel = guild.premiumTier === 0 ? 'None' : guild.premiumTier === 1 ? 'Level 1' : guild.premiumTier === 2 ? 'Level 2' : guild.premiumTier === 3 ? 'Level 3' : 'Unknown';
+  const guildBoostLevel = guild.premiumTier === 0
+    ? 'None' : guild.premiumTier === 1
+      ? 'Level 1'
+      : guild.premiumTier === 2 ? 'Level 2'
+        : guild.premiumTier === 3 ? 'Level 3'
+          : 'Unknown';
 
   const { yes, no } = guild.client.emotes.normal;
   const channelName = await guild.client.channels.fetch(String(guildInDb?.channelId)).catch(() => null);
@@ -109,17 +114,18 @@ async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
 
       {
         name: 'Server Features:',
-        value: guild.features.map(feat => '> ' + toTitleCase(feat.replaceAll('_', ' ')) + '\n').join('') || `> ${no} No Features Enabled`,
+        value: guild.features.map(feat => '> ' + toTitleCase(feat.replaceAll('_', ' ')) + '\n')
+          .join('') || `> ${no} No Features Enabled`,
       },
 
       {
         name: 'Network Info',
         value: stripIndents`
-        > **Connected:** ${guildInDb ? yes : no}
-        > **Setup:** ${guildInSetup ? yes : no}
+        > **Connected:** ${guildInDb?.connected ? yes : no}
+        > **Setup:** ${guildInDb ? yes : no}
         > **Blacklisted:** ${guildBlacklisted ? yes : no}
-        > **Setup At:** ${guildInSetup ? `<t:${Math.round(guildInSetup.date?.getTime() / 1000)}:d>` : 'Not setup yet.'}
-        > **Channel(s):** ${guildInDb ? `${channelName} (${guildInDb?.channelId})` : 'Not Connected.'}`,
+        > **Setup At:** ${guildInDb ? `<t:${Math.round(guildInDb.date?.getTime() / 1000)}:d>` : 'Not setup yet.'}
+        > **Channel(s):** ${guildInDb?.connected ? `${channelName} (${guildInDb.channelId})` : 'Not Connected.'}`,
       },
     ]);
 }

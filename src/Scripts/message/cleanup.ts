@@ -1,38 +1,37 @@
-import { APIMessage, Message } from 'discord.js';
+import { Message } from 'discord.js';
+import { NetworkSendResult, NetworkWebhookSendResult } from '../../Events/messageCreate';
+import { updateConnection } from '../../Structures/network';
 import { getDb } from '../../Utils/functions/utils';
 
-export interface InvalidChannelId {unknownChannelId?: string}
-export interface InvalidWebhookId {unknownWebhookId?: string}
 
 export default {
-  execute: async (message: Message, channelAndMessageIds: Promise<Message | InvalidChannelId | InvalidWebhookId | APIMessage | undefined>[]) => {
+  execute: async (message: Message, channelAndMessageIds: (NetworkWebhookSendResult | NetworkSendResult)[]) => {
     message.delete().catch(() => null);
     // All message data is stored in the database, so we can delete the message from the network later
-    const settledChannelMessages = await Promise.allSettled(channelAndMessageIds);
     const invalidChannelIds: string[] = [];
     const invalidWebhookIds: string[] = [];
+
     const messageDataObj: { channelId: string, messageId: string }[] = [];
 
-    settledChannelMessages.forEach((result) => {
-      if (result.status === 'rejected' || !result.value) return;
+    const resolved = await Promise.all(channelAndMessageIds.map(async (obj) => {
+      const msg = await obj.message;
+      if (msg === undefined && 'webhookId' in obj) return { unknownWebhookId: obj.webhookId };
+      else if (msg === undefined && 'channelId' in obj) return { unknownChannelId: obj.channelId };
+      return msg;
+    }));
+
+    resolved.forEach((result) => {
       // eslint-disable-next-line
       const anyRes = result as any;
-      if (anyRes.value.unknownChannelId) invalidChannelIds.push(anyRes.value.unknownChannelId);
-      else if (anyRes.value.unknownWebhookId) invalidWebhookIds.push(anyRes.value.unknownWebhookId);
-      else if (anyRes.value.channelId || anyRes.value.channel_id) messageDataObj.push({ channelId: anyRes.value.channelId || anyRes.value.channel_id, messageId: anyRes.value.id });
-    });
-
-    // delete invalid channels from the database
-    const db = getDb();
-    // await db.connectedList?.deleteMany({ where: { channelId: { in: invalidChannelIds } } });
-    await db.setup.updateMany({
-      where: { webhook: { is: { id: { in: invalidWebhookIds } } } },
-      data: { webhook: null },
+      if (anyRes?.unknownChannelId) invalidChannelIds.push(anyRes.unknownChannelId);
+      if (anyRes?.unknownWebhookId) invalidWebhookIds.push(anyRes.unknownWebhookId);
+      else if (anyRes.channelId || anyRes.channel_id) messageDataObj.push({ channelId: anyRes.channelId || anyRes.channel_id, messageId: anyRes.id });
     });
 
     // store message data in db
     if (message.guild) {
-      await db.messageData.create({
+      const { messageData } = getDb();
+      await messageData.create({
         data: {
           channelAndMessageIds: messageDataObj,
           timestamp: message.createdTimestamp,
@@ -42,5 +41,9 @@ export default {
         },
       });
     }
+
+    // delete invalid channels from the database
+    await updateConnection({ webhook: { is: { id: { in: invalidWebhookIds } } } }, { webhook: null });
+    await updateConnection({ channelId: { in: invalidChannelIds } }, { connected: false });
   },
 };

@@ -59,7 +59,7 @@ export = {
       return false;
     }
 
-    // TODO
+    // TODO allow multiple attachments when embeds can have multiple images
     const attachmentType = message.attachments.first()?.contentType;
     const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
 

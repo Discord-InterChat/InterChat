@@ -4,8 +4,8 @@ import emojis from '../Utils/JSON/emoji.json';
 import project from '../../package.json';
 import { Client, Collection, ActivityType, MessageCreateOptions } from 'discord.js';
 import { join } from 'path';
-import { prisma } from '../Utils/db';
 import * as Sentry from '@sentry/node';
+import { getAllConnections } from './network';
 
 export class ExtendedClient extends Client {
   constructor() {
@@ -38,7 +38,7 @@ export class ExtendedClient extends Client {
   }
 
   public async sendInNetwork(message: string | MessageCreateOptions): Promise<void> {
-    const channels = await prisma.connectedList.findMany();
+    const channels = await getAllConnections();
 
     channels?.forEach(async (channelEntry) => {
       const channel = await this.channels.fetch(channelEntry.channelId).catch(() => null);
@@ -54,7 +54,9 @@ export class ExtendedClient extends Client {
   protected loadCommands() {
     fs.readdirSync(join(__dirname, '..', 'Commands')).forEach(async (dir: string) => {
       if (fs.statSync(join(__dirname, '..', 'Commands', dir)).isDirectory()) {
-        const commandFiles = fs.readdirSync(join(__dirname, '..', 'Commands', dir)).filter((file: string) => file.endsWith('.js'));
+        const commandFiles = fs.readdirSync(join(__dirname, '..', 'Commands', dir))
+          .filter((file: string) => file.endsWith('.js'));
+
         for (const commandFile of commandFiles) {
           const command = require(`../Commands/${dir}/${commandFile}`);
 
