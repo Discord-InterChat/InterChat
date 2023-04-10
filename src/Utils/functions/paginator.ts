@@ -30,7 +30,11 @@ export async function paginate(interaction: CommandInteraction, pages: EmbedBuil
   };
   const listMessage = interaction.replied || interaction.deferred ? await interaction.followUp(data) : await interaction.reply(data);
 
-  const col = listMessage.createMessageComponentCollector({ filter: i => i.user.id === interaction.user.id, idle: stopAfter, componentType: ComponentType.Button });
+  const col = listMessage.createMessageComponentCollector({
+    filter: i => i.user.id === interaction.user.id,
+    idle: stopAfter,
+    componentType: ComponentType.Button,
+  });
 
   col.on('collect', (i) => {
     if (i.customId === '1') {

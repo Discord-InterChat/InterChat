@@ -15,7 +15,7 @@ export class ExtendedClient extends Client {
       presence: {
         status: 'online',
         activities: [{
-          name: `InterChat ${project.version}`,
+          name: 'over the network',
           type: ActivityType.Watching,
         }],
       },
@@ -38,7 +38,7 @@ export class ExtendedClient extends Client {
   }
 
   public async sendInNetwork(message: string | MessageCreateOptions): Promise<void> {
-    const channels = await getAllConnections();
+    const channels = await getAllConnections({ connected: true });
 
     channels?.forEach(async (channelEntry) => {
       const channel = await this.channels.fetch(channelEntry.channelId).catch(() => null);
