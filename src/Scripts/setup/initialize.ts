@@ -1,9 +1,12 @@
 import { stripIndents } from 'common-tags';
-import { ChatInputCommandInteraction, GuildTextBasedChannel } from 'discord.js';
-import { totalConnected, disconnect, getConnection, createConnection } from '../../Structures/network';
+import { ChannelType, ChatInputCommandInteraction, Collection } from 'discord.js';
+import { totalConnected, disconnect, createConnection, getManyConnections } from '../../Structures/network';
 import logger from '../../Utils/logger';
 import displayEmbed from './displaySettings';
 import onboarding from './onboarding';
+import displayStarterHubs from './displayStarterHubs';
+
+const ongoingSetup = new Collection<string, string>();
 
 export = {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -11,15 +14,32 @@ export = {
 
     const date = new Date();
     const emoji = interaction.client.emotes.normal;
-    const destination = interaction.options.getChannel('destination', true) as GuildTextBasedChannel;
+    // Only text channels are allowed right now
+    const destination = interaction.options.getChannel('destination', true, [ChannelType.GuildText]);
 
-    const guildInSetup = await getConnection({ serverId: interaction.guild?.id });
+    const guildSetup = await getManyConnections({ serverId: interaction.guild?.id });
+    if (guildSetup.find(s => s.channelId === destination.id)) return displayEmbed.execute(interaction);
 
-    if (guildInSetup) return displayEmbed.execute(interaction);
+    if (ongoingSetup.has(destination.id)) {
+      return interaction.editReply(`${emoji.no} Another setup for ${destination} is already in progress.`);
+    }
+
+    // Mark this setup as in-progress so server can't setup twice
+    ongoingSetup.set(interaction.channelId, interaction.channelId);
+
+    // If server is already a part of a hub, don't show them this!
+    const joinedHub = await displayStarterHubs.execute(interaction) || { name: 'InterChat Central Hub' };
+    if (!joinedHub) {
+      ongoingSetup.delete(destination.id);
+      return;
+    }
 
     // Show new users rules & info about network
     const onboardingStatus = await onboarding.execute(interaction);
-    if (!onboardingStatus) return;
+    if (!onboardingStatus) {
+      ongoingSetup.delete(destination.id);
+      return;
+    }
 
     try {
       // Inserting channel to connectedlist
@@ -29,10 +49,11 @@ export = {
         connected: true,
         profFilter: true,
         compact: false,
+        hub: { connect: joinedHub },
         date,
       });
 
-      const numOfConnections = await totalConnected();
+      const numOfConnections = await totalConnected({ hub: joinedHub });
       if (numOfConnections > 1) {
         await destination?.send(`This channel has been connected to the chat network. You are currently with ${numOfConnections} other servers, Enjoy! ${emoji.clipart}`);
       }
@@ -51,6 +72,7 @@ export = {
         interaction.followUp(`An error occurred while connecting to the chat network! \`\`\`js\n${err.message}\`\`\``);
       }
       disconnect(destination.id);
+      ongoingSetup.delete(destination.id);
       return;
     }
 
@@ -59,7 +81,7 @@ export = {
 
       **Server Name:** __${interaction.guild?.name}__
       **Member Count:** __${interaction.guild?.memberCount}__
-    `);
+    `, joinedHub);
 
     displayEmbed.execute(interaction);
   },

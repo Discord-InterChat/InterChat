@@ -3,14 +3,13 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, CommandInte
 /**
  * @param stopAfter - Number in milliseconds
  */
-export async function paginate(interaction: CommandInteraction, pages: EmbedBuilder[],
+export async function paginate(interaction: CommandInteraction, pages: EmbedBuilder[], stopAfter = 60000,
   buttons =
   {
     back: interaction.client.emotes.normal.back,
     exit: '🛑',
     next: interaction.client.emotes.normal.forward,
-  },
-  stopAfter = 60000) {
+  }) {
   if (pages.length < 1) {
     interaction.reply({ content: `${interaction.client.emotes.normal.tick} No more pages to display!`, ephemeral: true });
     return;

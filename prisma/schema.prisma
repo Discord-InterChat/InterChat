@@ -59,19 +59,21 @@ model connectedList {
   profFilter Boolean
   webhook    SetupWebhook?
   date       DateTime      @default(now())
-  // hub        hubs?         @relation(fields: [hubId], references: [id])
-  // hubId      String        @db.ObjectId
+  hub        hubs?         @relation(fields: [hubId], references: [id])
+  hubId      String?       @db.ObjectId
 }
 
-// model hubs {
-//   id           String          @id @default(auto()) @map("_id") @db.ObjectId
-//   name         String          @unique
-//   description  String
-//   connections  connectedList[]
-//   mainServerId String
-//   createdAt    DateTime        @default(now())
-//   createdBy    String
-// }
+model hubs {
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  name         String          @unique
+  description  String
+  private      Boolean
+  connections  connectedList[]
+  mainServerId String
+  official     Boolean?
+  createdAt    DateTime        @default(now())
+  createdBy    String
+}
 
 model messageData {
   id                   String                            @id @default(auto()) @map("_id") @db.ObjectId

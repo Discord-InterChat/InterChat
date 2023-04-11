@@ -1,5 +1,6 @@
 import discord from 'discord.js';
 import EmojiIDs from '../../Utils/JSON/emoji.json';
+import { Prisma } from '@prisma/client';
 
 type InterchatCommand = {
   developer?: boolean,
@@ -13,12 +14,15 @@ type InterchatCommand = {
 
 declare module 'discord.js' {
   export interface Client {
-    commands: discord.Collection<string, InterchatCommand>,
-    description: string,
-    version: string,
-    emotes: typeof EmojiIDs,
-    /* An invite link generated for the client */
+    commands: discord.Collection<string, InterchatCommand>;
+    description: string;
+    version: string;
+    emotes: typeof EmojiIDs;
+    /* A generated invite link for the bot */
     invite: string;
-    sendInNetwork(message: string | MessageCreateOptions): Promise<void>;
+    sendInNetwork(
+      message: string | MessageCreateOptions,
+      hub: Prisma.hubsWhereUniqueInput,
+    ): Promise<void>;
   }
 }

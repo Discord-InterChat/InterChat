@@ -6,14 +6,13 @@ import { colors, rulesEmbed } from '../../Utils/functions/utils';
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const emoji = interaction.client.emotes;
-    // TODO: Don't let user use setup twice, they will be able to connect twice!
 
     const embed = new EmbedBuilder()
-      .setTitle('👋 Welcome to the Chat Network!')
+      .setTitle('👋 Welcome to the InterChat Network!')
       .setDescription(stripIndents`
-      🎉 Hey there! Before we get started, let's take a moment to learn about the Chat Network.
+      ${emoji.normal.clipart} Hey there! Before we get started, let's take a moment to learn about the Chat Network.
       
-      The Network serves as a bridge between channels on different servers, allowing members of this server to communicate with members of other servers through the setup channel. It is recommended to create a seperate channel for the network, as it may get cluttered. We hope you enjoy talking to other servers using the network! ${emoji.normal.clipart}
+      The Network serves as a bridge between channels on different servers, allowing members of this server to communicate with members of other servers through the setup channel. It is recommended to create a seperate channel for the network, as it may get cluttered. We hope you enjoy talking to other servers using the network! 
 
       We strive to improve and evolve our bot. If you would like to contribute or have any suggestions for new features, feel free to let us know.
 
@@ -52,8 +51,12 @@ export default {
       const acceptButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId('accept')
-          .setLabel('Understood')
+          .setLabel('Accept')
           .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+          .setCustomId('cancel')
+          .setLabel('Cancel')
+          .setStyle(ButtonStyle.Danger),
       );
 
       const acceptOnboarding = await response.update({
@@ -67,14 +70,9 @@ export default {
         componentType: ComponentType.Button,
       }).catch(() => null);
 
-      if (acceptResp) {
-        await acceptResp.update({
-          content: `${emoji.normal.loading} Connecting to the chat network...`,
-          embeds: [],
-          components: [],
-        });
-        return true;
-      }
+      // To avoid getting interaction failures
+      await acceptResp?.deferUpdate();
+      return acceptResp?.customId === 'accept' ? true : false;
     }
     return false;
   },

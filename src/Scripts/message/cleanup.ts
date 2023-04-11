@@ -5,7 +5,7 @@ import { getDb } from '../../Utils/functions/utils';
 
 
 export default {
-  execute: async (message: Message, channelAndMessageIds: (NetworkWebhookSendResult | NetworkSendResult)[]) => {
+  execute: async (message: Message, channelAndMessageIds: Promise<NetworkWebhookSendResult | NetworkSendResult>[]) => {
     message.delete().catch(() => null);
     // All message data is stored in the database, so we can delete the message from the network later
     const invalidChannelIds: string[] = [];
@@ -13,19 +13,27 @@ export default {
 
     const messageDataObj: { channelId: string, messageId: string }[] = [];
 
-    const resolved = await Promise.all(channelAndMessageIds.map(async (obj) => {
-      const msg = await obj.message;
-      if (msg === undefined && 'webhookId' in obj) return { unknownWebhookId: obj.webhookId };
-      else if (msg === undefined && 'channelId' in obj) return { unknownChannelId: obj.channelId };
-      return msg;
-    }));
-
+    const resolved = await Promise.all(channelAndMessageIds);
     resolved.forEach((result) => {
-      // eslint-disable-next-line
-      const anyRes = result as any;
-      if (anyRes?.unknownChannelId) invalidChannelIds.push(anyRes.unknownChannelId);
-      if (anyRes?.unknownWebhookId) invalidWebhookIds.push(anyRes.unknownWebhookId);
-      else if (anyRes.channelId || anyRes.channel_id) messageDataObj.push({ channelId: anyRes.channelId || anyRes.channel_id, messageId: anyRes.id });
+      if (result.message === undefined && 'webhookId' in result) invalidWebhookIds.push(result.webhookId);
+      else if (result.message === undefined && 'channelId' in result) invalidChannelIds.push(result.channelId);
+
+      if (result.message) {
+        // normal message
+        if ('channelId' in result) {
+          messageDataObj.push({
+            channelId: result.channelId,
+            messageId: result.message.id,
+          });
+        }
+        // webhook message (channel_id instead of channelId)
+        else if (result.message.channel_id) {
+          messageDataObj.push({
+            channelId: result.message.channel_id,
+            messageId: result.message.id,
+          });
+        }
+      }
     });
 
     // store message data in db

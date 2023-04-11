@@ -5,7 +5,8 @@ import project from '../../package.json';
 import { Client, Collection, ActivityType, MessageCreateOptions } from 'discord.js';
 import { join } from 'path';
 import * as Sentry from '@sentry/node';
-import { getAllConnections } from './network';
+import { getManyConnections } from './network';
+import { Prisma } from '@prisma/client';
 
 export class ExtendedClient extends Client {
   constructor() {
@@ -37,8 +38,8 @@ export class ExtendedClient extends Client {
     return await this.login(token || process.env.TOKEN);
   }
 
-  public async sendInNetwork(message: string | MessageCreateOptions): Promise<void> {
-    const channels = await getAllConnections({ connected: true });
+  public async sendInNetwork(message: string | MessageCreateOptions, hub: Prisma.hubsWhereUniqueInput = { name: 'InterChat Central Hub' }): Promise<void> {
+    const channels = await getManyConnections({ hub, connected: true });
 
     channels?.forEach(async (channelEntry) => {
       const channel = await this.channels.fetch(channelEntry.channelId).catch(() => null);

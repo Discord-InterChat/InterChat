@@ -45,7 +45,8 @@ export async function disconnect(channelId: string) {
 }
 
 /** Returns a promise with the total number of connected servers.*/
-export async function totalConnected() {
+export async function totalConnected(filter?: Prisma.connectedListWhereInput) {
+  if (filter) return await connectedList.count({ where: filter });
   return await connectedList.count();
 }
 
@@ -61,8 +62,8 @@ export async function updateConnection(where: Prisma.connectedListWhereInput | s
   return await connectedList.updateMany({ where, data });
 }
 
-export async function getAllConnections(fillter?: Prisma.connectedListWhereInput) {
+export async function getManyConnections(fillter?: Prisma.connectedListWhereInput) {
   return await connectedList.findMany(fillter ? { where: fillter } : undefined);
 }
 
-export default { reconnect, disconnect, updateConnection, getServerData: getConnection, totalConnected, getAllConnections };
+export default { reconnect, disconnect, updateConnection, getServerData: getConnection, totalConnected, getManyConnections };
