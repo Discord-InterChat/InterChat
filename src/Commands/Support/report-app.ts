@@ -11,7 +11,13 @@ export default {
     const target = interaction.targetMessage;
 
     const messageData = getDb().messageData;
-    const messageInDb = await messageData?.findFirst({ where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } } });
+    const messageInDb = await messageData?.findFirst({
+      where: {
+        channelAndMessageIds: {
+          some: { messageId: { equals: target.id } },
+        },
+      },
+    });
 
     // check if args.channel is in connectedList DB
     if (!messageInDb) {

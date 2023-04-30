@@ -54,7 +54,7 @@ export = {
             inline: true,
           },
           {
-            name: 'Duration',
+            name: 'Expires',
             value: expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never.',
             inline: true,
           },
