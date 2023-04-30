@@ -277,6 +277,7 @@ export const rulesEmbed = new discord.EmbedBuilder()
   .setImage('https://i.imgur.com/D2pYagc.png')
   .setDescription(stripIndents`
     1. No spamming or flooding.
+    2. Use only **English** while using the network. 
     3. Advertising of any kind is prohibited.
     4. Private matters should not be discussed in the network.
     5. Do not make the chat uncomfortable for other users.
