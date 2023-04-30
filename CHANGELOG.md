@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.10.2](https://github.com/Discord-InterChat/Interchat/compare/v3.10.1...v3.10.2) (2023-04-30)
+
+
+### Bug Fixes
+
+* **blacklist:** fix errors when user is removed from blacklist before timer ends ([6f9b698](https://github.com/Discord-InterChat/Interchat/commit/6f9b6984339cc988f9ad6b1df8cb3d435416814b))
+* **blacklist:** reply now contains embeds ([eef5822](https://github.com/Discord-InterChat/Interchat/commit/eef582295f32ef62c1ad60230d995f75fb8c175d))
+* **report:** fix bug that created double report posts ([f4eb357](https://github.com/Discord-InterChat/Interchat/commit/f4eb3573e118d6dbb1dde549e68eaaf1e4d1a61b))
+
 ### [3.10.1](https://github.com/Discord-InterChat/Interchat/compare/v3.10.0...v3.10.1) (2023-04-30)
 
 
