@@ -71,8 +71,8 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setTitle('User Blacklisted')
             .setDescription(
               stripIndents`
-              ${emoji.normal.dotYellow} **User:** ${action.user.tag} (${action.user.id})
-              ${emoji.normal.dotYellow} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **User:** ${action.user.tag} (${action.user.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
               `,
             )
             .addFields(
@@ -92,8 +92,8 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setAuthor({ name: String(guild?.name), iconURL: guild?.iconURL() || undefined })
             .setTitle('Server Blacklisted')
             .setDescription(stripIndents`
-              ${emoji.normal.dotYellow} **Server:** ${guild?.name} (${guild?.id})
-              ${emoji.normal.dotYellow} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **Server:** ${guild?.name} (${guild?.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
               `)
             .addFields(
               { name: 'Reason', value: action.reason, inline: true },
@@ -112,8 +112,8 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setTitle('User Unblacklisted')
             .setColor(colors('chatbot'))
             .setDescription(stripIndents`
-              ${emoji.normal.dotYellow} **User:** ${action.user.tag} (${action.user.id})
-              ${emoji.normal.dotYellow} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **User:** ${action.user.tag} (${action.user.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
               `)
             .addFields(
               { name: 'Blacklisted For', value: action.blacklistReason || 'Unknown', inline: true },
@@ -131,9 +131,9 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setAuthor({ name: `${server?.name || action.dbGuild.serverName}`, iconURL: server?.iconURL()?.toString() })
             .setTitle('Server Unblacklisted')
             .setDescription(stripIndents`
-              ${emoji.normal.dotYellow} **Server:** ${server?.name || action.dbGuild.serverName} (${action.dbGuild.serverId})
-              ${emoji.normal.dotYellow} **Moderator:** ${moderator.tag} (${moderator.id})
-              ${emoji.normal.dotYellow} **Timestamp:** <t:${Math.round(action.timestamp.getTime() / 1000)}:R>`)
+              ${emoji.normal.dotBlue} **Server:** ${server?.name || action.dbGuild.serverName} (${action.dbGuild.serverId})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **Timestamp:** <t:${Math.round(action.timestamp.getTime() / 1000)}:R>`)
             .addFields({ name: 'Reason', value: action.reason })
             .setColor(colors('chatbot')),
         ],
@@ -148,9 +148,9 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setAuthor({ name: String(guild?.name), iconURL: guild?.iconURL() || undefined })
             .setTitle('Left Server')
             .setDescription(stripIndents`
-              ${emoji.normal.dotYellow} **Server:** ${guild?.name} (${guild?.id})
-              ${emoji.normal.dotYellow} **Moderator:** ${moderator.tag} (${moderator.id})
-              ${emoji.normal.dotYellow} **Reason:** ${action.reason}
+              ${emoji.normal.dotBlue} **Server:** ${guild?.name} (${guild?.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **Reason:** ${action.reason}
               `)
             .setColor(colors('chatbot')),
         ],
@@ -164,9 +164,9 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setAuthor({ name: String(guild?.name), iconURL: guild?.iconURL() || undefined })
             .setTitle('Disconnected from Server')
             .setDescription(stripIndents`
-              ${emoji.normal.dotYellow} **Server:** ${guild?.name} (${guild?.id})
-              ${emoji.normal.dotYellow} **Moderator:** ${moderator.tag} (${moderator.id})
-              ${emoji.normal.dotYellow} **Reason:** ${action.reason}
+              ${emoji.normal.dotBlue} **Server:** ${guild?.name} (${guild?.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **Reason:** ${action.reason}
               `)
             .setColor(colors('chatbot')),
         ],
