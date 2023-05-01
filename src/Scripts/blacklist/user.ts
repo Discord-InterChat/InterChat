@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { cancelJob } from 'node-schedule';
 import { getDb, addUserBlacklist } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
@@ -44,7 +44,22 @@ export = {
       }
 
       await addUserBlacklist(interaction.user, user, String(reason), expires);
-      interaction.followUp(`**${user.tag}** has been blacklisted for reason \`${reason}\`.`);
+      const successEmbed = new EmbedBuilder()
+        .setDescription(`${interaction.client.emotes.normal.tick} **${user.tag}** has been successfully blacklisted!`)
+        .setColor('Green')
+        .addFields(
+          {
+            name: 'Reason',
+            value: reason ? reason : 'No reason provided.',
+            inline: true,
+          },
+          {
+            name: 'Expires',
+            value: expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never.',
+            inline: true,
+          },
+        );
+      await interaction.followUp({ embeds: [successEmbed] });
     }
 
 

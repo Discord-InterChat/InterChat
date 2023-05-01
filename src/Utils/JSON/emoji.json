@@ -3,7 +3,7 @@
         "yes": "<:yes:977600103206498354>",
         "neutral": "<:neutral:977600034055016499>",
 	    "no": "<:no:977600033740431410>",
-        "discordStaff": "<:DiscordStaff:1032320201724809267>",
+        "discordStaff": "<:badge_InterChatStaff:1102229356379648011>",
 	    "invite": "<:add:1032318201134067722>", 
         "clipart": "<:chat_clipart:772393314413707274>",
         "checkGreen": "<a:Check_green:772393366109290498>",
@@ -37,7 +37,8 @@
         "dividerEnd": "<:divider_end:1077200586803527690>",
         "contextMenu": "<:ContextMenuCommand:1086624007949930597>",
         "slashCommand": "<:slashCommand:1086631449337266276>",
-        "blueLine": "<:blueLine:1086634970539360296>"
+        "blueLine": "<:blueLine:1086634970539360296>",
+        "attachment": "<:attachment:1102449992393830400>"
     },
 
 
@@ -82,7 +83,7 @@
 
     "badge": {
         "Developer": "<:badge_developer:994549313013284904>",
-        "Staff": "<:badge_DiscordStaff:994444519489675365>",
+        "Staff": "<:badge_InterChatStaff:1102229356379648011>",
         "Premium": "<:badge_BugHunter3:994262351266185317>",
         "Voter": "<:topgg_voter:1065977698058506290>",
         "Moderator": "<:badge_CertifiedModerator:994444514989182986>",
