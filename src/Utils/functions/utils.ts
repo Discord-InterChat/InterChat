@@ -23,7 +23,7 @@ export const constants = {
     reports: '821610981155012628',
     goal: '906460473065615403',
     suggestions: '1021256657528954900',
-    reviews: '1002874342343970946',
+    hubReviews: '1102625912274550884',
   },
   colors: {
     random: [
