@@ -2,11 +2,11 @@ import checks from '../Scripts/message/checks';
 import addBadges from '../Scripts/message/addBadges';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import cleanup from '../Scripts/message/cleanup';
-import { ActionRowBuilder, APIMessage, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, MessageCreateOptions, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
+import { ActionRowBuilder, APIMessage, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, MessageCreateOptions, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import { censor } from '../Utils/functions/wordFilter';
 import { getManyConnections, getConnection } from '../Structures/network';
-import { connectedList } from '@prisma/client';
+import { connectedList, messageData } from '@prisma/client';
 
 export interface NetworkMessage extends Message {
   compact_message: string,
@@ -40,11 +40,28 @@ export default {
 
       // ignore the message if it is not in an active network channel
       if (!await checks.execute(message, db)) return;
-
       message.compact_message = `**${message.author.tag}:** ${message.content}`;
 
-      // Add quoted reply to original message and embed
-      const replyInDb = await messageContentModifiers.appendReply(message);
+      let replyInDb: messageData | null;
+      // fetched author of the message being replied to
+      let repliedAuthor: User | undefined;
+
+      if (message.reference) {
+        const referredMessage = await message.fetchReference().catch(() => null);
+        if (referredMessage) {
+          replyInDb = await db.messageData.findFirst({
+            where: {
+              channelAndMessageIds: { some: { messageId: referredMessage.id } },
+            },
+          });
+
+          // Add quoted reply to original message and embed
+          await messageContentModifiers.appendReply(message, referredMessage, replyInDb);
+          repliedAuthor = replyInDb
+            ? await message.client.users.fetch(replyInDb?.authorId).catch(() => undefined)
+            : undefined;
+        }
+      }
 
       const embed = new EmbedBuilder()
         .setTimestamp()
@@ -80,8 +97,9 @@ export default {
 
           const replyButton = reply
             ? new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
-              .setLabel('Jump')
+              .setLabel(repliedAuthor?.tag || 'Jump')
               .setStyle(ButtonStyle.Link)
+              .setEmoji(message.client.emotes.normal.reply)
               .setURL(`https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`))
             : null;
 
@@ -96,6 +114,7 @@ export default {
           const sendResult = await channelToSend.send(normalOptions).catch(() => null);
           return { channelId: channelToSend.id, message: sendResult } as NetworkSendResult;
         })();
+
         channelAndMessageIds.push(result);
       });
 
