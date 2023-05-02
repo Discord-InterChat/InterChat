@@ -44,7 +44,7 @@ export = {
       message.content.includes('discord.com/invite') ||
       message.content.includes('dsc.gg')
     ) {
-      message.reply('Do not advertise or promote servers in the network. Set an invite in the setup instead!');
+      message.reply('Do not advertise or promote servers in the network. Set an invite in `/setup edit` instead!');
       return false;
     }
 
@@ -55,16 +55,21 @@ export = {
     }
 
     if (message.stickers.size > 0 && !message.content) {
-      message.reply('Sending stickers is not in the network possible. We apologize for any inconvenience this may cause.');
+      message.reply('Sending stickers in the network is not possible due to discord\'s limitations.');
       return false;
     }
 
     // TODO allow multiple attachments when embeds can have multiple images
-    const attachmentType = message.attachments.first()?.contentType;
+    const attachment = message.attachments.first();
     const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
 
-    if (attachmentType && !allowedTypes.includes(attachmentType)) {
+    if (attachment?.contentType && !allowedTypes.includes(attachment.contentType)) {
       message.reply('Only images and gifs are allowed to be sent within the network.');
+      return false;
+    }
+
+    if (attachment && attachment.size > 1024 * 1024 * 8) {
+      message.reply('Please keep your attachments under 8MB.');
       return false;
     }
 
