@@ -32,6 +32,22 @@ type UserDataWarnings {
   timestamp   DateTime
 }
 
+type HubRating {
+  userId String
+  rating Int    @default(0)
+}
+
+type HubOwner {
+  userId   String
+  serverId String
+}
+
+type HubJoinRequest {
+  submitterId String
+  serverId    String
+  channelId   String
+}
+
 model blacklistedServers {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
   serverId   String    @unique
@@ -64,16 +80,21 @@ model connectedList {
 }
 
 model hubs {
-  id              String          @id @default(auto()) @map("_id") @db.ObjectId
-  name            String          @unique
-  description     String
-  private         Boolean
-  tags            String[]
-  connections     connectedList[]
-  mainServerId    String
-  official        Boolean?
-  createdAt       DateTime        @default(now())
-  createdByUserId String
+  id           String           @id @default(auto()) @map("_id") @db.ObjectId
+  name         String           @unique
+  description  String
+  language     String           @default("English")
+  tags         String[]
+  owner        HubOwner
+  rating       HubRating[]
+  iconUrl      String
+  bannerUrl    String?
+  reviewed     Boolean          @default(false)
+  private      Boolean
+  official     Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  connections  connectedList[]
+  joinRequests HubJoinRequest[]
 }
 
 model messageData {
