@@ -3,6 +3,7 @@ import toLower from 'lodash/toLower';
 import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
+import { hubs, Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { badge, normal } from '../JSON/emoji.json';
 import { stripIndents } from 'common-tags';
@@ -278,6 +279,68 @@ export async function addServerBlacklist(moderator: discord.User, guild: discord
     });
   }
   return dbGuild;
+}
+
+export function calculateAverageRating(ratings: number[]): number {
+  if (ratings.length === 0) return 0;
+
+  const sum = ratings.reduce((acc, cur) => acc + cur, 0);
+  const average = sum / ratings.length;
+  return Math.round(average * 10) / 10;
+}
+
+interface HubListingExtraInput {
+  hubMessages?: Prisma.messageDataCreateInput[];
+  totalNetworks?: number;
+}
+
+
+export function createHubListingsEmbed(hub: hubs, extra?: HubListingExtraInput) {
+  return new discord.EmbedBuilder()
+    .setTitle(hub.name)
+    .setDescription(hub.description)
+    .setColor('Random')
+    .setThumbnail(hub.iconUrl)
+    .setImage(hub.bannerUrl)
+    .addFields([
+      {
+        name: 'Language',
+        value: hub.language,
+        inline: true,
+      },
+      {
+        name: 'Tags',
+        value: hub.tags.join(', '),
+        inline: true,
+      },
+      {
+        name: 'Rating',
+        value: hub.rating?.length > 0
+          ? '⭐'.repeat(calculateAverageRating(hub.rating.map(hr => hr.rating)))
+          : '-',
+        inline: true,
+      },
+      {
+        name: 'Visibility',
+        value: hub.private ? 'Private' : 'Public',
+        inline: true,
+      },
+      {
+        name: 'Created At',
+        value: `<t:${Math.round(hub.createdAt.getTime() / 1000)}>`,
+        inline: true,
+      },
+      {
+        name: 'Networks',
+        value: `${extra?.totalNetworks || 'Unknown.'}`,
+        inline: true,
+      },
+      {
+        name: 'Messages Today',
+        value: `${extra?.hubMessages ? extra.hubMessages.length : 'Unknown.'}`,
+        inline: true,
+      },
+    ]);
 }
 
 export const rulesEmbed = new discord.EmbedBuilder()
