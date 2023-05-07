@@ -10,7 +10,12 @@ export default async function startTimers(client: Client) {
   // Delete all documents that are older than 24 hours old.
   scheduleJob('messageExpired', { hour: 24, second: 5 }, async () => {
     const olderThan = new Date(Date.now() - 60 * 60 * 24_000);
-    await db.messageData.deleteMany({ where: { timestamp: { lte: olderThan.getTime() } } });
+    await db.messageData.deleteMany({ where: { timestamp: { lte: olderThan } } });
+  });
+
+  scheduleJob('inviteExpired', { hour: 1 }, async () => {
+    const olderThan = new Date(Date.now() - 60 * 60 * 1_000);
+    await db.hubInvites.deleteMany({ where: { expires: { lte: olderThan } } });
   });
 
   // Timers that start only if the bot is logged in.

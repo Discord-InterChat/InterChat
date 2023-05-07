@@ -1,12 +1,13 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder } from 'discord.js';
 import { deleteConnection, getConnection } from '../../Structures/network';
 
 export = {
   async execute(interaction: ChatInputCommandInteraction) {
-    const { normal, icons } = interaction.client.emotes;
+    const { normal } = interaction.client.emotes;
+    const channelId = interaction.options.getString('network', true);
 
-    if (!await getConnection({ serverId: interaction.guildId?.toString() })) {
-      return interaction.reply(`${normal.no} This server is not setup yet.`);
+    if (!await getConnection({ channelId })) {
+      return await interaction.reply(`${normal.no} The channel ${channelId} does not have any networks.`);
     }
 
     const choiceButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -14,11 +15,16 @@ export = {
       new ButtonBuilder().setCustomId('no').setLabel('No').setStyle(ButtonStyle.Danger),
     ]);
 
+    const resetConfirmEmbed = new EmbedBuilder()
+      .setTitle('Delete Network Connection')
+      .setDescription('Are you sure? You will have to rejoin the hub to use the network again! All previous connection data will be lost.')
+      .setColor('Red')
+      .setFooter({ text: 'Confirm within the next 10 seconds.' });
+
     const resetConfirmMsg = await interaction.reply({
-      content: `${icons.info} Are you sure? You will have to re-setup to use the network again! All setup data will be lost.`,
+      embeds: [resetConfirmEmbed],
       components: [choiceButtons],
     });
-
 
     const resetCollector = resetConfirmMsg.createMessageComponentCollector({
       filter: (m) => m.user.id == interaction.user.id,
@@ -29,21 +35,17 @@ export = {
 
     // Creating collector for yes/no button
     resetCollector.on('collect', async (collected) => {
-      if (collected.customId !== 'yes') {
-        collected.update({
-          content: `${normal.no} Cancelled.`,
-          components: [],
-        });
+      if (collected.customId === 'no') {
+        await collected.deleteReply();
         return;
       }
 
-      await deleteConnection({ serverId: interaction.guild?.id });
-
+      await deleteConnection({ channelId });
       await collected.update({
-        content: `${normal.yes} Reset Complete.`,
+        content: `${normal.yes} Deleted network connection from <#${channelId}>!`,
+        embeds: [],
         components: [],
       });
-
     });
   },
 };

@@ -17,31 +17,31 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  const editActionBtns = new ActionRowBuilder<ButtonBuilder>()
+  const editButtons = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(
       new ButtonBuilder()
         .setCustomId('description')
         .setLabel('Edit Description')
         .setEmoji('✏️')
-        .setStyle(ButtonStyle.Primary),
+        .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId('tags')
         .setLabel('Edit Tags')
         .setEmoji('🏷️')
-        .setStyle(ButtonStyle.Primary),
+        .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId('banner')
         .setLabel('Set Banner')
         .setEmoji('🎨')
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
-        .setCustomId('joinReqs')
-        .setLabel('Join Requests')
+        .setCustomId('invites')
+        .setLabel('Invites')
         .setEmoji('🔗')
         .setStyle(ButtonStyle.Secondary),
 
     );
-  const dangerActionBtns = new ActionRowBuilder<ButtonBuilder>()
+  const primaryButtons = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(
       new ButtonBuilder()
         .setCustomId('visibility')
@@ -52,7 +52,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .setCustomId('listHub')
         .setLabel('List Publicly')
         .setEmoji('🌐')
-        .setStyle(ButtonStyle.Secondary),
+        .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
         .setCustomId('delete')
         .setLabel('Delete Hub')
@@ -60,14 +60,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .setEmoji(emotes.icons.delete),
       new ButtonBuilder()
         .setCustomId('moderator')
-        .setLabel('Manage Moderators')
+        .setLabel('Moderators')
         .setStyle(ButtonStyle.Primary)
         .setEmoji('🛡️'),
     );
 
   const reply = await interaction.reply({
     embeds: [createHubListingsEmbed(hubInDb)],
-    components: [editActionBtns, dangerActionBtns],
+    components: [primaryButtons, editButtons],
   });
 
   const collector = reply.createMessageComponentCollector({
@@ -76,6 +76,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   });
 
   collector.on('collect', async (i) => {
+    hubInDb = await db.hubs.findFirst({ where: { id: hubInDb?.id } });
+    if (!hubInDb) {
+      await i.reply({ content: 'This hub no longer exists!', ephemeral: true });
+      return;
+    }
+
     if (i.isButton()) {
       switch (i.customId) {
         case 'description': {
@@ -95,22 +101,24 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
           await i.showModal(modal);
 
-          const modalResponse = await i.awaitModalSubmit({ time: 60_000 * 5 })
-            .catch(e => {
-              if (!e.message.includes('ending with reason: time')) {
-                logger.error(e);
-                captureException(e, {
-                  user: { id: i.user.id, username: i.user.tag },
-                  extra: { context: 'This happened when user tried to edit hub desc.' },
-                });
-              }
-              return null;
-            });
+          const modalResponse = await i.awaitModalSubmit({
+            filter: m => m.customId === modal.data.custom_id,
+            time: 60_000 * 5,
+          }).catch(e => {
+            if (!e.message.includes('ending with reason: time')) {
+              logger.error(e);
+              captureException(e, {
+                user: { id: i.user.id, username: i.user.tag },
+                extra: { context: 'This happened when user tried to edit hub desc.' },
+              });
+            }
+            return null;
+          });
 
-          if (!modalResponse) break;
+          if (!modalResponse) return;
 
           const description = modalResponse.fields.getTextInputValue('description');
-          hubInDb = await db.hubs.update({
+          await db.hubs.update({
             where: { id: hubInDb?.id },
             data: { description },
           });
@@ -123,20 +131,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         }
 
         case 'listHub': {
-          hubInDb = await db.hubs.findFirst({ where: { id: hubInDb?.id } });
-          if (!hubInDb) {
+          if (hubInDb.private === false) {
             await i.reply({
-              content: 'Something went wrong! Please try again later.',
+              content: 'Your hub is already listed publicly!',
               ephemeral: true,
             });
-            break;
-          }
-          else if (hubInDb.reviewed) {
-            await i.reply({
-              content: 'Your hub is already approved to be listed publicly! Toggle the visibility instead.',
-              ephemeral: true,
-            });
-            break;
+            return;
           }
 
           const embed = createHubListingsEmbed(hubInDb);
@@ -170,15 +170,17 @@ export async function execute(interaction: ChatInputCommandInteraction) {
               components: [],
               content: 'You took too long to respond. Please try again.',
             });
-            break;
+            return;
           }
 
           if (confirmResp.customId !== 'confirm_listing') {
             await confirmResp.update({ components: [] });
-            break;
+            return;
           }
-          confirmResp.reply('Please wait while our staff review your hub to be listed publicly. In the meantime, you can invite other servers to join your hub using the Hub\'s ID. Thank you for your patience!');
-          await confirmResp.message.edit({ components: [] }).catch(() => null);
+          await confirmResp.update({
+            content: 'Please wait while our staff review your hub to be listed publicly. In the meantime, you can invite other servers to join your hub by creating invites. Thank you for your patience!',
+            components: [],
+          });
 
 
           const { hubReviews } = constants.channel;
@@ -216,7 +218,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
               // update hub to be public
               const approvedHub = await db.hubs.update({
                 where: { id: hubInDb?.id },
-                data: { reviewed: true, private: false },
+                data: { approved: true, private: false },
               });
 
               const approvedEmbed = new EmbedBuilder()
@@ -244,45 +246,47 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                 );
               await reviewInter.showModal(denyModal);
 
-              reviewInter.awaitModalSubmit({ time: 60 * 5000 })
-                .then(async denyIntr => {
-                  const reason = denyIntr.fields.getTextInputValue('reason');
+              reviewInter.awaitModalSubmit({
+                filter: m => m.customId === denyModal.data.custom_id,
+                time: 60 * 5000,
+              }).then(async denyIntr => {
+                const reason = denyIntr.fields.getTextInputValue('reason');
 
-                  hubInDb = await db.hubs.findFirst({ where: { id: hubInDb?.id } });
-                  if (!hubInDb) {
-                    await i.reply({
-                      content: 'This hub no longer exists.',
-                      ephemeral: true,
-                    });
-                    return;
-                  }
-
-                  await denyIntr.reply({
-                    content: `Successfully deined hub **${hubInDb?.name}** from being listed publicly. Reason: \`${reason}\``,
+                await db.hubs.findFirst({ where: { id: hubInDb?.id } });
+                if (!hubInDb) {
+                  await i.reply({
+                    content: 'This hub no longer exists.',
                     ephemeral: true,
                   });
-                  denyIntr.message?.edit({ content: `${emoji.no} Denied by **${reviewInter.user.tag}**.`, components: [] }).catch(() => null);
+                  return;
+                }
 
-                  const denyEmbed = new EmbedBuilder()
-                    .setTitle(`${emoji.no} Hub Denied`)
-                    .setDescription('Your request to list your hub on `/hub browse` has been denied! You can edit your hub in `/hub manage` and send it for approval again is applicable.')
-                    .addFields(
-                      { name: 'Hub Name', value: hubInDb.name, inline: true },
-                      { name: 'Reason', value: reason, inline: true },
-                    )
-                    .setColor('Red')
-                    .setFooter({ text: 'Join the support server if you have any questions!' })
-                    .setTimestamp();
-
-                  // notify hub owner of denial
-                  await i.user.send({ embeds: [denyEmbed] });
-                  reviewCollector.stop();
-                }).catch(e => {
-                  if (!e.message.includes('ending with reason: time')) {
-                    captureException(e);
-                    logger.error(e);
-                  }
+                await denyIntr.reply({
+                  content: `Successfully deined hub **${hubInDb?.name}** from being listed publicly. Reason: \`${reason}\``,
+                  ephemeral: true,
                 });
+                denyIntr.message?.edit({ content: `${emoji.no} Denied by **${reviewInter.user.tag}**.`, components: [] }).catch(() => null);
+
+                const denyEmbed = new EmbedBuilder()
+                  .setTitle(`${emoji.no} Hub Denied`)
+                  .setDescription('Your request to list your hub on `/hub browse` has been denied! You can edit your hub in `/hub manage` and send it for approval again if applicable.')
+                  .addFields(
+                    { name: 'Hub Name', value: hubInDb.name, inline: true },
+                    { name: 'Reason', value: reason, inline: true },
+                  )
+                  .setColor('Red')
+                  .setFooter({ text: 'Join the support server if you have any questions!' })
+                  .setTimestamp();
+
+                // notify hub owner of denial
+                await i.user.send({ embeds: [denyEmbed] });
+                reviewCollector.stop();
+              }).catch(e => {
+                if (!e.message.includes('ending with reason: time')) {
+                  captureException(e);
+                  logger.error(e);
+                }
+              });
             }
           });
           break;
@@ -305,22 +309,24 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
           await i.showModal(modal);
 
-          const modalResponse = await i.awaitModalSubmit({ time: 60_000 * 5 })
-            .catch(e => {
-              if (!e.message.includes('ending with reason: time')) {
-                logger.error(e);
-                captureException(e, {
-                  user: { id: i.user.id, username: i.user.tag },
-                  extra: { context: 'This happened when user tried to edit hub desc.' },
-                });
-              }
-              return null;
-            });
+          const modalResponse = await i.awaitModalSubmit({
+            filter: m => m.customId === modal.data.custom_id,
+            time: 60_000 * 5,
+          }).catch(e => {
+            if (!e.message.includes('ending with reason: time')) {
+              logger.error(e);
+              captureException(e, {
+                user: { id: i.user.id, username: i.user.tag },
+                extra: { context: 'This happened when user tried to edit hub desc.' },
+              });
+            }
+            return null;
+          });
 
-          if (!modalResponse) break;
+          if (!modalResponse) return;
 
           const newTags = modalResponse.fields.getTextInputValue('tags');
-          hubInDb = await db.hubs.update({
+          await db.hubs.update({
             where: { id: hubInDb?.id },
             data: { tags: newTags.length > 1 ? newTags.replaceAll(', ', ',').split(',', 5) : [newTags] },
           });
@@ -346,19 +352,21 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
           await i.showModal(modal);
 
-          const modalResponse = await i.awaitModalSubmit({ time: 60_000 * 5 })
-            .catch(e => {
-              if (!e.message.includes('ending with reason: time')) {
-                logger.error(e);
-                captureException(e, {
-                  user: { id: i.user.id, username: i.user.tag },
-                  extra: { context: 'This happened when user tried to edit hub banner url.' },
-                });
-              }
-              return null;
-            });
+          const modalResponse = await i.awaitModalSubmit({
+            filter: m => m.customId === modal.data.custom_id,
+            time: 60_000 * 5,
+          }).catch(e => {
+            if (!e.message.includes('ending with reason: time')) {
+              logger.error(e);
+              captureException(e, {
+                user: { id: i.user.id, username: i.user.tag },
+                extra: { context: 'This happened when user tried to edit hub banner url.' },
+              });
+            }
+            return null;
+          });
 
-          if (!modalResponse) break;
+          if (!modalResponse) return;
 
           const newBanner = modalResponse.fields.getTextInputValue('banner');
           // check if banner is a valid imgur link
@@ -369,7 +377,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             });
           }
 
-          hubInDb = await db.hubs.update({
+          await db.hubs.update({
             where: { id: hubInDb?.id },
             data: { bannerUrl: newBanner },
           });
@@ -382,16 +390,16 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         }
 
         case 'visibility': {
-          hubInDb = await db.hubs.findFirst({ where: { id: hubInDb?.id } });
-          if (!hubInDb?.reviewed && hubInDb?.private) {
+          await db.hubs.findFirst({ where: { id: hubInDb?.id } });
+          if (!hubInDb?.approved && hubInDb?.private) {
             await i.reply({
               content: 'This hub is not yet reviewed. Please submit it for review first by clicking the **List Publicly** button.',
               ephemeral: true,
             });
-            break;
+            return;
           }
 
-          hubInDb = await db.hubs.update({
+          await db.hubs.update({
             where: { id: hubInDb?.id },
             data: { private: !hubInDb?.private },
           });
@@ -431,12 +439,20 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
           if (!confirmation || confirmation.customId !== 'confirm_delete') {
             await msg.delete().catch(() => null);
-            break;
+            return;
           }
+
+          confirmation.reply({
+            content: `${emotes.normal.loading} Deleting connections, invites, messages and the hub. Please wait...`,
+            ephemeral: true,
+          });
+
           try {
+            // delete all relations first and then delete the hub
             await db.connectedList.deleteMany({ where: { hubId: hubInDb?.id } });
+            await db.hubInvites.deleteMany({ where: { hubId: hubInDb?.id } });
+            await db.messageData.deleteMany({ where: { hubId: hubInDb?.id } });
             await db.hubs.delete({ where: { id: hubInDb?.id } });
-            hubInDb = null;
           }
           catch (e) {
             logger.error(e);
@@ -445,16 +461,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
               extra: { context: 'Trying to delete hub.', hubId: hubInDb?.id },
             });
 
-            await confirmation.reply({
-              content: 'Something went wrong while trying to delete the hub. The developers have been notified.',
-              ephemeral: true,
-            });
-            break;
+            await confirmation.editReply('Something went wrong while trying to delete the hub. The developers have been notified.');
+            return;
           }
-          await confirmation.reply({
-            content: 'The hub has been successfully deleted.',
-            ephemeral: true,
-          });
+          await confirmation.editReply(`${emotes.normal.tick} The hub has been successfully deleted.`);
+          collector.stop(); // stop collector so user can't click on buttons anymore
           break;
         }
 
@@ -462,50 +473,37 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           i.reply('This is still a WIP.');
           break;
 
-        case 'joinReqs': {
-          hubInDb = await db.hubs.findFirst({ where: { id: hubInDb?.id } });
-          if (!hubInDb) {
-            await i.reply({
-              content: 'Something went wrong while trying to fetch the hub. Please try again or contact the developers.',
-              ephemeral: true,
-            });
-            break;
-          }
-
+        case 'invites': {
           if (!hubInDb.private) {
             await i.reply({
-              content: 'This hub is not private. You can only view join requests for private hubs.',
+              content: 'You can only view invite codes for private hubs.',
               ephemeral: true,
             });
-            break;
+            return;
           }
 
-          else if (hubInDb.joinRequests.length === 0) {
+          const invitesInDb = await db.hubInvites.findMany({ where: { hubId: hubInDb.id } });
+          if (invitesInDb.length === 0) {
             await i.reply({
-              content: `${emotes.normal.yes} There are no join requests for this hub.`,
+              content: `${emotes.normal.yes} There are no invites to this hub yet.`,
               ephemeral: true,
             });
-            break;
+            return;
           }
 
-          const joinRequests = hubInDb.joinRequests.map(async (jr, index) => {
-            const server = await i.client.guilds.fetch(jr.serverId).catch(() => null);
-            const channel = await server?.channels.fetch(jr.channelId).catch(() => null);
-            const serverOwner = await server?.fetchOwner().catch(() => null);
+          const inviteArr = invitesInDb.map(
+            (inv, index) => `${index + 1}. \`${inv.code}\` - <t:${Math.round(inv.expires.getTime() / 1000)}:R>`,
+          );
 
-            return server ? `${index + 1}. \`${server.name} #${channel?.name}\` - ${serverOwner?.user.tag}` : `${jr} (Unknown Server)`;
-          });
 
-          const resolvedJoinRequests = await Promise.all(joinRequests);
-
-          const joinRequestsEmbed = new EmbedBuilder()
-            .setTitle('Join Requests')
-            .setDescription(resolvedJoinRequests.join('\n'))
+          const inviteEmbed = new EmbedBuilder()
+            .setTitle('Invite Codes')
+            .setDescription(inviteArr.join('\n'))
             .setColor('Yellow')
             .setTimestamp();
 
           await i.reply({
-            embeds: [joinRequestsEmbed],
+            embeds: [inviteEmbed],
             ephemeral: true,
           });
           break;
@@ -515,18 +513,19 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           break;
       }
 
+      hubInDb = await db.hubs.findFirst({ where: { id: hubInDb?.id } });
       if (hubInDb) {
-        await i.message.edit({
-          embeds: [createHubListingsEmbed(hubInDb)],
-        }).catch(() => null);
+        await interaction.editReply({ embeds: [createHubListingsEmbed(hubInDb)] }).catch(() => null);
       }
     }
-    collector.on('end', async () => {
-      editActionBtns.components.forEach(c => c.setDisabled(true));
-      dangerActionBtns.components.forEach(c => c.setDisabled(true));
-      await i.message.edit({
-        components: [editActionBtns, dangerActionBtns],
-      }).catch(() => null);
-    });
   });
+
+  collector.on('end', async () => {
+    editButtons.components.forEach(c => c.setDisabled(true));
+    primaryButtons.components.forEach(c => c.setDisabled(true));
+    await interaction.editReply({
+      components: [primaryButtons, editButtons],
+    }).catch(() => null);
+  });
+
 }

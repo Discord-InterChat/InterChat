@@ -18,7 +18,7 @@ type MessageDataReference {
   messageId String?
 }
 
-type SetupWebhook {
+type NetworkWebhook {
   id    String
   token String
   url   String
@@ -40,12 +40,6 @@ type HubRating {
 type HubOwner {
   userId   String
   serverId String
-}
-
-type HubJoinRequest {
-  submitterId String
-  serverId    String
-  channelId   String
 }
 
 model blacklistedServers {
@@ -73,28 +67,37 @@ model connectedList {
   compact    Boolean
   invite     String?
   profFilter Boolean
-  webhook    SetupWebhook?
+  webhook    NetworkWebhook?
   date       DateTime      @default(now())
   hub        hubs?         @relation(fields: [hubId], references: [id])
   hubId      String?       @db.ObjectId
 }
 
 model hubs {
-  id           String           @id @default(auto()) @map("_id") @db.ObjectId
-  name         String           @unique
-  description  String
-  language     String           @default("English")
-  tags         String[]
-  owner        HubOwner
-  rating       HubRating[]
-  iconUrl      String
-  bannerUrl    String?
-  reviewed     Boolean          @default(false)
-  private      Boolean
-  official     Boolean          @default(false)
-  createdAt    DateTime         @default(now())
-  connections  connectedList[]
-  joinRequests HubJoinRequest[]
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  name        String          @unique
+  description String
+  language    String          @default("English")
+  tags        String[]
+  owner       HubOwner
+  rating      HubRating[]
+  iconUrl     String
+  bannerUrl   String?
+  approved    Boolean         @default(false)
+  private     Boolean         @default(true)
+  official    Boolean         @default(false)
+  createdAt   DateTime        @default(now())
+  connections connectedList[]
+  hubInvites  hubInvites[]
+  messageData messageData[]
+}
+
+model hubInvites {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  code    String   @unique @default(nanoid(10))
+  expires DateTime
+  hub     hubs     @relation(fields: [hubId], references: [id])
+  hubId   String   @db.ObjectId
 }
 
 model messageData {
@@ -103,7 +106,9 @@ model messageData {
   channelAndMessageIds MessageDataChannelAndMessageIds[]
   reference            MessageDataReference?
   serverId             String
-  timestamp            Float
+  timestamp            DateTime
+  hub                  hubs?                             @relation(fields: [hubId], references: [id])
+  hubId                String?                           @db.ObjectId
 }
 
 model restrictedWords {

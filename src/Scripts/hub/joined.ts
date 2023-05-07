@@ -8,6 +8,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     where: {
       connections: { some: { serverId: interaction.guild?.id } },
     },
+    include: {
+      connections: true,
+    },
   });
 
   if (joinedHubs.length === 0) {
@@ -21,7 +24,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const filterConnections = await db.connectedList
       .count({ where: { hubId: hub.id } })
       .catch(() => 0);
-    return createHubListingsEmbed(hub, { totalNetworks: filterConnections });
+    // use a more meaningful embed for this lmao
+    return createHubListingsEmbed(hub, { totalNetworks: filterConnections })
+      .addFields({
+        name: 'Channel',
+        value: `<#${hub.connections.find(c => c.serverId === interaction.guildId)?.channelId}>`,
+      });
   });
 
   paginate(interaction, await Promise.all(hubList));

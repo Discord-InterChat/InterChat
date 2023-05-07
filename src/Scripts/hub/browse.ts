@@ -16,9 +16,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   switch (sortBy) {
     case 'active':
-      // const messages = await db.messageData.findMany({orderBy: {''}});
-      // hubs = await db.hubs.findMany({ orderBy: { connections: 'desc' } });
-      return await interaction.reply('This is currently under development.');
+      // const messages = await db.hubs.findMany({where: {messageData: }, orderBy: {''}});
+      // return await interaction.reply('This is currently under development.');
+      break;
     case 'popular':
       sortedHubs = (await db.hubs
         .findMany({ where: { name: hubName, private: false } }))
@@ -54,7 +54,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return createHubListingsEmbed(hub, { totalNetworks });
   });
 
-  if (!hubList || hubList.length === 0) return interaction.reply('There are no hubs listed here at the moment. Please try again later!');
+  if (!hubList || hubList.length === 0) {
+    interaction.reply({
+      content: 'There are no hubs listed here at the moment. Please try again later!',
+      ephemeral: true,
+    });
+    return;
+  }
 
   const paginateBtns = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()

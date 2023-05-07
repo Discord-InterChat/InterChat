@@ -89,7 +89,7 @@ switch (args) {
       Options:
         -h, --help    Show this help message and exit.
         -s, --staff   Deploy staff commands.
-                          -b --both     Deploy both staff and normal commands.
+        -b --both     Deploy both staff and normal commands.
         [guildId] - The guild ID to deploy to.`);
     break;
 

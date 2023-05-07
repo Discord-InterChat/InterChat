@@ -5,35 +5,36 @@ import { colors, rulesEmbed } from '../../Utils/functions/utils';
 /* Make user accept and understand important info on first setup */
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
-    const emoji = interaction.client.emotes;
-
     const embed = new EmbedBuilder()
-      .setTitle('👋 Welcome to the InterChat Network!')
+      .setTitle('👋 Hey there! Welcome to the InterChat network.')
       .setDescription(stripIndents`
-      ${emoji.normal.clipart} Hey there! Before we get started, let's take a moment to learn about the Chat Network.
-      
-      The Network serves as a bridge between channels on different servers, allowing members of this server to communicate with members of other servers through the setup channel. It is recommended to create a seperate channel for the network, as it may get cluttered. We hope you enjoy talking to other servers using the network! 
+        To keep things organized, it's recommended to create a separate channel for the network. But don't worry, you can always change this later.
 
-      We strive to improve and evolve our bot. If you would like to contribute or have any suggestions for new features, feel free to let us know.
+        Before we dive in, take a moment to review our network rules. We want everyone to have a smooth and fun experience.
 
-      **Next step:** Review the network rules to ensure a smooth experience for all users.`)
-      .setColor(colors('chatbot'));
+        **How it works:** the InterChat Network is like a magic bridge that links channels on different servers. So, you can chat with people from all over!
+
+        And hey, if you have any cool ideas for new features, let us know! We're always looking to improve.
+        `)
+      .setColor(colors('chatbot'))
+      .setFooter({ text: `InterChat Network | Version ${interaction.client.version}` });
 
     const nextButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId('next')
-        .setLabel('Next')
-        .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
         .setCustomId('cancel')
         .setLabel('Cancel')
         .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder()
+        .setCustomId('next')
+        .setLabel('Next')
+        .setStyle(ButtonStyle.Success),
     );
 
-    const reply = await interaction.editReply({
+    const replyMsg = {
       embeds: [embed],
       components: [nextButton],
-    });
+    };
+    const reply = await (interaction.deferred ? interaction.editReply(replyMsg) : interaction.reply(replyMsg));
 
     const filter = (i: ButtonInteraction) => i.user.id === interaction.user.id;
 
@@ -43,20 +44,20 @@ export default {
       componentType: ComponentType.Button,
     }).catch(() => null);
 
-    if (response?.customId === 'cancel') {
+    if (!response || response?.customId === 'cancel') {
       await interaction.deleteReply();
     }
 
-    else if (response?.customId === 'next') {
+    else if (response.customId === 'next') {
       const acceptButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setCustomId('accept')
-          .setLabel('Accept')
-          .setStyle(ButtonStyle.Success),
         new ButtonBuilder()
           .setCustomId('cancel')
           .setLabel('Cancel')
           .setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+          .setCustomId('accept')
+          .setLabel('Accept')
+          .setStyle(ButtonStyle.Success),
       );
 
       const acceptOnboarding = await response.update({

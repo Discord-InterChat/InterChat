@@ -1,6 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 import { stripIndents } from 'common-tags';
+import logger from '../../Utils/logger';
 
 export = {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -55,7 +56,7 @@ export = {
       }
     }
     catch (err) {
-      console.error(err);
+      logger.error(err);
       interaction.editReply('An error occurred while retrieving the hubs. Please try again later.');
     }
     return false;

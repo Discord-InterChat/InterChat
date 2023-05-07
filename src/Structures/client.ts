@@ -38,7 +38,7 @@ export class ExtendedClient extends Client {
     return await this.login(token || process.env.TOKEN);
   }
 
-  public async sendInNetwork(message: string | MessageCreateOptions, hub: Prisma.hubsWhereUniqueInput = { name: 'InterChat Central Hub' }): Promise<void> {
+  public async sendInNetwork(message: string | MessageCreateOptions, hub: Prisma.hubsWhereUniqueInput): Promise<void> {
     const channels = await getManyConnections({ hub, connected: true });
 
     channels?.forEach(async (channelEntry) => {

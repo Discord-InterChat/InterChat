@@ -1,15 +1,10 @@
 import { connectedList, Prisma } from '@prisma/client';
 import { getDb } from '../Utils/functions/utils';
 
-interface NetworkOptions {
-  serverId?: string;
-  channelId?: string;
-}
-
 const { connectedList } = getDb();
 
 /** Returns found document from connectedList collection. */
-export async function getConnection(filter: NetworkOptions) {
+export async function getConnection(filter: Prisma.connectedListWhereInput) {
   return await connectedList.findFirst({ where: filter });
 }
 
@@ -50,9 +45,13 @@ export async function totalConnected(filter?: Prisma.connectedListWhereInput) {
   return await connectedList.count();
 }
 
-// Disconnect a channel or server from the network.
-export async function deleteConnection(options: NetworkOptions) {
-  return await connectedList.deleteMany({ where: options });
+export async function deleteManyConnections(where: Prisma.connectedListWhereInput) {
+  return await connectedList.deleteMany({ where });
+}
+
+/** Disconnect a channel from a network. */
+export async function deleteConnection(where: Prisma.connectedListWhereUniqueInput) {
+  return await connectedList.delete({ where });
 }
 
 export async function updateConnection(where: Prisma.connectedListWhereInput, data: Prisma.connectedListUpdateInput): Promise<connectedList>

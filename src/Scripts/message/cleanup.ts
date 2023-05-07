@@ -42,7 +42,7 @@ export default {
       await messageData.create({
         data: {
           channelAndMessageIds: messageDataObj,
-          timestamp: message.createdTimestamp,
+          timestamp: message.createdAt,
           authorId: message.author.id,
           serverId: message.guild.id,
           reference: message.reference,

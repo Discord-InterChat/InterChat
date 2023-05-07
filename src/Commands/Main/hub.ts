@@ -32,7 +32,7 @@ export default {
     )
     .addSubcommand((subcommand) => subcommand
       .setName('join')
-      .setDescription('🔗 Join a hub.')
+      .setDescription('🎟️ Join a hub.')
       .addChannelOption(channelOption =>
         channelOption
           .setName('channel')
@@ -43,13 +43,13 @@ export default {
       .addStringOption(stringOption =>
         stringOption
           .setName('name')
-          .setDescription('The name of the hub (only works if hub is public)')
+          .setDescription('The name of the hub (public only)')
           .setRequired(false),
       )
       .addStringOption(stringOption =>
         stringOption
-          .setName('id')
-          .setDescription('The ID of the hub.')
+          .setName('invite')
+          .setDescription('The invite to the (private) hub')
           .setRequired(false),
       ),
     )
@@ -92,14 +92,47 @@ export default {
             .setAutocomplete(true)
             .setRequired(true),
         ),
+    )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('invite')
+        .setDescription('💼 Manage invites to hubs you own')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('create')
+            .setDescription('🔗 Create a new invite code to your (private) hub')
+            .addStringOption(stringOpt =>
+              stringOpt
+                .setName('hub')
+                .setDescription('The name of the hub you wish to create this invite for')
+                .setRequired(true),
+            )
+            .addNumberOption(numberOpt =>
+              numberOpt
+                .setName('expiry')
+                .setDescription('The expiry of the invite link in hours. Eg. 10 (10 hours from now)')
+                .setMinValue(1)
+                .setMaxValue(48)
+                .setRequired(false),
+            ),
+        )
+        .addSubcommand((stringOption) =>
+          stringOption
+            .setName('revoke')
+            .setDescription('🚫 Revoke an invite code to your hub')
+            .addStringOption(stringOpt =>
+              stringOpt
+                .setName('code')
+                .setDescription('The invite code')
+                .setRequired(true),
+            ),
+        ),
     ),
 
   async execute(interaction: ChatInputCommandInteraction) {
     const database = getDb();
     const serverInBlacklist = await database.blacklistedServers.findFirst({ where: { serverId: interaction.guild?.id } });
     const userInBlacklist = await database.blacklistedUsers.findFirst({ where: { userId: interaction.user.id } });
-
-    const subcommand = interaction.options.getSubcommand();
 
     if (serverInBlacklist) {
       await interaction.reply('This server is blacklisted from using the InterChat.');
@@ -110,15 +143,19 @@ export default {
       return;
     }
 
-    require(`../../Scripts/hub/${subcommand}`).execute(interaction);
+    const subcommand = interaction.options.getSubcommand();
+    const subcommandGroup = interaction.options.getSubcommandGroup();
+
+    require(`../../Scripts/hub/${subcommandGroup || subcommand}`).execute(interaction);
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const subcommand = interaction.options.getSubcommand();
+    let hubChoices;
 
     if (subcommand === 'browse') {
       const focusedValue = interaction.options.getFocused();
 
-      const hubChoices = await getDb().hubs.findMany({
+      hubChoices = await getDb().hubs.findMany({
         where: {
           name: { mode: 'insensitive', contains: focusedValue },
           private: false,
@@ -126,12 +163,10 @@ export default {
         take: 25,
       });
 
-      const filtered = hubChoices.map((hub) => ({ name: hub.name, value: hub.id }));
-      interaction.respond(filtered);
     }
     else if (subcommand === 'manage') {
       const focusedValue = interaction.options.getFocused();
-      const ownedHubs = await getDb().hubs.findMany({
+      hubChoices = await getDb().hubs.findMany({
         where: {
           name: {
             mode: 'insensitive',
@@ -139,10 +174,11 @@ export default {
           },
           owner: { is: { userId: interaction.user.id } },
         },
+        take: 25,
       });
 
-      const filtered = ownedHubs.map((hub) => ({ name: hub.name, value: hub.name }));
-      interaction.respond(filtered);
     }
+    const filtered = hubChoices?.map((hub) => ({ name: hub.name, value: hub.name }));
+    filtered ? await interaction.respond(filtered) : null;
   },
 };
