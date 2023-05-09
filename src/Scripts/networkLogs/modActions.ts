@@ -138,8 +138,9 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setDescription(stripIndents`
               ${emoji.normal.dotBlue} **Server:** ${server?.name || action.dbGuild.serverName} (${action.dbGuild.serverId})
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
-              ${emoji.normal.dotBlue} **Timestamp:** <t:${Math.round(action.timestamp.getTime() / 1000)}:R>`)
+             `)
             .addFields({ name: 'Reason', value: action.reason })
+            .setTimestamp(action.timestamp)
             .setColor(colors('chatbot')),
         ],
       });

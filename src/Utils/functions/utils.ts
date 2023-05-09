@@ -3,13 +3,13 @@ import toLower from 'lodash/toLower';
 import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
-import { hubs, Prisma } from '@prisma/client';
 import { prisma } from '../db';
 import { badge, normal } from '../JSON/emoji.json';
 import { stripIndents } from 'common-tags';
 import { scheduleJob } from 'node-schedule';
 import { modActions } from '../../Scripts/networkLogs/modActions';
 import 'dotenv/config';
+import { hubs, Prisma } from '@prisma/client';
 
 export const constants = {
   developers: ['828492978716409856', '701727675311587358', '456961943505338369'],
@@ -138,31 +138,15 @@ export function toHuman(milliseconds: number): string {
 
 /**
  * Checks if a user is a InterChat Staff or Developer
- * @param client Discord.JS client
- * @param user The user to check
  * @param onlyDeveloper Only check if user is a developer
  */
-export async function checkIfStaff(user: discord.GuildMember | discord.User, onlyDeveloper = false) {
-  try {
-    const staffRole = '800698916995203104';
-    const developerRole = '770256273488347176';
+export function checkIfStaff(userId: string, onlyDeveloper = false) {
+  const isStaff = constants.staff.find((uId) => uId == userId);
+  const isDev = constants.developers.find((uId) => uId == userId);
 
-    const allowedRoles = [staffRole, developerRole];
-
-    const guild = await user.client.guilds.fetch('770256165300338709');
-    const member = await guild.members.fetch(user);
-    const roles = member.roles.cache;
-
-    const isStaff = roles?.hasAny(...allowedRoles);
-    const isDev = roles?.has(developerRole);
-
-    if (onlyDeveloper && !isDev) return false;
-    else if (isStaff) return true;
-    return false;
-  }
-  catch {
-    return false;
-  }
+  if (onlyDeveloper && !isDev) return false;
+  else if (isStaff) return true;
+  return false;
 }
 
 export function badgeToEmoji(badgeArr: string[]) {
@@ -175,17 +159,18 @@ export function badgeToEmoji(badgeArr: string[]) {
   return badgeEmojis;
 }
 
-export async function addUserBlacklist(moderator: discord.User, user: discord.User | string, reason: string, expires?: Date | number, notifyUser = true) {
+export async function addUserBlacklist(hubId: string, moderator: discord.User, user: discord.User | string, reason: string, expires?: Date | number, notifyUser = true) {
   if (typeof user === 'string') user = await moderator.client.users.fetch(user);
   if (typeof expires === 'number') expires = new Date(Date.now() + expires);
 
   const dbUser = await prisma.blacklistedUsers.create({
     data: {
-      reason,
+      hub: { connect: { id: hubId } },
       userId: user.id,
       username: user.username,
-      notified: true,
+      notified: notifyUser,
       expires,
+      reason,
     },
   });
 
@@ -239,37 +224,37 @@ export async function addUserBlacklist(moderator: discord.User, user: discord.Us
 }
 
 
-export async function addServerBlacklist(moderator: discord.User, guild: discord.Guild | string, reason: string, expires?: Date) {
-  if (typeof guild === 'string') guild = await moderator.client.guilds.fetch(guild);
+export async function addServerBlacklist(serverId: string, options: { moderator: discord.User, hubId: string, reason: string, expires?: Date }) {
+  const guild = await options.moderator.client.guilds.fetch(serverId);
 
   const dbGuild = await prisma.blacklistedServers.create({
     data: {
-      reason,
+      hub: { connect: { id: options.hubId } },
+      reason: options.reason,
       serverId: guild.id,
       serverName: guild.name,
-      expires,
+      expires: options.expires,
     },
   });
 
   // Send action to logs channel
-  modActions(moderator, {
+  modActions(options.moderator, {
     guild: { id: guild.id, resolved: guild },
     action: 'blacklistServer',
-    expires,
-    reason,
+    expires: options.expires,
+    reason: options.reason,
   }).catch(() => null);
 
   // set an unblacklist timer if there is an expire duration
-  if (expires) {
-    scheduleJob(`blacklist_server-${guild.id}`, expires, async () => {
-      const tempGuild = guild as discord.Guild;
-      const filter = { where: { serverId: tempGuild.id } };
+  if (options.expires) {
+    scheduleJob(`blacklist_server-${guild.id}`, options.expires, async () => {
+      const filter = { where: { hubId: options.hubId, serverId: guild.id } };
 
       // only call .delete if the document exists
       // or prisma will error
       if (await prisma.blacklistedServers.findFirst(filter)) {
-        await prisma.blacklistedServers.delete(filter);
-        modActions(tempGuild.client.user, {
+        await prisma.blacklistedServers.deleteMany(filter);
+        modActions(guild.client.user, {
           dbGuild,
           action: 'unblacklistServer',
           timestamp: new Date(),
@@ -293,7 +278,6 @@ interface HubListingExtraInput {
   hubMessages?: Prisma.messageDataCreateInput[];
   totalNetworks?: number;
 }
-
 
 export function createHubListingsEmbed(hub: hubs, extra?: HubListingExtraInput) {
   return new discord.EmbedBuilder()
