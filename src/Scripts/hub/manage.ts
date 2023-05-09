@@ -253,7 +253,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             return;
           }
           await confirmResp.update({
-            content: 'Please wait while our staff review your hub to be listed publicly. In the meantime, you can invite other servers to join your hub by creating invites. Thank you for your patience!',
+            content: 'Please wait while our staff review your hub to be listed publicly. In the meantime, you can create invites and share them for other servers to join your hub. Thank you for your patience!',
             embeds: [],
             components: [],
           });
@@ -486,6 +486,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           break;
         }
         case 'delete': {
+          if (i.user.id !== hubInDb?.owner.userId) {
+            await i.reply({
+              content: 'Only the hub owner can delete this hub.',
+              ephemeral: true,
+            });
+            return;
+          }
+
           const confirmEmbed = new EmbedBuilder()
             .setTitle('Are you sure?')
             .setDescription('Are you sure you want to delete this hub? This is a destructive action that will **delete all connections** along with the hub.')
@@ -518,10 +526,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             return;
           }
 
-          confirmation.reply({
-            content: `${emotes.normal.loading} Deleting connections, invites, messages and the hub. Please wait...`,
-            ephemeral: true,
-          });
+          confirmation.update(`${emotes.normal.loading} Deleting connections, invites, messages and the hub. Please wait...`);
 
           try {
             // delete all relations first and then delete the hub
@@ -540,7 +545,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             await confirmation.editReply('Something went wrong while trying to delete the hub. The developers have been notified.');
             return;
           }
-          await confirmation.editReply(`${emotes.normal.tick} The hub has been successfully deleted.`);
+          await confirmation.editReply({
+            content:`${emotes.normal.tick} The hub has been successfully deleted.`,
+            embeds: [],
+            components: [],
+          });
           collector.stop(); // stop collector so user can't click on buttons anymore
           break;
         }
