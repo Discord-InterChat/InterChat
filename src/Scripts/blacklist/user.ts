@@ -5,22 +5,35 @@ import { modActions } from '../networkLogs/modActions';
 
 export = {
   async execute(interaction: ChatInputCommandInteraction) {
-    let userOpt = interaction.options.getString('user', true);
-    const reason = interaction.options.getString('reason');
     const subcommandGroup = interaction.options.getSubcommandGroup();
-
+    const hubName = interaction.options.getString('hub', true);
+    const reason = interaction.options.getString('reason');
+    let userOpt = interaction.options.getString('user', true);
     let user;
-    const blacklistedUsers = getDb().blacklistedUsers;
+
 
     try {
       userOpt = userOpt.replaceAll(/<@|!|>/g, '');
       user = interaction.client.users.cache.find(u => u.tag === userOpt);
       if (user === undefined) user = await interaction.client.users.fetch(userOpt);
     }
-    catch { return interaction.reply('Could not find user. Use an ID instead.'); }
+    catch {
+      return interaction.reply('Could not find user. Use an ID instead.');
+    }
 
+    const db = getDb();
+    const hubInDb = await db.hubs.findFirst({
+      where: {
+        name: hubName,
+        OR: [
+          { moderators: { some: { userId: interaction.user.id } } },
+          { owner: { is: { userId: interaction.user.id } } },
+        ],
+      },
+    });
+    if (!hubInDb) return await interaction.reply('Hub with that name not found. Or you are not a moderator of that hub.');
 
-    const userInBlacklist = await blacklistedUsers.findFirst({ where: { userId: user.id } });
+    const userInBlacklist = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
     if (subcommandGroup == 'add') {
       await interaction.deferReply();
 
@@ -43,7 +56,7 @@ export = {
         days ? expires.setDate(expires.getDate() + days) : null;
       }
 
-      await addUserBlacklist(interaction.user, user, String(reason), expires);
+      await addUserBlacklist(hubInDb.id, interaction.user, user, String(reason), expires);
       const successEmbed = new EmbedBuilder()
         .setDescription(`${interaction.client.emotes.normal.tick} **${user.tag}** has been successfully blacklisted!`)
         .setColor('Green')
@@ -65,9 +78,9 @@ export = {
 
     else if (subcommandGroup == 'remove') {
       if (!userInBlacklist) return interaction.reply(`The user **${user.tag}** is not blacklisted.`);
-      const userBeforeUnblacklist = await blacklistedUsers.findFirst({ where: { userId: user.id } });
+      const userBeforeUnblacklist = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
 
-      await blacklistedUsers.delete({ where: { userId: user.id } });
+      await db.blacklistedUsers.delete({ where: { userId: user.id } });
       interaction.reply(`**${user.username}#${user.discriminator}** has been removed from the blacklist.`);
 
       cancelJob(`blacklist-${user.id}`);

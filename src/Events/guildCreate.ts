@@ -1,5 +1,5 @@
 import { EmbedBuilder, AuditLogEvent, Guild, ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
-import { sendInFirst, colors, getDb, constants } from '../Utils/functions/utils';
+import { sendInFirst, colors, constants } from '../Utils/functions/utils';
 import { stripIndents } from 'common-tags';
 import { captureException } from '@sentry/node';
 import wordFilter from '../Utils/functions/wordFilter';
@@ -7,16 +7,6 @@ import wordFilter from '../Utils/functions/wordFilter';
 export default {
   name: 'guildCreate',
   async execute(guild: Guild) {
-    const blacklistedServers = getDb().blacklistedServers;
-    const serverInBlacklist = await blacklistedServers?.findFirst({
-      where: { serverId: guild.id },
-    });
-
-    const auditLog = await guild
-      .fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
-      .catch(() => null);
-    const badword = wordFilter.check(guild.name);
-
     const { normal, mascot } = guild.client.emotes;
 
     const embed = new EmbedBuilder()
@@ -49,15 +39,9 @@ export default {
         .setStyle(ButtonStyle.Link),
     );
 
-    if (serverInBlacklist) {
-      await sendInFirst(
-        guild,
-        `This server is blacklisted from this bot for reason \`${serverInBlacklist.reason}\`. Please join the support server and contact the staff to try and get whitelisted and/or if you think the reason is not valid.`,
-      );
-      await guild.leave();
-      return;
-    }
-    else if (badword) {
+
+    const badword = wordFilter.check(guild.name);
+    if (badword) {
       await sendInFirst(
         guild,
         'The server name contains one or more bad words. Please change the name and try inviting me again.',
@@ -67,6 +51,8 @@ export default {
     }
 
     let inviter;
+    const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
+      .catch(() => null);
     if (auditLog) {
       const inviteLog = auditLog.entries.find((bot) => bot.target?.id === guild.client.user?.id);
       inviter = inviteLog?.executor;

@@ -1,25 +1,30 @@
+import { hubs } from '@prisma/client';
+import { captureException } from '@sentry/node';
+import { logger } from '@sentry/utils';
 import { ChatInputCommandInteraction } from 'discord.js';
-import { getConnection } from '../../Structures/network';
 import { getDb, addServerBlacklist } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
 
-module.exports = {
-  async execute(interaction: ChatInputCommandInteraction) {
+export = {
+  async execute(interaction: ChatInputCommandInteraction, hub: hubs) {
     const serverOpt = interaction.options.getString('server', true);
-    const reason = interaction.options.getString('reason');
     const subCommandGroup = interaction.options.getSubcommandGroup();
 
-    const { blacklistedServers } = getDb();
-    const serverInBlacklist = await blacklistedServers.findFirst({ where: { serverId: serverOpt } });
+    const { blacklistedServers, connectedList } = getDb();
+    const serverInBlacklist = await blacklistedServers.findFirst({
+      where: { serverId: serverOpt },
+    });
 
     if (subCommandGroup == 'add') {
       await interaction.deferReply();
+      const reason = interaction.options.getString('reason', true);
+
       if (serverInBlacklist) return await interaction.followUp('The server is already blacklisted.');
 
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
       if (!server) return interaction.followUp('Invalid server ID.');
 
-      const serverSetup = await getConnection({ serverId: serverOpt });
+      const serverSetup = await connectedList.findFirst({ where: { serverId: serverOpt, hubId: hub.id } });
 
       let expires: Date | undefined;
       const mins = interaction.options.getNumber('minutes');
@@ -33,20 +38,32 @@ module.exports = {
         days ? expires.setDate(expires.getDate() + days) : null;
       }
 
-      await addServerBlacklist(interaction.user, server, String(reason), expires);
-      interaction.followUp(`**${server.name}** has been blacklisted for reason \`${reason}\`.`);
+      try {
+        await addServerBlacklist(server.id, { moderator: interaction.user, expires, reason, hubId: hub.id });
+        await connectedList.delete({ where: { channelId: serverSetup?.channelId } });
+        interaction.followUp(`Blacklisted **${server.name}** for reason \`${reason}\`.`);
+      }
+      catch (err) {
+        logger.error(err);
+        captureException(err);
+        interaction.followUp(`Failed to blacklist **${server.name}**. Enquire with the bot developer for more information.`);
+      }
 
       // TODO: Use embeds for notifications?
       if (serverSetup) {
-        const { channelId } = serverSetup;
-        const channel = await interaction.client.channels.fetch(channelId).catch(() => null);
-        if (channel?.isTextBased()) channel.send(`This server has been blacklisted from the network for reason \`${reason}\`. Join the support server and contact staff to appeal your blacklist.`).catch(() => null);
+        try {
+          const channel = await interaction.client.channels.fetch(serverSetup.channelId);
+          if (channel?.isTextBased()) channel.send(`This server has been blacklisted from hub **${hub.name}** for reason \`${reason}\`.`);
+        }
+        catch {
+          /* empty */
+        }
       }
-      await server.leave();
     }
     else if (subCommandGroup == 'remove') {
+      const reason = interaction.options.getString('reason');
       if (!serverInBlacklist) return await interaction.reply('The server is not blacklisted.');
-      await blacklistedServers.delete({ where: { serverId: serverOpt } });
+      await blacklistedServers.deleteMany({ where: { serverId: serverOpt, hubId: hub.id } });
 
       // Using name from DB since the bot can't access server through API.
       interaction.reply(`The server **${serverInBlacklist.serverName}** has been removed from the blacklist.`);

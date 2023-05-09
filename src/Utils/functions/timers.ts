@@ -28,7 +28,7 @@ export default async function startTimers(client: Client) {
   blacklistedServers.forEach(async (blacklist) => {
     if (!blacklist.expires) return;
     if (blacklist.expires < new Date()) {
-      await db.blacklistedServers.delete({ where: { serverId: blacklist.serverId } });
+      await db.blacklistedServers.delete({ where: { id: blacklist.id } });
 
       modActions(client.user, {
         action: 'unblacklistServer',
@@ -39,7 +39,7 @@ export default async function startTimers(client: Client) {
     }
 
     scheduleJob(`blacklist_server-${blacklist.serverId}`, blacklist.expires, async function() {
-      await db.blacklistedServers.delete({ where: { serverId: blacklist.serverId } });
+      await db.blacklistedServers.delete({ where: { id: blacklist.id } });
 
       modActions(client.user, {
         action: 'unblacklistServer',
