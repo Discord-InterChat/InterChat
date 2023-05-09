@@ -1,7 +1,5 @@
 import { User, Collection } from 'discord.js';
 import { cancelJob, scheduleJob } from 'node-schedule';
-import { addUserBlacklist } from '../../Utils/functions/utils';
-
 interface UserOpts {
   timestamps: number[];
   infractions: number;
@@ -11,15 +9,15 @@ const userCol = new Collection<string, UserOpts>();
 const WINDOW_SIZE = 5000;
 const MAX_STORE = 3;
 
-export default function antiSpam(author: User): boolean {
+export default function antiSpam(author: User, maxInfractions = MAX_STORE) {
   const userInCol = userCol.get(author.id);
   const currentTimestamp = Date.now();
 
   if (userInCol) {
-    if (userInCol.infractions >= 3) {
-      addUserBlacklist(author.client.user, author, 'Auto-blacklisted for spamming.', 60 * 5000); // blacklist for 5 minutes
+    if (userInCol.infractions >= maxInfractions) {
+      // resetting count as it is assumed they will be blacklisted right after
       userCol.delete(author.id);
-      return true;
+      return userInCol;
     }
 
     const { timestamps } = userInCol;
@@ -34,7 +32,7 @@ export default function antiSpam(author: User): boolean {
         infractions: isWithinWindow ? userInCol.infractions + 1 : userInCol.infractions,
       });
       setSpamTimers(author.id);
-      return isWithinWindow ? true : false;
+      if (isWithinWindow) return userInCol;
     }
   }
 
@@ -43,7 +41,6 @@ export default function antiSpam(author: User): boolean {
     infractions: 0,
   });
   setSpamTimers(author.id);
-  return false;
 }
 
 export function setSpamTimers(userId: string): void {

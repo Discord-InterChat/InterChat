@@ -2,29 +2,40 @@ import wordFilter from '../../Utils/functions/wordFilter';
 import antiSpam from './antispam';
 import { Message } from 'discord.js';
 import { slurs } from '../../Utils/JSON/badwords.json';
-import { PrismaClient } from '@prisma/client';
+import { addUserBlacklist, getDb } from '../../Utils/functions/utils';
+import { connectedList } from '@prisma/client';
 
 export = {
-  async execute(message: Message, database: PrismaClient) {
+  async execute(message: Message, networkData: connectedList) {
     // true = pass, false = fail (checks)
 
-    const userInBlacklist = await database.blacklistedUsers?.findFirst({
-      where: { userId: message.author.id },
+    if (!networkData.hubId) {
+      message.reply('Using InterChat without a joining hub is no longer supported. Join a hub by using `/hub join` and explore hubs using `/hub browse`.');
+      return false;
+    }
+
+    const db = getDb();
+    const userInBlacklist = await db.blacklistedUsers?.findFirst({
+      where: { hubId: networkData.hubId, userId: message.author.id },
     });
-    const serverInBlacklist = await database.blacklistedServers?.findFirst({
+    const serverInBlacklist = await db.blacklistedServers?.findFirst({
       where: { serverId: message.guild?.id },
     });
 
     if (userInBlacklist) {
       if (!userInBlacklist.notified) {
         message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**.`).catch(() => null);
-        await database.blacklistedUsers.update({ where: { userId: message.author.id }, data: { notified: true } });
+        await db.blacklistedUsers.update({ where: { userId: message.author.id }, data: { notified: true } });
       }
       return false;
     }
     if (serverInBlacklist) return false;
 
-    if (antiSpam(message.author)) {
+    const antiSpamResult = antiSpam(message.author, 3);
+    if (antiSpamResult) {
+      if (antiSpamResult.infractions >= 3) {
+        addUserBlacklist(networkData.hubId, message.client.user, message.author, 'Auto-blacklisted for spamming.', 60 * 5000);
+      }
       message.react(message.client.emotes.icons.timeout);
       return false;
     }
