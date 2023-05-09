@@ -203,6 +203,17 @@ export default {
                 ),
             ),
         ),
+    ).addSubcommand((subcommand) =>
+      subcommand
+        .setName('networks')
+        .setDescription('List all networks that have joined the hub')
+        .addStringOption(stringOpt =>
+          stringOpt
+            .setName('hub')
+            .setDescription('The name of the hub')
+            .setAutocomplete(true)
+            .setRequired(true),
+        ),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
@@ -226,7 +237,7 @@ export default {
       });
 
     }
-    else if (subcommand === 'manage') {
+    else if (subcommand === 'manage' || subcommand === 'networks') {
       const focusedValue = interaction.options.getFocused();
       hubChoices = await getDb().hubs.findMany({
         where: {
@@ -234,7 +245,10 @@ export default {
             mode: 'insensitive',
             contains: focusedValue,
           },
-          owner: { is: { userId: interaction.user.id } },
+          OR: [
+            { owner: { is: { userId: interaction.user.id } } },
+            { moderators: { some: { userId: interaction.user.id } } },
+          ],
         },
         take: 25,
       });

@@ -8,10 +8,21 @@ module.exports = {
     await interaction.deferReply();
 
     const db = getDb();
-    // get all networks (sort newest first)
-    const allNetworks = (await db.connectedList.findMany({ where: { connected: true } })).reverse();
+    const hub = interaction.options.getString('hub', true);
+    const allNetworks = await db.connectedList.findMany({
+      where: {
+        hub: {
+          name: hub,
+          OR: [
+            { owner: { is: { userId: interaction.user.id } } },
+            { moderators: { some: { userId: interaction.user.id } } },
+          ],
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
 
-    if (!allNetworks || allNetworks?.length === 0) return interaction.editReply(`No connected servers yet ${interaction.client.emotes.normal.bruhcat}`);
+    if (allNetworks.length === 0) return interaction.editReply(`No connected servers yet ${interaction.client.emotes.normal.bruhcat}`);
 
     const embeds: EmbedBuilder[] = [];
     let itemsPerPage = 5;
@@ -34,7 +45,7 @@ module.exports = {
         `;
         if (setup) {
           value += '\n' + stripIndent`
-            Setup At: <t:${Math.round(setup?.date?.getTime() / 1000)}:d>
+            Joined At: <t:${Math.round(setup?.date?.getTime() / 1000)}:d>
             Invite:  ${setup.invite ? `https://discord.gg/${setup.invite}` : 'Not Set.'}`;
         }
 
