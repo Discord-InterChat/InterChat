@@ -5,7 +5,6 @@ import { hubs } from '@prisma/client';
 import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
 
-
 export async function execute(interaction: ChatInputCommandInteraction) {
   const sortBy = interaction.options.getString('sort') as 'connections' | 'active' | 'popular' | 'recent' | undefined;
   const hubName = interaction.options.getString('search') || undefined;
@@ -16,8 +15,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   switch (sortBy) {
     case 'active':
-      // const messages = await db.hubs.findMany({where: {messageData: }, orderBy: {''}});
-      // return await interaction.reply('This is currently under development.');
+      sortedHubs = await db.hubs.findMany({
+        orderBy: { messages: { _count: 'desc' } },
+      });
       break;
     case 'popular':
       sortedHubs = (await db.hubs
