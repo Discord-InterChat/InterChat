@@ -127,22 +127,84 @@ export default {
                 .setRequired(true),
             ),
         ),
+    )
+    .addSubcommandGroup((subcommandGroup) =>
+      subcommandGroup
+        .setName('moderator')
+        .setDescription('Manage hub moderators')
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('add')
+            .setDescription('Add a new hub moderator')
+            .addStringOption(stringOpt =>
+              stringOpt
+                .setName('hub')
+                .setDescription('The name of the hub you wish to add moderators to')
+                .setRequired(true),
+            )
+            .addUserOption(stringOpt =>
+              stringOpt
+                .setName('user')
+                .setDescription('User who will become hub moderator')
+                .setRequired(true),
+            )
+            .addStringOption(stringOpt =>
+              stringOpt
+                .setName('role')
+                .setDescription('Determines what hub permissions they have')
+                .addChoices(
+                  { name: 'Network Moderator', value: 'network_mod' },
+                  { name: 'Hub Manager', value: 'manager' },
+                )
+                .setRequired(false),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('remove')
+            .setDescription('Remove a user from moderator position in your hub')
+            .addStringOption(stringOpt =>
+              stringOpt
+                .setName('hub')
+                .setDescription('The name of the hub you wish to add moderators to')
+                .setRequired(true),
+            )
+            .addUserOption(userOpt =>
+              userOpt
+                .setName('user')
+                .setDescription('The user who should be removed')
+                .setRequired(true),
+            ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('update')
+            .setDescription('Update the role of a hub moderator')
+            .addStringOption(stringOpt =>
+              stringOpt
+                .setName('hub')
+                .setDescription('The name of the hub you wish to add moderators to')
+                .setRequired(true),
+            )
+            .addUserOption(userOpt =>
+              userOpt
+                .setName('user')
+                .setDescription('The moderator you wish the change')
+                .setRequired(true),
+            )
+            .addStringOption(stringOpt =>
+              stringOpt
+                .setName('role')
+                .setDescription('The moderator role to update')
+                .setRequired(true)
+                .addChoices(
+                  { name: 'Network Moderator', value: 'network_mod' },
+                  { name: 'Hub Manager', value: 'manager' },
+                ),
+            ),
+        ),
     ),
-
   async execute(interaction: ChatInputCommandInteraction) {
-    const database = getDb();
-    const serverInBlacklist = await database.blacklistedServers.findFirst({ where: { serverId: interaction.guild?.id } });
-    const userInBlacklist = await database.blacklistedUsers.findFirst({ where: { userId: interaction.user.id } });
-
-    if (serverInBlacklist) {
-      await interaction.reply('This server is blacklisted from using the InterChat.');
-      return;
-    }
-    else if (userInBlacklist) {
-      await interaction.reply('You have been blacklisted from using InterChat.');
-      return;
-    }
-
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
 

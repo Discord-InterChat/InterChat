@@ -1,19 +1,33 @@
+import { blacklistedServers, blacklistedUsers, connectedList, hubs, messageData } from '@prisma/client';
 import { captureException } from '@sentry/node';
 import { logger } from '@sentry/utils';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, TextChannel, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { constants, createHubListingsEmbed, getDb } from '../../Utils/functions/utils';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+
   const db = getDb();
   const chosenHub = interaction.options.getString('name', true);
   const emotes = interaction.client.emotes;
+  let hubInDb = await db.hubs.findFirst({
+    where: {
+      name: chosenHub,
+      OR: [
+        { owner: { is: { userId: interaction.user.id } } },
+        { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
+      ],
+    },
+    include: {
+      messages: true,
+      connections: true,
+      blacklistedServers: true,
+      blacklistedUsers: true,
+    },
+  });
 
-  let hubInDb = await db.hubs.findFirst({ where: { name: chosenHub } });
   if (!hubInDb) {
-    await interaction.reply({
-      content: emotes.normal.no + ' Hub not found.',
-      ephemeral: true,
-    });
+    await interaction.followUp(emotes.normal.no + ' Hub not found.');
     return;
   }
 
@@ -36,7 +50,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId('invites')
-        .setLabel('Invites')
+        .setLabel('View Invites')
         .setEmoji('🔗')
         .setStyle(ButtonStyle.Secondary),
 
@@ -65,8 +79,60 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .setEmoji('🛡️'),
     );
 
-  const reply = await interaction.reply({
-    embeds: [createHubListingsEmbed(hubInDb)],
+
+  const hubEmbed = (hub: hubs & { connections: connectedList[], messages: messageData[], blacklistedUsers: blacklistedUsers[], blacklistedServers: blacklistedServers[] }) => {
+    return new EmbedBuilder()
+      .setTitle(hub.name)
+      .setDescription(hub.description)
+      .setThumbnail(hub.iconUrl)
+      .setImage(hub.bannerUrl)
+      .addFields(
+        {
+          name: 'Language',
+          value: hub.language,
+          inline: true,
+        },
+        {
+          name: 'Tags',
+          value: hub.tags.join(', '),
+          inline: true,
+        },
+        {
+          name: 'Visibility',
+          value: hub.private ? 'Private' : 'Public',
+          inline: true,
+        },
+        {
+          name: 'Blacklisted Users',
+          value: hub.blacklistedUsers.length.toString(),
+          inline: true,
+        },
+        {
+          name: 'Blacklisted Servers',
+          value: hub.blacklistedServers.length.toString(),
+          inline: true,
+        },
+        {
+          name: 'Moderators',
+          value: hub.moderators.length.toString(),
+          inline: true,
+        },
+        {
+          name: 'Networks',
+          value: `${hub.connections.length}`,
+          inline: true,
+        },
+        {
+          name: 'Messages (12h)',
+          value: `${hub.messages.length}`,
+          inline: true,
+        },
+      );
+
+  };
+
+  const reply = await interaction.followUp({
+    embeds: [hubEmbed(hubInDb)],
     components: [primaryButtons, editButtons],
   });
 
@@ -76,7 +142,15 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   });
 
   collector.on('collect', async (i) => {
-    hubInDb = await db.hubs.findFirst({ where: { id: hubInDb?.id } });
+    hubInDb = await db.hubs.findFirst({
+      where: { id: hubInDb?.id },
+      include: {
+        messages: true,
+        connections: true,
+        blacklistedServers: true,
+        blacklistedUsers: true,
+      },
+    });
     if (!hubInDb) {
       await i.reply({ content: 'This hub no longer exists!', ephemeral: true });
       return;
@@ -168,17 +242,19 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           if (!confirmResp) {
             await confirmMsg.edit({
               components: [],
+              embeds: [],
               content: 'You took too long to respond. Please try again.',
             });
             return;
           }
 
           if (confirmResp.customId !== 'confirm_listing') {
-            await confirmResp.update({ components: [] });
+            await confirmResp.message.delete().catch(() => null);
             return;
           }
           await confirmResp.update({
             content: 'Please wait while our staff review your hub to be listed publicly. In the meantime, you can invite other servers to join your hub by creating invites. Thank you for your patience!',
+            embeds: [],
             components: [],
           });
 
@@ -469,9 +545,23 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           break;
         }
 
-        case 'moderator':
-          i.reply('This is still a WIP.');
+        case 'moderator':{
+          await i.reply({
+            embeds: [
+              new EmbedBuilder()
+                .setTitle('Hub Moderators')
+                .setDescription(
+                  hubInDb.moderators
+                    .map((mod, index) => `${index + 1}. <@${mod.userId}> - ${mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'}`)
+                    .join('\n'),
+                )
+                .setColor('Aqua')
+                .setTimestamp(),
+            ],
+            ephemeral: true,
+          });
           break;
+        }
 
         case 'invites': {
           if (!hubInDb.private) {
@@ -513,9 +603,17 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           break;
       }
 
-      hubInDb = await db.hubs.findFirst({ where: { id: hubInDb?.id } });
+      hubInDb = await db.hubs.findFirst({
+        where: { id: hubInDb?.id },
+        include: {
+          messages: true,
+          connections: true,
+          blacklistedServers: true,
+          blacklistedUsers: true,
+        },
+      });
       if (hubInDb) {
-        await interaction.editReply({ embeds: [createHubListingsEmbed(hubInDb)] }).catch(() => null);
+        await interaction.editReply({ embeds: [hubEmbed(hubInDb)] }).catch(() => null);
       }
     }
   });
@@ -529,3 +627,4 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   });
 
 }
+

@@ -42,12 +42,22 @@ type HubOwner {
   serverId String
 }
 
+type HubModerator {
+  userId   String
+  position String @default("network_mod") // network, manager 
+  // network -> just basic actions like warning/muting
+  // manager -> perm blacklisting, managing hub etc.
+  // honestly... I might as well make permissions lol
+}
+
 model blacklistedServers {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  serverId   String    @unique
+  serverId   String 
   serverName String
   expires    DateTime?
   reason     String
+  hub        hubs      @relation(fields: [hubId], references: [id])
+  hubId      String    @db.ObjectId
 }
 
 model blacklistedUsers {
@@ -57,39 +67,44 @@ model blacklistedUsers {
   reason   String
   expires  DateTime?
   username String
+  hub      hubs      @relation(fields: [hubId], references: [id])
+  hubId    String    @db.ObjectId
 }
 
 model connectedList {
-  id         String        @id @default(auto()) @map("_id") @db.ObjectId
-  channelId  String        @unique
+  id         String          @id @default(auto()) @map("_id") @db.ObjectId
+  channelId  String          @unique
   serverId   String
   connected  Boolean
   compact    Boolean
   invite     String?
   profFilter Boolean
   webhook    NetworkWebhook?
-  date       DateTime      @default(now())
-  hub        hubs?         @relation(fields: [hubId], references: [id])
-  hubId      String?       @db.ObjectId
+  date       DateTime        @default(now())
+  hub        hubs?           @relation(fields: [hubId], references: [id])
+  hubId      String?         @db.ObjectId
 }
 
 model hubs {
-  id          String          @id @default(auto()) @map("_id") @db.ObjectId
-  name        String          @unique
-  description String
-  language    String          @default("English")
-  tags        String[]
-  owner       HubOwner
-  rating      HubRating[]
-  iconUrl     String
-  bannerUrl   String?
-  approved    Boolean         @default(false)
-  private     Boolean         @default(true)
-  official    Boolean         @default(false)
-  createdAt   DateTime        @default(now())
-  connections connectedList[]
-  hubInvites  hubInvites[]
-  messageData messageData[]
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  name               String               @unique
+  description        String
+  language           String               @default("English")
+  tags               String[]
+  owner              HubOwner
+  rating             HubRating[]
+  iconUrl            String
+  bannerUrl          String?
+  approved           Boolean              @default(false)
+  private            Boolean              @default(true)
+  official           Boolean              @default(false)
+  createdAt          DateTime             @default(now())
+  connections        connectedList[]
+  invites            hubInvites[]
+  messages           messageData[]
+  moderators         HubModerator[]
+  blacklistedUsers   blacklistedUsers[]
+  blacklistedServers blacklistedServers[]
 }
 
 model hubInvites {
