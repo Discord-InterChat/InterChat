@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.10.3](https://github.com/Discord-InterChat/Interchat/compare/v3.10.2...v3.10.3) (2023-05-09)
+
+
+### Bug Fixes
+
+* new rules ([09004b3](https://github.com/Discord-InterChat/Interchat/commit/09004b36097e40339c4e4c548230217ab5321e2a))
+
 ### [3.10.2](https://github.com/Discord-InterChat/Interchat/compare/v3.10.1...v3.10.2) (2023-04-30)
 
 
