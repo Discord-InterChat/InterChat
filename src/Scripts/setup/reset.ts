@@ -1,12 +1,13 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder } from 'discord.js';
-import { deleteConnection, getConnection } from '../../Structures/network';
+import { getDb } from '../../Utils/functions/utils';
 
 export = {
   async execute(interaction: ChatInputCommandInteraction) {
     const { normal } = interaction.client.emotes;
     const channelId = interaction.options.getString('network', true);
+    const db = getDb();
 
-    if (!await getConnection({ channelId })) {
+    if (!await db.connectedList.findFirst({ where: { channelId } })) {
       return await interaction.reply(`${normal.no} The channel ${channelId} does not have any networks.`);
     }
 
@@ -40,7 +41,7 @@ export = {
         return;
       }
 
-      await deleteConnection({ channelId });
+      await db.connectedList.delete({ where: { channelId } });
       await collected.update({
         content: `${normal.yes} Deleted network connection from <#${channelId}>!`,
         embeds: [],

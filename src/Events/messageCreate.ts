@@ -5,7 +5,6 @@ import cleanup from '../Scripts/message/cleanup';
 import { ActionRowBuilder, APIMessage, AttachmentBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, MessageCreateOptions, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import { censor } from '../Utils/functions/wordFilter';
-import { getManyConnections, getConnection } from '../Structures/network';
 import { connectedList, messageData } from '@prisma/client';
 
 export interface NetworkMessage extends Message {
@@ -30,16 +29,18 @@ export default {
     if (message.author.bot || message.webhookId || message.system) return;
 
     const db = getDb();
-    const channelInDb = await getConnection({ channelId: message.channel.id });
+    const channelInDb = await db.connectedList.findFirst({ where: { channelId: message.channel.id } });
 
     if (channelInDb?.connected) {
-      const otherChannelsInHub = await getManyConnections({
-        hubId: channelInDb.hubId,
-        connected: true,
+      const otherChannelsInHub = await db.connectedList.findMany({
+        where: {
+          hubId: channelInDb.hubId,
+          connected: true,
+        },
       });
 
       // ignore the message if it is not in an active network channel
-      if (!await checks.execute(message, db)) return;
+      if (!await checks.execute(message, channelInDb)) return;
       message.compact_message = `**${message.author.tag}:** ${message.content}`;
 
       let replyInDb: messageData | null;

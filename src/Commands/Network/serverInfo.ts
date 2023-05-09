@@ -9,7 +9,6 @@ import {
 } from 'discord.js';
 import { colors, getDb } from '../../Utils/functions/utils';
 import { stripIndent } from 'common-tags';
-import { getConnection } from '../../Structures/network';
 
 export default {
   description: 'Get information about a server in the network!',
@@ -30,7 +29,7 @@ export default {
 
     const owner = await server.fetchOwner();
     const createdAt = Math.round(server.createdTimestamp / 1000);
-    const guildSetup = await getConnection({ serverId: messageInDb.serverId });
+    const guildSetup = await db.connectedList.findFirst({ where: { serverId: messageInDb.serverId } });
 
     const embed = new EmbedBuilder()
       .setTitle(server?.name.substring(0, 256))

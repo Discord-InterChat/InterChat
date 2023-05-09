@@ -38,20 +38,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           .setStyle(TextInputStyle.Short)
           .setCustomId('tags'),
       ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setLabel('Language')
-          .setPlaceholder('Pick the language of the hub.')
-          .setStyle(TextInputStyle.Short)
-          .setCustomId('language'),
-      ),
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setLabel('Main Server Invite:')
-          .setPlaceholder('Set an invite so hub members can join to ask help.')
-          .setStyle(TextInputStyle.Short)
-          .setCustomId('invite'),
-      ),
+      // new ActionRowBuilder<TextInputBuilder>().addComponents(
+      //   new TextInputBuilder()
+      //     .setLabel('Language')
+      //     .setPlaceholder('Pick the language of the hub.')
+      //     .setStyle(TextInputStyle.Short)
+      //     .setCustomId('language'),
+      // ),
     );
 
   await interaction.showModal(modal);
@@ -60,9 +53,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     .then(async submitIntr => {
       const description = submitIntr.fields.getTextInputValue('description');
       const tags = submitIntr.fields.getTextInputValue('tags');
-      // const language = submitIntr.fields.getTextInputValue('language');
 
-      const hubCreate = await db.hubs.create({
+      await db.hubs.create({
         data: {
           name: hubName,
           language: 'English',
@@ -78,9 +70,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
       const successEmbed = new EmbedBuilder()
         .setTitle('Hub created!')
-        .setDescription('Your hub has been created! Servers can now join it with its ID.')
+        .setDescription('Your hub has been created!')
         .setColor('Green')
-        .addFields({ name: 'How to join the hub?', value: `Use the \`/hub join id: ${hubCreate.id}\` command to join this hub.` })
+        .addFields({
+          name: 'How to join the hub?',
+          value: 'Use `/hub invite create` to invite servers to connect to this hub. You can also list your hub publily to allow any server to join this hub.',
+        })
         .setTimestamp();
 
       await submitIntr.reply({

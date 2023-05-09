@@ -1,9 +1,10 @@
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, Collection, GuildTextBasedChannel } from 'discord.js';
-import { totalConnected, disconnect, createConnection } from '../../Structures/network';
+import { disconnect } from '../../Structures/network';
 import { hubs } from '@prisma/client';
 import logger from '../../Utils/logger';
 import onboarding from './onboarding';
+import { getDb } from '../../Utils/functions/utils';
 
 const onboardingInProgress = new Collection<string, string>();
 
@@ -31,17 +32,20 @@ export = {
     }
 
     try {
+      const { connectedList } = getDb();
       // Inserting channel to connectedlist
-      await createConnection({
-        channelId: networkChannel.id,
-        serverId: networkChannel.guild.id,
-        connected: true,
-        profFilter: true,
-        compact: false,
-        hub: { connect: { id: hub.id } },
+      await connectedList.create({
+        data:{
+          channelId: networkChannel.id,
+          serverId: networkChannel.guild.id,
+          connected: true,
+          profFilter: true,
+          compact: false,
+          hub: { connect: { id: hub.id } },
+        },
       });
 
-      const numOfConnections = await totalConnected({ hub: { id: hub.id } });
+      const numOfConnections = await connectedList.count({ where: { hub: { id: hub.id } } });
       if (numOfConnections > 1) {
         await networkChannel?.send(`This channel has been connected with ${hub.name}. You are currently with ${numOfConnections} other servers, Enjoy! ${emoji.clipart}`);
       }

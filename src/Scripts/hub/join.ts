@@ -1,6 +1,5 @@
 import { ChatInputCommandInteraction, ChannelType } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import { createConnection, getConnection } from '../../Structures/network';
 import initialize from '../setup/initialize';
 import displaySettings from '../setup/displaySettings';
 import { connectedList, hubs } from '@prisma/client';
@@ -12,7 +11,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const name = interaction.options.getString('name') || undefined;
   const invite = interaction.options.getString('invite') || undefined;
   const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
-  const channelConnected = await getConnection({ channelId: channel.id });
+  const channelConnected = await db.connectedList.findFirst({ where: { channelId: channel.id } });
   let hubExists: hubs | null = null;
 
   if (!interaction.member.permissionsIn(channel).has(['ManageChannels'])) {
@@ -49,13 +48,15 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
 
     hubExists = inviteExists?.hub;
-    await createConnection({
-      serverId: channel.guild.id,
-      channelId: channel.id,
-      compact: false,
-      hub: { connect: { id: inviteExists.hub.id } },
-      profFilter: true,
-      connected: true,
+    await db.connectedList.create({
+      data: {
+        serverId: channel.guild.id,
+        channelId: channel.id,
+        compact: false,
+        hub: { connect: { id: inviteExists.hub.id } },
+        profFilter: true,
+        connected: true,
+      },
     });
   }
 
@@ -89,6 +90,29 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
 
   if (!hubExists) return interaction.reply({ content: 'An error occured.', ephemeral: true });
+
+
+  const serverInBlacklist = await db.blacklistedServers.findFirst({
+    where: {
+      serverId: interaction.guild?.id,
+      hubId: hubExists.id,
+    },
+  });
+  if (serverInBlacklist) {
+    await interaction.reply('This server is blacklisted from joining this hub.');
+    return;
+  }
+
+  const userInBlacklist = await db.blacklistedUsers.findFirst({
+    where: {
+      hubId: hubExists.id,
+      userId: interaction.user.id,
+    },
+  });
+  if (userInBlacklist) {
+    await interaction.reply('You have been blacklisted from joining this hub.');
+    return;
+  }
 
   // TODO: make an onboarding function and show them rules and stuff
   await initialize.execute(interaction, hubExists, channel);

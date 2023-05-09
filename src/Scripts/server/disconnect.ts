@@ -1,12 +1,12 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { getGuildName } from '../../Utils/functions/utils';
+import { getDb, getGuildName } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
-import { disconnect, getConnection } from '../../Structures/network';
+import { disconnect } from '../../Structures/network';
 import logger from '../../Utils/logger';
 
-exports.execute = async (interaction: ChatInputCommandInteraction) => {
+export async function execute(interaction: ChatInputCommandInteraction) {
   const serverId = interaction.options.getString('serverid', true);
-  const guildInDb = await getConnection({ serverId });
+  const guildInDb = await getDb().connectedList.findFirst({ where: { serverId } });
 
   if (!guildInDb) return await interaction.reply('Server is not connected to the network.');
 
@@ -20,4 +20,4 @@ exports.execute = async (interaction: ChatInputCommandInteraction) => {
 
   await interaction.reply(`Disconnected ${getGuildName(interaction.client, guildInDb.serverId)} from the network.`);
   logger.info(`${getGuildName(interaction.client, guildInDb.serverId)} (${guildInDb.serverId}) has been force disconnected from the network by ${interaction.user.tag}.`);
-};
+}

@@ -1,6 +1,5 @@
 import { Message } from 'discord.js';
 import { NetworkSendResult, NetworkWebhookSendResult } from '../../Events/messageCreate';
-import { updateConnection } from '../../Structures/network';
 import { getDb } from '../../Utils/functions/utils';
 
 
@@ -36,10 +35,10 @@ export default {
       }
     });
 
+    const db = getDb();
     // store message data in db
     if (message.guild) {
-      const { messageData } = getDb();
-      await messageData.create({
+      await db.messageData.create({
         data: {
           channelAndMessageIds: messageDataObj,
           timestamp: message.createdAt,
@@ -50,8 +49,15 @@ export default {
       });
     }
 
-    // delete invalid channels from the database
-    await updateConnection({ webhook: { is: { id: { in: invalidWebhookIds } } } }, { webhook: null });
-    await updateConnection({ channelId: { in: invalidChannelIds } }, { connected: false });
+    // remove invalid webhooks from database
+    await db.connectedList.updateMany({
+      where: { webhook: { is: { id: { in: invalidWebhookIds } } } },
+      data:{ webhook: null },
+    });
+    // disconnect invalid channels from the database
+    await db.connectedList.updateMany({
+      where: { channelId: { in: invalidChannelIds } },
+      data: { connected: false },
+    });
   },
 };

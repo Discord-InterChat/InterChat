@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel } from 'discord.js';
-import { reconnect, disconnect, getConnection, updateConnection } from '../../Structures/network';
-import { colors } from '../../Utils/functions/utils';
+import { reconnect, disconnect } from '../../Structures/network';
+import { colors, getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
 
@@ -8,7 +8,7 @@ import { captureException } from '@sentry/node';
 async function setupEmbed(interaction: ChatInputCommandInteraction, channelId: string) {
   const emoji = interaction.client.emotes;
 
-  const networkData = await getConnection({ channelId });
+  const networkData = await getDb().connectedList.findFirst({ where: { channelId } });
   const channel = interaction.guild?.channels.cache.get(`${networkData?.channelId}`);
 
   // enabled/disabled emojis
@@ -41,8 +41,9 @@ export = {
   async execute(interaction: ChatInputCommandInteraction, channelId: string) {
     if (!interaction.deferred && !interaction.replied) await interaction.deferReply();
 
+    const db = getDb();
     const emoji = interaction.client.emotes;
-    const connection = await getConnection({ channelId });
+    const connection = await db.connectedList.findFirst({ where: { channelId } });
     if (!connection) return await interaction.editReply(`${emoji.normal.no} Invalid network connection provided.`);
 
     const setupActionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -115,7 +116,7 @@ export = {
 
     /* ------------------- Button Responce collectors ---------------------- */
     buttonCollector.on('collect', async (component) => {
-      const updConnection = await getConnection({ channelId });
+      const updConnection = await db.connectedList.findFirst({ where: { channelId } });
       if (!updConnection) {
         await component.reply({
           content: `${emoji.normal.no} This network no longer exists!`,
@@ -182,7 +183,7 @@ export = {
 
     /* ------------------- SelectMenu Responce collectors ---------------------- */
     selectCollector.on('collect', async (settingsMenu) => {
-      const updConnection = await getConnection({ channelId: connection.channelId });
+      const updConnection = await db.connectedList.findFirst({ where: { channelId: connection.channelId } });
       if (!updConnection) {
         await settingsMenu.reply({
           content: `${emoji.normal.no} This network no longer exists!`,
@@ -194,12 +195,18 @@ export = {
       switch (settingsMenu.values[0]) {
         /* Compact / Normal mode toggle  */
         case 'compact':{
-          await updateConnection({ channelId: updConnection.channelId }, { compact: !updConnection.compact });
+          await db.connectedList.update({
+            where: { channelId: updConnection.channelId },
+            data: { compact: !updConnection.compact },
+          });
           break;
         }
         /* Profanity toggle */
         case 'profanity':
-          await updateConnection({ channelId: updConnection.channelId }, { profFilter: !updConnection.profFilter });
+          await db.connectedList.update({
+            where: { channelId: updConnection.channelId },
+            data: { profFilter: !updConnection.profFilter },
+          });
           break;
 
         /* Change channel request Response */
@@ -228,7 +235,7 @@ export = {
           const channel = selected.guild?.channels.cache.get(selected?.values[0]) as TextChannel;
           let webhook = undefined;
 
-          if (await getConnection({ channelId: channel.id })) {
+          if (updConnection.channelId === channel.id) {
             await selected.reply({
               content: `The channel ${channel} is already connected to a hub. Choose another channel.`,
               ephemeral: true,
@@ -250,15 +257,18 @@ export = {
             });
           }
 
-          await updateConnection({ channelId: updConnection.channelId }, { channelId: selected?.values[0] });
+          await db.connectedList.update({
+            where: { channelId: updConnection.channelId },
+            data: { channelId: selected?.values[0] },
+          });
 
-          await updateConnection(
-            { channelId: updConnection.channelId },
-            {
+          await db.connectedList.update({
+            where: { channelId: updConnection.channelId },
+            data: {
               channelId: channel?.id,
               webhook: webhook ? { id: webhook.id, token: `${webhook.token}`, url: webhook.url } : null,
             },
-          );
+          });
 
 
           await selected?.update({
@@ -288,7 +298,10 @@ export = {
               .find((webhook) => webhook.owner?.id === interaction.client.user.id)
               ?.delete();
 
-            await updateConnection({ channelId: connectedChannel.id }, { webhook: null });
+            await db.connectedList.update({
+              where: { channelId: connectedChannel.id },
+              data:{ webhook: null },
+            });
 
             await settingsMenu.reply({
               content: 'Webhook messages have been disabled.',
@@ -317,10 +330,10 @@ export = {
 
 
           await settingsMenu.editReply(`${emoji.normal.loading} Initializing & saving webhook data...`);
-          await updateConnection(
-            { channelId },
-            { webhook: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
-          );
+          await db.connectedList.update({
+            where:  { channelId },
+            data: { webhook: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
+          });
           await settingsMenu.editReply(`${emoji.normal.yes} Webhooks have been enabled!`);
           break;
         }
@@ -363,7 +376,10 @@ export = {
           const link = modalResp.fields.getTextInputValue('invite_link');
 
           if (!link) {
-            await updateConnection({ channelId }, { invite: { unset: true } });
+            await db.connectedList.update({
+              where: { channelId },
+              data: { invite: { unset: true } },
+            });
             modalResp.reply({ content: 'Invite unset.', ephemeral: true });
             return;
           }
@@ -378,7 +394,7 @@ export = {
             return;
           }
 
-          await updateConnection({ channelId }, { invite: isValid.code });
+          await db.connectedList.update({ where: { channelId }, data: { invite: isValid.code } });
 
           modalResp.reply({
             content: 'Invite link successfully set!',

@@ -5,8 +5,8 @@ import project from '../../package.json';
 import { Client, Collection, ActivityType, MessageCreateOptions } from 'discord.js';
 import { join } from 'path';
 import * as Sentry from '@sentry/node';
-import { getManyConnections } from './network';
 import { Prisma } from '@prisma/client';
+import { getDb } from '../Utils/functions/utils';
 
 export class ExtendedClient extends Client {
   constructor() {
@@ -39,7 +39,7 @@ export class ExtendedClient extends Client {
   }
 
   public async sendInNetwork(message: string | MessageCreateOptions, hub: Prisma.hubsWhereUniqueInput): Promise<void> {
-    const channels = await getManyConnections({ hub, connected: true });
+    const channels = await getDb().connectedList.findMany({ where: { hub, connected: true } });
 
     channels?.forEach(async (channelEntry) => {
       const channel = await this.channels.fetch(channelEntry.channelId).catch(() => null);

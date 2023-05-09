@@ -1,15 +1,15 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getGuildName } from '../../Utils/functions/utils';
+import { getDb, getGuildName } from '../../Utils/functions/utils';
 import { paginate } from '../../Utils/functions/paginator';
 import { stripIndent } from 'common-tags';
-import { getManyConnections } from '../../Structures/network';
 
 module.exports = {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
+    const db = getDb();
     // get all networks (sort newest first)
-    const allNetworks = (await getManyConnections({ connected: true })).reverse();
+    const allNetworks = (await db.connectedList.findMany({ where: { connected: true } })).reverse();
 
     if (!allNetworks || allNetworks?.length === 0) return interaction.editReply(`No connected servers yet ${interaction.client.emotes.normal.bruhcat}`);
 

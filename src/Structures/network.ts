@@ -1,16 +1,7 @@
-import { connectedList, Prisma } from '@prisma/client';
+import { connectedList } from '@prisma/client';
 import { getDb } from '../Utils/functions/utils';
 
 const { connectedList } = getDb();
-
-/** Returns found document from connectedList collection. */
-export async function getConnection(filter: Prisma.connectedListWhereInput) {
-  return await connectedList.findFirst({ where: filter });
-}
-
-export async function createConnection(data: Prisma.connectedListCreateInput) {
-  return await connectedList.create({ data });
-}
 
 /** Reconnect a channel from the main network.*/
 export async function reconnect(channelId: string) {
@@ -39,30 +30,4 @@ export async function disconnect(channelId: string) {
   return channelExists;
 }
 
-/** Returns a promise with the total number of connected servers.*/
-export async function totalConnected(filter?: Prisma.connectedListWhereInput) {
-  if (filter) return await connectedList.count({ where: filter });
-  return await connectedList.count();
-}
-
-export async function deleteManyConnections(where: Prisma.connectedListWhereInput) {
-  return await connectedList.deleteMany({ where });
-}
-
-/** Disconnect a channel from a network. */
-export async function deleteConnection(where: Prisma.connectedListWhereUniqueInput) {
-  return await connectedList.delete({ where });
-}
-
-export async function updateConnection(where: Prisma.connectedListWhereInput, data: Prisma.connectedListUpdateInput): Promise<connectedList>
-export async function updateConnection(channelId: string, data: Prisma.connectedListUpdateInput): Promise<connectedList>
-export async function updateConnection(where: Prisma.connectedListWhereInput | string, data: Prisma.connectedListUpdateInput) {
-  if (typeof where === 'string') return await connectedList.update({ where: { channelId: where }, data });
-  return await connectedList.updateMany({ where, data });
-}
-
-export async function getManyConnections(fillter?: Prisma.connectedListWhereInput) {
-  return await connectedList.findMany(fillter ? { where: fillter } : undefined);
-}
-
-export default { reconnect, disconnect, updateConnection, getServerData: getConnection, totalConnected, getManyConnections };
+export default { reconnect, disconnect };
