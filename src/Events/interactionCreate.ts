@@ -28,7 +28,7 @@ export default {
       try {
         // Check if the user is staff/developer
         if (command.staff || command.developer) {
-          const permCheck = await checkIfStaff(interaction.user, command.developer);
+          const permCheck = checkIfStaff(interaction.user.id, command.developer);
           if (!permCheck) return interaction.reply({ content: 'You do not have the right permissions to use this command!', ephemeral: true });
         }
 

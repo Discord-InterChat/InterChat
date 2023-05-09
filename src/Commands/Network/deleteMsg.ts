@@ -11,7 +11,7 @@ export default {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const db = getDb();
     const target = interaction.targetMessage;
-    const staffUser = await checkIfStaff(interaction.user);
+    const staffUser = checkIfStaff(interaction.user.id);
     const messageInDb = await db?.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
     });
