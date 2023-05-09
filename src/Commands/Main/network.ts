@@ -1,7 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import reset from '../../Scripts/setup/reset';
-import displaySettings from '../../Scripts/setup/displaySettings';
+import reset from '../../Scripts/network/reset';
+import displaySettings from '../../Scripts/network/displaySettings';
 
 export default {
   data: new SlashCommandBuilder()

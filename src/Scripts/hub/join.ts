@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, ChannelType } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import initialize from '../setup/initialize';
-import displaySettings from '../setup/displaySettings';
+import initialize from '../network/initialize';
+import displaySettings from '../network/displaySettings';
 import { connectedList, hubs } from '@prisma/client';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
