@@ -341,16 +341,27 @@ export const rulesEmbed = new discord.EmbedBuilder()
   .setColor(colors('chatbot'))
   .setImage('https://i.imgur.com/D2pYagc.png')
   .setDescription(stripIndents`
-    1. No spamming or flooding.
-    2. Use only **English** while using the network. 
-    3. Advertising of any kind is prohibited.
-    4. Private matters should not be discussed in the network.
-    5. Do not make the chat uncomfortable for other users.
-    6. Using slurs is not allowed on the network.
-    7. Refrain from using bot commands in the network.
-    8. Trolling, insulting, and profanity is not allowed.
-    9. Posting explicit or NSFW content will result in an immediate blacklist.
-    10. Trivialization of sensitive topics such as self-harm, suicide and others which may cause offense to other members is prohibited.
-    11. Do not attempt to get around the Profanity Filter.
+    1. **No spamming or flooding.**
+    > This includes sending the same message multiple times, sending messages that are gibberish, or sending messages that are excessively long.
+    2. **Use English.** 
+    > Our staff should be able to understand what you are saying to moderate the network. If you are not a native English speaker, you may use a translator.
+    3. **Advertising of any kind is prohibited.**
+    > This includes advertising your own server, social media, or other services.
+    4. **Private matters should not be discussed in the network.**
+    > Revealing personal information on a public network that sends messages to hundreads of servers is not a good idea.
+    5. **Do not make the chat uncomfortable for other users.**
+    > Be respectful of other users and their opinions. Do not make the chat uncomfortable for other users. 
+    6. **Using slurs or derogatory language is not allowed.**
+    > This includes using slurs or derogatory language in a joking manner.
+    7. **Refrain from using bot commands in the network.**
+    > Knowing that the network sends your messages to other servers, random bot commands can be annoying to other users.
+    8. **Trolling, insulting, or harassing other users is not allowed.**
+    > ...self explanatory. 
+    9. **Posting explicit or NSFW content will result in an immediate blacklist.**
+    > The network is a SFW place. Posting NSFW content will result in an immediate blacklist.
+    10. **Trivialization of sensitive topics are not allowed.**
+    > This includes self-hard, suicide, violence and anything offensive in general.
+    11. **Don't evade InterChat's chat filters.**
+    > They have been put in place for a very obvious reason and as such, evading of them will not be tolerated. 
     *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,
   );
