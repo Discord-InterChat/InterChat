@@ -27,7 +27,7 @@ export = {
         name: hubName,
         OR: [
           { moderators: { some: { userId: interaction.user.id } } },
-          { owner: { is: { userId: interaction.user.id } } },
+          { ownerId: interaction.user.id },
         ],
       },
     });

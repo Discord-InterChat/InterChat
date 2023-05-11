@@ -5,10 +5,12 @@ import { Prisma } from '@prisma/client';
 type InterchatCommand = {
   developer?: boolean,
   staff?: boolean,
+  /* Cooldown in milliseconds  */
+  cooldown?: number,
   description?: string | undefined
   directory: string,
   data: discord.SlashCommandBuilder | discord.ContextMenuCommandBuilder,
-  execute: (interaction: discord.ChatInputCommandInteraction | discord.MessageContextMenuCommandInteraction) => unknown
+  execute: (interaction: discord.ChatInputCommandInteraction | discord.ContextMenuCommandInteraction) => unknown
   autocomplete?: (interaction: discord.AutocompleteInteraction) => unknown
 }
 
@@ -18,6 +20,7 @@ declare module 'discord.js' {
     description: string;
     version: string;
     emotes: typeof EmojiIDs;
+    commandCooldowns: discord.Collection<`${string}-${discord.Snowflake}`, number>;
     /* A generated invite link for the bot */
     invite: string;
     sendInNetwork(

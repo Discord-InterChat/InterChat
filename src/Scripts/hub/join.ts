@@ -37,7 +37,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   if (invite) {
     const inviteExists = await db.hubInvites.findFirst({
       where: { code: invite },
-      include: { hub: true },
+      include: { hub: { include: { connections: true } } },
     });
 
     if (!inviteExists) {
@@ -46,18 +46,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         ephemeral: true,
       });
     }
+    else if (inviteExists.hub.connections.find((c) => c.channelId === channel.id)) {
+      return await interaction.reply({
+        content: `This server is already connected to hub **${inviteExists.hub.name}** from another channel!`,
+        ephemeral: true,
+      });
+    }
 
     hubExists = inviteExists?.hub;
-    await db.connectedList.create({
-      data: {
-        serverId: channel.guild.id,
-        channelId: channel.id,
-        compact: false,
-        hub: { connect: { id: inviteExists.hub.id } },
-        profFilter: true,
-        connected: true,
-      },
-    });
   }
 
   else if (name) {

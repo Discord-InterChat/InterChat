@@ -14,7 +14,7 @@ module.exports = {
         hub: {
           name: hub,
           OR: [
-            { owner: { is: { userId: interaction.user.id } } },
+            { ownerId: interaction.user.id },
             { moderators: { some: { userId: interaction.user.id } } },
           ],
         },

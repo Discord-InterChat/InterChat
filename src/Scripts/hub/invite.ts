@@ -20,7 +20,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
       const hubInDb = await db.hubs.findFirst({ where: { name: hubName } });
 
-      if (!hubInDb || hubInDb.owner.userId != interaction.user.id) {
+      if (!hubInDb || hubInDb.ownerId != interaction.user.id) {
         await interaction.reply({
           content: `${emotes.no} Invalid Hub Provided. Make sure provided hub is one that you own.`,
           ephemeral: true,
@@ -37,7 +37,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       const embed = new EmbedBuilder()
         .setTitle('Invite Created')
         .setDescription(stripIndents`
-          This invite code can be used \`1\` time. Give this invite code to someone who wishes to join the hub.
+          Give this code to someone who wishes to join the hub. This invite has unlimited uses.
           
           **Code:** \`${createdInvite.code}\`
           **Expiry <t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>**
@@ -59,9 +59,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         include: { hub: true },
       });
 
-      if (!inviteInDb || inviteInDb.hub.owner.userId != interaction.user.id) {
+
+      if (
+        inviteInDb?.hub.ownerId !== interaction.user.id
+        && !inviteInDb?.hub.moderators.find((mod) => mod.userId === interaction.user.id)
+      ) {
         await interaction.reply({
-          content: `${emotes.no} Invalid Invide Code.`,
+          content: `${emotes.no} Invalid Invite Code.`,
           ephemeral: true,
         });
         return;

@@ -3,13 +3,13 @@ import toLower from 'lodash/toLower';
 import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
-import { prisma } from '../db';
+import { prisma as _prisma } from '../db';
 import { badge, normal } from '../JSON/emoji.json';
 import { stripIndents } from 'common-tags';
 import { scheduleJob } from 'node-schedule';
 import { modActions } from '../../Scripts/networkLogs/modActions';
 import 'dotenv/config';
-import { hubs, Prisma } from '@prisma/client';
+import { hubs } from '@prisma/client';
 
 export const constants = {
   developers: ['828492978716409856', '701727675311587358', '456961943505338369'],
@@ -114,7 +114,7 @@ export async function getCredits() {
 
 /** Use the main database in your code by calling this function */
 export function getDb() {
-  return prisma;
+  return _prisma;
 }
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
@@ -128,7 +128,7 @@ export function toHuman(milliseconds: number): string {
   const seconds = Math.floor(totalSeconds % 60);
   let readable;
 
-  if (days == 0 && hours == 0 && minutes == 0) readable = `${seconds} seconds `;
+  if (days == 0 && hours == 0 && minutes == 0) readable = `${seconds} seconds`;
   else if (days == 0 && hours == 0) readable = `${minutes}m ${seconds}s`;
   else if (days == 0) readable = `${hours}h, ${minutes}m ${seconds}s`;
   else readable = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
@@ -163,7 +163,7 @@ export async function addUserBlacklist(hubId: string, moderator: discord.User, u
   if (typeof user === 'string') user = await moderator.client.users.fetch(user);
   if (typeof expires === 'number') expires = new Date(Date.now() + expires);
 
-  const dbUser = await prisma.blacklistedUsers.create({
+  const dbUser = await _prisma.blacklistedUsers.create({
     data: {
       hub: { connect: { id: hubId } },
       userId: user.id,
@@ -196,7 +196,7 @@ export async function addUserBlacklist(hubId: string, moderator: discord.User, u
       .setFooter({ text: 'Join the support server to appeal the blacklist.' });
 
     user.send({ embeds: [embed] }).catch(async () => {
-      await prisma.blacklistedUsers.update({ where: { userId: (user as discord.User).id }, data: { notified: false } });
+      await _prisma.blacklistedUsers.update({ where: { userId: (user as discord.User).id }, data: { notified: false } });
       logger.info(`Could not notify ${(user as discord.User).tag} about their blacklist.`);
     });
   }
@@ -209,8 +209,8 @@ export async function addUserBlacklist(hubId: string, moderator: discord.User, u
 
       // only call .delete if the document exists
       // or prisma will error
-      if (await prisma.blacklistedUsers.findFirst(filter)) {
-        await prisma.blacklistedUsers.delete(filter);
+      if (await _prisma.blacklistedUsers.findFirst(filter)) {
+        await _prisma.blacklistedUsers.delete(filter);
         modActions(tempUser.client.user, {
           user: tempUser,
           action: 'unblacklistUser',
@@ -227,7 +227,7 @@ export async function addUserBlacklist(hubId: string, moderator: discord.User, u
 export async function addServerBlacklist(serverId: string, options: { moderator: discord.User, hubId: string, reason: string, expires?: Date }) {
   const guild = await options.moderator.client.guilds.fetch(serverId);
 
-  const dbGuild = await prisma.blacklistedServers.create({
+  const dbGuild = await _prisma.blacklistedServers.create({
     data: {
       hub: { connect: { id: options.hubId } },
       reason: options.reason,
@@ -252,8 +252,8 @@ export async function addServerBlacklist(serverId: string, options: { moderator:
 
       // only call .delete if the document exists
       // or prisma will error
-      if (await prisma.blacklistedServers.findFirst(filter)) {
-        await prisma.blacklistedServers.deleteMany(filter);
+      if (await _prisma.blacklistedServers.findFirst(filter)) {
+        await _prisma.blacklistedServers.deleteMany(filter);
         modActions(guild.client.user, {
           dbGuild,
           action: 'unblacklistServer',
@@ -275,7 +275,7 @@ export function calculateAverageRating(ratings: number[]): number {
 }
 
 interface HubListingExtraInput {
-  hubMessages?: Prisma.messageDataCreateInput[];
+  hubMessages?: number;
   totalNetworks?: number;
 }
 
@@ -316,15 +316,24 @@ export function createHubListingsEmbed(hub: hubs, extra?: HubListingExtraInput) 
       },
       {
         name: 'Networks',
-        value: `${extra?.totalNetworks || 'Unknown.'}`,
+        value: `${extra?.totalNetworks ?? 'Unknown.'}`,
         inline: true,
       },
       {
         name: 'Messages Today',
-        value: `${extra?.hubMessages ? extra.hubMessages.length : 'Unknown.'}`,
+        value: `${extra?.hubMessages ?? 'Unknown.'}`,
         inline: true,
       },
     ]);
+}
+
+
+export async function deleteHubs(ids: string[]) {
+  // delete all relations first and then delete the hub
+  await _prisma.connectedList.deleteMany({ where: { id: { in: ids } } });
+  await _prisma.hubInvites.deleteMany({ where: { id: { in: ids } } });
+  await _prisma.messageData.deleteMany({ where: { id: { in: ids } } });
+  return await _prisma.hubs.deleteMany({ where: { id: { in: ids } } });
 }
 
 export const rulesEmbed = new discord.EmbedBuilder()

@@ -160,7 +160,7 @@ export default {
         ephemeral: true,
       });
     }
-    else if (!hubInDb.moderators.find(({ userId }) => userId === interaction.user.id) && hubInDb.owner.userId !== interaction.user.id) {
+    else if (!hubInDb.moderators.find(({ userId }) => userId === interaction.user.id) && hubInDb.ownerId !== interaction.user.id) {
       return await interaction.reply({
         content: 'You do not have the necessary permissions in the hub to use this command.',
         ephemeral: true,

@@ -16,6 +16,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   switch (sortBy) {
     case 'active':
       sortedHubs = await db.hubs.findMany({
+        where: { name: hubName, private: false },
         orderBy: { messages: { _count: 'desc' } },
       });
       break;
@@ -41,7 +42,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       });
       break;
     default:
-      sortedHubs = await db.hubs.findMany({ where: { private: false } });
+      sortedHubs = await db.hubs.findMany({ where: { name: hubName, private: false } });
       break;
   }
 
@@ -104,13 +105,29 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                   ephemeral: true,
                 });
               }
+              const hubId = i.customId.replace('rate-', '');
+              const hubDetails = await db.hubs.findFirst({ where: { id: hubId } });
+
+              if (!hubDetails) {
+                m.reply({
+                  content: 'Hub not found.',
+                  ephemeral: true,
+                });
+                return;
+              }
+
+              const userAlreadyRated = hubDetails.rating.find((r) => r.userId === i.user.id);
 
               await db.hubs.update({
-                where: { id: i.customId.replace('rate-', '') },
-                data: { rating: { set: { userId: i.user.id, rating } } },
+                where: { id: hubId },
+                data: {
+                  rating: !userAlreadyRated
+                    ? { push: { userId: i.user.id, rating } }
+                    : { updateMany: { where: { userId: i.user.id }, data: { rating } } },
+                },
               });
 
-              m.reply({
+              await m.reply({
                 content: 'Rating submitted. Thank you!',
                 ephemeral: true,
               });

@@ -3,6 +3,8 @@ import { paginate } from '../../Utils/functions/paginator';
 import { createHubListingsEmbed, getDb } from '../../Utils/functions/utils';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  await interaction.deferReply();
+
   const db = getDb();
   const joinedHubs = await db.hubs.findMany({
     where: {
@@ -10,6 +12,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     },
     include: {
       connections: true,
+      messages: true,
     },
   });
 
@@ -20,17 +23,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     });
   }
 
-  const hubList = joinedHubs.map(async hub => {
-    const filterConnections = await db.connectedList
-      .count({ where: { hubId: hub.id } })
-      .catch(() => 0);
+  const hubList = joinedHubs.map(hub => {
     // use a more meaningful embed for this lmao
-    return createHubListingsEmbed(hub, { totalNetworks: filterConnections })
+    return createHubListingsEmbed(hub, {
+      totalNetworks: hub.connections.length,
+      hubMessages: hub.messages.length,
+    })
       .addFields({
         name: 'Channel',
         value: `<#${hub.connections.find(c => c.serverId === interaction.guildId)?.channelId}>`,
+        inline: true,
       });
   });
 
-  paginate(interaction, await Promise.all(hubList));
+  paginate(interaction, hubList);
 }

@@ -9,7 +9,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     where: {
       name: hubName,
       OR: [
-        { owner: { is: { userId: interaction.user.id } } },
+        { ownerId: interaction.user.id },
         { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
       ],
     },

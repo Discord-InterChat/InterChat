@@ -47,7 +47,7 @@ export = {
 
       const numOfConnections = await connectedList.count({ where: { hub: { id: hub.id } } });
       if (numOfConnections > 1) {
-        await networkChannel?.send(`This channel has been connected with ${hub.name}. You are currently with ${numOfConnections} other servers, Enjoy! ${emoji.clipart}`);
+        await networkChannel?.send(`This channel has been connected with ${hub.name}. You are currently with ${numOfConnections - 1} other servers, Enjoy! ${emoji.clipart}`);
       }
       else {
         await networkChannel?.send(`This channel has been connected with ${hub.name}, though no one else is there currently... *cricket noises* ${emoji.clipart}`);

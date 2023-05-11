@@ -37,11 +37,6 @@ type HubRating {
   rating Int    @default(0)
 }
 
-type HubOwner {
-  userId   String
-  serverId String
-}
-
 type HubModerator {
   userId   String
   position String @default("network_mod") // network, manager 
@@ -52,7 +47,7 @@ type HubModerator {
 
 model blacklistedServers {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  serverId   String 
+  serverId   String
   serverName String
   expires    DateTime?
   reason     String
@@ -91,8 +86,8 @@ model hubs {
   description        String
   language           String               @default("English")
   tags               String[]
-  owner              HubOwner
   rating             HubRating[]
+  ownerId            String
   iconUrl            String
   bannerUrl          String?
   approved           Boolean              @default(false)

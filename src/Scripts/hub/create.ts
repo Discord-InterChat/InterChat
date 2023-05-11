@@ -1,7 +1,16 @@
-import { ChatInputCommandInteraction, ModalBuilder, TextInputBuilder, EmbedBuilder, ActionRowBuilder, TextInputStyle } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { ChatInputCommandInteraction, ModalBuilder, TextInputBuilder, EmbedBuilder, ActionRowBuilder, TextInputStyle, Collection } from 'discord.js';
+import { getDb, toHuman } from '../../Utils/functions/utils';
+
+const cooldowns = new Collection<string, number>();
 
 export async function execute(interaction: ChatInputCommandInteraction) {
+  const commandInCooldown = cooldowns.get(interaction.user.id);
+  if (commandInCooldown && commandInCooldown > Date.now()) {
+    return await interaction.reply({
+      content: `You may only create 1 hub every hour. Please wait \`${toHuman(commandInCooldown)}\` before creating another new hub.`,
+      ephemeral: true,
+    });
+  }
   if (!interaction.inCachedGuild()) return;
 
   const hubName = interaction.options.getString('name', true);
@@ -10,10 +19,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const db = getDb();
   const hubExists = await db.hubs.findFirst({ where: { name:  hubName } });
+  const userHasHub = await db.hubs.findMany({ where: { ownerId: interaction.user.id } });
 
   if (hubExists) {
     return await interaction.reply({
       content: `Sorry! A hub with the name **${hubName}** already exists! Please choose another name.`,
+      ephemeral: true,
+    });
+  }
+
+  if (userHasHub.length >= 3) {
+    return await interaction.reply({
+      content: 'You may only create a maximum of 3 hubs at the moment. Please delete one of your existing hubs before creating a new one.',
       ephemeral: true,
     });
   }
@@ -61,13 +78,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           description,
           private: true,
           tags: tags.replaceAll(', ', ',').split(',', 5),
-          owner: { serverId: interaction.guild.id, userId: submitIntr.user.id },
+          ownerId: submitIntr.user.id,
           iconUrl: icon.url,
           bannerUrl: banner?.url,
         },
       });
 
-
+      // FIXME this is a temp cooldown until we have a global cooldown system for commands & subcommands
+      cooldowns.set(interaction.user.id, Date.now() + 60 * 60 * 1000);
       const successEmbed = new EmbedBuilder()
         .setTitle('Hub created!')
         .setDescription('Your hub has been created!')

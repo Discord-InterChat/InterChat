@@ -225,7 +225,7 @@ export default {
     const subcommand = interaction.options.getSubcommand();
     let hubChoices;
 
-    if (subcommand === 'browse') {
+    if (subcommand === 'browse' || subcommand === 'delete') {
       const focusedValue = interaction.options.getFocused();
 
       hubChoices = await getDb().hubs.findMany({
@@ -246,7 +246,7 @@ export default {
             contains: focusedValue,
           },
           OR: [
-            { owner: { is: { userId: interaction.user.id } } },
+            { ownerId: interaction.user.id },
             { moderators: { some: { userId: interaction.user.id } } },
           ],
         },
