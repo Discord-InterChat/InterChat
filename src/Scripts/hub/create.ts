@@ -74,7 +74,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       await db.hubs.create({
         data: {
           name: hubName,
-          language: 'English',
           description,
           private: true,
           tags: tags.replaceAll(', ', ',').split(',', 5),

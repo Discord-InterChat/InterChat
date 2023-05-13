@@ -84,22 +84,22 @@ model hubs {
   id                 String               @id @default(auto()) @map("_id") @db.ObjectId
   name               String               @unique
   description        String
-  language           String               @default("English")
   tags               String[]
   rating             HubRating[]
   ownerId            String
   iconUrl            String
   bannerUrl          String?
-  approved           Boolean              @default(false)
   private            Boolean              @default(true)
-  official           Boolean              @default(false)
   createdAt          DateTime             @default(now())
-  connections        connectedList[]
+  // all the stuff below is relations to other collections
   invites            hubInvites[]
   messages           messageData[]
   moderators         HubModerator[]
+  connections        connectedList[]
   blacklistedUsers   blacklistedUsers[]
   blacklistedServers blacklistedServers[]
+  // approved           Boolean              @default(false)
+  // official           Boolean              @default(false)
 }
 
 model hubInvites {
@@ -119,12 +119,6 @@ model messageData {
   timestamp            DateTime
   hub                  hubs?                             @relation(fields: [hubId], references: [id])
   hubId                String?                           @db.ObjectId
-}
-
-model restrictedWords {
-  id    String   @id @default(auto()) @map("_id") @db.ObjectId
-  name  String
-  words String[]
 }
 
 model userBadges {

@@ -83,11 +83,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setImage(hub.bannerUrl)
       .addFields(
         {
-          name: 'Language',
-          value: hub.language,
-          inline: true,
-        },
-        {
           name: 'Tags',
           value: hub.tags.join(', '),
           inline: true,

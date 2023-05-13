@@ -288,11 +288,6 @@ export function createHubListingsEmbed(hub: hubs, extra?: HubListingExtraInput) 
     .setImage(hub.bannerUrl)
     .addFields([
       {
-        name: 'Language',
-        value: hub.language,
-        inline: true,
-      },
-      {
         name: 'Tags',
         value: hub.tags.join(', '),
         inline: true,
