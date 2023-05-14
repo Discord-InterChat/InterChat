@@ -98,7 +98,11 @@ export default {
 
           const replyButton = reply
             ? new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
-              .setLabel(repliedAuthor?.tag || 'Jump')
+              .setLabel((
+                repliedAuthor && repliedAuthor.tag.length >= 100
+                  ? repliedAuthor.tag.slice(0, 96) + '...'
+                  : repliedAuthor?.tag) || 'Jump',
+              )
               .setStyle(ButtonStyle.Link)
               .setEmoji(message.client.emotes.normal.reply)
               .setURL(`https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`))
