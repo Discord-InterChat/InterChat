@@ -120,7 +120,7 @@ export default {
       });
 
       // disconnect unknown channels & insert message into messageData collection for future use
-      cleanup.execute(message, channelAndMessageIds);
+      cleanup.execute(message, channelAndMessageIds, channelInDb.hubId);
     }
   },
 };

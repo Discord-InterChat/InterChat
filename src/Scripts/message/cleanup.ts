@@ -2,9 +2,12 @@ import { Message } from 'discord.js';
 import { NetworkSendResult, NetworkWebhookSendResult } from '../../Events/messageCreate';
 import { getDb } from '../../Utils/functions/utils';
 
-
 export default {
-  execute: async (message: Message, channelAndMessageIds: Promise<NetworkWebhookSendResult | NetworkSendResult>[]) => {
+  async execute(
+    message: Message,
+    channelAndMessageIds: Promise<NetworkWebhookSendResult | NetworkSendResult>[],
+    hubId: string | null,
+  ) {
     message.delete().catch(() => null);
     // All message data is stored in the database, so we can delete the message from the network later
     const invalidChannelIds: string[] = [];
@@ -37,9 +40,10 @@ export default {
 
     const db = getDb();
     // store message data in db
-    if (message.guild) {
+    if (message.guild && hubId) {
       await db.messageData.create({
         data: {
+          hub: { connect: { id: hubId } },
           channelAndMessageIds: messageDataObj,
           timestamp: message.createdAt,
           authorId: message.author.id,
