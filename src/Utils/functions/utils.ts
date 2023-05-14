@@ -145,7 +145,7 @@ export function checkIfStaff(userId: string, onlyDeveloper = false) {
   const isDev = constants.developers.find((uId) => uId == userId);
 
   if (onlyDeveloper && !isDev) return false;
-  else if (isStaff) return true;
+  else if (isStaff || isDev) return true;
   return false;
 }
 

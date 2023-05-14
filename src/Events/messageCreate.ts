@@ -99,8 +99,8 @@ export default {
           const replyButton = reply
             ? new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
               .setLabel((
-                repliedAuthor && repliedAuthor.tag.length >= 100
-                  ? repliedAuthor.tag.slice(0, 96) + '...'
+                repliedAuthor && repliedAuthor.tag.length >= 80
+                  ? repliedAuthor.tag.slice(0, 76) + '...'
                   : repliedAuthor?.tag) || 'Jump',
               )
               .setStyle(ButtonStyle.Link)
