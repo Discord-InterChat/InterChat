@@ -63,7 +63,9 @@ export default {
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages),
   async execute(interaction: ChatInputCommandInteraction) {
-    const subcommand = interaction.options.getSubcommand();
-    require('../../Scripts/warn/' + subcommand).execute(interaction);
+    // const subcommand = interaction.options.getSubcommand();
+    // require('../../Scripts/warn/' + subcommand).execute(interaction);
+    // disabled until strike system is implemented
+    return interaction.reply('This command is currently disabled.');
   },
 };
