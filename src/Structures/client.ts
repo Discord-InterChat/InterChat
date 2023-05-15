@@ -23,6 +23,7 @@ export class ExtendedClient extends Client {
     });
 
     this.commands = new Collection();
+    this.commandCooldowns = new Collection();
     this.description = project.description;
     this.version = project.version;
     this.emotes = emojis;
