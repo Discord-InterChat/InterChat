@@ -57,10 +57,10 @@
                 "max": 2
             }
         ],
-        "no-console": "off",
+        "no-console": "warn",
         "no-empty-function": "error",
         "no-floating-decimal": "error",
-        "no-inline-comments": "off", // ! NOTE: Reset to 'error' later 
+        "no-inline-comments": "off", // NOTE: Reset to 'error' later 
         "no-lonely-if": "error",
         "no-multi-spaces": "error",
         "no-multiple-empty-lines": [
