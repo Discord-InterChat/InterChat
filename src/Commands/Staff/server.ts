@@ -28,25 +28,7 @@ export default {
             .setDescription('Whether or not to notify the server about the leave. (Default: true)')
             .setRequired(false),
         ),
-    )
-
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('disconnect')
-        .setDescription('Force disconnect from a specified server. Staff-only.')
-        .addStringOption((stringOption) =>
-          stringOption
-            .setName('serverid')
-            .setDescription('The server you want to disconnect from the network.')
-            .setRequired(true),
-        ),
-    )
-    .addSubcommand((subcommand) =>
-      subcommand
-        .setName('connected-list')
-        .setDescription('Display the connected servers. (Staff only)'),
     ),
-
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
 

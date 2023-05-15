@@ -29,7 +29,7 @@ export default {
 
     const owner = await server.fetchOwner();
     const createdAt = Math.round(server.createdTimestamp / 1000);
-    const guildSetup = await db.setup.findFirst({ where: { guildId: messageInDb.serverId } });
+    const guildSetup = await db.connectedList.findFirst({ where: { serverId: messageInDb.serverId } });
 
     const embed = new EmbedBuilder()
       .setTitle(server?.name.substring(0, 256))

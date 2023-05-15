@@ -7,11 +7,22 @@ module.exports = {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
-    const database = getDb();
-    const allNetworks = (await database.connectedList.findMany()).reverse();
-    const allSetups = await database.setup.findMany();
+    const db = getDb();
+    const hub = interaction.options.getString('hub', true);
+    const allNetworks = await db.connectedList.findMany({
+      where: {
+        hub: {
+          name: hub,
+          OR: [
+            { ownerId: interaction.user.id },
+            { moderators: { some: { userId: interaction.user.id } } },
+          ],
+        },
+      },
+      orderBy: { date: 'asc' },
+    });
 
-    if (!allNetworks || allNetworks?.length === 0) return interaction.editReply(`No connected servers yet ${interaction.client.emotes.normal.bruhcat}`);
+    if (allNetworks.length === 0) return interaction.editReply(`No connected servers yet ${interaction.client.emotes.normal.bruhcat}`);
 
     const embeds: EmbedBuilder[] = [];
     let itemsPerPage = 5;
@@ -27,14 +38,14 @@ module.exports = {
       const fields = current.map(connection => {
         const serverName = getGuildName(interaction.client, connection.serverId);
         const channelName = interaction.client.channels.cache.get(connection.channelId);
-        const setup = allSetups.find((settings) => settings.channelId === connection.channelId);
+        const setup = allNetworks.find((settings) => settings.channelId === connection.channelId);
         let value = stripIndent`
         ServerID: ${connection.serverId}
         Channel: ${channelName} \`(${connection.channelId}\`)
         `;
         if (setup) {
           value += '\n' + stripIndent`
-            Setup At: <t:${Math.round(setup?.date?.getTime() / 1000)}:d>
+            Joined At: <t:${Math.round(setup?.date?.getTime() / 1000)}:d>
             Invite:  ${setup.invite ? `https://discord.gg/${setup.invite}` : 'Not Set.'}`;
         }
 

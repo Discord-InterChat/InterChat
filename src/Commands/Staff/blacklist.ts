@@ -2,7 +2,6 @@ import { AutocompleteInteraction, ChatInputCommandInteraction, PermissionFlagsBi
 import { getDb } from '../../Utils/functions/utils';
 
 export default {
-  staff: true,
   data: new SlashCommandBuilder()
     .setName('blacklist')
     .setDescription('Blacklist a user or server from using the bot. Staff-only')
@@ -16,6 +15,12 @@ export default {
             subcommand
               .setName('user')
               .setDescription('Blacklist a user from using the bot. Staff-only')
+              .addStringOption(hubOption =>
+                hubOption
+                  .setName('hub')
+                  .setDescription('The name of the hub to blacklist the user from.')
+                  .setRequired(true),
+              )
               .addStringOption(user =>
                 user
                   .setName('user')
@@ -41,6 +46,12 @@ export default {
           subcommand
             .setName('server')
             .setDescription('Blacklist a server from using the bot. Staff-only')
+            .addStringOption(hubOption =>
+              hubOption
+                .setName('hub')
+                .setDescription('The name of the hub to blacklist the user from.')
+                .setRequired(true),
+            )
             .addStringOption(server =>
               server
                 .setName('server')
@@ -74,6 +85,12 @@ export default {
             subcommand
               .setName('user')
               .setDescription('Remove a user from the blacklist. Staff-only')
+              .addStringOption(hubOption =>
+                hubOption
+                  .setName('hub')
+                  .setDescription('The name of the hub to blacklist the user from.')
+                  .setRequired(true),
+              )
               .addStringOption(user =>
                 user
                   .setName('user')
@@ -91,6 +108,12 @@ export default {
           subcommand
             .setName('server')
             .setDescription('Remove a server from the blacklist.')
+            .addStringOption(hubOption =>
+              hubOption
+                .setName('hub')
+                .setDescription('The name of the hub to blacklist the user from.')
+                .setRequired(true),
+            )
             .addStringOption(server =>
               server
                 .setName('server')
@@ -108,6 +131,12 @@ export default {
       subcommand
         .setName('list')
         .setDescription('List all blacklists.')
+        .addStringOption(hubOption =>
+          hubOption
+            .setName('hub')
+            .setDescription('The name of the hub to blacklist the user from.')
+            .setRequired(true),
+        )
         .addStringOption(string =>
           string
             .setName('type')
@@ -120,7 +149,25 @@ export default {
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const subCommand = interaction.options.getSubcommand();
-    require(`../../Scripts/blacklist/${subCommand}`).execute(interaction);
+    const hub = interaction.options.getString('hub', true);
+
+    const db = getDb();
+    const hubInDb = await db.hubs.findFirst({ where: { name: hub } });
+
+    if (!hubInDb) {
+      return await interaction.reply({
+        content: 'Unknown hub.',
+        ephemeral: true,
+      });
+    }
+    else if (!hubInDb.moderators.find(({ userId }) => userId === interaction.user.id) && hubInDb.ownerId !== interaction.user.id) {
+      return await interaction.reply({
+        content: 'You do not have the necessary permissions in the hub to use this command.',
+        ephemeral: true,
+      });
+    }
+
+    require(`../../Scripts/blacklist/${subCommand}`).execute(interaction, hubInDb);
   },
 
   async autocomplete(interaction: AutocompleteInteraction) {

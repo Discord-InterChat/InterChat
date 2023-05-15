@@ -3,12 +3,13 @@ import toLower from 'lodash/toLower';
 import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
-import { prisma } from '../db';
+import { prisma as _prisma } from '../db';
 import { badge, normal } from '../JSON/emoji.json';
 import { stripIndents } from 'common-tags';
 import { scheduleJob } from 'node-schedule';
 import { modActions } from '../../Scripts/networkLogs/modActions';
 import 'dotenv/config';
+import { hubs } from '@prisma/client';
 
 export const constants = {
   developers: ['828492978716409856', '701727675311587358', '456961943505338369'],
@@ -23,7 +24,7 @@ export const constants = {
     reports: '821610981155012628',
     goal: '906460473065615403',
     suggestions: '1021256657528954900',
-    reviews: '1002874342343970946',
+    hubReviews: '1102625912274550884',
   },
   colors: {
     random: [
@@ -113,7 +114,7 @@ export async function getCredits() {
 
 /** Use the main database in your code by calling this function */
 export function getDb() {
-  return prisma;
+  return _prisma;
 }
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
@@ -127,7 +128,7 @@ export function toHuman(milliseconds: number): string {
   const seconds = Math.floor(totalSeconds % 60);
   let readable;
 
-  if (days == 0 && hours == 0 && minutes == 0) readable = `${seconds} seconds `;
+  if (days == 0 && hours == 0 && minutes == 0) readable = `${seconds} seconds`;
   else if (days == 0 && hours == 0) readable = `${minutes}m ${seconds}s`;
   else if (days == 0) readable = `${hours}h, ${minutes}m ${seconds}s`;
   else readable = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
@@ -137,31 +138,15 @@ export function toHuman(milliseconds: number): string {
 
 /**
  * Checks if a user is a InterChat Staff or Developer
- * @param client Discord.JS client
- * @param user The user to check
  * @param onlyDeveloper Only check if user is a developer
  */
-export async function checkIfStaff(user: discord.GuildMember | discord.User, onlyDeveloper = false) {
-  try {
-    const staffRole = '800698916995203104';
-    const developerRole = '770256273488347176';
+export function checkIfStaff(userId: string, onlyDeveloper = false) {
+  const isStaff = constants.staff.find((uId) => uId == userId);
+  const isDev = constants.developers.find((uId) => uId == userId);
 
-    const allowedRoles = [staffRole, developerRole];
-
-    const guild = await user.client.guilds.fetch('770256165300338709');
-    const member = await guild.members.fetch(user);
-    const roles = member.roles.cache;
-
-    const isStaff = roles?.hasAny(...allowedRoles);
-    const isDev = roles?.has(developerRole);
-
-    if (onlyDeveloper && !isDev) return false;
-    else if (isStaff) return true;
-    return false;
-  }
-  catch {
-    return false;
-  }
+  if (onlyDeveloper && !isDev) return false;
+  else if (isStaff || isDev) return true;
+  return false;
 }
 
 export function badgeToEmoji(badgeArr: string[]) {
@@ -174,17 +159,18 @@ export function badgeToEmoji(badgeArr: string[]) {
   return badgeEmojis;
 }
 
-export async function addUserBlacklist(moderator: discord.User, user: discord.User | string, reason: string, expires?: Date | number, notifyUser = true) {
+export async function addUserBlacklist(hubId: string, moderator: discord.User, user: discord.User | string, reason: string, expires?: Date | number, notifyUser = true) {
   if (typeof user === 'string') user = await moderator.client.users.fetch(user);
   if (typeof expires === 'number') expires = new Date(Date.now() + expires);
 
-  const dbUser = await prisma.blacklistedUsers.create({
+  const dbUser = await _prisma.blacklistedUsers.create({
     data: {
-      reason,
+      hub: { connect: { id: hubId } },
       userId: user.id,
       username: user.username,
-      notified: true,
+      notified: notifyUser,
       expires,
+      reason,
     },
   });
 
@@ -210,7 +196,7 @@ export async function addUserBlacklist(moderator: discord.User, user: discord.Us
       .setFooter({ text: 'Join the support server to appeal the blacklist.' });
 
     user.send({ embeds: [embed] }).catch(async () => {
-      await prisma.blacklistedUsers.update({ where: { userId: (user as discord.User).id }, data: { notified: false } });
+      await _prisma.blacklistedUsers.update({ where: { userId: (user as discord.User).id }, data: { notified: false } });
       logger.info(`Could not notify ${(user as discord.User).tag} about their blacklist.`);
     });
   }
@@ -223,8 +209,8 @@ export async function addUserBlacklist(moderator: discord.User, user: discord.Us
 
       // only call .delete if the document exists
       // or prisma will error
-      if (await prisma.blacklistedUsers.findFirst(filter)) {
-        await prisma.blacklistedUsers.delete(filter);
+      if (await _prisma.blacklistedUsers.findFirst(filter)) {
+        await _prisma.blacklistedUsers.delete(filter);
         modActions(tempUser.client.user, {
           user: tempUser,
           action: 'unblacklistUser',
@@ -238,37 +224,37 @@ export async function addUserBlacklist(moderator: discord.User, user: discord.Us
 }
 
 
-export async function addServerBlacklist(moderator: discord.User, guild: discord.Guild | string, reason: string, expires?: Date) {
-  if (typeof guild === 'string') guild = await moderator.client.guilds.fetch(guild);
+export async function addServerBlacklist(serverId: string, options: { moderator: discord.User, hubId: string, reason: string, expires?: Date }) {
+  const guild = await options.moderator.client.guilds.fetch(serverId);
 
-  const dbGuild = await prisma.blacklistedServers.create({
+  const dbGuild = await _prisma.blacklistedServers.create({
     data: {
-      reason,
+      hub: { connect: { id: options.hubId } },
+      reason: options.reason,
       serverId: guild.id,
       serverName: guild.name,
-      expires,
+      expires: options.expires,
     },
   });
 
   // Send action to logs channel
-  modActions(moderator, {
+  modActions(options.moderator, {
     guild: { id: guild.id, resolved: guild },
     action: 'blacklistServer',
-    expires,
-    reason,
+    expires: options.expires,
+    reason: options.reason,
   }).catch(() => null);
 
   // set an unblacklist timer if there is an expire duration
-  if (expires) {
-    scheduleJob(`blacklist_server-${guild.id}`, expires, async () => {
-      const tempGuild = guild as discord.Guild;
-      const filter = { where: { serverId: tempGuild.id } };
+  if (options.expires) {
+    scheduleJob(`blacklist_server-${guild.id}`, options.expires, async () => {
+      const filter = { where: { hubId: options.hubId, serverId: guild.id } };
 
       // only call .delete if the document exists
       // or prisma will error
-      if (await prisma.blacklistedServers.findFirst(filter)) {
-        await prisma.blacklistedServers.delete(filter);
-        modActions(tempGuild.client.user, {
+      if (await _prisma.blacklistedServers.findFirst(filter)) {
+        await _prisma.blacklistedServers.deleteMany(filter);
+        modActions(guild.client.user, {
           dbGuild,
           action: 'unblacklistServer',
           timestamp: new Date(),
@@ -278,6 +264,71 @@ export async function addServerBlacklist(moderator: discord.User, guild: discord
     });
   }
   return dbGuild;
+}
+
+export function calculateAverageRating(ratings: number[]): number {
+  if (ratings.length === 0) return 0;
+
+  const sum = ratings.reduce((acc, cur) => acc + cur, 0);
+  const average = sum / ratings.length;
+  return Math.round(average * 10) / 10;
+}
+
+interface HubListingExtraInput {
+  hubMessages?: number;
+  totalNetworks?: number;
+}
+
+export function createHubListingsEmbed(hub: hubs, extra?: HubListingExtraInput) {
+  return new discord.EmbedBuilder()
+    .setTitle(hub.name)
+    .setDescription(hub.description)
+    .setColor('Random')
+    .setThumbnail(hub.iconUrl)
+    .setImage(hub.bannerUrl)
+    .addFields([
+      {
+        name: 'Tags',
+        value: hub.tags.join(', '),
+        inline: true,
+      },
+      {
+        name: 'Rating',
+        value: hub.rating?.length > 0
+          ? '⭐'.repeat(calculateAverageRating(hub.rating.map(hr => hr.rating)))
+          : '-',
+        inline: true,
+      },
+      {
+        name: 'Visibility',
+        value: hub.private ? 'Private' : 'Public',
+        inline: true,
+      },
+      {
+        name: 'Created At',
+        value: `<t:${Math.round(hub.createdAt.getTime() / 1000)}>`,
+        inline: true,
+      },
+      {
+        name: 'Networks',
+        value: `${extra?.totalNetworks ?? 'Unknown.'}`,
+        inline: true,
+      },
+      {
+        name: 'Messages Today',
+        value: `${extra?.hubMessages ?? 'Unknown.'}`,
+        inline: true,
+      },
+    ]);
+}
+
+
+export async function deleteHubs(ids: string[]) {
+  // delete all relations first and then delete the hub
+  await _prisma.connectedList.deleteMany({ where: { id: { in: ids } } });
+  await _prisma.hubInvites.deleteMany({ where: { id: { in: ids } } });
+  await _prisma.messageData.deleteMany({ where: { id: { in: ids } } });
+  return await _prisma.hubs.deleteMany({ where: { id: { in: ids } } });
 }
 
 export const rulesEmbed = new discord.EmbedBuilder()

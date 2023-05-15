@@ -18,7 +18,7 @@ type MessageDataReference {
   messageId String?
 }
 
-type SetupWebhook {
+type NetworkWebhook {
   id    String
   token String
   url   String
@@ -32,12 +32,27 @@ type UserDataWarnings {
   timestamp   DateTime
 }
 
+type HubRating {
+  userId String
+  rating Int    @default(0)
+}
+
+type HubModerator {
+  userId   String
+  position String @default("network_mod") // network, manager 
+  // network -> just basic actions like warning/muting
+  // manager -> perm blacklisting, managing hub etc.
+  // honestly... I might as well make permissions lol
+}
+
 model blacklistedServers {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  serverId   String    @unique
+  serverId   String
   serverName String
   expires    DateTime?
   reason     String
+  hub        hubs      @relation(fields: [hubId], references: [id])
+  hubId      String    @db.ObjectId
 }
 
 model blacklistedUsers {
@@ -47,23 +62,53 @@ model blacklistedUsers {
   reason   String
   expires  DateTime?
   username String
+  hub      hubs      @relation(fields: [hubId], references: [id])
+  hubId    String    @db.ObjectId
 }
 
 model connectedList {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  channelId String @unique
-  serverId  String
+  id         String          @id @default(auto()) @map("_id") @db.ObjectId
+  channelId  String          @unique
+  serverId   String
+  connected  Boolean
+  compact    Boolean
+  invite     String?
+  profFilter Boolean
+  webhook    NetworkWebhook?
+  date       DateTime        @default(now())
+  hub        hubs?           @relation(fields: [hubId], references: [id])
+  hubId      String?         @db.ObjectId
 }
 
-// model levels {
-//   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-//   //  v           Int      @map("__v")
-//   guildID     String
-//   lastUpdated DateTime @db.Date
-//   level       Int
-//   userID      String
-//   xp          Int
-// }
+model hubs {
+  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
+  name               String               @unique
+  description        String
+  tags               String[]
+  rating             HubRating[]
+  ownerId            String
+  iconUrl            String
+  bannerUrl          String?
+  private            Boolean              @default(true)
+  createdAt          DateTime             @default(now())
+  // all the stuff below is relations to other collections
+  invites            hubInvites[]
+  messages           messageData[]
+  moderators         HubModerator[]
+  connections        connectedList[]
+  blacklistedUsers   blacklistedUsers[]
+  blacklistedServers blacklistedServers[]
+  // approved           Boolean              @default(false)
+  // official           Boolean              @default(false)
+}
+
+model hubInvites {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  code    String   @unique @default(nanoid(10))
+  expires DateTime
+  hub     hubs     @relation(fields: [hubId], references: [id])
+  hubId   String   @db.ObjectId
+}
 
 model messageData {
   id                   String                            @id @default(auto()) @map("_id") @db.ObjectId
@@ -71,24 +116,9 @@ model messageData {
   channelAndMessageIds MessageDataChannelAndMessageIds[]
   reference            MessageDataReference?
   serverId             String
-  timestamp            Float
-}
-
-model restrictedWords {
-  id    String   @id @default(auto()) @map("_id") @db.ObjectId
-  name  String
-  words String[]
-}
-
-model setup {
-  id         String        @id @default(auto()) @map("_id") @db.ObjectId
-  channelId  String        @unique
-  compact    Boolean
-  date       DateTime      @default(now())
-  guildId    String
-  profFilter Boolean
-  invite     String?       @unique
-  webhook    SetupWebhook?
+  timestamp            DateTime
+  hub                  hubs?                             @relation(fields: [hubId], references: [id])
+  hubId                String?                           @db.ObjectId
 }
 
 model userBadges {

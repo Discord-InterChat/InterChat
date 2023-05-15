@@ -47,7 +47,12 @@ interface unblacklistServer {
   reason?: string | null;
 }
 
-
+// TODO: Make the logs channel into a forum, which includes the folowing posts:
+// Network Log
+// Reports
+// Judgement
+// Make sure the logs channel isn't closed before logging stuff, that will be the main problem here.
+// That is the reason I have left it as a todo. :D
 export async function modActions(moderator: User, action: blacklistUser | unblacklistUser | blacklistServer | unblacklistServer | leaveServer | disconnectServer) {
   if (!action.reason) action.reason = 'No reason provided.';
 
@@ -133,8 +138,9 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setDescription(stripIndents`
               ${emoji.normal.dotBlue} **Server:** ${server?.name || action.dbGuild.serverName} (${action.dbGuild.serverId})
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
-              ${emoji.normal.dotBlue} **Timestamp:** <t:${Math.round(action.timestamp.getTime() / 1000)}:R>`)
+             `)
             .addFields({ name: 'Reason', value: action.reason })
+            .setTimestamp(action.timestamp)
             .setColor(colors('chatbot')),
         ],
       });

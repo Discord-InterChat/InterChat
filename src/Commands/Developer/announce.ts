@@ -70,7 +70,8 @@ export default {
 
         confirmCollector.on('collect', async (btn) => {
           if (btn.customId === 'confirm') {
-            await interaction.client.sendInNetwork({ embeds: [embed] });
+            // FIXME: Add option in the command for which hub to announce to...
+            await interaction.client.sendInNetwork({ embeds: [embed] }, { name: 'InterChat Central Hub' });
             btn.reply('Message announced to the network!');
             return;
           }

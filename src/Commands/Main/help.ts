@@ -9,7 +9,7 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const commands = interaction.client.commands;
     const emojis = interaction.client.emotes.normal;
-    const isStaff = await checkIfStaff(interaction.user);
+    const isStaff = checkIfStaff(interaction.user.id);
 
     const ignoreDirs = isStaff ? [] : ['Developer', 'Staff'];
     const menuOptionsObj = commands.reduce((obj: Record<string, APISelectMenuOption>, command) => {

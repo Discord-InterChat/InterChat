@@ -30,7 +30,10 @@ export async function networkMessageDelete(deletedBy: GuildMember | null, messag
         ${emojis.dotRed} **Deleted From:** ${deletedFrom?.name || 'Unknown'} (${messageInDb.serverId})
         ${emojis.dotRed} **Attachments:** ${attachmentLink ? `[Click to view](${attachmentLink})` : 'None.'}
         ${emojis.dotRed} **Created At:** <t:${Math.round(message.createdAt.getTime() / 1000)}:R>`)
-    .setFooter({ text: `Deleted By: ${deletedBy?.user.tag}`, iconURL: deletedBy?.user.avatarURL() || deletedBy?.user.defaultAvatarURL })
+    .setFooter({
+      text: `Deleted By: ${deletedBy?.user.tag}`,
+      iconURL: deletedBy?.user.avatarURL() || deletedBy?.user.defaultAvatarURL,
+    })
     .setImage(attachmentLink)
     .setTimestamp()
     .setColor('Red');

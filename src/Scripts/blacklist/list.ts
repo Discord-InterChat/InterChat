@@ -1,10 +1,11 @@
+import { hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { paginate } from '../../Utils/functions/paginator';
 import { colors, getDb } from '../../Utils/functions/utils';
 
 module.exports = {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction, hub: hubs) {
     const serverOpt = interaction.options.getString('type');
 
     const embeds: EmbedBuilder[] = [];
@@ -19,7 +20,7 @@ module.exports = {
     // repeat until you reach the end
 
     if (serverOpt == 'server') {
-      const result = await getDb().blacklistedServers.findMany();
+      const result = await getDb().blacklistedServers.findMany({ where: { hubId: hub.id } });
 
       result.forEach((data, index) => {
         fields.push({
@@ -47,7 +48,7 @@ module.exports = {
       });
     }
     else if (serverOpt == 'user') {
-      const result = await getDb().blacklistedUsers.findMany();
+      const result = await getDb().blacklistedUsers.findMany({ where: { hubId: hub.id } });
 
       result.forEach((data, index) => {
         fields.push({

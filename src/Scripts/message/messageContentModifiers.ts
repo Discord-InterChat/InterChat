@@ -1,50 +1,37 @@
-import { AttachmentBuilder, EmbedBuilder } from 'discord.js';
+import { AttachmentBuilder, EmbedBuilder, Message } from 'discord.js';
 import { NetworkMessage } from '../../Events/messageCreate';
 import { messageData } from '@prisma/client';
-import { getDb } from '../../Utils/functions/utils';
 import 'dotenv/config';
 
 export default {
-  async appendReply(message: NetworkMessage) {
-    const db = getDb();
-    let messageInDb: messageData | null | undefined = null;
+  async appendReply(message: NetworkMessage, referredMessage: Message, dbMessage: messageData | null) {
+    // content of the message being replied to
+    let replyContent = referredMessage.embeds[0]?.fields[0]?.value || referredMessage.content;
 
-    if (message.reference) {
-      const referredMessage = await message.fetchReference().catch(() => null);
-
-      if (referredMessage) {
-        messageInDb = await db.messageData.findFirst({
-          where: {
-            channelAndMessageIds: {
-              some: { messageId: referredMessage.id },
-            },
-          },
-        });
-
-        // content of the message being replied to
-        let replyContent = referredMessage.embeds[0]?.fields[0]?.value || referredMessage.content;
-
-        // if the message is a reply to another reply, remove the older reply :D
-        if (messageInDb?.reference) {
-          replyContent = replyContent?.split(/> .*/g).at(-1)?.trimStart() || replyContent;
-        }
-
-        replyContent = replyContent?.replaceAll('\n', '\n> ');
-
-        const maxLength = 1000; // max length of an embed field (minus 24 just to be safe)
-        const prefixLength = 6; // length of "> ", "\n" and "..."
-        const availableLength = maxLength - prefixLength - message.content.length;
-
-        // if it is too long, cut it off to make room for the reply
-        if (replyContent.length > availableLength) {
-          replyContent = replyContent.slice(0, availableLength) + '...';
-        }
-
-        message.content = `> ${replyContent}\n${message.content}`;
-        message.compact_message = `> ${replyContent}\n${message.compact_message}`;
-      }
+    // if the message is a reply to another reply, remove the older reply :D
+    if (dbMessage?.reference) {
+      const oldReply = replyContent.match(/> .*/g);
+      replyContent = oldReply
+        ? replyContent.replace(oldReply[0], '').trimStart()
+        : replyContent;
     }
-    return messageInDb;
+
+    if (!replyContent || replyContent === '\u200B') {
+      replyContent += '*Original message contains attachment <:attachment:1102464803647275028>*';
+    }
+    replyContent = replyContent?.replaceAll('\n', '\n> ');
+
+    const maxLength = 1000; // max length of an embed field (minus 24 just to be safe)
+    const prefixLength = 6; // length of "> ", "\n" and "..."
+    const availableLength = maxLength - prefixLength - message.content.length;
+
+    // if it is too long, cut it off to make room for the reply
+    if (replyContent.length > availableLength) {
+      replyContent = replyContent.slice(0, availableLength) + '...';
+    }
+
+    message.content = `> ${replyContent}\n${message.content}`;
+    message.compact_message = `> ${replyContent}\n${message.compact_message}`;
   },
 
   async attachImageToEmbed(message: NetworkMessage, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {

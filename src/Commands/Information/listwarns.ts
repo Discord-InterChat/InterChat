@@ -19,7 +19,7 @@ export default {
     const emojis = interaction.client.emotes;
 
     // if user is not staff the ID they provided is someone else's
-    const staffUser = await checkIfStaff(interaction.user);
+    const staffUser = checkIfStaff(interaction.user.id);
 
     if (!staffUser && userInput !== interaction.user.id) {
       return interaction.reply({
@@ -79,7 +79,7 @@ export default {
       return { name: warn.userTag, value: warn.userId };
     });
 
-    const staffUser = await checkIfStaff(interaction.user);
+    const staffUser = checkIfStaff(interaction.user.id);
 
     if (!staffUser) return interaction.respond([]);
 

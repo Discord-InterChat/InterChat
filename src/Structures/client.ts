@@ -4,8 +4,9 @@ import emojis from '../Utils/JSON/emoji.json';
 import project from '../../package.json';
 import { Client, Collection, ActivityType, MessageCreateOptions } from 'discord.js';
 import { join } from 'path';
-import { prisma } from '../Utils/db';
 import * as Sentry from '@sentry/node';
+import { Prisma } from '@prisma/client';
+import { getDb } from '../Utils/functions/utils';
 
 export class ExtendedClient extends Client {
   constructor() {
@@ -15,7 +16,7 @@ export class ExtendedClient extends Client {
       presence: {
         status: 'online',
         activities: [{
-          name: `InterChat ${project.version}`,
+          name: 'over the network',
           type: ActivityType.Watching,
         }],
       },
@@ -37,8 +38,8 @@ export class ExtendedClient extends Client {
     return await this.login(token || process.env.TOKEN);
   }
 
-  public async sendInNetwork(message: string | MessageCreateOptions): Promise<void> {
-    const channels = await prisma.connectedList.findMany();
+  public async sendInNetwork(message: string | MessageCreateOptions, hub: Prisma.hubsWhereUniqueInput): Promise<void> {
+    const channels = await getDb().connectedList.findMany({ where: { hub, connected: true } });
 
     channels?.forEach(async (channelEntry) => {
       const channel = await this.channels.fetch(channelEntry.channelId).catch(() => null);
@@ -54,7 +55,9 @@ export class ExtendedClient extends Client {
   protected loadCommands() {
     fs.readdirSync(join(__dirname, '..', 'Commands')).forEach(async (dir: string) => {
       if (fs.statSync(join(__dirname, '..', 'Commands', dir)).isDirectory()) {
-        const commandFiles = fs.readdirSync(join(__dirname, '..', 'Commands', dir)).filter((file: string) => file.endsWith('.js'));
+        const commandFiles = fs.readdirSync(join(__dirname, '..', 'Commands', dir))
+          .filter((file: string) => file.endsWith('.js'));
+
         for (const commandFile of commandFiles) {
           const command = require(`../Commands/${dir}/${commandFile}`);
 

@@ -1,7 +1,6 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
 import { networkMsgUpdate } from '../../Scripts/networkLogs/msgUpdate';
-import { checkIfStaff, topgg } from '../../Utils/functions/utils';
-import { prisma } from '../../Utils/db';
+import { checkIfStaff, getDb, topgg } from '../../Utils/functions/utils';
 import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
 
@@ -13,7 +12,7 @@ export default {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
     const hasVoted = await topgg.hasVoted(interaction.user.id);
-    const isStaff = await checkIfStaff(interaction.user);
+    const isStaff = checkIfStaff(interaction.user.id);
 
     if (!hasVoted && !isStaff) {
       interaction.reply({
@@ -23,7 +22,8 @@ export default {
       return;
     }
 
-    const messageInDb = await prisma.messageData.findFirst({
+    const db = getDb();
+    const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
     });
 
@@ -81,9 +81,7 @@ export default {
 
         // loop through all the channels in the network and edit the message
         messageInDb.channelAndMessageIds.forEach(async obj => {
-          const channelSettings = await prisma.setup.findFirst({
-            where: { channelId: obj.channelId },
-          });
+          const channelSettings = await db.connectedList.findFirst({ where: { channelId: obj.channelId } });
           const channel = await interaction.client.channels.fetch(obj.channelId) as GuildTextBasedChannel;
           const message = await channel?.messages?.fetch(obj.messageId).catch(() => null);
 
