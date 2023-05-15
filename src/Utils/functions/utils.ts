@@ -325,10 +325,10 @@ export function createHubListingsEmbed(hub: hubs, extra?: HubListingExtraInput) 
 
 export async function deleteHubs(ids: string[]) {
   // delete all relations first and then delete the hub
-  await _prisma.connectedList.deleteMany({ where: { id: { in: ids } } });
-  await _prisma.hubInvites.deleteMany({ where: { id: { in: ids } } });
-  await _prisma.messageData.deleteMany({ where: { id: { in: ids } } });
-  return await _prisma.hubs.deleteMany({ where: { id: { in: ids } } });
+  await _prisma.connectedList.deleteMany({ where: { hubId: { in: ids } } });
+  await _prisma.hubInvites.deleteMany({ where: { hubId: { in: ids } } });
+  await _prisma.messageData.deleteMany({ where: { hubId: { in: ids } } });
+  await _prisma.hubs.deleteMany({ where: { id: { in: ids } } });
 }
 
 export const rulesEmbed = new discord.EmbedBuilder()
