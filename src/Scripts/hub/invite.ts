@@ -20,9 +20,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
       const hubInDb = await db.hubs.findFirst({ where: { name: hubName } });
 
-      if (!hubInDb || hubInDb.ownerId != interaction.user.id) {
+      if (!hubInDb || hubInDb.ownerId != interaction.user.id || !hubInDb.private) {
         await interaction.reply({
-          content: `${emotes.no} Invalid Hub Provided. Make sure provided hub is one that you own.`,
+          content: `${emotes.no} Invalid Hub Provided. Make sure provided hub is one that you own and that it is private.`,
           ephemeral: true,
         });
         return;
