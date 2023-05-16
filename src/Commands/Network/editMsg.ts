@@ -88,11 +88,11 @@ export default {
           // if target message is in compact mode, get the normal mode from another message in the network
           if (!target.embeds[0] && message?.embeds[0]) {
             target.embeds[0] = message.embeds[0]; // updating for message logs
-            editEmbed = new EmbedBuilder(message.embeds[0].toJSON()).setFields({
+            editEmbed = new EmbedBuilder(message.embeds[0].data).setFields({
               name: 'Message',
               value: reply ? `${reply}\n${editMessage}` : editMessage,
             });
-            censoredEmbed = new EmbedBuilder(message.embeds[0].toJSON()).setFields({
+            censoredEmbed = new EmbedBuilder(message.embeds[0].data).setFields({
               name: 'Message',
               value: reply ? `${reply}\n${censoredEditMessage}` : censoredEditMessage,
             });
