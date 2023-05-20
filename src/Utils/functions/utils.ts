@@ -183,17 +183,17 @@ export async function addUserBlacklist(hubId: string, moderator: discord.User, u
   }).catch(() => null);
 
   if (notifyUser) {
+    const hub = await _prisma.hubs.findUnique({ where: { id: hubId } });
     const emotes = user.client.emotes.normal;
     const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
     const embed = new discord.EmbedBuilder()
       .setTitle(emotes.blobFastBan + ' Blacklist Notification')
-      .setDescription('You have been muted from talking in the network.')
+      .setDescription(`You have been banned from talking in hub **${hub?.name}**.`)
       .setColor(colors('chatbot'))
       .setFields(
-        { name: 'Reason', value: String(reason), inline: true },
+        { name: 'Reason', value: reason, inline: true },
         { name: 'Expires', value: expireString, inline: true },
-      )
-      .setFooter({ text: 'Join the support server to appeal the blacklist.' });
+      );
 
     user.send({ embeds: [embed] }).catch(async () => {
       await _prisma.blacklistedUsers.update({ where: { userId: (user as discord.User).id }, data: { notified: false } });
@@ -355,7 +355,7 @@ export const rulesEmbed = new discord.EmbedBuilder()
     9. **Posting explicit or NSFW content will result in an immediate blacklist.**
     > The network is a SFW place. Posting NSFW content will result in an immediate blacklist.
     10. **Trivialization of sensitive topics are not allowed.**
-    > This includes self-hard, suicide, violence and anything offensive in general.
+    > This includes self-harm, suicide, violence and anything offensive in general.
     11. **Don't evade InterChat's chat filters.**
     > They have been put in place for a very obvious reason and as such, evading of them will not be tolerated. 
     *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,

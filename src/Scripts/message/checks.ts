@@ -19,12 +19,12 @@ export = {
       where: { hubId: networkData.hubId, userId: message.author.id },
     });
     const serverInBlacklist = await db.blacklistedServers?.findFirst({
-      where: { serverId: message.guild?.id },
+      where: { hubId: networkData.hubId, serverId: message.guild?.id },
     });
 
     if (userInBlacklist) {
       if (!userInBlacklist.notified) {
-        message.author.send(`You are blacklisted from using this bot for reason **${userInBlacklist.reason}**.`).catch(() => null);
+        message.author.send(`You are blacklisted from this hub for reason **${userInBlacklist.reason}**.`).catch(() => null);
         await db.blacklistedUsers.update({ where: { userId: message.author.id }, data: { notified: true } });
       }
       return false;
