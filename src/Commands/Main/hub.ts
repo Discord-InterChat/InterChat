@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, ChannelType, AutocompleteInteraction } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
+import reset from '../../Scripts/network/reset';
 
 export default {
   data: new SlashCommandBuilder()
@@ -52,6 +53,18 @@ export default {
           .setDescription('The invite to the (private) hub')
           .setRequired(false),
       ),
+    )
+    .addSubcommand(subcommand =>
+      subcommand
+        .setName('leave')
+        .setDescription('🚪 Leave a hub.')
+        .addStringOption(stringOption =>
+          stringOption
+            .setName('hub')
+            .setDescription('The name of the hub')
+            .setAutocomplete(true)
+            .setRequired(true),
+        ),
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -219,14 +232,19 @@ export default {
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
 
+    if (subcommand === 'leave') {
+      const channelId = interaction.options.getString('hub', true);
+      return reset.execute(interaction, channelId);
+    }
+
     require(`../../Scripts/hub/${subcommandGroup || subcommand}`).execute(interaction);
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const subcommand = interaction.options.getSubcommand();
+    const focusedValue = interaction.options.getFocused();
     let hubChoices;
 
     if (subcommand === 'browse' || subcommand === 'delete') {
-      const focusedValue = interaction.options.getFocused();
 
       hubChoices = await getDb().hubs.findMany({
         where: {
@@ -238,7 +256,6 @@ export default {
 
     }
     else if (subcommand === 'manage' || subcommand === 'networks') {
-      const focusedValue = interaction.options.getFocused();
       hubChoices = await getDb().hubs.findMany({
         where: {
           name: {
@@ -254,6 +271,25 @@ export default {
       });
 
     }
+
+    else if (subcommand === 'leave') {
+      const networks = await getDb().connectedList.findMany({
+        where: { serverId: interaction.guild?.id },
+        select: { channelId: true, hub: true },
+        take: 25,
+      });
+
+      const filteredNets = networks
+        .filter((network) => network.hub?.name.toLowerCase().includes(focusedValue.toLowerCase()))
+        .map(async (network) => {
+          const channel = await interaction.guild?.channels.fetch(network.channelId).catch(() => null);
+          return { name: `${network.hub?.name} | #${channel?.name || network.channelId}`, value: network.channelId };
+        });
+
+
+      return await interaction.respond(await Promise.all(filteredNets));
+    }
+
     const filtered = hubChoices?.map((hub) => ({ name: hub.name, value: hub.name }));
     filtered ? await interaction.respond(filtered) : null;
   },

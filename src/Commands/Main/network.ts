@@ -1,6 +1,5 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import reset from '../../Scripts/network/reset';
 import displaySettings from '../../Scripts/network/displaySettings';
 
 export default {
@@ -9,17 +8,6 @@ export default {
     .setDescription('Manage network connections for this server.')
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .setDMPermission(false)
-    .addSubcommand((subcommand) => subcommand
-      .setName('delete')
-      .setDescription('Delete a network connection from this server.')
-      .addStringOption((stringOption) =>
-        stringOption
-          .setName('network')
-          .setDescription('Select the network you wish to delete. Use the channel ID if you don\'t see the network name.')
-          .setRequired(true)
-          .setAutocomplete(true),
-      ),
-    )
     .addSubcommand((subcommand) => subcommand
       .setName('manage')
       .setDescription('Manage a network connection for this server.')
@@ -50,13 +38,7 @@ export default {
       return;
     }
 
-
-    if (interaction.options.getSubcommand() === 'delete') {
-      reset.execute(interaction);
-    }
-    else {
-      displaySettings.execute(interaction, interaction.options.getString('network', true));
-    }
+    displaySettings.execute(interaction, interaction.options.getString('network', true));
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const focusedValue = interaction.options.getFocused();

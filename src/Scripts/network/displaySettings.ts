@@ -1,35 +1,32 @@
-import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel } from 'discord.js';
+import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel, ButtonInteraction, AnySelectMenuInteraction } from 'discord.js';
 import { reconnect, disconnect } from '../../Structures/network';
 import { colors, getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
 
+function yesOrNo(option: unknown, yesEmoji: string, noEmoji: string) {
+  return option ? yesEmoji : noEmoji;
+}
+
 // function to make it easier to edit embeds with updated data
-async function setupEmbed(interaction: ChatInputCommandInteraction, channelId: string) {
-  const emoji = interaction.client.emotes;
-
+async function setupEmbed(interaction: Interaction, channelId: string) {
   const networkData = await getDb().connectedList.findFirst({ where: { channelId } });
-  const channel = interaction.guild?.channels.cache.get(`${networkData?.channelId}`);
 
-  // enabled/disabled emojis
-  const connected = networkData?.connected ? emoji.normal.yes : emoji.normal.no;
-  const profanity = networkData?.profFilter ? emoji.normal.enabled : emoji.normal.disabled;
-  const webhook = networkData?.webhook ? emoji.normal.enabled : emoji.normal.disabled;
-  const compact = networkData?.compact ? emoji.normal.enabled : emoji.normal.disabled;
+  const { yes, no, enabled, disabled } = interaction.client.emotes.normal;
   const invite = networkData?.invite
     ? `Code: [\`${networkData.invite}\`](https://discord.gg/${networkData.invite})`
     : 'Not Set.';
 
   return new EmbedBuilder()
     .setTitle('Edit Settings')
-    .setDescription(`Showing network settings for ${channel || 'None'}.`)
+    .setDescription(`Showing network settings for <#${channelId}>.`)
     .addFields([
-      { name: 'Channel', value: `${channel || `${emoji.normal.no} Error.`}`, inline: true },
-      { name: 'Connected', value: connected, inline: true },
+      { name: 'Channel', value: `<#${channelId}>`, inline: true },
       { name: 'Invite', value: invite, inline: true },
-      { name: 'Compact', value: compact, inline: true },
-      { name: 'Profanity Filter', value: profanity, inline: true },
-      { name: 'Webhook', value: webhook, inline: true },
+      { name: 'Connected', value: yesOrNo(networkData?.connected, yes, no), inline: true },
+      { name: 'Compact', value: yesOrNo(networkData?.compact, enabled, disabled), inline: true },
+      { name: 'Webhook', value: yesOrNo(networkData?.webhook, enabled, disabled), inline: true },
+      { name: 'Profanity Filter', value: yesOrNo(networkData?.profFilter, enabled, disabled), inline: true },
     ])
     .setColor(colors('chatbot'))
     .setThumbnail(interaction.guild?.iconURL() || interaction.client.user.avatarURL())
@@ -38,7 +35,7 @@ async function setupEmbed(interaction: ChatInputCommandInteraction, channelId: s
 }
 
 export = {
-  async execute(interaction: ChatInputCommandInteraction, channelId: string) {
+  async execute(interaction: ChatInputCommandInteraction | ButtonInteraction | AnySelectMenuInteraction, channelId: string) {
     if (!interaction.deferred && !interaction.replied) await interaction.deferReply();
 
     const db = getDb();
@@ -149,7 +146,7 @@ export = {
             .setEmoji(emoji.icons.disconnect);
 
           await component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
-          component.message.edit({
+          interaction.editReply({
             components: [customizeMenu, setupActionButtons],
           });
           break;
@@ -167,7 +164,7 @@ export = {
           logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
 
           await component.reply({ content: 'Disconnected!', ephemeral: true });
-          component.message.edit({
+          interaction.editReply({
             components: [customizeMenu, setupActionButtons],
           });
           break;
@@ -176,7 +173,7 @@ export = {
           break;
       }
       component.replied || component.deferred
-        ? component.message.edit({ embeds: [await setupEmbed(interaction, channelId)] })
+        ? interaction.editReply({ embeds: [await setupEmbed(interaction, channelId)] })
         : component.update({ embeds: [await setupEmbed(interaction, channelId)] });
 
     });
@@ -259,14 +256,9 @@ export = {
 
           await db.connectedList.update({
             where: { channelId: updConnection.channelId },
-            data: { channelId: selected?.values[0] },
-          });
-
-          await db.connectedList.update({
-            where: { channelId: updConnection.channelId },
             data: {
               channelId: channel?.id,
-              webhook: webhook ? { id: webhook.id, token: `${webhook.token}`, url: webhook.url } : null,
+              webhook: webhook ? { id: webhook.id, token: `${webhook.token}`, url: webhook.url } : { unset: true },
             },
           });
 
