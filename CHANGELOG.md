@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.11.0](https://github.com/Discord-InterChat/InterChat/compare/v3.10.3...v3.11.0) (2023-05-24)
+
+
+### Features
+
+* command cooldowns ([b9ab7ef](https://github.com/Discord-InterChat/InterChat/commit/b9ab7ef3e8ca50fa565df788b3e5e35ab78f5982))
+* **hub:** allow hub mods to delete network messages ([baf37f3](https://github.com/Discord-InterChat/InterChat/commit/baf37f3d7946ec19ec66de4ea83f3d205a148f7c))
+* Hubs ([#14](https://github.com/Discord-InterChat/InterChat/issues/14)) ([675a4fd](https://github.com/Discord-InterChat/InterChat/commit/675a4fdd7e5ee2366ee2a768e6105a155273e4b5))
+
+
+### Bug Fixes
+
+* disabled warn command ([8715b9f](https://github.com/Discord-InterChat/InterChat/commit/8715b9f602432ef600fcacc679494044d16bc514))
+* fixed bugs with `/hub joined` ([2359ea3](https://github.com/Discord-InterChat/InterChat/commit/2359ea3ede055add037bc400ee60dacf0d659563))
+* **hub:** hub delete hotfix ([af8c45e](https://github.com/Discord-InterChat/InterChat/commit/af8c45efadbe7b0d2cf929334956ae6077565305))
+* **hub:** limit invite creation to private hubs ([5046aa2](https://github.com/Discord-InterChat/InterChat/commit/5046aa29f4fb4a694390758d27e1fad452611e3a))
+* **hubs:** disable starter hubs for now ([ad3093f](https://github.com/Discord-InterChat/InterChat/commit/ad3093f4cf90552b1f9a5f29048c11913dd30b95))
+* Moved `/network delete` to `/hub leave` ([c2002ad](https://github.com/Discord-InterChat/InterChat/commit/c2002ada552d94bd6cf195278c72db96b1d794a1))
+
 ### [3.10.3](https://github.com/Discord-InterChat/Interchat/compare/v3.10.2...v3.10.3) (2023-05-09)
 
 
