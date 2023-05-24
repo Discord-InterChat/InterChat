@@ -2,9 +2,8 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteracti
 import { getDb } from '../../Utils/functions/utils';
 
 export = {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction, channelId: string) {
     const { normal } = interaction.client.emotes;
-    const channelId = interaction.options.getString('network', true);
     const db = getDb();
 
     if (!await db.connectedList.findFirst({ where: { channelId } })) {
@@ -43,7 +42,7 @@ export = {
 
       await db.connectedList.delete({ where: { channelId } });
       await collected.update({
-        content: `${normal.yes} Deleted network connection from <#${channelId}>!`,
+        content: `${normal.yes} Deleted network connection from <#${channelId}> and left the hub!`,
         embeds: [],
         components: [],
       });

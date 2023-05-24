@@ -17,10 +17,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   });
 
   if (joinedHubs.length === 0) {
-    interaction.reply({
-      content: `${interaction.client.emotes.normal.no} You have not any hubs yet!`,
-      ephemeral: true,
-    });
+    return interaction.editReply(`${interaction.client.emotes.normal.no} You have not joined any hubs yet!`);
   }
 
   const hubList = joinedHubs.map(hub => {
