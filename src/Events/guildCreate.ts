@@ -11,15 +11,16 @@ export default {
 
     const embed = new EmbedBuilder()
       .setTitle(`Thank you for inviting me! ${normal.tada}`)
-      .setDescription(stripIndents`
-        ${guild.client.user.username} allows you to talk to different servers from your own. It's a fun inter-server chat that is called the InterChat Network ${normal.clipart}! 
+      .setDescription(stripIndents`        
+        With ${guild.client.user.username}, you can talk to different servers from your own. Find lots of public hubs and connect to multiple servers in that hub! A fun inter-server chat that is sure enhance your server's experience! ${normal.clipart}!
+
+        - Use </hub browse:1107639810014847049> to find a hub of your liking and </hub join:1107639810014847049> to join it!
+        - Use </hub create:1107639810014847049> to create your own hub and invite your friends!
+        - Please follow the network </rules:924659340898619395> while using the network at all times.
+        - Unlock cool new features by voting on [top.gg](https://top.gg/bot/769921109209907241/vote)!
+        - If you want learn more about me, you can do so by reading the [guide](https://interchat.gitbook.io/guide/).
         
-        • Use </setup channel:978303442684624928> for me to guide you through the network setup process.
-        • Please follow the network </rules:924659340898619395> while using the network at all times.
-        • Unlock cool new features by voting on [top.gg](https://top.gg/bot/769921109209907241/vote)!
-        • If you want learn more about me, you can do so by reading the [guide](https://interchat.gitbook.io/guide/).
-        
-        Hope you enjoy using the Network! If you have any issues or want to know more about me join the [official support server](https://discord.gg/6bhXQynAPs).
+        We hope you enjoy using ${guild.client.user.username}! If you have any questions or feedback, please don't hesitate to reach out to us in the [official support server](https://discord.gg/6bhXQynAPs).
 			`)
       .setColor(colors('chatbot'))
       .setFooter({ text: `Sent for ${guild.name}`, iconURL: guild.iconURL() || undefined });
@@ -51,14 +52,16 @@ export default {
     }
 
     let inviter;
-    const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
+    const auditLogs = await guild
+      .fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
       .catch(() => null);
-    if (auditLog) {
-      const inviteLog = auditLog.entries.find((bot) => bot.target?.id === guild.client.user?.id);
+
+    if (auditLogs) {
+      const inviteLog = auditLogs.entries.find((bot) => bot.target?.id === guild.client.user?.id);
       inviter = inviteLog?.executor;
-      await inviter?.send({ embeds: [embed], components: [buttons] }).catch(() => {
-        sendInFirst(guild, { embeds: [embed], components: [buttons] }).catch(() => null);
-      });
+
+      await inviter?.send({ embeds: [embed], components: [buttons] })
+        .catch(() => sendInFirst(guild, { embeds: [embed], components: [buttons] }).catch(() => null));
     }
     else {
       await sendInFirst(guild, { embeds: [embed], components: [buttons] }).catch(() => null);
@@ -68,14 +71,14 @@ export default {
     if (!goalChannel?.isTextBased()) return;
 
     goalChannel.send({
-      content: `${mascot.flushed} I have joined ${guild.name}! **${1000 - guild.client.guilds.cache.size}** servers to go! ${guild.client.emotes.normal.tada}`,
+      content: `${mascot.flushed} I have joined ${guild.name}! I am now in **${guild.client.guilds.cache.size}** servers! ${guild.client.emotes.normal.tada}`,
       embeds: [
         new EmbedBuilder()
+          .setColor(colors('invisible'))
           .setAuthor({
             name: `${guild.name} ${inviter ? `• ${inviter.tag}` : ''}`,
             iconURL: guild.iconURL() || undefined,
-          })
-          .setColor(colors('invisible')),
+          }),
       ],
     }).catch(captureException);
   },

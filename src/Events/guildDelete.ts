@@ -17,7 +17,7 @@ export default {
         new EmbedBuilder()
           .setTitle('I have been kicked from a server 😢')
           .setDescription(stripIndents`
-            **${1000 - guild.client.guilds.cache.size}** servers more to go! 💪
+            I am now in **${guild.client.guilds.cache.size}** servers again! 💪
 
             **Server Name:** ${guild.name} (${guild.id})
             **Member Count:** ${guild.memberCount}
