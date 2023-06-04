@@ -99,7 +99,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           i.awaitModalSubmit({ time: 30_000 })
             .then(async m => {
               const rating = parseInt(m.fields.getTextInputValue('rating'));
-              if (isNaN(rating)) {
+              if (isNaN(rating) || rating < 1 || rating > 5) {
                 return m.reply({
                   content: 'Invalid rating. You must enter a number between 1 and 5.',
                   ephemeral: true,
