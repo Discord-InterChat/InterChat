@@ -20,24 +20,6 @@ export default {
       ),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
-    const database = getDb();
-    const serverInBlacklist = await database.blacklistedServers.findFirst({
-      where: { serverId: interaction.guild?.id },
-    });
-    const userInBlacklist = await database.blacklistedUsers.findFirst({
-      where: { userId: interaction.user.id },
-    });
-
-
-    if (serverInBlacklist) {
-      await interaction.reply('This server is blacklisted from using the Chat Network.');
-      return;
-    }
-    else if (userInBlacklist) {
-      await interaction.reply('You have been blacklisted from using the Chat Network.');
-      return;
-    }
-
     displaySettings.execute(interaction, interaction.options.getString('network', true));
   },
   async autocomplete(interaction: AutocompleteInteraction) {
