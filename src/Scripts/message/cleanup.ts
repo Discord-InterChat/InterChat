@@ -5,18 +5,16 @@ import { getDb } from '../../Utils/functions/utils';
 export default {
   async execute(
     message: Message,
-    channelAndMessageIds: Promise<NetworkWebhookSendResult | NetworkSendResult>[],
+    channelAndMessageIds: (NetworkWebhookSendResult | NetworkSendResult)[],
     hubId: string | null,
   ) {
     message.delete().catch(() => null);
     // All message data is stored in the database, so we can delete the message from the network later
+    const messageDataObj: { channelId: string, messageId: string }[] = [];
     const invalidChannelIds: string[] = [];
     const invalidWebhookIds: string[] = [];
 
-    const messageDataObj: { channelId: string, messageId: string }[] = [];
-
-    const resolved = await Promise.all(channelAndMessageIds);
-    resolved.forEach((result) => {
+    channelAndMessageIds.forEach((result) => {
       if (result.message === undefined && 'webhookId' in result) invalidWebhookIds.push(result.webhookId);
       else if (result.message === undefined && 'channelId' in result) invalidChannelIds.push(result.channelId);
 

@@ -41,7 +41,7 @@ export default {
     }
 
     const replyRegex = /> .*/g;
-    const placeholder = target.embeds[0]?.fields[0]?.value || target.content.replace(`**${interaction.user.tag}:**`, '');
+    const placeholder = target.embeds[0]?.description || target.content.replace(`**${interaction.user.tag}:**`, '');
 
     const modal = new ModalBuilder()
       .setCustomId(interaction.id)
@@ -66,18 +66,12 @@ export default {
         const editMessage = i.fields.getTextInputValue('editMessage');
         const censoredEditMessage = wordFiler.censor(editMessage);
 
-        let editEmbed = new EmbedBuilder(target.embeds[0]?.toJSON());
-        const reply = editEmbed?.data.fields?.at(0)?.value.match(replyRegex)?.at(0) || target.content.match(replyRegex)?.at(0);
+        let editEmbed = new EmbedBuilder(target.embeds[0].data);
+        const reply = editEmbed?.data.description?.match(replyRegex)?.at(0) || target.content.match(replyRegex)?.at(0);
 
-        editEmbed.setFields({
-          name: 'Message',
-          value: reply ? `${reply}\n${editMessage}` : editMessage,
-        });
-        let censoredEmbed = new EmbedBuilder(target.embeds[0]?.toJSON())
-          .setFields({
-            name: 'Message',
-            value: reply ? `${reply}\n${censoredEditMessage}` : censoredEditMessage,
-          });
+        editEmbed.setDescription(reply ? `${reply}\n${editMessage}` : editMessage);
+        let censoredEmbed = EmbedBuilder.from(target.embeds[0])
+          .setDescription(reply ? `${reply}\n${censoredEditMessage}` : censoredEditMessage);
 
         // loop through all the channels in the network and edit the message
         messageInDb.channelAndMessageIds.forEach(async obj => {
@@ -87,24 +81,18 @@ export default {
 
           // if target message is in compact mode, get the normal mode from another message in the network
           if (!target.embeds[0] && message?.embeds[0]) {
-            target.embeds[0] = message.embeds[0]; // updating for message logs
-            editEmbed = new EmbedBuilder(message.embeds[0].data).setFields({
-              name: 'Message',
-              value: reply ? `${reply}\n${editMessage}` : editMessage,
-            });
-            censoredEmbed = new EmbedBuilder(message.embeds[0].data).setFields({
-              name: 'Message',
-              value: reply ? `${reply}\n${censoredEditMessage}` : censoredEditMessage,
-            });
+            target.embeds[0] = message.embeds[0]; // update for message logs
+            editEmbed = new EmbedBuilder(message.embeds[0].data)
+              .setDescription(reply ? `${reply}\n${editMessage}` : editMessage);
+            censoredEmbed = new EmbedBuilder(message.embeds[0].data)
+              .setDescription(reply ? `${reply}\n${censoredEditMessage}` : censoredEditMessage);
           }
 
           if (channelSettings?.webhook) {
-            const { id, token } = channelSettings.webhook;
-
+            const webhook = new WebhookClient({ id: channelSettings.webhook.id, token: channelSettings.webhook.token });
             const replyCompact = `${reply}\n ${channelSettings?.profFilter ? editMessage : censoredEditMessage}`;
             const compact = channelSettings?.profFilter ? editMessage : censoredEditMessage;
             const webhookEmbed = channelSettings?.profFilter ? censoredEmbed : editEmbed;
-            const webhook = new WebhookClient({ id, token });
 
             channelSettings?.compact
               ? webhook.editMessage(obj.messageId, reply ? replyCompact : compact)
