@@ -3,7 +3,7 @@ import messageContentModifiers from '../Scripts/message/messageContentModifiers'
 import messageFormats from '../Scripts/message/messageFormatting';
 import cleanup from '../Scripts/message/cleanup';
 import { ActionRowBuilder, APIMessage, ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, Message, User, WebhookClient } from 'discord.js';
-import { getDb, colors } from '../Utils/functions/utils';
+import { getDb, colors, constants } from '../Utils/functions/utils';
 import { censor } from '../Utils/functions/wordFilter';
 import { messageData } from '@prisma/client';
 
@@ -123,21 +123,32 @@ export default {
           const channel = guild?.channels.cache.get(connection.channelId);
 
           if (channel?.type === ChannelType.GuildText) {
-            channel.send(
-              message.client.emotes.normal.loading + 'All Networks must now use webhooks for faster performance and to avoid frequent rate limits. Creating webhook...',
-            ).catch(() => null);
+            try {
+              channel.send(
+                message.client.emotes.normal.loading + 'All Networks must now use webhooks for faster performance and to avoid frequent rate limits. Attempting to create webhook...',
+              ).catch(() => null);
 
-            const hook = await channel.createWebhook({
-              name: `${message.author.username} Network`,
-              avatar: message.client.user.avatarURL(),
-              reason: 'All networks must use webhooks now.',
-            });
-
-            if (hook.token) {
-              await db.connectedList.update({
-                where: { id: connection.id },
-                data: { webhook: { set: { id: hook.id, token: hook.token, url: hook.url } } },
+              const hook = await channel.createWebhook({
+                name: `${message.author.username} Network`,
+                avatar: message.client.user.avatarURL(),
+                reason: 'All networks must use webhooks now.',
               });
+
+              if (hook.token) {
+                await db.connectedList.update({
+                  where: { id: connection.id },
+                  data: { webhook: { set: { id: hook.id, token: hook.token, url: hook.url } } },
+                });
+              }
+
+            }
+            catch {
+              channel.send(
+                message.client.emotes.normal.no + 'Failed to create webhook. Please make sure I have the `Manage Webhooks` permission in this channel and reconnect to the network (`/network manage`).',
+              ).catch(() => null);
+              const logChannel = message.client.channels.cache.get(constants.channel.networklogs) as any;
+              logChannel?.send(`Failed to create webhook in \`#${channel.name}\` (${channel.id}) in ${guild} (${guild?.id})`).catch(() => null);
+              await db.connectedList.update({ where: { id: connection.id }, data: { connected: false } });
             }
           }
 
