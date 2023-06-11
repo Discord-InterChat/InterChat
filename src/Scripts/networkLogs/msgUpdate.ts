@@ -18,9 +18,6 @@ export async function networkMsgUpdate(member: GuildMember, oldMessage: Message,
   const logChannel = await member.client.channels.fetch(constants.channel.networklogs) as GuildTextBasedChannel;
   const attachmentLink = oldMessage.attachments.first()?.url || oldMessage.embeds.at(0)?.image?.url || null;
 
-  let messageContent = oldMessage.embeds[0]?.description || oldMessage.content.replace(`**${member.user.tag}:**`, '');
-  messageContent = messageContent.replace(/> .*/g, '').trim();
-
   const emoji = member.client.emotes;
 
   const embed = new EmbedBuilder()
@@ -33,7 +30,7 @@ export async function networkMsgUpdate(member: GuildMember, oldMessage: Message,
             ${emoji.normal.dotYellow} **Created At:** <t:${Math.round(newMessage.timestamp.getTime() / 1000)}:R>
             [Jump To Message](https://discord.com/channels/${constants.guilds.cbhq}/${cbhqJumpMsg?.channelId}/${cbhqJumpMsg?.messageId})`)
     .addFields(
-      { name: 'Before', value: messageContent },
+      { name: 'Before', value: oldMessage.content || oldMessage.embeds[0]?.description || 'None.' },
       { name: 'After', value: newMessage.content },
     )
     .setTimestamp()
