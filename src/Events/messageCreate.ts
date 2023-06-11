@@ -53,6 +53,7 @@ export default {
       // author of the message being replied to
       let referredAuthor: User | undefined;
       let replyInDb: messageData | null;
+      let referedMsgEmbed: EmbedBuilder | undefined; // for compact messages
 
       if (message.reference) {
         const referredMessage = await message.fetchReference().catch(() => null);
@@ -67,11 +68,18 @@ export default {
             ? await message.client.users.fetch(replyInDb?.authorId).catch(() => undefined)
             : undefined;
 
-          // Add quoted reply to original embed
+          // Add quoted reply to embeds
           embed.addFields({
             name: 'Reply-to:',
             value: `${messageContentModifiers.getReferredContent(message, referredMessage)}`,
           });
+          referedMsgEmbed = new EmbedBuilder()
+            .setColor(embed.data.color || 'Random')
+            .setDescription(`${messageContentModifiers.getReferredContent(message, referredMessage)?.replace(/^/gm, '> ')}`)
+            .setAuthor({
+              name: `@${referredAuthor?.username}`,
+              iconURL: referredAuthor?.avatarURL() || undefined,
+            });
         }
       }
 
@@ -104,8 +112,8 @@ export default {
 
           if (connection?.webhook) {
             const webhook = new WebhookClient({ id: `${connection?.webhook?.id}`, token: `${connection?.webhook?.token}` });
-            const webhookMessage = messageFormats.createWebhookOptions(message, attachment, replyButton, connection,
-              { censored: censoredEmbed, normal: embed });
+            const webhookMessage = messageFormats.createWebhookOptions(message, connection, replyButton,
+              { censored: censoredEmbed, normal: embed, reply: referedMsgEmbed }, attachment);
             const webhookSendRes = await webhook.send(webhookMessage).catch(() => null);
             return { webhookId: webhook.id, message: webhookSendRes } as NetworkWebhookSendResult;
           }

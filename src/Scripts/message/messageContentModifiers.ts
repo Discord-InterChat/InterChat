@@ -4,12 +4,12 @@ import 'dotenv/config';
 
 export default {
   getReferredContent(message: Message, referredMessage: Message) {
-    let referredContent = referredMessage.embeds[0]?.description || message.content;
+    let referredContent = referredMessage.content || referredMessage.embeds[0]?.description;
 
     if (!referredContent || referredContent === '\u200B') {
       referredContent += '*Original message contains attachment <:attachment:1102464803647275028>*';
     }
-    if (referredContent.length > 1000) referredContent = referredContent.slice(0, 1000) + '...';
+    else if (referredContent.length > 1000) {referredContent = referredContent.slice(0, 1000) + '...';}
 
     return referredContent;
   },
