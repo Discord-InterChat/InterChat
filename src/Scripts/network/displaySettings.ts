@@ -25,7 +25,6 @@ async function setupEmbed(interaction: Interaction, channelId: string) {
       { name: 'Invite', value: invite, inline: true },
       { name: 'Connected', value: yesOrNo(networkData?.connected, yes, no), inline: true },
       { name: 'Compact', value: yesOrNo(networkData?.compact, enabled, disabled), inline: true },
-      { name: 'Webhook', value: yesOrNo(networkData?.webhook, enabled, disabled), inline: true },
       { name: 'Profanity Filter', value: yesOrNo(networkData?.profFilter, enabled, disabled), inline: true },
     ])
     .setColor(colors('chatbot'))
@@ -54,7 +53,7 @@ export = {
     const customizeMenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
       new StringSelectMenuBuilder()
         .setCustomId('customize')
-        .setPlaceholder('🛠️ Edit Settings')
+        .setPlaceholder('🛠️ Select a setting to toggle')
         .addOptions(
           new StringSelectMenuOptionBuilder()
             .setLabel('Compact')
@@ -67,11 +66,6 @@ export = {
             .setDescription('Toggle swear word censoring for this server.')
             .setValue('profanity'),
           new StringSelectMenuOptionBuilder()
-            .setLabel('Webhook')
-            .setEmoji(emoji.normal.webhook)
-            .setDescription('Network messages will be sent using webhooks instead.')
-            .setValue('webhook'),
-          new StringSelectMenuOptionBuilder()
             .setLabel('Invite Link')
             .setEmoji(emoji.icons.members)
             .setDescription('Set an invite for network users to join your server easily!')
@@ -83,7 +77,6 @@ export = {
             .setValue('change_channel'),
         ),
     ]);
-
 
     const channelExists = await interaction.client.channels.fetch(connection.channelId).catch(() => null);
     const setupMessage = await interaction.editReply({
@@ -113,7 +106,7 @@ export = {
 
     /* ------------------- Button Responce collectors ---------------------- */
     buttonCollector.on('collect', async (component) => {
-      const updConnection = await db.connectedList.findFirst({ where: { channelId } });
+      const updConnection = await db.connectedList.findFirst({ where: { channelId: connection.channelId } });
       if (!updConnection) {
         await component.reply({
           content: `${emoji.normal.no} This network no longer exists!`,
@@ -173,8 +166,8 @@ export = {
           break;
       }
       component.replied || component.deferred
-        ? interaction.editReply({ embeds: [await setupEmbed(interaction, channelId)] })
-        : component.update({ embeds: [await setupEmbed(interaction, channelId)] });
+        ? interaction.editReply({ embeds: [await setupEmbed(interaction, updConnection.channelId)] })
+        : component.update({ embeds: [await setupEmbed(interaction, updConnection.channelId)] });
 
     });
 
@@ -217,7 +210,7 @@ export = {
             );
 
           const changeMsg = await settingsMenu.reply({
-            content: 'Please select a channel. You have 20 seconds to do so.',
+            content: 'Please select a channel within the next 20 seconds.',
             components: [channelMenu],
             ephemeral: true,
           });
@@ -225,115 +218,51 @@ export = {
           const selected = await changeMsg.awaitMessageComponent({
             componentType: ComponentType.ChannelSelect,
             idle: 20_000,
-          });
+          }).catch(() => null);
 
+          if (!selected) return;
 
           const oldchannel = selected.guild?.channels.cache.get(`${updConnection?.channelId}`) as TextChannel;
           const channel = selected.guild?.channels.cache.get(selected?.values[0]) as TextChannel;
-          let webhook = undefined;
 
-          if (updConnection.channelId === channel.id) {
-            await selected.reply({
-              content: `The channel ${channel} is already connected to a hub. Choose another channel.`,
-              ephemeral: true,
+          if (await db.connectedList.findFirst({ where: { channelId: channel.id } })) {
+            await selected.update({
+              content: `${emoji.normal.no} Channel ${channel} is already connected to a hub. Please leave that hub first or select another channel.`,
+              components: [],
             });
             return;
           }
-          channelId = channel.id;
 
-          if (updConnection?.webhook) {
-            // delete the old webhook
-            oldchannel?.fetchWebhooks()
-              .then(promisehook => promisehook.find((hook) => hook.owner?.id === hook.client.user?.id)?.delete().catch(() => null))
-              .catch(() => null);
+          // delete the old webhook
+          oldchannel?.fetchWebhooks()
+            .then(promisehook => promisehook.find((hook) => hook.owner?.id === hook.client.user?.id)?.delete().catch(() => null))
+            .catch(() => null);
 
-            // create a webhook in the new channel
-            webhook = await channel?.createWebhook({
-              name: 'InterChat Network',
-              avatar: selected.client.user.avatarURL(),
-            });
-          }
+          // create a webhook in the new channel
+          const webhook = await channel?.createWebhook({
+            name: 'InterChat Network',
+            avatar: selected.client.user.avatarURL(),
+          });
 
           await db.connectedList.update({
             where: { channelId: updConnection.channelId },
             data: {
               channelId: channel?.id,
-              webhook: webhook ? { id: webhook.id, token: `${webhook.token}`, url: webhook.url } : { unset: true },
+              webhook: { id: webhook.id, token: `${webhook.token}`, url: webhook.url },
             },
           });
 
-
           await selected?.update({
-            content: 'Channel successfully changed!',
+            content: `Successfully switched connection from ${oldchannel} to ${channel}!`,
             components: [],
           });
-          break;
-        }
-
-        /* Webhook Selection Response */
-        case 'webhook': {
-          const connectedChannel = await interaction.client.channels
-            .fetch(`${updConnection.channelId}`)
-            .catch(() => null);
-
-          if (connectedChannel?.type !== ChannelType.GuildText) {
-            await settingsMenu.reply({
-              content: 'Cannot edit setup for selected channel. If you think this is a mistake report it to the developers.',
-              ephemeral: true,
-            });
-            return;
-          }
-
-          if (updConnection.webhook) {
-            const deleteWebhook = await connectedChannel.fetchWebhooks();
-            deleteWebhook
-              .find((webhook) => webhook.owner?.id === interaction.client.user.id)
-              ?.delete();
-
-            await db.connectedList.update({
-              where: { channelId: connectedChannel.id },
-              data:{ webhook: null },
-            });
-
-            await settingsMenu.reply({
-              content: 'Webhook messages have been disabled.',
-              ephemeral: true,
-            });
-            break;
-          }
-
-          await settingsMenu.reply({
-            content: `${emoji.normal.loading} Creating webhook...`,
-            ephemeral: true,
-          });
-
-          let webhook;
-          try {
-            webhook = await connectedChannel.createWebhook({
-              name: 'InterChat Network',
-              avatar: interaction.client.user?.avatarURL(),
-            });
-          }
-          catch (e: any) {
-            if (e.message.includes('Missing Permissions')) settingsMenu.editReply(emoji.normal.no + ' Please grant me `Manage Webhook` permissions for this to work.');
-            else settingsMenu.editReply(`${emoji.normal.no} **Error during webhook creation**: ${e.message}`);
-            break;
-          }
-
-
-          await settingsMenu.editReply(`${emoji.normal.loading} Initializing & saving webhook data...`);
-          await db.connectedList.update({
-            where:  { channelId },
-            data: { webhook: { id: webhook.id, token: `${webhook.token}`, url: webhook.url } },
-          });
-          await settingsMenu.editReply(`${emoji.normal.yes} Webhooks have been enabled!`);
           break;
         }
 
         /* Invite Selection Response */
         case 'invite': {
           await interaction.followUp({
-            content: 'Setting an invite allows users throughout the network view and join your server. At the moment visible only though the `Server Info` context menu, but will be available in other coming features. Servers that go against our </rules:924659340898619395> will be removed and blacklisted.',
+            content: 'Setting an invite allows users to join your server through the `Server Info` context menu. Servers that go against our </rules:924659340898619395> will be removed.',
             ephemeral: true,
           });
 
@@ -386,7 +315,7 @@ export = {
             return;
           }
 
-          await db.connectedList.update({ where: { channelId }, data: { invite: isValid.code } });
+          await db.connectedList.update({ where: { channelId: updConnection.channelId }, data: { invite: isValid.code } });
 
           modalResp.reply({
             content: 'Invite link successfully set!',
@@ -397,8 +326,8 @@ export = {
       }
 
       settingsMenu.replied || settingsMenu.deferred
-        ? interaction.editReply({ embeds: [await setupEmbed(interaction, channelId)] })
-        : settingsMenu.update({ embeds: [await setupEmbed(interaction, channelId)] });
+        ? interaction.editReply({ embeds: [await setupEmbed(interaction, updConnection.channelId)] })
+        : settingsMenu.update({ embeds: [await setupEmbed(interaction, updConnection.channelId)] });
     });
 
     selectCollector.on('end', () => {

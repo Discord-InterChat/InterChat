@@ -1,6 +1,6 @@
-import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
+import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder } from 'discord.js';
 import { networkMsgUpdate } from '../../Scripts/networkLogs/msgUpdate';
-import { checkIfStaff, getDb, topgg } from '../../Utils/functions/utils';
+import { checkIfStaff, getDb, getGuildName, topgg } from '../../Utils/functions/utils';
 import wordFiler from '../../Utils/functions/wordFilter';
 import logger from '../../Utils/logger';
 
@@ -15,7 +15,7 @@ export default {
     const isStaff = checkIfStaff(interaction.user.id);
 
     if (!hasVoted && !isStaff) {
-      interaction.reply({
+      await interaction.reply({
         content: `${interaction.client.emotes.normal.no} You must [vote](<https://top.gg/bot/${interaction.client.user.id}/vote>) to use this command.`,
         ephemeral: true,
       });
@@ -29,7 +29,7 @@ export default {
 
     if (!messageInDb) {
       await interaction.reply({
-        content: 'This message has expired :(',
+        content: 'This message has expired. If not, please wait a few seconds and try again.',
         ephemeral: true,
       });
       return;
@@ -40,8 +40,7 @@ export default {
       return;
     }
 
-    const replyRegex = /> .*/g;
-    const placeholder = target.embeds[0]?.fields[0]?.value || target.content.replace(`**${interaction.user.tag}:**`, '');
+    const placeholder = target.content || target.embeds[0]?.description;
 
     const modal = new ModalBuilder()
       .setCustomId(interaction.id)
@@ -50,10 +49,10 @@ export default {
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
             .setRequired(true)
-            .setCustomId('editMessage')
+            .setCustomId('newMessage')
             .setStyle(TextInputStyle.Paragraph)
             .setLabel('Please enter your new message.')
-            .setValue(placeholder.replace(replyRegex, '').trim())
+            .setValue(`${placeholder}`)
             .setMaxLength(950),
         ),
       );
@@ -63,70 +62,44 @@ export default {
     interaction.awaitModalSubmit({ filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id, time: 30_000 })
       .then(i => {
         // get the input from user
-        const editMessage = i.fields.getTextInputValue('editMessage');
-        const censoredEditMessage = wordFiler.censor(editMessage);
+        const newMessage = i.fields.getTextInputValue('newMessage');
+        const censoredNewMessage = wordFiler.censor(newMessage);
 
-        let editEmbed = new EmbedBuilder(target.embeds[0]?.toJSON());
-        const reply = editEmbed?.data.fields?.at(0)?.value.match(replyRegex)?.at(0) || target.content.match(replyRegex)?.at(0);
+        // get the reply from the target message
+        const newEmbed = !target.content
+          ? EmbedBuilder.from(target.embeds[0])
+          : new EmbedBuilder()
+            .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
+            .setDescription(target.content)
+            .setColor(target.member?.displayHexColor ?? 'Random')
+            .addFields(target.embeds[0] ? [{ name: 'Reply-to', value: `${target.embeds[0].description}` }] : [])
+            .setFooter({ text: `Server: ${getGuildName(interaction.client, messageInDb.serverId)}` });
 
-        editEmbed.setFields({
-          name: 'Message',
-          value: reply ? `${reply}\n${editMessage}` : editMessage,
+        const censoredEmbed = EmbedBuilder.from(newEmbed).setDescription(censoredNewMessage);
+
+        i.reply({
+          content: `${interaction.client.emotes.normal.yes} Message Edited. Please give a few seconds for it to reflect in all connections.`,
+          ephemeral: true,
         });
-        let censoredEmbed = new EmbedBuilder(target.embeds[0]?.toJSON())
-          .setFields({
-            name: 'Message',
-            value: reply ? `${reply}\n${censoredEditMessage}` : censoredEditMessage,
-          });
 
         // loop through all the channels in the network and edit the message
         messageInDb.channelAndMessageIds.forEach(async obj => {
           const channelSettings = await db.connectedList.findFirst({ where: { channelId: obj.channelId } });
-          const channel = await interaction.client.channels.fetch(obj.channelId) as GuildTextBasedChannel;
-          const message = await channel?.messages?.fetch(obj.messageId).catch(() => null);
-
-          // if target message is in compact mode, get the normal mode from another message in the network
-          if (!target.embeds[0] && message?.embeds[0]) {
-            target.embeds[0] = message.embeds[0]; // updating for message logs
-            editEmbed = new EmbedBuilder(message.embeds[0].data).setFields({
-              name: 'Message',
-              value: reply ? `${reply}\n${editMessage}` : editMessage,
-            });
-            censoredEmbed = new EmbedBuilder(message.embeds[0].data).setFields({
-              name: 'Message',
-              value: reply ? `${reply}\n${censoredEditMessage}` : censoredEditMessage,
-            });
-          }
 
           if (channelSettings?.webhook) {
-            const { id, token } = channelSettings.webhook;
-
-            const replyCompact = `${reply}\n ${channelSettings?.profFilter ? editMessage : censoredEditMessage}`;
-            const compact = channelSettings?.profFilter ? editMessage : censoredEditMessage;
-            const webhookEmbed = channelSettings?.profFilter ? censoredEmbed : editEmbed;
-            const webhook = new WebhookClient({ id, token });
+            const webhook = new WebhookClient({ id: channelSettings.webhook.id, token: channelSettings.webhook.token });
+            const compact = channelSettings?.profFilter ? newMessage : censoredNewMessage;
+            const webhookEmbed = channelSettings?.profFilter ? censoredEmbed : newEmbed;
 
             channelSettings?.compact
-              ? webhook.editMessage(obj.messageId, reply ? replyCompact : compact)
+              ? webhook.editMessage(obj.messageId, compact)
               : webhook.editMessage(obj.messageId, { files: [], embeds: [webhookEmbed] });
-          }
-
-          else {
-            const replyFormat = `${reply}\n**${i.user.tag}:** ${channelSettings?.profFilter ? censoredEditMessage : editMessage}`;
-            const compactFormat = `**${i.user.tag}:** ${channelSettings?.profFilter ? censoredEditMessage : editMessage}`;
-            const normalEmbed = channelSettings?.profFilter ? censoredEmbed : editEmbed;
-
-            channelSettings?.compact
-              ? message?.edit(reply ? replyFormat : compactFormat)
-              : message?.edit({ files: [], embeds: [normalEmbed] });
           }
         });
 
-        i.reply({ content: `${interaction.client.emotes.normal.yes} Message Edited.`, ephemeral: true });
-
         const newMessageObject = {
           id: target.id,
-          content: editMessage,
+          content: newMessage,
           timestamp: target.editedAt ?? target.createdAt,
         };
 

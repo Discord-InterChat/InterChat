@@ -1,5 +1,5 @@
 import { stripIndents } from 'common-tags';
-import { ChatInputCommandInteraction, Collection, GuildTextBasedChannel } from 'discord.js';
+import { ChannelType, ChatInputCommandInteraction, Collection, GuildTextBasedChannel } from 'discord.js';
 import { disconnect } from '../../Structures/network';
 import { hubs } from '@prisma/client';
 import logger from '../../Utils/logger';
@@ -32,8 +32,17 @@ export = {
     }
 
     try {
+      if (networkChannel.type !== ChannelType.GuildText) {
+        interaction.followUp(`${emoji.no} You can only connect **text channels** to the InterChat network!`);
+        return;
+      }
+
+      const webhook = await networkChannel.createWebhook({
+        name: 'InterChat Network',
+        avatar: interaction.client.user?.avatarURL(),
+      });
+
       const { connectedList } = getDb();
-      // Inserting channel to connectedlist
       await connectedList.create({
         data:{
           channelId: networkChannel.id,
@@ -41,6 +50,7 @@ export = {
           connected: true,
           profFilter: true,
           compact: false,
+          webhook: { id: webhook.id, token: `${webhook.token}`, url: webhook.url },
           hub: { connect: { id: hub.id } },
         },
       });
@@ -57,7 +67,7 @@ export = {
     catch (err: any) {
       logger.error(err);
       if (err.message === 'Missing Permissions' || err.message === 'Missing Access') {
-        interactionReply(`${emoji.no} I don't have the required permissions and/or access to the selected channel to execute this command.`);
+        interactionReply(`${emoji.no} Please make sure you have granted me \`Manage Webhooks\` and \`View Channel\` permissions for the selected channel.`);
       }
       else {
         interactionReply(`An error occurred while connecting to the InterChat network! \`\`\`js\n${err.message}\`\`\``);
