@@ -3,11 +3,11 @@ import { NetworkMessage } from '../../Events/messageCreate';
 import 'dotenv/config';
 
 export default {
-  getReferredContent(message: Message, referredMessage: Message) {
+  getReferredContent(referredMessage: Message) {
     let referredContent = referredMessage.content || referredMessage.embeds[0]?.description;
 
-    if (!referredContent || referredContent === '\u200B') {
-      referredContent += '*Original message contains attachment <:attachment:1102464803647275028>*';
+    if (!referredContent) {
+      referredContent = '*Original message contains attachment <:attachment:1102464803647275028>*';
     }
     else if (referredContent.length > 1000) {referredContent = referredContent.slice(0, 1000) + '...';}
 

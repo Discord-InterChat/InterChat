@@ -37,7 +37,7 @@ export default {
       const attachmentURL = !attachment ? await messageContentModifiers.getAttachmentURL(message) : undefined;
 
       const embed = new EmbedBuilder()
-        .setDescription(message.content)
+        .setDescription(message.content || null) // description must be null if message is only an attachment
         .setImage(attachment ? `attachment://${attachment.name}` : attachmentURL || null)
         .setColor(colors('random'))
         .setAuthor({
@@ -57,7 +57,7 @@ export default {
 
       if (message.reference) {
         const referredMessage = await message.fetchReference().catch(() => null);
-        if (referredMessage) {
+        if (referredMessage?.webhookId) {
           replyInDb = await db.messageData.findFirst({
             where: {
               channelAndMessageIds: { some: { messageId: referredMessage.id } },
@@ -68,14 +68,15 @@ export default {
             ? await message.client.users.fetch(replyInDb?.authorId).catch(() => undefined)
             : undefined;
 
+          const referredContent = messageContentModifiers.getReferredContent(referredMessage);
           // Add quoted reply to embeds
           embed.addFields({
             name: 'Reply-to:',
-            value: `${messageContentModifiers.getReferredContent(message, referredMessage)}`,
+            value: `${referredContent}`,
           });
           referedMsgEmbed = new EmbedBuilder()
             .setColor(embed.data.color || 'Random')
-            .setDescription(`${messageContentModifiers.getReferredContent(message, referredMessage)?.replace(/^/gm, '> ')}`)
+            .setDescription(referredContent)
             .setAuthor({
               name: `@${referredAuthor?.username}`,
               iconURL: referredAuthor?.avatarURL() || undefined,
@@ -84,14 +85,12 @@ export default {
       }
 
       // define censored embed after reply is added to reflect that in censored embed as well
-      const censoredEmbed = new EmbedBuilder(embed.data).setDescription(message.censored_content);
+      const censoredEmbed = new EmbedBuilder(embed.data).setDescription(message.censored_content || null);
       // await addBadges.execute(message, db, embed, censoredEmbed);
 
       // send the message to all connected channels in apropriate format (webhook/compact/normal)
+      const hubConnections = await db.connectedList.findMany({ where: { hubId: channelInDb.hubId, connected: true } });
       const messageResults: Promise<NetworkWebhookSendResult | NetworkSendResult>[] = [];
-      const hubConnections = await db.connectedList.findMany({
-        where: { hubId: channelInDb.hubId, connected: true },
-      });
       hubConnections?.forEach((connection) => {
         const result = (async () => {
           const channelToSend = message.client.channels.cache.get(connection.channelId);
@@ -102,8 +101,8 @@ export default {
             ? new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
               .setLabel(
                 (referredAuthor && referredAuthor.tag.length >= 80
-                  ? referredAuthor.tag.slice(0, 76) + '...'
-                  : referredAuthor?.tag) || 'Jump',
+                  ? '@' + referredAuthor.tag.slice(0, 76) + '...'
+                  : '@' + referredAuthor?.tag) || 'Jump',
               )
               .setStyle(ButtonStyle.Link)
               .setEmoji(message.client.emotes.normal.reply)
@@ -118,7 +117,6 @@ export default {
             return { webhookId: webhook.id, message: webhookSendRes } as NetworkWebhookSendResult;
           }
 
-          // TODO: recheck if everything is good to go
           const guild = message.client.guilds.cache.get(connection.serverId);
           const channel = guild?.channels.cache.get(connection.channelId);
 
