@@ -12,17 +12,16 @@ export = {
   async execute(interaction: ChatInputCommandInteraction, hub: hubs, networkChannel: GuildTextBasedChannel) {
     const emoji = interaction.client.emotes.normal;
 
-    const interactionReply = interaction.deferred || interaction.replied
-      ? interaction.followUp
-      : interaction.reply;
-
+    // Check if server is already attempting to join a hub
     if (onboardingInProgress.has(networkChannel.id)) {
-      await interactionReply(`${emoji.no} Another setup for ${networkChannel} is already in progress.`);
+      const err = `${emoji.no} There has already been an attempt to join a hub in ${networkChannel}. Please wait for that to finish before trying again!`;
+      interaction.deferred || interaction.replied
+        ? interaction.followUp(err)
+        : interaction.reply(err);
       return;
     }
-    // Mark this setup as in-progress so server can't setup twice
-    onboardingInProgress.set(interaction.channelId, interaction.channelId);
-
+    // Mark this as in-progress so server can't join twice
+    onboardingInProgress.set(networkChannel.id, networkChannel.id);
 
     // Show new users rules & info about network
     const onboardingStatus = await onboarding.execute(interaction);
@@ -67,10 +66,16 @@ export = {
     catch (err: any) {
       logger.error(err);
       if (err.message === 'Missing Permissions' || err.message === 'Missing Access') {
-        interactionReply(`${emoji.no} Please make sure you have granted me \`Manage Webhooks\` and \`View Channel\` permissions for the selected channel.`);
+        const errMsg = `${emoji.no} Please make sure you have granted me \`Manage Webhooks\` and \`View Channel\` permissions for the selected channel.`;
+        interaction.deferred || interaction.replied
+          ? interaction.followUp(errMsg)
+          : interaction.reply(errMsg);
       }
       else {
-        interactionReply(`An error occurred while connecting to the InterChat network! \`\`\`js\n${err.message}\`\`\``);
+        const errMsg = `An error occurred while connecting to the InterChat network! \`\`\`js\n${err.message}\`\`\``;
+        interaction.deferred || interaction.replied
+          ? interaction.followUp(errMsg)
+          : interaction.reply(errMsg);
       }
       onboardingInProgress.delete(networkChannel.id);
       disconnect(networkChannel.id);
@@ -83,5 +88,6 @@ export = {
       **Server Name:** __${interaction.guild?.name}__
       **Member Count:** __${interaction.guild?.memberCount}__
     `, { id: hub.id });
+    return true; // just a marker to show that the setup was successful
   },
 };

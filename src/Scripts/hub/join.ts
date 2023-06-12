@@ -111,6 +111,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
 
   // TODO: make an onboarding function and show them rules and stuff
-  await initialize.execute(interaction, hubExists, channel);
-  await displaySettings.execute(interaction, channel.id);
+  initialize.execute(interaction, hubExists, channel)
+    .then(success => { if (success) displaySettings.execute(interaction, channel.id); });
 }
