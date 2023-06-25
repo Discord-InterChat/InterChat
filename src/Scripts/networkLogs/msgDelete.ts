@@ -12,7 +12,7 @@ export async function networkMessageDelete(deletedBy: GuildMember | null, messag
 
   if (!messageInDb) return;
 
-  const messageContent = message.embeds[0]?.fields[0]?.value || message.content || 'No Content';
+  const messageContent = message.content || message.embeds[0]?.description || 'No Content';
   const attachmentLink = message.attachments.first()?.url || message.embeds.at(0)?.image?.url || null;
 
   const author = await message.client.users.fetch(messageInDb.authorId).catch(() => null);

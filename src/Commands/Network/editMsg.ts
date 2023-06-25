@@ -86,7 +86,7 @@ export default {
         messageInDb.channelAndMessageIds.forEach(async obj => {
           const channelSettings = await db.connectedList.findFirst({ where: { channelId: obj.channelId } });
 
-          if (channelSettings?.webhook) {
+          if (channelSettings) {
             const webhook = new WebhookClient({ id: channelSettings.webhook.id, token: channelSettings.webhook.token });
             const compact = channelSettings?.profFilter ? newMessage : censoredNewMessage;
             const webhookEmbed = channelSettings?.profFilter ? censoredEmbed : newEmbed;

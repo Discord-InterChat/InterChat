@@ -51,14 +51,10 @@ export default {
       });
     }
 
-    // remove invalid webhooks from database
+
+    // disconnect invalid webhooks/channels from the database
     await db.connectedList.updateMany({
-      where: { webhook: { is: { id: { in: invalidWebhookIds } } } },
-      data:{ webhook: null },
-    });
-    // disconnect invalid channels from the database
-    await db.connectedList.updateMany({
-      where: { channelId: { in: invalidChannelIds } },
+      where: { OR: [{ channelId: { in: invalidChannelIds } }, { webhook: { is: { id: { in: invalidWebhookIds } } } }] },
       data: { connected: false },
     });
   },

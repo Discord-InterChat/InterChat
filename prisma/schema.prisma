@@ -74,7 +74,7 @@ model connectedList {
   compact    Boolean
   invite     String?
   profFilter Boolean
-  webhook    NetworkWebhook?
+  webhook    NetworkWebhook
   date       DateTime        @default(now())
   hub        hubs?           @relation(fields: [hubId], references: [id])
   hubId      String?         @db.ObjectId
