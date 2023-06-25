@@ -16,11 +16,19 @@ export default {
       include: { hub: true },
     });
 
-    if (!messageInDb) return interaction.reply({ content: 'Unknown message.', ephemeral: true });
+    if (!messageInDb) {
+      return interaction.reply({
+        content: 'Unknown Message. If it has been sent in the past minute, please wait few more seconds and try again.',
+        ephemeral: true,
+      });
+    }
 
     const interchatStaff = checkIfStaff(interaction.user.id);
     if (!messageInDb.hub?.moderators.find((m) => m.userId === interaction.user.id) && !interchatStaff && interaction.user.id !== messageInDb.authorId) {
-      return interaction.reply({ content: `${emoji.no} You are not the author of this message.`, ephemeral: true });
+      return interaction.reply({
+        content: `${emoji.no} You are not the author of this message.`,
+        ephemeral: true,
+      });
     }
 
     await interaction.reply({

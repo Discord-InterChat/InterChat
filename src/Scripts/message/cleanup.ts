@@ -1,38 +1,29 @@
 import { Message } from 'discord.js';
-import { NetworkSendResult, NetworkWebhookSendResult } from '../../Events/messageCreate';
+import { NetworkWebhookSendResult } from '../../Events/messageCreate';
 import { getDb } from '../../Utils/functions/utils';
 
 export default {
+  /**
+   * Disconnects connections if an errored occured while sending the message to it.
+   * Otherwise, inserts messages into `messageData` collection for future use.
+   */
   async execute(
     message: Message,
-    channelAndMessageIds: (NetworkWebhookSendResult | NetworkSendResult)[],
+    channelAndMessageIds: NetworkWebhookSendResult[],
     hubId: string | null,
   ) {
-    message.delete().catch(() => null);
     // All message data is stored in the database, so we can delete the message from the network later
     const messageDataObj: { channelId: string, messageId: string }[] = [];
-    const invalidChannelIds: string[] = [];
     const invalidWebhookIds: string[] = [];
 
     channelAndMessageIds.forEach((result) => {
-      if (result.message === undefined && 'webhookId' in result) invalidWebhookIds.push(result.webhookId);
-      else if (result.message === undefined && 'channelId' in result) invalidChannelIds.push(result.channelId);
-
+      if (result.message === undefined) invalidWebhookIds.push(result.webhookId);
       if (result.message) {
-        // normal message
-        if ('channelId' in result) {
-          messageDataObj.push({
-            channelId: result.channelId,
-            messageId: result.message.id,
-          });
-        }
         // webhook message (channel_id instead of channelId)
-        else if (result.message.channel_id) {
-          messageDataObj.push({
-            channelId: result.message.channel_id,
-            messageId: result.message.id,
-          });
-        }
+        messageDataObj.push({
+          channelId: result.message.channel_id,
+          messageId: result.message.id,
+        });
       }
     });
 
@@ -51,11 +42,12 @@ export default {
       });
     }
 
-
     // disconnect invalid webhooks/channels from the database
-    await db.connectedList.updateMany({
-      where: { OR: [{ channelId: { in: invalidChannelIds } }, { webhook: { is: { id: { in: invalidWebhookIds } } } }] },
-      data: { connected: false },
-    });
+    if (invalidWebhookIds.length > 0) {
+      await db.connectedList.updateMany({
+        where: { webhook: { is: { id: { in: invalidWebhookIds } } } },
+        data: { connected: false },
+      });
+    }
   },
 };

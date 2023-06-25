@@ -2,8 +2,8 @@ import checks from '../Scripts/message/checks';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import messageFormats from '../Scripts/message/messageFormatting';
 import cleanup from '../Scripts/message/cleanup';
-import { ActionRowBuilder, APIMessage, ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, Message, User, WebhookClient } from 'discord.js';
-import { getDb, colors, constants } from '../Utils/functions/utils';
+import { ActionRowBuilder, APIMessage, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, User, WebhookClient } from 'discord.js';
+import { getDb, colors } from '../Utils/functions/utils';
 import { censor } from '../Utils/functions/wordFilter';
 import { messageData } from '@prisma/client';
 
@@ -14,11 +14,6 @@ export interface NetworkMessage extends Message {
 export interface NetworkWebhookSendResult {
   message: APIMessage | null
   webhookId: string;
-}
-
-export interface NetworkSendResult {
-  message?: Message | null
-  channelId: string;
 }
 
 export default {
@@ -88,80 +83,32 @@ export default {
       const censoredEmbed = new EmbedBuilder(embed.data).setDescription(message.censored_content || null);
       // await addBadges.execute(message, db, embed, censoredEmbed);
 
-      // send the message to all connected channels in apropriate format (webhook/compact/normal)
       const hubConnections = await db.connectedList.findMany({ where: { hubId: channelInDb.hubId, connected: true } });
-      const messageResults: Promise<NetworkWebhookSendResult | NetworkSendResult>[] = [];
-      hubConnections?.forEach((connection) => {
-        const result = (async () => {
-          const channelToSend = message.client.channels.cache.get(connection.channelId);
-          if (!channelToSend || !channelToSend.isTextBased()) return { channelId: connection.channelId } as NetworkSendResult;
 
-          const reply = replyInDb?.channelAndMessageIds.find((msg) => msg.channelId === connection.channelId);
-          const replyButton = reply
-            ? new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
-              .setLabel(
-                (referredAuthor && referredAuthor.tag.length >= 80
-                  ? '@' + referredAuthor.tag.slice(0, 76) + '...'
-                  : '@' + referredAuthor?.tag) || 'Jump',
-              )
-              .setStyle(ButtonStyle.Link)
-              .setEmoji(message.client.emotes.normal.reply)
-              .setURL(`https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`))
-            : null;
+      // send the message to all connected channels in apropriate format (compact/profanity filter)
+      const messageResults = hubConnections?.map(async (connection) => {
+        const reply = replyInDb?.channelAndMessageIds.find((msg) => msg.channelId === connection.channelId);
+        const replyButton = reply
+          ? new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
+            .setLabel(
+              (referredAuthor && referredAuthor.tag.length >= 80
+                ? '@' + referredAuthor.tag.slice(0, 76) + '...'
+                : '@' + referredAuthor?.tag) || 'Jump',
+            )
+            .setStyle(ButtonStyle.Link)
+            .setEmoji(message.client.emotes.normal.reply)
+            .setURL(`https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`))
+          : null;
 
-          if (connection?.webhook) {
-            const webhook = new WebhookClient({ id: `${connection?.webhook?.id}`, token: `${connection?.webhook?.token}` });
-            const webhookMessage = messageFormats.createWebhookOptions(message, connection, replyButton,
-              { censored: censoredEmbed, normal: embed, reply: referedMsgEmbed }, attachment);
-            const webhookSendRes = await webhook.send(webhookMessage).catch(() => null);
-            return { webhookId: webhook.id, message: webhookSendRes } as NetworkWebhookSendResult;
-          }
-
-          const guild = message.client.guilds.cache.get(connection.serverId);
-          const channel = guild?.channels.cache.get(connection.channelId);
-
-          if (channel?.type === ChannelType.GuildText) {
-            try {
-              channel.send(
-                message.client.emotes.normal.loading + 'All Networks must now use webhooks for faster performance and to avoid frequent rate limits. Attempting to create webhook...',
-              ).catch(() => null);
-
-              const hook = await channel.createWebhook({
-                name: `${message.author.username} Network`,
-                avatar: message.client.user.avatarURL(),
-                reason: 'All networks must use webhooks now.',
-              });
-
-              if (hook.token) {
-                await db.connectedList.update({
-                  where: { id: connection.id },
-                  data: { webhook: { set: { id: hook.id, token: hook.token, url: hook.url } } },
-                });
-              }
-
-            }
-            catch {
-              channel.send(
-                message.client.emotes.normal.no + 'Failed to create webhook. Please make sure I have the `Manage Webhooks` permission in this channel and reconnect to the network (`/network manage`).',
-              ).catch(() => null);
-              const logChannel = message.client.channels.cache.get(constants.channel.networklogs) as any;
-              logChannel?.send(`Failed to create webhook in \`#${channel.name}\` (${channel.id}) in ${guild} (${guild?.id})`).catch(() => null);
-              await db.connectedList.update({ where: { id: connection.id }, data: { connected: false } });
-            }
-          }
-
-          const normalOptions = messageFormats.createEmbedOptions(attachment, replyButton, connection,
-            { censored: censoredEmbed, normal: embed });
-          const sendResult = await channelToSend.send(normalOptions).catch(() => null);
-          return { channelId: channelToSend.id, message: sendResult } as NetworkSendResult;
-        })();
-
-        messageResults.push(result);
+        const webhook = new WebhookClient({ id: `${connection?.webhook.id}`, token: `${connection?.webhook.token}` });
+        const webhookMessage = messageFormats.createWebhookOptions(message, connection, replyButton,
+          { censored: censoredEmbed, normal: embed, reply: referedMsgEmbed }, attachment);
+        const webhookSendRes = await webhook.send(webhookMessage).catch(() => null);
+        return { webhookId: webhook.id, message: webhookSendRes } as NetworkWebhookSendResult;
       });
 
-      // disconnect unknown channels & insert message into messageData collection for future use
-      const resolvedMessages = await Promise.all(messageResults);
-      cleanup.execute(message, resolvedMessages, channelInDb.hubId);
+      message.delete().catch(() => null);
+      cleanup.execute(message, await Promise.all(messageResults), channelInDb.hubId);
     }
   },
 };

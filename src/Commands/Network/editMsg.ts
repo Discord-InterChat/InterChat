@@ -2,7 +2,7 @@ import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, Applic
 import { networkMsgUpdate } from '../../Scripts/networkLogs/msgUpdate';
 import { checkIfStaff, getDb, getGuildName, topgg } from '../../Utils/functions/utils';
 import wordFiler from '../../Utils/functions/wordFilter';
-import logger from '../../Utils/logger';
+import { captureException } from '@sentry/node';
 
 export default {
   description: 'Edit a message that was sent in the network.',
@@ -11,10 +11,8 @@ export default {
     .setType(ApplicationCommandType.Message),
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
-    const hasVoted = await topgg.hasVoted(interaction.user.id);
-    const isStaff = checkIfStaff(interaction.user.id);
 
-    if (!hasVoted && !isStaff) {
+    if (!await topgg.hasVoted(interaction.user.id) && !checkIfStaff(interaction.user.id)) {
       await interaction.reply({
         content: `${interaction.client.emotes.normal.no} You must [vote](<https://top.gg/bot/${interaction.client.user.id}/vote>) to use this command.`,
         ephemeral: true,
@@ -40,8 +38,6 @@ export default {
       return;
     }
 
-    const placeholder = target.content || target.embeds[0]?.description;
-
     const modal = new ModalBuilder()
       .setCustomId(interaction.id)
       .setTitle('Edit Message')
@@ -52,7 +48,7 @@ export default {
             .setCustomId('newMessage')
             .setStyle(TextInputStyle.Paragraph)
             .setLabel('Please enter your new message.')
-            .setValue(`${placeholder}`)
+            .setValue(`${target.content || target.embeds[0]?.description}`)
             .setMaxLength(950),
         ),
       );
@@ -60,7 +56,7 @@ export default {
     await interaction.showModal(modal);
 
     interaction.awaitModalSubmit({ filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id, time: 30_000 })
-      .then(i => {
+      .then(async i => {
         // get the input from user
         const newMessage = i.fields.getTextInputValue('newMessage');
         const censoredNewMessage = wordFiler.censor(newMessage);
@@ -81,10 +77,12 @@ export default {
           content: `${interaction.client.emotes.normal.yes} Message Edited. Please give a few seconds for it to reflect in all connections.`,
           ephemeral: true,
         });
+        const channelSettingsArr = await db.connectedList.findMany({
+          where: { channelId: { in: messageInDb.channelAndMessageIds.map(c => c.channelId) } },
+        });
 
-        // loop through all the channels in the network and edit the message
         messageInDb.channelAndMessageIds.forEach(async obj => {
-          const channelSettings = await db.connectedList.findFirst({ where: { channelId: obj.channelId } });
+          const channelSettings = channelSettingsArr.find(c => c.channelId === obj.channelId);
 
           if (channelSettings) {
             const webhook = new WebhookClient({ id: channelSettings.webhook.id, token: channelSettings.webhook.token });
@@ -97,14 +95,17 @@ export default {
           }
         });
 
-        const newMessageObject = {
-          id: target.id,
-          content: newMessage,
-          timestamp: target.editedAt ?? target.createdAt,
-        };
 
-        interaction.inCachedGuild() ? networkMsgUpdate(interaction.member, target, newMessageObject) : null;
+        interaction.inCachedGuild()
+          ? networkMsgUpdate(interaction.member, target, {
+            id: target.id, content: newMessage,
+          })
+          : null;
 
-      }).catch((reason) => !reason.message.includes('reason: time') ? logger.error(reason) : null);
+      }).catch((reason) => {
+        !reason.message.includes('reason: time')
+          ? captureException(reason, { user: { id: interaction.user.id, username: interaction.user.username }, extra: { command: 'Edit Message' } })
+          : null;
+      });
   },
 };
