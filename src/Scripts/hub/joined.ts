@@ -22,10 +22,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const hubList = joinedHubs.map(hub => {
     // use a more meaningful embed for this lmao
-    return createHubListingsEmbed(hub, {
-      totalNetworks: hub.connections.length,
-      hubMessages: hub.messages.length,
-    })
+    return createHubListingsEmbed(hub, { totalNetworks: hub.connections.length })
       .addFields({
         name: 'Channel',
         value: `<#${hub.connections.find(c => c.serverId === interaction.guildId)?.channelId}>`,

@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, ModalBuilder, TextInputBuilder, EmbedBuilder, ActionRowBuilder, TextInputStyle, Collection } from 'discord.js';
-import { getDb, toHuman } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/functions/utils';
 
 const cooldowns = new Collection<string, number>();
 
@@ -7,7 +7,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const commandInCooldown = cooldowns.get(interaction.user.id);
   if (commandInCooldown && commandInCooldown > Date.now()) {
     return await interaction.reply({
-      content: `You may only create 1 hub every hour. Please wait \`${toHuman(commandInCooldown)}\` before creating another new hub.`,
+      content: `You may create another hub <t:${Math.round(commandInCooldown / 1000)}:R>.`,
       ephemeral: true,
     });
   }
@@ -18,19 +18,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const banner = interaction.options.getAttachment('banner');
 
   const db = getDb();
-  const hubExists = await db.hubs.findFirst({ where: { name:  hubName } });
-  const userHasHub = await db.hubs.findMany({ where: { ownerId: interaction.user.id } });
+  const hubs = await db.hubs.findMany({ where: { OR: [{ ownerId: interaction.user.id }, { name: hubName }] } });
 
-  if (hubExists) {
+  if (hubs.find(hub => hub.name === hubName)) {
     return await interaction.reply({
-      content: `Sorry! A hub with the name **${hubName}** already exists! Please choose another name.`,
+      content: `Sorry, name **${hubName}** is unavailable! Please choose another name.`,
       ephemeral: true,
     });
   }
 
-  if (userHasHub.length >= 3) {
+  else if (hubs.reduce((acc, hub) => hub.ownerId === interaction.user.id ? acc + 1 : acc, 0) >= 3) {
     return await interaction.reply({
-      content: 'You may only create a maximum of 3 hubs at the moment. Please delete one of your existing hubs before creating a new one.',
+      content: 'You may only create a maximum of **3** hubs at the moment. Please delete one of your existing hubs before creating a new one.',
       ephemeral: true,
     });
   }
@@ -87,12 +86,17 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       cooldowns.set(interaction.user.id, Date.now() + 60 * 60 * 1000);
       const successEmbed = new EmbedBuilder()
         .setTitle('Hub created!')
-        .setDescription('Your hub has been created!')
         .setColor('Green')
         .addFields({
-          name: 'How to join the hub?',
-          value: 'Use `/hub invite create` to invite servers to connect to this hub. You can also list your hub publily to allow any server to join this hub.',
-        })
+          name: 'How to join this hub?',
+          value: 'Use `/hub invite create` to generate an invite code to this hub. Servers with the code can connect using `/hub join` to connect to this hub.',
+        },
+        {
+          name: 'How to make this hub public?',
+          value: 'Use `/hub manage` to make your hub public and also edit other useful hub settings.',
+        },
+        )
+        .setFooter({ text: 'Join the support server for help!' })
         .setTimestamp();
 
       await submitIntr.reply({

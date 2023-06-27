@@ -1,8 +1,8 @@
-import { blacklistedServers, blacklistedUsers, connectedList, hubs, messageData } from '@prisma/client';
+import { blacklistedServers, blacklistedUsers, connectedList, hubs } from '@prisma/client';
 import { captureException } from '@sentry/node';
 import { logger } from '@sentry/utils';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
-import { deleteHubs, getDb } from '../../Utils/functions/utils';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { getDb } from '../../Utils/functions/utils';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
@@ -19,7 +19,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       ],
     },
     include: {
-      messages: true,
       connections: true,
       blacklistedServers: true,
       blacklistedUsers: true,
@@ -48,36 +47,31 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .setLabel('Set Banner')
         .setEmoji('🎨')
         .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setCustomId('invites')
-        .setLabel('View Invites')
-        .setEmoji('🔗')
-        .setStyle(ButtonStyle.Secondary),
-
     );
   const primaryButtons = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(
       new ButtonBuilder()
         .setCustomId('visibility')
         .setLabel('Toggle Visibility')
-        .setStyle(ButtonStyle.Primary)
+        .setStyle(ButtonStyle.Secondary)
         .setEmoji('🔒'),
       new ButtonBuilder()
-        .setCustomId('delete')
-        .setLabel('Delete Hub')
-        .setStyle(ButtonStyle.Danger)
-        .setEmoji(emotes.icons.delete),
+        .setCustomId('invites')
+        .setLabel('View Invites')
+        .setEmoji('🔗')
+        .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId('moderator')
-        .setLabel('Moderators')
-        .setStyle(ButtonStyle.Primary)
+        .setLabel('View Mods')
+        .setStyle(ButtonStyle.Secondary)
         .setEmoji('🛡️'),
     );
 
 
-  const hubEmbed = (hub: hubs & { connections: connectedList[], messages: messageData[], blacklistedUsers: blacklistedUsers[], blacklistedServers: blacklistedServers[] }) => {
+  const hubEmbed = (hub: hubs & { connections: connectedList[], blacklistedUsers: blacklistedUsers[], blacklistedServers: blacklistedServers[] }) => {
     return new EmbedBuilder()
       .setTitle(hub.name)
+      .setColor('Random')
       .setDescription(hub.description)
       .setThumbnail(hub.iconUrl)
       .setImage(hub.bannerUrl)
@@ -113,8 +107,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           inline: true,
         },
         {
-          name: 'Messages (12h)',
-          value: `${hub.messages.length}`,
+          name: 'Owner',
+          value: `<@${hub.ownerId}>`,
           inline: true,
         },
       );
@@ -271,7 +265,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
               logger.error(e);
               captureException(e, {
                 user: { id: i.user.id, username: i.user.tag },
-                extra: { context: 'This happened when user tried to edit hub banner url.' },
+                extra: { context: 'Occured during hub banner change.' },
               });
             }
             return null;
@@ -312,73 +306,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           });
           break;
         }
-        case 'delete': {
-          if (i.user.id !== hubInDb?.ownerId) {
-            await i.reply({
-              content: 'Only the hub owner can delete this hub.',
-              ephemeral: true,
-            });
-            return;
-          }
-
-          const confirmEmbed = new EmbedBuilder()
-            .setTitle('Are you sure?')
-            .setDescription('Are you sure you want to delete this hub? This is a destructive action that will **delete all connections** along with the hub.')
-            .setColor('Yellow');
-          const confirmButtons = new ActionRowBuilder<ButtonBuilder>()
-            .addComponents(
-              new ButtonBuilder()
-                .setLabel('Confirm')
-                .setCustomId('confirm_delete')
-                .setStyle(ButtonStyle.Danger),
-              new ButtonBuilder()
-                .setLabel('Cancel')
-                .setCustomId('cancel_delete')
-                .setStyle(ButtonStyle.Secondary),
-            );
-
-          const msg = await i.reply({
-            embeds: [confirmEmbed],
-            components: [confirmButtons],
-          });
-
-          const confirmation = await msg.awaitMessageComponent({
-            filter: b => b.user.id === i.user.id,
-            time: 30_000,
-            componentType: ComponentType.Button,
-          }).catch(() => null);
-
-          if (!confirmation || confirmation.customId !== 'confirm_delete') {
-            await msg.delete().catch(() => null);
-            return;
-          }
-
-          await confirmation.update(`${emotes.normal.loading} Deleting connections, invites, messages and the hub. Please wait...`);
-
-          try {
-            await deleteHubs([hubInDb?.id]);
-          }
-          catch (e) {
-            logger.error(e);
-            captureException(e, {
-              user: { id: i.user.id, username: i.user.tag },
-              extra: { context: 'Trying to delete hub.', hubId: hubInDb?.id },
-            });
-
-            await confirmation.editReply('Something went wrong while trying to delete the hub. The developers have been notified.');
-            return;
-          }
-          await confirmation.editReply({
-            content:`${emotes.normal.tick} The hub has been successfully deleted.`,
-            embeds: [],
-            components: [],
-          });
-
-          // stop collector so user can't click on buttons anymore
-          collector.stop();
-          break;
-        }
-
         case 'moderator':{
           await i.reply({
             embeds: [
