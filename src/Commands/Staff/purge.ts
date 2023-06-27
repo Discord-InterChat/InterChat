@@ -100,33 +100,46 @@ export default {
     const limit = interaction.options.getInteger('limit') || 100;
     const emoji = interaction.client.emotes;
     const { messageData, connectedList } = getDb();
+    const channelInHub = await connectedList.findFirst({ where: { channelId: interaction.channelId, connected: true } });
 
+    if (!channelInHub) {
+      return await interaction.reply({
+        content: 'This channel is not connected to a hub.',
+        ephemeral: true,
+      });
+    }
 
     let messagesInDb;
 
     switch (subcommand) {
       case 'server': {
         const serverId = interaction.options.getString('server', true);
-        messagesInDb = await messageData.findMany({ where: { serverId }, orderBy: { id: 'desc' }, take: limit });
+        messagesInDb = await messageData.findMany({
+          where: { serverId, hubId: channelInHub.hubId },
+          orderBy: { id: 'desc' },
+          take: limit,
+        });
         break;
       }
 
       case 'user': {
         const authorId = interaction.options.getString('user', true);
-        messagesInDb = await messageData.findMany({ where: { authorId }, orderBy: { id: 'desc' }, take: limit });
+        messagesInDb = await messageData.findMany({
+          where: { authorId, hubId: channelInHub.hubId },
+          orderBy: { id: 'desc' },
+          take: limit,
+        });
         break;
       }
       case 'after': {
         const messageId = interaction.options.getString('message', true);
-        const fetchedMsg = await messageData.findFirst({ where: { channelAndMessageIds: { some: { messageId } } } });
+        const fetchedMsg = await interaction.channel?.messages.fetch(messageId).catch(() => null);
         if (fetchedMsg) {
           messagesInDb = await messageData.findMany({
-            where: {
-              timestamp: {
-                gt: fetchedMsg.timestamp,
-              },
-            },
             take: limit,
+            where: {
+              timestamp: { gt: fetchedMsg.createdAt },
+            },
           });
         }
         break;
@@ -134,13 +147,20 @@ export default {
 
       case 'replies': {
         const messageId = interaction.options.getString('replies-to', true);
-        messagesInDb = await messageData.findMany({ where: { reference: { is: { messageId } } }, take: limit });
+        messagesInDb = await messageData.findMany({
+          where: { hubId: channelInHub.hubId, reference: { is: { messageId } } },
+          take: limit,
+        });
         break;
       }
 
 
       case 'any':
-        messagesInDb = await messageData.findMany({ orderBy: { id: 'desc' }, take: limit });
+        messagesInDb = await messageData.findMany({
+          where: { hubId: channelInHub.hubId },
+          orderBy: { id: 'desc' },
+          take: limit,
+        });
         break;
 
       default:
@@ -154,14 +174,14 @@ export default {
         ephemeral: true,
       });
     }
-    const initialReply = await interaction.reply(`${emoji.normal.loading} Purging...\n**Tip:** The \`Delete Message\` context menu is faster for smaller deletes.`);
+    const initialReply = await interaction.reply(`${emoji.normal.loading} Purging...`);
 
     let erroredMessageCount = 0;
     let deletedMessageCount = 0;
     const deletedMessagesArr: string[] = [];
 
     const startTime = performance.now();
-    const allNetworks = await connectedList.findMany({ where: { connected: true } });
+    const allNetworks = await connectedList.findMany({ where: { hubId: channelInHub.hubId, connected: true } });
     for (const network of allNetworks) {
       try {
         const channel = await interaction.client.channels.fetch(network.channelId);
@@ -189,12 +209,11 @@ export default {
 
     const resultEmbed = new EmbedBuilder()
       .setTitle(`${emoji.icons.delete} Purge Results`)
-      .setDescription(`Finished purging from **${allNetworks.length}** networks.`)
+      .setDescription(`Finished purging from **${allNetworks.length}** networks in \`${toHuman(performance.now() - startTime)}\`.`)
       .addFields([
         { name: 'Total Purged', value: `\`\`\`js\n${deletedMessageCount}\`\`\``, inline: true },
         { name: 'Errored Purges', value: `\`\`\`js\n${erroredMessageCount}\`\`\``, inline: true },
         { name: 'Purge Limit', value: `\`\`\`js\n${limit || 'None'}\`\`\``, inline: true },
-        { name: 'Time Took', value: `\`\`\`elm\n${toHuman(performance.now() - startTime)}\`\`\``, inline: true },
       ])
       .setFooter({ text: `Purged By: ${interaction.user.tag}`, iconURL: interaction.user.avatarURL() || undefined })
       .setTimestamp()
