@@ -1,6 +1,5 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, ChannelType, AutocompleteInteraction } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import reset from '../../Scripts/network/reset';
 
 export default {
   data: new SlashCommandBuilder()
@@ -87,6 +86,18 @@ export default {
             .setName('banner')
             .setDescription('Set a banner for this hub')
             .setRequired(false),
+        ),
+    )
+    .addSubcommand((subcommand) =>
+      subcommand
+        .setName('delete')
+        .setDescription('🗑️ Delete a hub.')
+        .addStringOption((stringOption) =>
+          stringOption
+            .setName('hub')
+            .setDescription('The hub name')
+            .setAutocomplete(true)
+            .setRequired(true),
         ),
     )
     .addSubcommand((subcommand) =>
@@ -231,21 +242,20 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
+    const extra = subcommand === 'leave'
+      ? interaction.options.getString('hub', true)
+      : subcommand === 'delete'
+        ? interaction.options.getString('hub', true)
+        : null;
 
-    if (subcommand === 'leave') {
-      const channelId = interaction.options.getString('hub', true);
-      return reset.execute(interaction, channelId);
-    }
-
-    require(`../../Scripts/hub/${subcommandGroup || subcommand}`).execute(interaction);
+    require(`../../Scripts/hub/${subcommandGroup || subcommand}`).execute(interaction, extra);
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const subcommand = interaction.options.getSubcommand();
     const focusedValue = interaction.options.getFocused();
     let hubChoices;
 
-    if (subcommand === 'browse' || subcommand === 'delete') {
-
+    if (subcommand === 'browse') {
       hubChoices = await getDb().hubs.findMany({
         where: {
           name: { mode: 'insensitive', contains: focusedValue },
@@ -269,7 +279,6 @@ export default {
         },
         take: 25,
       });
-
     }
 
     else if (subcommand === 'leave') {
@@ -286,8 +295,20 @@ export default {
           return { name: `${network.hub?.name} | #${channel?.name || network.channelId}`, value: network.channelId };
         });
 
-
       return await interaction.respond(await Promise.all(filteredNets));
+    }
+
+    else if (subcommand === 'delete') {
+      hubChoices = await getDb().hubs.findMany({
+        where: {
+          ownerId: interaction.user.id,
+          name: {
+            mode: 'insensitive',
+            contains: focusedValue,
+          },
+        },
+        take: 25,
+      });
     }
 
     const filtered = hubChoices?.map((hub) => ({ name: hub.name, value: hub.name }));
