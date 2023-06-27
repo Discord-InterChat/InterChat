@@ -3,13 +3,13 @@ import toLower from 'lodash/toLower';
 import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
-import { prisma as _prisma } from '../db';
 import { badge, normal } from '../JSON/emoji.json';
 import { stripIndents } from 'common-tags';
 import { scheduleJob } from 'node-schedule';
 import { modActions } from '../../Scripts/networkLogs/modActions';
-import 'dotenv/config';
+import { PrismaClient } from '@prisma/client';
 import { hubs } from '@prisma/client';
+import 'dotenv/config';
 
 export const constants = {
   developers: ['828492978716409856', '701727675311587358', '456961943505338369'],
@@ -67,7 +67,7 @@ export const constants = {
 } as const;
 
 export const topgg = new Api(process.env.TOPGG as string);
-
+const _prisma = new PrismaClient();
 
 export function toTitleCase(txt: string): string {
   return startCase(toLower(txt));
@@ -275,7 +275,6 @@ export function calculateAverageRating(ratings: number[]): number {
 }
 
 interface HubListingExtraInput {
-  hubMessages?: number;
   totalNetworks?: number;
 }
 
@@ -305,18 +304,13 @@ export function createHubListingsEmbed(hub: hubs, extra?: HubListingExtraInput) 
         inline: true,
       },
       {
-        name: 'Created At',
-        value: `<t:${Math.round(hub.createdAt.getTime() / 1000)}>`,
-        inline: true,
-      },
-      {
         name: 'Networks',
         value: `${extra?.totalNetworks ?? 'Unknown.'}`,
         inline: true,
       },
       {
-        name: 'Messages Today',
-        value: `${extra?.hubMessages ?? 'Unknown.'}`,
+        name: 'Created At',
+        value: `<t:${Math.round(hub.createdAt.getTime() / 1000)}>`,
         inline: true,
       },
     ]);
