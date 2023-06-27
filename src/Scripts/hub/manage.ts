@@ -129,7 +129,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     hubInDb = await db.hubs.findFirst({
       where: { id: hubInDb?.id },
       include: {
-        messages: true,
         connections: true,
         blacklistedServers: true,
         blacklistedUsers: true,
