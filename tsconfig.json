@@ -95,6 +95,7 @@
   "include": [
     "src/**/*",
     "src/**/*.json",
-    "package.json"
+    "package.json",
+    // "typings/**/*"  
   ]
 }

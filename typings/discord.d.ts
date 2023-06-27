@@ -1,5 +1,5 @@
 import discord from 'discord.js';
-import EmojiIDs from '../../Utils/JSON/emoji.json';
+import EmojiIDs from '../src/Utils/JSON/emoji.json';
 import { Prisma } from '@prisma/client';
 
 type InterchatCommand = {
