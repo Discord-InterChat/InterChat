@@ -1,8 +1,7 @@
 import checks from '../Scripts/message/checks';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
-import messageFormats from '../Scripts/message/messageFormatting';
 import cleanup from '../Scripts/message/cleanup';
-import { ActionRowBuilder, APIMessage, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, User, WebhookClient } from 'discord.js';
+import { APIMessage, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import { censor } from '../Utils/functions/wordFilter';
 import { messageData } from '@prisma/client';
@@ -31,10 +30,34 @@ export default {
       const attachment = messageContentModifiers.getAttachment(message);
       const attachmentURL = !attachment ? await messageContentModifiers.getAttachmentURL(message) : undefined;
 
+      let replyInDb: messageData | null;
+      let referredAuthor: User | undefined; // author of the message being replied to
+      let referredContent: string | undefined; // for compact messages
+
+      if (message.reference) {
+        const referredMessage = await message.fetchReference().catch(() => null);
+        if (referredMessage?.webhookId) {
+          replyInDb = await db.messageData.findFirst({
+            where: { channelAndMessageIds: { some: { messageId: referredMessage.id } } },
+          });
+
+          referredContent = messageContentModifiers.getReferredContent(referredMessage);
+          referredAuthor = replyInDb
+            ? await message.client.users.fetch(replyInDb?.authorId).catch(() => undefined)
+            : undefined;
+        }
+      }
+
+      // define censored embed after reply is added to reflect that in censored embed as well
       const embed = new EmbedBuilder()
         .setDescription(message.content || null) // description must be null if message is only an attachment
         .setImage(attachment ? `attachment://${attachment.name}` : attachmentURL || null)
         .setColor(colors('random'))
+        .setFields(
+          referredContent
+            ? [{ name: 'Reply to:', value: `> ${referredContent.replaceAll('\n', '\n> ')}` }]
+            : [],
+        )
         .setAuthor({
           name: `@${message.author.tag}`,
           iconURL: message.author.displayAvatarURL() || message.author.defaultAvatarURL,
@@ -44,65 +67,60 @@ export default {
           text: `Server: ${message.guild?.name}`,
           iconURL: message.guild?.iconURL() || undefined,
         });
-
-      // author of the message being replied to
-      let referredAuthor: User | undefined;
-      let replyInDb: messageData | null;
-      let referedMsgEmbed: EmbedBuilder | undefined; // for compact messages
-
-      if (message.reference) {
-        const referredMessage = await message.fetchReference().catch(() => null);
-        if (referredMessage?.webhookId) {
-          replyInDb = await db.messageData.findFirst({
-            where: {
-              channelAndMessageIds: { some: { messageId: referredMessage.id } },
-            },
-          });
-
-          referredAuthor = replyInDb
-            ? await message.client.users.fetch(replyInDb?.authorId).catch(() => undefined)
-            : undefined;
-
-          const referredContent = messageContentModifiers.getReferredContent(referredMessage);
-          // Add quoted reply to embeds
-          embed.addFields({
-            name: 'Reply-to:',
-            value: `${referredContent}`,
-          });
-          referedMsgEmbed = new EmbedBuilder()
-            .setColor(embed.data.color || 'Random')
-            .setDescription(referredContent)
-            .setAuthor({
-              name: `@${referredAuthor?.username}`,
-              iconURL: referredAuthor?.avatarURL() || undefined,
-            });
-        }
-      }
-
-      // define censored embed after reply is added to reflect that in censored embed as well
-      const censoredEmbed = new EmbedBuilder(embed.data).setDescription(message.censored_content || null);
-      // await addBadges.execute(message, db, embed, censoredEmbed);
+      const censoredEmbed = EmbedBuilder.from(embed).setDescription(message.censored_content || null);
 
       const hubConnections = await db.connectedList.findMany({ where: { hubId: channelInDb.hubId, connected: true } });
-
       // send the message to all connected channels in apropriate format (compact/profanity filter)
       const messageResults = hubConnections?.map(async (connection) => {
         const reply = replyInDb?.channelAndMessageIds.find((msg) => msg.channelId === connection.channelId);
-        const replyButton = reply
-          ? new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
-            .setLabel(
-              (referredAuthor && referredAuthor.tag.length >= 80
-                ? '@' + referredAuthor.tag.slice(0, 76) + '...'
-                : '@' + referredAuthor?.tag) || 'Jump',
-            )
-            .setStyle(ButtonStyle.Link)
-            .setEmoji(message.client.emotes.normal.reply)
-            .setURL(`https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`))
+        const replyLink = reply ? `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}` : undefined;
+        const replyButton = replyLink && referredAuthor
+          ? new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+              .setStyle(ButtonStyle.Link)
+              .setEmoji(message.client.emotes.normal.reply)
+              .setURL(replyLink)
+              .setLabel(
+                (referredAuthor.username.length >= 80
+                  ? '@' + referredAuthor.username.slice(0, 76) + '...'
+                  : '@' + referredAuthor.username),
+              ))
           : null;
 
+
+        let webhookMessage: WebhookMessageCreateOptions;
+        if (connection.compact) {
+          const replyEmbed = replyLink && referredContent
+            ? new EmbedBuilder()
+              .setColor('Random')
+              .setDescription(`[**Reply to:**](${replyLink}) ${referredContent.length >= 80 ? referredContent.slice(0, 80) + '...' : referredContent}`)
+              .setAuthor({
+                name: `${referredAuthor?.username}`,
+                iconURL: referredAuthor?.avatarURL() || undefined,
+              })
+            : undefined;
+
+          webhookMessage = {
+            avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
+            username:  message.author.tag,
+            content: connection?.profFilter ? message.censored_content : message.content,
+            embeds: replyEmbed ? [replyEmbed] : undefined,
+            files: attachment ? [attachment] : [],
+            allowedMentions: { parse: [] },
+          };
+        }
+        else {
+          webhookMessage = {
+            components: replyButton ? [replyButton] : undefined,
+            embeds: [connection.profFilter ? censoredEmbed : embed],
+            username: message.client.user.username,
+            avatarURL: message.client.user.avatarURL() || undefined,
+            files: attachment ? [attachment] : [],
+            allowedMentions: { parse: [] },
+          };
+        }
+
         const webhook = new WebhookClient({ id: `${connection?.webhook.id}`, token: `${connection?.webhook.token}` });
-        const webhookMessage = messageFormats.createWebhookOptions(message, connection, replyButton,
-          { censored: censoredEmbed, normal: embed, reply: referedMsgEmbed }, attachment);
         const webhookSendRes = await webhook.send(webhookMessage).catch(() => null);
         return { webhookId: webhook.id, message: webhookSendRes } as NetworkWebhookSendResult;
       });
