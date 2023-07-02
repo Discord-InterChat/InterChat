@@ -75,16 +75,16 @@ export default {
             .setDescription('The hub name')
             .setRequired(true),
         )
-        .addAttachmentOption((attachment) =>
+        .addStringOption((attachment) =>
           attachment
             .setName('icon')
-            .setDescription('Set an icon for this hub')
+            .setDescription('Set an icon for this hub. Must be a valid i.imgur.com image link.')
             .setRequired(true),
         )
-        .addAttachmentOption((attachment) =>
+        .addStringOption((attachment) =>
           attachment
             .setName('banner')
-            .setDescription('Set a banner for this hub')
+            .setDescription('Set a banner for this hub. Must be a valid i.imgur.com image link.')
             .setRequired(false),
         ),
     )
