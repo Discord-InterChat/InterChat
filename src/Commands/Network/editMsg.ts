@@ -85,7 +85,7 @@ export default {
           const channelSettings = channelSettingsArr.find(c => c.channelId === obj.channelId);
 
           if (channelSettings) {
-            const webhook = new WebhookClient({ id: channelSettings.webhook.id, token: channelSettings.webhook.token });
+            const webhook = new WebhookClient({ url: channelSettings.webhookURL });
             const compact = channelSettings?.profFilter ? newMessage : censoredNewMessage;
             const webhookEmbed = channelSettings?.profFilter ? censoredEmbed : newEmbed;
 

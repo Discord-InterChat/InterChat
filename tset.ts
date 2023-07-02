@@ -1,16 +1,15 @@
 import { PrismaClient } from '@prisma/client';
+import { isArray } from 'lodash';
 
 const db = new PrismaClient();
 
-// replace old connectedList with new connectedList (do this in prod code (old one), the schema file here wont work)
 (async () => {
-  const idk = await db.connectedList.findMany();
+  const idk = await db.connectedList.findRaw({ filter: {} });
 
-  idk.forEach(async c => {
-    const svr = await db.setup.findFirst({ where: { guildId: c.serverId } });
-    Object.assign(svr, { serverId: svr.guildId, connected: true });
-    delete svr.guildId;
-
-    await db.connectedList.create({ data: svr });
-  });
+  if (isArray(idk)) {
+    idk.forEach(async c => {
+      console.log({ id: c._id.$oid, webhook: c.webhook.url });
+      await db.connectedList.update({ where: { id: c._id.$oid }, data: { webhookURL: c.webhook.url } });
+    });
+  }
 })();

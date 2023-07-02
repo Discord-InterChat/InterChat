@@ -67,17 +67,17 @@ model blacklistedUsers {
 }
 
 model connectedList {
-  id         String          @id @default(auto()) @map("_id") @db.ObjectId
-  channelId  String          @unique
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  channelId  String   @unique
   serverId   String
   connected  Boolean
   compact    Boolean
   invite     String?
   profFilter Boolean
-  webhook    NetworkWebhook
-  date       DateTime        @default(now())
-  hub        hubs?           @relation(fields: [hubId], references: [id])
-  hubId      String?         @db.ObjectId
+  webhookURL String
+  date       DateTime @default(now())
+  hub        hubs?    @relation(fields: [hubId], references: [id])
+  hubId      String   @db.ObjectId
 }
 
 model hubs {
