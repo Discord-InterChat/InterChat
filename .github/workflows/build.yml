@@ -1,4 +1,4 @@
-name: Deploy Newer Code
+name: Pull Newer Code
 on: 
   push:
     branches: [main]
@@ -13,8 +13,8 @@ on:
       - .gitignore
       - .husky
 jobs:
-  build:
-    name: Build newer code
+  pull:
+    name: Pull newer code
     runs-on: self-hosted
 
     steps: 
@@ -27,20 +27,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install dependencies
-        run: npm ci
+  restart:
+      name: Build newer code and restart InterChat
+      runs-on: self-hosted
+  
+      steps:   
+        - name: Install dependencies
+          run: npm install
 
-      - name: Build code
-        run: |
-              npm run build --if-present
-              cp ~/important/interchat-env .env
+        - name: Build code
+          run: |
+                npm run build --if-present
+                cp ~/important/interchat-env .env
+                
+        - name: Deploy Commands
+          run: npm run deploy -- -b
               
-      - name: Deploy Commands
-        run: npm run deploy -- -b
-            
-      - name: Prune Dev-dependencies
-        run: npm prune --omit=dev
+        - name: Prune Dev-dependencies
+          run: npm prune --omit=dev
 
-      - name: Restart InterChat 
-        run: | 
-              cd build/ && pm2 restart --update-env interchat-prod --ignore-watch logs --watch        
+        - name: Restart InterChat 
+          run: cd build/ && pm2 restart --update-env interchat-prod --ignore-watch logs --watch        
