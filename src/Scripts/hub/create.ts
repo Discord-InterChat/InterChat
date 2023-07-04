@@ -14,8 +14,20 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   if (!interaction.inCachedGuild()) return;
 
   const hubName = interaction.options.getString('name', true);
-  const icon = interaction.options.getAttachment('icon', true);
-  const banner = interaction.options.getAttachment('banner');
+  const iconUrl = interaction.options.getString('icon', true);
+  const bannerUrl = interaction.options.getString('banner');
+
+  const imgurRegex = /\bhttps?:\/\/i\.imgur\.com\/[A-Za-z0-9]+\.(?:jpg|jpeg|gif|png|bmp)\b/g;
+
+  const imgurIcons = iconUrl.match(imgurRegex);
+  const imgurBanners = bannerUrl?.match(imgurRegex);
+
+  if (!imgurIcons || imgurBanners === null) {
+    return await interaction.reply({
+      content: 'Please provide a valid Imgur link for the icon and banner. It should start with `https://i.imgur.com/` and end with an image extension.',
+      ephemeral: true,
+    });
+  }
 
   const db = getDb();
   const hubs = await db.hubs.findMany({ where: { OR: [{ ownerId: interaction.user.id }, { name: hubName }] } });
@@ -77,8 +89,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           private: true,
           tags: tags.replaceAll(', ', ',').split(',', 5),
           ownerId: submitIntr.user.id,
-          iconUrl: icon.url,
-          bannerUrl: banner?.url,
+          iconUrl: imgurIcons[0],
+          bannerUrl: imgurBanners?.[0],
         },
       });
 

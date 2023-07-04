@@ -244,13 +244,13 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         case 'banner': {
           const modal = new ModalBuilder()
             .setCustomId(i.id)
-            .setTitle('Edit Hub Banner')
+            .setTitle('Set Hub Banner')
             .addComponents(
               new ActionRowBuilder<TextInputBuilder>().addComponents(
                 new TextInputBuilder()
                   .setLabel('Enter Banner URL')
                   .setPlaceholder('Enter a valid imgur image URL.')
-                  .setStyle(TextInputStyle.Paragraph)
+                  .setStyle(TextInputStyle.Short)
                   .setCustomId('banner'),
               ));
 
@@ -274,7 +274,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
           const newBanner = modalResponse.fields.getTextInputValue('banner');
           // check if banner is a valid imgur link
-          if (!newBanner.startsWith('https://i.imgur.com/')) {
+          const imgurLink = newBanner.match(/\bhttps?:\/\/i\.imgur\.com\/[A-Za-z0-9]+\.(?:jpg|jpeg|gif|png|bmp)\b/g);
+          if (!imgurLink) {
             await modalResponse.reply({
               content: 'Invalid banner URL. Please make sure it is a valid imgur image URL.',
               ephemeral: true,
@@ -284,7 +285,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
           await db.hubs.update({
             where: { id: hubInDb?.id },
-            data: { bannerUrl: newBanner },
+            data: { bannerUrl: imgurLink[0] },
           });
 
           await modalResponse.reply({
