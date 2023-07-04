@@ -1,34 +1,60 @@
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { getDb } from '../../Utils/functions/utils';
 import { paginate } from '../../Utils/functions/paginator';
-import { createHubListingsEmbed, getDb } from '../../Utils/functions/utils';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
 
   const db = getDb();
-  const joinedHubs = await db.hubs.findMany({
-    where: {
-      connections: { some: { serverId: interaction.guild?.id } },
-    },
-    include: {
-      connections: true,
-      messages: true,
-    },
+  const connections = await db.connectedList.findMany({
+    where: { serverId: interaction.guild?.id },
+    include: { hub: true },
   });
-
-  if (joinedHubs.length === 0) {
+  if (connections.length === 0) {
     return interaction.editReply(`${interaction.client.emotes.normal.no} You have not joined any hubs yet!`);
   }
 
-  const hubList = joinedHubs.map(hub => {
-    // use a more meaningful embed for this lmao
-    return createHubListingsEmbed(hub, { totalNetworks: hub.connections.length })
-      .addFields({
-        name: 'Channel',
-        value: `<#${hub.connections.find(c => c.serverId === interaction.guildId)?.channelId}>`,
-        inline: true,
-      });
-  });
+  const allFields = connections.map((con) => ({
+    name: `${con.hub?.name}`,
+    value: `<#${con.channelId}>`,
+    inline: true,
+  }));
 
-  paginate(interaction, hubList);
+  if (allFields.length > 25) {
+    const paginateEmbeds: EmbedBuilder[] = [];
+    let currentEmbed: EmbedBuilder | undefined;
+
+    // Split the fields into multiple embeds
+    allFields.forEach((field, index) => {
+      if (index % 25 === 0) {
+        // Start a new embed
+        currentEmbed = new EmbedBuilder()
+          .setTitle('Joined hubs')
+          .setDescription(`This server is a part of **${connections.length}** hub(s).`)
+          .setColor('Blue')
+          .setFooter({
+            text: 'Use /hub leave <name> to leave a hub.',
+          });
+        paginateEmbeds.push(currentEmbed);
+      }
+
+      // Add the field to the current embed
+      if (currentEmbed) {
+        currentEmbed.addFields(field);
+      }
+    });
+
+    paginate(interaction, paginateEmbeds);
+    return;
+  }
+
+  const embed = new EmbedBuilder()
+    .setTitle('Joined hubs')
+    .setDescription(`This server is a part of **${connections.length}** hub(s).`)
+    .setFields(allFields)
+    .setColor('Blue')
+    .setFooter({
+      text: 'Use /hub leave <name> to leave a hub.',
+    });
+  await interaction.editReply({ embeds: [embed] });
 }
