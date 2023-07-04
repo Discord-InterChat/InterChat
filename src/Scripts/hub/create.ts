@@ -17,12 +17,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const iconUrl = interaction.options.getString('icon', true);
   const bannerUrl = interaction.options.getString('banner');
 
-  const imgurIcons = iconUrl.match(/\bhttps?:\/\/i\.imgur\.com\/[A-Za-z0-9]+\.(?:jpg|jpeg|gif|png|bmp)\b/g);
-  const imgurBanners = bannerUrl?.match(/\bhttps?:\/\/i\.imgur\.com\/[A-Za-z0-9]+\.(?:jpg|jpeg|gif|png|bmp)\b/g);
+  const imgurRegex = /\bhttps?:\/\/i\.imgur\.com\/[A-Za-z0-9]+\.(?:jpg|jpeg|gif|png|bmp)\b/g;
+
+  const imgurIcons = iconUrl.match(imgurRegex);
+  const imgurBanners = bannerUrl?.match(imgurRegex);
 
   if (!imgurIcons || imgurBanners === null) {
     return await interaction.reply({
-      content: 'Please provide a valid imgur link for the icon and banner. It should start with `https://i.imgur.com/` and end with an image extension.',
+      content: 'Please provide a valid Imgur link for the icon and banner. It should start with `https://i.imgur.com/` and end with an image extension.',
       ephemeral: true,
     });
   }
