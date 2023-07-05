@@ -248,7 +248,7 @@ export = {
             where: { channelId: updConnection.channelId },
             data: {
               channelId: channel?.id,
-              webhook: { id: webhook.id, token: `${webhook.token}`, url: webhook.url },
+              webhookURL: webhook.url,
             },
           });
 

@@ -12,7 +12,7 @@ export interface NetworkMessage extends Message {
 
 export interface NetworkWebhookSendResult {
   message: APIMessage | null
-  webhookId: string;
+  webhookURL: string;
 }
 
 export default {
@@ -120,13 +120,13 @@ export default {
           };
         }
 
-        const webhook = new WebhookClient({ id: `${connection?.webhook.id}`, token: `${connection?.webhook.token}` });
+        const webhook = new WebhookClient({ url: connection.webhookURL });
         const webhookSendRes = await webhook.send(webhookMessage).catch(() => null);
-        return { webhookId: webhook.id, message: webhookSendRes } as NetworkWebhookSendResult;
+        return { webhookURL: webhook.url, message: webhookSendRes } as NetworkWebhookSendResult;
       });
 
       message.delete().catch(() => null);
-      cleanup.execute(message, await Promise.all(messageResults), channelInDb.hubId);
+      cleanup(message, await Promise.all(messageResults), channelInDb.hubId);
     }
   },
 };

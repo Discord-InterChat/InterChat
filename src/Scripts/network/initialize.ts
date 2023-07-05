@@ -49,7 +49,7 @@ export = {
           connected: true,
           profFilter: true,
           compact: false,
-          webhook: { id: webhook.id, token: `${webhook.token}`, url: webhook.url },
+          webhookURL: webhook.url,
           hub: { connect: { id: hub.id } },
         },
       });
