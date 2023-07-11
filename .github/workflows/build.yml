@@ -1,4 +1,4 @@
-name: Pull Newer Code
+name: Deploy Code
 on: 
   push:
     branches: [main]
@@ -13,25 +13,25 @@ on:
       - .gitignore
       - .husky
 jobs:
-  pull:
-    name: Pull newer code
-    runs-on: self-hosted
-
-    steps: 
-      - name: Backup Logs & Stop PM2
-        run: |
-              [ -d "~/actions-runner/chatbot-production-builds/InterChat/InterChat/logs/" ] && cp -r ~/actions-runner/chatbot-production-builds/InterChat/InterChat/logs/ ~/console-logs/$(date +'%Y-%m-%d-%M')
-              pm2 stop interchat-prod
-
-        # note to self: Checks out to ~/actions-runner/chatbot-production-builds/InterChat/InterChat/
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-  restart:
-      name: Build newer code and restart InterChat
+  build:
+      name: Build updated code
       runs-on: self-hosted
   
-      steps:   
+      steps:
+        # note to self: Checks out to ~/actions-runner/chatbot-production-builds/InterChat/InterChat/
+        - name: Backup Logs
+          run: |
+              if [ -d "logs/" ]; then
+                cp -r logs/ ~/console-logs/$(date +'%Y-%m-%d-%M')
+              fi
+        
+        - name: Checkout repository
+          uses: actions/checkout@v3
+
+        - name: Mark build as in progress 
+          run: touch build-in-progress.tmp
+
+  
         - name: Install dependencies
           run: npm install
 
@@ -46,5 +46,5 @@ jobs:
         - name: Prune Dev-dependencies
           run: npm prune --omit=dev
 
-        - name: Restart InterChat 
-          run: cd build/ && pm2 restart --update-env interchat-prod --ignore-watch logs --watch        
+        - name: Mark build as successful 
+          run: touch build-successful.tmp        
