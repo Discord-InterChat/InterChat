@@ -11,7 +11,7 @@ export interface NetworkMessage extends Message {
 }
 
 export interface NetworkWebhookSendResult {
-  message: APIMessage | null
+  messageOrError: APIMessage | string
   webhookURL: string;
 }
 
@@ -69,8 +69,8 @@ export default {
         });
       const censoredEmbed = EmbedBuilder.from(embed).setDescription(message.censored_content || null);
 
-      const hubConnections = await db.connectedList.findMany({ where: { hubId: channelInDb.hubId, connected: true } });
       // send the message to all connected channels in apropriate format (compact/profanity filter)
+      const hubConnections = await db.connectedList.findMany({ where: { hubId: channelInDb.hubId, connected: true } });
       const messageResults = hubConnections?.map(async (connection) => {
         const reply = replyInDb?.channelAndMessageIds.find((msg) => msg.channelId === connection.channelId);
         const replyLink = reply ? `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}` : undefined;
@@ -86,7 +86,6 @@ export default {
                   : '@' + referredAuthor.username),
               ))
           : null;
-
 
         let webhookMessage: WebhookMessageCreateOptions;
         if (connection.compact) {
@@ -121,8 +120,8 @@ export default {
         }
 
         const webhook = new WebhookClient({ url: connection.webhookURL });
-        const webhookSendRes = await webhook.send(webhookMessage).catch(() => null);
-        return { webhookURL: webhook.url, message: webhookSendRes } as NetworkWebhookSendResult;
+        const webhookSendRes = await webhook.send(webhookMessage).catch((e) => e.message);
+        return { webhookURL: webhook.url, messageOrError: webhookSendRes } as NetworkWebhookSendResult;
       });
 
       message.delete().catch(() => null);

@@ -11,13 +11,16 @@ export default async function execute(message: Message, channelAndMessageIds: Ne
   const invalidWebhookURLs: string[] = [];
 
   channelAndMessageIds.forEach((result) => {
-    if (!result.message) {
-      invalidWebhookURLs.push(result.webhookURL);
+    if (typeof result.messageOrError === 'string') {
+      if (
+        result.messageOrError.includes('Invalid Webhook Token') ||
+        result.messageOrError.includes('Unknown Webhook')
+      ) invalidWebhookURLs.push(result.webhookURL);
     }
     else {
       messageDataObj.push({
-        channelId: result.message.channel_id,
-        messageId: result.message.id,
+        channelId: result.messageOrError.channel_id,
+        messageId: result.messageOrError.id,
       });
     }
   });
