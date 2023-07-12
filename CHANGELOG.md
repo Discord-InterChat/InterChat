@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.11.1](https://github.com/Discord-InterChat/InterChat/compare/v3.11.0...v3.11.1) (2023-07-12)
+
+
+### Bug Fixes
+
+* Create hub leave file ([1170a27](https://github.com/Discord-InterChat/InterChat/commit/1170a2717b54e78e8f3cbed10ae6833c83cdcbad))
+* fixed bug that allowed rating greater than 5 ([0ad47c1](https://github.com/Discord-InterChat/InterChat/commit/0ad47c176211c9968e8da5a67f8eb24babf38972))
+* **hub join:** fix "invalid connection" bug ([9231925](https://github.com/Discord-InterChat/InterChat/commit/9231925413de072c34325e602c14f5abeabc1853))
+* **hub:** banners and icons must all be `i.imgur.com` urls now ([#18](https://github.com/Discord-InterChat/InterChat/issues/18)) ([455073c](https://github.com/Discord-InterChat/InterChat/commit/455073c53d99ad38a885e77e98c537620ebd004e))
+* **hubs:** Hub delete command instead ([45b9c67](https://github.com/Discord-InterChat/InterChat/commit/45b9c67b95c78aff7cb30ca4a364088c79aa5bac))
+* **hub:** simpler embed in subcommand `joined` ([#17](https://github.com/Discord-InterChat/InterChat/issues/17)) ([05f27be](https://github.com/Discord-InterChat/InterChat/commit/05f27bee9f865539bde8f8ffb27bbfcab0497161))
+* **hubs:** Possible fix for unresponsive buttons ([1332387](https://github.com/Discord-InterChat/InterChat/commit/1332387e8dacc2644e33b8aff80451dd74875648))
+* minor log fixes ([44d79d1](https://github.com/Discord-InterChat/InterChat/commit/44d79d11e453da20a14c341c68efafa498fce5b6))
+* **network:** allow sending only attachments ([faaebfa](https://github.com/Discord-InterChat/InterChat/commit/faaebfac5bdd6093e9809a36d7ce2f4bab7f6b90))
+* **network:** Deprecate non-webhook messages ([#15](https://github.com/Discord-InterChat/InterChat/issues/15)) ([6c3de66](https://github.com/Discord-InterChat/InterChat/commit/6c3de6664b519e8e3afddccf67d138fe638227fc))
+* **network:** fix mass disconnection issue ([d106419](https://github.com/Discord-InterChat/InterChat/commit/d106419836b8dc07ecf8e3a003e61b6d466d91e2))
+* **network:** removed blacklist check ([97799a1](https://github.com/Discord-InterChat/InterChat/commit/97799a1f4c0ab16b4e7e686ac278411bad1b1734))
+* **purge:** Messages will be purged from hub in invoked channel ([ee530a2](https://github.com/Discord-InterChat/InterChat/commit/ee530a2ad09cc03f3da3d5a8e4adcc0293061345))
+* remove announce command ([8c12073](https://github.com/Discord-InterChat/InterChat/commit/8c12073b0d85851ffdabc769e8180c457f8bb10f))
+* remove old non-webhooks network code ([6df3928](https://github.com/Discord-InterChat/InterChat/commit/6df39288a0d042b8b8af8ea90b9a1272f4dd8058))
+* Removed jump button from compact messages ([4e3ac06](https://github.com/Discord-InterChat/InterChat/commit/4e3ac063005f731321bdca155bd622b26aa3d3a2))
+* Update on-join DM message embed ([2fd0423](https://github.com/Discord-InterChat/InterChat/commit/2fd0423e01af1ad065ee16e88e12f2ec8f8eae12))
+
 ## [3.11.0](https://github.com/Discord-InterChat/InterChat/compare/v3.10.3...v3.11.0) (2023-05-24)
 
 
