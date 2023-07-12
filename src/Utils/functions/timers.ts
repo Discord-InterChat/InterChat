@@ -66,7 +66,7 @@ export default async function startTimers(client: Client) {
     }
 
     // if the blacklist has not expired, schedule a new job to unblacklist the user
-    scheduleJob(`blacklist-${blacklist.userId}`, blacklist.expires, async function(job_blacklist: any) {
+    scheduleJob(`blacklist-${blacklist.userId}`, blacklist.expires, async function(job_blacklist: typeof blacklist) {
       const user = await client.users.fetch(job_blacklist.userId).catch(() => null);
       await db.blacklistedUsers.delete({ where: { userId: job_blacklist.userId } });
 

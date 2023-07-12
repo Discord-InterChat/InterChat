@@ -332,7 +332,7 @@ export const rulesEmbed = new discord.EmbedBuilder()
   .setDescription(stripIndents`
     1. **No spamming or flooding.**
     > This includes sending the same message multiple times, sending messages that are gibberish, or sending messages that are excessively long.
-    2. **Use English.** 
+    2. **Use English.** (*Applies to InterChat Central hub only.*)
     > Our staff should be able to understand what you are saying to moderate the network. If you are not a native English speaker, you may use a translator.
     3. **Advertising of any kind is prohibited.**
     > This includes advertising your own server, social media, or other services.
