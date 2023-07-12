@@ -18,12 +18,6 @@ type MessageDataReference {
   messageId String?
 }
 
-type NetworkWebhook {
-  id    String
-  token String
-  url   String
-}
-
 type UserDataWarnings {
   automated   Boolean
   moderatorId String?
