@@ -73,6 +73,10 @@ export function toTitleCase(txt: string): string {
   return startCase(toLower(txt));
 }
 
+export async function getHubName(hubId: string) {
+  return (await getDb().hubs.findUnique({ where: { id: hubId } }))?.name;
+}
+
 export function getGuildName(client: discord.Client, gid: string | null) {
   if (!gid) return '';
   return client.guilds.cache.get(gid)?.name;
@@ -197,7 +201,7 @@ export async function addUserBlacklist(hubId: string, moderator: discord.User, u
 
     user.send({ embeds: [embed] }).catch(async () => {
       await _prisma.blacklistedUsers.update({ where: { userId: (user as discord.User).id }, data: { notified: false } });
-      logger.info(`Could not notify ${(user as discord.User).tag} about their blacklist.`);
+      logger.info(`Could not notify ${(user as discord.User).username} about their blacklist.`);
     });
   }
 

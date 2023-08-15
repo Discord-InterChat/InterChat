@@ -43,7 +43,7 @@ export default {
       .setAuthor({ name: `${interaction.client.user.username} Help`, iconURL: interaction.client.user.avatarURL() || undefined })
       .setDescription(allCommands)
       .setColor(colors('chatbot'))
-      .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+      .setFooter({ text: `Requested by @${interaction.user.username}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
 
     const firstReply = await interaction.reply({ embeds: [embed], components: [categorySelect, commandSelect] });
 
@@ -70,7 +70,7 @@ export default {
               .setAuthor({ name: `${interaction.client.user.username} Help`, iconURL: interaction.client.user.avatarURL() || undefined })
               .setDescription(allCommands)
               .setColor(colors('chatbot'))
-              .setFooter({ text: `Requested by ${interaction.user.tag}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+              .setFooter({ text: `Requested by @${interaction.user.username}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
 
             categorySelect.components[0].options.find(option => option.data.default)?.setDefault(false);
             categorySelect.components[0].options.find(option => option.data.value === category)?.setDefault(true);

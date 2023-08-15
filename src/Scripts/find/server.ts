@@ -43,7 +43,7 @@ async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
         name: 'Server Info',
         value: stripIndents`
         > **Server ID:** ${guild.id}
-        > **Owner:** ${GuildOwner?.user.tag} (${GuildOwner?.id})
+        > **Owner:** @${GuildOwner?.user.username} (${GuildOwner?.id})
         > **Created:** <t:${Math.round(guild.createdTimestamp / 1000)}:R>
         > **Language:** ${guild.preferredLocale}
         > **Boost Level:** ${guildBoostLevel}

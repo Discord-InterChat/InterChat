@@ -31,24 +31,24 @@ export default {
 
       ${creditsDivider}
       ${normal.chatbot_circle} **Design:** 
-      ${normal.dotBlue} ${members.at(-2)?.tag} (Avatar)
-      ${normal.dotBlue} ${members[0].tag} (Avatar)
-      ${normal.dotBlue} ${members.at(-1)?.tag} (Mascot)
+      ${normal.dotBlue} @${members.at(-2)?.username} (Avatar)
+      ${normal.dotBlue} @${members[0].username} (Avatar)
+      ${normal.dotBlue} @${members.at(-1)?.username} (Mascot)
 
       ${icons.botdev} **Developers:**
-      ${normal.dotBlue} ${members[0].tag}
-      ${normal.dotBlue} ${members[1].tag}
-      ${normal.dotBlue} ${members[2].tag}
+      ${normal.dotBlue} @${members[0].username}
+      ${normal.dotBlue} @${members[1].username}
+      ${normal.dotBlue} @${members[2].username}
 
       ${icons.staff} **Staff:**
-      ${normal.dotBlue} ${members.at(-3)?.tag}
-      ${normal.dotBlue} ${members.at(-2)?.tag}
+      ${normal.dotBlue} @${members.at(-3)?.username}
+      ${normal.dotBlue} @${members.at(-2)?.username}
 
       ${linksDivider}
       [Guide](https://interchat.gitbook.io) • [Invite](${interaction.client.invite}) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241) • [App Directory](https://discord.com/application-directory/769921109209907241) • [ToS](https://interchat.gitbook.io/important/terms) • [Privacy](https://interchat.gitbook.io/important/privacy)
       `)
       .setFooter({
-        text: `Requested by ${interaction.user.tag}`,
+        text: `Requested by @${interaction.user.username}`,
         iconURL: interaction.user.avatarURL() ?? interaction.user.defaultAvatarURL,
       });
 

@@ -19,13 +19,13 @@ module.exports = {
       }
       else {
         await dbCollection.update({ where: { userId: user.id }, data: { badges: [...userBadges, badge] } });
-        await interaction.reply(`Badge \`${badge}\` added to ${user.tag}.`);
+        await interaction.reply(`Badge \`${badge}\` added to ${user.username}.`);
         return;
       }
     }
     else {
       await dbCollection.create({ data: { userId: user.id, badges: [badge] } });
-      await interaction.reply(`Badge \`${badge}\` added to ${user.tag}.`);
+      await interaction.reply(`Badge \`${badge}\` added to ${user.username}.`);
       return;
     }
   },

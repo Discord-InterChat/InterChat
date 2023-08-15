@@ -43,7 +43,7 @@ export = {
       const days = interaction.options.getNumber('days');
 
       if (userInBlacklist) {
-        interaction.followUp(`${user.username}#${user.discriminator} is already blacklisted.`);
+        interaction.followUp(`**${user.username}** is already blacklisted.`);
         return;
       }
       if (user.id === interaction.user.id) return interaction.followUp('You cannot blacklist yourself.');
@@ -58,7 +58,7 @@ export = {
 
       await addUserBlacklist(hubInDb.id, interaction.user, user, String(reason), expires);
       const successEmbed = new EmbedBuilder()
-        .setDescription(`${interaction.client.emotes.normal.tick} **${user.tag}** has been successfully blacklisted!`)
+        .setDescription(`${interaction.client.emotes.normal.tick} **${user.username}** has been successfully blacklisted!`)
         .setColor('Green')
         .addFields(
           {
@@ -77,11 +77,11 @@ export = {
 
 
     else if (subcommandGroup == 'remove') {
-      if (!userInBlacklist) return interaction.reply(`The user **${user.tag}** is not blacklisted.`);
+      if (!userInBlacklist) return interaction.reply(`The user **@${user.username}** is not blacklisted.`);
       const userBeforeUnblacklist = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
 
       await db.blacklistedUsers.delete({ where: { userId: user.id } });
-      interaction.reply(`**${user.username}#${user.discriminator}** has been removed from the blacklist.`);
+      interaction.reply(`**${user.username}** has been removed from the blacklist.`);
 
       cancelJob(`blacklist-${user.id}`);
       modActions(interaction.user, {

@@ -37,7 +37,7 @@
     "@top-gg/sdk": "^3.1.5",
     "common-tags": "^1.8.2",
     "discord-arts": "^0.4.0",
-    "discord.js": "^14.11.0",
+    "discord.js": "^14.12.1",
     "dotenv": "^16.3.1",
     "lodash": "^4.17.21",
     "node-schedule": "^2.1.1",
@@ -58,7 +58,7 @@
     "prisma": "^4.16.2",
     "standard-version": "^9.5.0",
     "tsc-watch": "^6.0.4",
-    "typescript": "^4.9.5"
+    "typescript": "^5.1.6"
   },
   "config": {
     "commitizen": {

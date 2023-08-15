@@ -215,7 +215,7 @@ export default {
         { name: 'Errored Purges', value: `\`\`\`js\n${erroredMessageCount}\`\`\``, inline: true },
         { name: 'Purge Limit', value: `\`\`\`js\n${limit || 'None'}\`\`\``, inline: true },
       ])
-      .setFooter({ text: `Purged By: ${interaction.user.tag}`, iconURL: interaction.user.avatarURL() || undefined })
+      .setFooter({ text: `Purged By: ${interaction.user.username}`, iconURL: interaction.user.avatarURL() || undefined })
       .setTimestamp()
       .setColor('Orange');
 

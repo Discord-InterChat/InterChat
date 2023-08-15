@@ -41,7 +41,7 @@ export default {
       catch (error) {
         logger.error(`[${interaction.commandName}]:`, error);
         captureException(error, {
-          user: { id: interaction.user.id, username: interaction.user.tag },
+          user: { id: interaction.user.id, username: interaction.user.username },
           extra: { command: interaction.commandName },
         });
 

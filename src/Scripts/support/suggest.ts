@@ -47,7 +47,7 @@ export = {
       const description = modalInteraction.fields.getTextInputValue('Description');
 
       const suggestionEmbed = new EmbedBuilder()
-        .setAuthor({ name: `Suggestion from ${modalInteraction.user.tag}`, iconURL: modalInteraction.user.displayAvatarURL() })
+        .setAuthor({ name: `Suggested by @${modalInteraction.user.username}`, iconURL: modalInteraction.user.displayAvatarURL() })
         .setDescription(description)
         .setImage(attachment?.url as string | null)
         .setColor(colors('chatbot'))

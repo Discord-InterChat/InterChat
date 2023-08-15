@@ -17,6 +17,6 @@ export = {
     }
 
     await db.userWarns.delete({ where: { userId: user.id } });
-    await interaction.reply(`${emojis.normal.yes} Successfully cleard all warnings from ${user.tag}!`);
+    await interaction.reply(`${emojis.normal.yes} Successfully cleard all warnings from @${user.username}!`);
   },
 };

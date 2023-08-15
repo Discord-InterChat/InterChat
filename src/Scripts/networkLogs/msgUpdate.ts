@@ -20,10 +20,10 @@ export async function networkMsgUpdate(member: GuildMember, oldMessage: Message,
   const emoji = member.client.emotes;
 
   const embed = new EmbedBuilder()
-    .setAuthor({ name: member.user.tag, iconURL: member.user.avatarURL()?.toString() })
+    .setAuthor({ name: member.user.username, iconURL: member.user.avatarURL()?.toString() })
     .setTitle('Message Edited')
     .setDescription(stripIndents`
-            ${emoji.normal.dotYellow} **User:** ${member.user.tag} (${member.id})
+            ${emoji.normal.dotYellow} **User:** ${member.user.username} (${member.id})
             ${emoji.normal.dotYellow} **Server:** ${member.guild.name} (${member.guild.id})
             ${emoji.normal.dotYellow} **Attachments:** ${attachmentLink ? `[Click to view](${attachmentLink})` : 'None.'}
             ${emoji.normal.dotYellow} **Created At:** <t:${Math.round(new Date().getTime() / 1000)}:R>

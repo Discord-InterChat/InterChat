@@ -119,11 +119,11 @@ export default {
 
           const embed = new EmbedBuilder()
             .setTitle('User Reported')
-            .setDescription(`A new user report for \`${reportedUser.tag}\` (${reportedUser.id}) was submitted.\n\n**Reported For:** ${selections.join(', ')}`)
+            .setDescription(`A new user report for \`@${reportedUser.username}\` (${reportedUser.id}) was submitted.\n\n**Reported For:** ${selections.join(', ')}`)
             .setColor(colors('chatbot'))
             .setTimestamp()
             .setFooter({
-              text: `Reported By: ${modalSubmit.user.tag} | ${modalSubmit.user.id}.`,
+              text: `Reported By: ${modalSubmit.user.username} | ${modalSubmit.user.id}.`,
               iconURL: modalSubmit.user.avatarURL() || modalSubmit.user.defaultAvatarURL,
             });
 

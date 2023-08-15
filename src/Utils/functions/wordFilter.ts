@@ -1,5 +1,5 @@
-import { EmbedBuilder, Client, Guild, User, TextChannel } from 'discord.js';
-import { colors, constants } from '../../Utils/functions/utils';
+import { EmbedBuilder, User, TextChannel } from 'discord.js';
+import { colors, constants, getGuildName, getHubName } from '../../Utils/functions/utils';
 import { badwords } from '../JSON/badwords.json';
 
 /**
@@ -27,16 +27,16 @@ export function censor(message: string): string {
 }
 
 
-/**
-  * Log the *uncensored* message to the log channel.
-*/
-export async function log(client: Client, author: User, guild: Guild | null, rawContent: string) {
-  const logChan = await client.channels.fetch(constants.channel.networklogs) as TextChannel;
+/** A function that can be used to send a log of an ***uncensored*** message to the log channel. */
+export async function log(rawContent: string, author: User, guildId: string | null, hubId: string) {
+  const logChan = await author.client.channels.fetch(constants.channel.networklogs) as TextChannel;
+  const hubName = await getHubName(hubId).catch(() => 'Unknown');
+  const guildName = getGuildName(author.client, guildId);
   const logEmbed = new EmbedBuilder()
-    .setAuthor({ name: `${client.user?.username} logs`, iconURL: client.user?.avatarURL()?.toString() })
+    .setAuthor({ name: `${author.client.user?.username} logs`, iconURL: author.client.user?.avatarURL()?.toString() })
     .setTitle('Bad Word Detected')
     .setColor(colors('invisible'))
-    .setDescription(`||${rawContent}||\n\n**Author:** \`${author.tag}\` (${author.id})\n**Server:** ${guild?.name} (${guild?.id})`);
+    .setDescription(`||${rawContent}||\n\n**Author:** @${author.username} \`(${author.id})\`\n**Server:** ${guildName} (${guildId})\n**Hub:** ${hubName}`);
   return await logChan?.send({ embeds: [logEmbed] });
 }
 

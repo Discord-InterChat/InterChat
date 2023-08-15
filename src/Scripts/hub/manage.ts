@@ -165,7 +165,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             if (!e.message.includes('ending with reason: time')) {
               logger.error(e);
               captureException(e, {
-                user: { id: i.user.id, username: i.user.tag },
+                user: { id: i.user.id, username: i.user.username },
                 extra: { context: 'This happened when user tried to edit hub desc.' },
               });
             }
@@ -211,7 +211,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             if (!e.message.includes('ending with reason: time')) {
               logger.error(e);
               captureException(e, {
-                user: { id: i.user.id, username: i.user.tag },
+                user: { id: i.user.id, username: i.user.username },
                 extra: { context: 'This happened when user tried to edit hub desc.' },
               });
             }
@@ -263,7 +263,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             if (!e.message.includes('ending with reason: time')) {
               logger.error(e);
               captureException(e, {
-                user: { id: i.user.id, username: i.user.tag },
+                user: { id: i.user.id, username: i.user.username },
                 extra: { context: 'Occured during hub banner change.' },
               });
             }

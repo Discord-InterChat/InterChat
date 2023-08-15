@@ -46,7 +46,7 @@ export = {
 
     // check if message contains slurs
     if (slurs.some((slur) => message.content.toLowerCase().includes(slur))) {
-      wordFilter.log(message.client, message.author, message.guild, message.content);
+      wordFilter.log(message.content, message.author, message.guildId, networkData.hubId);
       return false;
     }
 
@@ -84,7 +84,7 @@ export = {
       return false;
     }
 
-    if (wordFilter.check(message.content)) wordFilter.log(message.client, message.author, message.guild, message.content);
+    if (wordFilter.check(message.content)) wordFilter.log(message.content, message.author, message.guildId, networkData.hubId);
 
     return true;
   },

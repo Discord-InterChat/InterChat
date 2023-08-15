@@ -136,7 +136,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
               if (!e.message.includes('ending with reason: time')) {
                 logger.error(e);
                 captureException(e, {
-                  user: { username: i.user.tag, id: i.user.id },
+                  user: { username: i.user.username, id: i.user.id },
                   extra: { context: 'Rating modal' },
                 });
               }

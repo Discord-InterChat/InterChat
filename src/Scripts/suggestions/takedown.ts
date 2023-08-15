@@ -49,6 +49,6 @@ export default {
     }
 
     await interaction.reply('🗑️ Suggestion discarded.');
-    suggestionPost?.setArchived(true, `Suggestion taken down by ${interaction.user.tag}`);
+    suggestionPost?.setArchived(true, `Suggestion taken down by ${interaction.user.username}`);
   },
 };

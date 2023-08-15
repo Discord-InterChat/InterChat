@@ -13,7 +13,7 @@ const embedGen = async (user: User) => {
   const { icons } = user.client.emotes;
 
   return new EmbedBuilder()
-    .setAuthor({ name: user.tag, iconURL: user.avatarURL()?.toString() })
+    .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
     .setColor(colors('invisible'))
     .setImage(user.bannerURL({ size: 1024 }) || null)
     .setThumbnail(user.avatarURL())
@@ -21,7 +21,7 @@ const embedGen = async (user: User) => {
       {
         name: 'User',
         value: stripIndents`
-          > ${icons.mention} **Tag:** ${user.tag}
+          > ${icons.mention} **Username:** ${user.username}
           > ${icons.id} **ID:** ${user.id}
           > ${icons.members} **Created:** <t:${Math.round(user.createdTimestamp / 1000)}:R>
           > ${icons.bot} **Bot:** ${user.bot}`,
@@ -39,7 +39,7 @@ const embedGen = async (user: User) => {
 export = {
   async execute(interaction: ChatInputCommandInteraction, userId: string, hidden: boolean) {
     const user = await interaction.client.users.fetch(userId).catch(() => null);
-    if (!user) return interaction.reply({ content: 'Unknown user.', ephemeral: true });
+    if (!user) return interaction.reply({ content: 'Unknown user. Try using user\'s ID instead if you used username.', ephemeral: true });
 
     await interaction.reply({
       content: user.id,

@@ -54,7 +54,7 @@ export async function execute(interaction: ChatInputCommandInteraction, hubName:
   catch (e) {
     logger.error(e);
     captureException(e, {
-      user: { id: interaction.user.id, username: interaction.user.tag },
+      user: { id: interaction.user.id, username: interaction.user.username },
       extra: { context: 'delete hub command', hubId: hubInDb?.id },
     });
 

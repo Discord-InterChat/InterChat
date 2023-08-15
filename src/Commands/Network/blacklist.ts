@@ -172,18 +172,19 @@ export default {
 
   async autocomplete(interaction: AutocompleteInteraction) {
     const action = interaction.options.getSubcommand() as 'user' | 'server';
+    const hubName = interaction.options.getString('hub', true);
 
     const focusedValue = interaction.options.getFocused().toLowerCase();
     let choices;
 
     switch (action) {
       case 'user': {
-        const allUsers = await getDb().blacklistedUsers.findMany();
+        const allUsers = await getDb().blacklistedUsers.findMany({ where: { hub: { name: hubName } } });
         choices = allUsers.map((user) => { return { name: user.username, value: user.userId }; });
         break;
       }
       case 'server': {
-        const allServers = await getDb().blacklistedServers.findMany();
+        const allServers = await getDb().blacklistedServers.findMany({ where: { hub: { name: hubName } } });
         choices = allServers.map((server) => { return { name: server.serverName, value: server.serverId }; });
         break;
       }

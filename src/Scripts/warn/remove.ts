@@ -20,11 +20,11 @@ export = {
     await db.userWarns.update({
       where: { userId: user.id },
       data: {
-        userTag: user.tag,
+        userTag: user.username,
         warnings: { deleteMany: { where: { id: { equals: warnId } } } },
       },
     });
 
-    await interaction.reply(`${emojis.normal.yes} Successfully removed warning **${warnId}** from ${user.tag}!`);
+    await interaction.reply(`${emojis.normal.yes} Successfully removed warning **${warnId}** from ${user.username}!`);
   },
 };

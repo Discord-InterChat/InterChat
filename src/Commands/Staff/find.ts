@@ -53,13 +53,13 @@ export default {
       case 'user': {
         const users = interaction.client.users.cache;
         const focusedValue = interaction.options.getFocused().toLowerCase();
-        const choices: {tag: string, id: string}[] = [];
+        const choices: {username: string, id: string}[] = [];
 
-        users.map((user) => choices.push({ tag: user.tag, id: user.id }));
+        users.map((user) => choices.push({ username: user.username, id: user.id }));
         const filtered = choices
-          .filter((choice) => choice.tag.toLowerCase().includes(focusedValue) || choice.id.toLowerCase().includes(focusedValue))
+          .filter((choice) => choice.username.toLowerCase().includes(focusedValue) || choice.id.toLowerCase().includes(focusedValue))
           .slice(0, 25)
-          .map((choice) => ({ name: choice.tag, value: choice.id }));
+          .map((choice) => ({ name: choice.username, value: choice.id }));
 
         interaction.respond(filtered);
         break;

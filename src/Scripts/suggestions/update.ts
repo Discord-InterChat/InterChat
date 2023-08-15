@@ -27,7 +27,7 @@ export default {
 
     await suggestionMessage?.edit({ embeds: [suggestionEmbed] });
 
-    if (status === '🚫 Closed' || status === '❌ Rejected') suggestionPost?.setArchived(true, `Closed by ${interaction.user.tag}`);
+    if (status === '🚫 Closed' || status === '❌ Rejected') suggestionPost?.setArchived(true, `Closed by ${interaction.user.username}`);
 
     interaction.reply({ content: 'Updated suggestion!', ephemeral: true }).catch();
 

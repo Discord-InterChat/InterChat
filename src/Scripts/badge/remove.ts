@@ -16,14 +16,14 @@ export = {
       if (userBadges.includes(badge)) {
         userBadges.splice(userBadges.indexOf(badge), 1);
         await dbCollection.update({ where: { userId: user.id }, data: { badges: userBadges } });
-        await interaction.reply(`Removed badge \`${badge}\` from user ${user.tag}.`);
+        await interaction.reply(`Removed badge \`${badge}\` from user ${user.username}.`);
       }
       else {
-        await interaction.reply(`User ${user.tag} does not have the badge ${badge}.`);
+        await interaction.reply(`User ${user.username} does not have the badge ${badge}.`);
       }
     }
     else {
-      await interaction.reply(`User ${user.tag} does not have the badge ${badge}.`);
+      await interaction.reply(`User ${user.username} does not have the badge ${badge}.`);
     }
   },
 };

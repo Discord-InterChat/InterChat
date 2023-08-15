@@ -72,12 +72,12 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
       await modLogs.send({
         embeds: [
           new EmbedBuilder()
-            .setAuthor({ name: moderator.tag, iconURL: moderator.avatarURL()?.toString() })
+            .setAuthor({ name: moderator.username, iconURL: moderator.avatarURL()?.toString() })
             .setTitle('User Blacklisted')
             .setDescription(
               stripIndents`
-              ${emoji.normal.dotBlue} **User:** ${action.user.tag} (${action.user.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **User:** ${action.user.username} (${action.user.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               `,
             )
             .addFields(
@@ -98,7 +98,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setTitle('Server Blacklisted')
             .setDescription(stripIndents`
               ${emoji.normal.dotBlue} **Server:** ${guild?.name} (${guild?.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               `)
             .addFields(
               { name: 'Reason', value: action.reason, inline: true },
@@ -113,12 +113,12 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
       await modLogs.send({
         embeds: [
           new EmbedBuilder()
-            .setAuthor({ name: moderator.tag, iconURL: moderator.avatarURL()?.toString() })
+            .setAuthor({ name: moderator.username, iconURL: moderator.avatarURL()?.toString() })
             .setTitle('User Unblacklisted')
             .setColor(colors('chatbot'))
             .setDescription(stripIndents`
-              ${emoji.normal.dotBlue} **User:** ${action.user.tag} (${action.user.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **User:** ${action.user.username} (${action.user.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               `)
             .addFields(
               { name: 'Blacklisted For', value: action.blacklistReason || 'Unknown', inline: true },
@@ -137,7 +137,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setTitle('Server Unblacklisted')
             .setDescription(stripIndents`
               ${emoji.normal.dotBlue} **Server:** ${server?.name || action.dbGuild.serverName} (${action.dbGuild.serverId})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
              `)
             .addFields({ name: 'Reason', value: action.reason })
             .setTimestamp(action.timestamp)
@@ -155,7 +155,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setTitle('Left Server')
             .setDescription(stripIndents`
               ${emoji.normal.dotBlue} **Server:** ${guild?.name} (${guild?.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               ${emoji.normal.dotBlue} **Reason:** ${action.reason}
               `)
             .setColor(colors('chatbot')),
@@ -171,7 +171,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setTitle('Disconnected from Server')
             .setDescription(stripIndents`
               ${emoji.normal.dotBlue} **Server:** ${guild?.name} (${guild?.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.tag} (${moderator.id})
+              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               ${emoji.normal.dotBlue} **Reason:** ${action.reason}
               `)
             .setColor(colors('chatbot')),

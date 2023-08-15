@@ -19,14 +19,13 @@ export default async function startTimers(client: Client) {
   });
 
   // Timers that start only if the bot is logged in.
-  if (!client.isReady()) return;
-
   const blacklistedServers = await db.blacklistedServers.findMany({ where: { expires: { isSet: true } } });
   const blacklistedUsers = await db.blacklistedUsers.findMany({ where: { expires: { isSet: true } } });
 
   // timer to unblacklist servers
   blacklistedServers.forEach(async (blacklist) => {
-    if (!blacklist.expires) return;
+    if (!blacklist.expires || !client.user) return;
+
     if (blacklist.expires < new Date()) {
       await db.blacklistedServers.delete({ where: { id: blacklist.id } });
 
@@ -39,6 +38,7 @@ export default async function startTimers(client: Client) {
     }
 
     scheduleJob(`blacklist_server-${blacklist.serverId}`, blacklist.expires, async function() {
+      if (!client.user) return;
       await db.blacklistedServers.delete({ where: { id: blacklist.id } });
 
       modActions(client.user, {
@@ -52,7 +52,7 @@ export default async function startTimers(client: Client) {
 
   // timer to unblacklist users
   blacklistedUsers.forEach(async (blacklist) => {
-    if (!blacklist.expires) return;
+    if (!blacklist.expires || !client.user) return;
 
     // if the blacklist has already expired, delete it from the database
     if (blacklist.expires < new Date()) {

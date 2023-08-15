@@ -59,7 +59,7 @@ export default {
             : [],
         )
         .setAuthor({
-          name: `@${message.author.tag}`,
+          name: `@${message.author.username}`,
           iconURL: message.author.displayAvatarURL() || message.author.defaultAvatarURL,
           url: `https://discord.com/users/${message.author.id}`,
         })
@@ -101,7 +101,7 @@ export default {
 
           webhookMessage = {
             avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
-            username:  message.author.tag,
+            username:  message.author.username,
             content: connection?.profFilter ? message.censored_content : message.content,
             embeds: replyEmbed ? [replyEmbed] : undefined,
             files: attachment ? [attachment] : [],

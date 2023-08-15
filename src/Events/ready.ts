@@ -7,7 +7,7 @@ export default {
   name: 'ready',
   once: true,
   async execute(client: Client) {
-    logger.info(`Logged in as ${client.user?.tag}!`);
+    logger.info(`Logged in as ${client.user?.username}! Cached ${client.guilds.cache.size} guilds.`);
 
     // Run misc tasks on startup
     const permissions = [

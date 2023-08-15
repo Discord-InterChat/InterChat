@@ -39,7 +39,7 @@ export default {
       .setDescription(stripIndent`
             ${server.description || 'No Description.'}
 
-            **Owner:** ${owner.user.tag}
+            **Owner:** @${owner.user.username}
             **Created:** <t:${createdAt}:d> (<t:${createdAt}:R>)
             **Members:** ${server.memberCount}
             **Invite:** ${guildSetup?.invite ? `[\`${guildSetup.invite}\`](https://discord.gg/${guildSetup.invite})` : 'Not Set.'}`)

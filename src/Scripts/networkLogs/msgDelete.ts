@@ -21,17 +21,17 @@ export async function networkMessageDelete(deletedBy: GuildMember | null, messag
 
   const logChannel = await message.client.channels.fetch(constants.channel.networklogs) as GuildTextBasedChannel;
   const embed = new EmbedBuilder()
-    .setAuthor({ name: String(author?.tag), iconURL: author?.avatarURL()?.toString() })
+    .setAuthor({ name: String(author?.username), iconURL: author?.avatarURL()?.toString() })
     .setTitle('Message Deleted')
     .setDescription(stripIndents`
         ${messageContent}
 
-        ${emojis.dotRed} **Author:** ${author?.tag} (${author?.id})
+        ${emojis.dotRed} **Author:** ${author?.username} (${author?.id})
         ${emojis.dotRed} **Deleted From:** ${deletedFrom?.name || 'Unknown'} (${messageInDb.serverId})
         ${emojis.dotRed} **Attachments:** ${attachmentLink ? `[Click to view](${attachmentLink})` : 'None.'}
         ${emojis.dotRed} **Created At:** <t:${Math.round(message.createdAt.getTime() / 1000)}:R>`)
     .setFooter({
-      text: `Deleted By: ${deletedBy?.user.tag}`,
+      text: `Deleted By: @${deletedBy?.user.username}`,
       iconURL: deletedBy?.user.avatarURL() || deletedBy?.user.defaultAvatarURL,
     })
     .setImage(attachmentLink)

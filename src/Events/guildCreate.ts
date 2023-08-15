@@ -76,7 +76,7 @@ export default {
         new EmbedBuilder()
           .setColor(colors('invisible'))
           .setAuthor({
-            name: `${guild.name} ${inviter ? `• ${inviter.tag}` : ''}`,
+            name: `${guild.name} ${inviter ? `• @${inviter.username}` : ''}`,
             iconURL: guild.iconURL() || undefined,
           }),
       ],

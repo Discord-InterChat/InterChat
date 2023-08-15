@@ -26,11 +26,11 @@ export default {
 
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: user.tag, iconURL: user.avatarURL() ?? user.defaultAvatarURL })
+      .setAuthor({ name: user.username, iconURL: user.avatarURL() ?? user.defaultAvatarURL })
       .setDescription(userBadges)
       .addFields({
         name: 'General Info',
-        value: `**Name:** ${user.tag}\n**Bot Account:** ${user.bot}\n**Created:** <t:${createdAt}:D> (<t:${createdAt}:R>)`,
+        value: `**Name:** ${user.username}\n**Bot Account:** ${user.bot}\n**Created:** <t:${createdAt}:D> (<t:${createdAt}:R>)`,
       })
       .setImage('attachment://customCard.png') // link to image that will be generated afterwards
       .setFooter({ text:`ID: ${user.id}` })

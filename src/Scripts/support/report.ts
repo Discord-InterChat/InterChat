@@ -91,7 +91,7 @@ export = {
         const bugReportChannel = await bugModal.client.channels.fetch(constants.channel.bugs).catch(() => null) as ForumChannel | null;
         if (!bugReportChannel) {
           logger.error('Bug report channel not found.');
-          captureMessage('Bug report channel not found.', { user: { id: bugModal.user.id, username: bugModal.user.tag }, extra: { command: 'Bug Report' } });
+          captureMessage('Bug report channel not found.', { user: { id: bugModal.user.id, username: bugModal.user.username }, extra: { command: 'Bug Report' } });
           return bugModal.reply({
             content: 'An error occured while sending your report. The developers have been notified!',
             ephemeral: true,
@@ -107,7 +107,7 @@ export = {
           .setDescription(`**Affects:** ${typeSelection.values.join(', ')}`)
           .setThumbnail(interaction.user.avatarURL({ size: 2048 }) ?? interaction.user.defaultAvatarURL)
           .setFooter({
-            text: `Reported by ${interaction.user.tag} (${interaction.user.id})`,
+            text: `Reported by ${interaction.user.username} (${interaction.user.id})`,
             iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,
           });
 
@@ -170,10 +170,10 @@ export = {
             const userReport = new EmbedBuilder()
               .setColor('Red')
               .setTitle('New User Report')
-              .setDescription(`User Tag: ${reportedUser.tag}\nUser Id: ${reportedUser.id}`)
+              .setDescription(`Username: ${reportedUser.username}\nUser Id: ${reportedUser.id}`)
               .setFields({ name: 'Reason for report', value: reportDescription })
               .setThumbnail(reportedUser.avatarURL({ size: 2048 }) ?? reportedUser.defaultAvatarURL)
-              .setFooter({ text: `Reported by ${interaction.user.tag} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+              .setFooter({ text: `Reported by ${interaction.user.username} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
             await reportChannel?.send({ embeds: [userReport] });
             break;
           }
@@ -198,7 +198,7 @@ export = {
               .setDescription(`Server Name: ${reportedServer.name}\nServer Id: ${reportedServer.id}`)
               .setFields({ name: 'Reason for report', value: reportDescription })
               .setThumbnail(reportedServer.iconURL({ size: 2048 }))
-              .setFooter({ text: `Reported by ${interaction.user.tag} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+              .setFooter({ text: `Reported by ${interaction.user.username} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
             await reportChannel?.send({ embeds: [serverReport] });
             break;
           }
@@ -208,7 +208,7 @@ export = {
               .setTitle('New Report')
               .setDescription('**Type:** Other')
               .setFields({ name: 'Description', value: reportDescription })
-              .setFooter({ text: `Reported by ${interaction.user.tag} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
+              .setFooter({ text: `Reported by ${interaction.user.username} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
             await reportChannel?.send({ embeds: [otherReport] });
             break;
           }
