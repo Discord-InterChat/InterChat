@@ -1,14 +1,14 @@
-import { Prisma } from '@prisma/client';
 import { ChatInputCommandInteraction, User } from 'discord.js';
+import { getDb } from '../../Utils/functions/utils';
 
 module.exports = {
   async execute(
     interaction: ChatInputCommandInteraction,
-    dbCollection: Prisma.userBadgesDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>,
     user: User,
     badge: string,
   ) {
-    const userInCollection = await dbCollection.findFirst({ where: { userId: user.id } });
+    const db = getDb();
+    const userInCollection = await db.userBadges.findFirst({ where: { userId: user.id } });
 
     if (userInCollection) {
       const userBadges = userInCollection.badges;
@@ -18,13 +18,13 @@ module.exports = {
         return;
       }
       else {
-        await dbCollection.update({ where: { userId: user.id }, data: { badges: [...userBadges, badge] } });
+        await db.userBadges.update({ where: { userId: user.id }, data: { badges: [...userBadges, badge] } });
         await interaction.reply(`Badge \`${badge}\` added to ${user.username}.`);
         return;
       }
     }
     else {
-      await dbCollection.create({ data: { userId: user.id, badges: [badge] } });
+      await db.userBadges.create({ data: { userId: user.id, badges: [badge] } });
       await interaction.reply(`Badge \`${badge}\` added to ${user.username}.`);
       return;
     }

@@ -1,5 +1,4 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
 
 export default {
   staff: true,
@@ -69,14 +68,11 @@ export default {
     const user = interaction.options.getUser('user');
     const badge = interaction.options.getString('badge');
 
-    const database = getDb();
-    const userBadges = database?.userBadges;
-
     if (subcommand === 'list') {
-      require('../../Scripts/badge/list').execute(interaction, userBadges, user);
+      require('../../Scripts/badge/list').execute(interaction, user);
     }
     else {
-      require(`../../Scripts/badge/${subcommand}`).execute(interaction, userBadges, user, badge);
+      require(`../../Scripts/badge/${subcommand}`).execute(interaction, user, badge);
     }
   },
 };

@@ -1,21 +1,21 @@
-import { Prisma } from '@prisma/client';
 import { ChatInputCommandInteraction, User } from 'discord.js';
+import { getDb } from '../../Utils/functions/utils';
 
 export = {
   async execute(
     interaction: ChatInputCommandInteraction,
-    dbCollection: Prisma.userBadgesDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>,
     user: User,
     badge: string,
   ) {
-    const userInCollection = await dbCollection.findFirst({ where: { userId: user.id } });
+    const db = getDb();
+    const userInCollection = await db.userBadges.findFirst({ where: { userId: user.id } });
 
     if (userInCollection) {
       const userBadges = userInCollection.badges;
 
       if (userBadges.includes(badge)) {
         userBadges.splice(userBadges.indexOf(badge), 1);
-        await dbCollection.update({ where: { userId: user.id }, data: { badges: userBadges } });
+        await db.userBadges.update({ where: { userId: user.id }, data: { badges: userBadges } });
         await interaction.reply(`Removed badge \`${badge}\` from user ${user.username}.`);
       }
       else {

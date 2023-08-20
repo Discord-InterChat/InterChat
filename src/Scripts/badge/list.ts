@@ -1,13 +1,13 @@
-import { Prisma } from '@prisma/client';
 import { ChatInputCommandInteraction, User } from 'discord.js';
+import { getDb } from '../../Utils/functions/utils';
 
 export = {
   async execute(
     interaction: ChatInputCommandInteraction,
-    dbCollection: Prisma.userBadgesDelegate<Prisma.RejectOnNotFound | Prisma.RejectPerOperation | undefined>,
     user: User,
   ) {
-    const userInCollection = await dbCollection.findFirst({ where: { userId: user.id } });
+    const db = getDb();
+    const userInCollection = await db.userBadges.findFirst({ where: { userId: user.id } });
     if (!userInCollection) {
       await interaction.reply(`User ${user.username} doesn't have any badges!`);
     }
