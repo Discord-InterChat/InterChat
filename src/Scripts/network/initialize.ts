@@ -33,7 +33,7 @@ export = {
     let createdConnection;
     try {
       let webhook;
-      if (networkChannel.parent?.type === ChannelType.GuildForum || networkChannel.parent?.type === ChannelType.GuildText) {
+      if (networkChannel.isThread() && networkChannel.parent) {
         const webhooks = await networkChannel.parent.fetchWebhooks();
         const webhookCreated = webhooks.find(w => w.owner?.id === interaction.client.user?.id);
 
@@ -74,7 +74,7 @@ export = {
 
       const numOfConnections = await connectedList.count({ where: { hub: { id: hub.id } } });
       if (numOfConnections > 1) {
-        await networkChannel?.send(`This channel has been connected with ${hub.name}. `);
+        await networkChannel?.send(`This channel has been connected with ${hub.name}.`);
       }
       else {
         await networkChannel?.send(`This channel has been connected with ${hub.name}. ${
@@ -94,7 +94,7 @@ export = {
           : interaction.reply(errMsg);
       }
       else {
-        const errMsg = `An error occurred while connecting to the InterChat network! \`\`\`js\n${err.message}\`\`\``;
+        const errMsg = `An error occurred while connecting to the InterChat network! Please report this to the developers: \`\`\`js\n${err.message}\`\`\``;
         interaction.deferred || interaction.replied
           ? interaction.followUp(errMsg)
           : interaction.reply(errMsg);
@@ -103,6 +103,9 @@ export = {
       disconnect(networkChannel.id);
       return;
     }
+
+    // dispose of the in-progress marker
+    onboardingInProgress.delete(networkChannel.id);
 
     interaction.client.sendInNetwork(stripIndents`
       A new server has joined us! ${emoji.clipart}
