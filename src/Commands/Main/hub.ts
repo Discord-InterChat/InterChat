@@ -36,7 +36,7 @@ export default {
       .addChannelOption(channelOption =>
         channelOption
           .setName('channel')
-          .addChannelTypes(ChannelType.GuildText)
+          .addChannelTypes(ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread)
           .setDescription('The channel that will be used to connect to the hub')
           .setRequired(true),
       )

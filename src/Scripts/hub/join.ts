@@ -10,7 +10,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const db = getDb();
   const name = interaction.options.getString('name') || undefined;
   const invite = interaction.options.getString('invite') || undefined;
-  const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
+  const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread]);
   const channelConnected = await db.connectedList.findFirst({ where: { channelId: channel.id } });
   let hubExists: hubs | null = null;
 
@@ -112,5 +112,5 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   // TODO: make an onboarding function and show them rules and stuff
   initialize.execute(interaction, hubExists, channel)
-    .then(success => { if (success) displaySettings.execute(interaction, channel.id); });
+    .then(success => { if (success) displaySettings.execute(interaction, success.channelId); });
 }

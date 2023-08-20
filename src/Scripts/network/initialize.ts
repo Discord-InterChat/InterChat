@@ -1,5 +1,5 @@
 import { stripIndents } from 'common-tags';
-import { ChannelType, ChatInputCommandInteraction, Collection, GuildTextBasedChannel } from 'discord.js';
+import { ChannelType, ChatInputCommandInteraction, Collection, TextChannel, ThreadChannel } from 'discord.js';
 import { disconnect } from '../../Structures/network';
 import { hubs } from '@prisma/client';
 import logger from '../../Utils/logger';
@@ -9,7 +9,7 @@ import { getDb } from '../../Utils/functions/utils';
 const onboardingInProgress = new Collection<string, string>();
 
 export = {
-  async execute(interaction: ChatInputCommandInteraction, hub: hubs, networkChannel: GuildTextBasedChannel) {
+  async execute(interaction: ChatInputCommandInteraction, hub: hubs, networkChannel: TextChannel | ThreadChannel) {
     const emoji = interaction.client.emotes.normal;
 
     // Check if server is already attempting to join a hub
@@ -30,36 +30,58 @@ export = {
       return;
     }
 
+    let createdConnection;
     try {
-      if (networkChannel.type !== ChannelType.GuildText) {
-        interaction.followUp(`${emoji.no} You can only connect **text channels** to the InterChat network!`);
-        return;
+      let webhook;
+      if (networkChannel.parent?.type === ChannelType.GuildForum || networkChannel.parent?.type === ChannelType.GuildText) {
+        const webhooks = await networkChannel.parent.fetchWebhooks();
+        const webhookCreated = webhooks.find(w => w.owner?.id === interaction.client.user?.id);
+
+        if (webhookCreated) {
+          webhook = webhookCreated;
+        }
+        else {
+          webhook = await networkChannel.parent.createWebhook({
+            name: 'InterChat Network',
+            avatar: interaction.client.user?.avatarURL(),
+          });
+        }
+      }
+      else if (networkChannel.type === ChannelType.GuildText) {
+        webhook = await networkChannel.createWebhook({
+          name: 'InterChat Network',
+          avatar: interaction.client.user?.avatarURL(),
+        });
+      }
+      else {
+        return interaction.followUp('This channel is not supported for InterChat. Please use a text channel or a thread.');
       }
 
-      const webhook = await networkChannel.createWebhook({
-        name: 'InterChat Network',
-        avatar: interaction.client.user?.avatarURL(),
-      });
 
       const { connectedList } = getDb();
-      await connectedList.create({
+      createdConnection = await connectedList.create({
         data:{
           channelId: networkChannel.id,
+          parentId: networkChannel.isThread() ? networkChannel.id : undefined,
           serverId: networkChannel.guild.id,
+          webhookURL: webhook.url,
           connected: true,
           profFilter: true,
           compact: false,
-          webhookURL: webhook.url,
           hub: { connect: { id: hub.id } },
         },
       });
 
       const numOfConnections = await connectedList.count({ where: { hub: { id: hub.id } } });
       if (numOfConnections > 1) {
-        await networkChannel?.send(`This channel has been connected with ${hub.name}. You are currently with ${numOfConnections - 1} other servers, Enjoy! ${emoji.clipart}`);
+        await networkChannel?.send(`This channel has been connected with ${hub.name}. `);
       }
       else {
-        await networkChannel?.send(`This channel has been connected with ${hub.name}, though no one else is there currently... *cricket noises* ${emoji.clipart}`);
+        await networkChannel?.send(`This channel has been connected with ${hub.name}. ${
+          numOfConnections > 1
+            ? `You are currently with ${numOfConnections - 1} other servers, Enjoy! ${emoji.clipart}`
+            : `It seems no one else is there currently... *cricket noises* ${emoji.clipart}`
+        }`);
       }
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,6 +110,6 @@ export = {
       **Server Name:** __${interaction.guild?.name}__
       **Member Count:** __${interaction.guild?.memberCount}__
     `, { id: hub.id });
-    return true; // just a marker to show that the setup was successful
+    return createdConnection; // just a marker to show that the setup was successful
   },
 };
