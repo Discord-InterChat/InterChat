@@ -55,7 +55,7 @@ export = {
       message.content.includes('discord.com/invite') ||
       message.content.includes('dsc.gg')
     ) {
-      message.reply('Do not advertise or promote servers in the network. Set an invite in `/setup edit` instead!');
+      message.reply('Do not advertise or promote servers in the network. Set an invite in `/network manage` instead!');
       return false;
     }
 
