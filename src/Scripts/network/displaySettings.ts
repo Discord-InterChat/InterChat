@@ -8,9 +8,20 @@ function yesOrNo(option: unknown, yesEmoji: string, noEmoji: string) {
   return option ? yesEmoji : noEmoji;
 }
 
+function updateConnectionButtons(connected: boolean | undefined, disconnectEmoji: string, connectEmoji: string) {
+  return new ActionRowBuilder<ButtonBuilder>().addComponents([
+    new ButtonBuilder()
+      .setCustomId('toggle_connection')
+      .setLabel(connected ? 'Disconnect' : 'Reconnect')
+      .setStyle(connected ? ButtonStyle.Danger : ButtonStyle.Success)
+      .setEmoji(connected ? disconnectEmoji : connectEmoji),
+  ]);
+
+}
+
 // function to make it easier to edit embeds with updated data
 async function setupEmbed(interaction: Interaction, channelId: string) {
-  const networkData = await getDb().connectedList.findFirst({ where: { channelId } });
+  const networkData = await getDb().connectedList.findFirst({ where: { channelId }, include: { hub: true } });
 
   const { yes, no, enabled, disabled } = interaction.client.emotes.normal;
   const invite = networkData?.invite
@@ -22,6 +33,7 @@ async function setupEmbed(interaction: Interaction, channelId: string) {
     .setDescription(`Showing network settings for <#${channelId}>.`)
     .addFields([
       { name: 'Channel', value: `<#${channelId}>`, inline: true },
+      { name: 'Hub', value: `${networkData?.hub?.name}`, inline: true },
       { name: 'Invite', value: invite, inline: true },
       { name: 'Connected', value: yesOrNo(networkData?.connected, yes, no), inline: true },
       { name: 'Compact', value: yesOrNo(networkData?.compact, enabled, disabled), inline: true },
@@ -34,21 +46,11 @@ async function setupEmbed(interaction: Interaction, channelId: string) {
 }
 
 export = {
-  async execute(interaction: ChatInputCommandInteraction | ButtonInteraction | AnySelectMenuInteraction, channelId: string) {
+  async execute(interaction: ChatInputCommandInteraction | ButtonInteraction | AnySelectMenuInteraction, channelId: string, connected?: boolean) {
     if (!interaction.deferred && !interaction.replied) await interaction.deferReply();
 
     const db = getDb();
     const emoji = interaction.client.emotes;
-    const connection = await db.connectedList.findFirst({ where: { channelId } });
-    if (!connection) return await interaction.editReply(`${emoji.normal.no} Invalid network connection provided.`);
-
-    const setupActionButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
-      new ButtonBuilder()
-        .setCustomId(connection.connected ? 'disconnect' : 'reconnect')
-        .setLabel(connection.connected ? 'Disconnect' : 'Reconnect')
-        .setStyle(connection.connected ? ButtonStyle.Danger : ButtonStyle.Success)
-        .setEmoji(connection.connected ? emoji.icons.disconnect : emoji.icons.connect),
-    ]);
 
     const customizeMenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
       new StringSelectMenuBuilder()
@@ -78,14 +80,14 @@ export = {
         ),
     ]);
 
-    const channelExists = await interaction.client.channels.fetch(connection.channelId).catch(() => null);
+    const channelExists = await interaction.client.channels.fetch(channelId).catch(() => null);
     const setupMessage = await interaction.editReply({
       embeds: [await setupEmbed(interaction, channelId)],
-      components: [customizeMenu, setupActionButtons],
+      components: [customizeMenu, updateConnectionButtons(connected, emoji.icons.disconnect, emoji.icons.connect)],
     });
 
     if (!channelExists) {
-      await disconnect(connection.channelId);
+      await disconnect(channelId);
       await interaction.followUp({
         content: `${emoji.normal.no} Automatically disconnected from network due to errors. Change the channel to use the network.`,
         ephemeral: true,
@@ -106,7 +108,7 @@ export = {
 
     /* ------------------- Button Responce collectors ---------------------- */
     buttonCollector.on('collect', async (component) => {
-      const updConnection = await db.connectedList.findFirst({ where: { channelId: connection.channelId } });
+      const updConnection = await db.connectedList.findFirst({ where: { channelId } });
       if (!updConnection) {
         await component.reply({
           content: `${emoji.normal.no} This network no longer exists!`,
@@ -116,7 +118,7 @@ export = {
       }
 
       switch (component.customId) {
-        case 'reconnect': {
+        case 'toggle_connection': {
           const channel = await interaction.guild?.channels
             .fetch(String(updConnection.channelId))
             .catch(() => null) as GuildTextBasedChannel | null;
@@ -129,38 +131,20 @@ export = {
             return;
           }
 
-          await reconnect(channel.id);
-          logger.info(`${interaction.guild?.name} (${interaction.guildId}) has joined the network.`);
+          updConnection.connected ? await disconnect(updConnection.channelId) : await reconnect(channel.id);
 
-          setupActionButtons.components.at(0)
-            ?.setCustomId('disconnect')
-            .setLabel('Disconnect')
-            .setStyle(ButtonStyle.Danger)
-            .setEmoji(emoji.icons.disconnect);
-
-          await component.reply({ content: 'Channel has been reconnected!', ephemeral: true });
+          await component.reply({
+            content: updConnection.connected
+              ? `Disconnected <#${updConnection.channelId}> from the hub!`
+              : `Reconnected <#${updConnection.channelId}> to the hub!`,
+            ephemeral: true,
+          });
           interaction.editReply({
-            components: [customizeMenu, setupActionButtons],
+            components: [customizeMenu, updateConnectionButtons(!updConnection.connected, emoji.icons.disconnect, emoji.icons.connect),
+            ],
           });
           break;
         }
-
-        case 'disconnect':
-          await disconnect(updConnection.channelId);
-          setupActionButtons.components.at(0)
-            ?.setCustomId('reconnect')
-            .setLabel('Reconnect')
-            .setStyle(ButtonStyle.Success)
-            .setEmoji(emoji.icons.connect);
-
-
-          logger.info(`${interaction.guild?.name} (${interaction.guildId}) has disconnected from the network.`);
-
-          await component.reply({ content: 'Disconnected!', ephemeral: true });
-          interaction.editReply({
-            components: [customizeMenu, setupActionButtons],
-          });
-          break;
 
         default:
           break;
@@ -173,7 +157,7 @@ export = {
 
     /* ------------------- SelectMenu Responce collectors ---------------------- */
     selectCollector.on('collect', async (settingsMenu) => {
-      const updConnection = await db.connectedList.findFirst({ where: { channelId: connection.channelId } });
+      const updConnection = await db.connectedList.findFirst({ where: { channelId } });
       if (!updConnection) {
         await settingsMenu.reply({
           content: `${emoji.normal.no} This network no longer exists!`,
@@ -331,13 +315,8 @@ export = {
     });
 
     selectCollector.on('end', () => {
-      const disabledBtns: ActionRowBuilder<ButtonBuilder> = new ActionRowBuilder(setupActionButtons);
-      const disabledMenu: ActionRowBuilder<StringSelectMenuBuilder> = new ActionRowBuilder(customizeMenu);
-      disabledMenu.components.forEach((menu) => menu.setDisabled(true));
-      disabledBtns.components.forEach((button) => button.setDisabled(true));
       buttonCollector.stop('Components disabled.');
-
-      interaction.editReply({ components: [disabledMenu, disabledBtns] }).catch(() => null);
+      interaction.editReply({ components: [] }).catch(() => null);
       return;
     });
   },

@@ -20,7 +20,21 @@ export default {
       ),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
-    displaySettings.execute(interaction, interaction.options.getString('network', true));
+    const db = getDb();
+    const networkChannelId = interaction.options.getString('network', true);
+    const networkData = await db.connectedList.findFirst({ where: { channelId: networkChannelId }, include: { hub: true } });
+    const userIsHubMod =
+      networkData?.hub?.ownerId === interaction.user.id ||
+      networkData?.hub?.moderators.some((m) => m.userId === interaction.user.id);
+
+    if (!userIsHubMod) {
+      return interaction.reply({
+        content: 'You are not a moderator of this network.',
+        ephemeral: true,
+      });
+    }
+
+    displaySettings.execute(interaction, networkChannelId, networkData?.connected);
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const focusedValue = interaction.options.getFocused();
