@@ -28,7 +28,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const channelConnected = await db.connectedList.findFirst({ where: { channelId: channel.id } });
   if (channelConnected) {
     return await interaction.reply({
-      content: `${channel} is already connected to a hub! Please leave the hub or choose a different channel.`,
+      content: `${channel} is already part of a hub! Please leave the hub or choose a different channel.`,
       ephemeral: true,
     });
   }
@@ -45,9 +45,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         ephemeral: true,
       });
     }
-    else if (inviteExists.hub.connections.find((c) => c.channelId === channel.id)) {
+    const guildInHub = inviteExists.hub.connections.find((c) => c.serverId === channel.guildId);
+    if (guildInHub) {
       return await interaction.reply({
-        content: `This server is already connected to hub **${inviteExists.hub.name}** from another channel!`,
+        content: `This server has already joined hub **${inviteExists.hub.name}** from from <#${guildInHub.channelId}>! Please leave the hub from that channel first, or change the channel using \`/network manage\`.!`,
         ephemeral: true,
       });
     }
@@ -71,7 +72,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const guildInHub = hubExists.connections.find(c => c.serverId === channel.guildId);
     if (guildInHub) {
       return await interaction.reply({
-        content: `This server is already connected to hub **${hubExists?.name}** from <#${guildInHub.channelId}>! Please leave the hub from that channel first.`,
+        content: `This server has already joined hub **${hubExists?.name}** from <#${guildInHub.channelId}>! Please leave the hub from that channel first, or change the channel using \`/network manage\`.`,
         ephemeral: true,
       });
     }
