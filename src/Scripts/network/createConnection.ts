@@ -8,13 +8,16 @@ import { getDb } from '../../Utils/functions/utils';
 
 const onboardingInProgress = new Collection<string, string>();
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction, hub: hubs, networkChannel: TextChannel | ThreadChannel) {
     const emoji = interaction.client.emotes.normal;
 
     // Check if server is already attempting to join a hub
     if (onboardingInProgress.has(networkChannel.id)) {
-      const err = `${emoji.no} There has already been an attempt to join a hub in ${networkChannel}. Please wait for that to finish before trying again!`;
+      const err = {
+        content: `${emoji.no} There has already been an attempt to join a hub in ${networkChannel}. Please wait for that to finish before trying again!`,
+        ephemeral: true,
+      };
       interaction.deferred || interaction.replied
         ? interaction.followUp(err)
         : interaction.reply(err);
@@ -24,11 +27,11 @@ export = {
     onboardingInProgress.set(networkChannel.id, networkChannel.id);
 
     // Show new users rules & info about network
-    const onboardingStatus = await onboarding.execute(interaction);
-    if (!onboardingStatus) {
-      onboardingInProgress.delete(networkChannel.id);
-      return;
-    }
+    const onboardingStatus = await onboarding.execute(interaction, hub.name);
+    // remove in-progress marker as onboarding has either been cancelled or completed
+    onboardingInProgress.delete(networkChannel.id);
+    // if user cancelled onboarding or didn't click any buttons, stop here
+    if (!onboardingStatus) return;
 
     let createdConnection;
     try {
@@ -73,16 +76,11 @@ export = {
       });
 
       const numOfConnections = await connectedList.count({ where: { hub: { id: hub.id } } });
-      if (numOfConnections > 1) {
-        await networkChannel?.send(`This channel has been connected with ${hub.name}.`);
-      }
-      else {
-        await networkChannel?.send(`This channel has been connected with ${hub.name}. ${
-          numOfConnections > 1
-            ? `You are currently with ${numOfConnections - 1} other servers, Enjoy! ${emoji.clipart}`
-            : `It seems no one else is there currently... *cricket noises* ${emoji.clipart}`
-        }`);
-      }
+      await networkChannel?.send(`This channel has been connected with **${hub.name}**. ${
+        numOfConnections > 1
+          ? `You are currently with ${numOfConnections - 1} other servers, Enjoy! ${emoji.clipart}`
+          : `It seems no one else is there currently... *cricket noises* ${emoji.clipart}`
+      }`);
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     catch (err: any) {
@@ -104,15 +102,14 @@ export = {
       return;
     }
 
-    // dispose of the in-progress marker
-    onboardingInProgress.delete(networkChannel.id);
-
     interaction.client.sendInNetwork(stripIndents`
       A new server has joined us! ${emoji.clipart}
 
       **Server Name:** __${interaction.guild?.name}__
       **Member Count:** __${interaction.guild?.memberCount}__
     `, { id: hub.id });
-    return createdConnection; // just a marker to show that the setup was successful
+
+    // return the created connection so we can use it in the next step
+    return createdConnection;
   },
 };

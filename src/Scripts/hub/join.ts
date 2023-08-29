@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, ChannelType } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import initialize from '../network/initialize';
+import createConnection from '../network/createConnection';
 import displaySettings from '../network/displaySettings';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
@@ -111,7 +111,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  // TODO: make an onboarding function and show them rules and stuff
-  initialize.execute(interaction, hubExists, channel)
+  createConnection.execute(interaction, hubExists, channel)
     .then(success => { if (success) displaySettings.execute(interaction, success.channelId); });
 }
