@@ -23,13 +23,12 @@ export default {
     const db = getDb();
     const networkChannelId = interaction.options.getString('network', true);
     const networkData = await db.connectedList.findFirst({ where: { channelId: networkChannelId }, include: { hub: true } });
-    const userIsHubMod =
-      networkData?.hub?.ownerId === interaction.user.id ||
-      networkData?.hub?.moderators.some((m) => m.userId === interaction.user.id);
 
-    if (!userIsHubMod) {
+    // check if channel is in the server the command was used in
+    const channelInServer = await interaction.guild?.channels.fetch(networkChannelId).catch(() => null);
+    if (!channelInServer) {
       return interaction.reply({
-        content: 'You are not a moderator of this network.',
+        content: `${interaction.client.emotes.normal.no} Please use this command in the server the joined/connected channel belongs to.`,
         ephemeral: true,
       });
     }
