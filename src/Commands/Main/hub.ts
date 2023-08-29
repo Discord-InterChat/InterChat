@@ -36,7 +36,7 @@ export default {
       .addChannelOption(channelOption =>
         channelOption
           .setName('channel')
-          .addChannelTypes(ChannelType.GuildText)
+          .addChannelTypes(ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread)
           .setDescription('The channel that will be used to connect to the hub')
           .setRequired(true),
       )
@@ -242,11 +242,9 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
-    const extra = subcommand === 'leave'
+    const extra = subcommand === 'leave' || subcommand === 'delete'
       ? interaction.options.getString('hub', true)
-      : subcommand === 'delete'
-        ? interaction.options.getString('hub', true)
-        : null;
+      : null;
 
     require(`../../Scripts/hub/${subcommandGroup || subcommand}`).execute(interaction, extra);
   },

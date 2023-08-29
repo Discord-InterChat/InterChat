@@ -1,8 +1,7 @@
 import { ChatInputCommandInteraction, ChannelType } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
-import initialize from '../network/initialize';
+import createConnection from '../network/createConnection';
 import displaySettings from '../network/displaySettings';
-import { connectedList, hubs } from '@prisma/client';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   if (!interaction.inCachedGuild()) return;
@@ -10,9 +9,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const db = getDb();
   const name = interaction.options.getString('name') || undefined;
   const invite = interaction.options.getString('invite') || undefined;
-  const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText]);
-  const channelConnected = await db.connectedList.findFirst({ where: { channelId: channel.id } });
-  let hubExists: hubs | null = null;
+  const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread]);
+  let hubExists;
 
   if (!interaction.member.permissionsIn(channel).has(['ManageChannels'])) {
     return await interaction.reply({
@@ -27,9 +25,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       ephemeral: true,
     });
   }
+  const channelConnected = await db.connectedList.findFirst({ where: { channelId: channel.id } });
   if (channelConnected) {
     return await interaction.reply({
-      content: `${channel} is already connected to a hub! Please leave the hub or choose a different channel.`,
+      content: `${channel} is already part of a hub! Please leave the hub or choose a different channel.`,
       ephemeral: true,
     });
   }
@@ -46,9 +45,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         ephemeral: true,
       });
     }
-    else if (inviteExists.hub.connections.find((c) => c.channelId === channel.id)) {
+    const guildInHub = inviteExists.hub.connections.find((c) => c.serverId === channel.guildId);
+    if (guildInHub) {
       return await interaction.reply({
-        content: `This server is already connected to hub **${inviteExists.hub.name}** from another channel!`,
+        content: `This server has already joined hub **${inviteExists.hub.name}** from from <#${guildInHub.channelId}>! Please leave the hub from that channel first, or change the channel using \`/network manage\`.!`,
         ephemeral: true,
       });
     }
@@ -69,9 +69,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       });
     }
 
-    else if ((hubExists as hubs & { connections: connectedList}).connections.channelId === channel.id) {
+    const guildInHub = hubExists.connections.find(c => c.serverId === channel.guildId);
+    if (guildInHub) {
       return await interaction.reply({
-        content: `This server is already connected to hub **${hubExists?.name}** from another channel!`,
+        content: `This server has already joined hub **${hubExists?.name}** from <#${guildInHub.channelId}>! Please leave the hub from that channel first, or change the channel using \`/network manage\`.`,
         ephemeral: true,
       });
     }
@@ -110,7 +111,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  // TODO: make an onboarding function and show them rules and stuff
-  initialize.execute(interaction, hubExists, channel)
-    .then(success => { if (success) displaySettings.execute(interaction, channel.id); });
+  createConnection.execute(interaction, hubExists, channel)
+    .then(success => { if (success) displaySettings.execute(interaction, success.channelId); });
 }

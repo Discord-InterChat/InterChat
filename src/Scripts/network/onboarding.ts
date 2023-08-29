@@ -4,17 +4,17 @@ import { colors, rulesEmbed } from '../../Utils/functions/utils';
 
 /* Make user accept and understand important info on first setup */
 export default {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction, hubName: string) {
     const embed = new EmbedBuilder()
-      .setTitle('👋 Hey there! Welcome to the InterChat network.')
+      .setTitle(`👋 Hey there! Welcome to ${hubName}!`)
       .setDescription(stripIndents`
-        To keep things organized, it's recommended to create a separate channel for the network. But don't worry, you can always change this later.
+        To keep things organized, it's recommended to use a separate channel for just for this hub. But don't worry, you can always change this later.
 
-        Before we dive in, take a moment to review our network rules. We want everyone to have a smooth and fun experience.
+        Before we dive in, take a moment to review our rules. We want everyone to have a smooth and fun experience.
 
-        **How it works:** the InterChat Network is like a magic bridge that links channels on different servers. So, you can chat with people from all over!
+        **How it works:** the InterChat Network is like a magic bridge that links channels on different servers that are with us in this hub. So, you can chat with people from all over!
 
-        And hey, if you have any cool ideas for new features, let us know! We're always looking to improve.
+        Developer Note: And hey, if you have any cool ideas for new features, let us know! We're always looking to improve.
         `)
       .setColor(colors('chatbot'))
       .setFooter({ text: `InterChat Network | Version ${interaction.client.version}` });

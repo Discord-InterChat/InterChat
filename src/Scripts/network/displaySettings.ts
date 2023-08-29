@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel, ButtonInteraction, AnySelectMenuInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel, ButtonInteraction, AnySelectMenuInteraction, Webhook, ThreadChannel } from 'discord.js';
 import { reconnect, disconnect } from '../../Structures/network';
 import { colors, getDb } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
@@ -100,11 +100,6 @@ export = {
       filter,
       componentType: ComponentType.Button,
     });
-    const selectCollector = setupMessage.createMessageComponentCollector({
-      filter,
-      idle: 60_000 * 5,
-      componentType: ComponentType.StringSelect,
-    });
 
     /* ------------------- Button Responce collectors ---------------------- */
     buttonCollector.on('collect', async (component) => {
@@ -155,7 +150,14 @@ export = {
 
     });
 
-    /* ------------------- SelectMenu Responce collectors ---------------------- */
+
+    /* ------------------- Replying to SelectMenus ---------------------- */
+    const selectCollector = setupMessage.createMessageComponentCollector({
+      filter,
+      idle: 60_000 * 5,
+      componentType: ComponentType.StringSelect,
+    });
+
     selectCollector.on('collect', async (settingsMenu) => {
       const updConnection = await db.connectedList.findFirst({ where: { channelId } });
       if (!updConnection) {
@@ -168,7 +170,7 @@ export = {
 
       switch (settingsMenu.values[0]) {
         /* Compact / Normal mode toggle  */
-        case 'compact':{
+        case 'compact': {
           await db.connectedList.update({
             where: { channelId: updConnection.channelId },
             data: { compact: !updConnection.compact },
@@ -176,68 +178,85 @@ export = {
           break;
         }
         /* Profanity toggle */
-        case 'profanity':
+        case 'profanity': {
           await db.connectedList.update({
             where: { channelId: updConnection.channelId },
             data: { profFilter: !updConnection.profFilter },
           });
           break;
+        }
 
-        /* Change channel request Response */
         case 'change_channel': {
           const channelMenu = new ActionRowBuilder<ChannelSelectMenuBuilder>()
             .addComponents(
               new ChannelSelectMenuBuilder()
                 .setCustomId('newChannelSelect')
                 .setPlaceholder('Select new channel')
-                .addChannelTypes(ChannelType.GuildText),
+                .addChannelTypes(ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread),
             );
 
           const changeMsg = await settingsMenu.reply({
             content: 'Please select a channel within the next 20 seconds.',
             components: [channelMenu],
             ephemeral: true,
+            fetchReply: true,
           });
 
           const selected = await changeMsg.awaitMessageComponent({
             componentType: ComponentType.ChannelSelect,
-            idle: 20_000,
+            time: 20_000,
           }).catch(() => null);
 
           if (!selected) return;
 
-          const oldchannel = selected.guild?.channels.cache.get(`${updConnection?.channelId}`) as TextChannel;
-          const channel = selected.guild?.channels.cache.get(selected?.values[0]) as TextChannel;
+          const newchannel = selected.guild?.channels.cache.get(selected?.values[0]) as TextChannel | ThreadChannel;
+          const newchannelInDb = await db.connectedList.findFirst({ where: { channelId: newchannel.id } });
 
-          if (await db.connectedList.findFirst({ where: { channelId: channel.id } })) {
+          // if the hubId doesn't match with the already connected channel
+          // don't let to switch channel as it is already connected to another hub
+          if (newchannelInDb && newchannelInDb.channelId !== updConnection.channelId) {
             await selected.update({
-              content: `${emoji.normal.no} Channel ${channel} is already connected to a hub. Please leave that hub first or select another channel.`,
+              content: `${emoji.normal.no} Channel ${newchannel} has already joined a hub. Either leave that hub first or select another channel.`,
               components: [],
             });
             return;
           }
 
-          // delete the old webhook
-          oldchannel?.fetchWebhooks()
-            .then(promisehook => promisehook.find((hook) => hook.owner?.id === hook.client.user?.id)?.delete().catch(() => null))
-            .catch(() => null);
+          let webhook: Webhook | null = null;
+          if (newchannel.type === ChannelType.GuildText) {
+            const webhooks = await newchannel.fetchWebhooks();
+            const interchatHook = webhooks?.find((hook) => hook.owner?.id === hook.client.user?.id);
 
-          // create a webhook in the new channel
-          const webhook = await channel?.createWebhook({
-            name: 'InterChat Network',
-            avatar: selected.client.user.avatarURL(),
-          });
+            // create a webhook in the new channel
+            webhook = interchatHook ||
+            await newchannel.createWebhook({
+              name: 'InterChat Network',
+              avatar: newchannel.client.user.avatarURL(),
+            });
+          }
+
+          else if (newchannel.isThread() && newchannel.parent) {
+            const webhooks = await newchannel.parent.fetchWebhooks();
+            const interchatHook = webhooks?.find((hook) => hook.owner?.id === hook.client.user?.id);
+
+            webhook = interchatHook ||
+            await newchannel.parent.createWebhook({
+              name: 'InterChat Network',
+              avatar: newchannel.client.user.avatarURL(),
+            });
+          }
 
           await db.connectedList.update({
             where: { channelId: updConnection.channelId },
             data: {
-              channelId: channel?.id,
-              webhookURL: webhook.url,
+              channelId: newchannel.id,
+              parentId: newchannel?.isThread() ? newchannel.parentId : { unset: true },
+              webhookURL: webhook?.url,
             },
           });
 
-          await selected?.update({
-            content: `Successfully switched connection from ${oldchannel} to ${channel}!`,
+          await selected.update({
+            content: `${emoji.normal.yes} Channel has been changed to ${newchannel}!`,
             components: [],
           });
           break;
@@ -321,3 +340,6 @@ export = {
     });
   },
 };
+
+// TODO: Hub leave command shows channel and now thread names in autocomplete
+// TODO: channelId is no longer unique, either make it unique or fix the whole code

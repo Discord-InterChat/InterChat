@@ -62,7 +62,8 @@ model blacklistedUsers {
 
 model connectedList {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  channelId  String   @unique
+  channelId  String   @unique // channel can be thread, or a normal channel
+  parentId   String? // ID of the parent channel, if it's a thread @map("parentChannelId")
   serverId   String
   connected  Boolean
   compact    Boolean

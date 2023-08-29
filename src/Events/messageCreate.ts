@@ -105,6 +105,7 @@ export default {
             content: connection?.profFilter ? message.censored_content : message.content,
             embeds: replyEmbed ? [replyEmbed] : undefined,
             files: attachment ? [attachment] : [],
+            threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
           };
         }
@@ -115,6 +116,7 @@ export default {
             username: message.client.user.username,
             avatarURL: message.client.user.avatarURL() || undefined,
             files: attachment ? [attachment] : [],
+            threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
           };
         }
