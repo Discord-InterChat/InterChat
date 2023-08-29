@@ -86,12 +86,17 @@ export default {
 
           if (channelSettings) {
             const webhook = new WebhookClient({ url: channelSettings.webhookURL });
-            const compact = channelSettings?.profFilter ? newMessage : censoredNewMessage;
-            const webhookEmbed = channelSettings?.profFilter ? censoredEmbed : newEmbed;
 
-            channelSettings?.compact
-              ? webhook.editMessage(obj.messageId, compact)
-              : webhook.editMessage(obj.messageId, { files: [], embeds: [webhookEmbed] });
+            channelSettings?.compact ?
+              webhook.editMessage(obj.messageId, {
+                content: channelSettings?.profFilter ? newMessage : censoredNewMessage,
+                threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
+              })
+              : webhook.editMessage(obj.messageId, {
+                files: [],
+                embeds: [channelSettings?.profFilter ? censoredEmbed : newEmbed],
+                threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
+              });
           }
         });
 
