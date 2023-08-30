@@ -16,8 +16,9 @@ export class ExtendedClient extends Client {
       presence: {
         status: 'online',
         activities: [{
-          name: 'over the network',
-          type: ActivityType.Watching,
+          state: '👀 Watching over 300+ networks... /hub browse',
+          type: ActivityType.Custom,
+          name: 'custom',
         }],
       },
     });
