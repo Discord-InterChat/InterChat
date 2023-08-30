@@ -130,35 +130,29 @@ export default {
       else if (i.customId === 'userInfo') {
         await i.deferUpdate();
 
-        const user = await interaction.client.users.fetch(networkMessage.authorId, { force: true }).catch(() => null);
-        if (!user) {
-          interaction.reply(`${emotes.no} Unable to fetch user details.`);
-          return;
-        }
-
-        const createdAt = Math.round(user.createdTimestamp / 1000);
+        const createdAt = Math.round(author.createdTimestamp / 1000);
 
         const userEmbed = new EmbedBuilder()
-          .setThumbnail(user.displayAvatarURL())
+          .setThumbnail(author.displayAvatarURL())
           .setColor('Random')
-          .setImage(user.bannerURL() ?? null)
+          .setImage(author.bannerURL() ?? null)
           .setDescription(stripIndents`
             ## User Info
 
             **User Name:**
-            __${user.username}__${user.discriminator !== '0' ? `#${user.discriminator}` : ''} ${user.bot ? '(Bot)' : ''}
+            __${author.username}__${author.discriminator !== '0' ? `#${author.discriminator}` : ''} ${author.bot ? '(Bot)' : ''}
             
             **ID:**
-            __${user.id}__
+            __${author.id}__
 
             **Created:**
             <t:${createdAt}:d> (<t:${createdAt}:R>)
             
             **Display Name:**
-            __${user.globalName || 'Not Set.'}__
+            __${author.globalName || 'Not Set.'}__
 
             **Hubs Owned:**
-            __${await db.hubs.count({ where: { ownerId: user.id } })}__
+            __${await db.hubs.count({ where: { ownerId: author.id } })}__
           `)
           .setImage('attachment://customCard.png') // link to image that will be generated afterwards
           .setTimestamp();
@@ -169,7 +163,7 @@ export default {
         newButtons.components[2].setDisabled(true).setStyle(ButtonStyle.Secondary);
 
         // generate the profile card
-        if (!customCard) customCard = new AttachmentBuilder(await profileImage(user.id), { name: 'customCard.png' });
+        if (!customCard) customCard = new AttachmentBuilder(await profileImage(author.id), { name: 'customCard.png' });
 
         await interaction.editReply({
           embeds: [userEmbed],
