@@ -21,9 +21,12 @@ export default {
     if (message.author.bot || message.webhookId || message.system) return;
 
     const db = getDb();
-    const channelInDb = await db.connectedList.findFirst({ where: { channelId: message.channel.id } });
+    const channelInDb = await db.connectedList.findFirst({
+      where: { channelId: message.channel.id },
+      include: { hub: { include: { connections: true } } },
+    });
 
-    if (channelInDb?.connected) {
+    if (channelInDb?.connected && channelInDb.hub) {
       if (!await checks.execute(message, channelInDb)) return;
 
       message.censored_content = censor(message.content);
@@ -70,8 +73,7 @@ export default {
       const censoredEmbed = EmbedBuilder.from(embed).setDescription(message.censored_content || null);
 
       // send the message to all connected channels in apropriate format (compact/profanity filter)
-      const hubConnections = await db.connectedList.findMany({ where: { hubId: channelInDb.hubId, connected: true } });
-      const messageResults = hubConnections?.map(async (connection) => {
+      const messageResults = channelInDb.hub?.connections?.map(async (connection) => {
         const reply = replyInDb?.channelAndMessageIds.find((msg) => msg.channelId === connection.channelId);
         const replyLink = reply ? `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}` : undefined;
         const replyButton = replyLink && referredAuthor
@@ -113,8 +115,8 @@ export default {
           webhookMessage = {
             components: replyButton ? [replyButton] : undefined,
             embeds: [connection.profFilter ? censoredEmbed : embed],
-            username: message.client.user.username,
-            avatarURL: message.client.user.avatarURL() || undefined,
+            username: `${channelInDb.hub?.name}`,
+            avatarURL: channelInDb.hub?.iconUrl,
             files: attachment ? [attachment] : [],
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
