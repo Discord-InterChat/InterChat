@@ -22,11 +22,11 @@ export default {
 
     const db = getDb();
     const channelInDb = await db.connectedList.findFirst({
-      where: { channelId: message.channel.id },
-      include: { hub: { include: { connections: true } } },
+      where: { channelId: message.channel.id, connected: true },
+      include: { hub: { include: { connections: { where: { connected: true } } } } },
     });
 
-    if (channelInDb?.connected && channelInDb.hub) {
+    if (channelInDb && channelInDb?.hub) {
       if (!await checks.execute(message, channelInDb)) return;
 
       message.censored_content = censor(message.content);
