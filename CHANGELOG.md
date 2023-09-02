@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.12.0](https://github.com/discord-interchat/interchat/compare/v3.11.1...v3.12.0) (2023-09-02)
+
+
+### Features
+
+* **network:** thread and forum post support ([#19](https://github.com/discord-interchat/interchat/issues/19)) ([f5296c0](https://github.com/discord-interchat/interchat/commit/f5296c01c63dc46f2f59bee2db3e336cf1e451a8))
+* new messageInfo context menu ([acf7f85](https://github.com/discord-interchat/interchat/commit/acf7f85c4c24e2517bb2c5aee65a210c42465530))
+* Use hub name for non-compact webhook usernames ([#20](https://github.com/discord-interchat/interchat/issues/20)) ([c3ea336](https://github.com/discord-interchat/interchat/commit/c3ea3368f9ce9c9e66509160a5bd9fee31ce33c0))
+
+
+### Bug Fixes
+
+* fix editing message in threads ([647fbf1](https://github.com/discord-interchat/interchat/commit/647fbf1abe6292fbb37ed7d2147faa6f1e357f93))
+* **network:** limit editing network to channel's server ([4c352a7](https://github.com/discord-interchat/interchat/commit/4c352a76ff7688f680d3a1fa38cde805b0592d05))
+* **network:** restrict hub mods can use `/network manage` ([03d3991](https://github.com/discord-interchat/interchat/commit/03d39911f4f2ba7ddb65275b00cf52b9ba657797))
+* **network:** send to only connected networks ([b01b415](https://github.com/discord-interchat/interchat/commit/b01b415bc42828eabf2769ce572af0376d0c33c8))
+* remove unnecessary user fetch ([26c4af0](https://github.com/discord-interchat/interchat/commit/26c4af0eb10e8aed488032787dadea6326d6baf0))
+* **username:** Removed the use of discriminators ([9226a73](https://github.com/discord-interchat/interchat/commit/9226a734ee8a960b5b7f942d0dd95383ea037b83))
+
 ### [3.11.1](https://github.com/Discord-InterChat/InterChat/compare/v3.11.0...v3.11.1) (2023-07-12)
 
 
