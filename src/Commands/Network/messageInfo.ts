@@ -19,7 +19,7 @@ export default {
 
     if (!networkMessage) {
       await interaction.reply({
-        content: 'This message has expired. If not, please wait a few seconds and try again.',
+        content: 'Information about this message is no longer available.',
         ephemeral: true,
       });
       return;
@@ -45,7 +45,7 @@ export default {
         **Sent In (Hub):**
         __${networkMessage.hub?.name}__
 
-        **Sent At:**
+        **Message Created:**
         <t:${Math.floor(target.createdTimestamp / 1000)}:R>
       `)
       .setColor('Random');
@@ -59,11 +59,11 @@ export default {
       new ButtonBuilder()
         .setCustomId('serverInfo')
         .setLabel('Server Info')
-        .setStyle(ButtonStyle.Primary),
+        .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId('userInfo')
         .setLabel('User Info')
-        .setStyle(ButtonStyle.Primary),
+        .setStyle(ButtonStyle.Secondary),
     );
 
     const replyMsg = await interaction.reply({
@@ -75,7 +75,7 @@ export default {
     // create a variable to store the profile card buffer
     let customCard: AttachmentBuilder | null = null;
 
-    const collector = replyMsg?.createMessageComponentCollector({ time: 30_000 });
+    const collector = replyMsg?.createMessageComponentCollector({ idle: 30_000 });
     collector.on('collect', async i => {
       if (i.customId === 'serverInfo') {
         if (!server) {
@@ -92,11 +92,8 @@ export default {
           .setThumbnail(server.iconURL())
           .setImage(server.bannerURL())
           .setDescription(stripIndents`
-          ## Server Info
+          ## ${server?.name}
           ${server.description || 'No Description.'}
-
-          **Name:**
-          ${server?.name.substring(0, 256)}
 
           **Owner:** 
         __${owner.user.username}__${owner.user.discriminator !== '0' ? `#${owner.user.discriminator}` : ''} ${owner.user.bot ? '(Bot)' : ''}
@@ -111,19 +108,23 @@ export default {
           __${guildSetup?.invite ? `[\`${guildSetup.invite}\`](https://discord.gg/${guildSetup.invite})` : 'Not Set.'}__`)
           .setFooter({ text: `ID: ${server.id}` });
 
+        const components: ActionRowBuilder<ButtonBuilder>[] = [];
         const newButtons = ActionRowBuilder.from<ButtonBuilder>(buttons);
-        newButtons.components[0].setDisabled(false).setStyle(ButtonStyle.Primary);
-        newButtons.components[1].setDisabled(true).setStyle(ButtonStyle.Secondary);
+        newButtons.components[0].setDisabled(false);
+        newButtons.components[1].setDisabled(true);
+        components.push(newButtons);
 
         if (guildSetup?.invite) {
-          newButtons.addComponents(new ButtonBuilder()
-            .setStyle(ButtonStyle.Link)
-            .setURL(`https://discord.gg/${guildSetup?.invite}`)
-            .setEmoji(interaction.client.emotes.icons.join)
-            .setLabel('Join'));
+          components.push(
+            new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
+              .setStyle(ButtonStyle.Link)
+              .setURL(`https://discord.gg/${guildSetup?.invite}`)
+              .setEmoji(interaction.client.emotes.icons.join)
+              .setLabel('Join')),
+          );
         }
 
-        await i.update({ embeds: [serverEmbed], components: [newButtons], files: [] });
+        await i.update({ embeds: [serverEmbed], components, files: [] });
       }
 
 
@@ -137,11 +138,8 @@ export default {
           .setColor('Random')
           .setImage(author.bannerURL() ?? null)
           .setDescription(stripIndents`
-            ## User Info
+            ## ${author.username}${author.discriminator !== '0' ? `#${author.discriminator}` : ''} ${author.bot ? '(Bot)' : ''}
 
-            **User Name:**
-            __${author.username}__${author.discriminator !== '0' ? `#${author.discriminator}` : ''} ${author.bot ? '(Bot)' : ''}
-            
             **ID:**
             __${author.id}__
 
@@ -159,8 +157,8 @@ export default {
 
         // disable the user info button
         const newButtons = ActionRowBuilder.from<ButtonBuilder>(buttons);
-        newButtons.components[0].setDisabled(false).setStyle(ButtonStyle.Primary);
-        newButtons.components[2].setDisabled(true).setStyle(ButtonStyle.Secondary);
+        newButtons.components[0].setDisabled(false);
+        newButtons.components[2].setDisabled(true);
 
         // generate the profile card
         if (!customCard) customCard = new AttachmentBuilder(await profileImage(author.id), { name: 'customCard.png' });
