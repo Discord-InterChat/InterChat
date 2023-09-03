@@ -2,12 +2,7 @@ import { stripIndents } from 'common-tags';
 import { EmbedBuilder, GuildMember, GuildTextBasedChannel, Message } from 'discord.js';
 import { constants, getDb } from '../../Utils/functions/utils';
 
-interface messageOptions {
-  id: string;
-  content: string;
-}
-
-export async function networkMsgUpdate(member: GuildMember, oldMessage: Message, newMessage: messageOptions) {
+export async function networkMsgUpdate(member: GuildMember, oldMessage: Message, newMessageContent: string) {
   const db = getDb();
   const messageInDb = await db?.messageData.findFirst({
     where: { channelAndMessageIds: { some: { messageId: { equals: oldMessage.id } } } },
@@ -30,7 +25,7 @@ export async function networkMsgUpdate(member: GuildMember, oldMessage: Message,
             [Jump To Message](https://discord.com/channels/${constants.guilds.cbhq}/${cbhqJumpMsg?.channelId}/${cbhqJumpMsg?.messageId})`)
     .addFields(
       { name: 'Before', value: oldMessage.content || oldMessage.embeds[0]?.description || 'None.' },
-      { name: 'After', value: newMessage.content },
+      { name: 'After', value: newMessageContent },
     )
     .setTimestamp()
     .setImage(attachmentLink)

@@ -55,62 +55,72 @@ export default {
 
     await interaction.showModal(modal);
 
-    interaction.awaitModalSubmit({ filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id, time: 30_000 })
-      .then(async i => {
-        // get the input from user
-        const newMessage = i.fields.getTextInputValue('newMessage');
-        const censoredNewMessage = wordFiler.censor(newMessage);
-
-        // get the reply from the target message
-        const newEmbed = !target.content
-          ? EmbedBuilder.from(target.embeds[0])
-          : new EmbedBuilder()
-            .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
-            .setDescription(target.content)
-            .setColor(target.member?.displayHexColor ?? 'Random')
-            .addFields(target.embeds[0] ? [{ name: 'Reply-to', value: `${target.embeds[0].description}` }] : [])
-            .setFooter({ text: `Server: ${getGuildName(interaction.client, messageInDb.serverId)}` });
-
-        const censoredEmbed = EmbedBuilder.from(newEmbed).setDescription(censoredNewMessage);
-
-        i.reply({
-          content: `${interaction.client.emotes.normal.yes} Message Edited. Please give a few seconds for it to reflect in all connections.`,
-          ephemeral: true,
+    const editInteraction = await interaction.awaitModalSubmit({
+      filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id,
+      time: 30_000,
+    }).catch((reason) => {
+      if (!reason.message.includes('reason: time')) {
+        captureException(reason, {
+          user: { id: interaction.user.id, username: interaction.user.username },
+          extra: { command: 'Edit Message' },
         });
-        const channelSettingsArr = await db.connectedList.findMany({
-          where: { channelId: { in: messageInDb.channelAndMessageIds.map(c => c.channelId) } },
-        });
+      }
 
-        messageInDb.channelAndMessageIds.forEach(async obj => {
-          const channelSettings = channelSettingsArr.find(c => c.channelId === obj.channelId);
+      return null;
+    });
 
-          if (channelSettings) {
-            const webhook = new WebhookClient({ url: channelSettings.webhookURL });
+    if (!editInteraction) return;
 
-            channelSettings?.compact ?
-              webhook.editMessage(obj.messageId, {
-                content: channelSettings?.profFilter ? newMessage : censoredNewMessage,
-                threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
-              })
-              : webhook.editMessage(obj.messageId, {
-                files: [],
-                embeds: [channelSettings?.profFilter ? censoredEmbed : newEmbed],
-                threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
-              });
-          }
-        });
+    // get the input from user
+    const newMessage = editInteraction.fields.getTextInputValue('newMessage');
+    const censoredNewMessage = wordFiler.censor(newMessage);
 
+    // if the message being edited is in compact mode
+    // then we create a new embed with the new message and old reply
+    // else we just use the old embed and replace the description
+    const newEmbed = target.content
+      ? new EmbedBuilder()
+        .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
+        .setDescription(newMessage)
+        .setColor(target.member?.displayHexColor ?? 'Random')
+        .addFields(target.embeds[0] ? [{ name: 'Reply-to', value: `${target.embeds[0].description}` }] : [])
+        .setFooter({ text: `Server: ${getGuildName(interaction.client, messageInDb.serverId)}` })
+      : EmbedBuilder.from(target.embeds[0]).setDescription(newMessage);
 
-        interaction.inCachedGuild()
-          ? networkMsgUpdate(interaction.member, target, {
-            id: target.id, content: newMessage,
+    const censoredEmbed = EmbedBuilder.from(newEmbed).setDescription(censoredNewMessage);
+
+    // find all the messages through the network
+    const channelSettingsArr = await db.connectedList.findMany({
+      where: { channelId: { in: messageInDb.channelAndMessageIds.map(c => c.channelId) } },
+    });
+
+    // edit the messages
+    messageInDb.channelAndMessageIds.forEach(async obj => {
+      const channelSettings = channelSettingsArr.find(c => c.channelId === obj.channelId);
+
+      if (channelSettings) {
+        const webhook = new WebhookClient({ url: channelSettings.webhookURL });
+
+        channelSettings?.compact ?
+          webhook.editMessage(obj.messageId, {
+            content: channelSettings?.profFilter ? newMessage : censoredNewMessage,
+            threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
           })
-          : null;
+          : webhook.editMessage(obj.messageId, {
+            files: [],
+            embeds: [channelSettings?.profFilter ? censoredEmbed : newEmbed],
+            threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
+          });
+      }
+    });
 
-      }).catch((reason) => {
-        !reason.message.includes('reason: time')
-          ? captureException(reason, { user: { id: interaction.user.id, username: interaction.user.username }, extra: { command: 'Edit Message' } })
-          : null;
-      });
+    editInteraction.reply({
+      content: `${interaction.client.emotes.normal.yes} Message Edited. Please give a few seconds for it to reflect in all connections.`,
+      ephemeral: true,
+    });
+
+    interaction.inCachedGuild()
+      ? networkMsgUpdate(interaction.member, target, newMessage)
+      : null;
   },
 };
