@@ -30,8 +30,10 @@ export default {
       if (!await checks.execute(message, channelInDb)) return;
 
       message.censored_content = censor(message.content);
-      const attachment = messageContentModifiers.getAttachment(message);
-      const attachmentURL = !attachment ? await messageContentModifiers.getAttachmentURL(message) : undefined;
+      const attachment = message.attachments.first();
+      const attachmentURL = attachment
+        ? `attachment://${attachment.name}`
+        : await messageContentModifiers.getAttachmentURL(message);
 
       let replyInDb: messageData | null;
       let referredAuthor: User | undefined; // author of the message being replied to
@@ -54,7 +56,7 @@ export default {
       // define censored embed after reply is added to reflect that in censored embed as well
       const embed = new EmbedBuilder()
         .setDescription(message.content || null) // description must be null if message is only an attachment
-        .setImage(attachment ? `attachment://${attachment.name}` : attachmentURL || null)
+        .setImage(attachmentURL)
         .setColor(colors('random'))
         .setFields(
           referredContent
@@ -104,9 +106,9 @@ export default {
           webhookMessage = {
             avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
             username:  message.author.username,
+            files: attachment ? [attachment] : undefined,
             content: connection?.profFilter ? message.censored_content : message.content,
             embeds: replyEmbed ? [replyEmbed] : undefined,
-            files: attachment ? [attachment] : [],
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
           };
@@ -115,9 +117,9 @@ export default {
           webhookMessage = {
             components: replyButton ? [replyButton] : undefined,
             embeds: [connection.profFilter ? censoredEmbed : embed],
+            files: attachment ? [attachment] : undefined,
             username: `${channelInDb.hub?.name}`,
             avatarURL: channelInDb.hub?.iconUrl,
-            files: attachment ? [attachment] : [],
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
           };

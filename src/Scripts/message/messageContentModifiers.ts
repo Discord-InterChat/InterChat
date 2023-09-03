@@ -1,4 +1,4 @@
-import { AttachmentBuilder, Message } from 'discord.js';
+import { Message } from 'discord.js';
 import { NetworkMessage } from '../../Events/messageCreate';
 import 'dotenv/config';
 
@@ -14,16 +14,6 @@ export default {
     return referredContent;
   },
 
-  getAttachment(message: NetworkMessage) {
-    // Attached Images (uploaded without url)
-    const attachment = message.attachments.first();
-    if (attachment) {
-      if (message.attachments.size > 1) message.reply('Due to Discord\'s Embed limitations, only the first attachment will be sent.');
-
-      const newAttachment = new AttachmentBuilder(`${attachment.url}`, { name: `${attachment.name}` });
-      return newAttachment; // return the new attachment buffer so we can send in the network
-    }
-  },
   async getAttachmentURL(message: NetworkMessage) {
     // Tenor Gifs / Image URLs
     const imageURLRegex = /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png|\.webp)/;
@@ -42,5 +32,6 @@ export default {
 
       return gifJSON.results[0].media[0].gif.url as string;
     }
+    return null;
   },
 };
