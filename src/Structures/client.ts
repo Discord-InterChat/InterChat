@@ -11,7 +11,7 @@ import { getDb } from '../Utils/functions/utils';
 export class ExtendedClient extends Client {
   constructor() {
     super({
-      intents: ['Guilds', 'GuildMessages', 'GuildMembers', 'MessageContent'],
+      intents: ['Guilds', 'GuildMessages', 'GuildMembers', 'MessageContent', 'GuildMessageReactions'],
       allowedMentions: { parse: [], repliedUser: true },
       presence: {
         status: 'online',
