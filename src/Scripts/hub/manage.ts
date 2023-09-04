@@ -3,6 +3,7 @@ import { captureException } from '@sentry/node';
 import { logger } from '@sentry/utils';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
+import { stripIndents } from 'common-tags';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
@@ -33,6 +34,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const editButtons = new ActionRowBuilder<ButtonBuilder>()
     .addComponents(
       new ButtonBuilder()
+        .setCustomId('icon')
+        .setLabel('Change Icon')
+        .setEmoji('🖼️')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
         .setCustomId('description')
         .setLabel('Edit Description')
         .setEmoji('✏️')
@@ -61,6 +67,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         .setEmoji('🔗')
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
+        .setCustomId('nickname')
+        .setLabel('Toggle Nicknames')
+        .setEmoji('✨')
+        .setStyle(ButtonStyle.Secondary),
+      new ButtonBuilder()
         .setCustomId('moderator')
         .setLabel('View Mods')
         .setStyle(ButtonStyle.Secondary)
@@ -72,43 +83,31 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return new EmbedBuilder()
       .setTitle(hub.name)
       .setColor('Random')
-      .setDescription(hub.description)
+      .setDescription(stripIndents`
+        ${hub.description}
+        - __**Tags:**__ ${hub.tags.join(', ')}
+        - __**Public:**__ ${hub.private ? emotes.normal.yes : emotes.normal.no}
+        - __**Use Nicknames:**__ ${hub.useNicknames ? emotes.normal.yes : emotes.normal.no}
+      `)
       .setThumbnail(hub.iconUrl)
       .setImage(hub.bannerUrl)
       .addFields(
         {
-          name: 'Tags',
-          value: hub.tags.join(', '),
+          name: 'Blacklists',
+          value: stripIndents`
+          - Users: ${hub.blacklistedUsers.length.toString()}
+          - Servers: ${hub.blacklistedServers.length.toString()}
+          `,
           inline: true,
         },
+
         {
-          name: 'Visibility',
-          value: hub.private ? 'Private' : 'Public',
-          inline: true,
-        },
-        {
-          name: 'Blacklisted Users',
-          value: hub.blacklistedUsers.length.toString(),
-          inline: true,
-        },
-        {
-          name: 'Blacklisted Servers',
-          value: hub.blacklistedServers.length.toString(),
-          inline: true,
-        },
-        {
-          name: 'Moderators',
-          value: hub.moderators.length.toString(),
-          inline: true,
-        },
-        {
-          name: 'Networks',
-          value: `${hub.connections.length}`,
-          inline: true,
-        },
-        {
-          name: 'Owner',
-          value: `<@${hub.ownerId}>`,
+          name: 'Hub Stats',
+          value: stripIndents`
+          - Moderators: ${hub.moderators.length.toString()}
+          - Connected: ${hub.connections.length}
+          - Owner: <@${hub.ownerId}>
+          `,
           inline: true,
         },
       );
@@ -141,6 +140,73 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     if (i.isButton()) {
       switch (i.customId) {
+        case 'icon': {
+          const modal = new ModalBuilder()
+            .setCustomId(i.id)
+            .setTitle('Change Hub Icon')
+            .addComponents(
+              new ActionRowBuilder<TextInputBuilder>().addComponents(
+                new TextInputBuilder()
+                  .setLabel('Enter Icon URL')
+                  .setPlaceholder('Enter a valid imgur image URL.')
+                  .setStyle(TextInputStyle.Short)
+                  .setCustomId('icon'),
+              ));
+
+          await i.showModal(modal);
+
+          const modalResponse = await i.awaitModalSubmit({
+            filter: m => m.customId === modal.data.custom_id,
+            time: 60_000 * 5,
+          }).catch(e => {
+            if (!e.message.includes('ending with reason: time')) {
+              logger.error(e);
+              captureException(e, {
+                user: { id: i.user.id, username: i.user.username },
+                extra: { context: 'This happened when user tried to change hub icon.' },
+              });
+            }
+            return null;
+          });
+
+          if (!modalResponse) return;
+
+          const newIcon = modalResponse.fields.getTextInputValue('icon');
+          // check if icon is a valid imgur link
+          const imgurLink = newIcon.match(/\bhttps?:\/\/i\.imgur\.com\/[A-Za-z0-9]+\.(?:jpg|jpeg|gif|png|bmp)\b/g);
+          if (!imgurLink) {
+            await modalResponse.reply({
+              content: 'Invalid icon URL. Please make sure it is a valid imgur image URL.',
+              ephemeral: true,
+            });
+            return;
+          }
+
+          await db.hubs.update({
+            where: { id: hubInDb?.id },
+            data: { iconUrl: imgurLink[0] },
+          });
+
+          await modalResponse.reply({
+            content: 'Successfully updated icon!',
+            ephemeral: true,
+          });
+          break;
+        }
+
+        case 'nickname': {
+          await db.hubs.update({
+            where: { id: hubInDb?.id },
+            data: { useNicknames: !hubInDb?.useNicknames },
+          });
+
+          await i.reply({
+            content: `**${hubInDb?.useNicknames ? 'Usernames' : 'Display Names'}** will now be displayed for user names on messages instead.`,
+            ephemeral: true,
+          });
+          break;
+        }
+
         case 'description': {
           const modal = new ModalBuilder()
             .setCustomId(i.id)
@@ -388,172 +454,4 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       components: [primaryButtons, editButtons],
     }).catch(() => null);
   });
-
 }
-
-/* listHub code snippet
-        case 'listHub': {
-          if (hubInDb.approved) {
-            await i.reply({
-              content: 'Your hub is already approved to be listed publicly!',
-              ephemeral: true,
-            });
-            return;
-          }
-
-          const embed = createHubListingsEmbed(hubInDb)
-            .setFooter({ text: `Submitted by: ${interaction.user.tag}`, iconURL: interaction.user.displayAvatarURL() });
-
-          const confirmBtns = new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder()
-              .setCustomId('confirm_listing')
-              .setLabel('Confirm')
-              .setStyle(ButtonStyle.Success),
-            new ButtonBuilder()
-              .setCustomId('cancel_listing')
-              .setLabel('Cancel')
-              .setStyle(ButtonStyle.Danger),
-          );
-
-          const confirmMsg = await i.reply({
-            content: 'This is a preview your hub\'s listings embed. Confirm if you want to list your hub publicly:',
-            embeds: [embed],
-            components: [confirmBtns],
-            fetchReply: true,
-          });
-
-          const confirmResp = await confirmMsg.awaitMessageComponent({
-            filter: i2 => i2.user.id === i.user.id,
-            time: 30_000,
-            componentType: ComponentType.Button,
-          }).catch(() => null);
-
-          if (!confirmResp) {
-            await confirmMsg.edit({
-              components: [],
-              embeds: [],
-              content: 'You took too long to respond. Please try again.',
-            });
-            return;
-          }
-
-          if (confirmResp.customId !== 'confirm_listing') {
-            await confirmResp.message.delete().catch(() => null);
-            return;
-          }
-          await confirmResp.update({
-            content: 'Please wait while our staff review your hub to be listed publicly. In the meantime, you can create invites and share them for other servers to join your hub. Thank you for your patience!',
-            embeds: [],
-            components: [],
-          });
-
-
-          const { hubReviews } = constants.channel;
-          const reviewChannel = await i.client.channels.fetch(hubReviews) as TextChannel;
-
-          confirmBtns.components[0]
-            .setCustomId('approve')
-            .setLabel('Approve');
-          confirmBtns.components[1]
-            .setCustomId('deny')
-            .setLabel('Deny');
-
-
-          const reviewMsg = await reviewChannel?.send({
-            embeds: [embed],
-            components: [confirmBtns],
-          });
-
-          const reviewCollector = reviewMsg.createMessageComponentCollector({
-            componentType: ComponentType.Button,
-            max: 2,
-          });
-
-          reviewCollector.on('collect', async (reviewInter) => {
-            const emoji = interaction.client.emotes.normal;
-
-            if (reviewInter.customId === 'approve') {
-              await reviewInter.reply({
-                content: `${emoji.yes} Approved! It is now listed on \`/hub browse\`!`,
-                ephemeral: true,
-              });
-              reviewInter.message?.edit({ content: `${emoji.yes} Approved by **${reviewInter.user.tag}**.`, components: [] }).catch(() => null);
-
-
-              // update hub to be public
-              const approvedHub = await db.hubs.update({
-                where: { id: hubInDb?.id },
-                data: { approved: true, private: false },
-              });
-
-              const approvedEmbed = new EmbedBuilder()
-                .setTitle(`${emoji.yes} Hub Approved`)
-                .setDescription(`Your hub **${approvedHub.name}** has been approved to be listed publicly! View your hub using \`/hub browse\`. If you want to make your hub private, edit it in \`/hub edit\`!`)
-                .setColor('Green')
-                .setTimestamp()
-                .setFooter({ text: 'Join the support server if you have any questions!' });
-
-              // notify hub owner of approval
-              await i.user.send({ embeds: [approvedEmbed] });
-              reviewCollector.stop();
-            }
-            else {
-              const denyModal = new ModalBuilder()
-                .setTitle('Deny Hub')
-                .setCustomId(reviewInter.id)
-                .addComponents(
-                  new ActionRowBuilder<TextInputBuilder>().addComponents(
-                    new TextInputBuilder()
-                      .setLabel('Reason for Denial')
-                      .setStyle(TextInputStyle.Paragraph)
-                      .setCustomId('reason'),
-                  ),
-                );
-              await reviewInter.showModal(denyModal);
-
-              reviewInter.awaitModalSubmit({
-                filter: m => m.customId === denyModal.data.custom_id,
-                time: 60 * 5000,
-              }).then(async denyIntr => {
-                const reason = denyIntr.fields.getTextInputValue('reason');
-
-                await db.hubs.findFirst({ where: { id: hubInDb?.id } });
-                if (!hubInDb) {
-                  await i.reply({
-                    content: 'This hub no longer exists.',
-                    ephemeral: true,
-                  });
-                  return;
-                }
-
-                await denyIntr.reply({
-                  content: `Successfully deined hub **${hubInDb?.name}** from being listed publicly. Reason: \`${reason}\``,
-                  ephemeral: true,
-                });
-                denyIntr.message?.edit({ content: `${emoji.no} Denied by **${reviewInter.user.tag}**.`, components: [] }).catch(() => null);
-
-                const denyEmbed = new EmbedBuilder()
-                  .setTitle(`${emoji.no} Hub Denied`)
-                  .setDescription('Your request to list your hub on `/hub browse` has been denied! You can edit your hub in `/hub manage` and send it for approval again if applicable.')
-                  .addFields(
-                    { name: 'Hub Name', value: hubInDb.name, inline: true },
-                    { name: 'Reason', value: reason, inline: true },
-                  )
-                  .setColor('Red')
-                  .setFooter({ text: 'Join the support server if you have any questions!' })
-                  .setTimestamp();
-
-                // notify hub owner of denial
-                await i.user.send({ embeds: [denyEmbed] });
-                reviewCollector.stop();
-              }).catch(e => {
-                if (!e.message.includes('ending with reason: time')) {
-                  captureException(e);
-                  logger.error(e);
-                }
-              });
-            }
-          });
-          break;
-        }
-*/

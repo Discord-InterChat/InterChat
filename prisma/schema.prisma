@@ -86,6 +86,7 @@ model hubs {
   bannerUrl          String?
   private            Boolean              @default(true)
   createdAt          DateTime             @default(now())
+  useNicknames       Boolean              @default(false)
   // all the stuff below is relations to other collections
   invites            hubInvites[]
   messages           messageData[]

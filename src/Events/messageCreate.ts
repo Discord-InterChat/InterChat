@@ -53,7 +53,14 @@ export default {
         }
       }
 
-      // define censored embed after reply is added to reflect that in censored embed as well
+      // for nicknames setting
+      const displayNameOrUsername = channelInDb.hub.useNicknames
+        ? message.member?.displayName || message.author.displayName
+        : message.author.username;
+      const avatarURL = channelInDb.hub.useNicknames
+        ? message.member?.user.displayAvatarURL()
+        : message.author.displayAvatarURL();
+
       const embed = new EmbedBuilder()
         .setDescription(message.content || null) // description must be null if message is only an attachment
         .setImage(attachmentURL)
@@ -64,14 +71,15 @@ export default {
             : [],
         )
         .setAuthor({
-          name: `@${message.author.username}`,
-          iconURL: message.author.displayAvatarURL() || message.author.defaultAvatarURL,
+          name: displayNameOrUsername,
+          iconURL: avatarURL,
           url: `https://discord.com/users/${message.author.id}`,
         })
         .setFooter({
           text: `Server: ${message.guild?.name}`,
           iconURL: message.guild?.iconURL() || undefined,
         });
+      // define censored embed after reply is added to reflect that in censored embed as well
       const censoredEmbed = EmbedBuilder.from(embed).setDescription(message.censored_content || null);
 
       // send the message to all connected channels in apropriate format (compact/profanity filter)
@@ -104,8 +112,8 @@ export default {
             : undefined;
 
           webhookMessage = {
-            avatarURL: message.author.avatarURL() || message.author.defaultAvatarURL,
-            username:  message.author.username,
+            avatarURL: avatarURL,
+            username:  displayNameOrUsername,
             files: attachment ? [attachment] : undefined,
             content: connection?.profFilter ? message.censored_content : message.content,
             embeds: replyEmbed ? [replyEmbed] : undefined,
