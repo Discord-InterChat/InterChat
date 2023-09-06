@@ -13,7 +13,7 @@ export default {
     const totalNetworkMessages = await messageData.count();
 
     const uptime = toHuman(interaction.client.uptime);
-    const docsLink = 'https://interchat.gitbook.io';
+    const docsLink = 'https://discord-interchat.github.io/docs';
     const supportServer = 'https://discord.gg/6bhXQynAPs';
 
     const embed = new EmbedBuilder()

@@ -18,7 +18,7 @@ export default {
         - Use </hub create:1107639810014847049> to create your own hub and invite your friends!
         - Please follow the network </rules:924659340898619395> while using the network at all times.
         - Unlock cool new features by voting on [top.gg](https://top.gg/bot/769921109209907241/vote)!
-        - If you want learn more about me, you can do so by reading the [guide](https://interchat.gitbook.io/guide/).
+        - If you want learn more about me, you can do so by reading the [guide](https://discord-interchat.github.io/docs/).
         
         We hope you enjoy using ${guild.client.user.username}! If you have any questions or feedback, please don't hesitate to reach out to us in the [official support server](https://discord.gg/6bhXQynAPs).
 			`)
@@ -28,15 +28,15 @@ export default {
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setLabel('Guide')
-        .setURL('https://interchat.gitbook.io/guide')
+        .setURL('https://discord-interchat.github.io/guide')
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
         .setLabel('ToS')
-        .setURL('https://interchat.gitbook.io/important/terms')
+        .setURL('https://discord-interchat.github.io/important/terms')
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
         .setLabel('Privacy')
-        .setURL('https://interchat.gitbook.io/important/privacy')
+        .setURL('https://discord-interchat.github.io/important/privacy')
         .setStyle(ButtonStyle.Link),
     );
 

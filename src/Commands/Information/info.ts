@@ -45,7 +45,7 @@ export default {
       ${normal.dotBlue} @${members.at(-2)?.username}
 
       ${linksDivider}
-      [Guide](https://interchat.gitbook.io) • [Invite](${interaction.client.invite}) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241) • [App Directory](https://discord.com/application-directory/769921109209907241) • [ToS](https://interchat.gitbook.io/important/terms) • [Privacy](https://interchat.gitbook.io/important/privacy)
+      [Guide](https://discord-interchat.github.io/docs) • [Invite](${interaction.client.invite}) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241) • [App Directory](https://discord.com/application-directory/769921109209907241) • [ToS](https://discord-interchat.github.io/important/terms) • [Privacy](https://discord-interchat.github.io/important/privacy)
       `)
       .setFooter({
         text: `Requested by @${interaction.user.username}`,
