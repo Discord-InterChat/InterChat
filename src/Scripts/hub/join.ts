@@ -48,7 +48,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const guildInHub = inviteExists.hub.connections.find((c) => c.serverId === channel.guildId);
     if (guildInHub) {
       return await interaction.reply({
-        content: `This server has already joined hub **${inviteExists.hub.name}** from from <#${guildInHub.channelId}>! Please leave the hub from that channel first, or change the channel using \`/network manage\`.!`,
+        content: `This server has already joined hub **${inviteExists.hub.name}** from <#${guildInHub.channelId}>! Please leave the hub from that channel first, or change the channel using \`/network manage\`.!`,
         ephemeral: true,
       });
     }
