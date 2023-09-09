@@ -1,12 +1,23 @@
 import { Interaction } from 'discord.js';
-import { checkIfStaff, toHuman } from '../Utils/functions/utils';
+import { checkIfStaff } from '../Utils/functions/utils';
 import { captureException } from '@sentry/node';
 import logger from '../Utils/logger';
+import reactionButton from '../Scripts/message/reactionButton';
 
 export default {
   name: 'interactionCreate',
   async execute(interaction: Interaction) {
-    if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+    if (interaction.isButton()) {
+      const customId = interaction.customId;
+      if (customId.startsWith('reaction_')) reactionButton.execute(interaction);
+    }
+
+    else if (interaction.isAutocomplete()) {
+      const command = interaction.client.commands.get(interaction.commandName);
+      if (command?.autocomplete) command.autocomplete(interaction);
+    }
+
+    else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
       const command = interaction.client.commands.get(interaction.commandName);
       if (!command) return;
 
@@ -14,7 +25,7 @@ export default {
         const cooldown = interaction.client.commandCooldowns.get(`${interaction.commandName}-${interaction.user.id}`);
         if (cooldown && cooldown > Date.now()) {
           return interaction.reply({
-            content: `You are on cooldown! Please wait \`${toHuman(cooldown - Date.now())}\` to use command again!`,
+            content: `You can use this command again <t:${Math.round(new Date(cooldown - Date.now()).getTime() / 1000)}:R>`,
             ephemeral: true,
           });
         }
@@ -53,10 +64,6 @@ export default {
           ? await interaction.followUp(errorMsg).catch(() => null)
           : await interaction.reply(errorMsg).catch(() => null);
       }
-    }
-    else if (interaction.isAutocomplete()) {
-      const command = interaction.client.commands.get(interaction.commandName);
-      if (command?.autocomplete) command.autocomplete(interaction);
     }
   },
 };

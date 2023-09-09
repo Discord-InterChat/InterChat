@@ -3,8 +3,8 @@ import { getDb } from '../Utils/functions/utils';
 import updateMessageReactions from '../Scripts/reactions/updateMessage';
 
 export default {
-  name: 'messageReactionAdd',
-  async execute(reaction: MessageReaction| PartialMessageReaction, user: User | PartialUser) { // user: User | PartialUser
+  name: 'messageReactionRemove',
+  async execute(reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
     const db = getDb();
     const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: reaction.message.id } } },
@@ -20,8 +20,13 @@ export default {
 
 
     const reactedEmoji = reaction.emoji.toString();
-    const reactions = messageInDb.reactions?.valueOf() as Record<string, string[]>; // eg. { '👍': 1, '👎': 2 }
-    reactions[reactedEmoji] ? reactions[reactedEmoji].push(user.id) : reactions[reactedEmoji] = [user.id];
+    const reactions = messageInDb.reactions?.valueOf() as Record<string, string[]>; // eg. { '👍': ['userId1'], '👎': ['userId1'] }
+
+    // Remove the user from the array
+    if (reactions[reactedEmoji]) {
+      const userIndex = reactions[reactedEmoji].indexOf(user.id);
+      reactions[reactedEmoji].splice(userIndex, 1);
+    }
 
     await db.messageData.update({
       where: { id: messageInDb.id },

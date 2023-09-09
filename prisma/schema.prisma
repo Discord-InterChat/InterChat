@@ -119,11 +119,11 @@ model hubInvites {
 model messageData {
   id                   String                            @id @default(auto()) @map("_id") @db.ObjectId
   authorId             String
-  reactions            Json // eg. { "👍": ['userId', 'userId2'], "👎": ['userId', 'userId2'] }
   channelAndMessageIds MessageDataChannelAndMessageIds[]
   reference            MessageDataReference?
   serverId             String
   timestamp            DateTime
+  reactions            Json // eg. {"👎": ["9893820930928", "39283902803982"]} "emoji": userId[] basically
   hub                  hubs?                             @relation(fields: [hubId], references: [id])
   hubId                String?                           @db.ObjectId
 }
