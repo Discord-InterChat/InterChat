@@ -28,7 +28,10 @@ export default {
     const reactedEmoji = reaction.emoji.toString();
     const reactions = messageInDb.reactions?.valueOf() as Record<string, string[]>; // eg. { '👍': 1, '👎': 2 }
 
-    if (!reactions[reactedEmoji] && Object.keys(reactions).length >= 10) return;
+    if (
+      (!reactions[reactedEmoji] && Object.keys(reactions).length >= 10) ||
+      reactions[reactedEmoji]?.includes(user.id)
+    ) return;
 
     reactions[reactedEmoji]
       ? reactions[reactedEmoji].push(user.id)
