@@ -21,6 +21,7 @@ declare module 'discord.js' {
     version: string;
     emotes: typeof EmojiIDs;
     commandCooldowns: discord.Collection<`${string}-${discord.Snowflake}`, number>;
+    reactionCooldowns: discord.Collection<discord.Snowflake, number>;
     /* A generated invite link for the bot */
     invite: string;
     sendInNetwork(

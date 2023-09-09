@@ -3,13 +3,27 @@ import { checkIfStaff } from '../Utils/functions/utils';
 import { captureException } from '@sentry/node';
 import logger from '../Utils/logger';
 import reactionButton from '../Scripts/message/reactionButton';
+import viewReactions from '../Commands/Network/viewReactions';
 
 export default {
   name: 'interactionCreate',
   async execute(interaction: Interaction) {
     if (interaction.isButton()) {
       const customId = interaction.customId;
-      if (customId.startsWith('reaction_')) reactionButton.execute(interaction);
+      if (customId.startsWith('reaction_')) {
+        const cooldown = interaction.client.reactionCooldowns.get(interaction.user.id);
+        if (cooldown && cooldown > Date.now()) {
+          interaction.reply({
+            content: `A little quick there! You can react again <t:${Math.round(cooldown / 1000)}:R>!`,
+            ephemeral: true,
+          });
+          return;
+        }
+
+        interaction.client.reactionCooldowns.set(interaction.user.id, Date.now() + 3000);
+        reactionButton.execute(interaction);
+      }
+      else if (customId === 'view_all_reactions') {viewReactions?.execute(interaction);}
     }
 
     else if (interaction.isAutocomplete()) {
@@ -25,7 +39,7 @@ export default {
         const cooldown = interaction.client.commandCooldowns.get(`${interaction.commandName}-${interaction.user.id}`);
         if (cooldown && cooldown > Date.now()) {
           return interaction.reply({
-            content: `You can use this command again <t:${Math.round(new Date(cooldown - Date.now()).getTime() / 1000)}:R>`,
+            content: `You can use this command again <t:${Math.round(cooldown / 1000)}:R>`,
             ephemeral: true,
           });
         }

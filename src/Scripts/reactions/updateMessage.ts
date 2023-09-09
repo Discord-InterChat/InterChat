@@ -8,11 +8,12 @@ export default function updateMessageReactions(
   reactions: Record<string, string[]>,
 ) {
   // reactions will contain something like this: { '👍': 1, '👎': 2 }
+  // sortedReactions[0] = array of [emoji, users[]]
+  // sortedReactions[0][0] = emoji
+  // sortedReactions[0][1] = array of users
   const sortedReactions = sortReactions(reactions);
   const reactionCount = sortedReactions[0][1].length;
   const mostReaction = sortedReactions[0][0];
-
-  console.log(sortedReactions);
 
   const reactionBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
@@ -22,6 +23,18 @@ export default function updateMessageReactions(
       .setLabel(`${reactionCount}`),
   );
 
+  if (sortedReactions.length > 1) {
+    const allReactionCount = sortedReactions.filter((e) => e[0] !== mostReaction && e[1].length > 0);
+    if (allReactionCount.length > 0) {
+      reactionBtn.addComponents(
+        new ButtonBuilder()
+          .setCustomId('view_all_reactions')
+          .setStyle(ButtonStyle.Secondary)
+          .setLabel(`+ ${allReactionCount.length}`),
+      );
+    }
+
+  }
 
   connections.forEach(async (connection) => {
     const dbMsg = channelAndMessageIds.find((e) => e.channelId === connection.channelId);
@@ -36,9 +49,12 @@ export default function updateMessageReactions(
     components = components?.filter((c) =>
       c.components.find(
         (e) =>
-          (e.type === ComponentType.Button &&
-            e.style === ButtonStyle.Secondary &&
-            e.custom_id.startsWith('reaction_')) === false,
+          e.type === ComponentType.Button &&
+          e.style === ButtonStyle.Secondary &&
+          (
+            e.custom_id.startsWith('reaction_') ||
+            e.custom_id === 'view_all_reactions'
+          ) === false,
       ),
     );
 
