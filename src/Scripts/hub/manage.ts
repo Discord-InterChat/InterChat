@@ -86,7 +86,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setDescription(stripIndents`
         ${hub.description}
         - __**Tags:**__ ${hub.tags.join(', ')}
-        - __**Public:**__ ${hub.private ? emotes.normal.yes : emotes.normal.no}
+        - __**Public:**__ ${hub.private ? emotes.normal.no : emotes.normal.yes}
         - __**Use Nicknames:**__ ${hub.useNicknames ? emotes.normal.yes : emotes.normal.no}
       `)
       .setThumbnail(hub.iconUrl)
