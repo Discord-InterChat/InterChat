@@ -44,19 +44,21 @@ export default function updateMessageReactions(
     const message = await webhook.fetchMessage(dbMsg.messageId, {
       threadId: connection.parentId ? connection.channelId : undefined,
     });
-    let components = message.components;
 
-    components = components?.filter((c) =>
-      c.components.find(
-        (e) =>
-          e.type === ComponentType.Button &&
-          e.style === ButtonStyle.Secondary &&
-          (
-            e.custom_id.startsWith('reaction_') ||
-            e.custom_id === 'view_all_reactions'
-          ) === false,
-      ),
-    );
+    // remove all reaction buttons from components
+    // customId should not start with 'reaction_' or 'view_all_reactions'
+    const components = message.components?.filter((row) => {
+      const filteredRow = row.components.filter((component) => {
+        if (component.type === ComponentType.Button && component.style === ButtonStyle.Secondary) {
+          return !component.custom_id.startsWith('reaction_') && component.custom_id !== 'view_all_reactions';
+        }
+        return true;
+      });
+
+      row.components = filteredRow;
+      console.log(filteredRow);
+      return filteredRow.length > 0;
+    });
 
     reactionCount > 0 ? components?.push(reactionBtn.toJSON()) : null;
     webhook.editMessage(dbMsg.messageId, { components });
