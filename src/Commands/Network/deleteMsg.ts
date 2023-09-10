@@ -24,7 +24,12 @@ export default {
     }
 
     const interchatStaff = checkIfStaff(interaction.user.id);
-    if (!messageInDb.hub?.moderators.find((m) => m.userId === interaction.user.id) && !interchatStaff && interaction.user.id !== messageInDb.authorId) {
+    if (
+      !interchatStaff &&
+      !messageInDb.hub?.moderators.find((m) => m.userId === interaction.user.id) &&
+       messageInDb.hub?.ownerId !== interaction.user.id &&
+       interaction.user.id !== messageInDb.authorId
+    ) {
       return interaction.reply({
         content: `${emoji.no} You are not the author of this message.`,
         ephemeral: true,
