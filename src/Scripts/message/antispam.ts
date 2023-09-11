@@ -34,13 +34,22 @@ export default function antiSpam(author: User, maxInfractions = MAX_STORE) {
       setSpamTimers(author.id);
       if (isWithinWindow) return userInCol;
     }
+
+    else {
+      userCol.set(author.id, {
+        timestamps: [...timestamps, currentTimestamp],
+        infractions: userInCol.infractions,
+      });
+    }
   }
 
-  userCol.set(author.id, {
-    timestamps: userInCol ? [...userInCol.timestamps, currentTimestamp] : [currentTimestamp],
-    infractions: 0,
-  });
-  setSpamTimers(author.id);
+  else {
+    userCol.set(author.id, {
+      timestamps: [currentTimestamp],
+      infractions: 0,
+    });
+    setSpamTimers(author.id);
+  }
 }
 
 export function setSpamTimers(userId: string): void {
