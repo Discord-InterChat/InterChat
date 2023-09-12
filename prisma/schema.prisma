@@ -39,6 +39,15 @@ type HubModerator {
   // honestly... I might as well make permissions lol
 }
 
+type HubSettings {
+  useNicknames    Boolean @default(false)
+  allowInvites    Boolean @default(true)
+  allowLinks      Boolean @default(true)
+  allowReactions  Boolean @default(true)
+  profanityFilter Boolean @default(false)
+  spamFilter      Boolean @default(true)
+}
+
 model blacklistedServers {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
   serverId   String
@@ -81,6 +90,7 @@ model hubs {
   description        String
   tags               String[]
   rating             HubRating[]
+  settings           HubSettings?
   ownerId            String
   iconUrl            String
   bannerUrl          String?

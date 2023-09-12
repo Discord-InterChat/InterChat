@@ -82,6 +82,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       const description = submitIntr.fields.getTextInputValue('description');
       const tags = submitIntr.fields.getTextInputValue('tags');
 
+      // FIXME: settings is a required field, add the fields to every collection
+      // in prod db before pushing it
       await db.hubs.create({
         data: {
           name: hubName,
@@ -91,6 +93,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           ownerId: submitIntr.user.id,
           iconUrl: imgurIcons[0],
           bannerUrl: imgurBanners?.[0],
+          settings: {},
         },
       });
 

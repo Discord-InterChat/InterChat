@@ -1,12 +1,8 @@
 import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel, ButtonInteraction, AnySelectMenuInteraction, Webhook, ThreadChannel } from 'discord.js';
 import { reconnect, disconnect } from '../../Structures/network';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { colors, getDb, yesOrNoEmoji } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
-
-function yesOrNo(option: unknown, yesEmoji: string, noEmoji: string) {
-  return option ? yesEmoji : noEmoji;
-}
 
 function updateConnectionButtons(connected: boolean | undefined, disconnectEmoji: string, connectEmoji: string) {
   return new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -16,7 +12,6 @@ function updateConnectionButtons(connected: boolean | undefined, disconnectEmoji
       .setStyle(connected ? ButtonStyle.Danger : ButtonStyle.Success)
       .setEmoji(connected ? disconnectEmoji : connectEmoji),
   ]);
-
 }
 
 // function to make it easier to edit embeds with updated data
@@ -35,9 +30,9 @@ async function setupEmbed(interaction: Interaction, channelId: string) {
       { name: 'Channel', value: `<#${channelId}>`, inline: true },
       { name: 'Hub', value: `${networkData?.hub?.name}`, inline: true },
       { name: 'Invite', value: invite, inline: true },
-      { name: 'Connected', value: yesOrNo(networkData?.connected, yes, no), inline: true },
-      { name: 'Compact', value: yesOrNo(networkData?.compact, enabled, disabled), inline: true },
-      { name: 'Profanity Filter', value: yesOrNo(networkData?.profFilter, enabled, disabled), inline: true },
+      { name: 'Connected', value: yesOrNoEmoji(networkData?.connected, yes, no), inline: true },
+      { name: 'Compact', value: yesOrNoEmoji(networkData?.compact, enabled, disabled), inline: true },
+      { name: 'Profanity Filter', value: yesOrNoEmoji(networkData?.profFilter, enabled, disabled), inline: true },
     ])
     .setColor(colors('chatbot'))
     .setThumbnail(interaction.guild?.iconURL() || interaction.client.user.avatarURL())

@@ -69,6 +69,10 @@ export const constants = {
 export const topgg = new Api(process.env.TOPGG as string);
 const _prisma = new PrismaClient();
 
+export function yesOrNoEmoji(option: unknown, yesEmoji: string, noEmoji: string) {
+  return option ? yesEmoji : noEmoji;
+}
+
 export function toTitleCase(txt: string): string {
   return startCase(toLower(txt));
 }
