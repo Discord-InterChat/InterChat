@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { colors, getDb } from '../../Utils/functions/utils';
 import { hubs } from '@prisma/client';
 import { HubSettingsBitField, HubSettingsString } from '../../Utils/hubs/hubSettingsBitfield';
 
@@ -14,13 +14,13 @@ const genSettingsEmbed = (hub: hubs, yesEmoji: string, noEmoji: string) => {
   };
 
   return new EmbedBuilder()
-    .setAuthor({ name: 'Settings', iconURL: hub.iconUrl })
+    .setAuthor({ name: `${hub.name} Settings`, iconURL: hub.iconUrl })
     .setDescription(Object.entries(settingDescriptions).map(([key, value]) => {
       const flag = settings.has(key as HubSettingsString);
       return `${flag ? yesEmoji : noEmoji} ${value}`;
     }).join('\n'))
     .setFooter({ text: 'Use the select menu below to toggle.' })
-    .setColor('Random')
+    .setColor(colors('chatbot'))
     .setTimestamp();
 };
 

@@ -94,7 +94,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           ownerId: submitIntr.user.id,
           iconUrl: imgurIcons[0],
           bannerUrl: imgurBanners?.[0],
-          settings: HubSettingsBits.SpamFilter | HubSettingsBits.HideLinks,
+          settings: HubSettingsBits.SpamFilter,
         },
       });
 
