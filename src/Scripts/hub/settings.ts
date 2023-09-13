@@ -17,7 +17,7 @@ const genSettingsEmbed = (hub: hubs, yesEmoji: string, noEmoji: string) => {
     .setAuthor({ name: 'Settings', iconURL: hub.iconUrl })
     .setDescription(Object.entries(settingDescriptions).map(([key, value]) => {
       const flag = settings.has(key as HubSettingsString);
-      return `- ${flag ? yesEmoji : noEmoji} ${value}`;
+      return `${flag ? yesEmoji : noEmoji} ${value}`;
     }).join('\n'))
     .setFooter({ text: 'Use the select menu below to toggle.' })
     .setColor('Random')
@@ -51,11 +51,19 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const hubName = interaction.options.getString('hub', true);
 
   const db = getDb();
-  let hub = await db.hubs.findUnique({ where: { name: hubName } });
+  let hub = await db.hubs.findUnique({
+    where: {
+      name: hubName,
+      OR: [
+        {
+          moderators: { some: { userId: interaction.user.id, position: 'manager' } },
+        },
+        { ownerId: interaction.user.id },
+      ],
+    },
+  });
 
-  // TODO: check if user is owner of hub
-  // TODO: hub settings === null is temp, remove when all hubs have settings
-  if (!hub || hub.settings === null) {
+  if (!hub) {
     return interaction.reply({
       content: 'Hub not found.',
       ephemeral: true,
