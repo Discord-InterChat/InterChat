@@ -69,6 +69,15 @@ export const constants = {
 export const topgg = new Api(process.env.TOPGG as string);
 const _prisma = new PrismaClient();
 
+export function replaceLinks(string: string, replaceText = '`[LINK HIDDEN]`') {
+  const urlRegex = /https?:\/\/(?!tenor\.com|giphy\.com)\S+/g;
+  return string.replaceAll(urlRegex, replaceText);
+}
+
+export function yesOrNoEmoji(option: unknown, yesEmoji: string, noEmoji: string) {
+  return option ? yesEmoji : noEmoji;
+}
+
 export function toTitleCase(txt: string): string {
   return startCase(toLower(txt));
 }

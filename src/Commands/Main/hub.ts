@@ -238,6 +238,17 @@ export default {
             .setAutocomplete(true)
             .setRequired(true),
         ),
+    ) .addSubcommand(subcommand =>
+      subcommand
+        .setName('settings')
+        .setDescription('Manage hub settings')
+        .addStringOption(stringOption =>
+          stringOption
+            .setName('hub')
+            .setDescription('The name of the hub')
+            .setAutocomplete(true)
+            .setRequired(true),
+        ),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
@@ -263,7 +274,7 @@ export default {
       });
 
     }
-    else if (subcommand === 'manage' || subcommand === 'networks') {
+    else if (subcommand === 'manage' || subcommand === 'networks' || subcommand === 'settings') {
       hubChoices = await getDb().hubs.findMany({
         where: {
           name: {

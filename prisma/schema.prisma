@@ -39,6 +39,15 @@ type HubModerator {
   // honestly... I might as well make permissions lol
 }
 
+// type HubSettings {
+//   useNicknames    Boolean @default(false)
+//   allowInvites    Boolean @default(true)
+//   allowLinks      Boolean @default(true)
+//   allowReactions  Boolean @default(true)
+//   profanityFilter Boolean @default(false)
+//   spamFilter      Boolean @default(true)
+// }
+
 model blacklistedServers {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
   serverId   String
@@ -86,7 +95,8 @@ model hubs {
   bannerUrl          String?
   private            Boolean              @default(true)
   createdAt          DateTime             @default(now())
-  useNicknames       Boolean              @default(false)
+  // settings are stored as a number, each bit is a setting
+  settings           Int
   // all the stuff below is relations to other collections
   invites            hubInvites[]
   messages           messageData[]

@@ -1,5 +1,6 @@
 import { ChatInputCommandInteraction, ModalBuilder, TextInputBuilder, EmbedBuilder, ActionRowBuilder, TextInputStyle, Collection } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
+import { HubSettingsBits } from '../../Utils/hubs/hubSettingsBitfield';
 
 const cooldowns = new Collection<string, number>();
 
@@ -82,6 +83,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       const description = submitIntr.fields.getTextInputValue('description');
       const tags = submitIntr.fields.getTextInputValue('tags');
 
+      // FIXME: settings is a required field, add the fields to every collection
+      // in prod db before pushing it
       await db.hubs.create({
         data: {
           name: hubName,
@@ -91,6 +94,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           ownerId: submitIntr.user.id,
           iconUrl: imgurIcons[0],
           bannerUrl: imgurBanners?.[0],
+          settings: HubSettingsBits.SpamFilter,
         },
       });
 

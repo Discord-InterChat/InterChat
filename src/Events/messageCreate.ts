@@ -5,6 +5,7 @@ import { APIMessage, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder,
 import { getDb, colors } from '../Utils/functions/utils';
 import { censor } from '../Utils/functions/wordFilter';
 import { messageData } from '@prisma/client';
+import { HubSettingsBitField } from '../Utils/hubs/hubSettingsBitfield';
 
 export interface NetworkMessage extends Message {
   censored_content: string,
@@ -27,7 +28,8 @@ export default {
     });
 
     if (channelInDb && channelInDb?.hub) {
-      if (!await checks.execute(message, channelInDb)) return;
+      const settings = new HubSettingsBitField(channelInDb.hub?.settings);
+      if (!await checks.execute(message, channelInDb, settings)) return;
 
       message.censored_content = censor(message.content);
       const attachment = message.attachments.first();
@@ -53,11 +55,13 @@ export default {
         }
       }
 
+      const useNicknames = settings.has('UseNicknames');
+
       // for nicknames setting
-      const displayNameOrUsername = channelInDb.hub.useNicknames
+      const displayNameOrUsername = useNicknames
         ? message.member?.displayName || message.author.displayName
         : message.author.username;
-      const avatarURL = channelInDb.hub.useNicknames
+      const avatarURL = useNicknames
         ? message.member?.user.displayAvatarURL()
         : message.author.displayAvatarURL();
 
