@@ -1,54 +1,95 @@
-import { ActionRowBuilder, ChatInputCommandInteraction, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { getDb, yesOrNoEmoji } from '../../Utils/functions/utils';
+import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { getDb } from '../../Utils/functions/utils';
 import { hubs } from '@prisma/client';
-import { stripIndents } from 'common-tags';
+import { HubSettingsBitField, HubSettingsString } from '../../Utils/hubs/hubSettingsBitfield';
 
 const genSettingsEmbed = (hub: hubs, yesEmoji: string, noEmoji: string) => {
+  const settings = new HubSettingsBitField(hub.settings);
+  const settingDescriptions = {
+    HideLinks: '**Hide Links** - Redact links sent by users.',
+    Reactions: '**Reactions** - Allow users to react to messages.',
+    BlockInvites: '**Block Invites** - Prevent users from sending Discord invites.',
+    SpamFilter: '**Spam Filter** - Automatically blacklist spammers for 5 minutes.',
+    UseNicknames: '**Use Nicknames** - Use server nicknames as the network usernames.',
+  };
+
   return new EmbedBuilder()
     .setAuthor({ name: 'Settings', iconURL: hub.iconUrl })
-    .setDescription(stripIndents`
-      - ${yesOrNoEmoji(hub.settings?.useNicknames, yesEmoji, noEmoji)} **Use Nicknames** - Use server nicknames as the network usernames.
-      - ${yesOrNoEmoji(hub.settings?.allowReactions, yesEmoji, noEmoji)} **Allow Reactions** - Allow users to react to messages.
-      - ${yesOrNoEmoji(hub.settings?.allowInvites, yesEmoji, noEmoji)} **Allow Invites** - Allow users to send discord invites.
-      - ${yesOrNoEmoji(hub.settings?.allowLinks, yesEmoji, noEmoji)} **Allow Links** - Allow messages to contain links.
-      - ${yesOrNoEmoji(hub.settings?.profanityFilter, yesEmoji, noEmoji)} **Profanity Filter** - Censor profanity with asterisks (\*\*\*\*).
-      - ${yesOrNoEmoji(hub.settings?.spamFilter, yesEmoji, noEmoji)} **Spam Filter** - Automatically blacklist users for 5 minutes who spam the chat.
-
-    `)
+    .setDescription(Object.entries(settingDescriptions).map(([key, value]) => {
+      const flag = settings.has(key as HubSettingsString);
+      return `- ${flag ? yesEmoji : noEmoji} ${value}`;
+    }).join('\n'))
     .setFooter({ text: 'Use the select menu below to toggle.' })
     .setColor('Random')
     .setTimestamp();
 };
+
+const genSelectMenu = (
+  hubSettings: HubSettingsBitField,
+  disabledEmote: string,
+  enabledEmote: string,
+) => {
+  return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId('hub_settings')
+      .setPlaceholder('Select an option')
+      .addOptions(
+        Object.keys(HubSettingsBitField.Flags).map((key) => {
+          const flag = hubSettings.has(key as HubSettingsString);
+          const emoji = flag ? disabledEmote : enabledEmote;
+          return {
+            label: `${flag ? 'Disable' : 'Enable'} ${key}`,
+            value: key,
+            emoji,
+          };
+        }),
+      ),
+  );
+};
+
 export async function execute(interaction: ChatInputCommandInteraction) {
   const hubName = interaction.options.getString('hub', true);
 
   const db = getDb();
-  const hub = await db.hubs.findUnique({ where: { name: hubName } });
+  let hub = await db.hubs.findUnique({ where: { name: hubName } });
 
-  if (!hub || !hub.settings) {
+  // TODO: check if user is owner of hub
+  // TODO: hub settings === null is temp, remove when all hubs have settings
+  if (!hub || hub.settings === null) {
     return interaction.reply({
       content: 'Hub not found.',
       ephemeral: true,
     });
   }
 
+  const hubSettings = new HubSettingsBitField(hub.settings);
   const emotes = interaction.client.emotes.normal;
   const embed = genSettingsEmbed(hub, emotes.enabled, emotes.disabled);
-  const hubSettingsArr = Object.entries(hub.settings);
+  const selects = genSelectMenu(hubSettings, emotes.disabled, emotes.enabled);
 
-  const selects = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-    new StringSelectMenuBuilder()
-      .setCustomId('hub_settings')
-      .setPlaceholder('Select an option')
-      .addOptions(
-        hubSettingsArr.map(([key, value]) => ({
-          label: `${value ? 'Disable' : 'Enable'} ${key}`,
-          value: key,
-          emoji: value ? emotes.disabled : emotes.enabled,
-        })),
-      ),
-  );
+  const initReply = await interaction.reply({ embeds: [embed], components: [selects] });
 
+  const collector = initReply.createMessageComponentCollector({
+    time: 60 * 1000,
+    filter: (i) => i.user.id === interaction.user.id,
+    componentType: ComponentType.StringSelect,
+  });
 
-  return interaction.reply({ embeds: [embed], components: [selects] });
+  // respond to select menu
+  collector.on('collect', async (i) => {
+    const selected = i.values[0] as HubSettingsString;
+
+    hub = await db.hubs.update({
+      where: { name: hub?.name },
+      data: { settings: hubSettings.toggle(selected).bitfield },
+    });
+
+    const newEmbed = genSettingsEmbed(hub, emotes.enabled, emotes.disabled);
+    const newSelects = genSelectMenu(hubSettings, emotes.disabled, emotes.enabled);
+
+    await i.update({
+      embeds: [newEmbed],
+      components: [newSelects],
+    });
+  });
 }

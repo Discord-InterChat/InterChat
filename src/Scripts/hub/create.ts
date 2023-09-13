@@ -1,5 +1,6 @@
 import { ChatInputCommandInteraction, ModalBuilder, TextInputBuilder, EmbedBuilder, ActionRowBuilder, TextInputStyle, Collection } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
+import { HubSettingsBits } from '../../Utils/hubs/hubSettingsBitfield';
 
 const cooldowns = new Collection<string, number>();
 
@@ -93,7 +94,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
           ownerId: submitIntr.user.id,
           iconUrl: imgurIcons[0],
           bannerUrl: imgurBanners?.[0],
-          settings: {},
+          settings: HubSettingsBits.SpamFilter | HubSettingsBits.HideLinks,
         },
       });
 

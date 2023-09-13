@@ -1,8 +1,9 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder } from 'discord.js';
 import { networkMsgUpdate } from '../../Scripts/networkLogs/msgUpdate';
-import { checkIfStaff, getDb, getGuildName, topgg } from '../../Utils/functions/utils';
+import { checkIfStaff, getDb, getGuildName, replaceLinks, topgg } from '../../Utils/functions/utils';
 import wordFiler from '../../Utils/functions/wordFilter';
 import { captureException } from '@sentry/node';
+import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
 
 export default {
   description: 'Edit a message that was sent in the network.',
@@ -23,6 +24,7 @@ export default {
     const db = getDb();
     const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
+      include: { hub: true },
     });
 
     if (!messageInDb) {
@@ -71,9 +73,20 @@ export default {
 
     if (!editInteraction) return;
 
+    const hubSettings = new HubSettingsBitField(messageInDb.hub?.settings);
     // get the input from user
-    const newMessage = editInteraction.fields.getTextInputValue('newMessage');
+    const newMessage = hubSettings.has('HideLinks')
+      ? replaceLinks(editInteraction.fields.getTextInputValue('newMessage'))
+      : editInteraction.fields.getTextInputValue('newMessage');
     const censoredNewMessage = wordFiler.censor(newMessage);
+
+    if (newMessage.includes('discord.gg') || newMessage.includes('discord.com/invite') || newMessage.includes('dsc.gg')) {
+      editInteraction.reply({
+        content: `${interaction.client.emotes.normal.no} Do not advertise or promote servers in the network. Set an invite in \`/network manage\` instead!`,
+        ephemeral: true,
+      });
+      return;
+    }
 
     // if the message being edited is in compact mode
     // then we create a new embed with the new message and old reply

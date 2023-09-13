@@ -87,7 +87,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         ${hub.description}
         - __**Tags:**__ ${hub.tags.join(', ')}
         - __**Public:**__ ${hub.private ? emotes.normal.no : emotes.normal.yes}
-        - __**Use Nicknames:**__ ${hub.useNicknames ? emotes.normal.yes : emotes.normal.no}
       `)
       .setThumbnail(hub.iconUrl)
       .setImage(hub.bannerUrl)
@@ -189,19 +188,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
           await modalResponse.reply({
             content: 'Successfully updated icon!',
-            ephemeral: true,
-          });
-          break;
-        }
-
-        case 'nickname': {
-          await db.hubs.update({
-            where: { id: hubInDb?.id },
-            data: { useNicknames: !hubInDb?.useNicknames },
-          });
-
-          await i.reply({
-            content: `**${hubInDb?.useNicknames ? 'Usernames' : 'Display Names'}** will now be displayed for user names on messages instead.`,
             ephemeral: true,
           });
           break;
