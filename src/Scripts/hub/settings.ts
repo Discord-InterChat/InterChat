@@ -17,7 +17,7 @@ const genSettingsEmbed = (hub: hubs, yesEmoji: string, noEmoji: string) => {
     .setAuthor({ name: `${hub.name} Settings`, iconURL: hub.iconUrl })
     .setDescription(Object.entries(settingDescriptions).map(([key, value]) => {
       const flag = settings.has(key as HubSettingsString);
-      return `${flag ? yesEmoji : noEmoji} ${value}`;
+      return `- ${flag ? yesEmoji : noEmoji} ${value}`;
     }).join('\n'))
     .setFooter({ text: 'Use the select menu below to toggle.' })
     .setColor(colors('chatbot'))
