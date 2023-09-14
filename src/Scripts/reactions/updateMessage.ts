@@ -56,7 +56,6 @@ export default function updateMessageReactions(
       });
 
       row.components = filteredRow;
-      console.log(filteredRow);
       return filteredRow.length > 0;
     });
 

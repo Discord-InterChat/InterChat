@@ -4,7 +4,7 @@ import updateMessageReactions from '../Scripts/reactions/updateMessage';
 
 export default {
   name: 'messageReactionAdd',
-  async execute(reaction: MessageReaction| PartialMessageReaction, user: User | PartialUser) { // user: User | PartialUser
+  async execute(reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) { // user: User | PartialUser
     if (user.bot || user.system) return;
 
     const db = getDb();
@@ -43,6 +43,7 @@ export default {
       data: { reactions: reactions },
     });
 
+    reaction.users.remove(user.id).catch(() => null);
     updateMessageReactions(connections, messageInDb.channelAndMessageIds, reactions);
   },
 };

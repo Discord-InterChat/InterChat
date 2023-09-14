@@ -2,8 +2,8 @@ import { Interaction } from 'discord.js';
 import { checkIfStaff } from '../Utils/functions/utils';
 import { captureException } from '@sentry/node';
 import logger from '../Utils/logger';
-import reactionButton from '../Scripts/message/reactionButton';
-import viewReactions from '../Commands/Network/viewReactions';
+import reactionButton from '../Scripts/reactions/reactionButton';
+import viewReactionsMenu from '../Scripts/reactions/viewReactionsMenu';
 
 export default {
   name: 'interactionCreate',
@@ -23,7 +23,7 @@ export default {
         interaction.client.reactionCooldowns.set(interaction.user.id, Date.now() + 3000);
         reactionButton.execute(interaction);
       }
-      else if (customId === 'view_all_reactions') {viewReactions?.execute(interaction);}
+      else if (customId === 'view_all_reactions') {viewReactionsMenu(interaction);}
     }
 
     else if (interaction.isAutocomplete()) {
