@@ -72,6 +72,11 @@ export = {
             .setEmoji(emoji.icons.store)
             .setDescription('Set a different channel for the network.')
             .setValue('change_channel'),
+          new StringSelectMenuOptionBuilder()
+            .setLabel('Embed Color')
+            .setEmoji('🎨')
+            .setDescription('Set the color of the embeds sent in the network.')
+            .setValue('embed_color'),
         ),
     ]);
 
@@ -164,6 +169,61 @@ export = {
       }
 
       switch (settingsMenu.values[0]) {
+        /* Embed color selection */
+        case 'embed_color': {
+          const modal = new ModalBuilder()
+            .setTitle('Set Embed Color')
+            .setCustomId(settingsMenu.id)
+            .addComponents(
+              new ActionRowBuilder<TextInputBuilder>().addComponents(
+                new TextInputBuilder()
+                  .setCustomId('embed_color')
+                  .setStyle(TextInputStyle.Short)
+                  .setLabel('Embed Color')
+                  .setPlaceholder('Provide a hex color code.')
+                  .setValue(updConnection.embedColor || '#000000'),
+              ),
+            );
+
+          await settingsMenu.showModal(modal);
+
+          const modalSubmit = await settingsMenu.awaitModalSubmit({
+            time: 60_000,
+            filter: (i) => i.customId === modal.data.custom_id,
+          }).catch((e) => {
+            if (!e.message.includes('reason: time')) {
+              logger.error(e);
+              captureException(e);
+            }
+            return null;
+          });
+
+          if (!modalSubmit) return;
+
+
+          const embedColor = modalSubmit.fields.getTextInputValue('embed_color');
+
+          const hex_regex = /^#[0-9A-F]{6}$/i;
+          if (!hex_regex.test(embedColor)) {
+            modalSubmit.reply({
+              content: `${emoji.normal.no} Invalid hex color code. Please try again.`,
+              ephemeral: true,
+            });
+            return;
+          }
+
+          await db.connectedList.update({
+            where: { channelId: updConnection.channelId },
+            data: { embedColor },
+          });
+
+          modalSubmit.reply({
+            content: `${emoji.normal.yes} Embed color successfully set to \`${embedColor}\`!`,
+            ephemeral: true,
+          });
+          break;
+        }
+
         /* Compact / Normal mode toggle  */
         case 'compact': {
           await db.connectedList.update({
