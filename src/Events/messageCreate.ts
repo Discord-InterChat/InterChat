@@ -1,7 +1,7 @@
 import checks from '../Scripts/message/checks';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import cleanup from '../Scripts/message/cleanup';
-import { APIMessage, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Message, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
+import { APIMessage, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, HexColorString, Message, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import { getDb, colors } from '../Utils/functions/utils';
 import { censor } from '../Utils/functions/wordFilter';
 import { messageData } from '@prisma/client';
@@ -135,6 +135,15 @@ export default {
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
           };
+
+          if (connection.embedColor && webhookMessage.embeds
+          && /^#[0-9A-F]{6}$/i.test(connection.embedColor)
+          ) {
+            webhookMessage.embeds.push(EmbedBuilder.from(webhookMessage.embeds[0])
+              .setColor(connection.embedColor as HexColorString),
+            );
+            webhookMessage.embeds.splice(0, 1);
+          }
         }
 
         const webhook = new WebhookClient({ url: connection.webhookURL });

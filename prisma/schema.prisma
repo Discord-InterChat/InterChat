@@ -78,6 +78,7 @@ model connectedList {
   compact    Boolean
   invite     String?
   profFilter Boolean
+  embedColor String?
   webhookURL String
   date       DateTime @default(now())
   hub        hubs?    @relation(fields: [hubId], references: [id])
