@@ -13,9 +13,24 @@ export default async function(interaction: ButtonInteraction) {
     include: { hub: { select: { connections: { where: { connected: true } } } } },
   });
 
-  if (!networkMessage || !networkMessage.reactions) {
+  if (!networkMessage || !networkMessage.reactions || !networkMessage.hubId) {
     await interaction.reply({
       content: 'There are no more reactions to view.',
+      ephemeral: true,
+    });
+    return;
+  }
+
+  const userBlacklisted = await db.blacklistedUsers.findFirst({
+    where: { userId: interaction.user.id, hubId: networkMessage.hubId },
+  });
+  const serverBlacklisted = await db.blacklistedServers.findFirst({
+    where: { serverId: interaction.guild?.id, hubId: networkMessage.hubId },
+  });
+
+  if (userBlacklisted || serverBlacklisted) {
+    await interaction.reply({
+      content: 'You are blacklisted from this hub.',
       ephemeral: true,
     });
     return;
@@ -63,6 +78,7 @@ export default async function(interaction: ButtonInteraction) {
 
   const collector = resp.createMessageComponentCollector({
     idle: 60_000,
+    filter: (i) => i.user.id === interaction.user.id && i.customId === 'add_reaction',
     componentType: ComponentType.StringSelect,
   });
 

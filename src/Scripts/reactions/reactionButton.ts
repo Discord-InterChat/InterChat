@@ -4,15 +4,30 @@ import updateMessageReactions from '../reactions/updateMessage';
 
 export default {
   async execute(interaction: ButtonInteraction) {
-    interaction.deferUpdate();
-
     const db = getDb();
     const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: interaction.message.id } } },
       include: { hub: { select: { connections: { where: { connected: true } } } } },
     });
 
-    if (!messageInDb || !messageInDb.hub) return;
+    if (!messageInDb || !messageInDb.hub || !messageInDb.hubId) return;
+
+    const userBlacklisted = await db.blacklistedUsers.findFirst({
+      where: { userId: interaction.user.id, hubId: messageInDb.hubId },
+    });
+    const serverBlacklisted = await db.blacklistedServers.findFirst({
+      where: { serverId: interaction.guild?.id, hubId: messageInDb.hubId },
+    });
+
+    if (userBlacklisted || serverBlacklisted) {
+      await interaction.reply({
+        content: 'You are blacklisted from this hub.',
+        ephemeral: true,
+      });
+      return;
+    }
+
+    interaction.deferUpdate();
 
     const connections = await db.connectedList.findMany({
       where: {

@@ -79,7 +79,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const collector = initReply.createMessageComponentCollector({
     time: 60 * 1000,
-    filter: (i) => i.user.id === interaction.user.id,
+    filter: (i) => i.user.id === interaction.user.id && i.customId === 'hub_settings',
     componentType: ComponentType.StringSelect,
   });
 

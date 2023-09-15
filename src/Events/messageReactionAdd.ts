@@ -1,6 +1,7 @@
 import { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
 import { getDb } from '../Utils/functions/utils';
 import updateMessageReactions from '../Scripts/reactions/updateMessage';
+import { HubSettingsBitField } from '../Utils/hubs/hubSettingsBitfield';
 
 export default {
   name: 'messageReactionAdd',
@@ -10,9 +11,21 @@ export default {
     const db = getDb();
     const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: reaction.message.id } } },
+      include: { hub: { select: { settings: true } } },
     });
 
-    if (!messageInDb) return;
+    if (!messageInDb || !messageInDb.hubId) return;
+
+    const userBlacklisted = await db.blacklistedUsers.findFirst({
+      where: { userId: user.id, hubId: messageInDb.hubId },
+    });
+    const serverBlacklisted = await db.blacklistedServers.findFirst({
+      where: { serverId: reaction.message.guild?.id, hubId: messageInDb.hubId },
+    });
+    const hubSettings = new HubSettingsBitField(messageInDb.hub?.settings);
+
+    if (userBlacklisted || serverBlacklisted || !hubSettings.has('Reactions')) return;
+
 
     const cooldown = reaction.client.reactionCooldowns.get(user.id);
     if (cooldown && cooldown > Date.now()) return;
