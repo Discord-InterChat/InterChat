@@ -1,10 +1,9 @@
-import { ChatInputCommandInteraction } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const db = getDb();
   const hubName = interaction.options.getString('hub', true);
-  const user = interaction.options.getUser('user', true);
   const hub = await db.hubs.findFirst({
     where: {
       name: hubName,
@@ -25,6 +24,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   switch (interaction.options.getSubcommand()) {
     case 'add': {
+      const user = interaction.options.getUser('user', true);
+
       if (hub.moderators.find((mod) => mod.userId === user.id)) {
         return interaction.reply({
           content: `User ${user} is already a moderator for **${hub.name}**!`,
@@ -41,7 +42,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       break;
     }
 
-    case 'remove':
+    case 'remove': {
+      const user = interaction.options.getUser('user', true);
+
       if (!hub.moderators.find((mod) => mod.userId === user.id)) {
         return interaction.reply({
           content: `User ${user} is not a moderator for **${hub.name}**!`,
@@ -57,8 +60,11 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       });
       interaction.reply(`Removed hub moderator ${user} from **${hub.name}**!`);
       break;
+    }
 
     case 'update': {
+      const user = interaction.options.getUser('user', true);
+
       const position = interaction.options.getString('role', true);
       if (!hub.moderators.find((mod) => mod.userId === user.id)) {
         return interaction.reply({
@@ -76,6 +82,26 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         },
       });
       interaction.reply(`Sucessfully moved ${user} to the role of \`${position}\` for **${hub.name}**!`);
+      break;
+    }
+
+    case 'list': {
+      await interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setTitle('Hub Moderators')
+            .setDescription(
+              hub.moderators.length > 0
+                ? hub.moderators
+                  .map((mod, index) => `${index + 1}. <@${mod.userId}> - ${mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'}`)
+                  .join('\n')
+                : 'There are no moderators for this hub yet.',
+            )
+            .setColor('Aqua')
+            .setTimestamp(),
+        ],
+        ephemeral: true,
+      });
       break;
     }
     default:

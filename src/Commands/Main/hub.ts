@@ -129,6 +129,7 @@ export default {
               stringOpt
                 .setName('hub')
                 .setDescription('The name of the hub you wish to create this invite for')
+                .setAutocomplete(true)
                 .setRequired(true),
             )
             .addNumberOption(numberOpt =>
@@ -150,6 +151,18 @@ export default {
                 .setDescription('The invite code')
                 .setRequired(true),
             ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('list')
+            .setDescription('List all moderators on a hub')
+            .addStringOption(stringOpt =>
+              stringOpt
+                .setName('hub')
+                .setDescription('The name of the hub')
+                .setAutocomplete(true)
+                .setRequired(true),
+            ),
         ),
     )
     .addSubcommandGroup((subcommandGroup) =>
@@ -164,6 +177,7 @@ export default {
               stringOpt
                 .setName('hub')
                 .setDescription('The name of the hub you wish to add moderators to')
+                .setAutocomplete(true)
                 .setRequired(true),
             )
             .addUserOption(stringOpt =>
@@ -191,6 +205,7 @@ export default {
               stringOpt
                 .setName('hub')
                 .setDescription('The name of the hub you wish to add moderators to')
+                .setAutocomplete(true)
                 .setRequired(true),
             )
             .addUserOption(userOpt =>
@@ -207,7 +222,8 @@ export default {
             .addStringOption(stringOpt =>
               stringOpt
                 .setName('hub')
-                .setDescription('The name of the hub you wish to add moderators to')
+                .setDescription('The name of the hub')
+                .setAutocomplete(true)
                 .setRequired(true),
             )
             .addUserOption(userOpt =>
@@ -226,11 +242,24 @@ export default {
                   { name: 'Hub Manager', value: 'manager' },
                 ),
             ),
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName('list')
+            .setDescription('List all moderators on a hub')
+            .addStringOption(stringOpt =>
+              stringOpt
+                .setName('hub')
+                .setDescription('The name of the hub')
+                .setAutocomplete(true)
+                .setRequired(true),
+            ),
         ),
-    ).addSubcommand((subcommand) =>
+    )
+    .addSubcommand((subcommand) =>
       subcommand
-        .setName('networks')
-        .setDescription('List all networks that have joined the hub')
+        .setName('connections')
+        .setDescription('List all connections (ie. hub members) to a hub')
         .addStringOption(stringOpt =>
           stringOpt
             .setName('hub')
@@ -238,7 +267,8 @@ export default {
             .setAutocomplete(true)
             .setRequired(true),
         ),
-    ) .addSubcommand(subcommand =>
+    )
+    .addSubcommand(subcommand =>
       subcommand
         .setName('settings')
         .setDescription('Manage hub settings')
@@ -260,9 +290,13 @@ export default {
     require(`../../Scripts/hub/${subcommandGroup || subcommand}`).execute(interaction, extra);
   },
   async autocomplete(interaction: AutocompleteInteraction) {
+    const modCmds = ['manage', 'settings', 'connections', 'invite', 'moderator'];
+
     const subcommand = interaction.options.getSubcommand();
+    const subcommandGroup = interaction.options.getSubcommandGroup();
     const focusedValue = interaction.options.getFocused();
     let hubChoices;
+
 
     if (subcommand === 'browse') {
       hubChoices = await getDb().hubs.findMany({
@@ -274,7 +308,8 @@ export default {
       });
 
     }
-    else if (subcommand === 'manage' || subcommand === 'networks' || subcommand === 'settings') {
+
+    else if (modCmds.includes(subcommandGroup || subcommand)) {
       hubChoices = await getDb().hubs.findMany({
         where: {
           name: {

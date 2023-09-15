@@ -55,15 +55,19 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     case 'revoke': {
       const code = interaction.options.getString('code', true);
       const inviteInDb = await db.hubInvites.findFirst({
-        where: { code },
-        include: { hub: true },
+        where: {
+          code,
+          hub: {
+            OR: [
+              { ownerId: interaction.user.id },
+              { moderators: { some: { userId: interaction.user.id } } },
+            ],
+          },
+        },
       });
 
 
-      if (
-        inviteInDb?.hub.ownerId !== interaction.user.id
-        && !inviteInDb?.hub.moderators.find((mod) => mod.userId === interaction.user.id)
-      ) {
+      if (!inviteInDb) {
         await interaction.reply({
           content: `${emotes.no} Invalid Invite Code.`,
           ephemeral: true,
@@ -87,6 +91,52 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         }).catch(() => null);
         return;
       }
+      break;
+    }
+
+    case 'list': {
+      const hubName = interaction.options.getString('hub', true);
+      const hubInDb = await db.hubs.findFirst({
+        where: {
+          name: hubName,
+          OR: [
+            { ownerId: interaction.user.id },
+            { moderators: { some: { userId: interaction.user.id } } },
+          ],
+        },
+      });
+
+      if (!hubInDb?.private) {
+        await interaction.reply({
+          content: 'You can only view invite codes for private hubs.',
+          ephemeral: true,
+        });
+        return;
+      }
+
+      const invitesInDb = await db.hubInvites.findMany({ where: { hubId: hubInDb.id } });
+      if (invitesInDb.length === 0) {
+        await interaction.reply({
+          content: `${emotes.yes} There are no invites to this hub yet.`,
+          ephemeral: true,
+        });
+        return;
+      }
+
+      const inviteArr = invitesInDb.map((inv, index) =>
+        `${index + 1}. \`${inv.code}\` - <t:${Math.round(inv.expires.getTime() / 1000)}:R>`,
+      );
+
+      const inviteEmbed = new EmbedBuilder()
+        .setTitle('Invite Codes')
+        .setDescription(inviteArr.join('\n'))
+        .setColor('Yellow')
+        .setTimestamp();
+
+      await interaction.reply({
+        embeds: [inviteEmbed],
+        ephemeral: true,
+      });
       break;
     }
 
