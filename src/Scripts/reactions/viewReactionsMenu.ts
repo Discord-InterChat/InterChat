@@ -3,6 +3,7 @@ import { ActionRowBuilder, ButtonInteraction, ComponentType, EmbedBuilder, Strin
 import { getDb } from '../../Utils/functions/utils';
 import sortReactions from './sortReactions';
 import updateMessageReactions from './updateMessage';
+import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
 
 export default async function(interaction: ButtonInteraction) {
   const db = getDb();
@@ -10,10 +11,13 @@ export default async function(interaction: ButtonInteraction) {
   const emotes = interaction.client.emotes.normal;
   const networkMessage = await db.messageData.findFirst({
     where: { channelAndMessageIds: { some: { messageId: target.id } } },
-    include: { hub: { select: { connections: { where: { connected: true } } } } },
+    include: { hub: { select: { connections: { where: { connected: true } }, settings: true } } },
   });
 
-  if (!networkMessage || !networkMessage.reactions || !networkMessage.hubId) {
+  if (
+    !networkMessage?.reactions ||
+    !networkMessage.hubId
+  ) {
     await interaction.reply({
       content: 'There are no more reactions to view.',
       ephemeral: true,
@@ -46,6 +50,10 @@ export default async function(interaction: ButtonInteraction) {
       .setPlaceholder('Add a reaction'),
   );
 
+  const hubSettings = new HubSettingsBitField(networkMessage.hub?.settings);
+  if (!hubSettings.has('Reactions')) reactionMenu.components[0].setDisabled(true);
+
+
   sortedReactions.forEach((r, index) => {
     if (r[1].length === 0 || index >= 10) return;
     reactionMenu.components[0].addOptions({
@@ -56,6 +64,7 @@ export default async function(interaction: ButtonInteraction) {
     totalReactions++;
     reactionString += `- ${r[0]}: ${r[1].length}\n`;
   });
+
 
   const embed = new EmbedBuilder()
     .setThumbnail(interaction.client.user.displayAvatarURL())

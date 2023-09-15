@@ -1,16 +1,21 @@
 import { ButtonInteraction } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 import updateMessageReactions from '../reactions/updateMessage';
+import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
 
 export default {
   async execute(interaction: ButtonInteraction) {
     const db = getDb();
     const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: interaction.message.id } } },
-      include: { hub: { select: { connections: { where: { connected: true } } } } },
+      include: { hub: { select: { connections: { where: { connected: true } }, settings: true } } },
     });
 
-    if (!messageInDb || !messageInDb.hub || !messageInDb.hubId) return;
+    if (
+      !messageInDb?.hub ||
+      !messageInDb.hubId ||
+      !(new HubSettingsBitField(messageInDb.hub.settings).has('Reactions'))
+    ) return interaction.reply({ content: 'This hub does not have reactions enabled.', ephemeral: true });
 
     const userBlacklisted = await db.blacklistedUsers.findFirst({
       where: { userId: interaction.user.id, hubId: messageInDb.hubId },

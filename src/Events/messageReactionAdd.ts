@@ -14,7 +14,11 @@ export default {
       include: { hub: { select: { settings: true } } },
     });
 
-    if (!messageInDb || !messageInDb.hubId) return;
+    if (
+      !messageInDb?.hub ||
+      !messageInDb?.hubId ||
+      !new HubSettingsBitField(messageInDb.hub?.settings).has('Reactions')
+    ) return;
 
     const userBlacklisted = await db.blacklistedUsers.findFirst({
       where: { userId: user.id, hubId: messageInDb.hubId },
@@ -22,9 +26,8 @@ export default {
     const serverBlacklisted = await db.blacklistedServers.findFirst({
       where: { serverId: reaction.message.guild?.id, hubId: messageInDb.hubId },
     });
-    const hubSettings = new HubSettingsBitField(messageInDb.hub?.settings);
 
-    if (userBlacklisted || serverBlacklisted || !hubSettings.has('Reactions')) return;
+    if (userBlacklisted || serverBlacklisted) return;
 
 
     const cooldown = reaction.client.reactionCooldowns.get(user.id);
