@@ -36,7 +36,7 @@ export = {
     // Creating collector for yes/no button
     resetCollector.on('collect', async (collected) => {
       if (collected.customId === 'no') {
-        await collected.deleteReply();
+        await interaction.deleteReply();
         return;
       }
 
