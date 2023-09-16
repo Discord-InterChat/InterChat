@@ -124,6 +124,7 @@ model messageData {
   reference            MessageDataReference?
   serverId             String
   timestamp            DateTime
+  reactions            Json // eg. {"👎": ["9893820930928", "39283902803982"]} "emoji": userId[] basically
   hub                  hubs?                             @relation(fields: [hubId], references: [id])
   hubId                String?                           @db.ObjectId
 }

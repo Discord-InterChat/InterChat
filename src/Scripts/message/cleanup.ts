@@ -36,6 +36,7 @@ export default async function execute(message: Message, channelAndMessageIds: Ne
         authorId: message.author.id,
         serverId: message.guild.id,
         reference: message.reference,
+        reactions: {},
       },
     });
   }
