@@ -60,6 +60,9 @@ export default function updateMessageReactions(
     });
 
     reactionCount > 0 ? components?.push(reactionBtn.toJSON()) : null;
-    webhook.editMessage(dbMsg.messageId, { components });
+    webhook.editMessage(dbMsg.messageId, {
+      components,
+      threadId: connection.parentId ? connection.channelId : undefined,
+    });
   });
 }
