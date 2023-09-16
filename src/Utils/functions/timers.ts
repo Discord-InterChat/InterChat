@@ -4,27 +4,28 @@ import { modActions } from '../../Scripts/networkLogs/modActions';
 import { getDb } from './utils';
 
 /** A function to start timers for blacklist expiry, messageData cleanup, etc. */
-export default async function startTimers(client: Client) {
+export default async function startTimers(client: Client<true>) {
   const db = getDb();
 
   // Delete all documents that are older than 24 hours old.
-  scheduleJob('messageExpired', { hour: 24, second: 5 }, async () => {
-    const olderThan = new Date(Date.now() - 60 * 60 * 24_000);
-    await db.messageData.deleteMany({ where: { timestamp: { lte: olderThan } } });
+  scheduleJob('invite/messageExpired', { hour: 1 }, async () => {
+    const olderThan1h = new Date(Date.now() - 60 * 60 * 1_000);
+    await db.hubInvites
+      .deleteMany({ where: { expires: { lte: olderThan1h } } })
+      .catch(() => null);
+
+    const olderThan24h = new Date(Date.now() - 60 * 60 * 24_000);
+    await db.messageData
+      .deleteMany({ where: { timestamp: { lte: olderThan24h } } })
+      .catch(() => null);
   });
 
-  scheduleJob('inviteExpired', { hour: 1 }, async () => {
-    const olderThan = new Date(Date.now() - 60 * 60 * 1_000);
-    await db.hubInvites.deleteMany({ where: { expires: { lte: olderThan } } });
-  });
-
-  // Timers that start only if the bot is logged in.
   const blacklistedServers = await db.blacklistedServers.findMany({ where: { expires: { isSet: true } } });
   const blacklistedUsers = await db.blacklistedUsers.findMany({ where: { expires: { isSet: true } } });
 
   // timer to unblacklist servers
   blacklistedServers.forEach(async (blacklist) => {
-    if (!blacklist.expires || !client.user) return;
+    if (!blacklist.expires) return;
 
     if (blacklist.expires < new Date()) {
       await db.blacklistedServers.delete({ where: { id: blacklist.id } });
@@ -38,7 +39,6 @@ export default async function startTimers(client: Client) {
     }
 
     scheduleJob(`blacklist_server-${blacklist.serverId}`, blacklist.expires, async function() {
-      if (!client.user) return;
       await db.blacklistedServers.delete({ where: { id: blacklist.id } });
 
       modActions(client.user, {
@@ -52,7 +52,7 @@ export default async function startTimers(client: Client) {
 
   // timer to unblacklist users
   blacklistedUsers.forEach(async (blacklist) => {
-    if (!blacklist.expires || !client.user) return;
+    if (!blacklist.expires) return;
 
     // if the blacklist has already expired, delete it from the database
     if (blacklist.expires < new Date()) {
