@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.13.0](https://github.com/discord-interchat/interchat/compare/v3.12.0...v3.13.0) (2023-09-16)
+
+
+### Features
+
+* `/vote` command to view voting perks ([#25](https://github.com/discord-interchat/interchat/issues/25)) ([a51591d](https://github.com/discord-interchat/interchat/commit/a51591dd06ce834a64a859fb33fc4c803a144783))
+* **hub:** hub settings ([#26](https://github.com/discord-interchat/interchat/issues/26)) ([cf1f08a](https://github.com/discord-interchat/interchat/commit/cf1f08a119c89b2fb2d11c80598f4bb7aa96df1f))
+* **hub:** option to use server nicknames as network username ([#23](https://github.com/discord-interchat/interchat/issues/23)) ([79cc583](https://github.com/discord-interchat/interchat/commit/79cc5838f7c08fd019305fb1f175c0d657ff4455))
+* join hubs through `/hub browse` ([#28](https://github.com/discord-interchat/interchat/issues/28)) ([495a4c9](https://github.com/discord-interchat/interchat/commit/495a4c970d213be60c1bc31bd64aae8add825a4c))
+* make some /hub manage buttons into commands ([83d219d](https://github.com/discord-interchat/interchat/commit/83d219d5e7d6dfb1577ea074e61ae6782116a1f8))
+* message reactions (WIP) ([#21](https://github.com/discord-interchat/interchat/issues/21)) ([485104a](https://github.com/discord-interchat/interchat/commit/485104a4db181e8774d71de1d8941972adca3ea7))
+* **network:** embed colors ([#27](https://github.com/discord-interchat/interchat/issues/27)) ([69aaacc](https://github.com/discord-interchat/interchat/commit/69aaacc3aed420227459378060de58aa6a4d1277))
+
+
+### Bug Fixes
+
+* **antispam:** fixed spam detection bug ([#24](https://github.com/discord-interchat/interchat/issues/24)) ([58485a3](https://github.com/discord-interchat/interchat/commit/58485a368f3d63469d2a763afbc14966d87565c6))
+* **attachments:** use existing attachment for images ([bc58fb2](https://github.com/discord-interchat/interchat/commit/bc58fb2cf56f15096814c9577ae573f96f2bde4e))
+* **deleteMsg:** allow hub owner to delete messages ([17e3b99](https://github.com/discord-interchat/interchat/commit/17e3b99b916de5ac4d0e9dd70c7eea6881c7e0ef))
+* **hub manage:** dont fetch messages ([284b98a](https://github.com/discord-interchat/interchat/commit/284b98a5ecd5abe835228bda8513eadc88ed1ccc))
+* **hub:** add back bullet points to settings cmd ([dac0431](https://github.com/discord-interchat/interchat/commit/dac043176fd39fb9a11651b13b90525e4f921459))
+* message edit fix ([88a46a1](https://github.com/discord-interchat/interchat/commit/88a46a183d30cb9f7900213cc63d0a57b0cfc449))
+* **network:** display embed color for all connections ([bc047f6](https://github.com/discord-interchat/interchat/commit/bc047f6964944d43244ee4cc16526855a187dc6f))
+* only use secondary buttons for messageinfo ([caf38ef](https://github.com/discord-interchat/interchat/commit/caf38efa38374e98d5ad8b55b9cb8553c4921572))
+* **reactions:** fix reactions not working in threads ([69e4f7a](https://github.com/discord-interchat/interchat/commit/69e4f7a3a4bb6d529c513c8be7473d70beed539a))
+* run message delete timer every 1h ([8b95980](https://github.com/discord-interchat/interchat/commit/8b9598080517db813692690d4b26ec433a6e372f))
+* update guide/docs links ([3283231](https://github.com/discord-interchat/interchat/commit/328323147f56b770784945624655e0d3a7a8e553))
+
 ## [3.12.0](https://github.com/discord-interchat/interchat/compare/v3.11.1...v3.12.0) (2023-09-02)
 
 
