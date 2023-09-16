@@ -1,33 +1,48 @@
-import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChatInputCommandInteraction, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonInteraction,
+  ButtonStyle,
+  ChannelSelectMenuBuilder,
+  ChannelType,
+  ChatInputCommandInteraction,
+  EmbedBuilder,
+  GuildTextBasedChannel,
+  ModalBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+} from 'discord.js';
 import { calculateAverageRating, createHubListingsEmbed, getDb } from '../../Utils/functions/utils';
 import { paginate } from '../../Utils/functions/paginator';
 import { hubs } from '@prisma/client';
 import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
+import createConnection from '../network/createConnection';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  const sortBy = interaction.options.getString('sort') as 'connections' | 'active' | 'popular' | 'recent' | undefined;
+  const sortBy = interaction.options.getString('sort') as
+    | 'connections'
+    | 'active'
+    | 'popular'
+    | 'recent'
+    | undefined;
   const hubName = interaction.options.getString('search') || undefined;
 
   const db = getDb();
   let sortedHubs: hubs[] = [];
 
-
   switch (sortBy) {
-    case 'active':
-      sortedHubs = await db.hubs.findMany({
-        where: { name: hubName, private: false },
-        orderBy: { messages: { _count: 'desc' } },
-      });
-      break;
     case 'popular':
-      sortedHubs = (await db.hubs
-        .findMany({ where: { name: hubName, private: false } }))
-        .sort((a, b) => {
-          const aAverage = calculateAverageRating(a.rating.map((rating) => rating.rating));
-          const bAverage = calculateAverageRating(b.rating.map((rating) => rating.rating));
-          return bAverage - aAverage;
-        });
+      sortedHubs = (
+        await db.hubs.findMany({
+          where: { name: hubName, private: false },
+          include: { connections: true },
+        })
+      ).sort((a, b) => {
+        const aAverage = calculateAverageRating(a.rating.map((rating) => rating.rating));
+        const bAverage = calculateAverageRating(b.rating.map((rating) => rating.rating));
+        return bAverage - aAverage;
+      });
       break;
     case 'recent':
       sortedHubs = await db.hubs.findMany({
@@ -41,19 +56,25 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         orderBy: { connections: { _count: 'desc' } },
       });
       break;
+
+    case 'active':
     default:
-      sortedHubs = await db.hubs.findMany({ where: { name: hubName, private: false } });
+      sortedHubs = await db.hubs.findMany({
+        where: { name: hubName, private: false },
+        orderBy: { messages: { _count: 'desc' } },
+      });
       break;
   }
 
+  const hubList = await Promise.all(
+    sortedHubs?.map(async (hub) => {
+      const totalNetworks = await db.connectedList
+        .count({ where: { hubId: hub.id } })
+        .catch(() => 0);
 
-  const hubList = sortedHubs?.map(async (hub) => {
-    const totalNetworks = await db.connectedList
-      .count({ where: { hubId: hub.id } })
-      .catch(() => 0);
-
-    return createHubListingsEmbed(hub, { totalNetworks });
-  });
+      return createHubListingsEmbed(hub, { totalNetworks });
+    }),
+  );
 
   if (!hubList || hubList.length === 0) {
     interaction.reply({
@@ -68,14 +89,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setCustomId(`rate-${sortedHubs[0].id}`)
       .setLabel('Rate')
       .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(`join-${sortedHubs[0].id}`)
+      .setLabel('Join')
+      .setStyle(ButtonStyle.Success),
   );
 
-
-  paginate(interaction, await Promise.all(hubList), {
+  paginate(interaction, hubList, {
     extraComponent: {
       actionRow: [paginateBtns],
       updateComponents(pageNumber) {
         paginateBtns.components[0].setCustomId(`rate-${sortedHubs[pageNumber].id}`);
+        paginateBtns.components[1].setCustomId(`join-${sortedHubs[pageNumber].id}`);
         return paginateBtns;
       },
       async execute(i: ButtonInteraction) {
@@ -97,7 +122,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             );
           await i.showModal(ratingModal);
           i.awaitModalSubmit({ time: 30_000 })
-            .then(async m => {
+            .then(async (m) => {
               const rating = parseInt(m.fields.getTextInputValue('rating'));
               if (isNaN(rating) || rating < 1 || rating > 5) {
                 return m.reply({
@@ -141,6 +166,117 @@ export async function execute(interaction: ChatInputCommandInteraction) {
                 });
               }
             });
+        }
+        else if (i.customId.startsWith('join-')) {
+          const hubDetails = await db.hubs.findFirst({
+            where: { id: i.customId.replace('join-', '') },
+            include: { connections: true },
+          });
+
+          if (!hubDetails) {
+            i.reply({
+              content: 'Hub not found.',
+              ephemeral: true,
+            });
+            return;
+          }
+
+          const alreadyJoined = hubDetails.connections.find((c) => c.serverId === i.guildId);
+          if (alreadyJoined) {
+            i.reply({
+              content: `You have already joined **${hubDetails.name}** from <#${alreadyJoined.channelId}>!`,
+              ephemeral: true,
+            });
+            return;
+          }
+
+          let channel = i.channel;
+
+          const channelSelect = new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
+            new ChannelSelectMenuBuilder()
+              .setCustomId('channel_select')
+              .setPlaceholder('Select a different channel.')
+              .setChannelTypes([
+                ChannelType.PublicThread,
+                ChannelType.PrivateThread,
+                ChannelType.GuildText,
+              ]),
+          );
+
+          const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+            new ButtonBuilder()
+              .setCustomId('confirm')
+              .setLabel('Confirm')
+              .setStyle(ButtonStyle.Success),
+            new ButtonBuilder()
+              .setCustomId('cancel')
+              .setLabel('Cancel')
+              .setStyle(ButtonStyle.Danger),
+          );
+
+          // use current channel embed
+          const embed = new EmbedBuilder()
+            .setDescription(`
+              Are you sure you wish to join **${hubDetails.name}** from ${interaction.channel}?
+              
+              **Note:** You can always change this later using \`/network manage\`.
+            `,
+            )
+            .setColor('Aqua')
+            .setFooter({ text: 'Use a different channel? Use the dropdown below.' });
+
+          const reply = await i.reply({
+            embeds: [embed],
+            components: [channelSelect, buttons],
+            fetchReply: true,
+            ephemeral: true,
+          });
+
+          const response = await reply
+            .awaitMessageComponent({
+              time: 60_000 * 2,
+              filter: (e) => e.user.id === i.user.id,
+            })
+            .catch(() => null);
+
+          if (!response?.inCachedGuild() || response.customId === 'cancel') {
+            i.deleteReply().catch(() => null);
+            return;
+          }
+
+          if (response.isChannelSelectMenu()) {
+            channel = response.guild.channels.cache.get(response.values[0]) as GuildTextBasedChannel;
+          }
+
+          if (
+            (channel?.type === ChannelType.GuildText || channel?.isThread()) &&
+            (response.customId === 'confirm' || response.customId === 'channel_select')
+          ) {
+            const channelConnected = await db.connectedList.findFirst({
+              where: { channelId: channel.id },
+            });
+
+            if (channelConnected) {
+              response.update({
+                content: 'This channel is already connected to another hub!',
+                embeds: [],
+                components: [],
+              });
+              return;
+            }
+
+            createConnection.execute(response, hubDetails, channel, true).then((success) => {
+              if (success) {
+                response.editReply({
+                  content: `Successfully joined hub ${hubDetails.name} from ${channel}! Use \`/network manage\` to manage your connection. And \`/hub leave\` to leave the hub.`,
+                  embeds: [],
+                  components: [],
+                });
+                return;
+              }
+              response.message.delete().catch(() => null);
+            });
+          }
         }
       },
     },
