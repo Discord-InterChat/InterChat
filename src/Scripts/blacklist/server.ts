@@ -62,7 +62,7 @@ export = {
     }
     else if (subCommandGroup == 'remove') {
       const reason = interaction.options.getString('reason');
-      if (!serverInBlacklist) return await interaction.reply('The server is not blacklisted.');
+      if (!serverInBlacklist) return await interaction.reply({ content: 'The server is not blacklisted.', ephemeral: true });
       await blacklistedServers.deleteMany({ where: { serverId: serverOpt, hubId: hub.id } });
 
       // Using name from DB since the bot can't access server through API.
