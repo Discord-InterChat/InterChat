@@ -19,6 +19,7 @@ export default {
                 hubOption
                   .setName('hub')
                   .setDescription('The name of the hub to blacklist the user from.')
+                  .setAutocomplete(true)
                   .setRequired(true),
               )
               .addStringOption(user =>
@@ -50,6 +51,7 @@ export default {
               hubOption
                 .setName('hub')
                 .setDescription('The name of the hub to blacklist the user from.')
+                .setAutocomplete(true)
                 .setRequired(true),
             )
             .addStringOption(server =>
@@ -89,6 +91,7 @@ export default {
                 hubOption
                   .setName('hub')
                   .setDescription('The name of the hub to blacklist the user from.')
+                  .setAutocomplete(true)
                   .setRequired(true),
               )
               .addStringOption(user =>
@@ -112,12 +115,14 @@ export default {
               hubOption
                 .setName('hub')
                 .setDescription('The name of the hub to blacklist the user from.')
+                .setAutocomplete(true)
                 .setRequired(true),
             )
             .addStringOption(server =>
               server
                 .setName('server')
                 .setDescription('The server to remove from the blacklist.')
+                .setAutocomplete(true)
                 .setRequired(true),
             )
             .addStringOption(string =>
@@ -135,6 +140,7 @@ export default {
           hubOption
             .setName('hub')
             .setDescription('The name of the hub to blacklist the user from.')
+            .setAutocomplete(true)
             .setRequired(true),
         )
         .addStringOption(string =>
@@ -171,29 +177,80 @@ export default {
   },
 
   async autocomplete(interaction: AutocompleteInteraction) {
+    const db = getDb();
     const action = interaction.options.getSubcommand() as 'user' | 'server';
-    const hubName = interaction.options.getString('hub', true);
+    const focusedHub = interaction.options.get('hub');
 
-    const focusedValue = interaction.options.getFocused().toLowerCase();
-    let choices;
+    if (typeof focusedHub?.value !== 'string') return;
+
+    if (focusedHub.focused) {
+      const hub = await db.hubs.findMany({
+        where: {
+          name: { mode: 'insensitive', contains: focusedHub.value },
+          OR: [
+            { ownerId: interaction.user.id },
+            { moderators: { some: { userId: interaction.user.id } } },
+          ],
+        },
+        take: 25,
+      });
+
+      const filtered = hub.map(({ name: hubName }) => ({ name: hubName, value: hubName }));
+      return interaction.respond(filtered);
+    }
 
     switch (action) {
       case 'user': {
-        const allUsers = await getDb().blacklistedUsers.findMany({ where: { hub: { name: hubName } } });
-        choices = allUsers.map((user) => { return { name: user.username, value: user.userId }; });
+        const userOpt = interaction.options.get('user');
+
+        if (!userOpt?.focused || typeof userOpt.value !== 'string') return;
+
+        const filteredUsers = await db.blacklistedUsers.findMany({
+          where: {
+            hub: {
+              name: focusedHub.value,
+              OR: [
+                { ownerId: interaction.user.id },
+                { moderators: { some: { userId: interaction.user.id } } },
+              ],
+            },
+            OR: [
+              { username: { mode: 'insensitive', contains: userOpt.value } },
+              { userId: { mode: 'insensitive', contains: userOpt.value } },
+            ],
+          },
+          take: 25,
+        });
+
+        const choices = filteredUsers.map((user) => { return { name: user.username, value: user.userId }; });
+        interaction.respond(choices);
         break;
       }
       case 'server': {
-        const allServers = await getDb().blacklistedServers.findMany({ where: { hub: { name: hubName } } });
-        choices = allServers.map((server) => { return { name: server.serverName, value: server.serverId }; });
+        const serverOpt = interaction.options.get('server', true);
+
+        if (!serverOpt.focused || typeof serverOpt.value !== 'string') return;
+
+        const allServers = await db.blacklistedServers.findMany({
+          where: {
+            hub: {
+              name: focusedHub.value,
+              OR: [
+                { ownerId: interaction.user.id },
+                { moderators: { some: { userId: interaction.user.id } } },
+              ],
+            },
+            OR: [
+              { serverName: { mode: 'insensitive', contains: serverOpt.value } },
+              { serverId: { mode: 'insensitive', contains: serverOpt.value } },
+            ],
+          },
+          take: 25,
+        });
+        const choices = allServers.map(({ serverName, serverId }) => { return { name: serverName, value: serverId }; });
+        await interaction.respond(choices);
         break;
       }
     }
-
-    const filtered = choices
-      .filter((choice) => choice.name.toLowerCase().includes(focusedValue) || choice.value.toLowerCase().includes(focusedValue))
-      .slice(0, 25);
-
-    interaction.respond(filtered);
   },
 };
