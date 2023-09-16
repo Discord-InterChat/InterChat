@@ -2,7 +2,7 @@ import checks from '../Scripts/message/checks';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import cleanup from '../Scripts/message/cleanup';
 import { APIMessage, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, HexColorString, Message, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
-import { getDb, colors } from '../Utils/functions/utils';
+import { getDb } from '../Utils/functions/utils';
 import { censor } from '../Utils/functions/wordFilter';
 import { messageData } from '@prisma/client';
 import { HubSettingsBitField } from '../Utils/hubs/hubSettingsBitfield';
@@ -68,7 +68,7 @@ export default {
       const embed = new EmbedBuilder()
         .setDescription(message.content || null) // description must be null if message is only an attachment
         .setImage(attachmentURL)
-        .setColor(colors('random'))
+        .setColor((channelInDb.embedColor as HexColorString) || 'Random')
         .setFields(
           referredContent
             ? [{ name: 'Reply to:', value: `> ${referredContent.replaceAll('\n', '\n> ')}` }]
@@ -136,13 +136,9 @@ export default {
             allowedMentions: { parse: [] },
           };
 
-          if (connection.embedColor && webhookMessage.embeds
-          && /^#[0-9A-F]{6}$/i.test(connection.embedColor)
-          ) {
-            webhookMessage.embeds.push(EmbedBuilder.from(webhookMessage.embeds[0])
-              .setColor(connection.embedColor as HexColorString),
-            );
-            webhookMessage.embeds.splice(0, 1);
+          if (!channelInDb.embedColor && connection.embedColor && webhookMessage.embeds) {
+            webhookMessage.embeds[0] = EmbedBuilder.from(webhookMessage.embeds[0])
+              .setColor(connection.embedColor as HexColorString);
           }
         }
 
