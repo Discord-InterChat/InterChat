@@ -135,11 +135,6 @@ export default {
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
           };
-
-          if (!channelInDb.embedColor && connection.embedColor && webhookMessage.embeds) {
-            webhookMessage.embeds[0] = EmbedBuilder.from(webhookMessage.embeds[0])
-              .setColor(connection.embedColor as HexColorString);
-          }
         }
 
         const webhook = new WebhookClient({ url: connection.webhookURL });

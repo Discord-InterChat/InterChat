@@ -33,6 +33,7 @@ async function setupEmbed(interaction: Interaction, channelId: string) {
       { name: 'Connected', value: yesOrNoEmoji(networkData?.connected, yes, no), inline: true },
       { name: 'Compact', value: yesOrNoEmoji(networkData?.compact, enabled, disabled), inline: true },
       { name: 'Profanity Filter', value: yesOrNoEmoji(networkData?.profFilter, enabled, disabled), inline: true },
+      { name: 'Embed Color', value: networkData?.embedColor ? `\`${networkData?.embedColor}\`` : no, inline: true },
     ])
     .setColor(colors('chatbot'))
     .setThumbnail(interaction.guild?.iconURL() || interaction.client.user.avatarURL())
@@ -180,8 +181,9 @@ export = {
                   .setCustomId('embed_color')
                   .setStyle(TextInputStyle.Short)
                   .setLabel('Embed Color')
-                  .setPlaceholder('Provide a hex color code.')
-                  .setValue(updConnection.embedColor || '#000000'),
+                  .setPlaceholder('Provide a hex color code or leave blank to remove.')
+                  .setValue(updConnection.embedColor || '#000000')
+                  .setRequired(false),
               ),
             );
 
@@ -204,7 +206,7 @@ export = {
           const embedColor = modalSubmit.fields.getTextInputValue('embed_color');
 
           const hex_regex = /^#[0-9A-F]{6}$/i;
-          if (!hex_regex.test(embedColor)) {
+          if (embedColor && !hex_regex.test(embedColor)) {
             modalSubmit.reply({
               content: `${emoji.normal.no} Invalid hex color code. Please try again.`,
               ephemeral: true,
@@ -214,11 +216,11 @@ export = {
 
           await db.connectedList.update({
             where: { channelId: updConnection.channelId },
-            data: { embedColor },
+            data: { embedColor: embedColor ? embedColor : { unset: true } },
           });
 
           modalSubmit.reply({
-            content: `${emoji.normal.yes} Embed color successfully set to \`${embedColor}\`!`,
+            content: `${emoji.normal.yes} Embed color successfully ${embedColor ? `set to \`${embedColor}\`!` : 'unset'}`,
             ephemeral: true,
           });
           break;
