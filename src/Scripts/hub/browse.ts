@@ -248,8 +248,18 @@ export async function execute(interaction: ChatInputCommandInteraction) {
             channel = response.guild.channels.cache.get(response.values[0]) as GuildTextBasedChannel;
           }
 
+
+          if (channel?.type !== ChannelType.GuildText && !channel?.isThread()) {
+            await response.update(`${i.client.emotes.normal.no} Only text and thread channels are supported!`);
+            return;
+          }
+
+          if (!response.member.permissionsIn(channel).has('ManageChannels')) {
+            await response.update(`${i.client.emotes.normal.no} You need to have the \`Manage Channels\` permission in ${channel} to connect it to a hub!`);
+            return;
+          }
+
           if (
-            (channel?.type === ChannelType.GuildText || channel?.isThread()) &&
             (response.customId === 'confirm' || response.customId === 'channel_select')
           ) {
             const channelConnected = await db.connectedList.findFirst({
