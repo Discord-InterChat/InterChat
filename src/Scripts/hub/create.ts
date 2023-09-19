@@ -30,6 +30,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     });
   }
 
+  // if hubName contains "discord", "clyde" "```" then return
+  if (hubName.match(/discord|clyde|```/gi)) {
+    return await interaction.reply({
+      content: 'Hub name can not contain `discord`, `clyde` or \\`\\`\\` . Please choose another name.',
+      ephemeral: true,
+    });
+  }
+
   const db = getDb();
   const hubs = await db.hubs.findMany({ where: { OR: [{ ownerId: interaction.user.id }, { name: hubName }] } });
 
