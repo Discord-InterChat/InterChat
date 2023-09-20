@@ -1,5 +1,5 @@
 import { Interaction } from 'discord.js';
-import { checkIfStaff } from '../Utils/functions/utils';
+import { checkIfStaff } from '../Utils/misc/utils';
 import { captureException } from '@sentry/node';
 import logger from '../Utils/logger';
 import reactionButton from '../Scripts/reactions/reactionButton';

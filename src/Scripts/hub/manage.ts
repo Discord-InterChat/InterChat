@@ -2,7 +2,7 @@ import { blacklistedServers, blacklistedUsers, connectedList, hubs } from '@pris
 import { captureException } from '@sentry/node';
 import { logger } from '@sentry/utils';
 import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, StringSelectMenuBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/misc/utils';
 import { stripIndents } from 'common-tags';
 
 export async function execute(interaction: ChatInputCommandInteraction) {

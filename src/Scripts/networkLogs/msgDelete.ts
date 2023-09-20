@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, GuildMember, GuildTextBasedChannel, Message } from 'discord.js';
-import { getDb, constants } from '../../Utils/functions/utils';
+import { getDb, constants } from '../../Utils/misc/utils';
 
 
 export async function networkMessageDelete(deletedBy: GuildMember | null, message: Message) {

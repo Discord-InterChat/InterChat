@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { colors, getDb } from '../../Utils/misc/utils';
 import { randomUUID } from 'crypto';
 
 export default {

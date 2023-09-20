@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder, PermissionsBitField, PermissionsString, APISelectMenuOption, Client, ApplicationCommandType } from 'discord.js';
-import { checkIfStaff, colors, toTitleCase } from '../../Utils/functions/utils';
+import { checkIfStaff, colors, toTitleCase } from '../../Utils/misc/utils';
 import { InterchatCommand } from '../../../typings/discord';
 
 export default {

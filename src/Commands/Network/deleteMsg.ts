@@ -1,5 +1,5 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCommandInteraction } from 'discord.js';
-import { getDb, checkIfStaff } from '../../Utils/functions/utils';
+import { getDb, checkIfStaff } from '../../Utils/misc/utils';
 import logger from '../../Utils/logger';
 import { networkMessageDelete } from '../../Scripts/networkLogs/msgDelete';
 

@@ -1,5 +1,5 @@
 import { stripIndents } from 'common-tags';
-import { colors, constants } from '../../Utils/functions/utils';
+import { colors, constants } from '../../Utils/misc/utils';
 import { EmbedBuilder, Guild, User } from 'discord.js';
 import { blacklistedServers } from '.prisma/client';
 import { captureMessage } from '@sentry/node';

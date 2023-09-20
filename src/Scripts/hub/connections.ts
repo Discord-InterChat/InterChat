@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getDb, getGuildName } from '../../Utils/functions/utils';
-import { paginate } from '../../Utils/functions/paginator';
+import { getDb, getGuildName } from '../../Utils/misc/utils';
+import { paginate } from '../../Utils/misc/paginator';
 import { stripIndent } from 'common-tags';
 
 export default {

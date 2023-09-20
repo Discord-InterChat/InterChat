@@ -1,6 +1,6 @@
 import { Message } from 'discord.js';
 import { NetworkWebhookSendResult } from '../../Events/messageCreate';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/misc/utils';
 
 /**
   * Disconnects connections if an errored occured while sending the message to it.

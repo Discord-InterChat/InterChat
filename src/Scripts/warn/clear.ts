@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/misc/utils';
 
 export default {
   execute: async (interaction: ChatInputCommandInteraction) => {

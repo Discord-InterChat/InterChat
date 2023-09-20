@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { cancelJob } from 'node-schedule';
-import { getDb, addUserBlacklist } from '../../Utils/functions/utils';
+import { getDb, addUserBlacklist } from '../../Utils/misc/utils';
 import { modActions } from '../networkLogs/modActions';
 
 export default {

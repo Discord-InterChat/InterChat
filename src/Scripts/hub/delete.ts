@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/node';
 import { ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
-import { deleteHubs, getDb } from '../../Utils/functions/utils';
+import { deleteHubs, getDb } from '../../Utils/misc/utils';
 import logger from '../../Utils/logger';
 
 export async function execute(interaction: ChatInputCommandInteraction, hubName: string) {

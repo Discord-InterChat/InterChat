@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
-import { paginate } from '../../Utils/functions/paginator';
+import { getDb } from '../../Utils/misc/utils';
+import { paginate } from '../../Utils/misc/paginator';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();

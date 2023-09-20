@@ -12,8 +12,8 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { calculateAverageRating, createHubListingsEmbed, getDb } from '../../Utils/functions/utils';
-import { paginate } from '../../Utils/functions/paginator';
+import { calculateAverageRating, createHubListingsEmbed, getDb } from '../../Utils/misc/utils';
+import { paginate } from '../../Utils/misc/paginator';
 import { hubs } from '@prisma/client';
 import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';

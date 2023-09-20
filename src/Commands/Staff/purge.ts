@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/node';
 import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { getDb, toHuman } from '../../Utils/functions/utils';
+import { getDb, toHuman } from '../../Utils/misc/utils';
 
 export default {
   staff: true,

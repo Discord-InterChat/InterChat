@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { toHuman, getDb, colors } from '../../Utils/functions/utils';
+import { toHuman, getDb, colors } from '../../Utils/misc/utils';
 import { totalmem } from 'os';
 
 export default {

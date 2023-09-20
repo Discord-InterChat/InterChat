@@ -1,6 +1,6 @@
 import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { colors, getDb, toTitleCase } from '../../Utils/functions/utils';
+import { colors, getDb, toTitleCase } from '../../Utils/misc/utils';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction, serverId: string, hidden: boolean) {

@@ -2,7 +2,7 @@ import { hubs } from '@prisma/client';
 import { captureException } from '@sentry/node';
 import { logger } from '@sentry/utils';
 import { ChatInputCommandInteraction } from 'discord.js';
-import { getDb, addServerBlacklist } from '../../Utils/functions/utils';
+import { getDb, addServerBlacklist } from '../../Utils/misc/utils';
 import { modActions } from '../networkLogs/modActions';
 
 export default {

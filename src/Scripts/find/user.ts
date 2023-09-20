@@ -1,6 +1,6 @@
 import { EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { colors, getDb } from '../../Utils/misc/utils';
 
 
 const embedGen = async (user: User) => {

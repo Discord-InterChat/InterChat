@@ -1,8 +1,8 @@
 import { hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { paginate } from '../../Utils/functions/paginator';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { paginate } from '../../Utils/misc/paginator';
+import { colors, getDb } from '../../Utils/misc/utils';
 
 module.exports = {
   async execute(interaction: ChatInputCommandInteraction, hub: hubs) {

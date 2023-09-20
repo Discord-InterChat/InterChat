@@ -1,10 +1,10 @@
 import { stripIndents } from 'common-tags';
 import { ChannelType, AnySelectMenuInteraction, ChatInputCommandInteraction, TextChannel, ThreadChannel, ButtonInteraction } from 'discord.js';
-import { disconnect } from '../../Structures/network';
+import { disconnect } from '../../Utils/network/network';
 import { hubs } from '@prisma/client';
 import logger from '../../Utils/logger';
 import onboarding from './onboarding';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/misc/utils';
 
 export default {
   async execute(

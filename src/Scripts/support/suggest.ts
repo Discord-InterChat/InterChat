@@ -1,5 +1,5 @@
 import { EmbedBuilder, ActionRowBuilder, ChatInputCommandInteraction, TextInputBuilder, ModalBuilder, TextInputStyle, ChannelType } from 'discord.js';
-import { colors, constants } from '../../Utils/functions/utils';
+import { colors, constants } from '../../Utils/misc/utils';
 import logger from '../../Utils/logger';
 
 export default {

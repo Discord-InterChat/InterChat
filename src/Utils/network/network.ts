@@ -1,5 +1,5 @@
 import { connectedList } from '@prisma/client';
-import { getDb } from '../Utils/functions/utils';
+import { getDb } from '../misc/utils';
 
 const { connectedList } = getDb();
 

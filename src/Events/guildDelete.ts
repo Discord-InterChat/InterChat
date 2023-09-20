@@ -1,4 +1,4 @@
-import { colors, constants, getDb } from '../Utils/functions/utils';
+import { colors, constants, getDb } from '../Utils/misc/utils';
 import { EmbedBuilder, Guild, TextChannel } from 'discord.js';
 import { captureException } from '@sentry/node';
 import { stripIndents } from 'common-tags';

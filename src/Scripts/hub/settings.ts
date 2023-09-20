@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { colors, getDb } from '../../Utils/misc/utils';
 import { hubs } from '@prisma/client';
 import { HubSettingsBitField, HubSettingsString } from '../../Utils/hubs/hubSettingsBitfield';
 

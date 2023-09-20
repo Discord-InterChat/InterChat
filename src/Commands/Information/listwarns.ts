@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { checkIfStaff, getDb } from '../../Utils/functions/utils';
+import { checkIfStaff, getDb } from '../../Utils/misc/utils';
 
 export default {
   data: new SlashCommandBuilder()

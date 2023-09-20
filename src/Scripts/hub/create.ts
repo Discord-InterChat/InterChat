@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, ModalBuilder, TextInputBuilder, EmbedBuilder, ActionRowBuilder, TextInputStyle, Collection } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/misc/utils';
 import { HubSettingsBits } from '../../Utils/hubs/hubSettingsBitfield';
 
 const cooldowns = new Collection<string, number>();

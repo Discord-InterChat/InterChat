@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ComponentType, ButtonInteraction, AnySelectMenuInteraction, Collection } from 'discord.js';
-import { colors, rulesEmbed } from '../../Utils/functions/utils';
+import { colors, rulesEmbed } from '../../Utils/misc/utils';
 
 const onboardingInProgress = new Collection<string, string>();
 

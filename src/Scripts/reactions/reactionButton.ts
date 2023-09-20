@@ -1,5 +1,5 @@
 import { ButtonInteraction } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/misc/utils';
 import updateMessageReactions from '../reactions/updateMessage';
 import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
 

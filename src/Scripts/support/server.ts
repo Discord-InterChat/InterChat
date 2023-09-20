@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { colors } from '../../Utils/functions/utils';
+import { colors } from '../../Utils/misc/utils';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction) {

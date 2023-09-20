@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, ContextMenuCommandBuilder, EmbedBuilder, MessageContextMenuCommandInteraction } from 'discord.js';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { colors, getDb } from '../../Utils/misc/utils';
 import { stripIndents } from 'common-tags';
 import { profileImage } from 'discord-arts';
 

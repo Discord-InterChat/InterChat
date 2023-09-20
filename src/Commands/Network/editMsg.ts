@@ -1,7 +1,7 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder } from 'discord.js';
 import { networkMsgUpdate } from '../../Scripts/networkLogs/msgUpdate';
-import { checkIfStaff, getDb, getGuildName, replaceLinks, topgg } from '../../Utils/functions/utils';
-import wordFiler from '../../Utils/functions/wordFilter';
+import { checkIfStaff, getDb, getGuildName, replaceLinks, topgg } from '../../Utils/misc/utils';
+import wordFiler from '../../Utils/misc/wordFilter';
 import { captureException } from '@sentry/node';
 import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
 

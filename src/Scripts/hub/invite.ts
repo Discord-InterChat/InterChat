@@ -2,7 +2,7 @@ import { captureException } from '@sentry/node';
 import { logger } from '@sentry/utils';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/misc/utils';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const db = getDb();

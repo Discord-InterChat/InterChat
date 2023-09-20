@@ -2,8 +2,8 @@ import checks from '../Scripts/message/checks';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import cleanup from '../Scripts/message/cleanup';
 import { APIMessage, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, HexColorString, Message, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
-import { getDb } from '../Utils/functions/utils';
-import { censor } from '../Utils/functions/wordFilter';
+import { getDb } from '../Utils/misc/utils';
+import { censor } from '../Utils/misc/wordFilter';
 import { messageData } from '@prisma/client';
 import { HubSettingsBitField } from '../Utils/hubs/hubSettingsBitfield';
 

@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel, ButtonInteraction, AnySelectMenuInteraction, Webhook, ThreadChannel } from 'discord.js';
-import { reconnect, disconnect } from '../../Structures/network';
-import { colors, getDb, yesOrNoEmoji } from '../../Utils/functions/utils';
+import { reconnect, disconnect } from '../../Utils/network/network';
+import { colors, getDb, yesOrNoEmoji } from '../../Utils/misc/utils';
 import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
 

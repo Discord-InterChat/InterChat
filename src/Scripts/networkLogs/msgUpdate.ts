@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, GuildMember, GuildTextBasedChannel, Message } from 'discord.js';
-import { constants, getDb } from '../../Utils/functions/utils';
+import { constants, getDb } from '../../Utils/misc/utils';
 
 export async function networkMsgUpdate(member: GuildMember, oldMessage: Message, newMessageContent: string) {
   const db = getDb();

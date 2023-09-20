@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, ChannelType } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/misc/utils';
 import createConnection from '../network/createConnection';
 import displaySettings from '../network/displaySettings';
 

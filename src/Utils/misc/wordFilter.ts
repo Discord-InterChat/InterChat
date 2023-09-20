@@ -1,5 +1,5 @@
 import { EmbedBuilder, User, TextChannel } from 'discord.js';
-import { colors, constants, getGuildName, getHubName } from '../../Utils/functions/utils';
+import { colors, constants, getGuildName, getHubName } from './utils';
 import { badwords } from '../JSON/badwords.json';
 
 /**

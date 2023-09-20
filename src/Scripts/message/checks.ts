@@ -1,8 +1,8 @@
-import wordFilter from '../../Utils/functions/wordFilter';
+import wordFilter from '../../Utils/misc/wordFilter';
 import antiSpam from './antispam';
 import { Message } from 'discord.js';
 import { slurs } from '../../Utils/JSON/badwords.json';
-import { addUserBlacklist, getDb, replaceLinks } from '../../Utils/functions/utils';
+import { addUserBlacklist, getDb, replaceLinks } from '../../Utils/misc/utils';
 import { connectedList } from '@prisma/client';
 import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
 

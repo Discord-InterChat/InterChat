@@ -173,7 +173,7 @@ export default {
       });
     }
 
-    require(`../../Scripts/blacklist/${subCommand}`).execute(interaction, hubInDb);
+    (await import(`../../Scripts/blacklist/${subCommand}`)).default.execute(interaction, hubInDb);
   },
 
   async autocomplete(interaction: AutocompleteInteraction) {

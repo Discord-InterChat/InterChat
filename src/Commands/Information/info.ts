@@ -1,6 +1,6 @@
 import { stripIndent } from 'common-tags';
 import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
-import { colors, getCredits } from '../../Utils/functions/utils';
+import { colors, getCredits } from '../../Utils/misc/utils';
 
 export default {
   data: new SlashCommandBuilder()

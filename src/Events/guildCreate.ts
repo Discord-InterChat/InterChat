@@ -1,8 +1,8 @@
 import { EmbedBuilder, AuditLogEvent, Guild, ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
-import { sendInFirst, colors, constants } from '../Utils/functions/utils';
+import { sendInFirst, colors, constants } from '../Utils/misc/utils';
 import { stripIndents } from 'common-tags';
 import { captureException } from '@sentry/node';
-import wordFilter from '../Utils/functions/wordFilter';
+import wordFilter from '../Utils/misc/wordFilter';
 
 export default {
   name: 'guildCreate',
