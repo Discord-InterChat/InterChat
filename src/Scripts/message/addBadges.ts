@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { EmbedBuilder, Message } from 'discord.js';
 import { badgeToEmoji } from '../../Utils/functions/utils';
 
-export = {
+export default {
   async execute(message: Message, database: PrismaClient, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {
     const badges = await database.userBadges.findFirst({ where: { userId: message.author.id } });
 

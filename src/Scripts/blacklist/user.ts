@@ -3,7 +3,7 @@ import { cancelJob } from 'node-schedule';
 import { getDb, addUserBlacklist } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommandGroup = interaction.options.getSubcommandGroup();
     const hubName = interaction.options.getString('hub', true);

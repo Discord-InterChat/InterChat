@@ -41,7 +41,7 @@ async function setupEmbed(interaction: Interaction, channelId: string) {
     .setFooter({ text: 'Use to menu below to edit.' });
 }
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction | ButtonInteraction | AnySelectMenuInteraction, channelId: string, connected?: boolean) {
     if (!interaction.deferred && !interaction.replied) await interaction.deferReply();
 

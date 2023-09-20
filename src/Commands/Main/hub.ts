@@ -287,7 +287,7 @@ export default {
       ? interaction.options.getString('hub', true)
       : null;
 
-    require(`../../Scripts/hub/${subcommandGroup || subcommand}`).execute(interaction, extra);
+    (await import(`../../Scripts/hub/${subcommandGroup || subcommand}`)).default.execute(interaction, extra);
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const modCmds = ['manage', 'settings', 'connections', 'invite', 'moderator'];

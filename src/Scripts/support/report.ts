@@ -4,7 +4,7 @@ import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInp
 import { colors, constants } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const reportType = interaction.options.getString('type', true) as 'user' | 'server' | 'bug' | 'other';
     const reportModal = new ModalBuilder()

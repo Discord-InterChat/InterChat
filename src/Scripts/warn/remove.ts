@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 
-export = {
+export default {
   execute: async (interaction: ChatInputCommandInteraction) => {
     const db = getDb();
     const warnId = interaction.options.getString('id', true);

@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { colors, getDb } from '../../Utils/functions/utils';
 import { randomUUID } from 'crypto';
 
-export = {
+export default {
   execute: async (interaction: ChatInputCommandInteraction) => {
     await interaction.deferReply();
 

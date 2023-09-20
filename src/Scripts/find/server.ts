@@ -2,7 +2,7 @@ import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember } from 'd
 import { stripIndents } from 'common-tags';
 import { colors, getDb, toTitleCase } from '../../Utils/functions/utils';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction, serverId: string, hidden: boolean) {
     await interaction.deferReply({ ephemeral: hidden });
 

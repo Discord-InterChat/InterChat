@@ -2,7 +2,7 @@ import { EmbedBuilder, ActionRowBuilder, ChatInputCommandInteraction, TextInputB
 import { colors, constants } from '../../Utils/functions/utils';
 import logger from '../../Utils/logger';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const suggestionChannel = await interaction.client.channels.fetch(constants.channel.suggestions);
 

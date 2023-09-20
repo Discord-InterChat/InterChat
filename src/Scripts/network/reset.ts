@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder } from 'discord.js';
 import { getDb } from '../../Utils/functions/utils';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction, channelId: string) {
     const { normal } = interaction.client.emotes;
     const db = getDb();

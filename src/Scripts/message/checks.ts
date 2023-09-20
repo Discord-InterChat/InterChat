@@ -6,7 +6,7 @@ import { addUserBlacklist, getDb, replaceLinks } from '../../Utils/functions/uti
 import { connectedList } from '@prisma/client';
 import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
 
-export = {
+export default {
   async execute(message: Message, networkData: connectedList, settings: HubSettingsBitField) {
     // true = pass, false = fail (checks)
 

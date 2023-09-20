@@ -5,7 +5,7 @@ import { ChatInputCommandInteraction } from 'discord.js';
 import { getDb, addServerBlacklist } from '../../Utils/functions/utils';
 import { modActions } from '../networkLogs/modActions';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction, hub: hubs) {
     const serverOpt = interaction.options.getString('server', true);
     const subCommandGroup = interaction.options.getSubcommandGroup();

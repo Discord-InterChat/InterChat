@@ -36,7 +36,7 @@ const embedGen = async (user: User) => {
 };
 
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction, userId: string, hidden: boolean) {
     const user = await interaction.client.users.fetch(userId).catch(() => null);
     if (!user) return interaction.reply({ content: 'Unknown user. Try using user\'s ID instead if you used username.', ephemeral: true });

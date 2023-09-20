@@ -3,7 +3,7 @@ import { getDb, getGuildName } from '../../Utils/functions/utils';
 import { paginate } from '../../Utils/functions/paginator';
 import { stripIndent } from 'common-tags';
 
-module.exports = {
+export default {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 

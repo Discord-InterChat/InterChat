@@ -3,7 +3,7 @@
 // import { stripIndents } from 'common-tags';
 // import logger from '../../Utils/logger';
 //
-// export = {
+// export default {
 //   async execute(interaction: ChatInputCommandInteraction) {
 //     const db = getDb();
 //     try {
