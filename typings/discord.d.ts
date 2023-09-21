@@ -1,5 +1,4 @@
 import discord from 'discord.js';
-import { Prisma } from '@prisma/client';
 
 type InterchatCommand = {
   developer?: boolean,
@@ -22,9 +21,5 @@ declare module 'discord.js' {
     reactionCooldowns: discord.Collection<discord.Snowflake, number>;
     /* A generated invite link for the bot */
     invite: string;
-    sendInNetwork(
-      message: string | MessageCreateOptions,
-      hub: Prisma.hubsWhereUniqueInput,
-    ): Promise<void>;
   }
 }

@@ -144,7 +144,7 @@ export default {
       });
 
       message.delete().catch(() => null);
-      cleanup(message, await Promise.all(messageResults), channelInDb.hubId);
+      cleanup.execute(message, await Promise.all(messageResults), channelInDb.hubId);
     }
   },
 };

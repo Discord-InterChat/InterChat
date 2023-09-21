@@ -3,6 +3,7 @@ import { getDb } from '../../Utils/misc/utils';
 import createConnection from '../network/createConnection';
 import displaySettings from '../network/displaySettings';
 import emojis from '../../Utils/JSON/emoji.json';
+import onboarding from '../network/onboarding';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   if (!interaction.inCachedGuild()) return;
@@ -112,6 +113,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     return;
   }
 
-  createConnection.execute(interaction, hubExists, channel)
-    .then(success => { if (success) displaySettings.execute(interaction, success.channelId); });
+  if (!onboarding.execute(interaction, hubExists.name, channel.id)) return;
+
+  const created = await createConnection.execute(interaction, hubExists, channel);
+  if (created) await displaySettings.execute(interaction, created.channelId);
 }

@@ -6,7 +6,9 @@ import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   description: 'Report a user directly from the Chat Network!',
-  data: new ContextMenuCommandBuilder().setName('Report').setType(ApplicationCommandType.Message),
+  data: new ContextMenuCommandBuilder()
+    .setName('Report')
+    .setType(ApplicationCommandType.Message),
   async execute(interaction: MessageContextMenuCommandInteraction) {
     // The message the interaction is being performed on
     const target = interaction.targetMessage;

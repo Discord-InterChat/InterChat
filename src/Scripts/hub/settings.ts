@@ -48,56 +48,58 @@ const genSelectMenu = (
   );
 };
 
-export async function execute(interaction: ChatInputCommandInteraction) {
-  const hubName = interaction.options.getString('hub', true);
+export default {
+  async execute(interaction: ChatInputCommandInteraction) {
+    const hubName = interaction.options.getString('hub', true);
 
-  const db = getDb();
-  let hub = await db.hubs.findUnique({
-    where: {
-      name: hubName,
-      OR: [
-        {
-          moderators: { some: { userId: interaction.user.id, position: 'manager' } },
-        },
-        { ownerId: interaction.user.id },
-      ],
-    },
-  });
-
-  if (!hub) {
-    return interaction.reply({
-      content: 'Hub not found.',
-      ephemeral: true,
-    });
-  }
-
-  const hubSettings = new HubSettingsBitField(hub.settings);
-  const embed = genSettingsEmbed(hub, emojis.normal.enabled, emojis.normal.disabled);
-  const selects = genSelectMenu(hubSettings, emojis.normal.disabled, emojis.normal.enabled);
-
-  const initReply = await interaction.reply({ embeds: [embed], components: [selects] });
-
-  const collector = initReply.createMessageComponentCollector({
-    time: 60 * 1000,
-    filter: (i) => i.user.id === interaction.user.id && i.customId === 'hub_settings',
-    componentType: ComponentType.StringSelect,
-  });
-
-  // respond to select menu
-  collector.on('collect', async (i) => {
-    const selected = i.values[0] as HubSettingsString;
-
-    hub = await db.hubs.update({
-      where: { name: hub?.name },
-      data: { settings: hubSettings.toggle(selected).bitfield },
+    const db = getDb();
+    let hub = await db.hubs.findUnique({
+      where: {
+        name: hubName,
+        OR: [
+          {
+            moderators: { some: { userId: interaction.user.id, position: 'manager' } },
+          },
+          { ownerId: interaction.user.id },
+        ],
+      },
     });
 
-    const newEmbed = genSettingsEmbed(hub, emojis.normal.enabled, emojis.normal.disabled);
-    const newSelects = genSelectMenu(hubSettings, emojis.normal.disabled, emojis.normal.enabled);
+    if (!hub) {
+      return interaction.reply({
+        content: 'Hub not found.',
+        ephemeral: true,
+      });
+    }
 
-    await i.update({
-      embeds: [newEmbed],
-      components: [newSelects],
+    const hubSettings = new HubSettingsBitField(hub.settings);
+    const embed = genSettingsEmbed(hub, emojis.normal.enabled, emojis.normal.disabled);
+    const selects = genSelectMenu(hubSettings, emojis.normal.disabled, emojis.normal.enabled);
+
+    const initReply = await interaction.reply({ embeds: [embed], components: [selects] });
+
+    const collector = initReply.createMessageComponentCollector({
+      time: 60 * 1000,
+      filter: (i) => i.user.id === interaction.user.id && i.customId === 'hub_settings',
+      componentType: ComponentType.StringSelect,
     });
-  });
-}
+
+    // respond to select menu
+    collector.on('collect', async (i) => {
+      const selected = i.values[0] as HubSettingsString;
+
+      hub = await db.hubs.update({
+        where: { name: hub?.name },
+        data: { settings: hubSettings.toggle(selected).bitfield },
+      });
+
+      const newEmbed = genSettingsEmbed(hub, emojis.normal.enabled, emojis.normal.disabled);
+      const newSelects = genSelectMenu(hubSettings, emojis.normal.disabled, emojis.normal.enabled);
+
+      await i.update({
+        embeds: [newEmbed],
+        components: [newSelects],
+      });
+    });
+  },
+};

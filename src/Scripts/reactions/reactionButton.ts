@@ -62,6 +62,6 @@ export default {
     });
 
     // Update the message
-    updateMessageReactions(connections, messageInDb.channelAndMessageIds, dbReactions);
+    updateMessageReactions.execute(connections, messageInDb.channelAndMessageIds, dbReactions);
   },
 };

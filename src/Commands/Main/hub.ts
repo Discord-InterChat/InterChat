@@ -44,6 +44,7 @@ export default {
         stringOption
           .setName('name')
           .setDescription('The name of the hub (public only)')
+          .setAutocomplete(true)
           .setRequired(false),
       )
       .addStringOption(stringOption =>
@@ -298,7 +299,7 @@ export default {
     let hubChoices;
 
 
-    if (subcommand === 'browse') {
+    if (subcommand === 'browse' || subcommand === 'join') {
       hubChoices = await getDb().hubs.findMany({
         where: {
           name: { mode: 'insensitive', contains: focusedValue },

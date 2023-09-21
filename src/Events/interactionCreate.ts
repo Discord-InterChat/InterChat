@@ -24,7 +24,7 @@ export default {
         interaction.client.reactionCooldowns.set(interaction.user.id, Date.now() + 3000);
         reactionButton.execute(interaction);
       }
-      else if (customId === 'view_all_reactions') {viewReactionsMenu(interaction);}
+      else if (customId === 'view_all_reactions') {viewReactionsMenu.execute(interaction);}
     }
 
     else if (interaction.isAutocomplete()) {

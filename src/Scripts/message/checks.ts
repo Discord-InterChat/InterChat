@@ -29,7 +29,7 @@ export default {
     if (serverInBlacklist) return false;
 
     if (settings.has('SpamFilter')) {
-      const antiSpamResult = antiSpam(message.author, 3);
+      const antiSpamResult = antiSpam.execute(message.author, 3);
       if (antiSpamResult) {
         if (antiSpamResult.infractions >= 3) addUserBlacklist(networkData.hubId, message.client.user, message.author, 'Auto-blacklisted for spamming.', 60 * 5000);
         message.react(emojis.icons.timeout);

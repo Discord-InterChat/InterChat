@@ -1,9 +1,6 @@
 import fs from 'fs';
-import logger from './Utils/logger';
 import project from '../package.json';
-import { Client, Collection, ActivityType, MessageCreateOptions } from 'discord.js';
-import { Prisma } from '@prisma/client';
-import { getDb } from './Utils/misc/utils';
+import { Client, Collection, ActivityType } from 'discord.js';
 import * as Sentry from '@sentry/node';
 
 export class ExtendedClient extends Client {
@@ -36,20 +33,6 @@ export class ExtendedClient extends Client {
     Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 1.0 });
 
     return await this.login(token || process.env.TOKEN);
-  }
-
-  public async sendInNetwork(message: string | MessageCreateOptions, hub: Prisma.hubsWhereUniqueInput): Promise<void> {
-    const channels = await getDb().connectedList.findMany({ where: { hub, connected: true } });
-
-    channels?.forEach(async (channelEntry) => {
-      const channel = await this.channels.fetch(channelEntry.channelId).catch(() => null);
-      if (channel?.isTextBased()) {
-        await channel.send(message).catch((err) => {
-          if (!err.message.includes('Missing Access') || !err.message.includes('Missing Permissions')) return;
-          logger.error(err);
-        });
-      }
-    });
   }
 
   protected loadCommands() {

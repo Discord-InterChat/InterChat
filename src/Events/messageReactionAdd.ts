@@ -60,6 +60,6 @@ export default {
     });
 
     reaction.users.remove(user.id).catch(() => null);
-    updateMessageReactions(connections, messageInDb.channelAndMessageIds, reactions);
+    updateMessageReactions.execute(connections, messageInDb.channelAndMessageIds, reactions);
   },
 };

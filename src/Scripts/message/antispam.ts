@@ -9,48 +9,50 @@ const userCol = new Collection<string, UserOpts>();
 const WINDOW_SIZE = 5000;
 const MAX_STORE = 3;
 
-export default function antiSpam(author: User, maxInfractions = MAX_STORE) {
-  const userInCol = userCol.get(author.id);
-  const currentTimestamp = Date.now();
+export default {
+  execute(author: User, maxInfractions = MAX_STORE) {
+    const userInCol = userCol.get(author.id);
+    const currentTimestamp = Date.now();
 
-  if (userInCol) {
-    if (userInCol.infractions >= maxInfractions) {
+    if (userInCol) {
+      if (userInCol.infractions >= maxInfractions) {
       // resetting count as it is assumed they will be blacklisted right after
-      userCol.delete(author.id);
-      return userInCol;
-    }
+        userCol.delete(author.id);
+        return userInCol;
+      }
 
-    const { timestamps } = userInCol;
+      const { timestamps } = userInCol;
 
-    if (timestamps.length === MAX_STORE) {
+      if (timestamps.length === MAX_STORE) {
       // Check if all the timestamps are within the window
-      const oldestTimestamp = timestamps[0];
-      const isWithinWindow = currentTimestamp - oldestTimestamp <= WINDOW_SIZE;
+        const oldestTimestamp = timestamps[0];
+        const isWithinWindow = currentTimestamp - oldestTimestamp <= WINDOW_SIZE;
 
-      userCol.set(author.id, {
-        timestamps: [...timestamps.slice(1), currentTimestamp],
-        infractions: isWithinWindow ? userInCol.infractions + 1 : userInCol.infractions,
-      });
-      setSpamTimers(author.id);
-      if (isWithinWindow) return userInCol;
+        userCol.set(author.id, {
+          timestamps: [...timestamps.slice(1), currentTimestamp],
+          infractions: isWithinWindow ? userInCol.infractions + 1 : userInCol.infractions,
+        });
+        setSpamTimers(author.id);
+        if (isWithinWindow) return userInCol;
+      }
+
+      else {
+        userCol.set(author.id, {
+          timestamps: [...timestamps, currentTimestamp],
+          infractions: userInCol.infractions,
+        });
+      }
     }
 
     else {
       userCol.set(author.id, {
-        timestamps: [...timestamps, currentTimestamp],
-        infractions: userInCol.infractions,
+        timestamps: [currentTimestamp],
+        infractions: 0,
       });
+      setSpamTimers(author.id);
     }
-  }
-
-  else {
-    userCol.set(author.id, {
-      timestamps: [currentTimestamp],
-      infractions: 0,
-    });
-    setSpamTimers(author.id);
-  }
-}
+  },
+};
 
 export function setSpamTimers(userId: string): void {
   const five_min = 60 * 5000;
