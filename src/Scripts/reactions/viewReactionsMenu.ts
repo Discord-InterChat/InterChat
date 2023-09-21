@@ -4,11 +4,11 @@ import { getDb } from '../../Utils/misc/utils';
 import sortReactions from './sortReactions';
 import updateMessageReactions from './updateMessage';
 import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default async function(interaction: ButtonInteraction) {
   const db = getDb();
   const target = interaction.message;
-  const emotes = interaction.client.emotes.normal;
   const networkMessage = await db.messageData.findFirst({
     where: { channelAndMessageIds: { some: { messageId: target.id } } },
     include: { hub: { select: { connections: { where: { connected: true } }, settings: true } } },
@@ -69,7 +69,7 @@ export default async function(interaction: ButtonInteraction) {
   const embed = new EmbedBuilder()
     .setThumbnail(interaction.client.user.displayAvatarURL())
     .setDescription(stripIndents`
-      ## ${emotes.clipart} Reactions
+      ## ${emojis.normal.clipart} Reactions
 
       ${reactionString || 'No reactions yet!'}
 

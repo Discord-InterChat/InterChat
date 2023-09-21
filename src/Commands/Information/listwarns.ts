@@ -1,6 +1,7 @@
 import { stripIndents } from 'common-tags';
 import { AutocompleteInteraction, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
 import { checkIfStaff, getDb } from '../../Utils/misc/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   data: new SlashCommandBuilder()
@@ -16,7 +17,6 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const db = getDb();
     const userInput = interaction.options.getString('user') || interaction.user.id;
-    const emojis = interaction.client.emotes;
 
     // if user is not staff the ID they provided is someone else's
     const staffUser = checkIfStaff(interaction.user.id);

@@ -2,6 +2,8 @@ import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCo
 import { getDb, checkIfStaff } from '../../Utils/misc/utils';
 import logger from '../../Utils/logger';
 import { networkMessageDelete } from '../../Scripts/networkLogs/msgDelete';
+import emojis from '../../Utils/JSON/emoji.json';
+
 
 export default {
   description: 'Delete a message that was sent in the network.',
@@ -10,7 +12,7 @@ export default {
     .setType(ApplicationCommandType.Message),
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const db = getDb();
-    const emoji = interaction.client.emotes.normal;
+    const emoji = emojis.normal;
     const messageInDb = await db?.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: { equals: interaction.targetId } } } },
       include: { hub: true },

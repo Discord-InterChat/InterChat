@@ -1,6 +1,5 @@
 import fs from 'fs';
 import logger from './Utils/logger';
-import emojis from './Utils/JSON/emoji.json';
 import project from '../package.json';
 import { Client, Collection, ActivityType, MessageCreateOptions } from 'discord.js';
 import { join } from 'path';
@@ -28,7 +27,6 @@ export class ExtendedClient extends Client {
     this.reactionCooldowns = new Collection();
     this.description = project.description;
     this.version = project.version;
-    this.emotes = emojis;
   }
 
   public async start(token?: string) {

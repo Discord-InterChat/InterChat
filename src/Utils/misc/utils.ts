@@ -1,5 +1,6 @@
 import startCase from 'lodash/startCase';
 import toLower from 'lodash/toLower';
+import emojis from '../../Utils/JSON/emoji.json';
 import logger from '../logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
@@ -197,10 +198,9 @@ export async function addUserBlacklist(hubId: string, moderator: discord.User, u
 
   if (notifyUser) {
     const hub = await _prisma.hubs.findUnique({ where: { id: hubId } });
-    const emotes = user.client.emotes.normal;
     const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
     const embed = new discord.EmbedBuilder()
-      .setTitle(emotes.blobFastBan + ' Blacklist Notification')
+      .setTitle(emojis.normal.blobFastBan + ' Blacklist Notification')
       .setDescription(`You have been banned from talking in hub **${hub?.name}**.`)
       .setColor(colors('chatbot'))
       .setFields(

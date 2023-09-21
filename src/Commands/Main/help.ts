@@ -1,6 +1,7 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder, PermissionsBitField, PermissionsString, APISelectMenuOption, Client, ApplicationCommandType } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder, PermissionsBitField, PermissionsString, APISelectMenuOption, ApplicationCommandType } from 'discord.js';
 import { checkIfStaff, colors, toTitleCase } from '../../Utils/misc/utils';
 import { InterchatCommand } from '../../../typings/discord';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   data: new SlashCommandBuilder()
@@ -8,7 +9,6 @@ export default {
     .setDescription('Want help? Here it comes!'),
   async execute(interaction: ChatInputCommandInteraction) {
     const commands = interaction.client.commands;
-    const emojis = interaction.client.emotes.normal;
     const isStaff = checkIfStaff(interaction.user.id);
 
     const ignoreDirs = isStaff ? [] : ['Developer', 'Staff'];
@@ -33,7 +33,7 @@ export default {
 
     commands.forEach(command => {
       if (command.directory === firstCategory) {
-        allCommands += prettifyHelp(command, emojis);
+        allCommands += prettifyHelp(command);
         commandSelect.components[0].addOptions({ label: toTitleCase(command.data.name), value: command.data.name });
       }
     });
@@ -60,7 +60,7 @@ export default {
 
             commands.forEach((command) => {
               if (command.directory === category) {
-                allCommands += prettifyHelp(command, emojis);
+                allCommands += prettifyHelp(command);
                 commandSelect.components[0].addOptions({ label: toTitleCase(command.data.name), value: command.data.name });
               }
             });
@@ -116,9 +116,9 @@ function getCommandDescription(command: InterchatCommand | undefined) {
   return { description, commandType };
 }
 
-function prettifyHelp(command: InterchatCommand, emojis: Client['emotes']['normal']) {
+function prettifyHelp(command: InterchatCommand) {
   const commandDesc = getCommandDescription(command);
-  const commandType = commandDesc.commandType !== ApplicationCommandType.ChatInput ? ' ' + emojis.contextMenu : emojis.slashCommand;
+  const commandType = commandDesc.commandType !== ApplicationCommandType.ChatInput ? ' ' + emojis.normal.contextMenu : emojis.normal.slashCommand;
 
-  return `${commandType} **${toTitleCase(command.data.name)}**\n${emojis.dividerEnd} ${commandDesc.description}\n`;
+  return `${commandType} **${toTitleCase(command.data.name)}**\n${emojis.normal.dividerEnd} ${commandDesc.description}\n`;
 }

@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { colors, getDb } from '../../Utils/misc/utils';
 import { randomUUID } from 'crypto';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   execute: async (interaction: ChatInputCommandInteraction) => {
@@ -9,8 +10,6 @@ export default {
     const db = getDb();
     const user = interaction.options.getUser('user', true);
     const userWarns = await db.userWarns.findFirst({ where: { userId: user.id } });
-
-    const emojis = interaction.client.emotes;
 
     const warning = {
       id: randomUUID(),

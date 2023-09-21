@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { getDb, getGuildName } from '../../Utils/misc/utils';
 import { paginate } from '../../Utils/misc/paginator';
 import { stripIndent } from 'common-tags';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -22,7 +23,7 @@ export default {
       orderBy: { date: 'asc' },
     });
 
-    if (allNetworks.length === 0) return interaction.editReply(`No connected servers yet ${interaction.client.emotes.normal.bruhcat}`);
+    if (allNetworks.length === 0) return interaction.editReply(`No connected servers yet ${emojis.normal.bruhcat}`);
 
     const embeds: EmbedBuilder[] = [];
     let itemsPerPage = 5;

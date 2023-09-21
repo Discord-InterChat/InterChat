@@ -1,11 +1,12 @@
 import { ActionRowBuilder, ButtonBuilder, PermissionFlagsBits, SlashCommandBuilder, ButtonStyle, ChatInputCommandInteraction, OAuth2Scopes } from 'discord.js';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('invite')
     .setDescription('Invite the bot to your server'),
   async execute(interaction: ChatInputCommandInteraction) {
-    const { normal } = interaction.client.emotes;
+    const { normal } = emojis;
 
     const InviteButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
       new ButtonBuilder()

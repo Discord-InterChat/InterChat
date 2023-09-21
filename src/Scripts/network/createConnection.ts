@@ -2,9 +2,10 @@ import { stripIndents } from 'common-tags';
 import { ChannelType, AnySelectMenuInteraction, ChatInputCommandInteraction, TextChannel, ThreadChannel, ButtonInteraction } from 'discord.js';
 import { disconnect } from '../../Utils/network/network';
 import { hubs } from '@prisma/client';
-import logger from '../../Utils/logger';
 import onboarding from './onboarding';
 import { getDb } from '../../Utils/misc/utils';
+import logger from '../../Utils/logger';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   async execute(
@@ -13,7 +14,7 @@ export default {
     networkChannel: TextChannel | ThreadChannel,
     ephemeral = false,
   ) {
-    const emoji = interaction.client.emotes.normal;
+    const emoji = emojis.normal;
 
     // Show new users rules & info about network
     const onboardingStatus = await onboarding.execute(interaction, hub.name, networkChannel.id, ephemeral);

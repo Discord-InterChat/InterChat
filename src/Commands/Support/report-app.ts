@@ -1,7 +1,8 @@
 import { getDb, constants, colors } from '../../Utils/misc/utils';
 import { ModalBuilder, ActionRowBuilder, EmbedBuilder, ContextMenuCommandBuilder, ApplicationCommandType, TextInputStyle, TextInputBuilder, MessageContextMenuCommandInteraction, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType, ButtonBuilder, ButtonStyle } from 'discord.js';
-import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
+import logger from '../../Utils/logger';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   description: 'Report a user directly from the Chat Network!',
@@ -37,8 +38,6 @@ export default {
 
     // network channelId in chatbot hq
     const cbhqJumpMsg = messageInDb.channelAndMessageIds.find((x) => x.channelId === '821607665687330816');
-
-    const emojis = interaction.client.emotes.normal;
 
     const confirmEmbed = new EmbedBuilder()
       .setTitle('Report Type')
@@ -141,7 +140,7 @@ export default {
             components: [jumpButton],
           });
           modalSubmit.reply({
-            content: `${emojis.yes} Your report has been successfully submitted! Join the support server to check the status of your report.`,
+            content: `${emojis.normal.yes} Your report has been successfully submitted! Join the support server to check the status of your report.`,
             ephemeral: true,
           });
         })
@@ -150,7 +149,7 @@ export default {
             logger.error(e);
             captureException(e);
             interaction.followUp({
-              content: `${emojis.no} An error occored while making the report.`,
+              content: `${emojis.normal.no} An error occored while making the report.`,
               ephemeral: true,
             });
           }

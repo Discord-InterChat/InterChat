@@ -2,6 +2,7 @@ import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, EmbedBuil
 import { colors, getDb } from '../../Utils/misc/utils';
 import { hubs } from '@prisma/client';
 import { HubSettingsBitField, HubSettingsString } from '../../Utils/hubs/hubSettingsBitfield';
+import emojis from '../../Utils/JSON/emoji.json';
 
 const genSettingsEmbed = (hub: hubs, yesEmoji: string, noEmoji: string) => {
   const settings = new HubSettingsBitField(hub.settings);
@@ -71,9 +72,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
 
   const hubSettings = new HubSettingsBitField(hub.settings);
-  const emotes = interaction.client.emotes.normal;
-  const embed = genSettingsEmbed(hub, emotes.enabled, emotes.disabled);
-  const selects = genSelectMenu(hubSettings, emotes.disabled, emotes.enabled);
+  const embed = genSettingsEmbed(hub, emojis.normal.enabled, emojis.normal.disabled);
+  const selects = genSelectMenu(hubSettings, emojis.normal.disabled, emojis.normal.enabled);
 
   const initReply = await interaction.reply({ embeds: [embed], components: [selects] });
 
@@ -92,8 +92,8 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       data: { settings: hubSettings.toggle(selected).bitfield },
     });
 
-    const newEmbed = genSettingsEmbed(hub, emotes.enabled, emotes.disabled);
-    const newSelects = genSelectMenu(hubSettings, emotes.disabled, emotes.enabled);
+    const newEmbed = genSettingsEmbed(hub, emojis.normal.enabled, emojis.normal.disabled);
+    const newSelects = genSelectMenu(hubSettings, emojis.normal.disabled, emojis.normal.enabled);
 
     await i.update({
       embeds: [newEmbed],

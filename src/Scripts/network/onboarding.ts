@@ -1,6 +1,7 @@
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ComponentType, ButtonInteraction, AnySelectMenuInteraction, Collection } from 'discord.js';
 import { colors, rulesEmbed } from '../../Utils/misc/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 const onboardingInProgress = new Collection<string, string>();
 
@@ -15,7 +16,7 @@ export default {
     // Check if server is already attempting to join a hub
     if (onboardingInProgress.has(channelId)) {
       const err = {
-        content: `${interaction.client.emotes.normal.no} There has already been an attempt to join a hub in <#${channelId}>. Please wait for that to finish before trying again!`,
+        content: `${emojis.normal.no} There has already been an attempt to join a hub in <#${channelId}>. Please wait for that to finish before trying again!`,
         ephemeral,
       };
       interaction.deferred || interaction.replied

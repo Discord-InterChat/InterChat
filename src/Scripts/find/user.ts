@@ -1,6 +1,7 @@
 import { EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { colors, getDb } from '../../Utils/misc/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 
 const embedGen = async (user: User) => {
@@ -10,7 +11,7 @@ const embedGen = async (user: User) => {
     .filter((guild) => guild.ownerId == user.id)
     .map((guild) => guild.name);
 
-  const { icons } = user.client.emotes;
+  const { icons } = emojis;
 
   return new EmbedBuilder()
     .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })

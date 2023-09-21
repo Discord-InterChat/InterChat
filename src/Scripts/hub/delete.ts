@@ -2,6 +2,7 @@ import { captureException } from '@sentry/node';
 import { ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
 import { deleteHubs, getDb } from '../../Utils/misc/utils';
 import logger from '../../Utils/logger';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export async function execute(interaction: ChatInputCommandInteraction, hubName: string) {
   const db = getDb();
@@ -46,7 +47,7 @@ export async function execute(interaction: ChatInputCommandInteraction, hubName:
     return;
   }
 
-  await confirmation.update(`${interaction.client.emotes.normal.loading} Deleting connections, invites, messages and the hub. Please wait...`);
+  await confirmation.update(`${emojis.normal.loading} Deleting connections, invites, messages and the hub. Please wait...`);
 
   try {
     await deleteHubs([hubInDb?.id]);
@@ -62,7 +63,7 @@ export async function execute(interaction: ChatInputCommandInteraction, hubName:
     return;
   }
   await confirmation.editReply({
-    content:`${interaction.client.emotes.normal.tick} The hub has been successfully deleted.`,
+    content:`${emojis.normal.tick} The hub has been successfully deleted.`,
     embeds: [],
     components: [],
   });

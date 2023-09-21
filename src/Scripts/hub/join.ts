@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, ChannelType } from 'discord.js';
 import { getDb } from '../../Utils/misc/utils';
 import createConnection from '../network/createConnection';
 import displaySettings from '../network/displaySettings';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   if (!interaction.inCachedGuild()) return;
@@ -14,14 +15,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   if (!interaction.member.permissionsIn(channel).has(['ManageChannels'])) {
     return await interaction.reply({
-      content: `${interaction.client.emotes.normal.no} You need to have the \`Manage Channels\` permission in ${channel} to connect it to a hub!`,
+      content: `${emojis.normal.no} You need to have the \`Manage Channels\` permission in ${channel} to connect it to a hub!`,
       ephemeral: true,
     });
   }
 
   if (!invite && !name) {
     return await interaction.reply({
-      content: `${interaction.client.emotes.normal.no} You need to provide either a hub name or invite!`,
+      content: `${emojis.normal.no} You need to provide either a hub name or invite!`,
       ephemeral: true,
     });
   }
@@ -41,7 +42,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     if (!inviteExists) {
       return await interaction.reply({
-        content: `${interaction.client.emotes.normal.no} Invalid invite code. Please recheck if that code is correct.`,
+        content: `${emojis.normal.no} Invalid invite code. Please recheck if that code is correct.`,
         ephemeral: true,
       });
     }
@@ -64,7 +65,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
     if (!hubExists) {
       return await interaction.reply({
-        content: `${interaction.client.emotes.normal.no} Unable to find a hub with that name!`,
+        content: `${emojis.normal.no} Unable to find a hub with that name!`,
         ephemeral: true,
       });
     }
@@ -80,7 +81,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     // the only way to join a private hub is through it's invite code
     if (hubExists?.private && !invite) {
       return await interaction.reply({
-        content: `${interaction.client.emotes.normal.no} Unable to find a hub with that name!`,
+        content: `${emojis.normal.no} Unable to find a hub with that name!`,
         ephemeral: true,
       });
     }

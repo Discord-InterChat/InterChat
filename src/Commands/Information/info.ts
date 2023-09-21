@@ -1,13 +1,14 @@
 import { stripIndent } from 'common-tags';
 import { SlashCommandBuilder, EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
 import { colors, getCredits } from '../../Utils/misc/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('info')
     .setDescription('Learn more about InterChat.'),
   async execute(interaction: ChatInputCommandInteraction) {
-    const { normal, icons } = interaction.client.emotes;
+    const { normal, icons } = emojis;
 
     await interaction.deferReply();
 

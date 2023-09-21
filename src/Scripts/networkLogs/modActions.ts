@@ -3,6 +3,7 @@ import { colors, constants } from '../../Utils/misc/utils';
 import { EmbedBuilder, Guild, User } from 'discord.js';
 import { blacklistedServers } from '.prisma/client';
 import { captureMessage } from '@sentry/node';
+import emojis from '../../Utils/JSON/emoji.json';
 
 interface actionUser {
   user: User;
@@ -57,7 +58,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
   if (!action.reason) action.reason = 'No reason provided.';
 
   const modLogs = await moderator.client.channels.fetch(constants.channel.modlogs);
-  const emoji = moderator.client.emotes;
+  const emoji = emojis;
 
   if (!modLogs?.isTextBased()) return captureMessage('Modlogs channel is not text based. (modActions.ts)', 'warning');
 

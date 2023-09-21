@@ -1,5 +1,4 @@
 import discord from 'discord.js';
-import EmojiIDs from '../src/Utils/JSON/emoji.json';
 import { Prisma } from '@prisma/client';
 
 type InterchatCommand = {
@@ -19,7 +18,6 @@ declare module 'discord.js' {
     commands: discord.Collection<string, InterchatCommand>;
     description: string;
     version: string;
-    emotes: typeof EmojiIDs;
     commandCooldowns: discord.Collection<`${string}-${discord.Snowflake}`, number>;
     reactionCooldowns: discord.Collection<discord.Snowflake, number>;
     /* A generated invite link for the bot */

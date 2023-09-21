@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { getDb } from '../../Utils/misc/utils';
 import { paginate } from '../../Utils/misc/paginator';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
@@ -11,7 +12,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     include: { hub: true },
   });
   if (connections.length === 0) {
-    return interaction.editReply(`${interaction.client.emotes.normal.no} You have not joined any hubs yet!`);
+    return interaction.editReply(`${emojis.normal.no} You have not joined any hubs yet!`);
   }
 
   const allFields = connections.map((con) => ({

@@ -3,6 +3,7 @@ import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, ChatInputCommandInteraction, ForumChannel, TextChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
 import { colors, constants } from '../../Utils/misc/utils';
 import logger from '../../Utils/logger';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -22,7 +23,7 @@ export default {
         ),
       );
 
-    const emojis = interaction.client.emotes.normal;
+    const { normal: normalEmojis } = emojis;
 
     if (reportType === 'bug') {
       const bugSelect = new ActionRowBuilder<StringSelectMenuBuilder>()
@@ -33,11 +34,11 @@ export default {
             .setOptions(
               new StringSelectMenuOptionBuilder()
                 .setLabel('Commands')
-                .setEmoji(emojis.slash)
+                .setEmoji(normalEmojis.slash)
                 .setValue('Commands'),
               new StringSelectMenuOptionBuilder()
                 .setLabel('Network')
-                .setEmoji(emojis.clipart)
+                .setEmoji(normalEmojis.clipart)
                 .setValue('Network'),
               new StringSelectMenuOptionBuilder()
                 .setLabel('Other (Specify)')
@@ -124,7 +125,7 @@ export default {
         });
 
         bugModal.reply({
-          content: `${emojis.yes} Successfully submitted report. Join the </support server:924659341049626636> to view and/or attach screenshots to it.`,
+          content: `${normalEmojis.yes} Successfully submitted report. Join the </support server:924659341049626636> to view and/or attach screenshots to it.`,
           ephemeral: true,
         });
       }).catch((error) => {
@@ -159,9 +160,9 @@ export default {
             if (!reportedUser) {
               return modalInteraction.reply({
                 content: stripIndents`
-                  ${emojis.no} I couldn't find a user with that ID.\n\n
+                  ${normalEmojis.no} I couldn't find a user with that ID.\n\n
                   **To find a user's ID within the network, please follow these instructions:**
-                  ${emojis.dotYellow} Right click on a message sent from the user in question select \`Apps > User Info\`. Please double-check the ID and try again.
+                  ${normalEmojis.dotYellow} Right click on a message sent from the user in question select \`Apps > User Info\`. Please double-check the ID and try again.
                 `,
                 ephemeral: true,
               });
@@ -184,9 +185,9 @@ export default {
             if (!reportedServer) {
               return modalInteraction.reply({
                 content: stripIndents`
-                ${emojis.no} I couldn't find a server with that ID.\n
+                ${normalEmojis.no} I couldn't find a server with that ID.\n
                 **To find a server ID within the network, please follow these instructions:**
-                ${emojis.dotYellow}  Right click on a message sent by the server in question and select \`Apps > Server Info\`. Please double-check the ID and try again.
+                ${normalEmojis.dotYellow}  Right click on a message sent by the server in question and select \`Apps > Server Info\`. Please double-check the ID and try again.
                 `,
                 ephemeral: true,
               });

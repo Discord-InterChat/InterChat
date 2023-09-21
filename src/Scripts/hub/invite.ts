@@ -3,10 +3,10 @@ import { logger } from '@sentry/utils';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { getDb } from '../../Utils/misc/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const db = getDb();
-  const emotes = interaction.client.emotes.normal;
   const subcommand = interaction.options.getSubcommand();
 
   switch (subcommand) {
@@ -22,7 +22,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
       if (!hubInDb || hubInDb.ownerId != interaction.user.id || !hubInDb.private) {
         await interaction.reply({
-          content: `${emotes.no} Invalid Hub Provided. Make sure provided hub is one that you own and that it is private.`,
+          content: `${emojis.normal.no} Invalid Hub Provided. Make sure provided hub is one that you own and that it is private.`,
           ephemeral: true,
         });
         return;
@@ -69,7 +69,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
       if (!inviteInDb) {
         await interaction.reply({
-          content: `${emotes.no} Invalid Invite Code.`,
+          content: `${emojis.normal.no} Invalid Invite Code.`,
           ephemeral: true,
         });
         return;
@@ -117,7 +117,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       const invitesInDb = await db.hubInvites.findMany({ where: { hubId: hubInDb.id } });
       if (invitesInDb.length === 0) {
         await interaction.reply({
-          content: `${emotes.yes} There are no invites to this hub yet.`,
+          content: `${emojis.normal.yes} There are no invites to this hub yet.`,
           ephemeral: true,
         });
         return;

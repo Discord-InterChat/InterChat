@@ -1,6 +1,7 @@
 import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { colors, getDb, toTitleCase } from '../../Utils/misc/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction, serverId: string, hidden: boolean) {
@@ -30,7 +31,7 @@ async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
         : guild.premiumTier === 3 ? 'Level 3'
           : 'Unknown';
 
-  const { no } = guild.client.emotes.normal;
+  const { no } = emojis.normal;
 
   return new EmbedBuilder()
     .setAuthor({ name: `${guild.name}`, iconURL: guild.iconURL() || undefined })

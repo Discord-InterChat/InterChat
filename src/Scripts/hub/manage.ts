@@ -4,13 +4,13 @@ import { logger } from '@sentry/utils';
 import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, StringSelectMenuBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { getDb } from '../../Utils/misc/utils';
 import { stripIndents } from 'common-tags';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
 
   const db = getDb();
   const chosenHub = interaction.options.getString('name', true);
-  const emotes = interaction.client.emotes;
   let hubInDb = await db.hubs.findFirst({
     where: {
       name: chosenHub,
@@ -27,7 +27,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   });
 
   if (!hubInDb) {
-    await interaction.followUp(emotes.normal.no + ' Hub not found.');
+    await interaction.followUp(emojis.normal.no + ' Hub not found.');
     return;
   }
 
@@ -76,7 +76,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setDescription(stripIndents`
         ${hub.description}
         - __**Tags:**__ ${hub.tags.join(', ')}
-        - __**Public:**__ ${hub.private ? emotes.normal.no : emotes.normal.yes}
+        - __**Public:**__ ${hub.private ? emojis.normal.no : emojis.normal.yes}
       `)
       .setThumbnail(hub.iconUrl)
       .setImage(hub.bannerUrl)

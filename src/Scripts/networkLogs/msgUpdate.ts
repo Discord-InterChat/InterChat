@@ -1,6 +1,7 @@
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, GuildMember, GuildTextBasedChannel, Message } from 'discord.js';
 import { constants, getDb } from '../../Utils/misc/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export async function networkMsgUpdate(member: GuildMember, oldMessage: Message, newMessageContent: string) {
   const db = getDb();
@@ -12,7 +13,7 @@ export async function networkMsgUpdate(member: GuildMember, oldMessage: Message,
   const logChannel = await member.client.channels.fetch(constants.channel.networklogs) as GuildTextBasedChannel;
   const attachmentLink = oldMessage.attachments.first()?.url || oldMessage.embeds.at(0)?.image?.url || null;
 
-  const emoji = member.client.emotes;
+  const emoji = emojis;
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: member.user.username, iconURL: member.user.avatarURL()?.toString() })

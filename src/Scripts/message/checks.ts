@@ -1,5 +1,6 @@
 import wordFilter from '../../Utils/misc/wordFilter';
 import antiSpam from './antispam';
+import emojis from '../../Utils/JSON/emoji.json';
 import { Message } from 'discord.js';
 import { slurs } from '../../Utils/JSON/badwords.json';
 import { addUserBlacklist, getDb, replaceLinks } from '../../Utils/misc/utils';
@@ -31,7 +32,7 @@ export default {
       const antiSpamResult = antiSpam(message.author, 3);
       if (antiSpamResult) {
         if (antiSpamResult.infractions >= 3) addUserBlacklist(networkData.hubId, message.client.user, message.author, 'Auto-blacklisted for spamming.', 60 * 5000);
-        message.react(message.client.emotes.icons.timeout);
+        message.react(emojis.icons.timeout);
         return false;
       }
 

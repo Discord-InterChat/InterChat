@@ -1,4 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, CommandInteraction, ComponentType, ButtonInteraction } from 'discord.js';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export interface PaginatorOptions {
   stopAfter?: number;
@@ -20,13 +21,13 @@ export interface PaginatorOptions {
  */
 export async function paginate(interaction: CommandInteraction, pages: EmbedBuilder[], options?: PaginatorOptions) {
   if (pages.length < 1) {
-    interaction.reply({ content: `${interaction.client.emotes.normal.tick} No more pages to display!`, ephemeral: true });
+    interaction.reply({ content: `${emojis.normal.tick} No more pages to display!`, ephemeral: true });
     return;
   }
 
-  const emojiBack = options?.btnEmojis?.back || interaction.client.emotes.normal.back;
+  const emojiBack = options?.btnEmojis?.back || emojis.normal.back;
   const emojiExit = options?.btnEmojis?.exit || '🛑';
-  const emojiNext = options?.btnEmojis?.next || interaction.client.emotes.normal.forward;
+  const emojiNext = options?.btnEmojis?.next || emojis.normal.forward;
 
   let index = 0;
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents([

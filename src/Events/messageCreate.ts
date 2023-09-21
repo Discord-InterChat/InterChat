@@ -1,6 +1,7 @@
 import checks from '../Scripts/message/checks';
 import messageContentModifiers from '../Scripts/message/messageContentModifiers';
 import cleanup from '../Scripts/message/cleanup';
+import emojis from '../Utils/JSON/emoji.json';
 import { APIMessage, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, HexColorString, Message, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import { getDb } from '../Utils/misc/utils';
 import { censor } from '../Utils/misc/wordFilter';
@@ -94,7 +95,7 @@ export default {
           ? new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
               .setStyle(ButtonStyle.Link)
-              .setEmoji(message.client.emotes.normal.reply)
+              .setEmoji(emojis.normal.reply)
               .setURL(replyLink)
               .setLabel(
                 (referredAuthor.username.length >= 80

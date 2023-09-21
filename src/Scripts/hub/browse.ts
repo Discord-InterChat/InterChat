@@ -15,9 +15,10 @@ import {
 import { calculateAverageRating, createHubListingsEmbed, getDb } from '../../Utils/misc/utils';
 import { paginate } from '../../Utils/misc/paginator';
 import { hubs } from '@prisma/client';
-import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
 import createConnection from '../network/createConnection';
+import logger from '../../Utils/logger';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   const sortBy = interaction.options.getString('sort') as
@@ -250,12 +251,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
 
           if (channel?.type !== ChannelType.GuildText && !channel?.isThread()) {
-            await response.update(`${i.client.emotes.normal.no} Only text and thread channels are supported!`);
+            await response.update(`${emojis.normal.no} Only text and thread channels are supported!`);
             return;
           }
 
           if (!response.member.permissionsIn(channel).has('ManageChannels')) {
-            await response.update(`${i.client.emotes.normal.no} You need to have the \`Manage Channels\` permission in ${channel} to connect it to a hub!`);
+            await response.update(`${emojis.normal.no} You need to have the \`Manage Channels\` permission in ${channel} to connect it to a hub!`);
             return;
           }
 

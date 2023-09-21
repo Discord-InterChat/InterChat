@@ -3,11 +3,12 @@ import { sendInFirst, colors, constants } from '../Utils/misc/utils';
 import { stripIndents } from 'common-tags';
 import { captureException } from '@sentry/node';
 import wordFilter from '../Utils/misc/wordFilter';
+import emojis from '../Utils/JSON/emoji.json';
 
 export default {
   name: 'guildCreate',
   async execute(guild: Guild) {
-    const { normal, mascot } = guild.client.emotes;
+    const { normal, mascot } = emojis;
 
     const embed = new EmbedBuilder()
       .setTitle(`Thank you for inviting me! ${normal.tada}`)
@@ -71,7 +72,7 @@ export default {
     if (!goalChannel?.isTextBased()) return;
 
     goalChannel.send({
-      content: `${mascot.flushed} I have joined ${guild.name}! I am now in **${guild.client.guilds.cache.size}** servers! ${guild.client.emotes.normal.tada}`,
+      content: `${mascot.flushed} I have joined ${guild.name}! I am now in **${guild.client.guilds.cache.size}** servers! ${emojis.normal.tada}`,
       embeds: [
         new EmbedBuilder()
           .setColor(colors('invisible'))

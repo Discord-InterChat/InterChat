@@ -1,9 +1,10 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, ComponentType, EmbedBuilder } from 'discord.js';
 import { getDb } from '../../Utils/misc/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction, channelId: string) {
-    const { normal } = interaction.client.emotes;
+    const { normal } = emojis;
     const db = getDb();
 
     if (!await db.connectedList.findFirst({ where: { channelId } })) {

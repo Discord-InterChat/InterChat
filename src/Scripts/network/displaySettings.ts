@@ -1,8 +1,9 @@
 import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel, ButtonInteraction, AnySelectMenuInteraction, Webhook, ThreadChannel } from 'discord.js';
 import { reconnect, disconnect } from '../../Utils/network/network';
 import { colors, getDb, yesOrNoEmoji } from '../../Utils/misc/utils';
-import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
+import emojis from '../../Utils/JSON/emoji.json';
+import logger from '../../Utils/logger';
 
 function updateConnectionButtons(connected: boolean | undefined, disconnectEmoji: string, connectEmoji: string) {
   return new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -18,7 +19,7 @@ function updateConnectionButtons(connected: boolean | undefined, disconnectEmoji
 async function setupEmbed(interaction: Interaction, channelId: string) {
   const networkData = await getDb().connectedList.findFirst({ where: { channelId }, include: { hub: true } });
 
-  const { yes, no, enabled, disabled } = interaction.client.emotes.normal;
+  const { yes, no, enabled, disabled } = emojis.normal;
   const invite = networkData?.invite
     ? `Code: [\`${networkData.invite}\`](https://discord.gg/${networkData.invite})`
     : 'Not Set.';
@@ -46,7 +47,7 @@ export default {
     if (!interaction.deferred && !interaction.replied) await interaction.deferReply();
 
     const db = getDb();
-    const emoji = interaction.client.emotes;
+    const emoji = emojis;
 
     const customizeMenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
       new StringSelectMenuBuilder()

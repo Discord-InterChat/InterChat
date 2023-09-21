@@ -1,6 +1,7 @@
 import { SlashCommandBuilder, PermissionFlagsBits, ChatInputCommandInteraction, AutocompleteInteraction } from 'discord.js';
 import { getDb } from '../../Utils/misc/utils';
 import displaySettings from '../../Scripts/network/displaySettings';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   data: new SlashCommandBuilder()
@@ -28,7 +29,7 @@ export default {
     const channelInServer = await interaction.guild?.channels.fetch(networkChannelId).catch(() => null);
     if (!channelInServer) {
       return interaction.reply({
-        content: `${interaction.client.emotes.normal.no} Please use this command in the server the joined/connected channel belongs to.`,
+        content: `${emojis.normal.no} Please use this command in the server the joined/connected channel belongs to.`,
         ephemeral: true,
       });
     }
