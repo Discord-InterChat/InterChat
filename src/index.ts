@@ -2,7 +2,6 @@ import fs from 'fs';
 import logger from './Utils/logger';
 import project from '../package.json';
 import { Client, Collection, ActivityType, MessageCreateOptions } from 'discord.js';
-import { join } from 'path';
 import { Prisma } from '@prisma/client';
 import { getDb } from './Utils/misc/utils';
 import * as Sentry from '@sentry/node';
@@ -54,13 +53,13 @@ export class ExtendedClient extends Client {
   }
 
   protected loadCommands() {
-    fs.readdirSync(join(__dirname, '..', 'Commands')).forEach(async (dir: string) => {
-      if (fs.statSync(join(__dirname, '..', 'Commands', dir)).isDirectory()) {
-        const commandFiles = fs.readdirSync(join(__dirname, '..', 'Commands', dir))
+    fs.readdirSync('build/src/Commands').forEach(async (dir: string) => {
+      if (fs.statSync(`build/src/Commands/${dir}`).isDirectory()) {
+        const commandFiles = fs.readdirSync(`build/src/Commands/${dir}`)
           .filter((file: string) => file.endsWith('.js'));
 
         for (const commandFile of commandFiles) {
-          const command = require(`../Commands/${dir}/${commandFile}`);
+          const command = require(`./Commands/${dir}/${commandFile}`);
 
           command.default.directory = dir;
           this.commands.set(command.default.data.name, command.default);
@@ -70,10 +69,10 @@ export class ExtendedClient extends Client {
   }
 
   protected loadEvents() {
-    const eventFiles = fs.readdirSync(join(__dirname, '..', 'Events')).filter((file: string) => file.endsWith('.js'));
+    const eventFiles = fs.readdirSync('build/src/Events').filter((file: string) => file.endsWith('.js'));
 
     for (const eventFile of eventFiles) {
-      const event = require(`../Events/${eventFile}`);
+      const event = require(`./Events/${eventFile}`);
 
       if (event.once) {
         this.once(event.default.name, (...args) => event.default.execute(...args, this));

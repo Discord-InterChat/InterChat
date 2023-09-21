@@ -4,6 +4,7 @@ import { captureException } from '@sentry/node';
 import logger from '../Utils/logger';
 import reactionButton from '../Scripts/reactions/reactionButton';
 import viewReactionsMenu from '../Scripts/reactions/viewReactionsMenu';
+import { formatErrorCode } from '../Utils/misc/errorHandler';
 
 export default {
   name: 'interactionCreate',
@@ -62,21 +63,12 @@ export default {
       try {
         await command.execute(interaction);
       }
-
-      catch (error) {
-        logger.error(`[${interaction.commandName}]:`, error);
-        captureException(error, {
-          user: { id: interaction.user.id, username: interaction.user.username },
-          extra: { command: interaction.commandName },
-        });
-
-        const errorMsg = {
-          content: 'There was an error while executing this command! The developers have been notified.',
-          ephemeral: true,
-        };
-        interaction.replied || interaction.deferred
-          ? await interaction.followUp(errorMsg).catch(() => null)
-          : await interaction.reply(errorMsg).catch(() => null);
+      catch (e) {
+        logger.error(e);
+        captureException(e);
+        interaction.replied
+          ? interaction.followUp({ content: formatErrorCode(e), ephemeral: true })
+          : interaction.reply({ content: formatErrorCode(e), ephemeral: true });
       }
     }
   },
