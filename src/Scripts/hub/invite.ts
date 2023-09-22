@@ -19,11 +19,20 @@ export default {
           ? expires.setHours(expires.getHours() + hours)
           : expires.setHours(expires.getHours() + 24);
 
-        const hubInDb = await db.hubs.findFirst({ where: { name: hubName } });
+        const hubInDb = await db.hubs.findFirst({
+          where: {
+            name: hubName,
+            private: true,
+            OR: [
+              { ownerId: interaction.user.id },
+              { moderators: { some: { userId: interaction.user.id } } },
+            ],
+          },
+        });
 
-        if (!hubInDb || hubInDb.ownerId != interaction.user.id || !hubInDb.private) {
+        if (!hubInDb) {
           await interaction.reply({
-            content: `${emojis.normal.no} Invalid Hub Provided. Make sure provided hub is one that you own and that it is private.`,
+            content: `${emojis.normal.no} Invalid Hub Provided. Make sure provided hub is one that you have permissions in the hub and that it is private.`,
             ephemeral: true,
           });
           return;
@@ -39,7 +48,9 @@ export default {
           .setTitle('Invite Created')
           .setDescription(stripIndents`
           Give this code to someone who wishes to join the hub. This invite has unlimited uses.
-          
+
+          Join using: \`/hub join invite:${createdInvite.code}\`
+
           **Code:** \`${createdInvite.code}\`
           **Expiry <t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>**
         `)

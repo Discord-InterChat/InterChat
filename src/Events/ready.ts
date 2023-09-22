@@ -11,13 +11,11 @@ export default {
 
     // Run misc tasks on startup
     const permissions = [
-      PermissionFlagsBits.ManageChannels,
       PermissionFlagsBits.ManageWebhooks,
       PermissionFlagsBits.ChangeNickname,
       PermissionFlagsBits.ViewChannel,
       PermissionFlagsBits.SendMessages,
       PermissionFlagsBits.SendMessagesInThreads,
-      PermissionFlagsBits.ManageGuild,
       PermissionFlagsBits.ManageMessages,
       PermissionFlagsBits.ManageThreads,
       PermissionFlagsBits.EmbedLinks,

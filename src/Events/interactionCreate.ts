@@ -59,17 +59,14 @@ export default {
           });
         }
       }
-
-      try {
-        await command.execute(interaction);
-      }
-      catch (e) {
-        logger.error(e);
-        captureException(e);
-        interaction.replied
-          ? interaction.followUp({ content: formatErrorCode(e), ephemeral: true })
-          : interaction.reply({ content: formatErrorCode(e), ephemeral: true });
-      }
+      command.execute(interaction)
+        .catch((e) => {
+          logger.error(e);
+          captureException(e);
+          (interaction.replied || interaction.deferred
+            ? interaction.followUp({ content: formatErrorCode(e), ephemeral: true })
+            : interaction.reply({ content: formatErrorCode(e), ephemeral: true })).catch(() => null);
+        });
     }
   },
 };

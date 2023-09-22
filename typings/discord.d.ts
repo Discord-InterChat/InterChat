@@ -8,7 +8,7 @@ type InterchatCommand = {
   description?: string | undefined
   directory: string,
   data: discord.SlashCommandBuilder | discord.ContextMenuCommandBuilder,
-  execute: (interaction: discord.ChatInputCommandInteraction | discord.ContextMenuCommandInteraction) => unknown
+  execute: (interaction: discord.ChatInputCommandInteraction | discord.ContextMenuCommandInteraction) => Promise<unknown>,
   autocomplete?: (interaction: discord.AutocompleteInteraction) => unknown
 }
 

@@ -4,7 +4,7 @@ import { getDb } from '../../Utils/misc/utils';
 export default {
   data: new SlashCommandBuilder()
     .setName('hub')
-    .setDescription('...')
+    .setDescription('Interact with hubs created on InterChat!')
     // .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .setDMPermission(false)
     .addSubcommand((subcommand) => subcommand
