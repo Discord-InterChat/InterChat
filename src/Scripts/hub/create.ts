@@ -16,15 +16,15 @@ export default {
     if (!interaction.inCachedGuild()) return;
 
     const hubName = interaction.options.getString('name', true);
-    const iconUrl = interaction.options.getString('icon', true);
+    const iconUrl = interaction.options.getString('icon');
     const bannerUrl = interaction.options.getString('banner');
 
     const imgurRegex = /\bhttps?:\/\/i\.imgur\.com\/[A-Za-z0-9]+\.(?:jpg|jpeg|gif|png|bmp)\b/g;
 
-    const imgurIcons = iconUrl.match(imgurRegex);
+    const imgurIcons = iconUrl?.match(imgurRegex);
     const imgurBanners = bannerUrl?.match(imgurRegex);
 
-    if (!imgurIcons || imgurBanners === null) {
+    if (imgurIcons === null || imgurBanners === null) {
       return await interaction.reply({
         content: 'Please provide a valid Imgur link for the icon and banner. It should start with `https://i.imgur.com/` and end with an image extension.',
         ephemeral: true,
@@ -101,7 +101,7 @@ export default {
             private: true,
             tags: tags.replaceAll(', ', ',').split(',', 5),
             ownerId: submitIntr.user.id,
-            iconUrl: imgurIcons[0],
+            iconUrl: imgurIcons?.at(0) ?? interaction.client.user.displayAvatarURL(),
             bannerUrl: imgurBanners?.[0],
             settings: HubSettingsBits.SpamFilter,
           },

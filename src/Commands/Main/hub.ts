@@ -80,7 +80,7 @@ export default {
           attachment
             .setName('icon')
             .setDescription('Set an icon for this hub. Must be a valid i.imgur.com image link.')
-            .setRequired(true),
+            .setRequired(false),
         )
         .addStringOption((attachment) =>
           attachment

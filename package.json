@@ -22,7 +22,7 @@
     "start": "node .",
     "build": "tsc --build",
     "dev": "tsc-watch --outDir ./build --onSuccess \"node .\"",
-    "deploy": "node build/src/Utils/misc/deploy-commands.js",
+    "deploy": "node build/src/Utils/deploy-commands.js",
     "release": "standard-version",
     "lint": "eslint --cache --fix .",
     "prepare": "husky install"

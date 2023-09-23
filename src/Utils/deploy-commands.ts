@@ -22,7 +22,7 @@ function deployCommands() {
       const commandFiles = fs.readdirSync(`${commandsPath}/${dir}`).filter(file => file.endsWith('.js'));
 
       for (const commandFile of commandFiles) {
-        const command = require(`../../Commands/${dir}/${commandFile}`);
+        const command = require(`../Commands/${dir}/${commandFile}`);
         commands.push(command.default.data.toJSON());
       }
     }
@@ -42,7 +42,7 @@ function deployStaffCommands() {
       const commandFiles = fs.readdirSync(`${commandsPath}/${dir}`).filter(file => file.endsWith('.js'));
 
       for (const commandFile of commandFiles) {
-        const command = require(`../../Commands/${dir}/${commandFile}`);
+        const command = require(`../Commands/${dir}/${commandFile}`);
         commands.push(command.default.data.toJSON());
       }
     }

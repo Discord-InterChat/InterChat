@@ -15,7 +15,7 @@ export default {
       .setFooter({ text: `Requested by @${interaction.user.username}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL })
       .setDescription(stripIndents`
       ### Guide
-      InterChat is a powerful discord bot that enables effortless cross-server communication with members of different servers while within the comfort of your own! Get started by looking at the categories below.
+      InterChat is a powerful discord bot that enables effortless cross-server chatting! Get started by looking at the categories below.
       ### Categories:
       - ⚙️ [**Setting up InterChat**](https://discord-interchat.github.io/docs/guide/setup)
       - ${emojis.normal.slashCommand}  [**All Commands**](https://discord-interchat.github.io/docs/category/commands)
@@ -79,7 +79,8 @@ export default {
           const hubsEmbed = EmbedBuilder.from(embed)
             .setDescription(stripIndents`
             ## InterChat Hubs
-            Hubs are the main feature of InterChat. They are groups that you can join to communicate with other servers in that hub. You can create your own hub, or join an existing one. You can also leave a hub at any time.
+            Think of hubs as your personal chat spaces, both creatable and joinable. They're like an exclusive room, where other servers can join to engage and chat together.
+
             ### Hub Guides
             - ${emojis.icons.join} [**Join a Hub**](https://discord-interchat.github.io/docs/guide/hub/joining) 
             - ${emojis.icons.leave} [**Leave a Hub**](https://discord-interchat.github.io/docs/guide/hub/leaving)
@@ -114,13 +115,13 @@ export default {
             ## Messaging
             Messaging refers to the ability to send messages to other servers within a hub. Find out how to send messages by visiting the guides below. You can also edit and delete messages that you have sent.
             ### Messaging Guides
-            - 📨 [ **Sending Messages**](https://discord-interchat.github.io/docs/guide/message/sending-messages)
-            - ✏️ [ **Editing Messages**](https://discord-interchat.github.io/docs/guide/message/editing)
-            - ${emojis.icons.delete} [**Deleting Messages**](https://discord-interchat.github.io/docs/guide/message/deleting)
-            - ${emojis.normal.reply} [**Replying to Messages**](https://discord-interchat.github.io/docs/guide/message/replying)
-            - 😂 [**Reacting to Messages (Coming soon!)**](https://discord-interchat.github.io/docs/guide/message/reacting)
-            - ${emojis.icons.wand} [**The InterChat Team**](https://discord-interchat.github.io/docs/important/credits)
-            - 📑 [**Reporting Messages**](https://discord-interchat.github.io/docs/guide/message/reporting)
+            - 📨 [ **Send Messages**](https://discord-interchat.github.io/docs/guide/message/sending-messages)
+            - ✏️ [ **Edit Messages**](https://discord-interchat.github.io/docs/guide/message/editing)
+            - ${emojis.icons.delete} [**Delete Messages**](https://discord-interchat.github.io/docs/guide/message/deleting)
+            - ${emojis.normal.reply} [**Reply to Messages**](https://discord-interchat.github.io/docs/guide/message/replying)
+            - 😂 [**React to Messages (Coming soon!)**](https://discord-interchat.github.io/docs/guide/message/reacting)
+            - ${emojis.icons.wand} [**The InterChat Team (Coming Soon!)**](https://discord-interchat.github.io/docs/important/credits)
+            - 📑 [**Report Messages**](https://discord-interchat.github.io/docs/guide/message/reporting)
             `);
 
           i.update({ embeds: [messagingEmbed] });
@@ -131,6 +132,7 @@ export default {
           break;
         }
         case 'credits': {
+          await i.deferUpdate();
           const { normal, icons } = emojis;
 
           const members: User[] = [];
@@ -143,33 +145,33 @@ export default {
           const linksDivider = `${normal.blueLine.repeat(9)} **LINKS** ${normal.blueLine.repeat(9)}`;
           const creditsDivider = `${normal.blueLine.repeat(9)} **TEAM** ${normal.blueLine.repeat(9)}`;
 
-
           const creditsEmbed = EmbedBuilder.from(embed)
             .setDescription(`
               ## ${icons.wand} InterChat Credits
-              InterChat is a project that is developed by a team of people who are passionate about making Discord a better place. We are always looking for new members to join our team, so if you are interested, please join our support server and contact us!
-        
+              InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our support server. 
+
               ${creditsDivider}
-              ${normal.chatbot_circle} **Design:** 
-              ${normal.dotBlue} @${members.at(-3)?.username} (Avatar)
+              ${normal.interchatCircle} **Design:** 
+              ${normal.dotBlue} @${members[6]?.username} (Mascot)
+              ${normal.dotBlue} @${members[4]?.username} (Avatar)
               ${normal.dotBlue} @${members[0].username} (Avatar)
-              ${normal.dotBlue} @${members.at(-2)?.username} (Support Icon)
-              ${normal.dotBlue} @${members.at(-1)?.username} (Mascot)
+              ${normal.dotBlue} @${members[5]?.username} (Server Icon)
         
               ${icons.botdev} **Developers:**
-              ${normal.dotBlue} @${members[0].username}
               ${normal.dotBlue} @${members[1].username}
               ${normal.dotBlue} @${members[2].username}
+              ${normal.dotBlue} @${members[0].username}
         
-              ${icons.staff} **Staff (Recruiting!):**
-              ${normal.dotBlue} @${members.at(-3)?.username}
-              ${normal.dotBlue} @${members.at(-2)?.username}
+              ${icons.staff} **Staff: (Recruiting!)**
+              ${normal.dotBlue} @${members[4]?.username}
+              ${normal.dotBlue} @${members[3].username}
+              ${normal.dotBlue} @${members[5]?.username}
         
               ${linksDivider}
-              [Guide](https://discord-interchat.github.io/docs) • [Invite](${i.client.invite}) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241) • [App Directory](https://discord.com/application-directory/769921109209907241) • [ToS](https://discord-interchat.github.io/important/terms) • [Privacy](https://discord-interchat.github.io/important/privacy)
+              [Guide](https://discord-interchat.github.io/docs) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](https://discord-interchat.github.io/important/privacy) • [Terms](https://discord-interchat.github.io/important/terms) 
             `);
 
-          await i.update({ embeds: [creditsEmbed] });
+          await i.editReply({ embeds: [creditsEmbed] });
         }
       }
     });

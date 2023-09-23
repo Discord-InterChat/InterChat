@@ -25,7 +25,7 @@ export default {
             private: true,
             OR: [
               { ownerId: interaction.user.id },
-              { moderators: { some: { userId: interaction.user.id } } },
+              { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
             ],
           },
         });
@@ -72,7 +72,7 @@ export default {
             hub: {
               OR: [
                 { ownerId: interaction.user.id },
-                { moderators: { some: { userId: interaction.user.id } } },
+                { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
               ],
             },
           },
@@ -113,7 +113,7 @@ export default {
             name: hubName,
             OR: [
               { ownerId: interaction.user.id },
-              { moderators: { some: { userId: interaction.user.id } } },
+              { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
             ],
           },
         });

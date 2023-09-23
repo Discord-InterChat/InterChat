@@ -15,7 +15,6 @@ export default {
       },
     });
 
-
     if (!hub) {
       return await interaction.reply({
         content: 'Invalid hub input. Make sure the hub exists and that you are a owner/manager of the hub.',
@@ -53,6 +52,21 @@ export default {
           });
         }
 
+        if (hub.ownerId !== interaction.user.id) {
+          if (user.id === interaction.user.id) {
+            return interaction.reply({
+              content: 'I don\'t know why you would want to do that, but only the owner of the hub can remove you!',
+              ephemeral: true,
+            });
+          }
+
+          if (hub.moderators.find(m => m.position === 'manager' && m.userId === user.id)) {
+            return interaction.reply({
+              content: 'Only the owner of the hub can remove a manager!',
+              ephemeral: true,
+            });
+          }
+        }
         await db.hubs.update({
           where: { id: hub.id },
           data: {
@@ -65,11 +79,18 @@ export default {
 
       case 'update': {
         const user = interaction.options.getUser('user', true);
-
         const position = interaction.options.getString('role', true);
+
         if (!hub.moderators.find((mod) => mod.userId === user.id)) {
           return interaction.reply({
             content: `User ${user} is not a moderator for **${hub.name}**!`,
+            ephemeral: true,
+          });
+        }
+
+        if (hub.ownerId !== interaction.user.id && user.id === interaction.user.id) {
+          return interaction.reply({
+            content: 'Only the owner of the hub can update your role!',
             ephemeral: true,
           });
         }
