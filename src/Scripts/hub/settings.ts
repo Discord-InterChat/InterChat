@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { constants, getDb } from '../../Utils/misc/utils';
+import { constants, getDb } from '../../Utils/utils';
 import { hubs } from '@prisma/client';
-import { HubSettingsBitField, HubSettingsString } from '../../Utils/hubs/hubSettingsBitfield';
+import { HubSettingsBitField, HubSettingsString } from '../../Utils/hubSettingsBitfield';
 import emojis from '../../Utils/JSON/emoji.json';
 
 const genSettingsEmbed = (hub: hubs, yesEmoji: string, noEmoji: string) => {

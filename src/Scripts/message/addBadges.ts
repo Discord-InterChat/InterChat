@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { EmbedBuilder, Message } from 'discord.js';
-import { badgeToEmoji } from '../../Utils/misc/utils';
+import { badgeToEmoji } from '../../Utils/utils';
 
 export default {
   async execute(message: Message, database: PrismaClient, embed: EmbedBuilder, censoredEmbed: EmbedBuilder) {

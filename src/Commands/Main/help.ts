@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, Interaction, StringSelectMenuBuilder, EmbedBuilder, APISelectMenuOption, ApplicationCommandType, ComponentType, Client, chatInputApplicationCommandMention, User } from 'discord.js';
-import { checkIfStaff, constants, getCredits } from '../../Utils/misc/utils';
+import { checkIfStaff, constants, getCredits } from '../../Utils/utils';
 import { InterchatCommand } from '../../../typings/discord';
 import emojis from '../../Utils/JSON/emoji.json';
 import { stripIndents } from 'common-tags';

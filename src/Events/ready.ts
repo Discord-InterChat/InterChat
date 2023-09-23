@@ -1,6 +1,6 @@
 import { Client, OAuth2Scopes, PermissionFlagsBits } from 'discord.js';
-import { topgg } from '../Utils/misc/utils';
-import startTimers from '../Utils/misc/timers';
+import { topgg } from '../Utils/utils';
+import startTimers from '../Utils/timers';
 import logger from '../Utils/logger';
 
 export default {

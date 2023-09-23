@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder, ForumChannel } from 'discord.js';
-import { constants } from '../../Utils/misc/utils';
+import { constants } from '../../Utils/utils';
 
 type suggestionStatus ='✅ Approved' | '🧑‍💻 Pending' | '✅ Implemented' | '❌ Rejected' | '🚫 Closed';
 

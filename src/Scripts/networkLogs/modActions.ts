@@ -1,5 +1,5 @@
 import { stripIndents } from 'common-tags';
-import { constants } from '../../Utils/misc/utils';
+import { constants } from '../../Utils/utils';
 import { EmbedBuilder, Guild, User } from 'discord.js';
 import { blacklistedServers } from '.prisma/client';
 import { captureMessage } from '@sentry/node';
@@ -42,7 +42,8 @@ interface disconnectServer extends actionServer {
 }
 
 interface unblacklistServer {
-  dbGuild: blacklistedServers;
+  serverName: string;
+  serverId: string;
   action: 'unblacklistServer';
   timestamp: Date;
   reason?: string | null;
@@ -130,14 +131,14 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
       break;
 
     case 'unblacklistServer': {
-      const server = await moderator.client.guilds.fetch(action.dbGuild.serverId).catch(() => null);
+      const server = await moderator.client.guilds.fetch(action.serverId).catch(() => null);
       await modLogs.send({
         embeds: [
           new EmbedBuilder()
-            .setAuthor({ name: `${server?.name || action.dbGuild.serverName}`, iconURL: server?.iconURL()?.toString() })
+            .setAuthor({ name: `${server?.name || action.serverName}`, iconURL: server?.iconURL()?.toString() })
             .setTitle('Server Unblacklisted')
             .setDescription(stripIndents`
-              ${emoji.normal.dotBlue} **Server:** ${server?.name || action.dbGuild.serverName} (${action.dbGuild.serverId})
+              ${emoji.normal.dotBlue} **Server:** ${server?.name || action.serverName} (${action.serverId})
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
              `)
             .addFields({ name: 'Reason', value: action.reason })

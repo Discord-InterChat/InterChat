@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, CommandInteraction, ComponentType, ButtonInteraction } from 'discord.js';
-import emojis from '../../Utils/JSON/emoji.json';
+import emojis from './JSON/emoji.json';
 
 export interface PaginatorOptions {
   stopAfter?: number;

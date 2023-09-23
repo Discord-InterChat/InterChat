@@ -1,6 +1,6 @@
 import { EmbedBuilder, User, TextChannel } from 'discord.js';
 import { constants, getGuildName, getHubName } from './utils';
-import { badwords } from '../JSON/badwords.json';
+import { badwords } from './JSON/badwords.json';
 
 /**
   * Checks if a message contains any bad words.

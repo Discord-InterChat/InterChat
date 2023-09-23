@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ComponentType, ButtonInteraction, AnySelectMenuInteraction, Collection } from 'discord.js';
-import { constants, rulesEmbed } from '../../Utils/misc/utils';
+import { constants, rulesEmbed } from '../../Utils/utils';
 import emojis from '../../Utils/JSON/emoji.json';
 
 const onboardingInProgress = new Collection<string, string>();

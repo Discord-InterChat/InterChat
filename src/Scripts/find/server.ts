@@ -1,6 +1,6 @@
 import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { constants, getDb, toTitleCase } from '../../Utils/misc/utils';
+import { constants, getDb, toTitleCase } from '../../Utils/utils';
 import emojis from '../../Utils/JSON/emoji.json';
 
 export default {

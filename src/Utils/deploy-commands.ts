@@ -4,7 +4,7 @@ import { stripIndent } from 'common-tags';
 import { constants } from './utils';
 
 import fs from 'fs';
-import logger from '../logger';
+import logger from './logger';
 import 'dotenv/config';
 
 const clientID = process.env.CLIENT_ID as string;

@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getDb } from '../../Utils/misc/utils';
-import { paginate } from '../../Utils/misc/paginator';
+import { getDb } from '../../Utils/utils';
+import { paginate } from '../../Utils/paginator';
 import emojis from '../../Utils/JSON/emoji.json';
 
 export default {

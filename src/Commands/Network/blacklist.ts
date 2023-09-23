@@ -1,5 +1,5 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { getDb } from '../../Utils/misc/utils';
+import { getDb } from '../../Utils/utils';
 
 export default {
   data: new SlashCommandBuilder()

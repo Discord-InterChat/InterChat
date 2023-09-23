@@ -1,9 +1,9 @@
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonInteraction, ComponentType, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { getDb } from '../../Utils/misc/utils';
+import { getDb } from '../../Utils/utils';
 import sortReactions from './sortReactions';
 import updateMessageReactions from './updateMessage';
-import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
+import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
 import emojis from '../../Utils/JSON/emoji.json';
 
 export default {

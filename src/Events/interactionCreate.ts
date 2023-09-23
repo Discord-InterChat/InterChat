@@ -1,10 +1,10 @@
 import { Interaction } from 'discord.js';
-import { checkIfStaff } from '../Utils/misc/utils';
+import { checkIfStaff } from '../Utils/utils';
 import { captureException } from '@sentry/node';
 import logger from '../Utils/logger';
 import reactionButton from '../Scripts/reactions/reactionButton';
 import viewReactionsMenu from '../Scripts/reactions/viewReactionsMenu';
-import { formatErrorCode } from '../Utils/misc/errorHandler';
+import { formatErrorCode } from '../Utils/errorHandler';
 
 export default {
   name: 'interactionCreate',

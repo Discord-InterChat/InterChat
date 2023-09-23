@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { constants } from '../../Utils/misc/utils';
+import { constants } from '../../Utils/utils';
 
 export default {
   data: new SlashCommandBuilder()

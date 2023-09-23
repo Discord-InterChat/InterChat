@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { constants } from '../../Utils/misc/utils';
+import { constants } from '../../Utils/utils';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction) {

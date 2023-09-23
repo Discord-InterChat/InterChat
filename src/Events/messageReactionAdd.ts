@@ -1,7 +1,7 @@
 import { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
-import { getDb } from '../Utils/misc/utils';
+import { getDb } from '../Utils/utils';
 import updateMessageReactions from '../Scripts/reactions/updateMessage';
-import { HubSettingsBitField } from '../Utils/hubs/hubSettingsBitfield';
+import { HubSettingsBitField } from '../Utils/hubSettingsBitfield';
 
 export default {
   name: 'messageReactionAdd',

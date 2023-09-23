@@ -1,8 +1,9 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { cancelJob } from 'node-schedule';
-import { getDb, addUserBlacklist } from '../../Utils/misc/utils';
+import { getDb } from '../../Utils/utils';
 import { modActions } from '../networkLogs/modActions';
 import emojis from '../../Utils/JSON/emoji.json';
+import { addUserBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -58,6 +59,8 @@ export default {
       }
 
       await addUserBlacklist(hubInDb.id, interaction.user, user, String(reason), expires);
+      if (expires) scheduleUnblacklist('user', interaction.client, user.id, hubInDb.id, expires);
+
       const successEmbed = new EmbedBuilder()
         .setDescription(`${emojis.normal.tick} **${user.username}** has been successfully blacklisted!`)
         .setColor('Green')

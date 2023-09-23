@@ -3,10 +3,10 @@ import messageContentModifiers from '../Scripts/message/messageContentModifiers'
 import cleanup from '../Scripts/message/cleanup';
 import emojis from '../Utils/JSON/emoji.json';
 import { APIMessage, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, HexColorString, Message, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
-import { getDb } from '../Utils/misc/utils';
-import { censor } from '../Utils/misc/wordFilter';
+import { getDb } from '../Utils/utils';
+import { censor } from '../Utils/wordFilter';
 import { messageData } from '@prisma/client';
-import { HubSettingsBitField } from '../Utils/hubs/hubSettingsBitfield';
+import { HubSettingsBitField } from '../Utils/hubSettingsBitfield';
 
 export interface NetworkMessage extends Message {
   censored_content: string,

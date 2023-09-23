@@ -1,8 +1,8 @@
 import { EmbedBuilder, AuditLogEvent, Guild, ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
-import { sendInFirst, constants } from '../Utils/misc/utils';
+import { sendInFirst, constants } from '../Utils/utils';
 import { stripIndents } from 'common-tags';
 import { captureException } from '@sentry/node';
-import wordFilter from '../Utils/misc/wordFilter';
+import wordFilter from '../Utils/wordFilter';
 import emojis from '../Utils/JSON/emoji.json';
 
 export default {

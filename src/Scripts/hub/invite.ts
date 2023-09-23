@@ -2,7 +2,7 @@ import { captureException } from '@sentry/node';
 import { logger } from '@sentry/utils';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getDb } from '../../Utils/misc/utils';
+import { getDb } from '../../Utils/utils';
 import emojis from '../../Utils/JSON/emoji.json';
 
 export default {

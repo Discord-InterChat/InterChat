@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/node';
 import { ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ComponentType } from 'discord.js';
-import { deleteHubs, getDb } from '../../Utils/misc/utils';
+import { deleteHubs, getDb } from '../../Utils/utils';
 import logger from '../../Utils/logger';
 import emojis from '../../Utils/JSON/emoji.json';
 

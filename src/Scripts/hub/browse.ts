@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle, ChannelSelectMenuBuilder, ChannelType, ChatInputCommandInteraction, EmbedBuilder, GuildTextBasedChannel, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
-import { calculateAverageRating, createHubListingsEmbed, getDb } from '../../Utils/misc/utils';
-import { paginate } from '../../Utils/misc/paginator';
+import { calculateAverageRating, createHubListingsEmbed, getDb } from '../../Utils/utils';
+import { paginate } from '../../Utils/paginator';
 import { hubs } from '@prisma/client';
 import { captureException } from '@sentry/node';
 import createConnection from '../network/createConnection';

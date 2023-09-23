@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/node';
 import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { getDb, toHuman } from '../../Utils/misc/utils';
+import { getDb, toHuman } from '../../Utils/utils';
 import emojis from '../../Utils/JSON/emoji.json';
 
 export default {

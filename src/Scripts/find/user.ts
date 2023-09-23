@@ -1,6 +1,6 @@
 import { EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { constants, getDb } from '../../Utils/misc/utils';
+import { constants, getDb } from '../../Utils/utils';
 import emojis from '../../Utils/JSON/emoji.json';
 
 

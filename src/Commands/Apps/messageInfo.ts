@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, ContextMenuCommandBuilder, EmbedBuilder, MessageContextMenuCommandInteraction } from 'discord.js';
-import { constants, getDb } from '../../Utils/misc/utils';
+import { constants, getDb } from '../../Utils/utils';
 import { stripIndents } from 'common-tags';
 import { profileImage } from 'discord-arts';
 import emojis from '../../Utils/JSON/emoji.json';

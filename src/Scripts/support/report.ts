@@ -1,7 +1,7 @@
 import { captureMessage } from '@sentry/node';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, ChatInputCommandInteraction, ForumChannel, TextChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
-import { constants } from '../../Utils/misc/utils';
+import { constants } from '../../Utils/utils';
 import logger from '../../Utils/logger';
 import emojis from '../../Utils/JSON/emoji.json';
 

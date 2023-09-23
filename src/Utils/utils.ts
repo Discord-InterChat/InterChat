@@ -1,13 +1,10 @@
 import startCase from 'lodash/startCase';
 import toLower from 'lodash/toLower';
-import emojis from '../../Utils/JSON/emoji.json';
-import logger from '../logger';
+import logger from './logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
-import { badge, normal } from '../JSON/emoji.json';
+import { badge, normal } from './JSON/emoji.json';
 import { stripIndents } from 'common-tags';
-import { scheduleJob } from 'node-schedule';
-import { modActions } from '../../Scripts/networkLogs/modActions';
 import { PrismaClient } from '@prisma/client';
 import { hubs } from '@prisma/client';
 import 'dotenv/config';
@@ -167,112 +164,6 @@ export function badgeToEmoji(badgeArr: string[]) {
     if (badgeName in tempbadge) badgeEmojis.push(tempbadge[badgeName]);
   });
   return badgeEmojis;
-}
-
-export async function addUserBlacklist(hubId: string, moderator: discord.User, user: discord.User | string, reason: string, expires?: Date | number, notifyUser = true) {
-  if (typeof user === 'string') user = await moderator.client.users.fetch(user);
-  if (typeof expires === 'number') expires = new Date(Date.now() + expires);
-
-  const dbUser = await _prisma.blacklistedUsers.create({
-    data: {
-      hub: { connect: { id: hubId } },
-      userId: user.id,
-      username: user.username,
-      notified: notifyUser,
-      expires,
-      reason,
-    },
-  });
-
-  // Send action to logs channel
-  modActions(moderator, {
-    user,
-    action: 'blacklistUser',
-    expires,
-    reason,
-  }).catch(() => null);
-
-  if (notifyUser) {
-    const hub = await _prisma.hubs.findUnique({ where: { id: hubId } });
-    const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
-    const embed = new discord.EmbedBuilder()
-      .setTitle(emojis.normal.blobFastBan + ' Blacklist Notification')
-      .setDescription(`You have been banned from talking in hub **${hub?.name}**.`)
-      .setColor(constants.colors.interchatBlue)
-      .setFields(
-        { name: 'Reason', value: reason, inline: true },
-        { name: 'Expires', value: expireString, inline: true },
-      );
-
-    user.send({ embeds: [embed] }).catch(async () => {
-      await _prisma.blacklistedUsers.update({ where: { userId: (user as discord.User).id }, data: { notified: false } });
-      logger.info(`Could not notify ${(user as discord.User).username} about their blacklist.`);
-    });
-  }
-
-  // set an unblacklist timer if there is an expire duration
-  if (expires) {
-    scheduleJob(`blacklist_user-${user.id}`, expires, async () => {
-      const tempUser = user as discord.User;
-      const filter = { where: { userId: tempUser.id } };
-
-      // only call .delete if the document exists
-      // or prisma will error
-      if (await _prisma.blacklistedUsers.findFirst(filter)) {
-        await _prisma.blacklistedUsers.delete(filter);
-        modActions(tempUser.client.user, {
-          user: tempUser,
-          action: 'unblacklistUser',
-          blacklistReason: dbUser.reason,
-          reason: 'Blacklist expired for user.',
-        }).catch(() => null);
-      }
-    });
-  }
-  return dbUser;
-}
-
-
-export async function addServerBlacklist(serverId: string, options: { moderator: discord.User, hubId: string, reason: string, expires?: Date }) {
-  const guild = await options.moderator.client.guilds.fetch(serverId);
-
-  const dbGuild = await _prisma.blacklistedServers.create({
-    data: {
-      hub: { connect: { id: options.hubId } },
-      reason: options.reason,
-      serverId: guild.id,
-      serverName: guild.name,
-      expires: options.expires,
-    },
-  });
-
-  // Send action to logs channel
-  modActions(options.moderator, {
-    guild: { id: guild.id, resolved: guild },
-    action: 'blacklistServer',
-    expires: options.expires,
-    reason: options.reason,
-  }).catch(() => null);
-
-  // set an unblacklist timer if there is an expire duration
-  if (options.expires) {
-    scheduleJob(`blacklist_server-${guild.id}`, options.expires, async () => {
-      const filter = { where: { hubId: options.hubId, serverId: guild.id } };
-
-      // only call .delete if the document exists
-      // or prisma will error
-      if (await _prisma.blacklistedServers.findFirst(filter)) {
-        await _prisma.blacklistedServers.deleteMany(filter);
-        modActions(guild.client.user, {
-          dbGuild,
-          action: 'unblacklistServer',
-          timestamp: new Date(),
-          reason: 'Blacklist expired for server.',
-        }).catch(() => null);
-      }
-    });
-  }
-  return dbGuild;
 }
 
 export function calculateAverageRating(ratings: number[]): number {

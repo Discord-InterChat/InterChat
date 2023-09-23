@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { constants, getDb } from '../../Utils/misc/utils';
+import { constants, getDb } from '../../Utils/utils';
 import { randomUUID } from 'crypto';
 import emojis from '../../Utils/JSON/emoji.json';
 

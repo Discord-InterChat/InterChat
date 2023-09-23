@@ -1,9 +1,9 @@
 import { stripIndents } from 'common-tags';
 import { ChannelType, AnySelectMenuInteraction, ChatInputCommandInteraction, TextChannel, ThreadChannel, ButtonInteraction } from 'discord.js';
 import { hubs } from '@prisma/client';
-import { getDb } from '../../Utils/misc/utils';
+import { getDb } from '../../Utils/utils';
+import { sendInNetwork } from '../../Utils/network';
 import emojis from '../../Utils/JSON/emoji.json';
-import sendInNetwork from '../../Utils/network/sendInNetwork';
 
 type InteractionType = AnySelectMenuInteraction | ButtonInteraction | ChatInputCommandInteraction;
 
