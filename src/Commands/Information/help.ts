@@ -154,17 +154,17 @@ export default {
               ${normal.interchatCircle} **Design:** 
               ${normal.dotBlue} @${members[6]?.username} (Mascot)
               ${normal.dotBlue} @${members[4]?.username} (Avatar)
-              ${normal.dotBlue} @${members[0].username} (Avatar)
+              ${normal.dotBlue} @${members[0]?.username} (Avatar)
               ${normal.dotBlue} @${members[5]?.username} (Server Icon)
         
               ${icons.botdev} **Developers:**
-              ${normal.dotBlue} @${members[1].username}
-              ${normal.dotBlue} @${members[2].username}
+              ${normal.dotBlue} @${members[1]?.username}
+              ${normal.dotBlue} @${members[2]?.username}
               ${normal.dotBlue} @${members[0].username}
         
               ${icons.staff} **Staff: (Recruiting!)**
               ${normal.dotBlue} @${members[4]?.username}
-              ${normal.dotBlue} @${members[3].username}
+              ${normal.dotBlue} @${members[3]?.username}
               ${normal.dotBlue} @${members[5]?.username}
         
               ${linksDivider}

@@ -3,7 +3,7 @@ import toLower from 'lodash/toLower';
 import logger from './logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
-import { badge, normal } from './JSON/emoji.json';
+import { badge } from './JSON/emoji.json';
 import { stripIndents } from 'common-tags';
 import { PrismaClient } from '@prisma/client';
 import { hubs } from '@prisma/client';
@@ -226,11 +226,10 @@ export async function deleteHubs(ids: string[]) {
 }
 
 export const rulesEmbed = new discord.EmbedBuilder()
-  .setTitle(`${normal.clipart} Network Rules`)
   .setColor(constants.colors.interchatBlue)
   .setImage('https://i.imgur.com/D2pYagc.png')
   .setDescription(stripIndents`
-  # 📜 InterChat Network Rules
+  ## 📜 InterChat Network Rules
   1. **No Spamming or Flooding:**
    Avoid repeated, nonsensical, or overly lengthy messages.
   
