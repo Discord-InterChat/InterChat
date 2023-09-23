@@ -1,6 +1,6 @@
 import { Client } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
-import { modActions } from '../../Scripts/networkLogs/modActions';
+import { modActions } from '../Scripts/networkLogs/modActions';
 import { getDb } from './utils';
 
 /** A function to start timers for blacklist expiry, messageData cleanup, etc. */
@@ -32,7 +32,8 @@ export default async function startTimers(client: Client<true>) {
 
       modActions(client.user, {
         action: 'unblacklistServer',
-        dbGuild: blacklist,
+        serverId: blacklist.serverId,
+        serverName: blacklist.serverName,
         timestamp: new Date(),
       });
       return;
@@ -43,7 +44,8 @@ export default async function startTimers(client: Client<true>) {
 
       modActions(client.user, {
         action: 'unblacklistServer',
-        dbGuild: blacklist,
+        serverId: blacklist.serverId,
+        serverName: blacklist.serverName,
         reason: 'Blacklist expired.',
         timestamp: new Date(),
       });

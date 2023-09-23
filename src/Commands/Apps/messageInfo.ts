@@ -1,7 +1,8 @@
 import { ActionRowBuilder, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, ContextMenuCommandBuilder, EmbedBuilder, MessageContextMenuCommandInteraction } from 'discord.js';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { constants, getDb } from '../../Utils/utils';
 import { stripIndents } from 'common-tags';
 import { profileImage } from 'discord-arts';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   description: 'Get information about this message, user and server it was sent from!',
@@ -11,7 +12,6 @@ export default {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const db = getDb();
     const target = interaction.targetMessage;
-    const emotes = interaction.client.emotes.normal;
     const networkMessage = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: target.id } } },
       include: { hub: true },
@@ -31,7 +31,7 @@ export default {
     const embed = new EmbedBuilder()
       .setThumbnail(author.displayAvatarURL())
       .setDescription(stripIndents`
-        ## ${emotes.clipart} Message Info
+        ## ${emojis.normal.clipart} Message Info
 
         **Sent By:** 
         __${author.username}__${author.discriminator !== '0' ? `#${author.discriminator}` : ''} ${author.bot ? '(Bot)' : ''}
@@ -88,7 +88,7 @@ export default {
         const guildSetup = await db.connectedList.findFirst({ where: { serverId: networkMessage.serverId } });
 
         const serverEmbed = new EmbedBuilder()
-          .setColor(colors('invisible'))
+          .setColor(constants.colors.invisible)
           .setThumbnail(server.iconURL())
           .setImage(server.bannerURL())
           .setDescription(stripIndents`
@@ -119,7 +119,7 @@ export default {
             new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder()
               .setStyle(ButtonStyle.Link)
               .setURL(`https://discord.gg/${guildSetup?.invite}`)
-              .setEmoji(interaction.client.emotes.icons.join)
+              .setEmoji(emojis.icons.join)
               .setLabel('Join')),
           );
         }

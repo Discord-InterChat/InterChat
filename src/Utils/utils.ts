@@ -1,12 +1,10 @@
 import startCase from 'lodash/startCase';
 import toLower from 'lodash/toLower';
-import logger from '../logger';
+import logger from './logger';
 import discord from 'discord.js';
 import { Api } from '@top-gg/sdk';
-import { badge, normal } from '../JSON/emoji.json';
+import { badge, normal } from './JSON/emoji.json';
 import { stripIndents } from 'common-tags';
-import { scheduleJob } from 'node-schedule';
-import { modActions } from '../../Scripts/networkLogs/modActions';
 import { PrismaClient } from '@prisma/client';
 import { hubs } from '@prisma/client';
 import 'dotenv/config';
@@ -27,7 +25,7 @@ export const constants = {
     hubReviews: '1102625912274550884',
   },
   colors: {
-    random: [
+    all: [
       'Default',
       'White',
       'Aqua',
@@ -60,7 +58,7 @@ export const constants = {
       'NotQuiteBlack',
       'Random',
     ] as (keyof typeof discord.Colors)[],
-    chatbot: '#5CB5F9' as discord.HexColorString,
+    interchatBlue: '#5CB5F9' as discord.HexColorString,
     invisible: '#2F3136' as discord.HexColorString,
     christmas:['#00B32C', '#D6001C', '#FFFFFF'] as discord.HexColorString[],
   },
@@ -91,10 +89,6 @@ export function getGuildName(client: discord.Client, gid: string | null) {
   return client.guilds.cache.get(gid)?.name;
 }
 
-/** Random color generator for embeds */
-export function colors(type: keyof typeof constants.colors = 'random') {
-  return type === 'christmas' || type === 'random' ? choice(constants.colors[type]) : constants.colors[type] ;
-}
 /** Return a random element from an array */
 export function choice<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -172,113 +166,6 @@ export function badgeToEmoji(badgeArr: string[]) {
   return badgeEmojis;
 }
 
-export async function addUserBlacklist(hubId: string, moderator: discord.User, user: discord.User | string, reason: string, expires?: Date | number, notifyUser = true) {
-  if (typeof user === 'string') user = await moderator.client.users.fetch(user);
-  if (typeof expires === 'number') expires = new Date(Date.now() + expires);
-
-  const dbUser = await _prisma.blacklistedUsers.create({
-    data: {
-      hub: { connect: { id: hubId } },
-      userId: user.id,
-      username: user.username,
-      notified: notifyUser,
-      expires,
-      reason,
-    },
-  });
-
-  // Send action to logs channel
-  modActions(moderator, {
-    user,
-    action: 'blacklistUser',
-    expires,
-    reason,
-  }).catch(() => null);
-
-  if (notifyUser) {
-    const hub = await _prisma.hubs.findUnique({ where: { id: hubId } });
-    const emotes = user.client.emotes.normal;
-    const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
-    const embed = new discord.EmbedBuilder()
-      .setTitle(emotes.blobFastBan + ' Blacklist Notification')
-      .setDescription(`You have been banned from talking in hub **${hub?.name}**.`)
-      .setColor(colors('chatbot'))
-      .setFields(
-        { name: 'Reason', value: reason, inline: true },
-        { name: 'Expires', value: expireString, inline: true },
-      );
-
-    user.send({ embeds: [embed] }).catch(async () => {
-      await _prisma.blacklistedUsers.update({ where: { userId: (user as discord.User).id }, data: { notified: false } });
-      logger.info(`Could not notify ${(user as discord.User).username} about their blacklist.`);
-    });
-  }
-
-  // set an unblacklist timer if there is an expire duration
-  if (expires) {
-    scheduleJob(`blacklist_user-${user.id}`, expires, async () => {
-      const tempUser = user as discord.User;
-      const filter = { where: { userId: tempUser.id } };
-
-      // only call .delete if the document exists
-      // or prisma will error
-      if (await _prisma.blacklistedUsers.findFirst(filter)) {
-        await _prisma.blacklistedUsers.delete(filter);
-        modActions(tempUser.client.user, {
-          user: tempUser,
-          action: 'unblacklistUser',
-          blacklistReason: dbUser.reason,
-          reason: 'Blacklist expired for user.',
-        }).catch(() => null);
-      }
-    });
-  }
-  return dbUser;
-}
-
-
-export async function addServerBlacklist(serverId: string, options: { moderator: discord.User, hubId: string, reason: string, expires?: Date }) {
-  const guild = await options.moderator.client.guilds.fetch(serverId);
-
-  const dbGuild = await _prisma.blacklistedServers.create({
-    data: {
-      hub: { connect: { id: options.hubId } },
-      reason: options.reason,
-      serverId: guild.id,
-      serverName: guild.name,
-      expires: options.expires,
-    },
-  });
-
-  // Send action to logs channel
-  modActions(options.moderator, {
-    guild: { id: guild.id, resolved: guild },
-    action: 'blacklistServer',
-    expires: options.expires,
-    reason: options.reason,
-  }).catch(() => null);
-
-  // set an unblacklist timer if there is an expire duration
-  if (options.expires) {
-    scheduleJob(`blacklist_server-${guild.id}`, options.expires, async () => {
-      const filter = { where: { hubId: options.hubId, serverId: guild.id } };
-
-      // only call .delete if the document exists
-      // or prisma will error
-      if (await _prisma.blacklistedServers.findFirst(filter)) {
-        await _prisma.blacklistedServers.deleteMany(filter);
-        modActions(guild.client.user, {
-          dbGuild,
-          action: 'unblacklistServer',
-          timestamp: new Date(),
-          reason: 'Blacklist expired for server.',
-        }).catch(() => null);
-      }
-    });
-  }
-  return dbGuild;
-}
-
 export function calculateAverageRating(ratings: number[]): number {
   if (ratings.length === 0) return 0;
 
@@ -340,30 +227,40 @@ export async function deleteHubs(ids: string[]) {
 
 export const rulesEmbed = new discord.EmbedBuilder()
   .setTitle(`${normal.clipart} Network Rules`)
-  .setColor(colors('chatbot'))
+  .setColor(constants.colors.interchatBlue)
   .setImage('https://i.imgur.com/D2pYagc.png')
   .setDescription(stripIndents`
-    1. **No spamming or flooding.**
-    > This includes sending the same message multiple times, sending messages that are gibberish, or sending messages that are excessively long.
-    2. **Use English.** (*Applies to InterChat Central hub only.*)
-    > Our staff should be able to understand what you are saying to moderate the network. If you are not a native English speaker, you may use a translator.
-    3. **Advertising of any kind is prohibited.**
-    > This includes advertising your own server, social media, or other services.
-    4. **Private matters should not be discussed in the network.**
-    > Revealing personal information on a public network that sends messages to hundreads of servers is not a good idea.
-    5. **Do not make the chat uncomfortable for other users.**
-    > Be respectful of other users and their opinions. Do not make the chat uncomfortable for other users. 
-    6. **Using slurs or derogatory language is not allowed.**
-    > This includes using slurs or derogatory language in a joking manner.
-    7. **Refrain from using bot commands in the network.**
-    > Knowing that the network sends your messages to other servers, random bot commands can be annoying to other users.
-    8. **Trolling, insulting, or harassing other users is not allowed.**
-    > ...self explanatory. 
-    9. **Posting explicit or NSFW content will result in an immediate blacklist.**
-    > The network is a SFW place. Posting NSFW content will result in an immediate blacklist.
-    10. **Trivialization of sensitive topics are not allowed.**
-    > This includes self-harm, suicide, violence and anything offensive in general.
-    11. **Don't evade InterChat's chat filters.**
-    > They have been put in place for a very obvious reason and as such, evading of them will not be tolerated. 
-    *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,
+  # 📜 InterChat Network Rules
+  1. **No Spamming or Flooding:**
+   Avoid repeated, nonsensical, or overly lengthy messages.
+  
+  2. **English Only in Central Hub:**
+   Use English for easy moderation. Non-native speakers may use a translator.
+  
+  3. **No Advertising:**
+   No promotion of servers, social media, or other services.
+  
+  4. **Keep Private Matters Private:**
+   Avoid sharing personal information across the network.
+  
+  5. **Maintain a Respectful Environment:**
+   Be considerate of others and their views. No slurs, derogatory language or any actions that can disrupt the chat's comfort.
+  
+  6. **No Bot Commands:**
+   Refrain from using bot commands that can be disruptive to other servers.
+  
+  7. **No Harassment:**
+   Trolling, insults, or harassment of any kind are not tolerated.
+  
+  8. **No NSFW Content:**
+   Posting explicit or NSFW content will result in immediate blacklist.
+  
+  9. **Respect Sensitive Topics:**
+   Do not trivialize self-harm, suicide, violence, or other offensive topics.
+  
+  10. **Adhere to Chat Filters:**
+   Evading InterChat's chat filters will not be tolerated.
+  
+  Any questions? Join our [support server](https://discord.gg/6bhXQynAPs).
+  `,
   );

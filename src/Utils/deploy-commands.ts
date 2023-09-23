@@ -1,29 +1,28 @@
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord.js';
 import { stripIndent } from 'common-tags';
-import { join } from 'path';
 import { constants } from './utils';
 
 import fs from 'fs';
-import logger from '../logger';
+import logger from './logger';
 import 'dotenv/config';
 
 const clientID = process.env.CLIENT_ID as string;
 const server = process.argv[3]?.toLowerCase() || constants.guilds.cbhq;
 const staffCommands = ['Developer', 'Staff'];
+const commandsPath = 'build/src/Commands';
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN as string);
 
 function deployCommands() {
   const commands: unknown[] = [];
-  const commandsPath = join(__dirname, '..', '..', 'Commands');
 
   fs.readdirSync(commandsPath).forEach((dir) => {
     if (!staffCommands.includes(dir) && fs.statSync(`${commandsPath}/${dir}`).isDirectory()) {
       const commandFiles = fs.readdirSync(`${commandsPath}/${dir}`).filter(file => file.endsWith('.js'));
 
       for (const commandFile of commandFiles) {
-        const command = require(`../../Commands/${dir}/${commandFile}`);
+        const command = require(`../Commands/${dir}/${commandFile}`);
         commands.push(command.default.data.toJSON());
       }
     }
@@ -37,14 +36,13 @@ function deployCommands() {
 
 function deployStaffCommands() {
   const commands: unknown[] = [];
-  const commandsPath = join(__dirname, '..', '..', 'Commands');
 
   fs.readdirSync(commandsPath).forEach((dir) => {
     if (staffCommands.includes(dir) && fs.statSync(`${commandsPath}/${dir}`).isDirectory()) {
       const commandFiles = fs.readdirSync(`${commandsPath}/${dir}`).filter(file => file.endsWith('.js'));
 
       for (const commandFile of commandFiles) {
-        const command = require(`../../Commands/${dir}/${commandFile}`);
+        const command = require(`../Commands/${dir}/${commandFile}`);
         commands.push(command.default.data.toJSON());
       }
     }

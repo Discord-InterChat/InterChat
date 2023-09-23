@@ -1,8 +1,9 @@
 import { stripIndents } from 'common-tags';
-import { colors, constants } from '../../Utils/functions/utils';
+import { constants } from '../../Utils/utils';
 import { EmbedBuilder, Guild, User } from 'discord.js';
 import { blacklistedServers } from '.prisma/client';
 import { captureMessage } from '@sentry/node';
+import emojis from '../../Utils/JSON/emoji.json';
 
 interface actionUser {
   user: User;
@@ -41,7 +42,8 @@ interface disconnectServer extends actionServer {
 }
 
 interface unblacklistServer {
-  dbGuild: blacklistedServers;
+  serverName: string;
+  serverId: string;
   action: 'unblacklistServer';
   timestamp: Date;
   reason?: string | null;
@@ -57,7 +59,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
   if (!action.reason) action.reason = 'No reason provided.';
 
   const modLogs = await moderator.client.channels.fetch(constants.channel.modlogs);
-  const emoji = moderator.client.emotes;
+  const emoji = emojis;
 
   if (!modLogs?.isTextBased()) return captureMessage('Modlogs channel is not text based. (modActions.ts)', 'warning');
 
@@ -84,7 +86,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
               { name: 'Reason', value: action.reason, inline: true },
               { name: 'Blacklist Expires', value: action.expires ? `<t:${Math.round(action.expires.getTime() / 1000)}:R>` : 'Never.', inline: true },
             )
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;
@@ -104,7 +106,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
               { name: 'Reason', value: action.reason, inline: true },
               { name: 'Blacklist Expires', value: action.expires ? `<t:${Math.round(action.expires.getTime() / 1000)}:R>` : 'Never.', inline: true },
             )
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;
@@ -115,7 +117,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
           new EmbedBuilder()
             .setAuthor({ name: moderator.username, iconURL: moderator.avatarURL()?.toString() })
             .setTitle('User Unblacklisted')
-            .setColor(colors('chatbot'))
+            .setColor(constants.colors.interchatBlue)
             .setDescription(stripIndents`
               ${emoji.normal.dotBlue} **User:** ${action.user.username} (${action.user.id})
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
@@ -129,19 +131,19 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
       break;
 
     case 'unblacklistServer': {
-      const server = await moderator.client.guilds.fetch(action.dbGuild.serverId).catch(() => null);
+      const server = await moderator.client.guilds.fetch(action.serverId).catch(() => null);
       await modLogs.send({
         embeds: [
           new EmbedBuilder()
-            .setAuthor({ name: `${server?.name || action.dbGuild.serverName}`, iconURL: server?.iconURL()?.toString() })
+            .setAuthor({ name: `${server?.name || action.serverName}`, iconURL: server?.iconURL()?.toString() })
             .setTitle('Server Unblacklisted')
             .setDescription(stripIndents`
-              ${emoji.normal.dotBlue} **Server:** ${server?.name || action.dbGuild.serverName} (${action.dbGuild.serverId})
+              ${emoji.normal.dotBlue} **Server:** ${server?.name || action.serverName} (${action.serverId})
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
              `)
             .addFields({ name: 'Reason', value: action.reason })
             .setTimestamp(action.timestamp)
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;
@@ -158,7 +160,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               ${emoji.normal.dotBlue} **Reason:** ${action.reason}
               `)
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;
@@ -174,7 +176,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               ${emoji.normal.dotBlue} **Reason:** ${action.reason}
               `)
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;

@@ -1,9 +1,9 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { sendInFirst } from '../../Utils/functions/utils';
+import { sendInFirst } from '../../Utils/utils';
 import logger from '../../Utils/logger';
 import { modActions } from '../networkLogs/modActions';
 
-export = {
+export default {
   execute: async (interaction: ChatInputCommandInteraction) => {
     const serverOpt = interaction.options.getString('server', true);
     const reason = interaction.options.getString('reason', true);

@@ -1,6 +1,7 @@
 import { captureException } from '@sentry/node';
 import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { getDb, toHuman } from '../../Utils/functions/utils';
+import { getDb, toHuman } from '../../Utils/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   staff: true,
@@ -98,7 +99,7 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
     const limit = interaction.options.getInteger('limit') || 100;
-    const emoji = interaction.client.emotes;
+    const emoji = emojis;
     const { messageData, connectedList } = getDb();
     const channelInHub = await connectedList.findFirst({ where: { channelId: interaction.channelId, connected: true } });
 

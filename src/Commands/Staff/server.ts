@@ -32,6 +32,6 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
 
-    await require(`../../Scripts/server/${subcommand}`).execute(interaction);
+    await (await import(`../../Scripts/server/${subcommand}`)).default.execute(interaction);
   },
 };

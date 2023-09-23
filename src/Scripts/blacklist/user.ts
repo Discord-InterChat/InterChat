@@ -1,9 +1,11 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { cancelJob } from 'node-schedule';
-import { getDb, addUserBlacklist } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/utils';
 import { modActions } from '../networkLogs/modActions';
+import emojis from '../../Utils/JSON/emoji.json';
+import { addUserBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommandGroup = interaction.options.getSubcommandGroup();
     const hubName = interaction.options.getString('hub', true);
@@ -57,8 +59,10 @@ export = {
       }
 
       await addUserBlacklist(hubInDb.id, interaction.user, user, String(reason), expires);
+      if (expires) scheduleUnblacklist('user', interaction.client, user.id, hubInDb.id, expires);
+
       const successEmbed = new EmbedBuilder()
-        .setDescription(`${interaction.client.emotes.normal.tick} **${user.username}** has been successfully blacklisted!`)
+        .setDescription(`${emojis.normal.tick} **${user.username}** has been successfully blacklisted!`)
         .setColor('Green')
         .addFields(
           {

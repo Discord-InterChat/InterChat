@@ -1,8 +1,8 @@
 import { EmbedBuilder, ActionRowBuilder, ChatInputCommandInteraction, TextInputBuilder, ModalBuilder, TextInputStyle, ChannelType } from 'discord.js';
-import { colors, constants } from '../../Utils/functions/utils';
+import { constants } from '../../Utils/utils';
 import logger from '../../Utils/logger';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const suggestionChannel = await interaction.client.channels.fetch(constants.channel.suggestions);
 
@@ -50,7 +50,7 @@ export = {
         .setAuthor({ name: `Suggested by @${modalInteraction.user.username}`, iconURL: modalInteraction.user.displayAvatarURL() })
         .setDescription(description)
         .setImage(attachment?.url as string | null)
-        .setColor(colors('chatbot'))
+        .setColor(constants.colors.interchatBlue)
         .addFields({
           name: 'Status',
           value: '🧑‍💻 Pending',

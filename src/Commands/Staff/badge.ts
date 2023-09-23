@@ -1,4 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import list from '../../Scripts/badge/list';
 
 export default {
   staff: true,
@@ -65,14 +66,14 @@ export default {
     ),
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
-    const user = interaction.options.getUser('user');
+    const user = interaction.options.getUser('user', true);
     const badge = interaction.options.getString('badge');
 
     if (subcommand === 'list') {
-      require('../../Scripts/badge/list').execute(interaction, user);
+      list.execute(interaction, user);
     }
     else {
-      require(`../../Scripts/badge/${subcommand}`).execute(interaction, user, badge);
+      (await import(`../../Scripts/badge/${subcommand}`)).default.execute(interaction, user, badge);
     }
   },
 };

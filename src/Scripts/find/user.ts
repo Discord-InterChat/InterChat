@@ -1,6 +1,7 @@
 import { EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { constants, getDb } from '../../Utils/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 
 const embedGen = async (user: User) => {
@@ -10,11 +11,11 @@ const embedGen = async (user: User) => {
     .filter((guild) => guild.ownerId == user.id)
     .map((guild) => guild.name);
 
-  const { icons } = user.client.emotes;
+  const { icons } = emojis;
 
   return new EmbedBuilder()
     .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
-    .setColor(colors('invisible'))
+    .setColor(constants.colors.invisible)
     .setImage(user.bannerURL({ size: 1024 }) || null)
     .setThumbnail(user.avatarURL())
     .addFields([
@@ -36,7 +37,7 @@ const embedGen = async (user: User) => {
 };
 
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction, userId: string, hidden: boolean) {
     const user = await interaction.client.users.fetch(userId).catch(() => null);
     if (!user) return interaction.reply({ content: 'Unknown user. Try using user\'s ID instead if you used username.', ephemeral: true });

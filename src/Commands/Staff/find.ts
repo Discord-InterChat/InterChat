@@ -29,7 +29,7 @@ export default {
     const type = interaction.options.getString('type');
     const hidden = interaction.options.getBoolean('hidden') ?? true;
 
-    require(`../../Scripts/find/${type}`).execute(interaction, targetId, hidden);
+    (await import(`../../Scripts/find/${type}`)).default.execute(interaction, targetId, hidden);
   },
 
   async autocomplete(interaction: AutocompleteInteraction) {

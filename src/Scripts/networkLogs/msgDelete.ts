@@ -1,11 +1,10 @@
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, GuildMember, GuildTextBasedChannel, Message } from 'discord.js';
-import { getDb, constants } from '../../Utils/functions/utils';
-
+import { getDb, constants } from '../../Utils/utils';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export async function networkMessageDelete(deletedBy: GuildMember | null, message: Message) {
   const db = getDb();
-  const emojis = message.client.emotes.normal;
   const messageInDb = await db?.messageData.findFirst({
     where: { channelAndMessageIds: { some: { messageId: { equals: message.id } } } },
   });
@@ -26,10 +25,10 @@ export async function networkMessageDelete(deletedBy: GuildMember | null, messag
     .setDescription(stripIndents`
         ${messageContent}
 
-        ${emojis.dotRed} **Author:** ${author?.username} (${author?.id})
-        ${emojis.dotRed} **Deleted From:** ${deletedFrom?.name || 'Unknown'} (${messageInDb.serverId})
-        ${emojis.dotRed} **Attachments:** ${attachmentLink ? `[Click to view](${attachmentLink})` : 'None.'}
-        ${emojis.dotRed} **Created At:** <t:${Math.round(message.createdAt.getTime() / 1000)}:R>`)
+        ${emojis.normal.dotRed} **Author:** ${author?.username} (${author?.id})
+        ${emojis.normal.dotRed} **Deleted From:** ${deletedFrom?.name || 'Unknown'} (${messageInDb.serverId})
+        ${emojis.normal.dotRed} **Attachments:** ${attachmentLink ? `[Click to view](${attachmentLink})` : 'None.'}
+        ${emojis.normal.dotRed} **Created At:** <t:${Math.round(message.createdAt.getTime() / 1000)}:R>`)
     .setFooter({
       text: `Deleted By: @${deletedBy?.user.username}`,
       iconURL: deletedBy?.user.avatarURL() || deletedBy?.user.defaultAvatarURL,

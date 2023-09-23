@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder, ForumChannel } from 'discord.js';
-import { colors, constants } from '../../Utils/functions/utils';
+import { constants } from '../../Utils/utils';
 
 export default {
   execute: async (interaction: ChatInputCommandInteraction) => {
@@ -34,7 +34,7 @@ export default {
         embeds: [
           new EmbedBuilder()
             .setDescription('*This suggestion was taken down.*')
-            .setColor(colors('invisible')),
+            .setColor(constants.colors.invisible),
         ],
       });
     }

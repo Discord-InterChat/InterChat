@@ -1,5 +1,6 @@
 import { connectedList } from '@prisma/client';
-import { getDb } from '../Utils/functions/utils';
+import { getDb } from './utils';
+import { WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 
 const { connectedList } = getDb();
 
@@ -30,4 +31,18 @@ export async function disconnect(channelId: string) {
   return channelExists;
 }
 
-export default { reconnect, disconnect };
+export async function sendInNetwork(message: string | WebhookMessageCreateOptions, hubId: string) {
+  if (typeof message !== 'string' && !message.username && !message.avatarURL) {
+    message.username = 'InterChat Network';
+    message.avatarURL = 'https://i.imgur.com/jHHkSrf.png';
+  }
+
+  const channels = await getDb().connectedList.findMany({ where: { hubId, connected: true } });
+
+  channels?.forEach(async (channelEntry) => {
+    const webhookClient = new WebhookClient({ url: channelEntry.webhookURL });
+    await webhookClient.send(message);
+  });
+}
+
+export default { reconnect, disconnect, sendInNetwork };

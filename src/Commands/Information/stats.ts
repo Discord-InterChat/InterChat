@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { toHuman, getDb, colors } from '../../Utils/functions/utils';
+import { toHuman, getDb, constants } from '../../Utils/utils';
 import { totalmem } from 'os';
 
 export default {
@@ -17,7 +17,7 @@ export default {
     const supportServer = 'https://discord.gg/6bhXQynAPs';
 
     const embed = new EmbedBuilder()
-      .setColor(colors('chatbot'))
+      .setColor(constants.colors.interchatBlue)
       .setTitle(`${interaction.client.user.username} Statistics`)
       .setDescription(`__Networks__: ${connectionCount} • __Network Messges__: ${totalNetworkMessages}`)
       .setFooter({ text: 'Network Messages reset every 24 hours.' })

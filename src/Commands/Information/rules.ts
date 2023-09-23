@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
-import { rulesEmbed } from '../../Utils/functions/utils';
+import { rulesEmbed } from '../../Utils/utils';
 
 export default {
   data: new SlashCommandBuilder()

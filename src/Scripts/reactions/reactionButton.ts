@@ -1,7 +1,7 @@
 import { ButtonInteraction } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/utils';
 import updateMessageReactions from '../reactions/updateMessage';
-import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
+import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
 
 export default {
   async execute(interaction: ButtonInteraction) {
@@ -62,6 +62,6 @@ export default {
     });
 
     // Update the message
-    updateMessageReactions(connections, messageInDb.channelAndMessageIds, dbReactions);
+    updateMessageReactions.execute(connections, messageInDb.channelAndMessageIds, dbReactions);
   },
 };

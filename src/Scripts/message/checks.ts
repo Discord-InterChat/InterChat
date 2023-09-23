@@ -1,12 +1,13 @@
-import wordFilter from '../../Utils/functions/wordFilter';
+import wordFilter from '../../Utils/wordFilter';
 import antiSpam from './antispam';
+import emojis from '../../Utils/JSON/emoji.json';
 import { Message } from 'discord.js';
 import { slurs } from '../../Utils/JSON/badwords.json';
-import { addUserBlacklist, getDb, replaceLinks } from '../../Utils/functions/utils';
+import { getDb, replaceLinks } from '../../Utils/utils';
 import { connectedList } from '@prisma/client';
-import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
-
-export = {
+import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
+import { addUserBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
+export default {
   async execute(message: Message, networkData: connectedList, settings: HubSettingsBitField) {
     // true = pass, false = fail (checks)
 
@@ -28,10 +29,13 @@ export = {
     if (serverInBlacklist) return false;
 
     if (settings.has('SpamFilter')) {
-      const antiSpamResult = antiSpam(message.author, 3);
+      const antiSpamResult = antiSpam.execute(message.author, 3);
       if (antiSpamResult) {
-        if (antiSpamResult.infractions >= 3) addUserBlacklist(networkData.hubId, message.client.user, message.author, 'Auto-blacklisted for spamming.', 60 * 5000);
-        message.react(message.client.emotes.icons.timeout);
+        if (antiSpamResult.infractions >= 3) {
+          await addUserBlacklist(networkData.hubId, message.client.user, message.author, 'Auto-blacklisted for spamming.', 60 * 5000);
+          scheduleUnblacklist('user', message.client, message.author.id, networkData.hubId, 60 * 5000);
+        }
+        message.react(emojis.icons.timeout).catch(() => null);
         return false;
       }
 

@@ -1,5 +1,5 @@
 import { AutocompleteInteraction, ChatInputCommandInteraction, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/utils';
 
 export default {
   data: new SlashCommandBuilder()
@@ -173,7 +173,7 @@ export default {
       });
     }
 
-    require(`../../Scripts/blacklist/${subCommand}`).execute(interaction, hubInDb);
+    (await import(`../../Scripts/blacklist/${subCommand}`)).default.execute(interaction, hubInDb);
   },
 
   async autocomplete(interaction: AutocompleteInteraction) {

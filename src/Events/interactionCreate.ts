@@ -1,9 +1,10 @@
 import { Interaction } from 'discord.js';
-import { checkIfStaff } from '../Utils/functions/utils';
+import { checkIfStaff } from '../Utils/utils';
 import { captureException } from '@sentry/node';
 import logger from '../Utils/logger';
 import reactionButton from '../Scripts/reactions/reactionButton';
 import viewReactionsMenu from '../Scripts/reactions/viewReactionsMenu';
+import { formatErrorCode } from '../Utils/errorHandler';
 
 export default {
   name: 'interactionCreate',
@@ -23,7 +24,7 @@ export default {
         interaction.client.reactionCooldowns.set(interaction.user.id, Date.now() + 3000);
         reactionButton.execute(interaction);
       }
-      else if (customId === 'view_all_reactions') {viewReactionsMenu(interaction);}
+      else if (customId === 'view_all_reactions') {viewReactionsMenu.execute(interaction);}
     }
 
     else if (interaction.isAutocomplete()) {
@@ -58,26 +59,14 @@ export default {
           });
         }
       }
-
-      try {
-        await command.execute(interaction);
-      }
-
-      catch (error) {
-        logger.error(`[${interaction.commandName}]:`, error);
-        captureException(error, {
-          user: { id: interaction.user.id, username: interaction.user.username },
-          extra: { command: interaction.commandName },
+      command.execute(interaction)
+        .catch((e) => {
+          logger.error(e);
+          captureException(e);
+          (interaction.replied || interaction.deferred
+            ? interaction.followUp({ content: formatErrorCode(e), ephemeral: true })
+            : interaction.reply({ content: formatErrorCode(e), ephemeral: true })).catch(() => null);
         });
-
-        const errorMsg = {
-          content: 'There was an error while executing this command! The developers have been notified.',
-          ephemeral: true,
-        };
-        interaction.replied || interaction.deferred
-          ? await interaction.followUp(errorMsg).catch(() => null)
-          : await interaction.reply(errorMsg).catch(() => null);
-      }
     }
   },
 };

@@ -1,9 +1,10 @@
 import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder } from 'discord.js';
 import { networkMsgUpdate } from '../../Scripts/networkLogs/msgUpdate';
-import { checkIfStaff, getDb, getGuildName, replaceLinks, topgg } from '../../Utils/functions/utils';
-import wordFiler from '../../Utils/functions/wordFilter';
+import { checkIfStaff, getDb, getGuildName, replaceLinks, topgg } from '../../Utils/utils';
 import { captureException } from '@sentry/node';
-import { HubSettingsBitField } from '../../Utils/hubs/hubSettingsBitfield';
+import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
+import wordFiler from '../../Utils/wordFilter';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   description: 'Edit a message that was sent in the network.',
@@ -15,7 +16,7 @@ export default {
 
     if (!await topgg.hasVoted(interaction.user.id) && !checkIfStaff(interaction.user.id)) {
       await interaction.reply({
-        content: `${interaction.client.emotes.normal.no} You must [vote](<https://top.gg/bot/${interaction.client.user.id}/vote>) to use this command.`,
+        content: `${emojis.normal.no} You must [vote](<https://top.gg/bot/${interaction.client.user.id}/vote>) to use this command.`,
         ephemeral: true,
       });
       return;
@@ -82,7 +83,7 @@ export default {
 
     if (newMessage.includes('discord.gg') || newMessage.includes('discord.com/invite') || newMessage.includes('dsc.gg')) {
       editInteraction.reply({
-        content: `${interaction.client.emotes.normal.no} Do not advertise or promote servers in the network. Set an invite in \`/network manage\` instead!`,
+        content: `${emojis.normal.no} Do not advertise or promote servers in the network. Set an invite in \`/network manage\` instead!`,
         ephemeral: true,
       });
       return;
@@ -128,7 +129,7 @@ export default {
     });
 
     editInteraction.reply({
-      content: `${interaction.client.emotes.normal.yes} Message Edited. Please give a few seconds for it to reflect in all connections.`,
+      content: `${emojis.normal.yes} Message Edited. Please give a few seconds for it to reflect in all connections.`,
       ephemeral: true,
     });
 

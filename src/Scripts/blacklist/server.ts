@@ -2,10 +2,11 @@ import { hubs } from '@prisma/client';
 import { captureException } from '@sentry/node';
 import { logger } from '@sentry/utils';
 import { ChatInputCommandInteraction } from 'discord.js';
-import { getDb, addServerBlacklist } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/utils';
 import { modActions } from '../networkLogs/modActions';
+import { addServerBlacklist, notifyBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction, hub: hubs) {
     const serverOpt = interaction.options.getString('server', true);
     const subCommandGroup = interaction.options.getSubcommandGroup();
@@ -39,9 +40,8 @@ export = {
       }
 
       try {
-        await addServerBlacklist(server.id, { moderator: interaction.user, expires, reason, hubId: hub.id });
+        await addServerBlacklist(server.id, interaction.user, hub.id, reason, expires);
         await connectedList.delete({ where: { channelId: serverSetup?.channelId } });
-        interaction.followUp(`Blacklisted **${server.name}** for reason \`${reason}\`.`);
       }
       catch (err) {
         logger.error(err);
@@ -49,15 +49,14 @@ export = {
         interaction.followUp(`Failed to blacklist **${server.name}**. Enquire with the bot developer for more information.`);
       }
 
+      if (expires && interaction.guildId) scheduleUnblacklist('server', interaction.client, interaction.guildId, hub.id, expires);
+      await interaction.followUp(`Blacklisted **${server.name}** for reason \`${reason}\`.`);
+
+
       // TODO: Use embeds for notifications?
       if (serverSetup) {
-        try {
-          const channel = await interaction.client.channels.fetch(serverSetup.channelId);
-          if (channel?.isTextBased()) channel.send(`This server has been blacklisted from hub **${hub.name}** for reason \`${reason}\`.`);
-        }
-        catch {
-          /* empty */
-        }
+        const channel = await interaction.client.channels.fetch(serverSetup.channelId);
+        if (channel?.isTextBased()) notifyBlacklist(channel, hub.id, expires, reason).catch(() => null);
       }
     }
     else if (subCommandGroup == 'remove') {
@@ -69,7 +68,8 @@ export = {
       interaction.reply(`The server **${serverInBlacklist.serverName}** has been removed from the blacklist.`);
 
       modActions(interaction.user, {
-        dbGuild: serverInBlacklist,
+        serverId: serverInBlacklist.serverId,
+        serverName: serverInBlacklist.serverName,
         action: 'unblacklistServer',
         timestamp: new Date(),
         reason,

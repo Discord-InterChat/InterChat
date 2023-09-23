@@ -1,11 +1,14 @@
-import { getDb, constants, colors } from '../../Utils/functions/utils';
+import { getDb, constants } from '../../Utils/utils';
 import { ModalBuilder, ActionRowBuilder, EmbedBuilder, ContextMenuCommandBuilder, ApplicationCommandType, TextInputStyle, TextInputBuilder, MessageContextMenuCommandInteraction, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType, ButtonBuilder, ButtonStyle } from 'discord.js';
-import logger from '../../Utils/logger';
 import { captureException } from '@sentry/node';
+import logger from '../../Utils/logger';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   description: 'Report a user directly from the Chat Network!',
-  data: new ContextMenuCommandBuilder().setName('Report').setType(ApplicationCommandType.Message),
+  data: new ContextMenuCommandBuilder()
+    .setName('Report')
+    .setType(ApplicationCommandType.Message),
   async execute(interaction: MessageContextMenuCommandInteraction) {
     // The message the interaction is being performed on
     const target = interaction.targetMessage;
@@ -38,13 +41,11 @@ export default {
     // network channelId in chatbot hq
     const cbhqJumpMsg = messageInDb.channelAndMessageIds.find((x) => x.channelId === '821607665687330816');
 
-    const emojis = interaction.client.emotes.normal;
-
     const confirmEmbed = new EmbedBuilder()
       .setTitle('Report Type')
       .setDescription('Thank you for submitting a report. In order for our staff team to investigate, please specify the reason for your report. If you are reporting a server or bug, please use the /support report command instead.')
       .setFooter({ text: 'Submitting false reports will result in a warning.' })
-      .setColor(colors('chatbot'));
+      .setColor(constants.colors.interchatBlue);
 
     const typeSelect = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
@@ -120,7 +121,7 @@ export default {
           const embed = new EmbedBuilder()
             .setTitle('User Reported')
             .setDescription(`A new user report for \`@${reportedUser.username}\` (${reportedUser.id}) was submitted.\n\n**Reported For:** ${selections.join(', ')}`)
-            .setColor(colors('chatbot'))
+            .setColor(constants.colors.interchatBlue)
             .setTimestamp()
             .setFooter({
               text: `Reported By: ${modalSubmit.user.username} | ${modalSubmit.user.id}.`,
@@ -141,7 +142,7 @@ export default {
             components: [jumpButton],
           });
           modalSubmit.reply({
-            content: `${emojis.yes} Your report has been successfully submitted! Join the support server to check the status of your report.`,
+            content: `${emojis.normal.yes} Your report has been successfully submitted! Join the support server to check the status of your report.`,
             ephemeral: true,
           });
         })
@@ -150,7 +151,7 @@ export default {
             logger.error(e);
             captureException(e);
             interaction.followUp({
-              content: `${emojis.no} An error occored while making the report.`,
+              content: `${emojis.normal.no} An error occored while making the report.`,
               ephemeral: true,
             });
           }

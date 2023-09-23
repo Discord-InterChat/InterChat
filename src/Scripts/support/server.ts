@@ -1,12 +1,12 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { colors } from '../../Utils/functions/utils';
+import { constants } from '../../Utils/utils';
 
-export = {
+export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setTitle('InterChat Central')
       .setDescription('[Click Here](<https://discord.gg/6bhXQynAPs>)')
-      .setColor(colors('chatbot'))
+      .setColor(constants.colors.interchatBlue)
       .setTimestamp();
     await interaction.reply({ embeds: [embed] });
   },

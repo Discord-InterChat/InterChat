@@ -1,8 +1,8 @@
 import { hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { paginate } from '../../Utils/functions/paginator';
-import { colors, getDb } from '../../Utils/functions/utils';
+import { paginate } from '../../Utils/paginator';
+import { constants, getDb } from '../../Utils/utils';
 
 module.exports = {
   async execute(interaction: ChatInputCommandInteraction, hub: hubs) {
@@ -64,7 +64,7 @@ module.exports = {
         if (counter >= LIMIT || index === result.length - 1) {
           embeds.push(new EmbedBuilder()
             .setFields(fields)
-            .setColor(colors('chatbot'))
+            .setColor(constants.colors.interchatBlue)
             .setAuthor({
               name: 'Blacklisted Users:',
               iconURL: interaction.client.user?.avatarURL()?.toString(),

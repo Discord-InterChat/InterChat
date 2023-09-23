@@ -1,10 +1,10 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, ChannelType, AutocompleteInteraction } from 'discord.js';
-import { getDb } from '../../Utils/functions/utils';
+import { getDb } from '../../Utils/utils';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('hub')
-    .setDescription('...')
+    .setDescription('Interact with hubs created on InterChat!')
     // .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels)
     .setDMPermission(false)
     .addSubcommand((subcommand) => subcommand
@@ -44,6 +44,7 @@ export default {
         stringOption
           .setName('name')
           .setDescription('The name of the hub (public only)')
+          .setAutocomplete(true)
           .setRequired(false),
       )
       .addStringOption(stringOption =>
@@ -79,7 +80,7 @@ export default {
           attachment
             .setName('icon')
             .setDescription('Set an icon for this hub. Must be a valid i.imgur.com image link.')
-            .setRequired(true),
+            .setRequired(false),
         )
         .addStringOption((attachment) =>
           attachment
@@ -287,7 +288,7 @@ export default {
       ? interaction.options.getString('hub', true)
       : null;
 
-    require(`../../Scripts/hub/${subcommandGroup || subcommand}`).execute(interaction, extra);
+    (await import(`../../Scripts/hub/${subcommandGroup || subcommand}`)).default.execute(interaction, extra);
   },
   async autocomplete(interaction: AutocompleteInteraction) {
     const modCmds = ['manage', 'settings', 'connections', 'invite', 'moderator'];
@@ -298,7 +299,7 @@ export default {
     let hubChoices;
 
 
-    if (subcommand === 'browse') {
+    if (subcommand === 'browse' || subcommand === 'join') {
       hubChoices = await getDb().hubs.findMany({
         where: {
           name: { mode: 'insensitive', contains: focusedValue },
