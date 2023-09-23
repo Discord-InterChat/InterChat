@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, Interaction, StringSelectMenuBuilder, EmbedBuilder, APISelectMenuOption, ApplicationCommandType, ComponentType, Client, chatInputApplicationCommandMention, User } from 'discord.js';
-import { checkIfStaff, colors, getCredits } from '../../Utils/misc/utils';
+import { checkIfStaff, constants, getCredits } from '../../Utils/misc/utils';
 import { InterchatCommand } from '../../../typings/discord';
 import emojis from '../../Utils/JSON/emoji.json';
 import { stripIndents } from 'common-tags';
@@ -10,11 +10,11 @@ export default {
     .setDescription('Want help? Here it comes!'),
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
-      .setColor(colors('chatbot'))
+      .setColor(constants.colors.interchatBlue)
       .setThumbnail(interaction.client.user.avatarURL())
       .setFooter({ text: `Requested by @${interaction.user.username}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL })
       .setDescription(stripIndents`
-      ### About
+      ### Guide
       InterChat is a powerful discord bot that enables effortless cross-server communication with members of different servers while within the comfort of your own! Get started by looking at the categories below.
       ### Categories:
       - ⚙️ [**Setting up InterChat**](https://discord-interchat.github.io/docs/guide/setup)
@@ -32,7 +32,7 @@ export default {
             label: 'Hubs',
             value: 'hubs',
             emoji: '👥',
-            description: 'Join, leave, create, delete and use Hubs.',
+            description: 'How to join, leave, create, delete and use Hubs.',
           },
           {
             label: 'Network',
@@ -44,7 +44,7 @@ export default {
             label: 'Messaging',
             value: 'messaging',
             emoji: '💬',
-            description: 'Send, edit, delete and react to network messages!',
+            description: 'How to send, edit, delete and react to network messages!',
           },
           {
             label: 'Commands',
@@ -211,7 +211,7 @@ export default {
       .setTitle(firstCategory + ' Commands')
       .setAuthor({ name: `${interaction.client.user.username} Help`, iconURL: interaction.client.user.avatarURL() || undefined })
       .setDescription(allCommands)
-      .setColor(colors('chatbot'))
+      .setColor(constants.colors.interchatBlue)
       .setFooter({ text: `Requested by @${interaction.user.username}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
 
     const firstReply = await interaction.reply({ embeds: [embed], components: [categorySelect], ephemeral: true, fetchReply: true });
@@ -237,7 +237,7 @@ export default {
           .setTitle(category + ' Commands')
           .setAuthor({ name: `${interaction.client.user.username} Help`, iconURL: interaction.client.user.avatarURL() || undefined })
           .setDescription(allCommands)
-          .setColor(colors('chatbot'))
+          .setColor(constants.colors.interchatBlue)
           .setFooter({ text: `Requested by @${interaction.user.username}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
 
         categorySelect.components[0].options.find(option => option.data.default)?.setDefault(false);

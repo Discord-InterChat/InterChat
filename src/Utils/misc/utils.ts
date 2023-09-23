@@ -28,7 +28,7 @@ export const constants = {
     hubReviews: '1102625912274550884',
   },
   colors: {
-    random: [
+    all: [
       'Default',
       'White',
       'Aqua',
@@ -61,7 +61,7 @@ export const constants = {
       'NotQuiteBlack',
       'Random',
     ] as (keyof typeof discord.Colors)[],
-    chatbot: '#5CB5F9' as discord.HexColorString,
+    interchatBlue: '#5CB5F9' as discord.HexColorString,
     invisible: '#2F3136' as discord.HexColorString,
     christmas:['#00B32C', '#D6001C', '#FFFFFF'] as discord.HexColorString[],
   },
@@ -92,10 +92,6 @@ export function getGuildName(client: discord.Client, gid: string | null) {
   return client.guilds.cache.get(gid)?.name;
 }
 
-/** Random color generator for embeds */
-export function colors(type: keyof typeof constants.colors = 'random') {
-  return type === 'christmas' || type === 'random' ? choice(constants.colors[type]) : constants.colors[type] ;
-}
 /** Return a random element from an array */
 export function choice<T>(arr: T[]) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -202,7 +198,7 @@ export async function addUserBlacklist(hubId: string, moderator: discord.User, u
     const embed = new discord.EmbedBuilder()
       .setTitle(emojis.normal.blobFastBan + ' Blacklist Notification')
       .setDescription(`You have been banned from talking in hub **${hub?.name}**.`)
-      .setColor(colors('chatbot'))
+      .setColor(constants.colors.interchatBlue)
       .setFields(
         { name: 'Reason', value: reason, inline: true },
         { name: 'Expires', value: expireString, inline: true },
@@ -340,30 +336,40 @@ export async function deleteHubs(ids: string[]) {
 
 export const rulesEmbed = new discord.EmbedBuilder()
   .setTitle(`${normal.clipart} Network Rules`)
-  .setColor(colors('chatbot'))
+  .setColor(constants.colors.interchatBlue)
   .setImage('https://i.imgur.com/D2pYagc.png')
   .setDescription(stripIndents`
-    1. **No spamming or flooding.**
-    > This includes sending the same message multiple times, sending messages that are gibberish, or sending messages that are excessively long.
-    2. **Use English.** (*Applies to InterChat Central hub only.*)
-    > Our staff should be able to understand what you are saying to moderate the network. If you are not a native English speaker, you may use a translator.
-    3. **Advertising of any kind is prohibited.**
-    > This includes advertising your own server, social media, or other services.
-    4. **Private matters should not be discussed in the network.**
-    > Revealing personal information on a public network that sends messages to hundreads of servers is not a good idea.
-    5. **Do not make the chat uncomfortable for other users.**
-    > Be respectful of other users and their opinions. Do not make the chat uncomfortable for other users. 
-    6. **Using slurs or derogatory language is not allowed.**
-    > This includes using slurs or derogatory language in a joking manner.
-    7. **Refrain from using bot commands in the network.**
-    > Knowing that the network sends your messages to other servers, random bot commands can be annoying to other users.
-    8. **Trolling, insulting, or harassing other users is not allowed.**
-    > ...self explanatory. 
-    9. **Posting explicit or NSFW content will result in an immediate blacklist.**
-    > The network is a SFW place. Posting NSFW content will result in an immediate blacklist.
-    10. **Trivialization of sensitive topics are not allowed.**
-    > This includes self-harm, suicide, violence and anything offensive in general.
-    11. **Don't evade InterChat's chat filters.**
-    > They have been put in place for a very obvious reason and as such, evading of them will not be tolerated. 
-    *If you have any questions, please join the [support server](https://discord.gg/6bhXQynAPs).*`,
+  # 📜 InterChat Network Rules
+  1. **No Spamming or Flooding:**
+   Avoid repeated, nonsensical, or overly lengthy messages.
+  
+  2. **English Only in Central Hub:**
+   Use English for easy moderation. Non-native speakers may use a translator.
+  
+  3. **No Advertising:**
+   No promotion of servers, social media, or other services.
+  
+  4. **Keep Private Matters Private:**
+   Avoid sharing personal information across the network.
+  
+  5. **Maintain a Respectful Environment:**
+   Be considerate of others and their views. No slurs, derogatory language or any actions that can disrupt the chat's comfort.
+  
+  6. **No Bot Commands:**
+   Refrain from using bot commands that can be disruptive to other servers.
+  
+  7. **No Harassment:**
+   Trolling, insults, or harassment of any kind are not tolerated.
+  
+  8. **No NSFW Content:**
+   Posting explicit or NSFW content will result in immediate blacklist.
+  
+  9. **Respect Sensitive Topics:**
+   Do not trivialize self-harm, suicide, violence, or other offensive topics.
+  
+  10. **Adhere to Chat Filters:**
+   Evading InterChat's chat filters will not be tolerated.
+  
+  Any questions? Join our [support server](https://discord.gg/6bhXQynAPs).
+  `,
   );

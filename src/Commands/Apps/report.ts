@@ -1,4 +1,4 @@
-import { getDb, constants, colors } from '../../Utils/misc/utils';
+import { getDb, constants } from '../../Utils/misc/utils';
 import { ModalBuilder, ActionRowBuilder, EmbedBuilder, ContextMenuCommandBuilder, ApplicationCommandType, TextInputStyle, TextInputBuilder, MessageContextMenuCommandInteraction, GuildTextBasedChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { captureException } from '@sentry/node';
 import logger from '../../Utils/logger';
@@ -45,7 +45,7 @@ export default {
       .setTitle('Report Type')
       .setDescription('Thank you for submitting a report. In order for our staff team to investigate, please specify the reason for your report. If you are reporting a server or bug, please use the /support report command instead.')
       .setFooter({ text: 'Submitting false reports will result in a warning.' })
-      .setColor(colors('chatbot'));
+      .setColor(constants.colors.interchatBlue);
 
     const typeSelect = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
@@ -121,7 +121,7 @@ export default {
           const embed = new EmbedBuilder()
             .setTitle('User Reported')
             .setDescription(`A new user report for \`@${reportedUser.username}\` (${reportedUser.id}) was submitted.\n\n**Reported For:** ${selections.join(', ')}`)
-            .setColor(colors('chatbot'))
+            .setColor(constants.colors.interchatBlue)
             .setTimestamp()
             .setFooter({
               text: `Reported By: ${modalSubmit.user.username} | ${modalSubmit.user.id}.`,

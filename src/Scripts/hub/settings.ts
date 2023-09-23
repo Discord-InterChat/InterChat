@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
-import { colors, getDb } from '../../Utils/misc/utils';
+import { constants, getDb } from '../../Utils/misc/utils';
 import { hubs } from '@prisma/client';
 import { HubSettingsBitField, HubSettingsString } from '../../Utils/hubs/hubSettingsBitfield';
 import emojis from '../../Utils/JSON/emoji.json';
@@ -21,7 +21,7 @@ const genSettingsEmbed = (hub: hubs, yesEmoji: string, noEmoji: string) => {
       return `- ${flag ? yesEmoji : noEmoji} ${value}`;
     }).join('\n'))
     .setFooter({ text: 'Use the select menu below to toggle.' })
-    .setColor(colors('chatbot'))
+    .setColor(constants.colors.interchatBlue)
     .setTimestamp();
 };
 

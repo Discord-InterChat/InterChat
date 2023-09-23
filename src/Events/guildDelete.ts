@@ -1,4 +1,4 @@
-import { colors, constants, getDb } from '../Utils/misc/utils';
+import { constants, getDb } from '../Utils/misc/utils';
 import { EmbedBuilder, Guild, TextChannel } from 'discord.js';
 import { captureException } from '@sentry/node';
 import { stripIndents } from 'common-tags';
@@ -24,7 +24,7 @@ export default {
           `)
           .setThumbnail(guild.iconURL())
           .setTimestamp()
-          .setColor(colors()),
+          .setColor('Random'),
       ],
     }).catch(captureException);
   },

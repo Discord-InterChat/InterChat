@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, ButtonBuilder, ComponentType, ButtonInteraction, AnySelectMenuInteraction, Collection } from 'discord.js';
-import { colors, rulesEmbed } from '../../Utils/misc/utils';
+import { constants, rulesEmbed } from '../../Utils/misc/utils';
 import emojis from '../../Utils/JSON/emoji.json';
 
 const onboardingInProgress = new Collection<string, string>();
@@ -40,7 +40,7 @@ export default {
         Developer Note: And hey, if you have any cool ideas for new features, let us know! We're always looking to improve.
         `,
       )
-      .setColor(colors('chatbot'))
+      .setColor(constants.colors.interchatBlue)
       .setFooter({ text: `InterChat Network | Version ${interaction.client.version}` });
 
     const nextButton = new ActionRowBuilder<ButtonBuilder>().addComponents(

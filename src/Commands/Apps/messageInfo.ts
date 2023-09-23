@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, ContextMenuCommandBuilder, EmbedBuilder, MessageContextMenuCommandInteraction } from 'discord.js';
-import { colors, getDb } from '../../Utils/misc/utils';
+import { constants, getDb } from '../../Utils/misc/utils';
 import { stripIndents } from 'common-tags';
 import { profileImage } from 'discord-arts';
 import emojis from '../../Utils/JSON/emoji.json';
@@ -88,7 +88,7 @@ export default {
         const guildSetup = await db.connectedList.findFirst({ where: { serverId: networkMessage.serverId } });
 
         const serverEmbed = new EmbedBuilder()
-          .setColor(colors('invisible'))
+          .setColor(constants.colors.invisible)
           .setThumbnail(server.iconURL())
           .setImage(server.bannerURL())
           .setDescription(stripIndents`

@@ -1,6 +1,6 @@
 import { EmbedBuilder, ChatInputCommandInteraction, User } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { colors, getDb } from '../../Utils/misc/utils';
+import { constants, getDb } from '../../Utils/misc/utils';
 import emojis from '../../Utils/JSON/emoji.json';
 
 
@@ -15,7 +15,7 @@ const embedGen = async (user: User) => {
 
   return new EmbedBuilder()
     .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
-    .setColor(colors('invisible'))
+    .setColor(constants.colors.invisible)
     .setImage(user.bannerURL({ size: 1024 }) || null)
     .setThumbnail(user.avatarURL())
     .addFields([

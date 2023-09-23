@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, ButtonBuilder, ActionRowBuilder, ButtonStyle, GuildTextBasedChannel, EmbedBuilder, ChannelType, ComponentType, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, Interaction, ChannelSelectMenuBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, TextChannel, ButtonInteraction, AnySelectMenuInteraction, Webhook, ThreadChannel } from 'discord.js';
 import { reconnect, disconnect } from '../../Utils/network/actions';
-import { colors, getDb, yesOrNoEmoji } from '../../Utils/misc/utils';
+import { constants, getDb, yesOrNoEmoji } from '../../Utils/misc/utils';
 import { captureException } from '@sentry/node';
 import emojis from '../../Utils/JSON/emoji.json';
 import logger from '../../Utils/logger';
@@ -36,7 +36,7 @@ async function setupEmbed(interaction: Interaction, channelId: string) {
       { name: 'Profanity Filter', value: yesOrNoEmoji(networkData?.profFilter, enabled, disabled), inline: true },
       { name: 'Embed Color', value: networkData?.embedColor ? `\`${networkData?.embedColor}\`` : no, inline: true },
     ])
-    .setColor(colors('chatbot'))
+    .setColor(constants.colors.interchatBlue)
     .setThumbnail(interaction.guild?.iconURL() || interaction.client.user.avatarURL())
     .setTimestamp()
     .setFooter({ text: 'Use to menu below to edit.' });

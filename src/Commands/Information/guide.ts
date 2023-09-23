@@ -1,10 +1,11 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import help from '../Main/help';
 
 export default {
   data: new SlashCommandBuilder()
     .setName('guide')
-    .setDescription('Sends link for the bot\'s guide.'),
+    .setDescription('Alias for /help.'),
   async execute(interaction: ChatInputCommandInteraction) {
-    await interaction.reply('Please refer to [this](https://discord-interchat.github.io/docs) for the how-to guide.');
+    help.execute(interaction);
   },
 };

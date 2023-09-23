@@ -1,5 +1,5 @@
 import { EmbedBuilder, AuditLogEvent, Guild, ButtonBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
-import { sendInFirst, colors, constants } from '../Utils/misc/utils';
+import { sendInFirst, constants } from '../Utils/misc/utils';
 import { stripIndents } from 'common-tags';
 import { captureException } from '@sentry/node';
 import wordFilter from '../Utils/misc/wordFilter';
@@ -23,7 +23,7 @@ export default {
         
         We hope you enjoy using ${guild.client.user.username}! If you have any questions or feedback, please don't hesitate to reach out to us in the [official support server](https://discord.gg/6bhXQynAPs).
 			`)
-      .setColor(colors('chatbot'))
+      .setColor(constants.colors.interchatBlue)
       .setFooter({ text: `Sent for ${guild.name}`, iconURL: guild.iconURL() || undefined });
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -75,7 +75,7 @@ export default {
       content: `${mascot.flushed} I have joined ${guild.name}! I am now in **${guild.client.guilds.cache.size}** servers! ${emojis.normal.tada}`,
       embeds: [
         new EmbedBuilder()
-          .setColor(colors('invisible'))
+          .setColor(constants.colors.invisible)
           .setAuthor({
             name: `${guild.name} ${inviter ? `• @${inviter.username}` : ''}`,
             iconURL: guild.iconURL() || undefined,

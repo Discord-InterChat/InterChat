@@ -1,6 +1,6 @@
 import { EmbedBuilder, ChatInputCommandInteraction, Guild, GuildMember } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { colors, getDb, toTitleCase } from '../../Utils/misc/utils';
+import { constants, getDb, toTitleCase } from '../../Utils/misc/utils';
 import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
@@ -36,7 +36,7 @@ async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
   return new EmbedBuilder()
     .setAuthor({ name: `${guild.name}`, iconURL: guild.iconURL() || undefined })
     .setDescription(guild.description || 'No Description')
-    .setColor(colors('invisible'))
+    .setColor(constants.colors.invisible)
     .setThumbnail(guild.iconURL() || null)
     .setImage(guild.bannerURL({ size: 1024 }) || null)
     .addFields([

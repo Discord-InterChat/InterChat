@@ -1,7 +1,7 @@
 import Levels from 'discord-xp';
 import canvacord from 'canvacord';
 import { EmbedBuilder, SlashCommandBuilder, AttachmentBuilder, ChatInputCommandInteraction } from 'discord.js';
-import { colors, constants } from '../../../src/Utils/functions/utils';
+import { constants } from '../../../src/Utils/misc/utils';
 
 export default {
   data: new SlashCommandBuilder()
@@ -39,8 +39,8 @@ export default {
       .setBackground('IMAGE', 'https://cdn.discordapp.com/attachments/824616172569493504/999660076321210428/blob-scene-haikei.png')
       .setCurrentXP(user.xp).setLevel(user.level || 0)
       .setRequiredXP(neededxp).setRank(user.position)
-      .setProgressBar(String(colors('chatbot')), 'COLOR')
-      .setCustomStatusColor(String(colors('chatbot')))
+      .setProgressBar(constants.colors.interchatBlue, 'COLOR')
+      .setCustomStatusColor(constants.colors.interchatBlue)
       .setUsername(target.username)
       .setDiscriminator(target.discriminator);
 

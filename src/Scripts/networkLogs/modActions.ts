@@ -1,5 +1,5 @@
 import { stripIndents } from 'common-tags';
-import { colors, constants } from '../../Utils/misc/utils';
+import { constants } from '../../Utils/misc/utils';
 import { EmbedBuilder, Guild, User } from 'discord.js';
 import { blacklistedServers } from '.prisma/client';
 import { captureMessage } from '@sentry/node';
@@ -85,7 +85,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
               { name: 'Reason', value: action.reason, inline: true },
               { name: 'Blacklist Expires', value: action.expires ? `<t:${Math.round(action.expires.getTime() / 1000)}:R>` : 'Never.', inline: true },
             )
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;
@@ -105,7 +105,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
               { name: 'Reason', value: action.reason, inline: true },
               { name: 'Blacklist Expires', value: action.expires ? `<t:${Math.round(action.expires.getTime() / 1000)}:R>` : 'Never.', inline: true },
             )
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;
@@ -116,7 +116,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
           new EmbedBuilder()
             .setAuthor({ name: moderator.username, iconURL: moderator.avatarURL()?.toString() })
             .setTitle('User Unblacklisted')
-            .setColor(colors('chatbot'))
+            .setColor(constants.colors.interchatBlue)
             .setDescription(stripIndents`
               ${emoji.normal.dotBlue} **User:** ${action.user.username} (${action.user.id})
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
@@ -142,7 +142,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
              `)
             .addFields({ name: 'Reason', value: action.reason })
             .setTimestamp(action.timestamp)
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;
@@ -159,7 +159,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               ${emoji.normal.dotBlue} **Reason:** ${action.reason}
               `)
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;
@@ -175,7 +175,7 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
               ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               ${emoji.normal.dotBlue} **Reason:** ${action.reason}
               `)
-            .setColor(colors('chatbot')),
+            .setColor(constants.colors.interchatBlue),
         ],
       });
       break;

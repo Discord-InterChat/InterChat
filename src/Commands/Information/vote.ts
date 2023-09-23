@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { colors } from '../../Utils/misc/utils';
+import { constants } from '../../Utils/misc/utils';
 
 export default {
   data: new SlashCommandBuilder()
@@ -9,17 +9,16 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setDescription(stripIndents`
-      # 🗳️ Support InterChat by Voting
+      # 🗳️ Cast Your Vote for InterChat and Enjoy Exclusive Perks
+      Your contribution is invaluable in elevating InterChat's position on Top.gg. Each and every vote makes a significant difference! 
 
-      Your votes play a crucial role in boosting InterChat's ranking on Top.gg, so every vote matters! 
+      As our way of expressing gratitude for your support, we are thrilled to offer you exclusive advantages. By casting your vote for InterChat, you'll unlock:
 
-      As a token of our appreciation for your support, we offer exclusive perks for voters. By voting for InterChat, you gain access to:
-
-      - Message Editing capabilities within hubs (More to come!)
-      ### Cast your vote here: [Vote for InterChat](https://top.gg/bot/${interaction.client.user.id}/vote)
-      We sincerely thank you for your support! 🙏
+      - The ability to edit messages within hubs (and much more on the way!)
+      
+      We deeply appreciate your unwavering support. Thank you! 🙏 
     `)
-      .setColor(colors('chatbot'));
+      .setColor(constants.colors.interchatBlue);
 
     const button = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()

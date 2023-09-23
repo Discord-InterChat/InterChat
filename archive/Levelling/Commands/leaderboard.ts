@@ -1,6 +1,6 @@
 import Levels from 'discord-xp';
 import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js';
-import { colors, constants } from '../../../src/Utils/functions/utils';
+import { constants } from '../../../src/Utils/functions/utils';
 
 export default {
   data: new SlashCommandBuilder()
@@ -23,7 +23,7 @@ export default {
     });
 
     const leaderboardEmbed = new EmbedBuilder()
-      .setColor(colors('chatbot'))
+      .setColor(constants.colors.interchatBlue)
       .setTitle('**Leaderboard**')
       .setThumbnail(interaction.client.user?.avatarURL() as string)
       .setFields(leaderArr);

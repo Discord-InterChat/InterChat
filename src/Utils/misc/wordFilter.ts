@@ -1,5 +1,5 @@
 import { EmbedBuilder, User, TextChannel } from 'discord.js';
-import { colors, constants, getGuildName, getHubName } from './utils';
+import { constants, getGuildName, getHubName } from './utils';
 import { badwords } from '../JSON/badwords.json';
 
 /**
@@ -35,7 +35,7 @@ export async function log(rawContent: string, author: User, guildId: string | nu
   const logEmbed = new EmbedBuilder()
     .setAuthor({ name: `${author.client.user?.username} logs`, iconURL: author.client.user?.avatarURL()?.toString() })
     .setTitle('Bad Word Detected')
-    .setColor(colors('invisible'))
+    .setColor(constants.colors.invisible)
     .setDescription(`||${rawContent}||\n\n**Author:** @${author.username} \`(${author.id})\`\n**Server:** ${guildName} (${guildId})\n**Hub:** ${hubName}`);
   return await logChan?.send({ embeds: [logEmbed] });
 }

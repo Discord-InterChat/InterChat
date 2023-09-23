@@ -1,7 +1,7 @@
 import { captureMessage } from '@sentry/node';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, ChatInputCommandInteraction, ForumChannel, TextChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
-import { colors, constants } from '../../Utils/misc/utils';
+import { constants } from '../../Utils/misc/utils';
 import logger from '../../Utils/logger';
 import emojis from '../../Utils/JSON/emoji.json';
 
@@ -103,7 +103,7 @@ export default {
         const description = bugModal.fields.getTextInputValue('description');
 
         const bugReportEmbed = new EmbedBuilder()
-          .setColor(colors('invisible'))
+          .setColor(constants.colors.invisible)
           .setTitle(summary)
           .setDescription(`**Affects:** ${typeSelection.values.join(', ')}`)
           .setThumbnail(interaction.user.avatarURL({ size: 2048 }) ?? interaction.user.defaultAvatarURL)
