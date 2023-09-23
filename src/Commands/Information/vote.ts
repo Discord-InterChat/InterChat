@@ -9,12 +9,12 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setDescription(stripIndents`
-      # 🗳️ Cast Your Vote for InterChat and Enjoy Exclusive Perks
+      ## 🗳️ Vote for InterChat and Enjoy Exclusive Perks
       Your contribution is invaluable in elevating InterChat's position on Top.gg. Each and every vote makes a significant difference! 
 
       As our way of expressing gratitude for your support, we are thrilled to offer you exclusive advantages. By casting your vote for InterChat, you'll unlock:
 
-      - The ability to edit messages within hubs (and much more on the way!)
+      - Edit messages within hubs (and much more on the way!)
       
       We deeply appreciate your unwavering support. Thank you! 🙏 
     `)
