@@ -62,7 +62,8 @@ export default {
       command.execute(interaction)
         .catch((e) => {
           logger.error(e);
-          captureException(e);
+          captureException(e, { extra: { command: interaction.commandName } });
+
           (interaction.replied || interaction.deferred
             ? interaction.followUp({ content: formatErrorCode(e), ephemeral: true })
             : interaction.reply({ content: formatErrorCode(e), ephemeral: true })).catch(() => null);

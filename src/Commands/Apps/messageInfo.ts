@@ -79,7 +79,7 @@ export default {
     collector.on('collect', async i => {
       if (i.customId === 'serverInfo') {
         if (!server) {
-          interaction.reply('Unable to find server!');
+          i.update({ content: 'Unable to find server!', embeds: [] });
           return;
         }
 

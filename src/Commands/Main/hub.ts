@@ -284,9 +284,7 @@ export default {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
-    const extra = subcommand === 'leave' || subcommand === 'delete'
-      ? interaction.options.getString('hub', true)
-      : null;
+    const extra = interaction.options.getString('hub');
 
     (await import(`../../Scripts/hub/${subcommandGroup || subcommand}`)).default.execute(interaction, extra);
   },
