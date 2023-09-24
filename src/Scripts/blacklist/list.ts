@@ -20,15 +20,16 @@ module.exports = {
     // repeat until you reach the end
 
     if (serverOpt == 'server') {
-      const result = await getDb().blacklistedServers.findMany({ where: { hubId: hub.id } });
+      const result = await getDb().blacklistedServers.findMany({ where: { hubs: { some: { hubId: hub.id } } } });
 
       result.forEach((data, index) => {
+        const hubData = data.hubs.find(({ hubId }) => hubId === hub.id);
         fields.push({
           name: data.serverName,
           value: stripIndents`
           **ServerId:** ${data.serverId}
-          **Reason:** ${data.reason}
-          **Expires:** ${!data.expires ? 'Never.' : `<t:${Math.ceil(data.expires.getTime() / 1000)}:R>`}     
+          **Reason:** ${hubData?.reason}
+          **Expires:** ${!hubData?.expires ? 'Never.' : `<t:${Math.ceil(hubData.expires.getTime() / 1000)}:R>`}     
           `,
         });
 
@@ -48,15 +49,17 @@ module.exports = {
       });
     }
     else if (serverOpt == 'user') {
-      const result = await getDb().blacklistedUsers.findMany({ where: { hubId: hub.id } });
+      const result = await getDb().blacklistedUsers.findMany({ where: { hubs: { some: { hubId: hub.id } } } });
 
       result.forEach((data, index) => {
+        const hubData = data.hubs.find(({ hubId }) => hubId === hub.id);
+
         fields.push({
           name: data.username,
           value: stripIndents`
           **UserID:** ${data.userId}
-          **Reason:** ${data.reason}
-          **Expires:** ${!data.expires ? 'Never.' : `<t:${Math.ceil(data.expires.getTime() / 1000)}:R>`}
+          **Reason:** ${hubData?.reason}
+          **Expires:** ${!hubData?.expires ? 'Never.' : `<t:${Math.ceil(hubData.expires.getTime() / 1000)}:R>`}
           `,
         });
 

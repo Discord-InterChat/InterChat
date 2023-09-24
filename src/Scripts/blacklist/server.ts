@@ -4,7 +4,7 @@ import { logger } from '@sentry/utils';
 import { ChatInputCommandInteraction } from 'discord.js';
 import { getDb } from '../../Utils/utils';
 import { modActions } from '../networkLogs/modActions';
-import { addServerBlacklist, notifyBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
+import { addServerBlacklist, notifyBlacklist, removeBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction, hub: hubs) {
@@ -60,19 +60,17 @@ export default {
       }
     }
     else if (subCommandGroup == 'remove') {
-      const reason = interaction.options.getString('reason');
       if (!serverInBlacklist) return await interaction.reply({ content: 'The server is not blacklisted.', ephemeral: true });
-      await blacklistedServers.deleteMany({ where: { serverId: serverOpt, hubId: hub.id } });
+      await removeBlacklist('server', hub.id, serverInBlacklist.serverId);
 
       // Using name from DB since the bot can't access server through API.
       interaction.reply(`The server **${serverInBlacklist.serverName}** has been removed from the blacklist.`);
 
       modActions(interaction.user, {
-        serverId: serverInBlacklist.serverId,
-        serverName: serverInBlacklist.serverName,
         action: 'unblacklistServer',
+        oldBlacklist: serverInBlacklist,
+        hubId: hub.id,
         timestamp: new Date(),
-        reason,
       });
     }
   },

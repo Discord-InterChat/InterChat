@@ -100,11 +100,6 @@ export default {
                   .setDescription('The user to remove from the blacklist. User tag also works.')
                   .setAutocomplete(true)
                   .setRequired(true),
-              )
-              .addStringOption(string =>
-                string
-                  .setName('reason')
-                  .setDescription('The reason for blacklisting the server.'),
               ),
         )
         .addSubcommand(subcommand =>
@@ -124,11 +119,6 @@ export default {
                 .setDescription('The server to remove from the blacklist.')
                 .setAutocomplete(true)
                 .setRequired(true),
-            )
-            .addStringOption(string =>
-              string
-                .setName('reason')
-                .setDescription('The reason for blacklisting the server.'),
             ),
         ),
     )
@@ -204,16 +194,21 @@ export default {
         const userOpt = interaction.options.get('user');
 
         if (!userOpt?.focused || typeof userOpt.value !== 'string') return;
+        const userHubMod = await db.hubs.findFirst({
+          where: {
+            name: focusedHub.value,
+            OR: [
+              { ownerId: interaction.user.id },
+              { moderators: { some: { userId: interaction.user.id } } },
+            ],
+          },
+        });
+
+        if (!userHubMod) return interaction.respond([]);
 
         const filteredUsers = await db.blacklistedUsers.findMany({
           where: {
-            hub: {
-              name: focusedHub.value,
-              OR: [
-                { ownerId: interaction.user.id },
-                { moderators: { some: { userId: interaction.user.id } } },
-              ],
-            },
+            hubs: { some: { hubId: userHubMod.id } },
             OR: [
               { username: { mode: 'insensitive', contains: userOpt.value } },
               { userId: { mode: 'insensitive', contains: userOpt.value } },
@@ -228,18 +223,21 @@ export default {
       }
       case 'server': {
         const serverOpt = interaction.options.get('server', true);
+        const serverHubMod = await db.hubs.findFirst({
+          where: {
+            name: focusedHub.value,
+            OR: [
+              { ownerId: interaction.user.id },
+              { moderators: { some: { userId: interaction.user.id } } },
+            ],
+          },
+        });
+        if (!serverOpt.focused || typeof serverOpt.value !== 'string' || !serverHubMod) return;
 
-        if (!serverOpt.focused || typeof serverOpt.value !== 'string') return;
 
         const allServers = await db.blacklistedServers.findMany({
           where: {
-            hub: {
-              name: focusedHub.value,
-              OR: [
-                { ownerId: interaction.user.id },
-                { moderators: { some: { userId: interaction.user.id } } },
-              ],
-            },
+            hubs: { some: { hubId: serverHubMod.id } },
             OR: [
               { serverName: { mode: 'insensitive', contains: serverOpt.value } },
               { serverId: { mode: 'insensitive', contains: serverOpt.value } },

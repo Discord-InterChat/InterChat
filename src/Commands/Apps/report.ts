@@ -150,11 +150,13 @@ export default {
           if (!e.message.includes('with reason: time')) {
             logger.error(e);
             captureException(e);
+
             interaction.followUp({
               content: `${emojis.normal.no} An error occored while making the report.`,
               ephemeral: true,
             });
           }
+          return null;
         });
     });
   },

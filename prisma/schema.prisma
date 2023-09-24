@@ -48,25 +48,24 @@ type HubModerator {
 //   spamFilter      Boolean @default(true)
 // }
 
+type hubBlacklist {
+  reason  String
+  expires DateTime?
+  hubId   String    @db.ObjectId
+}
+
 model blacklistedServers {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  serverId   String
+  id         String               @id @default(auto()) @map("_id") @db.ObjectId
+  serverId   String @unique
   serverName String
-  expires    DateTime?
-  reason     String
-  hub        hubs      @relation(fields: [hubId], references: [id])
-  hubId      String    @db.ObjectId
+  hubs       hubBlacklist[]
 }
 
 model blacklistedUsers {
-  id       String    @id @default(auto()) @map("_id") @db.ObjectId
-  userId   String    @unique
-  notified Boolean
-  reason   String
-  expires  DateTime?
+  id       String             @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String             @unique
   username String
-  hub      hubs      @relation(fields: [hubId], references: [id])
-  hubId    String    @db.ObjectId
+  hubs     hubBlacklist[]
 }
 
 model connectedList {
@@ -103,8 +102,6 @@ model hubs {
   messages           messageData[]
   moderators         HubModerator[]
   connections        connectedList[]
-  blacklistedUsers   blacklistedUsers[]
-  blacklistedServers blacklistedServers[]
   // approved           Boolean              @default(false)
   // official           Boolean              @default(false)
 }

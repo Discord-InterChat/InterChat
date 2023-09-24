@@ -2,6 +2,7 @@ import { Client } from 'discord.js';
 import { scheduleJob } from 'node-schedule';
 import { modActions } from '../Scripts/networkLogs/modActions';
 import { getDb } from './utils';
+import { removeBlacklist } from './blacklist';
 
 /** A function to start timers for blacklist expiry, messageData cleanup, etc. */
 export default async function startTimers(client: Client<true>) {
@@ -20,65 +21,72 @@ export default async function startTimers(client: Client<true>) {
       .catch(() => null);
   });
 
-  const blacklistedServers = await db.blacklistedServers.findMany({ where: { expires: { isSet: true } } });
-  const blacklistedUsers = await db.blacklistedUsers.findMany({ where: { expires: { isSet: true } } });
+  const query = { where: { hubs: { some: { expires: { isSet: true } } } } };
+  const blacklistedServers = await db.blacklistedServers.findMany(query);
+  const blacklistedUsers = await db.blacklistedUsers.findMany(query);
 
   // timer to unblacklist servers
   blacklistedServers.forEach(async (blacklist) => {
-    if (!blacklist.expires) return;
+    blacklist.hubs.forEach(({ hubId, expires }) => {
+      if (!expires) return;
 
-    if (blacklist.expires < new Date()) {
-      await db.blacklistedServers.delete({ where: { id: blacklist.id } });
+      removeBlacklist('server', hubId, blacklist.serverId);
 
-      modActions(client.user, {
-        action: 'unblacklistServer',
-        serverId: blacklist.serverId,
-        serverName: blacklist.serverName,
-        timestamp: new Date(),
+      if (expires < new Date()) {
+
+        modActions(client.user, {
+          action: 'unblacklistServer',
+          oldBlacklist: blacklist,
+          timestamp: new Date(),
+          hubId,
+        });
+        return;
+      }
+
+      scheduleJob(`blacklist_server-${blacklist.serverId}`, expires, async function() {
+        await db.blacklistedServers.delete({ where: { id: blacklist.id } });
+
+        modActions(client.user, {
+          action: 'unblacklistServer',
+          oldBlacklist: blacklist,
+          timestamp: new Date(),
+          hubId,
+        });
       });
-      return;
-    }
 
-    scheduleJob(`blacklist_server-${blacklist.serverId}`, blacklist.expires, async function() {
-      await db.blacklistedServers.delete({ where: { id: blacklist.id } });
-
-      modActions(client.user, {
-        action: 'unblacklistServer',
-        serverId: blacklist.serverId,
-        serverName: blacklist.serverName,
-        reason: 'Blacklist expired.',
-        timestamp: new Date(),
-      });
     });
   });
 
   // timer to unblacklist users
   blacklistedUsers.forEach(async (blacklist) => {
-    if (!blacklist.expires) return;
+    blacklist.hubs.forEach(async ({ hubId, expires, reason }) => {
+      if (!expires) return;
 
-    // if the blacklist has already expired, delete it from the database
-    if (blacklist.expires < new Date()) {
-      await db.blacklistedUsers.delete({ where: { userId: blacklist.userId } });
-      const user = await client.users.fetch(blacklist.userId).catch(() => null);
+      // if the blacklist has already expired, delete it from the database
+      if (expires < new Date()) {
+        await removeBlacklist('user', hubId, blacklist.userId);
+        const user = await client.users.fetch(blacklist.userId).catch(() => null);
 
-      if (!user) return;
+        if (!user) return;
 
-      modActions(client.user, { action: 'unblacklistUser', user, reason: 'Blacklist expired.', blacklistReason: blacklist.reason });
-      return;
-    }
+        modActions(client.user, { action: 'unblacklistUser', user, hubId, blacklistedFor: reason });
+        return;
+      }
 
-    // if the blacklist has not expired, schedule a new job to unblacklist the user
-    scheduleJob(`blacklist-${blacklist.userId}`, blacklist.expires, async function(job_blacklist: typeof blacklist) {
-      const user = await client.users.fetch(job_blacklist.userId).catch(() => null);
-      await db.blacklistedUsers.delete({ where: { userId: job_blacklist.userId } });
+      // if the blacklist has not expired, schedule a new job to unblacklist the user
+      scheduleJob(`blacklist-${blacklist.userId}`, expires, async function(job_blacklist: typeof blacklist) {
+        const user = await client.users.fetch(job_blacklist.userId).catch(() => null);
+        await db.blacklistedUsers.delete({ where: { userId: job_blacklist.userId } });
 
-      if (!user) return;
-      modActions(user.client.user, {
-        action: 'unblacklistUser',
-        reason: 'Blacklist expired.',
-        blacklistReason: job_blacklist.reason,
-        user,
-      });
-    }.bind(null, blacklist));
+        if (!user) return;
+
+        modActions(user.client.user, {
+          action: 'unblacklistUser',
+          blacklistedFor: reason,
+          user,
+          hubId,
+        });
+      }.bind(null, blacklist));
+    });
   });
 }
