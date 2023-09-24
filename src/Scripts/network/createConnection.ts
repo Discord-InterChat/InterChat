@@ -42,12 +42,13 @@ export default {
       }`,
     );
 
-    sendInNetwork(stripIndents`
+    sendInNetwork({
+      content: stripIndents`
       A new server has joined us! ${emoji.clipart}
 
       **Server Name:** __${interaction.guild?.name}__
       **Member Count:** __${interaction.guild?.memberCount}__
-    `, hub.id);
+    ` }, hub.id);
 
     // return the created connection so we can use it in the next step
     return createdConnection;

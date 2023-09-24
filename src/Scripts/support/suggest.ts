@@ -13,7 +13,7 @@ export default {
     // modal
     const modal = new ModalBuilder()
       .setTitle('Suggestion')
-      .setCustomId('suggestion')
+      .setCustomId(interaction.id)
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>()
           .addComponents(

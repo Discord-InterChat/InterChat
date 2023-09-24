@@ -1,23 +1,49 @@
-import { scheduleJob } from 'node-schedule';
+import { cancelJob, scheduleJob } from 'node-schedule';
 import { modActions } from '../Scripts/networkLogs/modActions';
 import { constants, getDb } from './utils';
 import { User, EmbedBuilder, Client, TextBasedChannel } from 'discord.js';
-import logger from './logger';
 import emojis from './JSON/emoji.json';
+import { blacklistedServers, blacklistedUsers } from '@prisma/client';
 
-export async function addUserBlacklist(hubId: string, moderator: User, user: User | string, reason: string, expires?: Date | number, notifyUser = true) {
+
+export async function findBlacklistedUser(hubId: string, userId: string) {
+  const db = getDb();
+  const userBlacklisted = await db.blacklistedUsers.findFirst({
+    where: { userId, hubs: { some: { hubId } } },
+  });
+  return userBlacklisted;
+}
+
+export async function findBlacklistedServer(hubId: string, serverId: string) {
+  const db = getDb();
+  const userBlacklisted = await db.blacklistedServers.findFirst({
+    where: { serverId, hubs: { some: { hubId } } },
+  });
+  return userBlacklisted;
+}
+
+export async function addUserBlacklist(hubId: string, moderator: User, user: User | string, reason: string, expires?: Date | number) {
   if (typeof user === 'string') user = await moderator.client.users.fetch(user);
   if (typeof expires === 'number') expires = new Date(Date.now() + expires);
 
   const db = getDb();
-  const dbUser = await db.blacklistedUsers.create({
-    data: {
-      hub: { connect: { id: hubId } },
+  const dbUser = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
+
+  const hubs = dbUser?.hubs.filter((i) => i.hubId !== hubId) || [];
+  hubs?.push({ expires: expires || null, reason, hubId });
+
+  const updatedUser = await db.blacklistedUsers.upsert({
+    where: {
+      userId: user.id,
+    },
+    update: {
+      username: user.username,
+      hubs: { set: hubs },
+    },
+    create: {
       userId: user.id,
       username: user.username,
-      notified: notifyUser,
-      expires,
-      reason,
+      hubs,
     },
   });
 
@@ -29,20 +55,25 @@ export async function addUserBlacklist(hubId: string, moderator: User, user: Use
     reason,
   }).catch(() => null);
 
-  return dbUser;
+  return updatedUser;
 }
 
 export async function addServerBlacklist(serverId: string, moderator: User, hubId: string, reason: string, expires?: Date) {
   const guild = await moderator.client.guilds.fetch(serverId);
   const db = getDb();
 
-  const dbGuild = await db.blacklistedServers.create({
-    data: {
-      hub: { connect: { id: hubId } },
-      reason: reason,
+  const dbGuild = await db.blacklistedServers.upsert({
+    where: {
+      serverId: guild.id,
+    },
+    update: {
+      serverName: guild.name,
+      hubs: { push: { hubId, expires, reason } },
+    },
+    create: {
       serverId: guild.id,
       serverName: guild.name,
-      expires: expires,
+      hubs: [{ hubId, expires, reason }],
     },
   });
 
@@ -57,25 +88,58 @@ export async function addServerBlacklist(serverId: string, moderator: User, hubI
   return dbGuild;
 }
 
+export async function removeBlacklist(type: 'user', hubId: string, userId: string): Promise<blacklistedUsers>
+export async function removeBlacklist(type: 'server', hubId: string, serverId: string): Promise<blacklistedServers>
+export async function removeBlacklist(type: string, hubId: string, userOrServerId: string) {
+  const db = getDb();
+  cancelJob(`blacklist_${type}-${userOrServerId}`);
+
+
+  if (type === 'user') {
+    return await db.blacklistedUsers.update({
+      where: {
+        userId: userOrServerId,
+        hubs: { some: { hubId } },
+      },
+      data: {
+        hubs: { deleteMany: { where: { hubId } } },
+      },
+    });
+  }
+  else {
+    return db.blacklistedServers.update({
+      where: {
+        serverId: userOrServerId,
+        hubs: { some: { hubId } },
+      },
+      data: {
+        hubs: { deleteMany: { where: { hubId } } },
+      },
+    });
+  }
+}
+
+
 export function scheduleUnblacklist(type: 'server', client: Client<true>, serverId: string, hubId: string, expires: Date | number): void
 export function scheduleUnblacklist(type: 'user', client: Client<true>, userId: string, hubId: string, expires: Date | number): void
 export function scheduleUnblacklist(type: string, client: Client<true>, userOrServerId: string, hubId: string, expires: Date | number) {
   if (type === 'server') {
-    scheduleJob(`blacklist_server-${userOrServerId}`, expires, async () => {
+    scheduleJob(`blacklist_server-${userOrServerId}`, expires, async function() {
       const db = getDb();
-      const filter = { where: { hubId, serverId: userOrServerId } };
-      const dbServer = await db.blacklistedServers.findFirst(filter);
+      const dbServer = await db.blacklistedServers.findFirst({
+        where: { serverId: userOrServerId, hubs: { some: { hubId } } },
+      });
 
       // only call .delete if the document exists
       // or prisma will error
       if (dbServer) {
-        await db.blacklistedServers.deleteMany(filter);
+        await removeBlacklist('server', hubId, userOrServerId);
+
         modActions(client.user, {
-          serverId: dbServer.serverId,
-          serverName: dbServer.serverName,
           action: 'unblacklistServer',
+          oldBlacklist: dbServer,
           timestamp: new Date(),
-          reason: 'Blacklist expired for server.',
+          hubId,
         }).catch(() => null);
       }
     });
@@ -84,23 +148,21 @@ export function scheduleUnblacklist(type: string, client: Client<true>, userOrSe
   if (type === 'user') {
     scheduleJob(`blacklist_user-${userOrServerId}`, expires, async () => {
       const db = getDb();
-      const filter = { where: { userId: userOrServerId } };
-      const dbUser = await db.blacklistedUsers.findFirst(filter);
+      const dbUser = await db.blacklistedUsers.findFirst({
+        where: { userId: userOrServerId, hubs: { some: { hubId } } },
+      });
 
       const user = await client.users.fetch(userOrServerId).catch(() => null);
-      if (!user) return;
+      if (!user || !dbUser) return;
 
-      // only call .delete if the document exists
-      // or prisma will error
-      if (dbUser) {
-        await db.blacklistedUsers.delete(filter);
-        modActions(client.user, {
-          user,
-          action: 'unblacklistUser',
-          blacklistReason: dbUser.reason,
-          reason: 'Blacklist expired for user.',
-        }).catch(() => null);
-      }
+      await removeBlacklist('user', hubId, userOrServerId);
+
+      modActions(client.user, {
+        user,
+        hubId,
+        action: 'unblacklistUser',
+        blacklistedFor: dbUser.hubs.find(h => h.hubId === hubId)?.reason,
+      }).catch(() => null);
     });
   }
   return false;
@@ -122,10 +184,7 @@ export async function notifyBlacklist(userOrChannel: User | TextBasedChannel, hu
         { name: 'Expires', value: expireString, inline: true },
       );
 
-    userOrChannel.send({ embeds: [embed] }).catch(async () => {
-      await db.blacklistedUsers.update({ where: { userId: userOrChannel.id }, data: { notified: false } });
-      logger.info(`Could not notify ${(userOrChannel as User).username} about their blacklist.`);
-    });
+    userOrChannel.send({ embeds: [embed] }).catch(async () => null);
   }
   else if (userOrChannel.isTextBased()) {
     const embed = new EmbedBuilder()

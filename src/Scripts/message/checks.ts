@@ -3,30 +3,17 @@ import antiSpam from './antispam';
 import emojis from '../../Utils/JSON/emoji.json';
 import { Message } from 'discord.js';
 import { slurs } from '../../Utils/JSON/badwords.json';
-import { getDb, replaceLinks } from '../../Utils/utils';
+import { replaceLinks } from '../../Utils/utils';
 import { connectedList } from '@prisma/client';
 import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
-import { addUserBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
+import { addUserBlacklist, findBlacklistedServer, findBlacklistedUser, scheduleUnblacklist } from '../../Utils/blacklist';
 export default {
   async execute(message: Message, networkData: connectedList, settings: HubSettingsBitField) {
     // true = pass, false = fail (checks)
 
-    const db = getDb();
-    const userInBlacklist = await db.blacklistedUsers?.findFirst({
-      where: { hubId: networkData.hubId, userId: message.author.id },
-    });
-    const serverInBlacklist = await db.blacklistedServers?.findFirst({
-      where: { hubId: networkData.hubId, serverId: message.guild?.id },
-    });
-
-    if (userInBlacklist) {
-      if (!userInBlacklist.notified) {
-        message.author.send(`You are blacklisted from this hub for reason **${userInBlacklist.reason}**.`).catch(() => null);
-        await db.blacklistedUsers.update({ where: { userId: message.author.id }, data: { notified: true } });
-      }
-      return false;
-    }
-    if (serverInBlacklist) return false;
+    const userBlacklisted = await findBlacklistedUser(networkData.hubId, message.author.id);
+    const serverBlacklisted = await findBlacklistedServer(networkData.hubId, message.guildId || '');
+    if (userBlacklisted || serverBlacklisted) return false;
 
     if (settings.has('SpamFilter')) {
       const antiSpamResult = antiSpam.execute(message.author, 3);

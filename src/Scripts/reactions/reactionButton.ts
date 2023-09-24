@@ -2,6 +2,7 @@ import { ButtonInteraction } from 'discord.js';
 import { getDb } from '../../Utils/utils';
 import updateMessageReactions from '../reactions/updateMessage';
 import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
+import { findBlacklistedServer, findBlacklistedUser } from '../../Utils/blacklist';
 
 export default {
   async execute(interaction: ButtonInteraction) {
@@ -14,15 +15,12 @@ export default {
     if (
       !messageInDb?.hub ||
       !messageInDb.hubId ||
-      !(new HubSettingsBitField(messageInDb.hub.settings).has('Reactions'))
+      !(new HubSettingsBitField(messageInDb.hub.settings).has('Reactions')) ||
+      !interaction.inCachedGuild()
     ) return interaction.reply({ content: 'This hub does not have reactions enabled.', ephemeral: true });
 
-    const userBlacklisted = await db.blacklistedUsers.findFirst({
-      where: { userId: interaction.user.id, hubId: messageInDb.hubId },
-    });
-    const serverBlacklisted = await db.blacklistedServers.findFirst({
-      where: { serverId: interaction.guild?.id, hubId: messageInDb.hubId },
-    });
+    const userBlacklisted = await findBlacklistedUser(messageInDb.hubId, interaction.user.id);
+    const serverBlacklisted = await findBlacklistedServer(messageInDb.hubId, interaction.guild.id);
 
     if (userBlacklisted || serverBlacklisted) {
       await interaction.reply({
@@ -32,7 +30,7 @@ export default {
       return;
     }
 
-    interaction.deferUpdate();
+    await interaction.deferUpdate();
 
     const connections = await db.connectedList.findMany({
       where: {

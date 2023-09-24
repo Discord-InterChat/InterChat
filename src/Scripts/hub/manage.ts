@@ -1,4 +1,4 @@
-import { blacklistedServers, blacklistedUsers, connectedList, hubs } from '@prisma/client';
+import { connectedList, hubs } from '@prisma/client';
 import { captureException } from '@sentry/node';
 import { logger } from '@sentry/utils';
 import { ActionRowBuilder, ChatInputCommandInteraction, ComponentType, EmbedBuilder, ModalBuilder, StringSelectMenuBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
@@ -20,11 +20,7 @@ export default {
           { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
         ],
       },
-      include: {
-        connections: true,
-        blacklistedServers: true,
-        blacklistedUsers: true,
-      },
+      include: { connections: true },
     });
 
     if (!hubInDb) {
@@ -70,7 +66,13 @@ export default {
     );
 
 
-    const hubEmbed = (hub: hubs & { connections: connectedList[], blacklistedUsers: blacklistedUsers[], blacklistedServers: blacklistedServers[] }) => {
+    const hubEmbed = async (hub: hubs & { connections: connectedList[] }) => {
+      const hubBlacklistedUsers = await db.blacklistedUsers.count({
+        where: { hubs: { some: { hubId: hub.id } } },
+      });
+      const hubBlacklistedServers = await db.blacklistedServers.count({
+        where: { hubs: { some: { hubId: hub.id } } },
+      });
       return new EmbedBuilder()
         .setTitle(hub.name)
         .setColor('Random')
@@ -85,8 +87,8 @@ export default {
           {
             name: 'Blacklists',
             value: stripIndents`
-          - Users: ${hub.blacklistedUsers.length.toString()}
-          - Servers: ${hub.blacklistedServers.length.toString()}
+          - Users: ${hubBlacklistedUsers}
+          - Servers: ${hubBlacklistedServers}
           `,
             inline: true,
           },
@@ -105,7 +107,7 @@ export default {
     };
 
     const reply = await interaction.followUp({
-      embeds: [hubEmbed(hubInDb)],
+      embeds: [await hubEmbed(hubInDb)],
       components: [actionsSelect],
     });
 
@@ -120,11 +122,7 @@ export default {
 
       hubInDb = await db.hubs.findFirst({
         where: { id: hubInDb?.id },
-        include: {
-          connections: true,
-          blacklistedServers: true,
-          blacklistedUsers: true,
-        },
+        include: { connections: true },
       });
 
       if (!hubInDb) {
@@ -359,14 +357,10 @@ export default {
 
       hubInDb = await db.hubs.findFirst({
         where: { id: hubInDb?.id },
-        include: {
-          connections: true,
-          blacklistedServers: true,
-          blacklistedUsers: true,
-        },
+        include: { connections: true },
       });
       if (hubInDb) {
-        await interaction.editReply({ embeds: [hubEmbed(hubInDb)] }).catch(() => null);
+        await interaction.editReply({ embeds: [await hubEmbed(hubInDb)] }).catch(() => null);
       }
     });
 

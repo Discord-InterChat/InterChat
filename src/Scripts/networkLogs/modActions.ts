@@ -1,5 +1,5 @@
 import { stripIndents } from 'common-tags';
-import { constants } from '../../Utils/utils';
+import { constants, getDb } from '../../Utils/utils';
 import { EmbedBuilder, Guild, User } from 'discord.js';
 import { blacklistedServers } from '.prisma/client';
 import { captureMessage } from '@sentry/node';
@@ -30,23 +30,24 @@ interface blacklistUser extends actionUser {
   action: 'blacklistUser';
   expires?: Date;
 }
-interface unblacklistUser extends actionUser {
-  action: 'unblacklistUser';
-  blacklistReason?: string;
-}
 interface leaveServer extends actionServer {
   action: 'leave';
 }
 interface disconnectServer extends actionServer {
   action: 'disconnect';
 }
+interface unblacklistUser {
+  action: 'unblacklistUser';
+  hubId: string;
+  user: User;
+  blacklistedFor?: string;
+}
 
 interface unblacklistServer {
-  serverName: string;
-  serverId: string;
   action: 'unblacklistServer';
+  hubId: string;
+  oldBlacklist: blacklistedServers;
   timestamp: Date;
-  reason?: string | null;
 }
 
 // TODO: Make the logs channel into a forum, which includes the folowing posts:
@@ -56,10 +57,8 @@ interface unblacklistServer {
 // Make sure the logs channel isn't closed before logging stuff, that will be the main problem here.
 // That is the reason I have left it as a todo. :D
 export async function modActions(moderator: User, action: blacklistUser | unblacklistUser | blacklistServer | unblacklistServer | leaveServer | disconnectServer) {
-  if (!action.reason) action.reason = 'No reason provided.';
-
   const modLogs = await moderator.client.channels.fetch(constants.channel.modlogs);
-  const emoji = emojis;
+  const emoji = emojis.normal;
 
   if (!modLogs?.isTextBased()) return captureMessage('Modlogs channel is not text based. (modActions.ts)', 'warning');
 
@@ -78,12 +77,12 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setTitle('User Blacklisted')
             .setDescription(
               stripIndents`
-              ${emoji.normal.dotBlue} **User:** ${action.user.username} (${action.user.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
+              ${emoji.dotBlue} **User:** ${action.user.username} (${action.user.id})
+              ${emoji.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               `,
             )
             .addFields(
-              { name: 'Reason', value: action.reason, inline: true },
+              { name: 'Reason', value: `${action.reason || 'Not Provided.'}`, inline: true },
               { name: 'Blacklist Expires', value: action.expires ? `<t:${Math.round(action.expires.getTime() / 1000)}:R>` : 'Never.', inline: true },
             )
             .setColor(constants.colors.interchatBlue),
@@ -99,11 +98,11 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setAuthor({ name: String(guild?.name), iconURL: guild?.iconURL() || undefined })
             .setTitle('Server Blacklisted')
             .setDescription(stripIndents`
-              ${emoji.normal.dotBlue} **Server:** ${guild?.name} (${guild?.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
+              ${emoji.dotBlue} **Server:** ${guild?.name} (${guild?.id})
+              ${emoji.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               `)
             .addFields(
-              { name: 'Reason', value: action.reason, inline: true },
+              { name: 'Reason', value: `${action.reason || 'Not Provided.'}`, inline: true },
               { name: 'Blacklist Expires', value: action.expires ? `<t:${Math.round(action.expires.getTime() / 1000)}:R>` : 'Never.', inline: true },
             )
             .setColor(constants.colors.interchatBlue),
@@ -111,7 +110,8 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
       });
       break;
 
-    case 'unblacklistUser':
+    case 'unblacklistUser': {
+      const hub = await getDb().hubs.findFirst({ where: { id: action.hubId } });
       await modLogs.send({
         embeds: [
           new EmbedBuilder()
@@ -119,29 +119,35 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setTitle('User Unblacklisted')
             .setColor(constants.colors.interchatBlue)
             .setDescription(stripIndents`
-              ${emoji.normal.dotBlue} **User:** ${action.user.username} (${action.user.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
+              ${emoji.dotBlue} **User:** ${action.user.username} (${action.user.id})
+              ${emoji.dotBlue} **Hub:** ${hub?.name}
+              ${emoji.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
               `)
             .addFields(
-              { name: 'Blacklisted For', value: action.blacklistReason || 'Unknown', inline: true },
-              { name: 'Reason', value: action.reason, inline: true },
+              { name: 'Blacklisted For', value: action.blacklistedFor || 'Unknown' },
             ),
         ],
       });
       break;
+    }
 
     case 'unblacklistServer': {
-      const server = await moderator.client.guilds.fetch(action.serverId).catch(() => null);
+      const server = await moderator.client.guilds.fetch(action.oldBlacklist.serverId).catch(() => null);
+      const serverName = server?.name || action.oldBlacklist.serverName;
+      const serverId = server?.id || action.oldBlacklist.serverId;
+      const blacklistData = action.oldBlacklist.hubs.find(({ hubId }) => hubId === action.hubId);
+
       await modLogs.send({
         embeds: [
           new EmbedBuilder()
-            .setAuthor({ name: `${server?.name || action.serverName}`, iconURL: server?.iconURL()?.toString() })
+            .setAuthor({ name: `${serverName}`, iconURL: server?.iconURL()?.toString() })
             .setTitle('Server Unblacklisted')
             .setDescription(stripIndents`
-              ${emoji.normal.dotBlue} **Server:** ${server?.name || action.serverName} (${action.serverId})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
+              ${emoji.dotBlue} **Server:** ${serverName} (${serverId})
+              ${emoji.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
+              ${emoji.dotBlue} **Hub:** ${moderator.username} (${moderator.id})
+              ${emoji.dotBlue} **Blacklisted for:** ${blacklistData?.reason}
              `)
-            .addFields({ name: 'Reason', value: action.reason })
             .setTimestamp(action.timestamp)
             .setColor(constants.colors.interchatBlue),
         ],
@@ -156,9 +162,9 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setAuthor({ name: String(guild?.name), iconURL: guild?.iconURL() || undefined })
             .setTitle('Left Server')
             .setDescription(stripIndents`
-              ${emoji.normal.dotBlue} **Server:** ${guild?.name} (${guild?.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
-              ${emoji.normal.dotBlue} **Reason:** ${action.reason}
+              ${emoji.dotBlue} **Server:** ${guild?.name} (${guild?.id})
+              ${emoji.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
+              ${emoji.dotBlue} **Reason:** ${action.reason || 'Not Provided.'}
               `)
             .setColor(constants.colors.interchatBlue),
         ],
@@ -172,9 +178,9 @@ export async function modActions(moderator: User, action: blacklistUser | unblac
             .setAuthor({ name: String(guild?.name), iconURL: guild?.iconURL() || undefined })
             .setTitle('Disconnected from Server')
             .setDescription(stripIndents`
-              ${emoji.normal.dotBlue} **Server:** ${guild?.name} (${guild?.id})
-              ${emoji.normal.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
-              ${emoji.normal.dotBlue} **Reason:** ${action.reason}
+              ${emoji.dotBlue} **Server:** ${guild?.name} (${guild?.id})
+              ${emoji.dotBlue} **Moderator:** ${moderator.username} (${moderator.id})
+              ${emoji.dotBlue} **Reason:** ${action.reason || 'Not Provided.'}
               `)
             .setColor(constants.colors.interchatBlue),
         ],

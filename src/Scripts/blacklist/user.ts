@@ -1,9 +1,8 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { cancelJob } from 'node-schedule';
 import { getDb } from '../../Utils/utils';
 import { modActions } from '../networkLogs/modActions';
+import { addUserBlacklist, removeBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 import emojis from '../../Utils/JSON/emoji.json';
-import { addUserBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -34,8 +33,9 @@ export default {
       },
     });
     if (!hubInDb) return await interaction.reply('Hub with that name not found. Or you are not a moderator of that hub.');
+    const userInBlacklist = await db.blacklistedUsers.findFirst({ where: { userId: user.id, hubs: { some: { hubId: hubInDb.id } } } });
 
-    const userInBlacklist = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
+
     if (subcommandGroup == 'add') {
       await interaction.deferReply();
 
@@ -84,15 +84,14 @@ export default {
       if (!userInBlacklist) return interaction.reply(`The user **@${user.username}** is not blacklisted.`);
       const userBeforeUnblacklist = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
 
-      await db.blacklistedUsers.delete({ where: { userId: user.id } });
-      interaction.reply(`**${user.username}** has been removed from the blacklist.`);
+      await removeBlacklist('user', hubInDb.id, user.id);
+      await interaction.reply(`**${user.username}** has been removed from the blacklist.`);
 
-      cancelJob(`blacklist-${user.id}`);
       modActions(interaction.user, {
         user,
         action: 'unblacklistUser',
-        blacklistReason: userBeforeUnblacklist?.reason,
-        reason,
+        blacklistedFor: userBeforeUnblacklist?.hubs.find(({ hubId }) => hubId === hubInDb.id)?.reason,
+        hubId: hubInDb.id,
       });
     }
   },
