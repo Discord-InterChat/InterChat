@@ -16,13 +16,11 @@ export const constants = {
 
   channel: {
     bugs: '1035135196053393418',
-    networklogs: '1002864642101624832',
-    errorlogs: '1024313459187404830',
+    networklogs: '1156144879869632553',
     modlogs: '1042265633896796231',
     reports: '821610981155012628',
     goal: '906460473065615403',
     suggestions: '1021256657528954900',
-    hubReviews: '1102625912274550884',
   },
   colors: {
     all: [
