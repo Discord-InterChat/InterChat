@@ -23,14 +23,14 @@ export default {
     if (message.author.bot || message.webhookId || message.system) return;
 
     const db = getDb();
-    const channelInDb = await db.connectedList.findFirst({
+    const connection = await db.connectedList.findFirst({
       where: { channelId: message.channel.id, connected: true },
       include: { hub: { include: { connections: { where: { connected: true } } } } },
     });
 
-    if (channelInDb && channelInDb?.hub) {
-      const settings = new HubSettingsBitField(channelInDb.hub?.settings);
-      if (!await checks.execute(message, channelInDb, settings)) return;
+    if (connection?.hub) {
+      const settings = new HubSettingsBitField(connection.hub?.settings);
+      if (!await checks.execute(message, connection, settings)) return;
 
       message.censored_content = censor(message.content);
       const attachment = message.attachments.first();
@@ -69,7 +69,7 @@ export default {
       const embed = new EmbedBuilder()
         .setDescription(message.content || null) // description must be null if message is only an attachment
         .setImage(attachmentURL)
-        .setColor((channelInDb.embedColor as HexColorString) || 'Random')
+        .setColor((connection.embedColor as HexColorString) || 'Random')
         .setFields(
           referredContent
             ? [{ name: 'Reply to:', value: `> ${referredContent.replaceAll('\n', '\n> ')}` }]
@@ -84,13 +84,14 @@ export default {
           text: `Server: ${message.guild?.name}`,
           iconURL: message.guild?.iconURL() || undefined,
         });
-      // define censored embed after reply is added to reflect that in censored embed as well
+
+      // profanity censored embed
       const censoredEmbed = EmbedBuilder.from(embed).setDescription(message.censored_content || null);
 
       // send the message to all connected channels in apropriate format (compact/profanity filter)
-      const messageResults = channelInDb.hub?.connections?.map(async (connection) => {
-        const reply = replyInDb?.channelAndMessageIds.find((msg) => msg.channelId === connection.channelId);
-        const replyLink = reply ? `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}` : undefined;
+      const messageResults = connection.hub?.connections?.map(async (connected) => {
+        const reply = replyInDb?.channelAndMessageIds.find((msg) => msg.channelId === connected.channelId);
+        const replyLink = reply ? `https://discord.com/channels/${connected.serverId}/${reply.channelId}/${reply.messageId}` : undefined;
         const replyButton = replyLink && referredAuthor
           ? new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
@@ -105,7 +106,7 @@ export default {
           : null;
 
         let webhookMessage: WebhookMessageCreateOptions;
-        if (connection.compact) {
+        if (connected.compact) {
           const replyEmbed = replyLink && referredContent
             ? new EmbedBuilder()
               .setColor('Random')
@@ -120,31 +121,31 @@ export default {
             avatarURL: avatarURL,
             username:  displayNameOrUsername,
             files: attachment ? [attachment] : undefined,
-            content: connection?.profFilter ? message.censored_content : message.content,
+            content: connected?.profFilter ? message.censored_content : message.content,
             embeds: replyEmbed ? [replyEmbed] : undefined,
-            threadId: connection.parentId ? connection.channelId : undefined,
+            threadId: connected.parentId ? connected.channelId : undefined,
             allowedMentions: { parse: [] },
           };
         }
         else {
           webhookMessage = {
             components: replyButton ? [replyButton] : undefined,
-            embeds: [connection.profFilter ? censoredEmbed : embed],
+            embeds: [connected.profFilter ? censoredEmbed : embed],
             files: attachment ? [attachment] : undefined,
-            username: `${channelInDb.hub?.name}`,
-            avatarURL: channelInDb.hub?.iconUrl,
-            threadId: connection.parentId ? connection.channelId : undefined,
+            username: `${connection.hub?.name}`,
+            avatarURL: connection.hub?.iconUrl,
+            threadId: connected.parentId ? connected.channelId : undefined,
             allowedMentions: { parse: [] },
           };
         }
 
-        const webhook = new WebhookClient({ url: connection.webhookURL });
+        const webhook = new WebhookClient({ url: connected.webhookURL });
         const webhookSendRes = await webhook.send(webhookMessage).catch((e) => e.message);
         return { webhookURL: webhook.url, messageOrError: webhookSendRes } as NetworkWebhookSendResult;
       });
 
       message.delete().catch(() => null);
-      cleanup.execute(message, await Promise.all(messageResults), channelInDb.hubId);
+      cleanup.execute(message, await Promise.all(messageResults), connection.hubId);
     }
   },
 };

@@ -17,11 +17,10 @@ export default {
       ### Guide
       InterChat is a powerful discord bot that enables effortless cross-server chatting! Get started by looking at the categories below.
       ### Categories:
-      - ⚙️ [**Setting up InterChat**](https://discord-interchat.github.io/docs/guide/setup)
+      - ⚙️ [**Setting up InterChat**](https://discord-interchat.github.io/docs/setup)
       - ${emojis.normal.slashCommand}  [**All Commands**](https://discord-interchat.github.io/docs/category/commands)
-      - 🌐 [**The Network**](https://discord-interchat.github.io/docs/guide/hub/network)
-      - 💬 [**Messaging**](https://discord-interchat.github.io/docs/category/messaging)
-      - 👥 [**Hubs**](https://discord-interchat.github.io/docs/guide/hub/joining)
+      - 💬 [**Messaging & Network**](https://discord-interchat.github.io/docs/messaging)
+      - 👥 [**Hubs**](https://discord-interchat.github.io/docs/hub/joining)
       `);
 
     const selects = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -82,12 +81,13 @@ export default {
             Think of hubs as your personal chat spaces, both creatable and joinable. They're like an exclusive room, where other servers can join to engage and chat together.
 
             ### Hub Guides
-            - ${emojis.icons.join} [**Join a Hub**](https://discord-interchat.github.io/docs/guide/hub/joining) 
-            - ${emojis.icons.leave} [**Leave a Hub**](https://discord-interchat.github.io/docs/guide/hub/leaving)
-            - ✨ [**Create a Hub**](https://discord-interchat.github.io/docs/guide/hub/management#21-creating-a-hub)
-            - ${emojis.icons.delete} [**Delete a Hub**](https://discord-interchat.github.io/docs/guide/hub/management#21-creating-a-hub)
-            - 🛡️ [**Hub Moderators**](https://discord-interchat.github.io/docs/guide/hub/management#23-managing-hub-moderators)
-            - ${emojis.icons.settings} [**Hub Settings**](https://discord-interchat.github.io/docs/guide/hub/management#24-managing-hub-settings)
+            - ${emojis.icons.join} [**Join a Hub**](https://discord-interchat.github.io/docs/hub/joining) 
+            - ${emojis.icons.leave} [**Leave a Hub**](https://discord-interchat.github.io/docs/hub/leaving)
+            - ✨ [**Create a Hub**](https://discord-interchat.github.io/docs/hub/management#creating-a-hub)
+            - ${emojis.icons.delete} [**Delete a Hub**](https://discord-interchat.github.io/docs/hub/management#deleting-a-hub)
+            - 🛡️ [**Hub Moderators (Adding, Removing)**](https://discord-interchat.github.io/docs/hub/management#managing-hub-moderators)
+            - 📝 [**Edit Hub**](https://discord-interchat.github.io/docs/hub/management#editing-your-hub)
+            - ${emojis.icons.settings} [**Hub Settings**](https://discord-interchat.github.io/docs/hub/management#hub-settings)
             `,
             );
 
@@ -100,9 +100,9 @@ export default {
             ## The Network
             Network refers to the entire web of servers that are connected to a hub. In this area, you can send messages that will appear in other channels that have been set up on other servers.
               ### Network Guides
-            - 🌎 [**What is the network?**](https://discord-interchat.github.io/docs/guide/hub/network)
-            - ${emojis.icons.connect} [**Using the network**](https://discord-interchat.github.io/docs/guide/hub/network#using-the-network)
-            - ${emojis.icons.settings} [**Network Settings (Coming soon!)**](https://discord-interchat.github.io/docs/guide/hub/network#network-settings)
+            - 🌎 [**What is the network?** (Coming Soon!)](https://discord-interchat.github.io/docs/hub/network)
+            - ${emojis.icons.connect} [**Using the network**](https://discord-interchat.github.io/docs/messaging#sending-messages)
+            - ${emojis.icons.settings} [**Network Settings (Coming soon!)**](https://discord-interchat.github.io/docs/hub/network#network-settings)
             `);
 
           i.update({ embeds: [networkEmbed] });
@@ -115,13 +115,13 @@ export default {
             ## Messaging
             Messaging refers to the ability to send messages to other servers within a hub. Find out how to send messages by visiting the guides below. You can also edit and delete messages that you have sent.
             ### Messaging Guides
-            - 📨 [ **Send Messages**](https://discord-interchat.github.io/docs/guide/message/sending-messages)
-            - ✏️ [ **Edit Messages**](https://discord-interchat.github.io/docs/guide/message/editing)
-            - ${emojis.icons.delete} [**Delete Messages**](https://discord-interchat.github.io/docs/guide/message/deleting)
-            - ${emojis.normal.reply} [**Reply to Messages**](https://discord-interchat.github.io/docs/guide/message/replying)
-            - 😂 [**React to Messages (Coming soon!)**](https://discord-interchat.github.io/docs/guide/message/reacting)
-            - ${emojis.icons.wand} [**The InterChat Team (Coming Soon!)**](https://discord-interchat.github.io/docs/important/credits)
-            - 📑 [**Report Messages**](https://discord-interchat.github.io/docs/guide/message/reporting)
+            - 📨 [**Send Messages**](https://discord-interchat.github.io/docs/messaging#sending-messages)
+            - ✏️ [**Edit Messages**](https://discord-interchat.github.io/docs/messaging#editing-messages)
+            - ${emojis.icons.delete} [**Delete Messages**](https://discord-interchat.github.io/docs/messaging#deleting-messages)
+            - ${emojis.normal.reply} [**Reply to Messages**](https://discord-interchat.github.io/docs/messaging#replying-to-messages)
+            - 😂 [**React to Messages (Coming soon!)**](https://discord-interchat.github.io/docs/message/reacting)
+            - ${emojis.icons.wand} [**The InterChat Team (Coming Soon!)**](https://discord-interchat.github.io/docs/credits)
+            - 📑 [**Report Messages**](https://discord-interchat.github.io/docs/messaging#reporting-messages--users)
             `);
 
           i.update({ embeds: [messagingEmbed] });
@@ -168,7 +168,7 @@ export default {
               ${normal.dotBlue} @${members[5]?.username}
         
               ${linksDivider}
-              [Guide](https://discord-interchat.github.io/docs) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](https://discord-interchat.github.io/important/privacy) • [Terms](https://discord-interchat.github.io/important/terms) 
+              [Guide](https://discord-interchat.github.io/docs) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](https://discord-interchat.github.io/legal/privacy) • [Terms](https://discord-interchat.github.io/legal/terms) 
             `);
 
           await i.editReply({ embeds: [creditsEmbed] });

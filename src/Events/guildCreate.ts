@@ -29,15 +29,15 @@ export default {
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setLabel('Guide')
-        .setURL('https://discord-interchat.github.io/guide')
+        .setURL('https://discord-interchat.github.io/docs/setup')
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
         .setLabel('ToS')
-        .setURL('https://discord-interchat.github.io/important/terms')
+        .setURL('https://discord-interchat.github.io/docs/legal/terms')
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
         .setLabel('Privacy')
-        .setURL('https://discord-interchat.github.io/important/privacy')
+        .setURL('https://discord-interchat.github.io/docs/legal/privacy')
         .setStyle(ButtonStyle.Link),
     );
 
