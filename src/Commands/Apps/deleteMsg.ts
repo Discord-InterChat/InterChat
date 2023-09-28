@@ -1,7 +1,7 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCommandInteraction } from 'discord.js';
 import { getDb, checkIfStaff } from '../../Utils/utils';
-import logger from '../../Utils/logger';
 import { networkMessageDelete } from '../../Scripts/networkLogs/msgDelete';
+import { captureException } from '@sentry/node';
 import emojis from '../../Utils/JSON/emoji.json';
 
 
@@ -11,6 +11,8 @@ export default {
     .setName('Delete Message')
     .setType(ApplicationCommandType.Message),
   async execute(interaction: MessageContextMenuCommandInteraction) {
+    await interaction.deferReply({ ephemeral: true });
+
     const db = getDb();
     const emoji = emojis.normal;
     const messageInDb = await db?.messageData.findFirst({
@@ -38,28 +40,31 @@ export default {
       });
     }
 
-    await interaction.reply({
-      content: `${emoji.yes} Deletion in progess! This may take a few seconds.`,
-      ephemeral: true,
-    }).catch(() => null);
+    const results = messageInDb.channelAndMessageIds.map(async (element) => {
+      // fetch each channel the message was sent to
+      const channel = await interaction.client.channels.fetch(element.channelId).catch(() => null);
+      if (!channel?.isTextBased()) return false;
 
-    messageInDb.channelAndMessageIds.forEach((element) => {
-      if (!element) return;
+      // fetch the message from the channel and the webhook from the message
+      const message = await channel.messages.fetch(element.messageId).catch(() => null);
+      const webhook = await message?.fetchWebhook()?.catch(() => null);
 
-      interaction.client.channels
-        .fetch(element.channelId)
-        .then((channel) => {
-          if (channel?.isTextBased()) {
-            channel.messages.delete(element.messageId)
-              .catch((e) => logger.error('Delete Message:', e));
-          }
-        })
-        .catch(logger.error);
+      if (webhook?.owner?.id !== interaction.client.user?.id) return false;
+
+      // finally, delete the message
+      return await webhook?.deleteMessage(element.messageId, channel.isThread() ? channel.parent?.id : undefined)
+        .then(() => true)
+        .catch((e) => {
+          captureException(e, { user: { username: interaction.user.username, extra: { action: 'networkMessageDelete ' } } });
+          return false;
+        });
     });
 
+    const resultsArray = await Promise.all(results);
+    const deleted = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
+    await interaction.editReply(`${emoji.yes} Your message has been deleted from __**${deleted}/${resultsArray.length}**__ servers.`).catch(() => null);
+
     // log the deleted message for moderation purposes
-    interaction.inCachedGuild()
-      ? networkMessageDelete(interaction.member, interaction.targetMessage)
-      : null;
+    if (interaction.inCachedGuild()) networkMessageDelete(interaction.member, interaction.targetMessage);
   },
 };
