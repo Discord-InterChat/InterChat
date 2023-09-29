@@ -1,7 +1,7 @@
 import { ActionRowBuilder, ApplicationCommandType, ButtonBuilder, ButtonStyle, ContextMenuCommandBuilder, EmbedBuilder, MessageContextMenuCommandInteraction, ModalBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { getDb } from '../../Utils/utils';
 import { captureException } from '@sentry/node';
-import { addServerBlacklist, addUserBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
+import { addServerBlacklist, addUserBlacklist, notifyBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
@@ -136,6 +136,7 @@ export default {
         await addUserBlacklist(messageInDb.hubId, i.user, messageInDb.authorId, reason, expires);
 
         if (expires) scheduleUnblacklist('user', i.client, messageInDb.authorId, messageInDb.hubId, expires);
+        if (user) notifyBlacklist(user, messageInDb.hubId, expires, reason).catch(() => null);
 
         await modalResp.editReply({ embeds: [successEmbed], components: [] });
       }
@@ -146,6 +147,8 @@ export default {
         await db.connectedList.deleteMany({ where: { serverId: messageInDb.serverId, hubId: messageInDb.hubId } });
 
         if (expires) scheduleUnblacklist('server', i.client, messageInDb.serverId, messageInDb.hubId, expires);
+
+        // TODO: Notify server of blacklist
 
         await modalResp.editReply({ embeds: [successEmbed], components: [] });
       }

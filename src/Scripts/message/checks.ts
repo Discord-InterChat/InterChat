@@ -6,7 +6,7 @@ import { slurs } from '../../Utils/JSON/badwords.json';
 import { replaceLinks } from '../../Utils/utils';
 import { connectedList } from '@prisma/client';
 import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
-import { addUserBlacklist, findBlacklistedServer, findBlacklistedUser, scheduleUnblacklist } from '../../Utils/blacklist';
+import { addUserBlacklist, findBlacklistedServer, findBlacklistedUser, notifyBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 export default {
   async execute(message: Message, networkData: connectedList, settings: HubSettingsBitField) {
     // true = pass, false = fail (checks)
@@ -21,6 +21,8 @@ export default {
         if (antiSpamResult.infractions >= 3) {
           await addUserBlacklist(networkData.hubId, message.client.user, message.author, 'Auto-blacklisted for spamming.', 60 * 5000);
           scheduleUnblacklist('user', message.client, message.author.id, networkData.hubId, 60 * 5000);
+
+          notifyBlacklist(message.author, networkData.hubId, new Date(Date.now() + 60 * 5000), 'Auto-blacklisted for spamming.').catch(() => null);
         }
         message.react(emojis.icons.timeout).catch(() => null);
         return false;

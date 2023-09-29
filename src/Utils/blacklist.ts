@@ -120,11 +120,9 @@ export async function removeBlacklist(type: string, hubId: string, userOrServerI
 }
 
 
-export function scheduleUnblacklist(type: 'server', client: Client<true>, serverId: string, hubId: string, expires: Date | number): void
-export function scheduleUnblacklist(type: 'user', client: Client<true>, userId: string, hubId: string, expires: Date | number): void
-export function scheduleUnblacklist(type: string, client: Client<true>, userOrServerId: string, hubId: string, expires: Date | number) {
+export function scheduleUnblacklist(type: 'user' | 'server', client: Client<true>, userOrServerId: string, hubId: string, expires: Date | number) {
   if (type === 'server') {
-    scheduleJob(`blacklist_server-${userOrServerId}`, expires, async function() {
+    return scheduleJob(`blacklist_server-${userOrServerId}`, expires, async function() {
       const db = getDb();
       const dbServer = await db.blacklistedServers.findFirst({
         where: { serverId: userOrServerId, hubs: { some: { hubId } } },
@@ -146,7 +144,7 @@ export function scheduleUnblacklist(type: string, client: Client<true>, userOrSe
   }
 
   if (type === 'user') {
-    scheduleJob(`blacklist_user-${userOrServerId}`, expires, async () => {
+    return scheduleJob(`blacklist_user-${userOrServerId}`, expires, async () => {
       const db = getDb();
       const dbUser = await db.blacklistedUsers.findFirst({
         where: { userId: userOrServerId, hubs: { some: { hubId } } },
@@ -165,10 +163,8 @@ export function scheduleUnblacklist(type: string, client: Client<true>, userOrSe
       }).catch(() => null);
     });
   }
-  return false;
 }
 
-export async function notifyBlacklist(channel: TextBasedChannel, hubId: string, expires?: Date, reason?: string): Promise<void>
 export async function notifyBlacklist(userOrChannel: User | TextBasedChannel, hubId: string, expires?: Date, reason: string = 'No reason provided.') {
   const db = getDb();
   const hub = await db.hubs.findUnique({ where: { id: hubId } });

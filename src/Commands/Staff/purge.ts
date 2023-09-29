@@ -2,6 +2,8 @@ import { captureException } from '@sentry/node';
 import { ChannelType, ChatInputCommandInteraction, EmbedBuilder, PermissionFlagsBits, SlashCommandBuilder } from 'discord.js';
 import { getDb, toHuman } from '../../Utils/utils';
 import emojis from '../../Utils/JSON/emoji.json';
+import { messageData as messageDataCol } from '@prisma/client';
+import { stripIndents } from 'common-tags';
 
 export default {
   staff: true,
@@ -110,7 +112,7 @@ export default {
       });
     }
 
-    let messagesInDb;
+    let messagesInDb: messageDataCol[] = [];
 
     switch (subcommand) {
       case 'server': {
@@ -171,19 +173,15 @@ export default {
 
     if (!messagesInDb || messagesInDb.length < 1) {
       return await interaction.reply({
-        content: 'Unable to locate messages to purge in database. Maybe they have expired?',
+        content: 'Unable to locate messages to purge. Maybe they have expired?',
         ephemeral: true,
       });
     }
-    const initialReply = await interaction.reply(`${emoji.normal.loading} Purging...`);
-
-    let erroredMessageCount = 0;
-    let deletedMessageCount = 0;
-    const deletedMessagesArr: string[] = [];
+    await interaction.deferReply({ fetchReply: true });
 
     const startTime = performance.now();
     const allNetworks = await connectedList.findMany({ where: { hubId: channelInHub.hubId, connected: true } });
-    for (const network of allNetworks) {
+    const promiseResults = allNetworks.map(async network => {
       try {
         const channel = await interaction.client.channels.fetch(network.channelId);
 
@@ -194,37 +192,43 @@ export default {
               .map(({ messageId }) => messageId),
           );
 
-          if (messageIds.length < 1) continue;
+          if (messageIds.length < 1) return [];
 
           await channel.bulkDelete(messageIds);
-          deletedMessagesArr.push(messageIds[0]);
-          deletedMessageCount += messageIds.length;
+          return messageIds;
         }
       }
       catch (e) {
-        erroredMessageCount++;
         captureException(e);
-        continue;
       }
-    }
+
+      return [];
+    });
+
+    const results = await Promise.all(promiseResults);
+    const deletedMessages = results.reduce((acc, cur) => acc + cur.length, 0);
+    const failedMessages = results.reduce((acc, cur) => acc + cur.length > 0 ? 0 : 1, 0);
+    const messages = results.filter((i) => i.length > 0).flat();
 
     const resultEmbed = new EmbedBuilder()
-      .setTitle(`${emoji.icons.delete} Purge Results`)
-      .setDescription(`Finished purging from **${allNetworks.length}** networks in \`${toHuman(performance.now() - startTime)}\`.`)
+      .setDescription(stripIndents`
+        ### ${emoji.icons.delete} Purge Results
+
+        Finished purging from **${allNetworks.length}** networks in \`${toHuman(performance.now() - startTime)}\`.
+      `)
       .addFields([
-        { name: 'Total Purged', value: `\`\`\`js\n${deletedMessageCount}\`\`\``, inline: true },
-        { name: 'Errored Purges', value: `\`\`\`js\n${erroredMessageCount}\`\`\``, inline: true },
+        { name: 'Total Purged', value: `\`\`\`js\n${deletedMessages}\`\`\``, inline: true },
+        { name: 'Errored Purges', value: `\`\`\`js\n${failedMessages}\`\`\``, inline: true },
         { name: 'Purge Limit', value: `\`\`\`js\n${limit || 'None'}\`\`\``, inline: true },
       ])
       .setFooter({ text: `Purged By: ${interaction.user.username}`, iconURL: interaction.user.avatarURL() || undefined })
       .setTimestamp()
-      .setColor('Orange');
+      .setColor('Green');
 
-    initialReply.edit({ content: '', embeds: [resultEmbed] }).catch(captureException);
+    await interaction.followUp({ embeds: [resultEmbed] }).catch(captureException);
 
-    // Remove the deleted messages from the database
     await messageData.deleteMany({
-      where: { channelAndMessageIds: { some: { messageId: { in: deletedMessagesArr } } } },
+      where: { channelAndMessageIds: { some: { messageId: { in: messages } } } },
     }).catch(captureException);
   },
 };

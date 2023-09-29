@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { getDb } from '../../Utils/utils';
 import { modActions } from '../networkLogs/modActions';
-import { addUserBlacklist, removeBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
+import { addUserBlacklist, notifyBlacklist, removeBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
@@ -60,6 +60,8 @@ export default {
 
       await addUserBlacklist(hubInDb.id, interaction.user, user, String(reason), expires);
       if (expires) scheduleUnblacklist('user', interaction.client, user.id, hubInDb.id, expires);
+
+      await notifyBlacklist(user, hubInDb.id, expires, String(reason));
 
       const successEmbed = new EmbedBuilder()
         .setDescription(`${emojis.normal.tick} **${user.username}** has been successfully blacklisted!`)
