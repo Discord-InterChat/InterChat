@@ -1,6 +1,5 @@
 import { Message } from 'discord.js';
 import { NetworkMessage } from '../../Events/messageCreate';
-import 'dotenv/config';
 
 export default {
   getReferredContent(referredMessage: Message) {
@@ -25,6 +24,8 @@ export default {
     const gifMatch = message.content.match(tenorRegex);
 
     if (gifMatch) {
+      if (!process.env.TENOR_KEY) throw new TypeError('Tenor API key not found in .env file.');
+
       const n = gifMatch[0].split('-');
       const id = n.at(-1);
       const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;

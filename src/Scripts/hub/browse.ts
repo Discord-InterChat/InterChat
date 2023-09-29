@@ -58,11 +58,11 @@ export default {
 
     const hubList = await Promise.all(
       sortedHubs?.map(async (hub) => {
-        const totalNetworks = await db.connectedList
-          .count({ where: { hubId: hub.id } })
+        const connections = await db.connectedList
+          .count({ where: { hubId: hub.id, connected: true } })
           .catch(() => 0);
 
-        return createHubListingsEmbed(hub, { totalNetworks });
+        return createHubListingsEmbed(hub, { connections });
       }),
     );
 

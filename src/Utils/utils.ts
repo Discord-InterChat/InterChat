@@ -173,45 +173,23 @@ export function calculateAverageRating(ratings: number[]): number {
 }
 
 interface HubListingExtraInput {
-  totalNetworks?: number;
+  connections?: number;
 }
 
 export function createHubListingsEmbed(hub: hubs, extra?: HubListingExtraInput) {
   return new discord.EmbedBuilder()
-    .setTitle(hub.name)
-    .setDescription(hub.description)
+    .setDescription(stripIndents`
+      ### ${hub.name}
+      ${hub.description}
+
+      **Tags:** ${hub.tags.join(', ')}
+      **Rating:** ${hub.rating?.length > 0 ? '⭐'.repeat(calculateAverageRating(hub.rating.map(hr => hr.rating))) : '-'}
+      **Connections:** ${extra?.connections ?? 'Unknown.'}
+      **Created At:** <t:${Math.round(hub.createdAt.getTime() / 1000)}:d>
+    `)
     .setColor('Random')
     .setThumbnail(hub.iconUrl)
-    .setImage(hub.bannerUrl)
-    .addFields([
-      {
-        name: 'Tags',
-        value: hub.tags.join(', '),
-        inline: true,
-      },
-      {
-        name: 'Rating',
-        value: hub.rating?.length > 0
-          ? '⭐'.repeat(calculateAverageRating(hub.rating.map(hr => hr.rating)))
-          : '-',
-        inline: true,
-      },
-      {
-        name: 'Visibility',
-        value: hub.private ? 'Private' : 'Public',
-        inline: true,
-      },
-      {
-        name: 'Networks',
-        value: `${extra?.totalNetworks ?? 'Unknown.'}`,
-        inline: true,
-      },
-      {
-        name: 'Created At',
-        value: `<t:${Math.round(hub.createdAt.getTime() / 1000)}>`,
-        inline: true,
-      },
-    ]);
+    .setImage(hub.bannerUrl);
 }
 
 
@@ -231,33 +209,26 @@ export const rulesEmbed = new discord.EmbedBuilder()
   1. **No Spamming or Flooding:**
    Avoid repeated, nonsensical, or overly lengthy messages.
   
-  2. **English Only in Central Hub:**
-   Use English for easy moderation. Non-native speakers may use a translator.
-  
-  3. **No Advertising:**
-   No promotion of servers, social media, or other services.
-  
-  4. **Keep Private Matters Private:**
+  2. **Keep Private Matters Private:**
    Avoid sharing personal information across the network.
   
-  5. **Maintain a Respectful Environment:**
+  3. **Maintain a Respectful Environment:**
    Be considerate of others and their views. No slurs, derogatory language or any actions that can disrupt the chat's comfort.
+
+  4. **Use Common Sense:**
+   Think before you act or communicate. Generally, if you think it's wrong, it probably is and you can be punished for it.
   
-  6. **No Bot Commands:**
-   Refrain from using bot commands that can be disruptive to other servers.
-  
-  7. **No Harassment:**
+  5. **No Harassment:**
    Trolling, insults, or harassment of any kind are not tolerated.
   
-  8. **No NSFW Content:**
-   Posting explicit or NSFW content will result in immediate blacklist.
+  6. **No NSFW/NSFL Content:**
+   Posting explicit NSFW/NSFL content will result in immediate blacklist.
   
-  9. **Respect Sensitive Topics:**
+  7. **Respect Sensitive Topics:**
    Do not trivialize self-harm, suicide, violence, or other offensive topics.
-  
-  10. **Adhere to Chat Filters:**
-   Evading InterChat's chat filters will not be tolerated.
-  
+
+  8. **Report Concerns:** If you observe a violation of these rule or any other guidelines, report it to the appropriate hub moderator or InterChat staff for further action.
+
   Any questions? Join our [support server](https://discord.gg/6bhXQynAPs).
   `,
   );

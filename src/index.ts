@@ -1,7 +1,8 @@
 import fs from 'fs';
 import project from '../package.json';
-import { Client, Collection, ActivityType } from 'discord.js';
 import * as Sentry from '@sentry/node';
+import { Client, Collection, ActivityType } from 'discord.js';
+import 'dotenv/config';
 
 export class ExtendedClient extends Client {
   constructor() {
@@ -32,13 +33,13 @@ export class ExtendedClient extends Client {
     // Error monitoring (sentry.io)
     Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 1.0 });
 
-    return await this.login(token || process.env.TOKEN);
+    await this.login(token || process.env.TOKEN);
   }
 
   protected loadCommands() {
-    fs.readdirSync('build/src/Commands').forEach(async (dir: string) => {
-      if (fs.statSync(`build/src/Commands/${dir}`).isDirectory()) {
-        const commandFiles = fs.readdirSync(`build/src/Commands/${dir}`)
+    fs.readdirSync(`${__dirname}/Commands/`).forEach(async (dir: string) => {
+      if (fs.statSync(`${__dirname}/Commands/${dir}`).isDirectory()) {
+        const commandFiles = fs.readdirSync(`${__dirname}/Commands/${dir}`)
           .filter((file: string) => file.endsWith('.js'));
 
         for (const commandFile of commandFiles) {
@@ -52,7 +53,7 @@ export class ExtendedClient extends Client {
   }
 
   protected loadEvents() {
-    const eventFiles = fs.readdirSync('build/src/Events').filter((file: string) => file.endsWith('.js'));
+    const eventFiles = fs.readdirSync(`${__dirname}/Events`).filter((file: string) => file.endsWith('.js'));
 
     for (const eventFile of eventFiles) {
       const event = require(`./Events/${eventFile}`);
