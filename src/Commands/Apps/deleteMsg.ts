@@ -52,7 +52,7 @@ export default {
       if (webhook?.owner?.id !== interaction.client.user?.id) return false;
 
       // finally, delete the message
-      return await webhook?.deleteMessage(element.messageId, channel.isThread() ? channel.parent?.id : undefined)
+      return await webhook?.deleteMessage(element.messageId, channel.isThread() ? channel.id : undefined)
         .then(() => true)
         .catch((e) => {
           captureException(e, { user: { username: interaction.user.username, extra: { action: 'networkMessageDelete ' } } });
