@@ -14,7 +14,7 @@ export default {
       .setThumbnail(interaction.client.user.avatarURL())
       .setFooter({ text: `Requested by @${interaction.user.username}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL })
       .setDescription(stripIndents`
-      ### Guide
+      ### InterChat Help
       InterChat is a powerful discord bot that enables effortless cross-server chatting! Get started by looking at the categories below.
       ### Categories:
       - ⚙️ [**Setting up InterChat**](https://discord-interchat.github.io/docs/setup)
@@ -147,7 +147,7 @@ export default {
 
           const creditsEmbed = EmbedBuilder.from(embed)
             .setDescription(`
-              ## ${icons.wand} InterChat Credits
+              ## ${icons.wand} The Team
               InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our support server. 
 
               ${creditsDivider}
@@ -155,7 +155,7 @@ export default {
               ${normal.dotBlue} @${members[6]?.username} (Mascot)
               ${normal.dotBlue} @${members[4]?.username} (Avatar)
               ${normal.dotBlue} @${members[0]?.username} (Avatar)
-              ${normal.dotBlue} @${members[5]?.username} (Server Icon)
+              ${normal.dotBlue} @${members[5]?.username} (Avatar & Server Icon)
         
               ${icons.botdev} **Developers:**
               ${normal.dotBlue} @${members[1]?.username}

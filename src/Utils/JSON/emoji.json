@@ -2,9 +2,9 @@
     "normal": {
         "yes": "<:yes:977600103206498354>",
         "neutral": "<:neutral:977600034055016499>",
-	"no": "<:no:977600033740431410>",
+	    "no": "<:no:977600033740431410>",
         "discordStaff": "<:badge_InterChatStaff:1102229356379648011>",
-	"invite": "<:add:1032318201134067722>", 
+	    "invite": "<:add:1032318201134067722>", 
         "clipart": "<:chat_clipart:772393314413707274>",
         "checkGreen": "<a:Check_green:772393366109290498>",
         "tada": "<a:tada:772393312652886017>",
@@ -39,7 +39,8 @@
         "slashCommand": "<:slashCommand:1086631449337266276>",
         "blueLine": "<:blueLine:1086634970539360296>",
         "attachment": "<:attachment:1102464803647275028>",
-        "interchatCircle": "<:interchat:1155133495270703135>"
+        "interchatLogoOld": "<:interchat:1155133495270703135>",
+        "interchatCircle": "<:InterChat:1156787716130869269>"
     },
 
 

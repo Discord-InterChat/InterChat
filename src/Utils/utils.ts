@@ -205,29 +205,15 @@ export const rulesEmbed = new discord.EmbedBuilder()
   .setColor(constants.colors.interchatBlue)
   .setImage('https://i.imgur.com/D2pYagc.png')
   .setDescription(stripIndents`
-  ## 📜 InterChat Network Rules
-  1. **No Spamming or Flooding:**
-   Avoid repeated, nonsensical, or overly lengthy messages.
-  
-  2. **Keep Private Matters Private:**
-   Avoid sharing personal information across the network.
-  
-  3. **Maintain a Respectful Environment:**
-   Be considerate of others and their views. No slurs, derogatory language or any actions that can disrupt the chat's comfort.
+  ### 📜 InterChat Network Rules
 
-  4. **Use Common Sense:**
-   Think before you act or communicate. Generally, if you think it's wrong, it probably is and you can be punished for it.
-  
-  5. **No Harassment:**
-   Trolling, insults, or harassment of any kind are not tolerated.
-  
-  6. **No NSFW/NSFL Content:**
-   Posting explicit NSFW/NSFL content will result in immediate blacklist.
-  
-  7. **Respect Sensitive Topics:**
-   Do not trivialize self-harm, suicide, violence, or other offensive topics.
-
-  8. **Report Concerns:** If you observe a violation of these rule or any other guidelines, report it to the appropriate hub moderator or InterChat staff for further action.
+  1. **Use Common Sense:** Be considerate of others and their views. No slurs, derogatory language or any actions that can disrupt the chat's comfort.
+  2. **No Spamming or Flooding:** Avoid repeated, nonsensical, or overly lengthy messages.
+  3. **Keep Private Matters Private:** Avoid sharing personal information across the network.
+  4. **No Harassment:** Trolling, insults, or harassment of any kind are not tolerated.
+  5. **No NSFW/NSFL Content:** Posting explicit NSFW/NSFL content will result in immediate blacklist.
+  6. **Respect Sensitive Topics:** Do not trivialize self-harm, suicide, violence, or other offensive topics.
+  7. **Report Concerns:**  If you observe a violation of these rules, report it to the appropriate hub moderator or InterChat staff for further action.
 
   Any questions? Join our [support server](https://discord.gg/6bhXQynAPs).
   `,
