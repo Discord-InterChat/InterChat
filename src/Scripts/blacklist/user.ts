@@ -1,67 +1,41 @@
+import { hubs } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { getDb } from '../../Utils/utils';
 import { modActions } from '../networkLogs/modActions';
-import { addUserBlacklist, notifyBlacklist, removeBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
+import { addUserBlacklist, fetchUserBlacklist, notifyBlacklist, removeBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 import emojis from '../../Utils/JSON/emoji.json';
+import parse from 'parse-duration';
 
 export default {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction, hub: hubs) {
+    await interaction.deferReply();
+
     const subcommandGroup = interaction.options.getSubcommandGroup();
-    const hubName = interaction.options.getString('hub', true);
+    const userId = interaction.options.getString('user', true);
     const reason = interaction.options.getString('reason');
-    let userOpt = interaction.options.getString('user', true);
-    let user;
+    const duration = parse(`${interaction.options.getString('duration')}`);
 
-
-    try {
-      userOpt = userOpt.replaceAll(/<@|!|>/g, '');
-      user = interaction.client.users.cache.find(u => u.tag === userOpt);
-      if (user === undefined) user = await interaction.client.users.fetch(userOpt);
-    }
-    catch {
-      return interaction.reply('Could not find user. Use an ID instead.');
-    }
-
-    const db = getDb();
-    const hubInDb = await db.hubs.findFirst({
-      where: {
-        name: hubName,
-        OR: [
-          { moderators: { some: { userId: interaction.user.id } } },
-          { ownerId: interaction.user.id },
-        ],
-      },
-    });
-    if (!hubInDb) return await interaction.reply('Hub with that name not found. Or you are not a moderator of that hub.');
-    const userInBlacklist = await db.blacklistedUsers.findFirst({ where: { userId: user.id, hubs: { some: { hubId: hubInDb.id } } } });
-
+    const expires = duration ? new Date(Date.now() + duration) : undefined;
 
     if (subcommandGroup == 'add') {
-      await interaction.deferReply();
+      // get ID if user inputted a @ mention
+      const userOpt = userId.replaceAll(/<@|!|>/g, '');
+      // find user through username if they are cached or fetch them using ID
+      const user = interaction.client.users.cache.find((u) => u.username === userOpt) ??
+        await interaction.client.users.fetch(userOpt).catch(() => null);
 
-      let expires: Date | undefined;
-      const mins = interaction.options.getNumber('minutes');
-      const hours = interaction.options.getNumber('hours');
-      const days = interaction.options.getNumber('days');
+      if (!user) return interaction.followUp('Could not find user. Use an ID instead.');
+      if (user.id === interaction.user.id) return interaction.followUp('You cannot blacklist yourself.');
+      if (user.id === interaction.client.user?.id) return interaction.followUp('You cannot blacklist the bot wtf.');
 
+      const userInBlacklist = await fetchUserBlacklist(hub.id, userOpt);
       if (userInBlacklist) {
         interaction.followUp(`**${user.username}** is already blacklisted.`);
         return;
       }
-      if (user.id === interaction.user.id) return interaction.followUp('You cannot blacklist yourself.');
-      if (user.id === interaction.client.user?.id) return interaction.followUp('You cannot blacklist the bot wtf.');
 
-      if (mins || hours || days) {
-        expires = new Date();
-        mins ? expires.setMinutes(expires.getMinutes() + mins) : null;
-        hours ? expires.setHours(expires.getHours() + hours) : null;
-        days ? expires.setDate(expires.getDate() + days) : null;
-      }
-
-      await addUserBlacklist(hubInDb.id, interaction.user, user, String(reason), expires);
-      if (expires) scheduleUnblacklist('user', interaction.client, user.id, hubInDb.id, expires);
-
-      await notifyBlacklist(user, hubInDb.id, expires, String(reason));
+      await addUserBlacklist(hub.id, interaction.user, user, String(reason), expires);
+      if (expires) scheduleUnblacklist('user', interaction.client, user.id, hub.id, expires);
+      notifyBlacklist(user, hub.id, expires, String(reason));
 
       const successEmbed = new EmbedBuilder()
         .setDescription(`${emojis.normal.tick} **${user.username}** has been successfully blacklisted!`)
@@ -78,23 +52,28 @@ export default {
             inline: true,
           },
         );
+
       await interaction.followUp({ embeds: [successEmbed] });
     }
 
 
     else if (subcommandGroup == 'remove') {
-      if (!userInBlacklist) return interaction.reply(`The user **@${user.username}** is not blacklisted.`);
-      const userBeforeUnblacklist = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
+      const blacklistedUser = await fetchUserBlacklist(hub.id, userId);
+      const user = await interaction.client.users.fetch(userId).catch(() => null);
 
-      await removeBlacklist('user', hubInDb.id, user.id);
-      await interaction.reply(`**${user.username}** has been removed from the blacklist.`);
+      if (!blacklistedUser) return interaction.followUp('The inputted user is not blacklisted.');
 
-      modActions(interaction.user, {
-        user,
-        action: 'unblacklistUser',
-        blacklistedFor: userBeforeUnblacklist?.hubs.find(({ hubId }) => hubId === hubInDb.id)?.reason,
-        hubId: hubInDb.id,
-      });
+      await removeBlacklist('user', hub.id, blacklistedUser.userId);
+      await interaction.followUp(`**${user?.username || blacklistedUser?.username}** has been removed from the blacklist.`);
+
+      if (user) {
+        modActions(interaction.user, {
+          user,
+          action: 'unblacklistUser',
+          blacklistedFor: blacklistedUser.hubs.find(({ hubId }) => hubId === hub.id)?.reason,
+          hubId: hub.id,
+        });
+      }
     }
   },
 };

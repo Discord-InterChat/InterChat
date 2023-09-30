@@ -2,11 +2,11 @@ import { MessageReaction, PartialMessageReaction, PartialUser, User } from 'disc
 import { getDb } from '../Utils/utils';
 import updateMessageReactions from '../Scripts/reactions/updateMessage';
 import { HubSettingsBitField } from '../Utils/hubSettingsBitfield';
-import { findBlacklistedServer, findBlacklistedUser } from '../Utils/blacklist';
+import { fetchServerBlacklist, fetchUserBlacklist } from '../Utils/blacklist';
 
 export default {
   name: 'messageReactionAdd',
-  async execute(reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) { // user: User | PartialUser
+  async execute(reaction: MessageReaction | PartialMessageReaction, user: User | PartialUser) {
     if (user.bot || user.system) return;
 
     const db = getDb();
@@ -22,8 +22,8 @@ export default {
       !reaction.message.inGuild()
     ) return;
 
-    const userBlacklisted = await findBlacklistedUser(messageInDb.hubId, user.id);
-    const serverBlacklisted = await findBlacklistedServer(messageInDb.hubId, reaction.message.guild.id);
+    const userBlacklisted = await fetchUserBlacklist(messageInDb.hubId, user.id);
+    const serverBlacklisted = await fetchServerBlacklist(messageInDb.hubId, reaction.message.guild.id);
     if (userBlacklisted || serverBlacklisted) return;
 
     const cooldown = reaction.client.reactionCooldowns.get(user.id);

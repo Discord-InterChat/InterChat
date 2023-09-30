@@ -28,16 +28,12 @@ export default {
     onboardingInProgress.set(channelId, channelId);
 
     const embed = new EmbedBuilder()
-      .setTitle(`👋 Hey there! Welcome to ${hubName}!`)
+      .setTitle(`👋 Hey there, welcome to ${hubName}!`)
       .setDescription(
         stripIndents`
         To keep things organized, it's recommended to use a separate channel for just for this hub. But don't worry, you can always change this later.
 
-        Before we dive in, take a moment to review our rules. We want everyone to have a smooth and fun experience.
-
-        **How it works:** the InterChat Network is like a magic bridge that links channels on different servers that are with us in this hub. So, you can chat with people from all over!
-
-        Developer Note: And hey, if you have any cool ideas for new features, let us know! We're always looking to improve.
+        **How it works:** The InterChat Network is like a magic bridge that links channels on different servers that are with us in this hub. Learn more at our [guide](https://discord-interchat.github.io/docs).
         `,
       )
       .setColor(constants.colors.interchatBlue)
@@ -69,10 +65,7 @@ export default {
       })
       .catch(() => null);
 
-    if (!response || response?.customId === 'cancel') {
-      await interaction.deleteReply();
-    }
-    else if (response.customId === 'next') {
+    if (response?.customId === 'next') {
       const acceptButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder().setCustomId('cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
         new ButtonBuilder().setCustomId('accept').setLabel('Accept').setStyle(ButtonStyle.Success),

@@ -3,6 +3,7 @@ import { getDb } from '../../Utils/utils';
 import { captureException } from '@sentry/node';
 import { addServerBlacklist, addUserBlacklist, notifyBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 import emojis from '../../Utils/JSON/emoji.json';
+import parse from 'parse-duration';
 
 export default {
   description: 'Blacklist the user or server that sent the message from the hub.',
@@ -23,11 +24,18 @@ export default {
     },
     });
 
-    if (!messageInDb) return interaction.reply({ content: 'This message was not sent in the network or has expired.', ephemeral: true });
+    if (!messageInDb) {
+      interaction.reply({
+        content:
+          'This message was not sent in a network, has expired or you lack required permissions to perform this action.',
+        ephemeral: true,
+      });
+      return;
+    }
 
     const embed = new EmbedBuilder()
       .setTitle('Blacklist')
-      .setDescription('Blacklist a user or server from this hub. This will prevent them from sending messages in this hub.')
+      .setDescription('Blacklist this server or user from this hub, preventing their messages from being sent.')
       .setColor('Blurple');
 
     const buttons = new ActionRowBuilder<ButtonBuilder>()
@@ -64,29 +72,11 @@ export default {
           ),
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
-              .setCustomId('minutes')
-              .setLabel('Minutes')
-              .setPlaceholder('How many minutes should this blacklist last?')
+              .setCustomId('duration')
+              .setLabel('Duration')
+              .setPlaceholder('Duration of the blacklist. Eg. 1d 2h 3m')
               .setStyle(TextInputStyle.Short)
-              .setMaxLength(2)
-              .setRequired(false),
-          ),
-          new ActionRowBuilder<TextInputBuilder>().addComponents(
-            new TextInputBuilder()
-              .setCustomId('hours')
-              .setLabel('Hours')
-              .setPlaceholder('How many hours should this blacklist last?')
-              .setStyle(TextInputStyle.Short)
-              .setMaxLength(2)
-              .setRequired(false),
-          ),
-          new ActionRowBuilder<TextInputBuilder>().addComponents(
-            new TextInputBuilder()
-              .setCustomId('days')
-              .setLabel('Days')
-              .setPlaceholder('How many days should this blacklist last?')
-              .setStyle(TextInputStyle.Short)
-              .setMaxLength(2)
+              .setMinLength(2)
               .setRequired(false),
           ),
         );
@@ -104,15 +94,8 @@ export default {
       await modalResp.deferUpdate();
 
       const reason = modalResp.fields.getTextInputValue('reason');
-      const mins = parseInt(modalResp.fields.getTextInputValue('minutes')) || 0;
-      const hours = parseInt(modalResp.fields.getTextInputValue('hours')) || 0;
-      const days = parseInt(modalResp.fields.getTextInputValue('days')) || 0;
-
-      let expires = undefined;
-      if (mins || hours || days) expires = new Date();
-      if (mins) expires?.setMinutes(expires.getMinutes() + mins);
-      if (hours) expires?.setHours(expires.getHours() + hours);
-      if (days) expires?.setDate(expires.getDate() + days);
+      const duration = parse(modalResp.fields.getTextInputValue('duration'));
+      const expires = duration ? new Date(Date.now() + duration) : undefined;
 
       const successEmbed = new EmbedBuilder()
         .setColor('Green')

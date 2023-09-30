@@ -32,16 +32,10 @@ export default {
                   .setName('reason')
                   .setDescription('The reason for blacklisting the user.')
                   .setRequired(true))
-              .addNumberOption(option => option
-                .setName('minutes')
-                .setDescription('The number of minutes the user will be blakclisted for.')
-                .setMinValue(1))
-              .addNumberOption(option => option
-                .setName('hours')
-                .setDescription('The number of hours the user will be blacklisted for.'))
-              .addNumberOption(option => option
-                .setName('days')
-                .setDescription('The number of hours the user will be blacklisted for.')),
+              .addStringOption(option => option
+                .setName('duration')
+                .setDescription('The duration of the blacklist.')
+                .setMinLength(2)),
         )
         .addSubcommand(subcommand =>
           subcommand
@@ -66,16 +60,10 @@ export default {
                 .setDescription('The reason for blacklisting the server.')
                 .setRequired(true),
             )
-            .addNumberOption(option => option
-              .setName('minutes')
-              .setDescription('The number of minutes the user will be blakclisted for.')
-              .setMinValue(1))
-            .addNumberOption(option => option
-              .setName('hours')
-              .setDescription('The number of hours the user will be blacklisted for.'))
-            .addNumberOption(option => option
-              .setName('days')
-              .setDescription('The number of hours the user will be blacklisted for.')),
+            .addStringOption(option => option
+              .setName('duration')
+              .setDescription('The duration of the blacklist.')
+              .setMinLength(2)),
         ),
     )
     .addSubcommandGroup(subcommandGroup =>
@@ -126,29 +114,34 @@ export default {
       subcommand
         .setName('list')
         .setDescription('List all blacklists.')
-        .addStringOption(hubOption =>
-          hubOption
-            .setName('hub')
-            .setDescription('The name of the hub to blacklist the user from.')
-            .setAutocomplete(true)
-            .setRequired(true),
-        )
         .addStringOption(string =>
           string
             .setName('type')
             .setDescription('The type of blacklist to list.')
-            .setRequired(true)
-            .addChoices(
-              { name: 'User', value: 'user' },
-              { name: 'Server', value: 'server' }),
+            .addChoices({ name: 'User', value: 'user' }, { name: 'Server', value: 'server' })
+            .setRequired(true),
+        )
+        .addStringOption(hubOption =>
+          hubOption
+            .setName('hub')
+            .setDescription('The name of the hub to list from.')
+            .setAutocomplete(true)
+            .setRequired(true),
         ),
     ),
   async execute(interaction: ChatInputCommandInteraction) {
-    const subCommand = interaction.options.getSubcommand();
     const hub = interaction.options.getString('hub', true);
+    const subcommand = interaction.options.getSubcommand(true);
 
     const db = getDb();
-    const hubInDb = await db.hubs.findFirst({ where: { name: hub } });
+    const hubInDb = await db.hubs.findFirst({ where: {
+      name: hub,
+      OR: [
+        { ownerId: interaction.user.id },
+        { moderators: { some: { userId: interaction.user.id } } },
+      ],
+    },
+    });
 
     if (!hubInDb) {
       return await interaction.reply({
@@ -163,7 +156,7 @@ export default {
       });
     }
 
-    (await import(`../../Scripts/blacklist/${subCommand}`)).default.execute(interaction, hubInDb);
+    (await import(`../../Scripts/blacklist/${subcommand}`)).default.execute(interaction, hubInDb);
   },
 
   async autocomplete(interaction: AutocompleteInteraction) {
@@ -221,6 +214,7 @@ export default {
         interaction.respond(choices);
         break;
       }
+
       case 'server': {
         const serverOpt = interaction.options.get('server', true);
         const serverHubMod = await db.hubs.findFirst({

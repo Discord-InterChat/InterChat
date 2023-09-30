@@ -1,29 +1,17 @@
 import fs from 'fs';
-import project from '../package.json';
 import * as Sentry from '@sentry/node';
-import { Client, Collection, ActivityType } from 'discord.js';
+import { Client, Collection, ActivityType, ClientOptions } from 'discord.js';
 import 'dotenv/config';
 
 export class ExtendedClient extends Client {
-  constructor() {
-    super({
-      intents: ['Guilds', 'GuildMessages', 'GuildMembers', 'MessageContent', 'GuildMessageReactions'],
-      allowedMentions: { parse: [], repliedUser: true },
-      presence: {
-        status: 'online',
-        activities: [{
-          state: '👀 Watching over 300+ networks... /hub browse',
-          type: ActivityType.Custom,
-          name: 'custom',
-        }],
-      },
-    });
+  constructor(options: ClientOptions) {
+    super(options);
 
     this.commands = new Collection();
     this.commandCooldowns = new Collection();
     this.reactionCooldowns = new Collection();
-    this.description = project.description;
-    this.version = project.version;
+    this.description = 'A growing Discord bot which provides inter-server chat! https://discord-interchat.github.io/';
+    this.version = '3.13.0';
   }
 
   public async start(token?: string) {
@@ -69,4 +57,17 @@ export class ExtendedClient extends Client {
   }
 }
 
-new ExtendedClient().start();
+const client = new ExtendedClient({
+  intents: ['Guilds', 'GuildMessages', 'GuildMembers', 'MessageContent', 'GuildMessageReactions'],
+  allowedMentions: { parse: [], repliedUser: true },
+  presence: {
+    status: 'online',
+    activities: [{
+      state: '👀 Watching over 300+ networks... /hub browse',
+      type: ActivityType.Custom,
+      name: 'custom',
+    }],
+  },
+});
+
+client.start();

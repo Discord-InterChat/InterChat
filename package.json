@@ -2,7 +2,7 @@
   "name": "interchat",
   "version": "3.13.0",
   "description": "A growing Discord bot which provides inter-server chat!",
-  "main": "build/src/index.js",
+  "main": "build/index.js",
   "maintainers": [
     {
       "name": "Supreme1707"
@@ -22,7 +22,7 @@
     "start": "node .",
     "build": "tsc --build",
     "dev": "tsc-watch --outDir ./build --onSuccess \"node .\"",
-    "deploy": "node build/src/Utils/deploy-commands.js",
+    "deploy": "node build/Utils/deploy-commands.js",
     "release": "standard-version",
     "lint": "eslint --cache --fix .",
     "prepare": "husky install"
@@ -41,12 +41,13 @@
     "dotenv": "^16.3.1",
     "lodash": "^4.17.21",
     "node-schedule": "^2.1.1",
+    "parse-duration": "^1.1.0",
     "winston": "^3.10.0"
   },
   "devDependencies": {
     "@types/common-tags": "^1.8.2",
     "@types/lodash": "^4.14.199",
-    "@types/node": "^20.7.1",
+    "@types/node": "^20.8.0",
     "@types/node-schedule": "^2.1.1",
     "@typescript-eslint/eslint-plugin": "^6.7.3",
     "@typescript-eslint/parser": "^6.7.3",

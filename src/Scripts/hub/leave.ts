@@ -47,7 +47,7 @@ export default {
         content: `${normal.yes} Deleted network connection from <#${channelId}> and left the hub!`,
         embeds: [],
         components: [],
-      });
+      }).catch(() => null);
     });
 
     resetCollector.on('end', () => {

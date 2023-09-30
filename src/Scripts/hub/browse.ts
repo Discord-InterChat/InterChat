@@ -268,7 +268,7 @@ export default {
               // Show new users rules & info about network
               const onboardingStatus = await onboarding.execute(response, hubDetails.name, channel.id, true);
               // if user cancelled onboarding or didn't click any buttons, stop here
-              if (!onboardingStatus) return;
+              if (!onboardingStatus) return interaction.deleteReply().catch(() => null);
 
               createConnection.execute(response, hubDetails, channel).then((success) => {
                 if (success) {

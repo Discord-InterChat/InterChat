@@ -6,7 +6,7 @@ import emojis from './JSON/emoji.json';
 import { blacklistedServers, blacklistedUsers } from '@prisma/client';
 
 
-export async function findBlacklistedUser(hubId: string, userId: string) {
+export async function fetchUserBlacklist(hubId: string, userId: string) {
   const db = getDb();
   const userBlacklisted = await db.blacklistedUsers.findFirst({
     where: { userId, hubs: { some: { hubId } } },
@@ -14,7 +14,7 @@ export async function findBlacklistedUser(hubId: string, userId: string) {
   return userBlacklisted;
 }
 
-export async function findBlacklistedServer(hubId: string, serverId: string) {
+export async function fetchServerBlacklist(hubId: string, serverId: string) {
   const db = getDb();
   const userBlacklisted = await db.blacklistedServers.findFirst({
     where: { serverId, hubs: { some: { hubId } } },

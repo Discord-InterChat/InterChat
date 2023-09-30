@@ -2,7 +2,7 @@ import { ButtonInteraction } from 'discord.js';
 import { getDb } from '../../Utils/utils';
 import updateMessageReactions from '../reactions/updateMessage';
 import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
-import { findBlacklistedServer, findBlacklistedUser } from '../../Utils/blacklist';
+import { fetchServerBlacklist, fetchUserBlacklist } from '../../Utils/blacklist';
 
 export default {
   async execute(interaction: ButtonInteraction) {
@@ -19,8 +19,8 @@ export default {
       !interaction.inCachedGuild()
     ) return interaction.reply({ content: 'This hub does not have reactions enabled.', ephemeral: true });
 
-    const userBlacklisted = await findBlacklistedUser(messageInDb.hubId, interaction.user.id);
-    const serverBlacklisted = await findBlacklistedServer(messageInDb.hubId, interaction.guild.id);
+    const userBlacklisted = await fetchUserBlacklist(messageInDb.hubId, interaction.user.id);
+    const serverBlacklisted = await fetchServerBlacklist(messageInDb.hubId, interaction.guild.id);
 
     if (userBlacklisted || serverBlacklisted) {
       await interaction.reply({

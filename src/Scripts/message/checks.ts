@@ -6,13 +6,13 @@ import { slurs } from '../../Utils/JSON/badwords.json';
 import { replaceLinks } from '../../Utils/utils';
 import { connectedList } from '@prisma/client';
 import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
-import { addUserBlacklist, findBlacklistedServer, findBlacklistedUser, notifyBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
+import { addUserBlacklist, fetchServerBlacklist, fetchUserBlacklist, notifyBlacklist, scheduleUnblacklist } from '../../Utils/blacklist';
 export default {
   async execute(message: Message, networkData: connectedList, settings: HubSettingsBitField) {
     // true = pass, false = fail (checks)
 
-    const userBlacklisted = await findBlacklistedUser(networkData.hubId, message.author.id);
-    const serverBlacklisted = await findBlacklistedServer(networkData.hubId, message.guildId || '');
+    const userBlacklisted = await fetchUserBlacklist(networkData.hubId, message.author.id);
+    const serverBlacklisted = await fetchServerBlacklist(networkData.hubId, message.guildId || '');
     if (userBlacklisted || serverBlacklisted) return false;
 
     if (settings.has('SpamFilter')) {

@@ -5,7 +5,7 @@ import sortReactions from './sortReactions';
 import updateMessageReactions from './updateMessage';
 import { HubSettingsBitField } from '../../Utils/hubSettingsBitfield';
 import emojis from '../../Utils/JSON/emoji.json';
-import { findBlacklistedServer, findBlacklistedUser } from '../../Utils/blacklist';
+import { fetchServerBlacklist, fetchUserBlacklist } from '../../Utils/blacklist';
 
 export default {
   async execute(interaction: ButtonInteraction) {
@@ -27,8 +27,8 @@ export default {
       return;
     }
 
-    const userBlacklisted = await findBlacklistedUser(networkMessage.hubId, interaction.user.id);
-    const serverBlacklisted = await findBlacklistedServer(networkMessage.hubId, interaction.guildId || '');
+    const userBlacklisted = await fetchUserBlacklist(networkMessage.hubId, interaction.user.id);
+    const serverBlacklisted = await fetchServerBlacklist(networkMessage.hubId, interaction.guildId || '');
 
     if (userBlacklisted || serverBlacklisted) {
       await interaction.reply({

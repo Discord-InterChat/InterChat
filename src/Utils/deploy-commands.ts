@@ -6,18 +6,22 @@ import { constants } from './utils';
 import fs from 'fs';
 import logger from './logger';
 import 'dotenv/config';
+import { InterchatCommand } from '../../typings/discord';
 
 const clientID = process.env.CLIENT_ID as string;
 const server = process.argv[3]?.toLowerCase() || constants.guilds.cbhq;
 const staffCommands = ['Developer', 'Staff'];
-const commandsPath = 'build/src/Commands';
+const commandsPath = 'build/Commands';
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN as string);
 
-function deployCommands() {
-  const commands: unknown[] = [];
+function deployCommands(staff = false) {
+  const commands: InterchatCommand[] = [];
 
   fs.readdirSync(commandsPath).forEach((dir) => {
+    // Only proceed if dir is inside staffCommands array (for deploying only staff commands)
+    if (staff && !staffCommands.includes(dir)) return;
+
     if (!staffCommands.includes(dir) && fs.statSync(`${commandsPath}/${dir}`).isDirectory()) {
       const commandFiles = fs.readdirSync(`${commandsPath}/${dir}`).filter(file => file.endsWith('.js'));
 
@@ -28,50 +32,28 @@ function deployCommands() {
     }
   });
 
-  rest.put(Routes.applicationCommands(clientID), { body: commands })
-    .then(() => logger.info('Registered all application commands successfully.'))
+  rest.put(staff ? Routes.applicationGuildCommands(clientID, server) : Routes.applicationCommands(clientID), { body: commands })
+    .then(() => logger.info('Registered application commands successfully.'))
     .catch(logger.error);
-}
-
-
-function deployStaffCommands() {
-  const commands: unknown[] = [];
-
-  fs.readdirSync(commandsPath).forEach((dir) => {
-    if (staffCommands.includes(dir) && fs.statSync(`${commandsPath}/${dir}`).isDirectory()) {
-      const commandFiles = fs.readdirSync(`${commandsPath}/${dir}`).filter(file => file.endsWith('.js'));
-
-      for (const commandFile of commandFiles) {
-        const command = require(`../Commands/${dir}/${commandFile}`);
-        commands.push(command.default.data.toJSON());
-      }
-    }
-  });
-
-  rest.put(Routes.applicationGuildCommands(clientID, server), { body: commands })
-    .then(() => {
-      rest.get(Routes.guild(server))
-        .then((res: any) => logger.info(`Registered Staff application commands for \u001b[35m${res.name}\u001b[0m successfully.`));
-    }).catch(logger.error);
 }
 
 // parse command line args to determine which type of deploy
 const args = process.argv[2]?.toLowerCase();
 
 switch (args) {
+  case undefined:
+    deployCommands();
+    break;
+
   case '--staff':
   case '-s':
-    deployStaffCommands();
+    deployCommands(true);
     break;
 
   case '-b':
   case '--both':
     deployCommands();
-    deployStaffCommands();
-    break;
-
-  case undefined:
-    deployCommands();
+    deployCommands(true);
     break;
 
   case '--help':

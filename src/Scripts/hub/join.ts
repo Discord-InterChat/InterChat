@@ -4,7 +4,7 @@ import createConnection from '../network/createConnection';
 import displaySettings from '../network/displaySettings';
 import emojis from '../../Utils/JSON/emoji.json';
 import onboarding from '../network/onboarding';
-import { findBlacklistedServer, findBlacklistedUser } from '../../Utils/blacklist';
+import { fetchServerBlacklist, fetchUserBlacklist } from '../../Utils/blacklist';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -93,19 +93,19 @@ export default {
     if (!hubExists) return interaction.reply({ content: 'An error occured.', ephemeral: true });
 
 
-    const serverInBlacklist = await findBlacklistedServer(hubExists.id, channel.guildId);
+    const serverInBlacklist = await fetchServerBlacklist(hubExists.id, channel.guildId);
     if (serverInBlacklist) {
       await interaction.reply('This server is blacklisted from joining this hub.');
       return;
     }
 
-    const userInBlacklist = await findBlacklistedUser(hubExists.id, interaction.user.id);
+    const userInBlacklist = await fetchUserBlacklist(hubExists.id, interaction.user.id);
     if (userInBlacklist) {
       await interaction.reply('You have been blacklisted from joining this hub.');
       return;
     }
 
-    if (!onboarding.execute(interaction, hubExists.name, channel.id)) return;
+    if (!await onboarding.execute(interaction, hubExists.name, channel.id)) return interaction.deleteReply().catch(() => null);
 
     const created = await createConnection.execute(interaction, hubExists, channel);
     if (created) await displaySettings.execute(interaction, created.channelId);
