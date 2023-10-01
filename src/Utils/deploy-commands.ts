@@ -22,7 +22,7 @@ function deployCommands(staff = false) {
     // Only proceed if dir is inside staffCommands array (for deploying only staff commands)
     if (staff && !staffCommands.includes(dir)) return;
 
-    if (!staffCommands.includes(dir) && fs.statSync(`${commandsPath}/${dir}`).isDirectory()) {
+    if (fs.statSync(`${commandsPath}/${dir}`).isDirectory()) {
       const commandFiles = fs.readdirSync(`${commandsPath}/${dir}`).filter(file => file.endsWith('.js'));
 
       for (const commandFile of commandFiles) {

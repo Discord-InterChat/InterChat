@@ -8,8 +8,8 @@
     "moduleResolution": "Node",
     "resolveJsonModule": true,
     "allowJs": false,
-    "rootDir": "./src/",
-    "outDir": "./build/",
+    "rootDir": "src",
+    "outDir": "build",
     "esModuleInterop": true,
     "strict": true,
     "sourceMap": true,
@@ -18,7 +18,7 @@
     "skipLibCheck": true
   },
   "include": [
-    "src/**/*",
+    "src/**/*.ts",
     "src/**/*.json",
     // "typings/**/*"  
   ]

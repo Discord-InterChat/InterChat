@@ -20,12 +20,7 @@ export default {
       include: { hub: true },
     });
 
-    if (!messageInDb) {
-      return interaction.reply({
-        content: 'Unknown Message. If it has been sent in the past minute, please wait few more seconds and try again.',
-        ephemeral: true,
-      });
-    }
+    if (!messageInDb) return await interaction.editReply('Unknown Message. If it has been sent in the past minute, please wait few more seconds and try again.');
 
     const interchatStaff = checkIfStaff(interaction.user.id);
     if (
@@ -33,12 +28,8 @@ export default {
       !messageInDb.hub?.moderators.find((m) => m.userId === interaction.user.id) &&
        messageInDb.hub?.ownerId !== interaction.user.id &&
        interaction.user.id !== messageInDb.authorId
-    ) {
-      return interaction.reply({
-        content: `${emoji.no} You are not the author of this message.`,
-        ephemeral: true,
-      });
-    }
+    ) return await interaction.editReply(`${emoji.no} You are not the author of this message.`);
+
 
     const results = messageInDb.channelAndMessageIds.map(async (element) => {
       // fetch each channel the message was sent to
