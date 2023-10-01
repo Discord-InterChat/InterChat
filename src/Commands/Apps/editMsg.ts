@@ -16,7 +16,7 @@ export default {
 
     if (!await topgg.hasVoted(interaction.user.id) && !checkIfStaff(interaction.user.id)) {
       await interaction.reply({
-        content: `${emojis.normal.no} You must [vote](<https://top.gg/bot/${interaction.client.user.id}/vote>) to use this command.`,
+        content: `${emojis.normal.no} You must [vote](<https://top.gg/bot/769921109209907241/vote>) to use this command.`,
         ephemeral: true,
       });
       return;
