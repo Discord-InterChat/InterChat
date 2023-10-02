@@ -14,7 +14,8 @@ export default {
 
       As our way of expressing gratitude for your support, we are thrilled to offer you exclusive advantages. By casting your vote for InterChat, you'll unlock:
 
-      - Edit messages within hubs (and much more on the way!)
+      - Edit messages within hubs
+      - Translating messages (and much more on the way!)
       
       We deeply appreciate your unwavering support. Thank you! 🙏 
     `)
