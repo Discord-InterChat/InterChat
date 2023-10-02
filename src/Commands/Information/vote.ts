@@ -25,7 +25,7 @@ export default {
         .setStyle(ButtonStyle.Link)
         .setLabel('Vote!')
         .setEmoji('🗳️')
-        .setURL(`https://top.gg/bot/${interaction.client.user.id}/vote`),
+        .setURL('https://top.gg/bot/769921109209907241/vote'),
     );
 
     await interaction.reply({ embeds: [embed], components: [button] });
