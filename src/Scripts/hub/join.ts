@@ -16,6 +16,13 @@ export default {
     const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread]);
     let hubExists;
 
+    if (!interaction.guild.members.me?.permissionsIn(channel).has(['ManageWebhooks'])) {
+      return await interaction.reply({
+        content: `${emojis.normal.no} I need to have the \`Manage Webhooks\` permission in ${channel} to connect it to a hub!`,
+        ephemeral: true,
+      });
+    }
+
     if (!interaction.member.permissionsIn(channel).has(['ManageChannels'])) {
       return await interaction.reply({
         content: `${emojis.normal.no} You need to have the \`Manage Channels\` permission in ${channel} to connect it to a hub!`,

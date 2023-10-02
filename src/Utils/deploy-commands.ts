@@ -21,6 +21,7 @@ function deployCommands(staff = false) {
   fs.readdirSync(commandsPath).forEach((dir) => {
     // Only proceed if dir is inside staffCommands array (for deploying only staff commands)
     if (staff && !staffCommands.includes(dir)) return;
+    else if (!staff && staffCommands.includes(dir)) return;
 
     if (fs.statSync(`${commandsPath}/${dir}`).isDirectory()) {
       const commandFiles = fs.readdirSync(`${commandsPath}/${dir}`).filter(file => file.endsWith('.js'));
@@ -33,7 +34,7 @@ function deployCommands(staff = false) {
   });
 
   rest.put(staff ? Routes.applicationGuildCommands(clientID, server) : Routes.applicationCommands(clientID), { body: commands })
-    .then(() => logger.info('Registered application commands successfully.'))
+    .then(() => logger.info(`Registered all ${staff ? 'public' : 'staff'} commands successfully.`))
     .catch(logger.error);
 }
 

@@ -244,6 +244,11 @@ export default {
               return;
             }
 
+            if (!interaction.guild?.members.me?.permissionsIn(channel).has(['ManageWebhooks'])) {
+              await response.update(`${emojis.normal.no} I need to have the \`Manage Webhooks\` permission in ${channel} to connect it to a hub!`);
+              return;
+            }
+
             if (!response.member.permissionsIn(channel).has('ManageChannels')) {
               await response.update(`${emojis.normal.no} You need to have the \`Manage Channels\` permission in ${channel} to connect it to a hub!`);
               return;
