@@ -18,9 +18,6 @@ export class ExtendedClient extends Client {
     this.loadCommands();
     this.loadEvents();
 
-    // Error monitoring (sentry.io)
-    Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 1.0 });
-
     await this.login(token || process.env.TOKEN);
   }
 
@@ -69,5 +66,9 @@ const client = new ExtendedClient({
     }],
   },
 });
+
+
+// Error monitoring (sentry.io)
+Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 1.0 });
 
 client.start();

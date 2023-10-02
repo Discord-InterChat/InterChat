@@ -44,11 +44,11 @@ export default {
       const webhook = new WebhookClient({ url: connection.webhookURL });
       const message = await webhook.fetchMessage(dbMsg.messageId, {
         threadId: connection.parentId ? connection.channelId : undefined,
-      });
+      }).catch(() => null);
 
       // remove all reaction buttons from components
       // customId should not start with 'reaction_' or 'view_all_reactions'
-      const components = message.components?.filter((row) => {
+      const components = message?.components?.filter((row) => {
         const filteredRow = row.components.filter((component) => {
           if (component.type === ComponentType.Button && component.style === ButtonStyle.Secondary) {
             return !component.custom_id.startsWith('reaction_') && component.custom_id !== 'view_all_reactions';

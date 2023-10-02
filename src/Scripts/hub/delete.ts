@@ -43,7 +43,7 @@ export default {
       componentType: ComponentType.Button,
     }).catch(() => null);
 
-    if (!confirmation || confirmation.customId !== 'confirm_delete') {
+    if (!confirmation || confirmation.customId === 'confirm_delete') {
       await msg.delete().catch(() => null);
       return;
     }
