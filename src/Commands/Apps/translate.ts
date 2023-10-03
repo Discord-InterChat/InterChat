@@ -14,7 +14,7 @@ export default {
     await interaction.deferReply({ ephemeral: true });
 
     const hasVoted = await topgg.hasVoted(interaction.user.id);
-    if (!hasVoted) return await interaction.editReply('Please [vote](https://top.gg/bot/798748015435055134/vote) for Interchat to use this command, your support is very much appreciated!');
+    if (!hasVoted) return await interaction.editReply('Please [vote](https://top.gg/bot/769921109209907241/vote) for Interchat to use this command, your support is very much appreciated!');
 
     const target = interaction.targetMessage;
 
