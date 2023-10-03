@@ -39,12 +39,6 @@ export default {
             emoji: '✏️',
           },
           {
-            label: 'Edit Tags',
-            value: 'tags',
-            description: 'Edit the hub tags.',
-            emoji: '🏷️',
-          },
-          {
             label: 'Toggle Visibility',
             value: 'visibility',
             description: 'Toggle the hub visibility between public and private.',
@@ -78,7 +72,6 @@ export default {
         .setColor('Random')
         .setDescription(stripIndents`
         ${hub.description}
-        - __**Tags:**__ ${hub.tags.join(', ')}
         - __**Public:**__ ${hub.private ? emojis.normal.no : emojis.normal.yes}
       `)
         .setThumbnail(hub.iconUrl)
@@ -226,60 +219,6 @@ export default {
 
           await modalResponse.reply({
             content: 'Successfully updated hub description.',
-            ephemeral: true,
-          });
-          break;
-        }
-
-        case 'tags': {
-          const modal = new ModalBuilder()
-            .setCustomId(i.id)
-            .setTitle('Edit Hub Tags')
-            .addComponents(
-              new ActionRowBuilder<TextInputBuilder>().addComponents(
-                new TextInputBuilder()
-                  .setLabel('Enter Tags')
-                  .setPlaceholder('Seperate each tag with a comma.')
-                  .setMaxLength(1024)
-                  .setStyle(TextInputStyle.Paragraph)
-                  .setCustomId('tags'),
-              ),
-            );
-
-          await i.showModal(modal);
-
-          const modalResponse = await i.awaitModalSubmit({
-            filter: m => m.customId === modal.data.custom_id,
-            time: 60_000 * 5,
-          }).catch(e => {
-            if (!e.message.includes('ending with reason: time')) {
-              logger.error(e);
-              captureException(e, {
-                user: { id: i.user.id, username: i.user.username },
-                extra: { context: 'This happened when user tried to edit hub desc.' },
-              });
-            }
-            return null;
-          });
-
-          if (!modalResponse) return;
-
-          const newTags = modalResponse.fields.getTextInputValue('tags').trim();
-
-          if (newTags.length < 3 || newTags === '') {
-            await modalResponse.reply({
-              content: 'Invalid tags.',
-              ephemeral: true,
-            });
-            return;
-          }
-
-          await db.hubs.update({
-            where: { id: hubInDb?.id },
-            data: { tags: newTags.length > 1 ? newTags.replaceAll(', ', ',').split(',', 5) : [newTags] },
-          });
-          await modalResponse.reply({
-            content: 'Successfully updated tags!',
             ephemeral: true,
           });
           break;

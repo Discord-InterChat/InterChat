@@ -182,7 +182,6 @@ export function createHubListingsEmbed(hub: hubs, extra?: HubListingExtraInput) 
       ### ${hub.name}
       ${hub.description}
 
-      **Tags:** ${hub.tags.join(', ')}
       **Rating:** ${hub.rating?.length > 0 ? '⭐'.repeat(calculateAverageRating(hub.rating.map(hr => hr.rating))) : '-'}
       **Connections:** ${extra?.connections ?? 'Unknown.'}
       **Created At:** <t:${Math.round(hub.createdAt.getTime() / 1000)}:d>

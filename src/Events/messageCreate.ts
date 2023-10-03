@@ -1,12 +1,24 @@
-import checks from '../Scripts/message/checks';
-import messageContentModifiers from '../Scripts/message/messageContentModifiers';
-import cleanup from '../Scripts/message/cleanup';
-import emojis from '../Utils/JSON/emoji.json';
-import { APIMessage, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, HexColorString, Message, User, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
+import {
+  APIMessage,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  HexColorString,
+  Message,
+  User,
+  WebhookClient,
+  WebhookMessageCreateOptions,
+} from 'discord.js';
 import { getDb } from '../Utils/utils';
 import { censor } from '../Utils/wordFilter';
 import { messageData } from '@prisma/client';
 import { HubSettingsBitField } from '../Utils/hubSettingsBitfield';
+import checks from '../Scripts/message/checks';
+import cleanup from '../Scripts/message/cleanup';
+import messageContentModifiers from '../Scripts/message/messageContentModifiers';
+import emojis from '../Utils/JSON/emoji.json';
+
 
 export interface NetworkMessage extends Message {
   censored_content: string,
@@ -56,13 +68,13 @@ export default {
         }
       }
 
-      const useNicknames = settings.has('UseNicknames');
+      const useNicknameSetting = settings.has('UseNicknames');
 
       // for nicknames setting
-      const displayNameOrUsername = useNicknames
+      const displayNameOrUsername = useNicknameSetting
         ? message.member?.displayName || message.author.displayName
         : message.author.username;
-      const avatarURL = useNicknames
+      const avatarURL = useNicknameSetting
         ? message.member?.user.displayAvatarURL()
         : message.author.displayAvatarURL();
 

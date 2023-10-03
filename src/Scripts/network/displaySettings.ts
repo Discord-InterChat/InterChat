@@ -398,6 +398,3 @@ export default {
     });
   },
 };
-
-// TODO: Hub leave command shows channel and now thread names in autocomplete
-// TODO: channelId is no longer unique, either make it unique or fix the whole code

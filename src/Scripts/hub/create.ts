@@ -68,14 +68,6 @@ export default {
             .setStyle(TextInputStyle.Paragraph)
             .setCustomId('description'),
         ),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setLabel('Tags:')
-            .setPlaceholder('Seperated by commas. Eg. Gaming, Music, Fun')
-            .setMaxLength(100)
-            .setStyle(TextInputStyle.Short)
-            .setCustomId('tags'),
-        ),
       // new ActionRowBuilder<TextInputBuilder>().addComponents(
       //   new TextInputBuilder()
       //     .setLabel('Language')
@@ -90,20 +82,17 @@ export default {
     interaction.awaitModalSubmit({ time: 60 * 5000 })
       .then(async submitIntr => {
         const description = submitIntr.fields.getTextInputValue('description');
-        const tags = submitIntr.fields.getTextInputValue('tags');
 
-        // FIXME: settings is a required field, add the fields to every collection
         // in prod db before pushing it
         await db.hubs.create({
           data: {
             name: hubName,
             description,
             private: true,
-            tags: tags.replaceAll(', ', ',').split(',', 5),
             ownerId: submitIntr.user.id,
             iconUrl: imgurIcons?.at(0) ?? interaction.client.user.displayAvatarURL(),
             bannerUrl: imgurBanners?.[0],
-            settings: HubSettingsBits.SpamFilter,
+            settings: HubSettingsBits.SpamFilter | HubSettingsBits.Reactions,
           },
         });
 

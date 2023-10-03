@@ -51,11 +51,9 @@ interface unblacklistServer {
 }
 
 // TODO: Make the logs channel into a forum, which includes the folowing posts:
-// Network Log
+// Network Log - DONE
 // Reports
 // Judgement
-// Make sure the logs channel isn't closed before logging stuff, that will be the main problem here.
-// That is the reason I have left it as a todo. :D
 export async function modActions(moderator: User, action: blacklistUser | unblacklistUser | blacklistServer | unblacklistServer | leaveServer | disconnectServer) {
   const modLogs = await moderator.client.channels.fetch(constants.channel.modlogs);
   const emoji = emojis.normal;

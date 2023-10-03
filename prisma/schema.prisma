@@ -88,7 +88,6 @@ model hubs {
   id                 String               @id @default(auto()) @map("_id") @db.ObjectId
   name               String               @unique
   description        String
-  tags               String[]
   rating             HubRating[]
   ownerId            String
   iconUrl            String
