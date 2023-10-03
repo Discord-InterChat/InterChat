@@ -244,11 +244,13 @@ export default {
           embeds: [confirmEmbed],
           components: [typeSelect],
           ephemeral: true,
+          fetchReply: true,
         });
 
         const selectCollector = message.createMessageComponentCollector({
           componentType: ComponentType.StringSelect,
           idle: 60_000,
+          max: 1,
         });
 
         selectCollector.on('collect', async (selInterac) => {
@@ -272,6 +274,8 @@ export default {
 
           selInterac.awaitModalSubmit({ time: 60_000 * 5 })
             .then(async (modalSubmit) => {
+              await modalSubmit.deferUpdate();
+
               const reason = modalSubmit.fields.getTextInputValue('reason');
 
               const reportEmbed = new EmbedBuilder()
@@ -297,9 +301,11 @@ export default {
                 embeds: [reportEmbed],
                 components: [jumpButton],
               });
-              modalSubmit.reply({
+
+              await i.editReply({
                 content: `${emojis.normal.yes} Your report has been successfully submitted! Join the support server to check the status of your report.`,
-                ephemeral: true,
+                embeds: [],
+                components: [],
               });
             })
             .catch((e) => {
