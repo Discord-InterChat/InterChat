@@ -1,4 +1,4 @@
-import { ActionRowBuilder, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, ComponentType, ContextMenuCommandBuilder, EmbedBuilder, GuildTextBasedChannel, MessageContextMenuCommandInteraction, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { ActionRowBuilder, ApplicationCommandType, AttachmentBuilder, ButtonBuilder, ButtonStyle, ComponentType, ContextMenuCommandBuilder, EmbedBuilder, MessageContextMenuCommandInteraction, ModalBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, TextInputBuilder, TextInputStyle, ThreadChannel } from 'discord.js';
 import { constants, getDb } from '../../Utils/utils';
 import { stripIndents } from 'common-tags';
 import { profileImage } from 'discord-arts';
@@ -191,7 +191,7 @@ export default {
           return;
         }
 
-        const reportsChannel = await i.client.channels.fetch(constants.channel.reports) as GuildTextBasedChannel;
+        const reportsChannel = await i.client.channels.fetch(constants.channel.reports) as ThreadChannel;
         const reportedUser = await i.client.users.fetch(networkMessage.authorId);
 
         // network channelId in chatbot hq
@@ -298,6 +298,7 @@ export default {
               );
 
               await reportsChannel?.send({
+                content: '<@&1088677008260726854>', // ping network mods role
                 embeds: [reportEmbed],
                 components: [jumpButton],
               });

@@ -1,6 +1,6 @@
 import { captureMessage } from '@sentry/node';
 import { stripIndents } from 'common-tags';
-import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, ChatInputCommandInteraction, ForumChannel, TextChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType } from 'discord.js';
+import { ActionRowBuilder, EmbedBuilder, TextInputBuilder, ModalBuilder, TextInputStyle, ChatInputCommandInteraction, ForumChannel, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, ComponentType, ThreadChannel } from 'discord.js';
 import { constants } from '../../Utils/utils';
 import logger from '../../Utils/logger';
 import emojis from '../../Utils/JSON/emoji.json';
@@ -150,7 +150,7 @@ export default {
     await interaction.showModal(reportModal);
     interaction.awaitModalSubmit({ time: 60000 * 5, filter: (i) => i.user.id === interaction.user.id && i.customId === reportModal.data.custom_id })
       .then(async modalInteraction => {
-        const reportChannel = await modalInteraction.client.channels.fetch(constants.channel.reports).catch(() => null) as TextChannel | null;
+        const reportChannel = await modalInteraction.client.channels.fetch(constants.channel.reports).catch(() => null) as ThreadChannel | null;
         const reportDescription = modalInteraction.fields.getTextInputValue('description');
 
         switch (reportType) {
@@ -175,7 +175,7 @@ export default {
               .setFields({ name: 'Reason for report', value: reportDescription })
               .setThumbnail(reportedUser.avatarURL({ size: 2048 }) ?? reportedUser.defaultAvatarURL)
               .setFooter({ text: `Reported by ${interaction.user.username} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
-            await reportChannel?.send({ embeds: [userReport] });
+            await reportChannel?.send({ content: '<@&1088677008260726854>', embeds: [userReport] });
             break;
           }
 
@@ -200,7 +200,7 @@ export default {
               .setFields({ name: 'Reason for report', value: reportDescription })
               .setThumbnail(reportedServer.iconURL({ size: 2048 }))
               .setFooter({ text: `Reported by ${interaction.user.username} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
-            await reportChannel?.send({ embeds: [serverReport] });
+            await reportChannel?.send({ content: '<@&1088677008260726854>', embeds: [serverReport] });
             break;
           }
           default: {
@@ -210,7 +210,7 @@ export default {
               .setDescription('**Type:** Other')
               .setFields({ name: 'Description', value: reportDescription })
               .setFooter({ text: `Reported by ${interaction.user.username} (${interaction.user.id})`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL });
-            await reportChannel?.send({ embeds: [otherReport] });
+            await reportChannel?.send({ content: '<@&1088677008260726854>', embeds: [otherReport] });
             break;
           }
         }
