@@ -1,6 +1,8 @@
-import { connectedList } from '@prisma/client';
+import { connectedList, hubs } from '@prisma/client';
 import { getDb } from './utils';
-import { WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
+import { ChannelType, Guild, TextChannel, ThreadChannel, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
+import { stripIndents } from 'common-tags';
+import emojis from './JSON/emoji.json';
 
 const { connectedList } = getDb();
 
@@ -45,4 +47,59 @@ export async function sendInNetwork(message: WebhookMessageCreateOptions, hubId:
   });
 }
 
-export default { reconnect, disconnect, sendInNetwork };
+export async function createConnection(guild: Guild, hub: hubs, networkChannel: TextChannel | ThreadChannel) {
+  const webhook = await getOrCreateWebhook(networkChannel, guild.client.user?.displayAvatarURL());
+  if (!webhook) return;
+
+  const emoji = emojis.normal;
+  const createdConnection = await connectedList.create({
+    data: {
+      channelId: networkChannel.id,
+      parentId: networkChannel.isThread() ? networkChannel.id : undefined,
+      serverId: networkChannel.guild.id,
+      webhookURL: webhook.url,
+      connected: true,
+      profFilter: true,
+      compact: false,
+      hub: { connect: { id: hub.id } },
+    },
+  });
+
+
+  const numOfConnections = await connectedList.count({ where: { hubId: hub.id } });
+  await networkChannel?.send(
+    `This channel has been connected with **${hub.name}**. ${
+      numOfConnections > 1
+        ? `You are currently with ${numOfConnections - 1} other servers, Enjoy! ${emoji.clipart}`
+        : `It seems no one else is there currently... *cricket noises* ${emoji.clipart}`
+    }`,
+  );
+
+  sendInNetwork({
+    content: stripIndents`
+    A new server has joined us! ${emoji.clipart}
+
+    **Server Name:** __${guild.name}__
+    **Member Count:** __${guild.memberCount}__
+  ` }, hub.id);
+
+  // return the created connection so we can use it in the next step
+  return createdConnection;
+}
+
+export async function getOrCreateWebhook(channel: TextChannel | ThreadChannel, avatar: string | null) {
+  const channelOrParent = channel.type === ChannelType.GuildText ? channel : channel.parent;
+  const webhooks = await channelOrParent?.fetchWebhooks();
+  const existingWebhook = webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
+
+  if (existingWebhook) {
+    return existingWebhook;
+  }
+
+  return await channelOrParent?.createWebhook({
+    name: 'InterChat Network',
+    avatar,
+  });
+}
+
+export default { reconnect, disconnect, sendInNetwork, createConnection, getOrCreateWebhook };

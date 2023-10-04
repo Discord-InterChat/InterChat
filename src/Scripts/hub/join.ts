@@ -1,10 +1,10 @@
 import { ChatInputCommandInteraction, ChannelType } from 'discord.js';
 import { getDb } from '../../Utils/utils';
-import createConnection from '../network/createConnection';
 import displaySettings from '../network/displaySettings';
 import emojis from '../../Utils/JSON/emoji.json';
 import onboarding from '../network/onboarding';
 import { fetchServerBlacklist, fetchUserBlacklist } from '../../Utils/blacklist';
+import { createConnection } from '../../Utils/network';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -107,15 +107,14 @@ export default {
 
     if (!await onboarding.execute(interaction, hubExists.name, channel.id)) return interaction.deleteReply().catch(() => null);
 
-    const created = await createConnection.execute(interaction, hubExists, channel).catch(() => null);
-    if (!created) {
-      return await interaction.reply({
+    const created = await createConnection(interaction.guild, hubExists, channel).catch(() => {
+      interaction.reply({
         content: `${emojis.normal.no} An error occured while connecting this channel to the hub! Please make sure I have the [required permissions](https://discord-interchat.github.io/docs/#adding-interchat-to-your-server) and try again.`,
         ephemeral: true,
       });
-    }
-    else {
-      await displaySettings.execute(interaction, created.channelId);
-    }
+      return null;
+    });
+
+    if (created) await displaySettings.execute(interaction, created.channelId);
   },
 };

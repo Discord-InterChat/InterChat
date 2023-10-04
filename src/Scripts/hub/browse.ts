@@ -3,10 +3,10 @@ import { calculateAverageRating, createHubListingsEmbed, getDb } from '../../Uti
 import { paginate } from '../../Utils/paginator';
 import { hubs } from '@prisma/client';
 import { captureException } from '@sentry/node';
-import createConnection from '../network/createConnection';
 import logger from '../../Utils/logger';
 import emojis from '../../Utils/JSON/emoji.json';
 import onboarding from '../network/onboarding';
+import { createConnection } from '../../Utils/network';
 
 export default {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -275,7 +275,7 @@ export default {
               // if user cancelled onboarding or didn't click any buttons, stop here
               if (!onboardingStatus) return interaction.deleteReply().catch(() => null);
 
-              createConnection.execute(response, hubDetails, channel).then((success) => {
+              createConnection(response.guild, hubDetails, channel).then((success) => {
                 if (success) {
                   response.editReply({
                     content: `Successfully joined hub ${hubDetails.name} from ${channel}! Use \`/network manage\` to manage your connection. And \`/hub leave\` to leave the hub.`,

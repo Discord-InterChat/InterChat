@@ -1,7 +1,6 @@
 import { ContextMenuCommandBuilder, ApplicationCommandType, MessageContextMenuCommandInteraction } from 'discord.js';
 import { getDb, checkIfStaff } from '../../Utils/utils';
 import { networkMessageDelete } from '../../Scripts/networkLogs/msgDelete';
-import { captureException } from '@sentry/node';
 import emojis from '../../Utils/JSON/emoji.json';
 
 
@@ -45,10 +44,7 @@ export default {
       // finally, delete the message
       return await webhook?.deleteMessage(element.messageId, channel.isThread() ? channel.id : undefined)
         .then(() => true)
-        .catch((e) => {
-          captureException(e, { user: { username: interaction.user.username, extra: { action: 'networkMessageDelete ' } } });
-          return false;
-        });
+        .catch(() => false);
     });
 
     const resultsArray = await Promise.all(results);
