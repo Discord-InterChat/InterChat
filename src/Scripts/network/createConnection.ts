@@ -63,7 +63,7 @@ export default {
       return existingWebhook;
     }
 
-    return channelOrParent?.createWebhook({
+    return await channelOrParent?.createWebhook({
       name: 'InterChat Network',
       avatar,
     });

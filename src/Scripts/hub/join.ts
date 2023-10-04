@@ -16,13 +16,6 @@ export default {
     const channel = interaction.options.getChannel('channel', true, [ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread]);
     let hubExists;
 
-    if (!interaction.guild.members.me?.permissionsIn(channel).has(['ManageWebhooks'])) {
-      return await interaction.reply({
-        content: `${emojis.normal.no} I need to have the \`Manage Webhooks\` permission in ${channel} to connect it to a hub!`,
-        ephemeral: true,
-      });
-    }
-
     if (!interaction.member.permissionsIn(channel).has(['ManageChannels'])) {
       return await interaction.reply({
         content: `${emojis.normal.no} You need to have the \`Manage Channels\` permission in ${channel} to connect it to a hub!`,
@@ -114,7 +107,15 @@ export default {
 
     if (!await onboarding.execute(interaction, hubExists.name, channel.id)) return interaction.deleteReply().catch(() => null);
 
-    const created = await createConnection.execute(interaction, hubExists, channel);
-    if (created) await displaySettings.execute(interaction, created.channelId);
+    const created = await createConnection.execute(interaction, hubExists, channel).catch(() => null);
+    if (!created) {
+      return await interaction.reply({
+        content: `${emojis.normal.no} An error occured while connecting this channel to the hub! Please make sure I have the [required permissions](https://discord-interchat.github.io/docs/#adding-interchat-to-your-server) and try again.`,
+        ephemeral: true,
+      });
+    }
+    else {
+      await displaySettings.execute(interaction, created.channelId);
+    }
   },
 };
