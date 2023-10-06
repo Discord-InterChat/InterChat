@@ -1,4 +1,13 @@
-import { ContextMenuCommandBuilder, MessageContextMenuCommandInteraction, ApplicationCommandType, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle, WebhookClient, EmbedBuilder } from 'discord.js';
+import {
+  ContextMenuCommandBuilder,
+  MessageContextMenuCommandInteraction,
+  ApplicationCommandType,
+  ModalBuilder,
+  ActionRowBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  EmbedBuilder,
+} from 'discord.js';
 import { networkMsgUpdate } from '../../Scripts/networkLogs/msgUpdate';
 import { checkIfStaff, getDb, getGuildName, replaceLinks, topgg } from '../../Utils/utils';
 import { captureException } from '@sentry/node';
@@ -14,7 +23,7 @@ export default {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
 
-    if (!await topgg.hasVoted(interaction.user.id) && !checkIfStaff(interaction.user.id)) {
+    if (!(await topgg.hasVoted(interaction.user.id)) && !checkIfStaff(interaction.user.id)) {
       await interaction.reply({
         content: `${emojis.normal.no} You must [vote](<https://top.gg/bot/769921109209907241/vote>) to use this command.`,
         ephemeral: true,
@@ -35,9 +44,11 @@ export default {
       });
       return;
     }
-
     else if (interaction.user.id != messageInDb?.authorId) {
-      await interaction.reply({ content: 'You are not the author of this message.', ephemeral: true });
+      await interaction.reply({
+        content: 'You are not the author of this message.',
+        ephemeral: true,
+      });
       return;
     }
 
@@ -58,30 +69,32 @@ export default {
 
     await interaction.showModal(modal);
 
-    const editInteraction = await interaction.awaitModalSubmit({
-      filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id,
-      time: 30_000,
-    }).catch((reason) => {
-      if (!reason.message.includes('reason: time')) {
-        captureException(reason, {
-          user: { id: interaction.user.id, username: interaction.user.username },
-          extra: { command: 'Edit Message' },
-        });
-      }
-
-      return null;
-    });
+    const editInteraction = await interaction
+      .awaitModalSubmit({
+        filter: (i) => i.user.id === interaction.user.id && i.customId === modal.data.custom_id,
+        time: 30_000,
+      })
+      .catch((e) => {
+        if (e.message.includes('reason: time')) return null;
+        captureException(e, { user: { username: interaction.user.username } });
+        return null;
+      });
 
     if (!editInteraction) return;
+    // defer it because it takes a while to edit the message
+    await editInteraction.deferReply({ ephemeral: true });
 
+    // get the new message input by user
+    const userInput = editInteraction.fields.getTextInputValue('newMessage');
     const hubSettings = new HubSettingsBitField(messageInDb.hub?.settings);
-    // get the input from user
-    const newMessage = hubSettings.has('HideLinks')
-      ? replaceLinks(editInteraction.fields.getTextInputValue('newMessage'))
-      : editInteraction.fields.getTextInputValue('newMessage');
+    const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
     const censoredNewMessage = wordFiler.censor(newMessage);
 
-    if (newMessage.includes('discord.gg') || newMessage.includes('discord.com/invite') || newMessage.includes('dsc.gg')) {
+    if (
+      newMessage.includes('discord.gg') ||
+      newMessage.includes('discord.com/invite') ||
+      newMessage.includes('dsc.gg')
+    ) {
       editInteraction.reply({
         content: `${emojis.normal.no} Do not advertise or promote servers in the network. Set an invite in \`/network manage\` instead!`,
         ephemeral: true,
@@ -97,7 +110,11 @@ export default {
         .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
         .setDescription(newMessage)
         .setColor(target.member?.displayHexColor ?? 'Random')
-        .addFields(target.embeds[0] ? [{ name: 'Reply-to', value: `${target.embeds[0].description}` }] : [])
+        .addFields(
+          target.embeds[0]
+            ? [{ name: 'Reply-to', value: `${target.embeds[0].description}` }]
+            : [],
+        )
         .setFooter({ text: `Server: ${getGuildName(interaction.client, messageInDb.serverId)}` })
       : EmbedBuilder.from(target.embeds[0]).setDescription(newMessage);
 
@@ -105,36 +122,41 @@ export default {
 
     // find all the messages through the network
     const channelSettingsArr = await db.connectedList.findMany({
-      where: { channelId: { in: messageInDb.channelAndMessageIds.map(c => c.channelId) } },
+      where: { channelId: { in: messageInDb.channelAndMessageIds.map((c) => c.channelId) } },
     });
 
-    // edit the messages
-    messageInDb.channelAndMessageIds.forEach(async obj => {
-      const channelSettings = channelSettingsArr.find(c => c.channelId === obj.channelId);
+    const results = messageInDb.channelAndMessageIds.map(async (element) => {
+      const channelSettings = channelSettingsArr.find((c) => c.channelId === element.channelId);
+      if (!channelSettings) return false;
 
-      if (channelSettings) {
-        const webhook = new WebhookClient({ url: channelSettings.webhookURL });
+      // fetch each channel the message was sent to
+      const channel = await interaction.client.channels.fetch(element.channelId).catch(() => null);
+      if (!channel?.isTextBased()) return false;
 
-        channelSettings?.compact ?
-          webhook.editMessage(obj.messageId, {
-            content: channelSettings?.profFilter ? newMessage : censoredNewMessage,
-            threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
-          })
-          : webhook.editMessage(obj.messageId, {
-            files: [],
-            embeds: [channelSettings?.profFilter ? censoredEmbed : newEmbed],
-            threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
-          });
-      }
+      // fetch the message from the channel and the webhook from the message
+      const message = await channel.messages.fetch(element.messageId).catch(() => null);
+      const webhook = await message?.fetchWebhook()?.catch(() => null);
+
+      if (!webhook || webhook.owner?.id !== interaction.client.user.id) return false;
+
+      // finally, edit the message
+      return await webhook
+        .editMessage(element.messageId, {
+          files: [],
+          threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
+          embeds: !channelSettings.compact
+            ? [channelSettings.profFilter ? censoredEmbed : newEmbed]
+            : undefined,
+        })
+        .then(() => true)
+        .catch(() => false);
     });
 
-    editInteraction.reply({
-      content: `${emojis.normal.yes} Message Edited. Please give a few seconds for it to reflect in all connections.`,
-      ephemeral: true,
-    });
+    const resultsArray = await Promise.all(results);
+    const deleted = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
+    await editInteraction
+      .editReply(`${emojis.normal.yes} Your message has been edited in __**${deleted}/${resultsArray.length}**__ servers.`);
 
-    interaction.inCachedGuild()
-      ? networkMsgUpdate(interaction.member, target, newMessage)
-      : null;
+    if (interaction.inCachedGuild()) networkMsgUpdate(interaction.member, target, newMessage);
   },
 };
