@@ -1,6 +1,6 @@
 import { connectedList, hubs } from '@prisma/client';
-import { getDb } from './utils';
-import { ChannelType, Guild, TextChannel, ThreadChannel, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
+import { getDb, getOrCreateWebhook } from './utils';
+import { Guild, TextChannel, ThreadChannel, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import emojis from './JSON/emoji.json';
 
@@ -85,21 +85,6 @@ export async function createConnection(guild: Guild, hub: hubs, networkChannel: 
 
   // return the created connection so we can use it in the next step
   return createdConnection;
-}
-
-export async function getOrCreateWebhook(channel: TextChannel | ThreadChannel, avatar: string | null) {
-  const channelOrParent = channel.type === ChannelType.GuildText ? channel : channel.parent;
-  const webhooks = await channelOrParent?.fetchWebhooks();
-  const existingWebhook = webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
-
-  if (existingWebhook) {
-    return existingWebhook;
-  }
-
-  return await channelOrParent?.createWebhook({
-    name: 'InterChat Network',
-    avatar,
-  });
 }
 
 export default { reconnect, disconnect, sendInNetwork, createConnection, getOrCreateWebhook };

@@ -1,8 +1,8 @@
-import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, Interaction, StringSelectMenuBuilder, EmbedBuilder, APISelectMenuOption, ApplicationCommandType, ComponentType, Client, chatInputApplicationCommandMention, User } from 'discord.js';
+import { SlashCommandBuilder, ChatInputCommandInteraction, ActionRowBuilder, Interaction, StringSelectMenuBuilder, EmbedBuilder, APISelectMenuOption, ApplicationCommandType, ComponentType, Client, chatInputApplicationCommandMention, User, ButtonBuilder, ButtonStyle } from 'discord.js';
 import { checkIfStaff, constants, getCredits } from '../../Utils/utils';
 import { InterchatCommand } from '../../../typings/discord';
-import emojis from '../../Utils/JSON/emoji.json';
 import { stripIndents } from 'common-tags';
+import emojis from '../../Utils/JSON/emoji.json';
 
 export default {
   data: new SlashCommandBuilder()
@@ -14,13 +14,13 @@ export default {
       .setThumbnail(interaction.client.user.avatarURL())
       .setFooter({ text: `Requested by @${interaction.user.username}`, iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL })
       .setDescription(stripIndents`
-      ### InterChat Help
+      ## InterChat Help
       InterChat is a powerful discord bot that enables effortless cross-server chatting! Get started by looking at the categories below.
       ### Categories:
-      - ⚙️ [**Setting up InterChat**](https://discord-interchat.github.io/docs/setup)
       - ${emojis.normal.slashCommand}  [**All Commands**](https://discord-interchat.github.io/docs/category/commands)
+      - 👥 [**InterChat Hubs**](https://discord-interchat.github.io/docs/hub/joining)
+      - ⚙️ [**Setting up InterChat**](https://discord-interchat.github.io/docs/setup)
       - 💬 [**Messaging & Network**](https://discord-interchat.github.io/docs/messaging)
-      - 👥 [**Hubs**](https://discord-interchat.github.io/docs/hub/joining)
       `);
 
     const selects = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -59,11 +59,17 @@ export default {
           },
 
         ],
-        placeholder: 'Select a Category',
+        placeholder: 'Select a Category...',
       }),
     );
 
-    const firstReply = await interaction.reply({ embeds: [embed], components: [selects] });
+    const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Invite').setURL('https://discord.com/application-directory/769921109209907241'),
+      new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Support Server').setURL('https://discord.gg/6bhXQynAPs'),
+      new ButtonBuilder().setStyle(ButtonStyle.Link).setLabel('Vote me!').setURL('https://top.gg/bot/769921109209907241/vote'),
+    );
+
+    const firstReply = await interaction.reply({ embeds: [embed], components: [selects, linkButtons] });
     const collector = firstReply.createMessageComponentCollector({
       filter: i => i.user.id === interaction.user.id,
       idle: 60000,

@@ -52,7 +52,7 @@ export default {
 
       let replyInDb: messageData | null;
       let referredAuthor: User | undefined; // author of the message being replied to
-      let referredContent: string | undefined; // for compact messages
+      let referred: { author?: User, censored: string, content: string } | undefined; // for compact messages
 
       if (message.reference) {
         const referredMessage = await message.fetchReference().catch(() => null);
@@ -61,10 +61,15 @@ export default {
             where: { channelAndMessageIds: { some: { messageId: referredMessage.id } } },
           });
 
-          referredContent = messageContentModifiers.getReferredContent(referredMessage);
-          referredAuthor = replyInDb
-            ? await message.client.users.fetch(replyInDb?.authorId).catch(() => undefined)
-            : undefined;
+          const content = messageContentModifiers.getReferredContent(referredMessage);
+          referred = {
+            censored: censor(content),
+            content: content,
+            author: replyInDb
+              ? await message.client.users.fetch(replyInDb?.authorId).catch(() => undefined)
+              : undefined,
+          };
+
         }
       }
 
@@ -83,8 +88,8 @@ export default {
         .setImage(attachmentURL)
         .setColor((connection.embedColor as HexColorString) || 'Random')
         .setFields(
-          referredContent
-            ? [{ name: 'Reply to:', value: `> ${referredContent.replaceAll('\n', '\n> ')}` }]
+          referred
+            ? [{ name: 'Reply to:', value: `> ${referred.content.replaceAll('\n', '\n> ')}` }]
             : [],
         )
         .setAuthor({
@@ -98,7 +103,13 @@ export default {
         });
 
       // profanity censored embed
-      const censoredEmbed = EmbedBuilder.from(embed).setDescription(message.censored_content || null);
+      const censoredEmbed = EmbedBuilder.from(embed)
+        .setDescription(message.censored_content || null)
+        .setFields(
+          referred
+            ? [{ name: 'Reply to:', value: `> ${referred.censored.replaceAll('\n', '\n> ')}` }]
+            : [],
+        );
 
       // send the message to all connected channels in apropriate format (compact/profanity filter)
       const messageResults = connection.hub?.connections?.map(async (connected) => {
@@ -118,11 +129,13 @@ export default {
           : null;
 
         let webhookMessage: WebhookMessageCreateOptions;
+
         if (connected.compact) {
+          const referredContent = connected.profFilter ? referred?.censored : referred?.content;
           const replyEmbed = replyLink && referredContent
             ? new EmbedBuilder()
               .setColor('Random')
-              .setDescription(`[**Reply to:**](${replyLink}) ${referredContent.length >= 80 ? referredContent.slice(0, 80) + '...' : referredContent}`)
+              .setDescription(`[**Reply to:**](${replyLink}) ${referredContent.length >= 80 ? referredContent.slice(0, 80) + '...' : referred}`)
               .setAuthor({
                 name: `${referredAuthor?.username}`,
                 iconURL: referredAuthor?.avatarURL() || undefined,

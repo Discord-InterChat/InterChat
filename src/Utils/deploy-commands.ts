@@ -1,12 +1,11 @@
 import { REST } from '@discordjs/rest';
-import { Routes } from 'discord.js';
+import { RESTPostAPIApplicationCommandsJSONBody, RESTPostAPIApplicationGuildCommandsJSONBody, Routes } from 'discord.js';
 import { stripIndent } from 'common-tags';
 import { constants } from './utils';
 
 import fs from 'fs';
 import logger from './logger';
 import 'dotenv/config';
-import { InterchatCommand } from '../../typings/discord';
 
 const clientID = process.env.CLIENT_ID as string;
 const server = process.argv[3]?.toLowerCase() || constants.guilds.cbhq;
@@ -16,7 +15,7 @@ const commandsPath = 'build/Commands';
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN as string);
 
 function deployCommands(staff = false) {
-  const commands: InterchatCommand[] = [];
+  const commands: RESTPostAPIApplicationCommandsJSONBody | RESTPostAPIApplicationGuildCommandsJSONBody[] = [];
 
   fs.readdirSync(commandsPath).forEach((dir) => {
     // Only proceed if dir is inside staffCommands array (for deploying only staff commands)

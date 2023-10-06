@@ -2,6 +2,7 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, CommandInte
 import emojis from './JSON/emoji.json';
 
 export interface PaginatorOptions {
+  /** Number in milliseconds */
   stopAfter?: number;
   /** only supports buttons at the moment */
   extraComponent?: {
@@ -16,9 +17,6 @@ export interface PaginatorOptions {
   };
 }
 
-/**
- * @param stopAfter - Number in milliseconds
- */
 export async function paginate(interaction: CommandInteraction, pages: EmbedBuilder[], options?: PaginatorOptions) {
   if (pages.length < 1) {
     interaction.reply({ content: `${emojis.normal.tick} No more pages to display!`, ephemeral: true });
