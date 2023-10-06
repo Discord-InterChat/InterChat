@@ -55,14 +55,11 @@ export default {
     }
     catch (e) {
       logger.error(e);
-      captureException(e, {
-        user: { id: interaction.user.id, username: interaction.user.username },
-        extra: { context: 'delete hub command', hubId: hubInDb?.id },
-      });
-
+      captureException(e, { user: { id: interaction.user.id, username: interaction.user.username } });
       await clicked.editReply('Something went wrong while trying to delete the hub. The developers have been notified.');
       return;
     }
+
     await clicked.editReply({
       content:`${emojis.normal.tick} The hub has been successfully deleted.`,
       embeds: [],

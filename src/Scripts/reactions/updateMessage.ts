@@ -1,5 +1,11 @@
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  WebhookClient,
+  ComponentType,
+} from 'discord.js';
 import { MessageDataChannelAndMessageIds, connectedList } from '@prisma/client';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, WebhookClient, ComponentType } from 'discord.js';
 import sortReactions from './sortReactions';
 
 export default {
@@ -8,10 +14,10 @@ export default {
     channelAndMessageIds: MessageDataChannelAndMessageIds[],
     reactions: Record<string, string[]>,
   ) {
-  // reactions will contain something like this: { '👍': 1, '👎': 2 }
-  // sortedReactions[0] = array of [emoji, users[]]
-  // sortedReactions[0][0] = emoji
-  // sortedReactions[0][1] = array of users
+    // reactions will contain something like this: { '👍': ['userId1', 'userId2'], '👎': ['userId1', 'userId2', 'userId3'] }
+    // sortedReactions[0] = array of [emoji, users[]]
+    // sortedReactions[0][0] = emoji
+    // sortedReactions[0][1] = array of users
     const sortedReactions = sortReactions.execute(reactions);
     const reactionCount = sortedReactions[0][1].length;
     const mostReaction = sortedReactions[0][0];
@@ -34,7 +40,6 @@ export default {
             .setLabel(`+ ${allReactionCount.length}`),
         );
       }
-
     }
 
     connections.forEach(async (connection) => {
@@ -42,29 +47,35 @@ export default {
       if (!dbMsg) return;
 
       const webhook = new WebhookClient({ url: connection.webhookURL });
-      const message = await webhook.fetchMessage(dbMsg.messageId, {
-        threadId: connection.parentId ? connection.channelId : undefined,
-      }).catch(() => null);
+      const message = await webhook
+        .fetchMessage(dbMsg.messageId, {
+          threadId: connection.parentId ? connection.channelId : undefined,
+        })
+        .catch(() => null);
 
-      // remove all reaction buttons from components
-      // customId should not start with 'reaction_' or 'view_all_reactions'
       const components = message?.components?.filter((row) => {
-        const filteredRow = row.components.filter((component) => {
-          if (component.type === ComponentType.Button && component.style === ButtonStyle.Secondary) {
-            return !component.custom_id.startsWith('reaction_') && component.custom_id !== 'view_all_reactions';
-          }
-          return true;
+        // filter all buttons that are not reaction buttons
+        row.components = row.components.filter((component) => {
+          return component.type === ComponentType.Button &&
+            component.style === ButtonStyle.Secondary
+            ? !component.custom_id.startsWith('reaction_') &&
+                component.custom_id !== 'view_all_reactions'
+            : true;
         });
 
-        row.components = filteredRow;
-        return filteredRow.length > 0;
+        // if the filtered row  has components, that means it has components other than reaction buttons
+        // so we return true to keep the row
+        return row.components.length > 0;
       });
 
-      reactionCount > 0 ? components?.push(reactionBtn.toJSON()) : null;
-      webhook.editMessage(dbMsg.messageId, {
-        components,
-        threadId: connection.parentId ? connection.channelId : undefined,
-      });
+      if (reactionCount > 0) components?.push(reactionBtn.toJSON());
+
+      webhook
+        .editMessage(dbMsg.messageId, {
+          components,
+          threadId: connection.parentId ? connection.channelId : undefined,
+        })
+        .catch(() => null);
     });
   },
 };

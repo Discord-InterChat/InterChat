@@ -81,7 +81,7 @@ export async function createConnection(guild: Guild, hub: hubs, networkChannel: 
 
     **Server Name:** __${guild.name}__
     **Member Count:** __${guild.memberCount}__
-  ` }, hub.id);
+  ` }, hub.id).catch(() => null);
 
   // return the created connection so we can use it in the next step
   return createdConnection;

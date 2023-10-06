@@ -51,7 +51,6 @@ export default {
         : await messageContentModifiers.getAttachmentURL(message);
 
       let replyInDb: messageData | null;
-      let referredAuthor: User | undefined; // author of the message being replied to
       let referred: { author?: User, censored: string, content: string } | undefined; // for compact messages
 
       if (message.reference) {
@@ -115,16 +114,16 @@ export default {
       const messageResults = connection.hub?.connections?.map(async (connected) => {
         const reply = replyInDb?.channelAndMessageIds.find((msg) => msg.channelId === connected.channelId);
         const replyLink = reply ? `https://discord.com/channels/${connected.serverId}/${reply.channelId}/${reply.messageId}` : undefined;
-        const replyButton = replyLink && referredAuthor
+        const replyButton = replyLink && referred?.author
           ? new ActionRowBuilder<ButtonBuilder>().addComponents(
             new ButtonBuilder()
               .setStyle(ButtonStyle.Link)
               .setEmoji(emojis.normal.reply)
               .setURL(replyLink)
               .setLabel(
-                (referredAuthor.username.length >= 80
-                  ? '@' + referredAuthor.username.slice(0, 76) + '...'
-                  : '@' + referredAuthor.username),
+                (referred.author.username.length >= 80
+                  ? '@' + referred.author.username.slice(0, 76) + '...'
+                  : '@' + referred.author.username),
               ))
           : null;
 
@@ -135,10 +134,10 @@ export default {
           const replyEmbed = replyLink && referredContent
             ? new EmbedBuilder()
               .setColor('Random')
-              .setDescription(`[**Reply to:**](${replyLink}) ${referredContent.length >= 80 ? referredContent.slice(0, 80) + '...' : referred}`)
+              .setDescription(`[**Reply to:**](${replyLink}) ${referredContent.length >= 80 ? referredContent.slice(0, 80) + '...' : referredContent}`)
               .setAuthor({
-                name: `${referredAuthor?.username}`,
-                iconURL: referredAuthor?.avatarURL() || undefined,
+                name: `${referred?.author?.username}`,
+                iconURL: referred?.author?.avatarURL() || undefined,
               })
             : undefined;
 

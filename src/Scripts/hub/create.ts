@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, ModalBuilder, TextInputBuilder, EmbedBuilder, ActionRowBuilder, TextInputStyle, Collection } from 'discord.js';
 import { getDb } from '../../Utils/utils';
 import { HubSettingsBits } from '../../Utils/hubSettingsBitfield';
+import { stripIndents } from 'common-tags';
 
 const cooldowns = new Collection<string, number>();
 
@@ -81,9 +82,10 @@ export default {
 
     interaction.awaitModalSubmit({ time: 60 * 5000 })
       .then(async submitIntr => {
+        await submitIntr.deferReply({ ephemeral: true });
+
         const description = submitIntr.fields.getTextInputValue('description');
 
-        // in prod db before pushing it
         await db.hubs.create({
           data: {
             name: hubName,
@@ -99,24 +101,26 @@ export default {
         // FIXME this is a temp cooldown until we have a global cooldown system for commands & subcommands
         cooldowns.set(interaction.user.id, Date.now() + 60 * 60 * 1000);
         const successEmbed = new EmbedBuilder()
-          .setTitle('Hub created!')
           .setColor('Green')
-          .addFields({
-            name: 'How to join this hub?',
-            value: 'Use `/hub invite create` to generate an invite code to this hub. Servers with the code can connect using `/hub join` to connect to this hub.',
-          },
-          {
-            name: 'How to make this hub public?',
-            value: 'Use `/hub manage` to make your hub public and also edit other useful hub settings.',
-          },
-          )
+          .setDescription(stripIndents`
+          ### Hub Created!
+
+          Congratulations! Your private hub, **${hubName}**, has been successfully created.
+          To join, create an invite using \`/hub invite create\` and share the generated code. Then join using \`/hub join\`.
+          
+          - **Generate invite:** \`/hub invite create\`
+          - **Go public:** \`/hub manage\`
+          - **Join hub:** \`/hub join\`
+          - **Edit hub:** \`/hub manage\`
+          - **Add moderators:** \`/hub moderator add\`
+          
+          __Learn more about hubs in our [guide](https://discord-interchat.github.io/docs).__
+        `)
+
           .setFooter({ text: 'Join the support server for help!' })
           .setTimestamp();
 
-        await submitIntr.reply({
-          embeds: [successEmbed],
-          ephemeral: true,
-        });
+        await submitIntr.editReply({ embeds: [successEmbed] });
       });
   },
 };

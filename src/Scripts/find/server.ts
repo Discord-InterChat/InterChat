@@ -62,7 +62,7 @@ async function embedGen(guild: Guild, GuildOwner: GuildMember | undefined) {
         name: 'Network Info',
         value: stripIndents`
         > **Joined Hubs(${guildInDb.length}):** ${ guildInDb.map(({ hub }) => hub?.name).join(', ')}
-        > **Blacklisted from:** **${guildBlacklisted} hubs
+        > **Blacklisted from:** ${guildBlacklisted} hubs
         > **Channel(s):** ${guildInDb?.map(({ channelId }) => `<#${channelId}> (${channelId}))`)}`,
       },
     ]);
