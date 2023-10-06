@@ -24,11 +24,11 @@ export default {
       .addComponents(
         new ButtonBuilder()
           .setLabel('Confirm')
-          .setCustomId('confirm_delete')
+          .setCustomId('confirm')
           .setStyle(ButtonStyle.Danger),
         new ButtonBuilder()
           .setLabel('Cancel')
-          .setCustomId('cancel_delete')
+          .setCustomId('cancel')
           .setStyle(ButtonStyle.Secondary),
       );
 
@@ -37,18 +37,18 @@ export default {
       components: [confirmButtons],
     });
 
-    const confirmation = await msg.awaitMessageComponent({
+    const clicked = await msg.awaitMessageComponent({
       filter: b => b.user.id === interaction.user.id,
       time: 30_000,
       componentType: ComponentType.Button,
     }).catch(() => null);
 
-    if (!confirmation || confirmation.customId === 'confirm_delete') {
+    if (!clicked || clicked.customId === 'cancel') {
       await msg.delete().catch(() => null);
       return;
     }
 
-    await confirmation.update(`${emojis.normal.loading} Deleting connections, invites, messages and the hub. Please wait...`);
+    await clicked.update(`${emojis.normal.loading} Deleting connections, invites, messages and the hub. Please wait...`);
 
     try {
       await deleteHubs([hubInDb?.id]);
@@ -60,10 +60,10 @@ export default {
         extra: { context: 'delete hub command', hubId: hubInDb?.id },
       });
 
-      await confirmation.editReply('Something went wrong while trying to delete the hub. The developers have been notified.');
+      await clicked.editReply('Something went wrong while trying to delete the hub. The developers have been notified.');
       return;
     }
-    await confirmation.editReply({
+    await clicked.editReply({
       content:`${emojis.normal.tick} The hub has been successfully deleted.`,
       embeds: [],
       components: [],
