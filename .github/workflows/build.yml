@@ -18,7 +18,7 @@ jobs:
       runs-on: self-hosted
   
       steps:
-        # note to self: Checks out to ~/actions-runner/chatbot-production-builds/InterChat/InterChat/
+        # note to self: Checks out to ~/actions-runner/_work/InterChat/InterChat/
         - name: Backup Logs
           run: |
               if [ -d "logs/" ]; then
@@ -27,19 +27,15 @@ jobs:
         
         - name: Checkout repository
           uses: actions/checkout@v3
-
-        - name: Mark build as in progress 
-          run: touch build-in-progress.tmp
-
   
         - name: Install dependencies
           run: npm install
 
         - name: Build code
           run: |
-                npm run build --if-present
-                cp ~/important/interchat-env .env
-                
+              cp ~/important/interchat-env .env
+              npm run build --if-present
+
         - name: Deploy Commands
           run: npm run deploy -- -b
               

@@ -20,12 +20,13 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "node .",
-    "build": "tsc --build",
+    "build": "tsc --build && npm run sentry:sourcemaps",
     "dev": "tsc-watch --outDir ./build --onSuccess \"node .\"",
     "deploy": "node build/Utils/deploy-commands.js",
     "release": "standard-version",
     "lint": "eslint --cache --fix .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "sentry:sourcemaps": "sentry-cli sourcemaps inject --org interchat --project interchat-production ./build && sentry-cli sourcemaps upload --org interchat --project interchat-production ./build"
   },
   "engines": {
     "node": ">=18.15.0",
@@ -46,6 +47,7 @@
     "winston": "^3.10.0"
   },
   "devDependencies": {
+    "@sentry/cli": "^2.21.2",
     "@types/common-tags": "^1.8.2",
     "@types/lodash": "^4.14.199",
     "@types/node": "^20.8.0",

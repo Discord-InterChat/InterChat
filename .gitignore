@@ -22,3 +22,6 @@ build/
 # misc
 /Privacy.md
 .turbo
+
+# Sentry Auth Token
+.sentryclirc
