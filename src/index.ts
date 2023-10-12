@@ -1,74 +1,96 @@
-import fs from 'fs';
-import * as Sentry from '@sentry/node';
-import { Client, Collection, ActivityType, ClientOptions } from 'discord.js';
+import db from './utils/Db.js';
+import Logger from './utils/Logger.js';
+import { ClusterManager } from 'discord-hybrid-sharding';
+import { updateTopGGStats } from './updater/StatsUpdater.js';
+import { isDevBuild } from './utils/Constants.js';
+import { Scheduler } from './structures/Scheduler.js';
+import { blacklistedServers, blacklistedUsers } from '@prisma/client';
+import { BlacklistManager } from './structures/BlacklistManager.js';
+import { wait } from './utils/Utils.js';
 import 'dotenv/config';
 
-export class ExtendedClient extends Client {
-  constructor(options: ClientOptions) {
-    super(options);
-
-    this.commands = new Collection();
-    this.commandCooldowns = new Collection();
-    this.reactionCooldowns = new Collection();
-    this.description = 'A growing Discord bot which provides inter-server chat! https://discord-interchat.github.io/';
-    this.version = '3.13.0';
-  }
-
-  public async start(token?: string) {
-    this.loadCommands();
-    this.loadEvents();
-
-    await this.login(token || process.env.TOKEN);
-  }
-
-  protected loadCommands() {
-    fs.readdirSync(`${__dirname}/Commands/`).forEach(async (dir: string) => {
-      if (fs.statSync(`${__dirname}/Commands/${dir}`).isDirectory()) {
-        const commandFiles = fs.readdirSync(`${__dirname}/Commands/${dir}`)
-          .filter((file: string) => file.endsWith('.js'));
-
-        for (const commandFile of commandFiles) {
-          const command = require(`./Commands/${dir}/${commandFile}`);
-
-          command.default.directory = dir;
-          this.commands.set(command.default.data.name, command.default);
-        }
-      }
-    });
-  }
-
-  protected loadEvents() {
-    const eventFiles = fs.readdirSync(`${__dirname}/Events`).filter((file: string) => file.endsWith('.js'));
-
-    for (const eventFile of eventFiles) {
-      const event = require(`./Events/${eventFile}`);
-
-      if (event.once) {
-        this.once(event.default.name, (...args) => event.default.execute(...args, this));
-      }
-      else {
-        this.on(event.default.name, (...args) => event.default.execute(...args, this));
-      }
-
-    }
-  }
-}
-
-const client = new ExtendedClient({
-  intents: ['Guilds', 'GuildMessages', 'GuildMembers', 'MessageContent', 'GuildMessageReactions'],
-  allowedMentions: { parse: [], repliedUser: true },
-  presence: {
-    status: 'online',
-    activities: [{
-      state: '👀 Watching over 300+ networks... /hub browse',
-      type: ActivityType.Custom,
-      name: 'custom',
-    }],
-  },
+const manager = new ClusterManager('build/InterChat.js', {
+  totalShards: 1,
+  mode: 'process',
+  token: process.env.TOKEN,
+  shardsPerClusters: 1,
+  shardArgs: [`--production=${isDevBuild}`],
 });
 
+manager.spawn({ timeout: -1 });
 
-// Error monitoring (sentry.io)
-Sentry.init({ dsn: process.env.SENTRY_DSN, tracesSampleRate: 1.0 });
+// other jobs
+const syncBotlistStats = async () => {
+  const count = (await manager.fetchClientValues('guilds.cache.size')) as number[];
+  Logger.info(
+    `Updated top.gg stats with ${count.reduce((p, n) => p + n, 0)} guilds and ${
+      manager.totalShards
+    } shards`,
+  );
+  // update stats
+  updateTopGGStats(
+    count.reduce((p, n) => p + n, 0),
+    manager.totalShards,
+  );
+};
 
-client.start();
+const deleteExpiredInvites = async () => {
+  const olderThan1h = new Date(Date.now() - 60 * 60 * 1_000);
+  await db.hubInvites.deleteMany({ where: { expires: { lte: olderThan1h } } }).catch(() => null);
+};
+
+const deleteOldMessages = async () => {
+  // Delete all documents that are older than 24 hours old.
+  const olderThan24h = new Date(Date.now() - 60 * 60 * 24_000);
+  await db.messageData
+    .deleteMany({ where: { timestamp: { lte: olderThan24h } } })
+    .catch(() => null);
+};
+
+const loopThruBlacklists = (blacklists: (blacklistedServers | blacklistedUsers)[], scheduler: Scheduler) => {
+  if (blacklists.length === 0) return;
+
+  const blacklistManager = new BlacklistManager(scheduler);
+  for (const blacklist of blacklists) {
+    for (const { hubId, expires } of blacklist.hubs) {
+      if (!expires) continue;
+
+      if (expires < new Date()) {
+        if ('serverId' in blacklist) blacklistManager.removeBlacklist('server', hubId, blacklist.serverId);
+        else blacklistManager.removeBlacklist('user', hubId, blacklist.userId);
+      }
+
+      blacklistManager.scheduleRemoval(
+        'serverId' in blacklist ? 'server' : 'user',
+        'serverId' in blacklist ? blacklist.serverId : blacklist.userId,
+        hubId,
+        expires,
+      );
+    }
+  }
+};
+
+manager.on('clusterCreate', async (cluster) => {
+  // last cluster
+  if (cluster.id === manager.totalClusters - 1 && !isDevBuild) {
+    // give time for shards to connect
+    await wait(10_000);
+
+    // perform tasks on start up
+    syncBotlistStats();
+    deleteOldMessages();
+    deleteExpiredInvites();
+
+    const scheduler = new Scheduler();
+
+    // update top.gg stats every 10 minutes
+    scheduler.addTask('syncBotlistStats', 60 * 10_000, syncBotlistStats); // every 10 minutes
+    scheduler.addTask('deleteExpiredInvites', 60 * 60 * 1_000, deleteExpiredInvites); // every hour
+    scheduler.addTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages); // every 12 hours
+
+    // remove expired blacklists or set new timers for them
+    const query = { where: { hubs: { some: { expires: { isSet: true } } } } };
+    loopThruBlacklists(await db.blacklistedServers.findMany(query), scheduler);
+    loopThruBlacklists(await db.blacklistedUsers.findMany(query), scheduler);
+  }
+});
