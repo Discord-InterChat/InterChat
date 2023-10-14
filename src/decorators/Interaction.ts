@@ -8,6 +8,8 @@ export function ComponentInteraction(customId: string): MethodDecorator {
     descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
+    // NOTE: It is not possible to access other class properties for decorator methods
+    // so don't try to access `this.<property>` in any decorator method body
     interactionsMap.set(customId, originalMethod);
   };
 }

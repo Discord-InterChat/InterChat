@@ -23,12 +23,13 @@ export const REGEX = {
   STATIC_IMAGE_URL: /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.png)/,
 };
 
-export const StaffIds = ['597265261665714186', '442653948630007808', '689082827979227160'] as const;
+export const StaffIds = ['597265261665714186', '442653948630007808', '689082827979227160'];
 export const DeveloperIds = [
   '828492978716409856',
   '701727675311587358',
   '456961943505338369',
-] as const;
+];
+export const SupporterIds = ['880978672037802014'];
 
 
 export const URLs = {
@@ -87,7 +88,7 @@ export const colors = {
 
 export const rulesEmbed = new EmbedBuilder()
   .setColor(colors.interchatBlue)
-  .setImage('https://i.imgur.com/D2pYagc.png').setDescription(stripIndents`
+  .setImage('https://i.imgur.com/MBG0Rks.png').setDescription(stripIndents`
   ### 📜 InterChat Network Rules
 
   1. **Use Common Sense:** Be considerate of others and their views. No slurs, derogatory language or any actions that can disrupt the chat's comfort.

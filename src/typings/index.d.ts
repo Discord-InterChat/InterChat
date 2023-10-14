@@ -1,10 +1,11 @@
 import { ClusterClient } from 'discord-hybrid-sharding';
 import { Collection, Snowflake } from 'discord.js';
 import { Logger } from 'winston';
-import CommandHandler from '../structures/CommandHandler';
+import { Scheduler } from '../structures/Scheduler.ts';
 import NSFWClient from '../structures/NSFWDetection.ts';
 import NetworkManager from '../structures/NetworkManager.ts';
-import { Scheduler } from '../structures/Scheduler.ts';
+import BlacklistManager from '../structures/BlacklistManager.ts';
+import CommandManager from '../structures/CommandManager.ts';
 
 declare module 'discord.js' {
   export interface Client {
@@ -18,8 +19,8 @@ declare module 'discord.js' {
 
     fetchGuild(guildId: Snowflake): Promise<Guild | undefined>;
     getScheduler(): Scheduler;
-    getCommandManager(): CommandHandler;
-    getCommandManager(): CommandHandler;
+    getCommandManager(): CommandManager;
+    getCommandManager(): CommandManager;
     getNetworkManager(): NetworkManager;
     getBlacklistManager(): BlacklistManager;
     getNSFWDetector(): NSFWClient;

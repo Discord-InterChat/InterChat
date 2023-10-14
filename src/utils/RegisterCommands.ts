@@ -1,5 +1,5 @@
 import Logger from './Logger.js';
-import CommandHandler from '../structures/CommandHandler.js';
+import CommandManager from '../structures/CommandManager.js';
 import { REST, Routes } from 'discord.js';
 import { CLIENT_ID, SUPPORT_SERVER_ID } from './Constants.js';
 import { commandsMap } from '../commands/Command.js';
@@ -7,7 +7,7 @@ import 'dotenv/config';
 
 export default async function registerAllCommands(staffOnly = false) {
   // make sure CommandsMap is not empty
-  await CommandHandler.loadCommandFiles();
+  await CommandManager.loadCommandFiles();
 
   const rest = new REST().setToken(process.env.TOKEN as string);
 

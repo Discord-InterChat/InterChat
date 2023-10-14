@@ -1,4 +1,4 @@
-export class Scheduler {
+export default class Scheduler {
   private tasks: Map<string, { task: () => void; interval: number; intervalId: NodeJS.Timeout }>;
 
   constructor() {

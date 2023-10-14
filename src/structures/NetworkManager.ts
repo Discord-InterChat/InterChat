@@ -29,8 +29,18 @@ export interface Networks extends connectedList {
 }
 
 export default class NetworkManager extends Factory {
-  public async handleNetworkMessage(message: NetworkMessage, network: Networks) {
-    const settings = new HubSettingsBitField(network.hub?.settings);
+  public async handleNetworkMessage(message: NetworkMessage) {
+    const isNetworkMessage = await db.connectedList.findFirst({
+      where: { channelId: message.channel.id, connected: true },
+      include: { hub: true },
+    });
+
+    // check if the message was sent in a network channel
+    if (!isNetworkMessage?.hub) return;
+
+    // loop through all connections and send the message
+    const allConnections = await this.fetchHubNetworks({ hubId: isNetworkMessage.hubId });
+    const settings = new HubSettingsBitField(isNetworkMessage.hub.settings);
     const checksPassed = await this.runChecks(message, settings);
     if (!checksPassed) return;
 
@@ -52,7 +62,8 @@ export default class NetworkManager extends Factory {
 
         const nsfwEmbed = new EmbedBuilder()
           .setTitle('NSFW Image Detected')
-          .setDescription(stripIndents`
+          .setDescription(
+            stripIndents`
           I have identified this image as NSFW (Not Safe For Work). Sharing NSFW content is against our network guidelines. Refrain from posting such content here.
           
           **NSFW Prediction:** ${predictions[0].className} - ${Math.round(predictions[0].probability * 100)}%`,
@@ -77,17 +88,15 @@ export default class NetworkManager extends Factory {
       : undefined;
     const referredContent = referenceInDb ? await this.getReferredContent(message) : undefined;
 
-
     // embeds for the normal mode
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, {
       attachmentURL,
       referredContent,
     });
 
-    // loop through all connections and send the message
-    const allConnections = await this.fetchHubNetworks({ hubId: network.hubId });
     const sendResult = allConnections.map(async (connection) => {
-      try { // parse the webhook url and get the webhook id and token
+      try {
+        // parse the webhook url and get the webhook id and token
         const webhookURL = connection.webhookURL.split('/');
         // fetch the webhook from discord
         const webhook = await this.client.fetchWebhook(
@@ -100,42 +109,42 @@ export default class NetworkManager extends Factory {
         );
         // create a jump button to reply button
         const jumpButton =
-        reply && referredMessage?.author
-          ? new ActionRowBuilder<ButtonBuilder>().addComponents(
-            new ButtonBuilder()
-              .setStyle(ButtonStyle.Link)
-              .setEmoji(emojis.reply)
-              .setURL(
-                `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`,
-              )
-              .setLabel(
-                referredMessage.author.username.length >= 80
-                  ? '@' + referredMessage.author.username.slice(0, 76) + '...'
-                  : '@' + referredMessage.author.username,
-              ),
-          )
-          : null;
+          reply && referredMessage?.author
+            ? new ActionRowBuilder<ButtonBuilder>().addComponents(
+              new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setEmoji(emojis.reply)
+                .setURL(
+                  `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`,
+                )
+                .setLabel(
+                  referredMessage.author.username.length >= 80
+                    ? '@' + referredMessage.author.username.slice(0, 76) + '...'
+                    : '@' + referredMessage.author.username,
+                ),
+            )
+            : null;
 
         // embed format
         let messageFormat: WebhookMessageCreateOptions = {
           components: jumpButton ? [jumpButton] : undefined,
           embeds: [connection.profFilter ? censoredEmbed : embed],
           files: attachment ? [attachment] : undefined,
-          username: `${network.hub?.name}`,
-          avatarURL: network.hub?.iconUrl,
+          username: `${isNetworkMessage.hub?.name}`,
+          avatarURL: isNetworkMessage.hub?.iconUrl,
           threadId: connection.parentId ? connection.channelId : undefined,
           allowedMentions: { parse: [] },
         };
 
         if (connection.compact) {
           const replyContent =
-          connection.profFilter && referredContent ? censor(referredContent) : referredContent;
+            connection.profFilter && referredContent ? censor(referredContent) : referredContent;
 
           // preview embed for the message being replied to
           const replyEmbed = replyContent
             ? new EmbedBuilder({
               description:
-                replyContent.length > 30 ? replyContent?.slice(0, 30) + '...' : replyContent,
+                  replyContent.length > 30 ? replyContent?.slice(0, 30) + '...' : replyContent,
               author: {
                 name: `${referredMessage?.author.username.slice(0, 30)}`,
                 icon_url: referredMessage?.author.displayAvatarURL(),
@@ -163,14 +172,17 @@ export default class NetworkManager extends Factory {
       }
       catch (e) {
         // return the error and webhook URL to store the message in the db
-        return { messageOrError: e.message, webhookURL: connection.webhookURL } as NetworkWebhookSendResult;
+        return {
+          messageOrError: e.message,
+          webhookURL: connection.webhookURL,
+        } as NetworkWebhookSendResult;
       }
     });
 
     message.delete().catch(() => null);
 
     // store the message in the db
-    await this.storeMessageData(message, await Promise.all(sendResult), network.hubId);
+    await this.storeMessageData(message, await Promise.all(sendResult), isNetworkMessage.hubId);
   }
 
   public async runChecks(message: Message, settings: HubSettingsBitField): Promise<boolean> {
@@ -186,8 +198,7 @@ export default class NetworkManager extends Factory {
     }
 
     if (
-      settings.has('BlockInvites') &&
-      message.content.includes('discord.gg') ||
+      (settings.has('BlockInvites') && message.content.includes('discord.gg')) ||
       message.content.includes('discord.com/invite') ||
       message.content.includes('dsc.gg')
     ) {
@@ -262,44 +273,33 @@ export default class NetworkManager extends Factory {
     message: NetworkMessage,
     opts?: { attachmentURL?: string | null; embedCol?: HexColorString; referredContent?: string },
   ): { embed: EmbedBuilder; censoredEmbed: EmbedBuilder } {
-    const embed = new EmbedBuilder({
-      description: message.content,
-      image: opts?.attachmentURL ? { url: opts?.attachmentURL } : undefined,
-      author: {
+    const embed = new EmbedBuilder()
+      .setAuthor({
         name: message.author.username,
-        icon_url: message.author.displayAvatarURL(),
-      },
-      footer: {
+        iconURL: message.author.displayAvatarURL(),
+      })
+      .setDescription(message.content)
+      .addFields(
+        opts?.referredContent
+          ? [{ name: 'Replying To:', value: opts.referredContent ?? 'Unknown.' }]
+          : [],
+      )
+      .setFooter({
         text: `From: ${message.guild?.name}`,
-        icon_url: message.guild?.iconURL() ?? undefined,
-      },
-      fields: opts?.referredContent
-        ? [{ name: 'Replying To:', value: opts.referredContent ?? 'Unknown.' }]
-        : undefined,
-    }).setColor(opts?.embedCol ?? 'Random');
+        iconURL: message.guild?.iconURL() ?? undefined,
+      })
+      .setImage(opts?.attachmentURL ?? null)
+      .setColor(opts?.embedCol ?? 'Random');
 
-    const censoredEmbed = EmbedBuilder.from({
-      ...embed.toJSON(),
-      description: message.censoredContent,
-      fields: opts?.referredContent
-        ? [{ name: 'Replying To:', value: censor(opts.referredContent) ?? 'Unknown.' }]
-        : undefined,
-    });
+    const censoredEmbed = EmbedBuilder.from(embed)
+      .setDescription(message.censoredContent)
+      .addFields(
+        opts?.referredContent
+          ? [{ name: 'Replying To:', value: censor(opts.referredContent) ?? 'Unknown.' }]
+          : [],
+      );
 
     return { embed, censoredEmbed };
-  }
-
-  // TODO: Error handlers for these
-  public async fetchHubNetworks(where: { hubId?: string; hubName?: string }) {
-    return await db.connectedList.findMany({ where });
-  }
-
-  public async fetchConnection(where: Prisma.connectedListWhereUniqueInput) {
-    return await db.connectedList.findUnique({ where });
-  }
-
-  async updateConnection(where: Prisma.connectedListWhereUniqueInput, data: Prisma.connectedListUpdateInput) {
-    return await db.connectedList.update({ where, data });
   }
 
   /**
@@ -354,5 +354,43 @@ export default class NetworkManager extends Factory {
         data: { connected: false },
       });
     }
+  }
+
+  // TODO: Error handlers for these
+  public async fetchHubNetworks(where: { hubId?: string; hubName?: string }) {
+    return await db.connectedList.findMany({ where });
+  }
+
+  public async fetchConnection(where: Prisma.connectedListWhereInput) {
+    return await db.connectedList.findFirst({ where });
+  }
+
+  async updateConnection(
+    where: Prisma.connectedListWhereUniqueInput,
+    data: Prisma.connectedListUpdateInput,
+  ) {
+    return await db.connectedList.update({ where, data });
+  }
+  async createConnection(data: Prisma.connectedListCreateInput) {
+    return await db.connectedList.create({ data });
+  }
+  async sendToNetwork(hubId: string, message: string | WebhookMessageCreateOptions) {
+    const connections = await this.fetchHubNetworks({ hubId });
+
+    const res = connections.map(async (connection) => {
+      try {
+        const webhookURL = connection.webhookURL.split('/');
+        const webhook = await this.client.fetchWebhook(
+          webhookURL[webhookURL.length - 2],
+          webhookURL[webhookURL.length - 1],
+        );
+        return webhook.send(message);
+      }
+      catch {
+        return null;
+      }
+    });
+
+    return await Promise.all(res);
   }
 }

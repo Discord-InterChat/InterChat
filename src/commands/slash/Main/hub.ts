@@ -1,18 +1,14 @@
 import {
   APIApplicationCommandBasicOption,
-  ActionRowBuilder,
   ApplicationCommandOptionType,
   AutocompleteInteraction,
-  ButtonBuilder,
-  ButtonStyle,
+  ChannelType,
   ChatInputCommandInteraction,
-  MessageComponentInteraction,
+  Collection,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 import Command from '../../Command.js';
 import db from '../../../utils/Db.js';
-import { CustomID } from '../../../structures/CustomID.js';
-import { ComponentInteraction } from '../../../decorators/Interaction.js';
 
 const hubOption: APIApplicationCommandBasicOption = {
   name: 'hub',
@@ -22,7 +18,7 @@ const hubOption: APIApplicationCommandBasicOption = {
   autocomplete: true,
 };
 
-export default class Hub extends Command {
+export default class HubCommand extends Command {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'hub',
     description: 'Manage your hubs.',
@@ -34,7 +30,7 @@ export default class Hub extends Command {
       },
       {
         type: ApplicationCommandOptionType.Subcommand,
-        name: 'edit',
+        name: 'manage',
         description: '📝 Edit a hub you own.',
         options: [hubOption],
       },
@@ -49,7 +45,14 @@ export default class Hub extends Command {
         name: 'join',
         description: '🔗 Join a public/private hub from this server.',
         options: [
-          hubOption,
+          {
+            type: ApplicationCommandOptionType.Channel,
+            name: 'channel',
+            description: 'The channel you want to use connect to a hub.',
+            required: true,
+            channel_types: [ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread],
+          },
+          { ...hubOption, required: false },
           {
             type: ApplicationCommandOptionType.String,
             name: 'invite',
@@ -96,27 +99,13 @@ export default class Hub extends Command {
     ],
   };
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
-    await interaction.reply({
-      components: [
-        new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder()
-            .setCustomId(
-              new CustomID()
-                .setIdentifier('hub', 'browse')
-                .toString(),
-            )
-            .setLabel('Browse')
-            .setStyle(ButtonStyle.Primary),
-        ),
-      ],
-    });
-    return;
-  }
+  // subcommand classes are added to this map in their respective files
+  static readonly subcommands = new Collection<string, Command>;
 
-  @ComponentInteraction('hub:browse')
-  async handleComponent(interaction: MessageComponentInteraction) {
-    interaction.reply('hello world!');
+  async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
+    const subcommand = HubCommand.subcommands?.get(interaction.options.getSubcommand());
+    subcommand?.execute(interaction);
+    return;
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<unknown> {

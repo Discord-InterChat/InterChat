@@ -1,13 +1,13 @@
 import db from '../utils/Db.js';
 import Logger from '../utils/Logger.js';
+import Scheduler from './Scheduler.js';
 import SuperClient from '../SuperClient.js';
 import { blacklistedServers, blacklistedUsers } from '@prisma/client';
-import { Scheduler } from './Scheduler.js';
 import { User, TextBasedChannel, EmbedBuilder } from 'discord.js';
 import { emojis, colors } from '../utils/Constants.js';
 import { captureException } from '@sentry/node';
 
-export class BlacklistManager {
+export default class BlacklistManager {
   private scheduler: Scheduler;
 
   constructor(scheduler: Scheduler) {

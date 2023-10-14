@@ -1,6 +1,6 @@
 import db from './utils/Db.js';
 import SuperClient from './SuperClient.js';
-import CommandHandler from './structures/CommandHandler.js';
+import CommandManager from './structures/CommandManager.js';
 import { NetworkMessage } from './structures/NetworkManager.js';
 
 class InterChat extends SuperClient {
@@ -12,7 +12,7 @@ class InterChat extends SuperClient {
       this.init();
 
       // load commands
-      CommandHandler.loadCommandFiles();
+      CommandManager.loadCommandFiles();
 
       this.logger.info(
         `Logged in as ${this.user?.tag}! Cached ${this.guilds.cache.size} guilds on Cluster ${this.cluster?.id}.`,
@@ -29,20 +29,13 @@ class InterChat extends SuperClient {
     this.on('interactionCreate', (interaction) => this.getCommandManager().handleInteraction(interaction));
 
     // handle network reactions
-    this.on('messageReactionAdd', (reaction, user) => this.getReactionUpdater().listen(reaction, user));
+    this.on('messageReactionAdd', (reaction, user) => this.getReactionUpdater().listenForReactions(reaction, user));
 
     // handle network messages
     this.on('messageCreate', async (message) => {
       if (message.author.bot || message.system || message.webhookId) return;
 
-      const isNetworkMessage = await db.connectedList.findFirst({
-        where: { channelId: message.channel.id, connected: true },
-        include: { hub: true },
-      });
-
-      if (!isNetworkMessage) return;
-
-      this.getNetworkManager().handleNetworkMessage(message as NetworkMessage, isNetworkMessage);
+      this.getNetworkManager().handleNetworkMessage(message as NetworkMessage);
     });
 
   }

@@ -13,8 +13,10 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
+  TextChannel,
   TextInputBuilder,
   TextInputStyle,
+  ThreadChannel,
 } from 'discord.js';
 import Command from '../../Command.js';
 import db from '../../../utils/Db.js';
@@ -23,6 +25,7 @@ import { buildEmbed } from '../../../scripts/network/buildEmbed.js';
 import { buildConnectionButtons } from '../../../scripts/network/components.js';
 import { emojis } from '../../../utils/Constants.js';
 import { CustomID } from '../../../structures/CustomID.js';
+import { disableComponents, getOrCreateWebhook } from '../../../utils/Utils.js';
 
 export default class Connection extends Command {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -33,17 +36,17 @@ export default class Connection extends Command {
     options: [
       {
         type: ApplicationCommandOptionType.String,
-        name: 'connection',
-        description: 'Choose a connection.',
+        name: 'channel',
+        description: 'Choose a connection to manage.',
         required: true,
         autocomplete: true,
       },
     ],
   };
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    const connection = interaction.options.getString('connection', true);
     const networkManager = interaction.client.getNetworkManager();
-    const isInDb = await networkManager.fetchConnection({ channelId: connection });
+    const channelId = interaction.options.getString('channel', true);
+    const isInDb = await networkManager.fetchConnection({ channelId });
 
     if (!isInDb) {
       interaction.reply({
@@ -53,8 +56,8 @@ export default class Connection extends Command {
       return;
     }
 
-    const embed = await buildEmbed(interaction, connection);
-    const buttons = buildConnectionButtons(true, connection, { userId: interaction.user.id });
+    const embed = await buildEmbed(interaction, channelId);
+    const buttons = buildConnectionButtons(true, channelId, { userId: interaction.user.id });
 
     if (!interaction.deferred && !interaction.replied) await interaction.deferReply();
 
@@ -63,7 +66,7 @@ export default class Connection extends Command {
         .setCustomId(
           new CustomID()
             .setIdentifier('connection', 'settings')
-            .addData(connection)
+            .addData(channelId)
             .addData(interaction.user.id)
             .toString(),
         )
@@ -97,11 +100,11 @@ export default class Connection extends Command {
         ),
     ]);
 
-    const channelExists = await interaction.client.channels.fetch(connection).catch(() => null);
+    const channelExists = await interaction.guild?.channels.fetch(channelId).catch(() => null);
 
     if (!channelExists) {
       await networkManager.updateConnection(
-        { channelId: connection },
+        { channelId: channelId },
         { connected: !isInDb.connected },
       );
       await interaction.followUp({
@@ -143,7 +146,7 @@ export default class Connection extends Command {
 
   @ComponentInteraction('connection')
   async handleComponent(interaction: MessageComponentInteraction) {
-    const customId = CustomID.toJSON(interaction.customId);
+    const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.data[0];
 
     if (customId.data.at(1) && customId.data[1] !== interaction.user.id) {
@@ -164,12 +167,13 @@ export default class Connection extends Command {
     const isInDb = await networkManager.fetchConnection({ channelId });
     if (!isInDb || !channelId) {
       await interaction.reply({
-        content: `${emojis.no} This connection does not exist.`,
+        content: `${emojis.no} This connection no longer exists.`,
         ephemeral: true,
       });
       return;
     }
 
+    // button interactions
     if (interaction.isButton() && customId.postfix === 'toggle') {
       const toggleRes = await networkManager.updateConnection(
         { channelId },
@@ -180,10 +184,12 @@ export default class Connection extends Command {
         embeds: [await buildEmbed(interaction, channelId)],
         components: [
           interaction.message.components[0],
-          await buildConnectionButtons(toggleRes?.connected, channelId),
+          buildConnectionButtons(toggleRes?.connected, channelId),
         ],
       });
     }
+
+    // String select menu interactions
     else if (interaction.isStringSelectMenu()) {
       switch (interaction.values[0]) {
         case 'compact':
@@ -240,6 +246,12 @@ export default class Connection extends Command {
             components: [channelSelect],
             ephemeral: true,
           });
+
+          // current interaction will become outdated due to new channelId
+          await interaction.message.edit({
+            content: `${emojis.info} Channel switch called, use the command again to view new connection.`,
+            components: disableComponents(interaction.message),
+          });
           break;
         }
 
@@ -254,30 +266,40 @@ export default class Connection extends Command {
 
       const newEmbeds = await buildEmbed(interaction, channelId);
       interaction.replied || interaction.deferred
-        ? await interaction.editReply({ embeds: [newEmbeds] })
+        ? await interaction.message.edit({ embeds: [newEmbeds] })
         : await interaction.update({ embeds: [newEmbeds] });
     }
+
+    // channel select menu interactions
     else if (interaction.isChannelSelectMenu()) {
       if (customId.postfix !== 'change_channel') return;
       const newChannel = interaction.channels.first();
 
-      if (newChannel?.id === channelId) {
+      const channelInHub = await networkManager.fetchConnection({ channelId: newChannel?.id });
+      if (channelInHub) {
         await interaction.reply({
-          content: `${emojis.no} You cannot switch to the same channel.`,
+          content: `${emojis.no} Channel ${newChannel} is already connected to a hub.`,
           ephemeral: true,
         });
         return;
       }
 
-      await networkManager.updateConnection({ channelId }, { channelId: newChannel?.id });
+      const newWebhook = await getOrCreateWebhook(newChannel as TextChannel | ThreadChannel);
+      await networkManager.updateConnection(
+        { channelId },
+        { channelId: newChannel?.id, webhookURL: newWebhook?.url },
+      );
 
-      await interaction.update(`${emojis.yes} Switched network channel to <#${newChannel?.id}>.`);
+      await interaction.update({
+        content: `${emojis.yes} Switched network channel to <#${newChannel?.id}>.`,
+        components: [],
+      });
     }
   }
 
   @ComponentInteraction('connectionModal')
   async handleModal(interaction: ModalSubmitInteraction): Promise<void> {
-    const customId = CustomID.toJSON(interaction.customId);
+    const customId = CustomID.parseCustomId(interaction.customId);
     if (customId.identifier !== 'connectionModal') return;
 
     const invite = interaction.fields.getTextInputValue('connInviteField');

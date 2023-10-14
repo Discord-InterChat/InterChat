@@ -1,11 +1,11 @@
 import db from './utils/Db.js';
 import Logger from './utils/Logger.js';
+import Scheduler from './structures/Scheduler.js';
+import BlacklistManager from './structures/BlacklistManager.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { updateTopGGStats } from './updater/StatsUpdater.js';
 import { isDevBuild } from './utils/Constants.js';
-import { Scheduler } from './structures/Scheduler.js';
 import { blacklistedServers, blacklistedUsers } from '@prisma/client';
-import { BlacklistManager } from './structures/BlacklistManager.js';
 import { wait } from './utils/Utils.js';
 import 'dotenv/config';
 

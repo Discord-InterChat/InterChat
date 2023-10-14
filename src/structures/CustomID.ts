@@ -15,29 +15,40 @@ export class CustomID {
   addData(value: string): CustomID {
     if (!value) return this;
 
+    if (value.includes('&')) {
+      throw new TypeError('Custom ID data cannot contain "&"');
+    }
+
     this.customId += `&${value}`;
     return this;
   }
 
-  static toJSON(customId: string) {
-    const parsedId = {
+  static parseCustomId(customId: string) {
+    const parsed = {
       identifier: '',
       postfix: '',
+      // expiry: undefined as Date | undefined,
       data: [] as string[],
     };
 
     for (const [index, part] of customId.split('&').entries()) {
       if (index === 0) {
         const [identifier, postfix] = part.split(':');
-        parsedId.identifier = identifier;
-        parsedId.postfix = postfix ?? '';
+        parsed.identifier = identifier;
+        parsed.postfix = postfix;
       }
+      // else if (part.startsWith('ex=')) {
+      //   const expiry = parseInt(part.split('=')[1]);
+      //   if (isNaN(expiry)) continue;
+
+      //   parsed.expiry = new Date(parseInt(part.split('=')[1]));
+      // }
       else {
-        parsedId.data.push(part);
+        parsed.data.push(part);
       }
     }
 
-    return parsedId;
+    return parsed;
   }
 
   toString() {

@@ -8,14 +8,14 @@ import {
   Snowflake,
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
-import { BlacklistManager } from './structures/BlacklistManager.js';
 import { commandsMap, interactionsMap } from './commands/Command.js';
-import { Scheduler } from './structures/Scheduler.js';
 import Logger from './utils/Logger.js';
-import CommandHandler from './structures/CommandHandler.js';
+import Scheduler from './structures/Scheduler.js';
+import NSFWClient from './structures/NSFWDetection.js';
+import CommandManager from './structures/CommandManager.js';
 import NetworkManager from './structures/NetworkManager.js';
 import ReactionUpdater from './updater/ReactionUpdater.js';
-import NSFWClient from './structures/NSFWDetection.js';
+import BlacklistManager from './structures/BlacklistManager.js';
 
 export default abstract class SuperClient extends Client {
   readonly logger = Logger;
@@ -30,7 +30,7 @@ export default abstract class SuperClient extends Client {
   readonly cluster = new ClusterClient(this);
 
   private readonly scheduler = new Scheduler();
-  private readonly commandHandler = new CommandHandler(this);
+  private readonly commandHandler = new CommandManager(this);
   private readonly networkHandler = new NetworkManager(this);
   private readonly blacklistManager = new BlacklistManager(this.scheduler);
   private readonly reactionUpdater = new ReactionUpdater(this);
@@ -55,6 +55,7 @@ export default abstract class SuperClient extends Client {
         IntentsBitField.Flags.GuildMessages,
         IntentsBitField.Flags.GuildMessageReactions,
       ],
+      presence: { status: 'invisible' },
     });
   }
 
@@ -78,7 +79,7 @@ export default abstract class SuperClient extends Client {
     return fetch ? this.resolveEval(fetch) : undefined;
   }
 
-  getCommandManager(): CommandHandler {
+  getCommandManager(): CommandManager {
     return this.commandHandler;
   }
   getNetworkManager(): NetworkManager {

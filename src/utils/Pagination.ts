@@ -43,17 +43,17 @@ export async function paginate(
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents([
     new ButtonBuilder()
       .setEmoji(emojiBack)
-      .setCustomId('1')
+      .setCustomId('page_:back')
       .setStyle(ButtonStyle.Primary)
       .setDisabled(true),
     new ButtonBuilder()
       .setEmoji(emojiExit)
-      .setCustomId('3')
+      .setCustomId('page_:exit')
       .setStyle(ButtonStyle.Danger)
       .setLabel(`Page ${index + 1} of ${pages.length}`),
     new ButtonBuilder()
       .setEmoji(emojiNext)
-      .setCustomId('2')
+      .setCustomId('page_:next')
       .setStyle(ButtonStyle.Primary)
       .setDisabled(pages.length <= index + 1),
   ]);
@@ -77,13 +77,13 @@ export async function paginate(
   });
 
   col.on('collect', (i) => {
-    if (i.customId === '1') {
+    if (i.customId === 'page_:back') {
       index--;
     }
-    else if (i.customId === '2') {
+    else if (i.customId === 'page_:exit') {
       index++;
     }
-    else if (i.customId === '3') {
+    else if (i.customId === 'page_:next') {
       col.stop();
       return;
     }

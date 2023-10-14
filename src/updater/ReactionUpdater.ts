@@ -3,85 +3,171 @@ import Factory from '../Factory.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
+  ButtonInteraction,
   ButtonStyle,
   ComponentType,
   MessageReaction,
   PartialMessageReaction,
   PartialUser,
+  Snowflake,
   User,
   WebhookClient,
 } from 'discord.js';
-import {
-  connectedList,
-  MessageDataChannelAndMessageIds,
-} from '@prisma/client';
+import { messageData, MessageDataChannelAndMessageIds } from '@prisma/client';
 import { sortReactions } from '../utils/Utils.js';
-import { BlacklistManager } from '../structures/BlacklistManager.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
+import BlacklistManager from '../structures/BlacklistManager.js';
+import { CustomID } from '../structures/CustomID.js';
+import { ComponentInteraction } from '../decorators/Interaction.js';
+import { emojis } from '../utils/Constants.js';
+
+type messageAndHubSettings = messageData & { hub: { settings: number } | null };
 
 export default class ReactionUpdater extends Factory {
-  public async listen(
+  public async listenForReactions(
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,
   ): Promise<void> {
-    if (user.bot || user.system) return;
+    if (user.bot) return;
+
+    const cooldown = reaction.client.reactionCooldowns.get(user.id);
+    if (cooldown && cooldown > Date.now()) return;
+
+    // add user to cooldown list
+    user.client.reactionCooldowns.set(user.id, Date.now() + 3000);
 
     const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: reaction.message.id } } },
       include: { hub: { select: { settings: true } } },
     });
 
-    if (
-      !messageInDb?.hub ||
-      !messageInDb.hubId ||
-      !new HubSettingsBitField(messageInDb.hub.settings).has('Reactions') ||
-      !reaction.message.inGuild()
-    ) {
+    if (!messageInDb || !reaction.message.inGuild() || !ReactionUpdater.runChecks(messageInDb)) {
       return;
     }
 
-    const userBlacklisted = await BlacklistManager.fetchUserBlacklist(messageInDb.hubId, user.id);
-    const serverBlacklisted = await BlacklistManager.fetchUserBlacklist(
-      messageInDb.hubId,
-      reaction.message.guild.id,
+    const { userBlacklisted, serverBlacklisted } = await ReactionUpdater.checkBlacklists(
+      messageInDb,
+      reaction.message.guildId,
+      user.id,
     );
+
     if (userBlacklisted || serverBlacklisted) return;
 
+    const reactedEmoji = reaction.emoji.toString();
+    const dbReactions = messageInDb.reactions?.valueOf() as { [key: string]: string[] }; // eg. { '👍': 1, '👎': 2 }
+    const emojiAlreadyReacted = dbReactions[reactedEmoji] ?? [user.id];
+
+    // max 10 reactions
+    if (Object.keys(dbReactions).length >= 10) return;
+
+    // if there already are reactions by others
+    // and the user hasn't reacted yet
+    !emojiAlreadyReacted?.includes(user.id)
+      // add user to the array
+      ? ReactionUpdater.addReaction(dbReactions, user.id, reactedEmoji)
+      // or update the data with a new arr containing userId
+      : (dbReactions[reactedEmoji] = emojiAlreadyReacted);
+
+    await db.messageData.update({
+      where: { id: messageInDb.id },
+      data: { reactions: dbReactions },
+    });
+
+    reaction.users.remove(user.id).catch(() => null);
+    ReactionUpdater.updateReactions(messageInDb.channelAndMessageIds, dbReactions);
+  }
+
+  @ComponentInteraction('reaction_')
+  async listenForReactionButton(interaction: ButtonInteraction) {
+    await interaction.deferUpdate();
+
+    const cooldown = interaction.client.reactionCooldowns.get(interaction.user.id);
+
+    const messageInDb = await db.messageData.findFirst({
+      where: { channelAndMessageIds: { some: { messageId: interaction.message.id } } },
+      include: {
+        hub: { select: { connections: { where: { connected: true } }, settings: true } },
+      },
+    });
+
+    if (!messageInDb || !interaction.inCachedGuild() || !ReactionUpdater.runChecks(messageInDb)) {
+      return;
+    }
+
+    const { userBlacklisted, serverBlacklisted } = await ReactionUpdater.checkBlacklists(
+      messageInDb,
+      interaction.guildId,
+      interaction.user.id,
+    );
+
+    // add user to cooldown list
+    interaction.client.reactionCooldowns.set(interaction.user.id, Date.now() + 3000);
+
+    const customId = CustomID.parseCustomId(interaction.customId);
+    if (customId.postfix === 'view_all') {
+      /* */
+    }
+    else {
+      if (cooldown && cooldown > Date.now()) {
+        return await interaction.followUp({
+          content: `A little quick there! You can react again <t:${Math.round(cooldown / 1000)}:R>!`,
+          ephemeral: true,
+        });
+      }
+
+      if (userBlacklisted) {
+        await interaction.reply({
+          content: 'You are blacklisted from this hub.',
+          ephemeral: true,
+        });
+        return;
+      }
+      else if (serverBlacklisted) {
+        await interaction.reply({
+          content: 'This server is blacklisted from this hub.',
+          ephemeral: true,
+        });
+        return;
+      }
+
+      const reactedEmoji = customId.postfix;
+      const dbReactions = messageInDb.reactions?.valueOf() as { [key: string]: Snowflake[] };
+      const emojiAlreadyReacted = dbReactions[reactedEmoji];
+
+      if (!emojiAlreadyReacted) {
+        return await interaction.followUp({
+          content: `${emojis.no} This is no longer reactable.`,
+          ephemeral: true,
+        });
+      }
+      emojiAlreadyReacted.includes(interaction.user.id)
+        ? // If the user already reacted, remove the reaction
+        ReactionUpdater.removeReaction(dbReactions, interaction.user.id, reactedEmoji)
+        : // or else add the user to the array
+        ReactionUpdater.addReaction(dbReactions, interaction.user.id, reactedEmoji);
+
+      await db.messageData.update({
+        where: { id: messageInDb.id },
+        data: { reactions: dbReactions },
+      });
+
+      // reflect the changes in the message's buttons
+      await ReactionUpdater.updateReactions(messageInDb.channelAndMessageIds, dbReactions);
+    }
+  }
+
+  // making methods static so we can use them in the decorator
+  static async updateReactions(
+    channelAndMessageIds: MessageDataChannelAndMessageIds[],
+    reactions: { [key: string]: string[] },
+  ): Promise<void> {
     const connections = await db.connectedList.findMany({
       where: {
-        channelId: { in: messageInDb.channelAndMessageIds.map((c) => c.channelId) },
+        channelId: { in: channelAndMessageIds.map((c) => c.channelId) },
         connected: true,
       },
     });
 
-    const reactedEmoji = reaction.emoji.toString();
-    const reactions = messageInDb.reactions?.valueOf() as { [key: string]: string[] }; // eg. { '👍': 1, '👎': 2 }
-
-    if (
-      (!reactions[reactedEmoji] && Object.keys(reactions).length >= 10) ||
-      reactions[reactedEmoji]?.includes(user.id)
-    ) {
-      return;
-    }
-
-    reactions[reactedEmoji]
-      ? reactions[reactedEmoji].push(user.id)
-      : (reactions[reactedEmoji] = [user.id]);
-
-    await db.messageData.update({
-      where: { id: messageInDb.id },
-      data: { reactions: reactions },
-    });
-
-    reaction.users.remove(user.id).catch(() => null);
-    this.updateReactions(connections, messageInDb.channelAndMessageIds, reactions);
-  }
-
-  updateReactions(
-    connections: connectedList[],
-    channelAndMessageIds: MessageDataChannelAndMessageIds[],
-    reactions: { [key: string]: string[] },
-  ): void {
     // reactions data example: { '👍': ['userId1', 'userId2'], '👎': ['userId1', 'userId2', 'userId3'] }
     // sortedReactions[0] = array of [emoji, users[]]
     // sortedReactions[x] = emojiIds
@@ -92,7 +178,7 @@ export default class ReactionUpdater extends Factory {
 
     const reactionBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId(`reaction_${mostReaction}`)
+        .setCustomId(new CustomID().setIdentifier('reaction_', mostReaction).toString())
         .setEmoji(mostReaction)
         .setStyle(ButtonStyle.Secondary)
         .setLabel(`${reactionCount}`),
@@ -105,7 +191,7 @@ export default class ReactionUpdater extends Factory {
       if (allReactionCount.length > 0) {
         reactionBtn.addComponents(
           new ButtonBuilder()
-            .setCustomId('view_all_reactions')
+            .setCustomId(new CustomID().setIdentifier('reaction_', 'view_all').toString())
             .setStyle(ButtonStyle.Secondary)
             .setLabel(`+ ${allReactionCount.length}`),
         );
@@ -129,7 +215,7 @@ export default class ReactionUpdater extends Factory {
           return component.type === ComponentType.Button &&
             component.style === ButtonStyle.Secondary
             ? !component.custom_id.startsWith('reaction_') &&
-                component.custom_id !== 'view_all_reactions'
+                component.custom_id !== 'reaction_:view_all'
             : true;
         });
 
@@ -147,5 +233,45 @@ export default class ReactionUpdater extends Factory {
         })
         .catch(() => null);
     });
+  }
+  static runChecks(messageInDb: messageAndHubSettings) {
+    if (
+      !messageInDb.hub ||
+      !messageInDb.hubId ||
+      !new HubSettingsBitField(messageInDb.hub.settings).has('Reactions')
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
+  static async checkBlacklists(
+    messageInDb: messageAndHubSettings | null,
+    guildId: string,
+    userId: string,
+  ) {
+    if (!messageInDb?.hubId) return { userBlacklisted: false, serverBlacklisted: false };
+
+    const userBlacklisted = await BlacklistManager.fetchUserBlacklist(messageInDb.hubId, userId);
+    const guildBlacklisted = await BlacklistManager.fetchUserBlacklist(messageInDb.hubId, guildId);
+    if (userBlacklisted || guildBlacklisted) {
+      return { userBlacklisted, serverBlacklisted: guildBlacklisted };
+    }
+
+    return { userBlacklisted: false, serverBlacklisted: false };
+  }
+
+  static addReaction(reactionArr: { [key: string]: Snowflake[] }, userId: string, emoji: string) {
+    reactionArr[emoji].push(userId);
+  }
+  static removeReaction(
+    reactionArr: { [key: string]: Snowflake[] },
+    userId: string,
+    emoji: string,
+  ) {
+    const userIndex = reactionArr[emoji].indexOf(userId);
+    reactionArr[emoji].splice(userIndex, 1);
+    return reactionArr;
   }
 }

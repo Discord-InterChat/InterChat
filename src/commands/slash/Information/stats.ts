@@ -90,7 +90,6 @@ export default class Stats extends Command {
     const linksRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder().setLabel('Support').setStyle(ButtonStyle.Link).setURL(supportServer),
       new ButtonBuilder().setLabel('Guide').setStyle(ButtonStyle.Link).setURL(docsLink),
-      new ButtonBuilder().setLabel('Guido').setStyle(ButtonStyle.Primary).setCustomId('guide'),
       new ButtonBuilder()
         .setLabel('Invite')
         .setStyle(ButtonStyle.Link)
