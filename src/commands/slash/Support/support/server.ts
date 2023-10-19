@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { colors } from '../../../utils/Constants.js';
-import Support from '../../slash/Support/support.js';
+import { colors } from '../../../../utils/Constants.js';
+import Support from './index.js';
 
 export default class SupportServer extends Support {
   async execute(interaction: ChatInputCommandInteraction) {

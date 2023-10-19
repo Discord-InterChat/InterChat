@@ -8,13 +8,13 @@ import {
   TextInputStyle,
   ModalSubmitInteraction,
 } from 'discord.js';
-import Hub from '../../slash/Main/hub.js';
-import db from '../../../utils/Db.js';
+import Hub from './index.js';
+import db from '../../../../utils/Db.js';
 import { stripIndents } from 'common-tags';
-import { Interaction } from '../../../decorators/Interaction.js';
-import { HubSettingsBits } from '../../../utils/BitFields.js';
-import { checkAndFetchImgurUrl, errorEmbed } from '../../../utils/Utils.js';
-import { emojis } from '../../../utils/Constants.js';
+import { Interaction } from '../../../../decorators/Interaction.js';
+import { HubSettingsBits } from '../../../../utils/BitFields.js';
+import { checkAndFetchImgurUrl, errorEmbed } from '../../../../utils/Utils.js';
+import { emojis } from '../../../../utils/Constants.js';
 
 export default class Create extends Hub {
   // TODO: readonly cooldown = 60 * 60 * 1000;
@@ -126,12 +126,12 @@ export default class Create extends Hub {
 
     await db.hubs.create({
       data: {
-        name: name,
+        name,
         description,
         private: true,
         ownerId: interaction.user.id,
         iconUrl: iconUrl ?? interaction.client.user.displayAvatarURL(),
-        bannerUrl: bannerUrl || undefined,
+        bannerUrl,
         settings:
           HubSettingsBits.SpamFilter | HubSettingsBits.Reactions | HubSettingsBits.BlockNSFW,
       },

@@ -1,10 +1,10 @@
 import { captureException } from '@sentry/node';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { emojis } from '../../../utils/Constants.js';
-import db from '../../../utils/Db.js';
-import BlacklistCommand from '../../slash/Main/blacklist.js';
-import Logger from '../../../utils/Logger.js';
-import BlacklistManager from '../../../structures/BlacklistManager.js';
+import { emojis } from '../../../../utils/Constants.js';
+import db from '../../../../utils/Db.js';
+import BlacklistCommand from './index.js';
+import Logger from '../../../../utils/Logger.js';
+import BlacklistManager from '../../../../structures/BlacklistManager.js';
 import parse from 'parse-duration';
 
 export default class UserBlacklist extends BlacklistCommand {

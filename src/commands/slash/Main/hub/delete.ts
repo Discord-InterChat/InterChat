@@ -7,13 +7,13 @@ import {
   EmbedBuilder,
   ButtonInteraction,
 } from 'discord.js';
-import db from '../../../utils/Db.js';
-import Hub from '../../slash/Main/hub.js';
+import db from '../../../../utils/Db.js';
+import Hub from './index.js';
 import { captureException } from '@sentry/node';
-import { emojis } from '../../../utils/Constants.js';
-import { deleteHubs, setComponentExpiry } from '../../../utils/Utils.js';
-import { CustomID } from '../../../structures/CustomID.js';
-import { Interaction } from '../../../decorators/Interaction.js';
+import { emojis } from '../../../../utils/Constants.js';
+import { deleteHubs, setComponentExpiry } from '../../../../utils/Utils.js';
+import { CustomID } from '../../../../structures/CustomID.js';
+import { Interaction } from '../../../../decorators/Interaction.js';
 
 export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {

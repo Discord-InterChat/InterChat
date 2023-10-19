@@ -1,11 +1,11 @@
 import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
-import { emojis } from '../../../utils/Constants.js';
-import Hub from '../../slash/Main/hub.js';
-import db from '../../../utils/Db.js';
-import BlacklistManager from '../../../structures/BlacklistManager.js';
+import { emojis } from '../../../../utils/Constants.js';
+import Hub from './index.js';
+import db from '../../../../utils/Db.js';
+import BlacklistManager from '../../../../structures/BlacklistManager.js';
 import { hubs } from '@prisma/client';
-import { getOrCreateWebhook } from '../../../utils/Utils.js';
-import { showOnboarding } from '../../../scripts/network/onboarding.js';
+import { getOrCreateWebhook } from '../../../../utils/Utils.js';
+import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 
 export default class JoinSubCommand extends Hub {

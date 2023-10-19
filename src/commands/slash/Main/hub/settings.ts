@@ -6,15 +6,15 @@ import {
   StringSelectMenuBuilder,
   Snowflake,
 } from 'discord.js';
-import db from '../../../utils/Db.js';
-import Hub from '../../slash/Main/hub.js';
+import db from '../../../../utils/Db.js';
+import Hub from './index.js';
 import { hubs } from '@prisma/client';
-import { HubSettingsBitField, HubSettingsString } from '../../../utils/BitFields.js';
-import { colors, emojis } from '../../../utils/Constants.js';
-import { Interaction } from '../../../decorators/Interaction.js';
-import { CustomID } from '../../../structures/CustomID.js';
+import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFields.js';
+import { colors, emojis } from '../../../../utils/Constants.js';
+import { Interaction } from '../../../../decorators/Interaction.js';
+import { CustomID } from '../../../../structures/CustomID.js';
 import { StringSelectMenuInteraction } from 'discord.js';
-import { errorEmbed } from '../../../utils/Utils.js';
+import { errorEmbed } from '../../../../utils/Utils.js';
 
 export default class Settings extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<unknown> {

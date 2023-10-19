@@ -10,14 +10,14 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import db from '../../../utils/Db.js';
-import Hub from '../../slash/Main/hub.js';
+import db from '../../../../utils/Db.js';
+import Hub from './index.js';
 import { hubs, connectedList } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { emojis } from '../../../utils/Constants.js';
-import { Interaction } from '../../../decorators/Interaction.js';
-import { CustomID } from '../../../structures/CustomID.js';
-import { errorEmbed, setComponentExpiry } from '../../../utils/Utils.js';
+import { emojis } from '../../../../utils/Constants.js';
+import { Interaction } from '../../../../decorators/Interaction.js';
+import { CustomID } from '../../../../structures/CustomID.js';
+import { errorEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {

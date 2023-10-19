@@ -5,7 +5,7 @@ import {
   Collection,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import BaseCommand from '../../BaseCommand.js';
+import BaseCommand from '../../../BaseCommand.js';
 
 export default class Support extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {

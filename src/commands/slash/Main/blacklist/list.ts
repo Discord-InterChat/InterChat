@@ -1,9 +1,9 @@
 import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import db from '../../../utils/Db.js';
-import BlacklistCommand from '../../slash/Main/blacklist.js';
+import db from '../../../../utils/Db.js';
+import BlacklistCommand from './index.js';
 import { stripIndents } from 'common-tags';
-import { paginate } from '../../../utils/Pagination.js';
-import { colors } from '../../../utils/Constants.js';
+import { paginate } from '../../../../utils/Pagination.js';
+import { colors } from '../../../../utils/Constants.js';
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {

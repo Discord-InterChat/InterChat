@@ -20,6 +20,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*.ts", "src/**/*.json", "src/utils/Translator.cts",],
+  "include": ["src/**/*.ts", "src/**/*.json", "src/**/*.cts",],
   "exclude": ["node_modules"],
 }

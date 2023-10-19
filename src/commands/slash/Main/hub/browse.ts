@@ -14,15 +14,15 @@ import {
   ModalSubmitInteraction,
   ChannelSelectMenuInteraction,
 } from 'discord.js';
-import db from '../../../utils/Db.js';
-import Hub from '../../slash/Main/hub.js';
+import db from '../../../../utils/Db.js';
+import Hub from './index.js';
 import { hubs } from '@prisma/client';
-import { emojis } from '../../../utils/Constants.js';
-import { paginate } from '../../../utils/Pagination.js';
-import { calculateAverageRating, getOrCreateWebhook } from '../../../utils/Utils.js';
-import { showOnboarding } from '../../../scripts/network/onboarding.js';
-import { CustomID } from '../../../structures/CustomID.js';
-import { Interaction } from '../../../decorators/Interaction.js';
+import { emojis } from '../../../../utils/Constants.js';
+import { paginate } from '../../../../utils/Pagination.js';
+import { calculateAverageRating, getOrCreateWebhook } from '../../../../utils/Utils.js';
+import { showOnboarding } from '../../../../scripts/network/onboarding.js';
+import { CustomID } from '../../../../structures/CustomID.js';
+import { Interaction } from '../../../../decorators/Interaction.js';
 import { stripIndents } from 'common-tags';
 
 export default class Browse extends Hub {

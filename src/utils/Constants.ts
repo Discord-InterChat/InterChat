@@ -4,8 +4,8 @@ import { normal, badge, mascot } from './JSON/emojis.json';
 import { createRequire } from 'module';
 import 'dotenv/config';
 
-const fakeRequire = createRequire(import.meta.url);
-const emotes = fakeRequire('./JSON/emojis.json');
+const require = createRequire(import.meta.url);
+const emotes = require('./JSON/emojis.json');
 
 export const isDevBuild = process.env.NODE_ENV === 'development';
 

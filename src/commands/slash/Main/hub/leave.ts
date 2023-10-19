@@ -7,12 +7,12 @@ import {
   ButtonStyle,
   EmbedBuilder,
 } from 'discord.js';
-import Hub from '../../slash/Main/hub.js';
-import { Interaction } from '../../../decorators/Interaction.js';
-import { CustomID } from '../../../structures/CustomID.js';
-import { emojis } from '../../../utils/Constants.js';
-import db from '../../../utils/Db.js';
-import { setComponentExpiry } from '../../../utils/Utils.js';
+import Hub from './index.js';
+import { Interaction } from '../../../../decorators/Interaction.js';
+import { CustomID } from '../../../../structures/CustomID.js';
+import { emojis } from '../../../../utils/Constants.js';
+import db from '../../../../utils/Db.js';
+import { setComponentExpiry } from '../../../../utils/Utils.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {

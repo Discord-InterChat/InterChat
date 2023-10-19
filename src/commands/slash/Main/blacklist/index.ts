@@ -5,8 +5,8 @@ import {
   Collection,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import BaseCommand from '../../BaseCommand.js';
-import db from '../../../utils/Db.js';
+import BaseCommand from '../../../BaseCommand.js';
+import db from '../../../../utils/Db.js';
 
 export default class BlacklistCommand extends BaseCommand {
   // TODO: Put this in readme

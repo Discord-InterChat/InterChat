@@ -1,9 +1,9 @@
 import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js';
-import Hub from '../../slash/Main/hub.js';
+import Hub from './index.js';
 import { stripIndent } from 'common-tags';
-import { emojis } from '../../../utils/Constants.js';
-import { paginate } from '../../../utils/Pagination.js';
-import db from '../../../utils/Db.js';
+import { emojis } from '../../../../utils/Constants.js';
+import { paginate } from '../../../../utils/Pagination.js';
+import db from '../../../../utils/Db.js';
 
 export default class Connections extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<unknown> {

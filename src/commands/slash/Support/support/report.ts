@@ -14,13 +14,13 @@ import {
   ThreadChannel,
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { channels, colors, emojis } from '../../../utils/Constants.js';
-import Support from '../../slash/Support/support.js';
-import { CustomID } from '../../../structures/CustomID.js';
-import { Interaction } from '../../../decorators/Interaction.js';
+import { channels, colors, emojis } from '../../../../utils/Constants.js';
+import Support from './index.js';
+import { CustomID } from '../../../../structures/CustomID.js';
+import { Interaction } from '../../../../decorators/Interaction.js';
 
 export default class Report extends Support {
-  readonly reportModal = new ModalBuilder()
+  static readonly reportModal = new ModalBuilder()
     .setTitle('New Report')
     .setCustomId(new CustomID().setIdentifier('report_modal').toString())
     .addComponents(
@@ -75,7 +75,7 @@ export default class Report extends Support {
       });
     }
     else if (reportType === 'server' || reportType === 'user' || reportType === 'other') {
-      const modal = new ModalBuilder(this.reportModal)
+      const modal = new ModalBuilder(Report.reportModal)
         .setCustomId(new CustomID().setIdentifier('report_modal', reportType).toString())
         .addComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -96,13 +96,14 @@ export default class Report extends Support {
   @Interaction('report')
   async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
     if (interaction.isStringSelectMenu()) {
-      const modal = new ModalBuilder(this.reportModal)
+      const modal = new ModalBuilder()
         .setCustomId(
           new CustomID()
             .setIdentifier('report_modal', 'bug')
             .addArgs(interaction.values.join(', '))
             .toString(),
         )
+        .setTitle('New Bug Report')
         .setComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
@@ -199,7 +200,7 @@ export default class Report extends Support {
               content: stripIndents`
                 ${emojis.no} I couldn't find a user with that ID.\n\n
                 **To find a user's ID within the network, please follow these instructions:**
-                ${emojis.dotYellow} Right click on a message sent from the user in question select \`Apps > User Info\`. Please double-check the ID and try again.
+                ${emojis.dotYellow} Right click on a message sent from the user in question select \`Apps > Message Info\`. Please double-check the ID and try again.
               `,
               ephemeral: true,
             });
@@ -228,7 +229,7 @@ export default class Report extends Support {
               content: stripIndents`
               ${emojis.no} I couldn't find a server with that ID.\n
               **To find a server ID within the network, please follow these instructions:**
-              ${emojis.dotYellow}  Right click on a message sent by the server in question and select \`Apps > Server Info\`. Please double-check the ID and try again.
+              ${emojis.dotYellow}  Right click on a message sent by the server in question and select \`Apps > Message Info\`. Please double-check the ID and try again.
               `,
               ephemeral: true,
             });
@@ -238,9 +239,13 @@ export default class Report extends Support {
           const serverReport = new EmbedBuilder()
             .setColor('Red')
             .setTitle('New Server Report')
-            .setDescription(`Server Name: ${reportedServer.name}\nServer Id: ${reportedServer.members}`)
+            .setDescription(
+              `Server Name: ${reportedServer.name}\nServer Id: ${reportedServer.members}`,
+            )
             .setFields({ name: 'Reason for report', value: reportDescription })
-            .setThumbnail(`https://cdn.discordapp.com/icons/${reportedServer.id}/${reportedServer.icon}.png?size=2048`)
+            .setThumbnail(
+              `https://cdn.discordapp.com/icons/${reportedServer.id}/${reportedServer.icon}.png?size=2048`,
+            )
             .setFooter({
               text: `Reported by ${interaction.user.username} (${interaction.user.id})`,
               iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,

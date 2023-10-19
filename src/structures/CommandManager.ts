@@ -1,8 +1,8 @@
-import fs from 'fs';
-import path from 'path';
+import { access, constants, readdirSync, statSync } from 'fs';
+import { join, dirname } from 'path';
 import Factory from '../Factory.js';
 import Logger from '../utils/Logger.js';
-import BaseCommand from '../commands/BaseCommand.js';
+import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
 import { emojis } from '../utils/Constants.js';
 import { CustomID } from './CustomID.js';
 import { Interaction } from 'discord.js';
@@ -10,7 +10,7 @@ import { captureException } from '@sentry/node';
 import { errorEmbed } from '../utils/Utils.js';
 
 const __filename = new URL(import.meta.url).pathname;
-const __dirname = path.dirname(__filename);
+const __dirname = dirname(__filename);
 
 export default class CommandManager extends Factory {
   public get commandsMap() {
@@ -70,27 +70,40 @@ export default class CommandManager extends Factory {
    * Loads all commands from the Commands directory
    * Commands are automatically added to the `clientCommands` map
    */
-  static async loadCommandFiles(
-    commandDir = path.join(__dirname, '..', 'commands'),
-  ): Promise<void> {
-    const files = fs.readdirSync(commandDir);
+  static async loadCommandFiles(commandDir = join(__dirname, '..', 'commands')): Promise<void> {
+    const files = readdirSync(commandDir);
 
     for (const file of files) {
-      const filePath = path.join(commandDir, file);
-      const stats = fs.statSync(filePath);
+      const filePath = join(commandDir, file);
+      const stats = statSync(filePath);
 
-      if (stats.isDirectory() && file !== 'subcommands') {
-        // If the item is a directory, recursively read its files
+      // If the item is a directory, recursively read its files
+      if (stats.isDirectory()) {
         await this.loadCommandFiles(filePath);
       }
 
       // If the item is a .js file, read its contents
       else if (file.endsWith('.js') && file !== 'BaseCommand.js') {
-        // initializing it will automatically add the command to the clientCommands map
         const imported = await import(filePath);
-        const command = new imported.default() as BaseCommand;
-        command.loadCommand();
-        command.loadSubcommands();
+        const command = new imported.default();
+
+        // if the command extends BaseCommand (ie. its not a subcommand), add it to the commands map
+        if (Object.getPrototypeOf(command.constructor) === BaseCommand) {
+          commandsMap.set(command.data.name, command);
+        }
+
+        // if the command has subcommands, add them to the parent command's subcommands map
+        else {
+          const subcommandFile = join(commandDir, '.', 'index.js');
+          if (!statSync(subcommandFile).isFile()) return;
+
+          access(subcommandFile, constants.F_OK, async (err) => {
+            if (err || file === 'index.js') return;
+
+            const parentCommand = Object.getPrototypeOf(command.constructor);
+            parentCommand.subcommands.set(file.replace('.js', ''), command);
+          });
+        }
       }
     }
   }

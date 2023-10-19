@@ -1,9 +1,9 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import db from '../../../utils/Db.js';
-import BlacklistCommand from '../../slash/Main/blacklist.js';
-import BlacklistManager from '../../../structures/BlacklistManager.js';
-import { emojis } from '../../../utils/Constants.js';
+import db from '../../../../utils/Db.js';
+import BlacklistCommand from './index.js';
+import BlacklistManager from '../../../../structures/BlacklistManager.js';
 import parse from 'parse-duration';
+import { emojis } from '../../../../utils/Constants.js';
 
 export default class Server extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
