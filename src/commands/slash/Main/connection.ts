@@ -5,7 +5,6 @@ import {
   ChannelSelectMenuBuilder,
   ChannelType,
   ChatInputCommandInteraction,
-  EmbedBuilder,
   MessageComponentInteraction,
   ModalBuilder,
   ModalSubmitInteraction,
@@ -18,16 +17,16 @@ import {
   TextInputStyle,
   ThreadChannel,
 } from 'discord.js';
-import Command from '../../Command.js';
+import BaseCommand from '../../BaseCommand.js';
 import db from '../../../utils/Db.js';
-import { ComponentInteraction } from '../../../decorators/Interaction.js';
+import { Interaction } from '../../../decorators/Interaction.js';
 import { buildEmbed } from '../../../scripts/network/buildEmbed.js';
 import { buildConnectionButtons } from '../../../scripts/network/components.js';
 import { emojis } from '../../../utils/Constants.js';
 import { CustomID } from '../../../structures/CustomID.js';
-import { disableComponents, getOrCreateWebhook } from '../../../utils/Utils.js';
+import { disableComponents, errorEmbed, getOrCreateWebhook } from '../../../utils/Utils.js';
 
-export default class Connection extends Command {
+export default class Connection extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'connection',
     description: 'Manage your connections in this server.',
@@ -66,8 +65,8 @@ export default class Connection extends Command {
         .setCustomId(
           new CustomID()
             .setIdentifier('connection', 'settings')
-            .addData(channelId)
-            .addData(interaction.user.id)
+            .addArgs(channelId)
+            .addArgs(interaction.user.id)
             .toString(),
         )
         .setPlaceholder('🛠️ Select a setting to toggle')
@@ -144,19 +143,17 @@ export default class Connection extends Command {
     interaction.respond(await Promise.all(filtered));
   }
 
-  @ComponentInteraction('connection')
-  async handleComponent(interaction: MessageComponentInteraction) {
+  @Interaction('connection')
+  async handleComponents(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const channelId = customId.data[0];
+    const channelId = customId.args[0];
 
-    if (customId.data.at(1) && customId.data[1] !== interaction.user.id) {
+    if (customId.args.at(1) && customId.args[1] !== interaction.user.id) {
       interaction.reply({
         embeds: [
-          new EmbedBuilder()
-            .setColor('Red')
-            .setDescription(
-              `${emojis.no} This button is not for you. Execute the command yourself to utilize this button.`,
-            ),
+          errorEmbed(
+            `${emojis.no} This button is not for you. Execute the command yourself to use this button.`,
+          ),
         ],
         ephemeral: true,
       });
@@ -206,7 +203,7 @@ export default class Connection extends Command {
             .setCustomId(
               new CustomID()
                 .setIdentifier('connectionModal', 'invite')
-                .addData(channelId)
+                .addArgs(channelId)
                 .toString(),
             )
             .addComponents(
@@ -229,8 +226,8 @@ export default class Connection extends Command {
               .setCustomId(
                 new CustomID()
                   .setIdentifier('connection', 'change_channel')
-                  .addData(channelId)
-                  .addData(interaction.user.id)
+                  .addArgs(channelId)
+                  .addArgs(interaction.user.id)
                   .toString(),
               )
               .setChannelTypes(
@@ -297,13 +294,13 @@ export default class Connection extends Command {
     }
   }
 
-  @ComponentInteraction('connectionModal')
-  async handleModal(interaction: ModalSubmitInteraction): Promise<void> {
+  @Interaction('connectionModal')
+  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    if (customId.identifier !== 'connectionModal') return;
+    if (customId.prefix !== 'connectionModal') return;
 
     const invite = interaction.fields.getTextInputValue('connInviteField');
-    const channelId = customId.data[0];
+    const channelId = customId.args[0];
     const networkManager = interaction.client.getNetworkManager();
 
     if (!invite) {

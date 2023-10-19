@@ -2,7 +2,7 @@ import Logger from './Logger.js';
 import CommandManager from '../structures/CommandManager.js';
 import { REST, Routes } from 'discord.js';
 import { CLIENT_ID, SUPPORT_SERVER_ID } from './Constants.js';
-import { commandsMap } from '../commands/Command.js';
+import { commandsMap } from '../commands/BaseCommand.js';
 import 'dotenv/config';
 
 export default async function registerAllCommands(staffOnly = false) {

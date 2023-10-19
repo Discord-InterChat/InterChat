@@ -84,9 +84,9 @@ manager.on('clusterCreate', async (cluster) => {
     const scheduler = new Scheduler();
 
     // update top.gg stats every 10 minutes
-    scheduler.addTask('syncBotlistStats', 60 * 10_000, syncBotlistStats); // every 10 minutes
-    scheduler.addTask('deleteExpiredInvites', 60 * 60 * 1_000, deleteExpiredInvites); // every hour
-    scheduler.addTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages); // every 12 hours
+    scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, syncBotlistStats); // every 10 minutes
+    scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1_000, deleteExpiredInvites); // every hour
+    scheduler.addRecurringTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages); // every 12 hours
 
     // remove expired blacklists or set new timers for them
     const query = { where: { hubs: { some: { expires: { isSet: true } } } } };

@@ -7,15 +7,16 @@ import {
   Snowflake,
 } from 'discord.js';
 import db from '../../../utils/Db.js';
-import HubCommand from '../../slash/Main/hub.js';
+import Hub from '../../slash/Main/hub.js';
 import { hubs } from '@prisma/client';
 import { HubSettingsBitField, HubSettingsString } from '../../../utils/BitFields.js';
 import { colors, emojis } from '../../../utils/Constants.js';
-import { ComponentInteraction } from '../../../decorators/Interaction.js';
+import { Interaction } from '../../../decorators/Interaction.js';
 import { CustomID } from '../../../structures/CustomID.js';
 import { StringSelectMenuInteraction } from 'discord.js';
+import { errorEmbed } from '../../../utils/Utils.js';
 
-export default class Settings extends HubCommand {
+export default class Settings extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<unknown> {
     const hubName = interaction.options.getString('hub', true);
     const hub = await db.hubs.findUnique({
@@ -44,10 +45,10 @@ export default class Settings extends HubCommand {
     await interaction.reply({ embeds: [embed], components: [selects] });
   }
 
-  @ComponentInteraction('hub_settings')
-  async handleComponent(interaction: StringSelectMenuInteraction<CacheType>) {
+  @Interaction('hub_settings')
+  async handleComponents(interaction: StringSelectMenuInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const hubName = customId.data[0];
+    const hubName = customId.args[0];
 
     // respond to select menu
     const selected = interaction.values[0] as HubSettingsString;
@@ -56,7 +57,7 @@ export default class Settings extends HubCommand {
     // & only allow network channels to be marked as NSFW
     if (selected === 'BlockNSFW') {
       return interaction.reply({
-        content: `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
+        embeds: [errorEmbed(`${emojis.no} This setting cannot be changed yet. Please wait for the next update.`)],
         ephemeral: true,
       });
     }
@@ -116,8 +117,8 @@ export default class Settings extends HubCommand {
         .setCustomId(
           new CustomID()
             .setIdentifier('hub_settings', 'settings')
-            .addData(hubName)
-            .addData(userId)
+            .addArgs(hubName)
+            .addArgs(userId)
             .toString(),
         )
         .setPlaceholder('Select an option')

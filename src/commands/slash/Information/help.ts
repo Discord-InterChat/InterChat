@@ -10,12 +10,12 @@ import {
   StringSelectMenuInteraction,
 } from 'discord.js';
 import { colors, emojis } from '../../../utils/Constants.js';
-import Command from '../../Command.js';
+import BaseCommand from '../../BaseCommand.js';
 import { getCredits, setComponentExpiry } from '../../../utils/Utils.js';
 import { CustomID } from '../../../structures/CustomID.js';
-import { ComponentInteraction } from '../../../decorators/Interaction.js';
+import { Interaction } from '../../../decorators/Interaction.js';
 
-export default class Help extends Command {
+export default class Help extends BaseCommand {
   readonly data = {
     name: 'help',
     description: 'Shows all commands (soon) and guides for InterChat.',
@@ -45,7 +45,7 @@ export default class Help extends Command {
       new StringSelectMenuBuilder({
         customId: new CustomID('credits:guide', [interaction.user.id])
           .setIdentifier('credits', 'guide')
-          .addData(interaction.user.id)
+          .addArgs(interaction.user.id)
           .toString(),
         options: [
           {
@@ -115,10 +115,10 @@ export default class Help extends Command {
     );
   }
 
-  @ComponentInteraction('credits')
-  async handleComponent(interaction: StringSelectMenuInteraction) {
+  @Interaction('credits')
+  async handleComponents(interaction: StringSelectMenuInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    if (interaction.user.id !== customId.data[0]) {
+    if (interaction.user.id !== customId.args[0]) {
       await interaction.reply({
         content: 'This button is not for you.',
         ephemeral: true,

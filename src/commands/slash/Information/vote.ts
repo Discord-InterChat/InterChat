@@ -1,9 +1,9 @@
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import Command from '../../Command.js';
+import BaseCommand from '../../BaseCommand.js';
 import { colors } from '../../../utils/Constants.js';
 
-export default class Vote extends Command {
+export default class Vote extends BaseCommand {
   readonly data = {
     name: 'vote',
     description: 'Voting perks and vote link.',

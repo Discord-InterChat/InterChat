@@ -22,8 +22,8 @@ export function buildConnectionButtons(connected: boolean | undefined, channelId
       .setCustomId(
         new CustomID()
           .setIdentifier('connection', 'toggle')
-          .addData(channelId)
-          .addData(opts?.userId ?? '')
+          .addArgs(channelId)
+          .addArgs(opts?.userId ?? '')
           .toString(),
       )
       .setLabel(connected ? 'Disconnect' : 'Reconnect')

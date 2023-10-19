@@ -7,26 +7,48 @@ import {
   Collection,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import Command from '../../Command.js';
+import BaseCommand from '../../BaseCommand.js';
 import db from '../../../utils/Db.js';
 
 const hubOption: APIApplicationCommandBasicOption = {
+  type: ApplicationCommandOptionType.String,
   name: 'hub',
   description: 'Choose a hub.',
   required: true,
-  type: ApplicationCommandOptionType.String,
   autocomplete: true,
 };
 
-export default class HubCommand extends Command {
+export default class Hub extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'hub',
     description: 'Manage your hubs.',
+    dm_permission: false,
     options: [
       {
         type: ApplicationCommandOptionType.Subcommand,
         name: 'browse',
         description: '🔍 Browse public hubs and join them!',
+        options: [
+          {
+            type: ApplicationCommandOptionType.String,
+            name: 'hub',
+            description: 'Search for a hub.',
+            required: false,
+            autocomplete: true,
+          },
+          {
+            type: ApplicationCommandOptionType.String,
+            name: 'sort',
+            description: 'Sort the results.',
+            required: false,
+            choices: [
+              {
+                name: 'Most Active',
+                value: 'most-active',
+              },
+            ],
+          },
+        ],
       },
       {
         type: ApplicationCommandOptionType.Subcommand,
@@ -96,16 +118,30 @@ export default class HubCommand extends Command {
         description: '🗑️ Delete a hub you own.',
         options: [hubOption],
       },
+      {
+        type: ApplicationCommandOptionType.Subcommand,
+        name: 'connections',
+        description: '📜 List all connected servers to your hub.',
+        options: [
+          {
+            type: ApplicationCommandOptionType.String,
+            name: 'hub',
+            description: 'Choose a hub.',
+            required: true,
+            autocomplete: true,
+          },
+        ],
+      },
     ],
   };
 
   // subcommand classes are added to this map in their respective files
-  static readonly subcommands = new Collection<string, Command>;
+  static readonly subcommands = new Collection<string, BaseCommand>;
 
   async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
-    const subcommand = HubCommand.subcommands?.get(interaction.options.getSubcommand());
-    subcommand?.execute(interaction);
-    return;
+    const subCommand = interaction.options.getSubcommand();
+    const isValid = Hub.subcommands?.get(subCommand);
+    if (isValid) return await isValid.execute(interaction);
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<unknown> {

@@ -4,11 +4,11 @@ import {
   Partials,
   Options,
   Collection,
-  Guild,
   Snowflake,
+  Guild,
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
-import { commandsMap, interactionsMap } from './commands/Command.js';
+import { commandsMap, interactionsMap } from './commands/BaseCommand.js';
 import Logger from './utils/Logger.js';
 import Scheduler from './structures/Scheduler.js';
 import NSFWClient from './structures/NSFWDetection.js';
@@ -16,6 +16,9 @@ import CommandManager from './structures/CommandManager.js';
 import NetworkManager from './structures/NetworkManager.js';
 import ReactionUpdater from './updater/ReactionUpdater.js';
 import BlacklistManager from './structures/BlacklistManager.js';
+import { RemoveMethods } from './typings/index.js';
+import Sentry from '@sentry/node';
+import { isDevBuild } from './utils/Constants.js';
 
 export default abstract class SuperClient extends Client {
   readonly logger = Logger;
@@ -23,7 +26,7 @@ export default abstract class SuperClient extends Client {
   readonly description = 'The only cross-server communication bot you\'ll ever need.';
   readonly version = process.env.npm_package_version ?? 'Unknown';
   readonly commands = commandsMap;
-  readonly components = interactionsMap;
+  readonly interactions = interactionsMap;
 
   readonly commandCooldowns = new Collection<string, number>();
   readonly reactionCooldowns = new Collection<string, number>();
@@ -47,6 +50,17 @@ export default abstract class SuperClient extends Client {
         PresenceManager: 0,
         ReactionManager: 200,
       }),
+      sweepers: {
+        ...Options.DefaultSweeperSettings,
+        messages: {
+          interval: 3600, // Every hour...
+          lifetime: 1800,	// Remove messages older than 30 minutes.
+        },
+        reactions: {
+          interval: 3600, // Every hour...
+          filter: () => () => true, // Remove all reactions...
+        },
+      },
       partials: [Partials.Message],
       intents: [
         IntentsBitField.Flags.MessageContent,
@@ -55,12 +69,20 @@ export default abstract class SuperClient extends Client {
         IntentsBitField.Flags.GuildMessages,
         IntentsBitField.Flags.GuildMessageReactions,
       ],
-      presence: { status: 'invisible' },
     });
   }
 
   protected init() {
     SuperClient.self = this;
+
+    if (!isDevBuild) {
+      // error monitoring & handling
+      Sentry.init({
+        dsn: process.env.SENTRY_DSN,
+        release: this.version,
+        tracesSampleRate: 1.0,
+      });
+    }
   }
 
   public static getInstance(): SuperClient {
@@ -68,10 +90,10 @@ export default abstract class SuperClient extends Client {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private resolveEval = <T>(value: any[]): T | undefined => value?.find((res) => !!res);
+  resolveEval = <T>(value: any[]): T | undefined => value?.find((res) => !!res);
 
-  async fetchGuild(guildId: Snowflake): Promise<Guild | undefined> {
-    const fetch = await this.shard?.broadcastEval(
+  async fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined> {
+    const fetch = await this.cluster.broadcastEval(
       (client, guildID) => client.guilds.cache.get(guildID),
       { context: guildId },
     );

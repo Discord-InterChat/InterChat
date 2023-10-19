@@ -2,7 +2,9 @@ import {
   ActionRow,
   ButtonStyle,
   ChannelType,
+  ColorResolvable,
   ComponentType,
+  EmbedBuilder,
   Message,
   MessageActionRowComponent,
   NewsChannel,
@@ -10,9 +12,10 @@ import {
   TextChannel,
   ThreadChannel,
 } from 'discord.js';
-import { DeveloperIds, StaffIds, SupporterIds, URLs } from './Constants.js';
-import Scheduler from '../structures/Scheduler.js';
+import { DeveloperIds, REGEX, StaffIds, SupporterIds, URLs, colors } from './Constants.js';
 import { randomBytes } from 'crypto';
+import Scheduler from '../structures/Scheduler.js';
+import db from './Db.js';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function msToReadable(milliseconds: number): string {
@@ -141,4 +144,46 @@ export function disableAllComponents(
     });
     return jsonRow;
   });
+}
+
+export async function deleteHubs(ids: string[]) {
+  // delete all relations first and then delete the hub
+  await db.connectedList.deleteMany({ where: { hubId: { in: ids } } });
+  await db.hubInvites.deleteMany({ where: { hubId: { in: ids } } });
+  await db.messageData.deleteMany({ where: { hubId: { in: ids } } });
+  await db.hubs.deleteMany({ where: { id: { in: ids } } });
+}
+
+export function replaceLinks(string: string, replaceText = '`[LINK HIDDEN]`') {
+  return string.replaceAll(REGEX.LINKS, replaceText);
+}
+
+export function errorEmbed(description: string, color: ColorResolvable = colors.invisible) {
+  return new EmbedBuilder()
+    .setColor(color)
+    .setDescription(description.toString());
+}
+
+export function calculateAverageRating(ratings: number[]): number {
+  if (ratings.length === 0) return 0;
+
+  const sum = ratings.reduce((acc, cur) => acc + cur, 0);
+  const average = sum / ratings.length;
+  return Math.round(average * 10) / 10;
+}
+
+export async function checkAndFetchImgurUrl(url: string): Promise<string | false> {
+  const regex = REGEX.IMGUR_LINKS;
+  const match = url.match(regex);
+  if (!match || !match[1] && !match[2]) return false;
+
+  const response = await fetch(`https://api.imgur.com/3/image/${match[1] || match[2]}`, {
+    headers: {
+      Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
+    },
+  });
+  const data = await response.json().catch(() => null);
+  if (!data || data?.data?.nsfw) return false;
+
+  return data.data.link;
 }

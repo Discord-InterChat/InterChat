@@ -4,8 +4,8 @@ import { createRequire } from 'node:module';
 import badwordsType from './JSON/profanity.json';
 
 // create a require a ESM doesn't support importing JSON
-const require = createRequire(import.meta.url);
-const badwords = require('./JSON/profanity.json') as typeof badwordsType;
+const fakeRequire = createRequire(import.meta.url);
+const badwords = fakeRequire('./JSON/profanity.json') as typeof badwordsType;
 
 /**
   * Checks if a message contains any bad words.

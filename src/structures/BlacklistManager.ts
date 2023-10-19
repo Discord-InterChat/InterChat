@@ -77,8 +77,7 @@ export default class BlacklistManager {
     this.scheduler.addTask(name, expires, execute);
   }
 
-  /* static methods (can be access without initializing class) */
-  static async notifyBlacklist(
+  async notifyBlacklist(
     userOrChannel: User | TextBasedChannel,
     hubId: string,
     expires?: Date,
@@ -135,7 +134,7 @@ export default class BlacklistManager {
   }
 
 
-  static async addUserBlacklist(
+  async addUserBlacklist(
     hubId: string,
     userId: string,
     reason: string,
@@ -148,7 +147,7 @@ export default class BlacklistManager {
     const dbUser = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
 
     const hubs = dbUser?.hubs.filter((i) => i.hubId !== hubId) || [];
-    hubs?.push({ expires: expires || null, reason, hubId });
+    hubs?.push({ expires: expires ?? null, reason, hubId });
 
     const updatedUser = await db.blacklistedUsers.upsert({
       where: {
@@ -169,13 +168,13 @@ export default class BlacklistManager {
   }
 
 
-  static async addServerBlacklist(
-    client: SuperClient,
+  async addServerBlacklist(
     serverId: string,
     hubId: string,
     reason: string,
     expires?: Date,
   ) {
+    const client = SuperClient.getInstance();
     const guild = await client.fetchGuild(serverId);
     if (!guild) return;
 

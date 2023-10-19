@@ -2,11 +2,12 @@ import fs from 'fs';
 import path from 'path';
 import Factory from '../Factory.js';
 import Logger from '../utils/Logger.js';
-import Command from '../commands/Command.js';
+import BaseCommand from '../commands/BaseCommand.js';
 import { emojis } from '../utils/Constants.js';
 import { CustomID } from './CustomID.js';
 import { Interaction } from 'discord.js';
 import { captureException } from '@sentry/node';
+import { errorEmbed } from '../utils/Utils.js';
 
 const __filename = new URL(import.meta.url).pathname;
 const __dirname = path.dirname(__filename);
@@ -24,6 +25,15 @@ export default class CommandManager extends Factory {
         if (command?.autocomplete) command.autocomplete(interaction);
       }
       else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+        // const cooldown = this.client.commandCooldowns.get(interaction.user.id);
+        // if (cooldown && cooldown > Date.now()) {
+        //   return await interaction.reply({
+        //     content: `You are on a cooldown! Use this command again <t:${Math.ceil(cooldown / 1000)}:R>.`,
+        //     ephemeral: true,
+        //   });
+        // }
+
+        // run the command
         this.client.commands.get(interaction.commandName)?.execute(interaction);
       }
       else {
@@ -31,24 +41,23 @@ export default class CommandManager extends Factory {
 
         // for components have own component collector
         const ignoreList = ['page_', 'onboarding_'];
-        if (ignoreList.includes(customId.identifier)) {
+        if (ignoreList.includes(customId.prefix)) {
           return;
         }
 
         // component decorator stuff
-        const handler = this.client.components.find((_, key) =>
-          key.startsWith(customId.identifier),
-        );
+        const handler = this.client.interactions.get(customId.prefix);
 
-        if (!handler) {
+        if (!handler || (customId.expiry && customId.expiry < Date.now())) {
           await interaction.reply({
-            content: `${emojis.no} This is no longer usable.`,
+            embeds: [errorEmbed(`${emojis.no} This is no longer usable.`)],
             ephemeral: true,
           });
           return;
         }
 
-        handler(interaction);
+        // call function that handles the component
+        await handler(interaction);
       }
     }
     catch (e) {
@@ -76,10 +85,10 @@ export default class CommandManager extends Factory {
       }
 
       // If the item is a .js file, read its contents
-      else if (file.endsWith('.js') && file !== 'Command.js') {
+      else if (file.endsWith('.js') && file !== 'BaseCommand.js') {
         // initializing it will automatically add the command to the clientCommands map
         const imported = await import(filePath);
-        const command = new imported.default() as Command;
+        const command = new imported.default() as BaseCommand;
         command.loadCommand();
         command.loadSubcommands();
       }

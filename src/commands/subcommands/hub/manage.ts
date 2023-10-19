@@ -11,15 +11,15 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import db from '../../../utils/Db.js';
-import HubCommand from '../../slash/Main/hub.js';
+import Hub from '../../slash/Main/hub.js';
 import { hubs, connectedList } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../utils/Constants.js';
-import { ComponentInteraction } from '../../../decorators/Interaction.js';
+import { Interaction } from '../../../decorators/Interaction.js';
 import { CustomID } from '../../../structures/CustomID.js';
-import { setComponentExpiry } from '../../../utils/Utils.js';
+import { errorEmbed, setComponentExpiry } from '../../../utils/Utils.js';
 
-export default class Manage extends HubCommand {
+export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
     // the chosen one heh
     const chosenHub = interaction.options.getString('hub', true);
@@ -52,17 +52,20 @@ export default class Manage extends HubCommand {
     );
   }
 
-  @ComponentInteraction('hub_manage')
-  async handleComponent(interaction: StringSelectMenuInteraction) {
+  @Interaction('hub_manage')
+  async handleComponents(interaction: StringSelectMenuInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
 
-    if (customId.data[0] !== interaction.user.id) {
-      await interaction.reply({ content: 'You are not allowed to do that!', ephemeral: true });
+    if (customId.args[0] !== interaction.user.id) {
+      await interaction.reply({
+        embeds: [errorEmbed('This dropdown is not for you!')],
+        ephemeral: true,
+      });
       return;
     }
 
     const hubInDb = await db.hubs.findFirst({
-      where: { name: customId.data[1] },
+      where: { name: customId.args[1] },
       include: { connections: true },
     });
 
@@ -77,7 +80,7 @@ export default class Manage extends HubCommand {
           .setCustomId(
             new CustomID()
               .setIdentifier('hub_manage_modal', 'icon')
-              .addData(hubInDb.name)
+              .addArgs(hubInDb.name)
               .toString(),
           )
           .setTitle('Change Hub Icon')
@@ -100,7 +103,7 @@ export default class Manage extends HubCommand {
           .setCustomId(
             new CustomID()
               .setIdentifier('hub_manage_modal', 'description')
-              .addData(hubInDb.name)
+              .addArgs(hubInDb.name)
               .toString(),
           )
           .setTitle('Edit Hub Description')
@@ -124,7 +127,7 @@ export default class Manage extends HubCommand {
           .setCustomId(
             new CustomID()
               .setIdentifier('hub_manage_modal', 'banner')
-              .addData(hubInDb.name)
+              .addArgs(hubInDb.name)
               .toString(),
           )
           .setTitle('Set Hub Banner')
@@ -167,10 +170,10 @@ export default class Manage extends HubCommand {
     }
   }
 
-  @ComponentInteraction('hub_manage_modal')
-  async handleModal(interaction: ModalSubmitInteraction<CacheType>) {
+  @Interaction('hub_manage_modal')
+  async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const hubName = customId.data[0];
+    const hubName = customId.args[0];
 
     let hubInDb = await db.hubs.findFirst({
       where: {
@@ -289,8 +292,8 @@ export default class Manage extends HubCommand {
         .setCustomId(
           new CustomID()
             .setIdentifier('hub_manage', 'actions')
-            .addData(userId)
-            .addData(hubName)
+            .addArgs(userId)
+            .addArgs(hubName)
             .toString(),
         )
         .addOptions([

@@ -4,8 +4,8 @@ import { normal, badge, mascot } from './JSON/emojis.json';
 import { createRequire } from 'module';
 import 'dotenv/config';
 
-const require = createRequire(import.meta.url);
-const emotes = require('./JSON/emojis.json');
+const fakeRequire = createRequire(import.meta.url);
+const emotes = fakeRequire('./JSON/emojis.json');
 
 export const isDevBuild = process.env.NODE_ENV === 'development';
 
@@ -21,6 +21,10 @@ export const REGEX = {
   IMAGE_URL: /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png)/,
   /** no animated images */
   STATIC_IMAGE_URL: /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.png)/,
+  /** ignores giphy and tenor */
+  LINKS: /https?:\/\/(?!tenor\.com|giphy\.com)\S+/g,
+  /** matches imgur urls */
+  IMGUR_LINKS: /(?:i\.imgur\.com\/(?!gallery|a|t|user)([^.]+)(?:\.\w+)?|imgur\.com\/(?!gallery|a|t|user)(\w+))/i,
 };
 
 export const StaffIds = ['597265261665714186', '442653948630007808', '689082827979227160'];
@@ -38,7 +42,7 @@ export const URLs = {
   DOCS: 'https://discord-interchat.github.io/docs',
 } as const;
 
-export const channel = {
+export const channels = {
   bugs: '1035135196053393418',
   networklogs: '1156144879869632553',
   modlogs: '1042265633896796231',

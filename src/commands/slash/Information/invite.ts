@@ -5,11 +5,11 @@ import {
   ChatInputCommandInteraction,
   OAuth2Scopes,
 } from 'discord.js';
-import Command from '../../Command.js';
+import BaseCommand from '../../BaseCommand.js';
 import { emojis } from '../../../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 
-export default class Invite extends Command {
+export default class Invite extends BaseCommand {
   readonly data = {
     name: 'invite',
     description: 'Invite me to your server!',

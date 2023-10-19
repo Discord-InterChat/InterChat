@@ -5,18 +5,17 @@ import {
   EmbedBuilder,
   CommandInteraction,
   ComponentType,
-  ButtonInteraction,
 } from 'discord.js';
 import { emojis } from './Constants.js';
+import { MessageActionRowComponentBuilder } from 'discord.js';
 
 export interface PaginatorOptions {
   /** Number in milliseconds */
   stopAfter?: number;
-  /** only supports buttons at the moment */
-  extraComponent?: {
-    actionRow: ActionRowBuilder<ButtonBuilder>[];
-    updateComponents?(pageNumber: number): ActionRowBuilder<ButtonBuilder>;
-    execute(i: ButtonInteraction): void;
+  /** it's on you to handle the response */
+  extraComponents?: {
+    actionRow: ActionRowBuilder<MessageActionRowComponentBuilder>[];
+    updateComponents(pageNumber: number): ActionRowBuilder<MessageActionRowComponentBuilder>;
   };
   btnEmojis?: {
     back: string;
@@ -58,9 +57,9 @@ export async function paginate(
       .setDisabled(pages.length <= index + 1),
   ]);
 
-  const components: ActionRowBuilder<ButtonBuilder>[] = [row];
+  const components: ActionRowBuilder<MessageActionRowComponentBuilder>[] = [row];
 
-  if (options?.extraComponent) components.push(...options.extraComponent.actionRow);
+  if (options?.extraComponents) components.push(...options.extraComponents.actionRow);
 
   const data = {
     embeds: [pages[index]],
@@ -80,15 +79,11 @@ export async function paginate(
     if (i.customId === 'page_:back') {
       index--;
     }
-    else if (i.customId === 'page_:exit') {
+    else if (i.customId === 'page_:next') {
       index++;
     }
-    else if (i.customId === 'page_:next') {
+    else if (i.customId === 'page_:exit') {
       col.stop();
-      return;
-    }
-    else if (options?.extraComponent) {
-      options.extraComponent.execute(i);
       return;
     }
 
@@ -98,14 +93,14 @@ export async function paginate(
       row.components[2].setDisabled(index === pages.length - 1),
     ]);
 
-    if (options?.extraComponent?.updateComponents) {
-      components[1] = options.extraComponent.updateComponents(index);
+    if (options?.extraComponents) {
+      components[1] = options.extraComponents.updateComponents(index);
     }
 
-    i.update({
-      components,
-      embeds: [pages[index]],
-    });
+    // edit the message only if the customId is one of the paginator buttons
+    if (i.customId.startsWith('page_:')) {
+      i.update({ embeds: [pages[index]], components });
+    }
   });
 
   col.on('end', () => {

@@ -2,9 +2,12 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  Collection,
   EmbedBuilder,
   HexColorString,
   Message,
+  MessageCreateOptions,
+  User,
   WebhookMessageCreateOptions,
 } from 'discord.js';
 import Factory from '../Factory.js';
@@ -28,7 +31,17 @@ export interface Networks extends connectedList {
   hub: hubs | null;
 }
 
+interface AntiSpamUserOpts {
+  timestamps: number[];
+  infractions: number;
+}
+
+const WINDOW_SIZE = 5000;
+const MAX_STORE = 3;
+
 export default class NetworkManager extends Factory {
+  private antiSpamMap = new Collection<string, AntiSpamUserOpts>();
+
   public async handleNetworkMessage(message: NetworkMessage) {
     const isNetworkMessage = await db.connectedList.findFirst({
       where: { channelId: message.channel.id, connected: true },
@@ -38,35 +51,33 @@ export default class NetworkManager extends Factory {
     // check if the message was sent in a network channel
     if (!isNetworkMessage?.hub) return;
 
-    // loop through all connections and send the message
-    const allConnections = await this.fetchHubNetworks({ hubId: isNetworkMessage.hubId });
     const settings = new HubSettingsBitField(isNetworkMessage.hub.settings);
-    const checksPassed = await this.runChecks(message, settings);
+    const checksPassed = await this.runChecks(message, settings, isNetworkMessage.hubId);
     if (!checksPassed) return;
+
+    const allConnections = await this.fetchHubNetworks({ hubId: isNetworkMessage.hubId });
 
     message.censoredContent = censor(message.content);
 
     const attachment = message.attachments.first();
-    const attachmentURL = attachment
-      ? `attachment://${attachment.name}`
-      : await this.getAttachmentURL(message);
+    const attachmentURL = attachment ? attachment.url : await this.getAttachmentURL(message);
 
     if (attachmentURL) {
+      const reaction = await message.react(emojis.loading).catch(() => null);
+
       const nsfwDetector = this.client.getNSFWDetector();
       const predictions = await nsfwDetector.analyzeImage(
         attachment ? attachment.url : attachmentURL,
       );
 
       if (predictions && nsfwDetector.isUnsafeContent(predictions)) {
-        message.react(emojis.loading);
-
         const nsfwEmbed = new EmbedBuilder()
           .setTitle('NSFW Image Detected')
           .setDescription(
             stripIndents`
           I have identified this image as NSFW (Not Safe For Work). Sharing NSFW content is against our network guidelines. Refrain from posting such content here.
           
-          **NSFW Prediction:** ${predictions[0].className} - ${Math.round(predictions[0].probability * 100)}%`,
+          **NSFW Detected:** ${Math.round(predictions[0].probability * 100)}%`,
           )
           .setFooter({
             text: 'Please be aware that AI predictions can be inaccurate at times, and we cannot guarantee perfect accuracy in all cases. 😔',
@@ -76,6 +87,10 @@ export default class NetworkManager extends Factory {
 
         return await message.reply({ embeds: [nsfwEmbed] });
       }
+
+      reaction?.remove().catch(() => null);
+      // mark that the attachment url is being used
+      message.react('🔗').catch(() => null);
     }
 
     // fetch the referred message  (message being replied to) from discord
@@ -86,7 +101,11 @@ export default class NetworkManager extends Factory {
         where: { channelAndMessageIds: { some: { messageId: referredMessage?.id } } },
       })
       : undefined;
-    const referredContent = referenceInDb ? await this.getReferredContent(message) : undefined;
+    const referredContent =
+      referenceInDb && referredMessage ? await this.getReferredContent(referredMessage) : undefined;
+    const referredAuthor = referenceInDb
+      ? await message.client.users.fetch(referenceInDb.authorId).catch(() => null)
+      : null;
 
     // embeds for the normal mode
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, {
@@ -118,9 +137,9 @@ export default class NetworkManager extends Factory {
                   `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`,
                 )
                 .setLabel(
-                  referredMessage.author.username.length >= 80
-                    ? '@' + referredMessage.author.username.slice(0, 76) + '...'
-                    : '@' + referredMessage.author.username,
+                  referredAuthor && referredAuthor.username.length >= 80
+                    ? '@' + referredAuthor.username.slice(0, 76) + '...'
+                    : '@' + referredAuthor?.username,
                 ),
             )
             : null;
@@ -129,7 +148,6 @@ export default class NetworkManager extends Factory {
         let messageFormat: WebhookMessageCreateOptions = {
           components: jumpButton ? [jumpButton] : undefined,
           embeds: [connection.profFilter ? censoredEmbed : embed],
-          files: attachment ? [attachment] : undefined,
           username: `${isNetworkMessage.hub?.name}`,
           avatarURL: isNetworkMessage.hub?.iconUrl,
           threadId: connection.parentId ? connection.channelId : undefined,
@@ -157,14 +175,12 @@ export default class NetworkManager extends Factory {
             embeds: replyEmbed ? [replyEmbed] : undefined,
             components: jumpButton ? [jumpButton] : undefined,
             content: connection.profFilter ? message.censoredContent : message.content,
-            files: attachment ? [attachment] : undefined,
             username: message.author.username,
             avatarURL: message.author.displayAvatarURL(),
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
           };
         }
-
         // send the message
         const messageOrError = await webhook.send(messageFormat);
         // return the message and webhook URL to store the message in the db
@@ -179,15 +195,23 @@ export default class NetworkManager extends Factory {
       }
     });
 
-    message.delete().catch(() => null);
+    // only delete the message if there is no attachment
+    // deleting attachments will make the image not show up in the embed (discord removes it from its cdn)
+    if (!attachment) message.delete().catch(() => null);
 
     // store the message in the db
     await this.storeMessageData(message, await Promise.all(sendResult), isNetworkMessage.hubId);
   }
 
-  public async runChecks(message: Message, settings: HubSettingsBitField): Promise<boolean> {
+  public async runChecks(
+    message: Message,
+    settings: HubSettingsBitField,
+    hubId: string,
+  ): Promise<boolean> {
+    const blacklistManager = this.client.getBlacklistManager();
+
     const isUserBlacklisted = await db.blacklistedUsers.findFirst({
-      where: { userId: message.author.id },
+      where: { userId: message.author.id, hubs: { some: { hubId: { equals: hubId } } } },
     });
 
     if (isUserBlacklisted) return false;
@@ -215,6 +239,33 @@ export default class NetworkManager extends Factory {
       return false;
     }
 
+    const antiSpamResult = this.runAntiSpam(message.author, 3);
+    if (antiSpamResult) {
+      if (antiSpamResult.infractions >= 3) {
+        await blacklistManager.addUserBlacklist(
+          hubId,
+          message.author.id,
+          'Auto-blacklisted for spamming.',
+          60 * 5000,
+        );
+        blacklistManager.scheduleRemoval('user', message.author.id, hubId, 60 * 5000);
+        blacklistManager
+          .notifyBlacklist(
+            message.author,
+            hubId,
+            new Date(Date.now() + 60 * 5000),
+            'Auto-blacklisted for spamming.',
+          )
+          .catch(() => null);
+      }
+      message.react(emojis.timeout).catch(() => null);
+      return false;
+    }
+
+    if (message.content.length > 1000) {
+      message.reply('Please keep your message shorter than 1000 characters long.');
+      return false;
+    }
     // TODO allow multiple attachments when embeds can have multiple images
     const attachment = message.attachments.first();
     const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg'];
@@ -278,10 +329,15 @@ export default class NetworkManager extends Factory {
         name: message.author.username,
         iconURL: message.author.displayAvatarURL(),
       })
-      .setDescription(message.content)
+      .setDescription(message.content || null)
       .addFields(
         opts?.referredContent
-          ? [{ name: 'Replying To:', value: opts.referredContent ?? 'Unknown.' }]
+          ? [
+            {
+              name: 'Replying To:',
+              value: `> ${opts.referredContent.replaceAll('\n', '\n> ')}` ?? 'Unknown.',
+            },
+          ]
           : [],
       )
       .setFooter({
@@ -292,10 +348,13 @@ export default class NetworkManager extends Factory {
       .setColor(opts?.embedCol ?? 'Random');
 
     const censoredEmbed = EmbedBuilder.from(embed)
-      .setDescription(message.censoredContent)
-      .addFields(
+      .setDescription(message.censoredContent || null)
+      .setFields(
         opts?.referredContent
-          ? [{ name: 'Replying To:', value: censor(opts.referredContent) ?? 'Unknown.' }]
+          ? [{
+            name: 'Replying To:',
+            value: `> ${censor(opts.referredContent).replaceAll('\n', '\n> ')}` ?? 'Unknown.',
+          }]
           : [],
       );
 
@@ -356,7 +415,63 @@ export default class NetworkManager extends Factory {
     }
   }
 
-  // TODO: Error handlers for these
+  runAntiSpam(author: User, maxInfractions = MAX_STORE) {
+    const userInCol = this.antiSpamMap.get(author.id);
+    const currentTimestamp = Date.now();
+
+    if (userInCol) {
+      if (userInCol.infractions >= maxInfractions) {
+        // resetting count as it is assumed they will be blacklisted right after
+        this.antiSpamMap.delete(author.id);
+        return userInCol;
+      }
+
+      const { timestamps } = userInCol;
+
+      if (timestamps.length === MAX_STORE) {
+        // Check if all the timestamps are within the window
+        const oldestTimestamp = timestamps[0];
+        const isWithinWindow = currentTimestamp - oldestTimestamp <= WINDOW_SIZE;
+
+        this.antiSpamMap.set(author.id, {
+          timestamps: [...timestamps.slice(1), currentTimestamp],
+          infractions: isWithinWindow ? userInCol.infractions + 1 : userInCol.infractions,
+        });
+        this.setSpamTimers(author.id);
+        if (isWithinWindow) return userInCol;
+      }
+      else {
+        this.antiSpamMap.set(author.id, {
+          timestamps: [...timestamps, currentTimestamp],
+          infractions: userInCol.infractions,
+        });
+      }
+    }
+    else {
+      this.antiSpamMap.set(author.id, {
+        timestamps: [currentTimestamp],
+        infractions: 0,
+      });
+      this.setSpamTimers(author.id);
+    }
+  }
+
+  setSpamTimers(userId: string): void {
+    const five_min = 60 * 5000;
+    const userInCol = this.antiSpamMap.get(userId);
+    const scheduler = this.client.getScheduler();
+    const lastMsgTimestamp = userInCol?.timestamps[userInCol.timestamps.length - 1];
+
+    if (userInCol && lastMsgTimestamp && Date.now() - five_min <= lastMsgTimestamp) {
+      scheduler.stopTask(`removeFromCol_${userId}`);
+    }
+
+    scheduler.addRecurringTask(`removeFromCol_${userId}`, new Date(Date.now() + five_min), () => {
+      this.antiSpamMap.delete(userId);
+    });
+  }
+
+  // TODO: Add Error handlers for these
   public async fetchHubNetworks(where: { hubId?: string; hubName?: string }) {
     return await db.connectedList.findMany({ where });
   }
@@ -371,20 +486,26 @@ export default class NetworkManager extends Factory {
   ) {
     return await db.connectedList.update({ where, data });
   }
+
   async createConnection(data: Prisma.connectedListCreateInput) {
     return await db.connectedList.create({ data });
   }
-  async sendToNetwork(hubId: string, message: string | WebhookMessageCreateOptions) {
+
+  async sendToNetwork(hubId: string, message: string | MessageCreateOptions) {
     const connections = await this.fetchHubNetworks({ hubId });
 
     const res = connections.map(async (connection) => {
+      const threadId = connection.parentId ? connection.channelId : undefined;
+      const payload =
+        typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
+
       try {
         const webhookURL = connection.webhookURL.split('/');
         const webhook = await this.client.fetchWebhook(
           webhookURL[webhookURL.length - 2],
           webhookURL[webhookURL.length - 1],
         );
-        return webhook.send(message);
+        return webhook.send(payload);
       }
       catch {
         return null;

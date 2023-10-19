@@ -2,14 +2,17 @@ import db from '../utils/Db.js';
 import Factory from '../Factory.js';
 import {
   ActionRowBuilder,
+  AnySelectMenuInteraction,
   ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
   ComponentType,
+  EmbedBuilder,
   MessageReaction,
   PartialMessageReaction,
   PartialUser,
   Snowflake,
+  StringSelectMenuBuilder,
   User,
   WebhookClient,
 } from 'discord.js';
@@ -18,8 +21,9 @@ import { sortReactions } from '../utils/Utils.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import BlacklistManager from '../structures/BlacklistManager.js';
 import { CustomID } from '../structures/CustomID.js';
-import { ComponentInteraction } from '../decorators/Interaction.js';
+import { Interaction } from '../decorators/Interaction.js';
 import { emojis } from '../utils/Constants.js';
+import { stripIndents } from 'common-tags';
 
 type messageAndHubSettings = messageData & { hub: { settings: number } | null };
 
@@ -63,10 +67,10 @@ export default class ReactionUpdater extends Factory {
     // if there already are reactions by others
     // and the user hasn't reacted yet
     !emojiAlreadyReacted?.includes(user.id)
-      // add user to the array
-      ? ReactionUpdater.addReaction(dbReactions, user.id, reactedEmoji)
-      // or update the data with a new arr containing userId
-      : (dbReactions[reactedEmoji] = emojiAlreadyReacted);
+      ? // add user to the array
+      ReactionUpdater.addReaction(dbReactions, user.id, reactedEmoji)
+      : // or update the data with a new arr containing userId
+      (dbReactions[reactedEmoji] = emojiAlreadyReacted);
 
     await db.messageData.update({
       where: { id: messageInDb.id },
@@ -77,14 +81,16 @@ export default class ReactionUpdater extends Factory {
     ReactionUpdater.updateReactions(messageInDb.channelAndMessageIds, dbReactions);
   }
 
-  @ComponentInteraction('reaction_')
-  async listenForReactionButton(interaction: ButtonInteraction) {
+  @Interaction('reaction_')
+  async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction) {
     await interaction.deferUpdate();
 
+    const customId = CustomID.parseCustomId(interaction.customId);
     const cooldown = interaction.client.reactionCooldowns.get(interaction.user.id);
+    const messageId = interaction.isButton() ? interaction.message.id : customId.args[0];
 
     const messageInDb = await db.messageData.findFirst({
-      where: { channelAndMessageIds: { some: { messageId: interaction.message.id } } },
+      where: { channelAndMessageIds: { some: { messageId } } },
       include: {
         hub: { select: { connections: { where: { connected: true } }, settings: true } },
       },
@@ -103,43 +109,106 @@ export default class ReactionUpdater extends Factory {
     // add user to cooldown list
     interaction.client.reactionCooldowns.set(interaction.user.id, Date.now() + 3000);
 
-    const customId = CustomID.parseCustomId(interaction.customId);
+    const dbReactions = messageInDb.reactions?.valueOf() as { [key: string]: Snowflake[] };
+
     if (customId.postfix === 'view_all') {
-      /* */
-    }
-    else {
-      if (cooldown && cooldown > Date.now()) {
-        return await interaction.followUp({
-          content: `A little quick there! You can react again <t:${Math.round(cooldown / 1000)}:R>!`,
+      const networkMessage = await db.messageData.findFirst({
+        where: { channelAndMessageIds: { some: { messageId: interaction.message.id } } },
+        include: {
+          hub: { select: { connections: { where: { connected: true } }, settings: true } },
+        },
+      });
+
+      if (!networkMessage?.reactions) {
+        await interaction.followUp({
+          content: 'There are no more reactions to view.',
           ephemeral: true,
         });
+        return;
       }
 
+      const sortedReactions = ReactionUpdater.sortReactions(dbReactions);
+      let totalReactions = 0;
+      let reactionString = '';
+      const reactionMenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId(
+            new CustomID().setIdentifier('reaction_').addArgs(interaction.message.id).toString(),
+          )
+          .setPlaceholder('Add a reaction'),
+      );
+
+      const hubSettings = new HubSettingsBitField(networkMessage.hub?.settings);
+      if (!hubSettings.has('Reactions')) reactionMenu.components[0].setDisabled(true);
+
+      sortedReactions.forEach((r, index) => {
+        if (r[1].length === 0 || index >= 10) return;
+        reactionMenu.components[0].addOptions({
+          label: 'React/Unreact',
+          value: r[0],
+          emoji: r[0],
+        });
+        totalReactions++;
+        reactionString += `- ${r[0]}: ${r[1].length}\n`;
+      });
+
+      const embed = new EmbedBuilder()
+        .setThumbnail(interaction.client.user.displayAvatarURL())
+        .setDescription(
+          stripIndents`
+          ## ${emojis.clipart} Reactions
+    
+          ${reactionString || 'No reactions yet!'}
+    
+          **Total Reactions:**
+          __${totalReactions}__
+      `,
+        )
+        .setColor('Random');
+
+      await interaction.followUp({
+        embeds: [embed],
+        components: [reactionMenu],
+        ephemeral: true,
+      });
+    }
+    else {
       if (userBlacklisted) {
-        await interaction.reply({
+        await interaction.followUp({
           content: 'You are blacklisted from this hub.',
           ephemeral: true,
         });
         return;
       }
       else if (serverBlacklisted) {
-        await interaction.reply({
+        await interaction.followUp({
           content: 'This server is blacklisted from this hub.',
           ephemeral: true,
         });
         return;
       }
 
-      const reactedEmoji = customId.postfix;
-      const dbReactions = messageInDb.reactions?.valueOf() as { [key: string]: Snowflake[] };
+      if (cooldown && cooldown > Date.now()) {
+        return await interaction.followUp({
+          content: `A little quick there! You can react again <t:${Math.round(
+            cooldown / 1000,
+          )}:R>!`,
+          ephemeral: true,
+        });
+      }
+
+      const reactedEmoji = interaction.isStringSelectMenu()
+        ? interaction.values[0]
+        : customId.postfix;
       const emojiAlreadyReacted = dbReactions[reactedEmoji];
 
       if (!emojiAlreadyReacted) {
         return await interaction.followUp({
-          content: `${emojis.no} This is no longer reactable.`,
+          content: `${emojis.no} This reaction doesn't exist.`,
           ephemeral: true,
         });
       }
+
       emojiAlreadyReacted.includes(interaction.user.id)
         ? // If the user already reacted, remove the reaction
         ReactionUpdater.removeReaction(dbReactions, interaction.user.id, reactedEmoji)
@@ -150,6 +219,15 @@ export default class ReactionUpdater extends Factory {
         where: { id: messageInDb.id },
         data: { reactions: dbReactions },
       });
+
+      if (interaction.isStringSelectMenu()) {
+        // FIXME seems like emojiAlreadyReacted is getting mutated somewhere
+        const action = emojiAlreadyReacted.includes(interaction.user.id) ? 'reacted' : 'unreacted';
+        interaction.followUp({
+          content: `You have ${action} with ${reactedEmoji}!`,
+          ephemeral: true,
+        }).catch(() => null);
+      }
 
       // reflect the changes in the message's buttons
       await ReactionUpdater.updateReactions(messageInDb.channelAndMessageIds, dbReactions);
@@ -234,6 +312,7 @@ export default class ReactionUpdater extends Factory {
         .catch(() => null);
     });
   }
+
   static runChecks(messageInDb: messageAndHubSettings) {
     if (
       !messageInDb.hub ||
@@ -273,5 +352,13 @@ export default class ReactionUpdater extends Factory {
     const userIndex = reactionArr[emoji].indexOf(userId);
     reactionArr[emoji].splice(userIndex, 1);
     return reactionArr;
+  }
+
+  static sortReactions(reactions: { [key: string]: string[] }) {
+    // Sort the array based on the reaction counts
+    /* { '👍': ['10201930193'], '👎': ['10201930193'] } // before Object.entries
+     => [ [ '👎', ['10201930193'] ], [ '👍', ['10201930193'] ] ] // after Object.entries
+  */
+    return Object.entries(reactions).sort((a, b) => b[1].length - a[1].length);
   }
 }

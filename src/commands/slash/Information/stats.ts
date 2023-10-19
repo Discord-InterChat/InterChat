@@ -1,6 +1,5 @@
 import {
   ActionRowBuilder,
-  ApplicationCommandType,
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
@@ -8,17 +7,16 @@ import {
   Status,
 } from 'discord.js';
 import db from '../../../utils/Db.js';
-import Command from '../../Command.js';
+import BaseCommand from '../../BaseCommand.js';
 import { cpus, totalmem } from 'os';
 import { colors, isDevBuild } from '../../../utils/Constants.js';
 import { msToReadable } from '../../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
 
-export default class Stats extends Command {
+export default class Stats extends BaseCommand {
   readonly data = {
     name: 'stats',
     description: 'View InterChat\'s statistics.',
-    type: ApplicationCommandType.ChatInput,
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
