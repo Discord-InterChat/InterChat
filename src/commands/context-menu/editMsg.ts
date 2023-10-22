@@ -16,7 +16,7 @@ import { HubSettingsBitField } from '../../utils/BitFields.js';
 import { emojis } from '../../utils/Constants.js';
 import { checkIfStaff, hasVoted, replaceLinks } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
-import { Interaction } from '../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../structures/CustomID.js';
 
 export default class DeleteMessage extends BaseCommand {
@@ -77,7 +77,7 @@ export default class DeleteMessage extends BaseCommand {
     // if (interaction.inCachedGuild()) networkMsgUpdate(interaction.member, target, newMessage);
   }
 
-  @Interaction('editMsg')
+  @RegisterInteractionHandler('editMsg')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const messageId = customId.args[0];
@@ -106,7 +106,7 @@ export default class DeleteMessage extends BaseCommand {
       newMessage.includes('dsc.gg')
     ) {
       await interaction.editReply(
-        `${emojis.no} Do not advertise or promote servers in the network. Set an invite in \`/network manage\` instead!`,
+        `${emojis.no} Do not advertise or promote servers in the network. Set an invite in \`/connection\` instead!`,
       );
       return;
     }

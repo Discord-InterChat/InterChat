@@ -24,7 +24,7 @@ export const REGEX = {
   /** ignores giphy and tenor */
   LINKS: /https?:\/\/(?!tenor\.com|giphy\.com)\S+/g,
   /** matches imgur urls */
-  IMGUR_LINKS: /(?:i\.imgur\.com\/(?!gallery|a|t|user)([^.]+)(?:\.\w+)?|imgur\.com\/(?!gallery|a|t|user)(\w+))/i,
+  IMGUR_LINKS: /(?:https?:\/\/)?(?:www\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?/i,
 };
 
 export const StaffIds = ['597265261665714186', '442653948630007808', '689082827979227160'];
@@ -40,6 +40,7 @@ export const URLs = {
   TOPGG_API: 'https://top.gg/api/bots/769921109209907241',
   VOTE: 'https://top.gg/bot/769921109209907241/vote',
   DOCS: 'https://discord-interchat.github.io/docs',
+  SUPPORT_INVITE: 'https://discord.gg/6bhXQynAPs',
 } as const;
 
 export const channels = {
@@ -103,5 +104,5 @@ export const rulesEmbed = new EmbedBuilder()
   6. **Respect Sensitive Topics:** Do not trivialize self-harm, suicide, violence, or other offensive topics.
   7. **Report Concerns:**  If you observe a violation of these rules, report it to the appropriate hub moderator or InterChat staff for further action.
 
-  Any questions? Join our [support server](https://discord.gg/6bhXQynAPs).
+  Any questions? Join our [support server](${URLs.SUPPORT_INVITE}).
 `);

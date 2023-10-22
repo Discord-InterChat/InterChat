@@ -59,7 +59,7 @@ export default class Connections extends Hub {
           value += '\n' +
           stripIndent`
             Joined At: <t:${Math.round(setup.date.getTime() / 1000)}:d>
-            Invite:  ${setup.invite ? `https://discord.gg/${setup.invite}` : 'Not Set.'}
+            Invite:  ${setup.invite ? setup.invite : 'Not Set.'}
           `;
         }
 

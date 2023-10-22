@@ -3,8 +3,7 @@ import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
-import Logger from '../../../../utils/Logger.js';
-import BlacklistManager from '../../../../structures/BlacklistManager.js';
+import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
 
 export default class UserBlacklist extends BlacklistCommand {
@@ -41,7 +40,9 @@ export default class UserBlacklist extends BlacklistCommand {
       const expires = duration ? new Date(Date.now() + duration) : undefined;
 
       const serverInBlacklist = await BlacklistManager.fetchServerBlacklist(hubInDb.id, serverOpt);
-      if (serverInBlacklist) {return await interaction.followUp('The server is already blacklisted.');}
+      if (serverInBlacklist) {
+        return await interaction.followUp('The server is already blacklisted.');
+      }
 
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
       if (!server) return await interaction.followUp('You have inputted an invalid server ID.');
@@ -50,7 +51,7 @@ export default class UserBlacklist extends BlacklistCommand {
         await blacklistManager.addServerBlacklist(server.id, hubInDb.id, reason, expires);
       }
       catch (err) {
-        Logger.error(err);
+        interaction.client.logger.error(err);
         captureException(err);
         interaction.followUp(
           `Failed to blacklist **${server.name}**. Enquire with the bot developer for more information.`,
@@ -58,7 +59,9 @@ export default class UserBlacklist extends BlacklistCommand {
         return;
       }
 
-      if (expires && interaction.guildId) {blacklistManager.scheduleRemoval('server', interaction.guildId, hubInDb.id, expires);}
+      if (expires && interaction.guildId) {
+        blacklistManager.scheduleRemoval('server', interaction.guildId, hubInDb.id, expires);
+      }
 
       const successEmbed = new EmbedBuilder()
         .setDescription(`${emojis.tick} **${server.name}** has been successfully blacklisted!`)
@@ -78,36 +81,19 @@ export default class UserBlacklist extends BlacklistCommand {
 
       await interaction.followUp({ embeds: [successEmbed] });
 
-      const connected = await db.connectedList.findFirst({
-        where: { serverId: serverOpt, hubId: hubInDb.id },
-      });
-      if (connected) {
-        // notify the server that they have been blacklisted
-        const channel = await interaction.client.channels
-          .fetch(connected.channelId)
-          .catch(() => null);
-        if (channel?.isTextBased()) {blacklistManager.notifyBlacklist(channel, hubInDb.id, expires, reason).catch(() => null);}
+      // notify the server that they have been blacklisted
+      blacklistManager.notifyBlacklist('server', serverOpt, hubInDb.id, expires, reason);
 
-        // delete the connected channel from db so they can't reconnect
-        await db.connectedList.delete({ where: { channelId: connected.channelId } });
-      }
+      // delete all connections from db so they can't reconnect to the hub
+      await db.connectedList.deleteMany({ where: { serverId: server.id, hubId: hubInDb.id } });
     }
     else if (subCommandGroup == 'remove') {
-      const blacklistedServer = await db.blacklistedServers.findFirst({
-        where: { serverId: serverOpt, hubs: { some: { hubId: hubInDb.id } } },
-      });
-      if (!blacklistedServer) {
-        return await interaction.followUp({
-          content: 'The server is not blacklisted.',
-          ephemeral: true,
-        });
-      }
-
-      await blacklistManager.removeBlacklist('server', hubInDb.id, blacklistedServer.serverId);
+      const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
+      if (!result) return await interaction.followUp('The server is not blacklisted.');
 
       // Using name from DB since the bot can't access server through API.
       await interaction.followUp(
-        `The server **${blacklistedServer.serverName}** has been removed from the blacklist.`,
+        `The server **${result.serverName}** has been removed from the blacklist.`,
       );
     }
   }

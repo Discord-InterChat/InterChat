@@ -33,7 +33,7 @@ export default class Moderator extends Hub {
           });
         }
 
-        const position = interaction.options.getString('role') ?? 'network_mod';
+        const position = interaction.options.getString('position') ?? 'network_mod';
         await db.hubs.update({
           where: { id: hub.id },
           data: { moderators: { push: { userId: user.id, position } } },
@@ -79,7 +79,7 @@ export default class Moderator extends Hub {
 
       case 'update': {
         const user = interaction.options.getUser('user', true);
-        const position = interaction.options.getString('role', true);
+        const position = interaction.options.getString('position', true);
 
         if (!hub.moderators.find((mod) => mod.userId === user.id)) {
           return interaction.reply({

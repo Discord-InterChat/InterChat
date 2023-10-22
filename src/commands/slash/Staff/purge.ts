@@ -13,7 +13,6 @@ import { stripIndents } from 'common-tags';
 import { emojis } from '../../../utils/Constants.js';
 import { messageData as messageDataCol } from '@prisma/client';
 import { msToReadable } from '../../../utils/Utils.js';
-import Logger from '../../../utils/Logger.js';
 
 const limitOpt: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.Integer,
@@ -174,7 +173,7 @@ export default class Purge extends BaseCommand {
 
     if (!messagesInDb || messagesInDb.length < 1) {
       return await interaction.reply({
-        content: 'Unable to locate messages to purge. Maybe they have expired?',
+        content: 'Messages to purge not found; messages sent over 24 hours ago have been automatically removed.',
         ephemeral: true,
       });
     }
@@ -211,7 +210,7 @@ export default class Purge extends BaseCommand {
         return interaction.client.resolveEval(evalRes) || [];
       }
       catch (e) {
-        Logger.error(e);
+        interaction.client.logger.error(e);
         captureException(e);
       }
 

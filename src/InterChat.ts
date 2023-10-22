@@ -1,7 +1,7 @@
 import db from './utils/Db.js';
 import SuperClient from './SuperClient.js';
-import CommandManager from './structures/CommandManager.js';
-import { NetworkMessage } from './structures/NetworkManager.js';
+import CommandManager from './managers/CommandManager.js';
+import { NetworkMessage } from './managers/NetworkManager.js';
 
 class InterChat extends SuperClient {
   public constructor() {
@@ -26,18 +26,21 @@ class InterChat extends SuperClient {
     });
 
     // handle slash/ctx commands
-    this.on('interactionCreate', (interaction) => this.getCommandManager().handleInteraction(interaction));
+    this.on('interactionCreate', (interaction) =>
+      this.getCommandManager().handleInteraction(interaction),
+    );
 
     // handle network reactions
-    this.on('messageReactionAdd', (reaction, user) => this.getReactionUpdater().listenForReactions(reaction, user));
+    this.on('messageReactionAdd', (reaction, user) =>
+      this.getReactionUpdater().listenForReactions(reaction, user),
+    );
 
-    // handle network messages
+    // handle messages
     this.on('messageCreate', async (message) => {
       if (message.author.bot || message.system || message.webhookId) return;
 
       this.getNetworkManager().handleNetworkMessage(message as NetworkMessage);
     });
-
   }
 }
 

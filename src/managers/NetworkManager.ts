@@ -17,6 +17,7 @@ import { REGEX, emojis } from '../utils/Constants.js';
 import { censor } from '../utils/Profanity.js';
 import { stripIndents } from 'common-tags';
 import { HubSettingsBitField } from '../utils/BitFields.js';
+import { replaceLinks } from '../utils/Utils.js';
 
 export interface NetworkMessage extends Message {
   censoredContent: string;
@@ -111,6 +112,8 @@ export default class NetworkManager extends Factory {
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, {
       attachmentURL,
       referredContent,
+      embedCol: isNetworkMessage.embedColor as `#${string}` ?? undefined,
+      useNicknames: settings.has('UseNicknames'),
     });
 
     const sendResult = allConnections.map(async (connection) => {
@@ -174,7 +177,9 @@ export default class NetworkManager extends Factory {
           messageFormat = {
             embeds: replyEmbed ? [replyEmbed] : undefined,
             components: jumpButton ? [jumpButton] : undefined,
-            content: connection.profFilter ? message.censoredContent : message.content,
+            content: (connection.profFilter ? message.censoredContent : message.content) +
+            // append the attachment url if there is one
+              `${attachmentURL ? `\n${attachmentURL}` : ''}`,
             username: message.author.username,
             avatarURL: message.author.displayAvatarURL(),
             threadId: connection.parentId ? connection.channelId : undefined,
@@ -227,7 +232,7 @@ export default class NetworkManager extends Factory {
       message.content.includes('dsc.gg')
     ) {
       message.reply(
-        'Do not advertise or promote servers in the network. Set an invite in `/network manage` instead!',
+        'Do not advertise or promote servers in the network. Set an invite in `/connection` instead!',
       );
       return false;
     }
@@ -241,7 +246,7 @@ export default class NetworkManager extends Factory {
 
     const antiSpamResult = this.runAntiSpam(message.author, 3);
     if (antiSpamResult) {
-      if (antiSpamResult.infractions >= 3) {
+      if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
         await blacklistManager.addUserBlacklist(
           hubId,
           message.author.id,
@@ -251,7 +256,8 @@ export default class NetworkManager extends Factory {
         blacklistManager.scheduleRemoval('user', message.author.id, hubId, 60 * 5000);
         blacklistManager
           .notifyBlacklist(
-            message.author,
+            'user',
+            message.author.id,
             hubId,
             new Date(Date.now() + 60 * 5000),
             'Auto-blacklisted for spamming.',
@@ -266,6 +272,11 @@ export default class NetworkManager extends Factory {
       message.reply('Please keep your message shorter than 1000 characters long.');
       return false;
     }
+
+    if (settings.has('HideLinks') && message.content.match(REGEX.LINKS)) {
+      message.content = replaceLinks(message.content);
+    }
+
     // TODO allow multiple attachments when embeds can have multiple images
     const attachment = message.attachments.first();
     const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg'];
@@ -322,11 +333,18 @@ export default class NetworkManager extends Factory {
 
   public buildNetworkEmbed(
     message: NetworkMessage,
-    opts?: { attachmentURL?: string | null; embedCol?: HexColorString; referredContent?: string },
+    opts?: {
+      attachmentURL?: string | null;
+      embedCol?: HexColorString;
+      referredContent?: string;
+      useNicknames?: boolean;
+    },
   ): { embed: EmbedBuilder; censoredEmbed: EmbedBuilder } {
     const embed = new EmbedBuilder()
       .setAuthor({
-        name: message.author.username,
+        name: opts?.useNicknames
+          ? message.member?.displayName || message.author.displayName
+          : message.author.username,
         iconURL: message.author.displayAvatarURL(),
       })
       .setDescription(message.content || null)
@@ -351,10 +369,12 @@ export default class NetworkManager extends Factory {
       .setDescription(message.censoredContent || null)
       .setFields(
         opts?.referredContent
-          ? [{
-            name: 'Replying To:',
-            value: `> ${censor(opts.referredContent).replaceAll('\n', '\n> ')}` ?? 'Unknown.',
-          }]
+          ? [
+            {
+              name: 'Replying To:',
+              value: `> ${censor(opts.referredContent).replaceAll('\n', '\n> ')}` ?? 'Unknown.',
+            },
+          ]
           : [],
       );
 

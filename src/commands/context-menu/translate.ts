@@ -17,7 +17,7 @@ import db from '../../utils/Db.js';
 import BaseCommand from '../BaseCommand.js';
 import { emojis } from '../../utils/Constants.js';
 import { hasVoted } from '../../utils/Utils.js';
-import { Interaction } from '../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../structures/CustomID.js';
 import { supportedLanguages } from '@translate-tools/core/translators/GoogleTranslator/index.js';
 import translator from '../../utils/Translator.cjs';
@@ -89,7 +89,7 @@ export default class Translate extends BaseCommand {
     });
   }
 
-  @Interaction('translate')
+  @RegisterInteractionHandler('translate')
   async handleComponents(interaction: ButtonInteraction) {
     const modal = new ModalBuilder()
       .setCustomId('translate_modal')
@@ -116,7 +116,7 @@ export default class Translate extends BaseCommand {
     await interaction.showModal(modal);
   }
 
-  @Interaction('translate_modal')
+  @RegisterInteractionHandler('translate_modal')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const originalMessage = interaction.message;
     if (!originalMessage) return;

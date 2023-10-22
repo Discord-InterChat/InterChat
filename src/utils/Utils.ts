@@ -14,7 +14,7 @@ import {
 } from 'discord.js';
 import { DeveloperIds, REGEX, StaffIds, SupporterIds, URLs, colors } from './Constants.js';
 import { randomBytes } from 'crypto';
-import Scheduler from '../structures/Scheduler.js';
+import Scheduler from '../services/SchedulerService.js';
 import db from './Db.js';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
@@ -137,8 +137,8 @@ export function disableAllComponents(
     const jsonRow = row.toJSON();
     jsonRow.components.forEach((component) => {
       !disableLinks &&
-      (component.type === ComponentType.Button &&
-      component.style === ButtonStyle.Link)
+      component.type === ComponentType.Button &&
+      component.style === ButtonStyle.Link
         ? (component.disabled = false) // leave link buttons enabled
         : (component.disabled = true);
     });
@@ -159,9 +159,7 @@ export function replaceLinks(string: string, replaceText = '`[LINK HIDDEN]`') {
 }
 
 export function errorEmbed(description: string, color: ColorResolvable = colors.invisible) {
-  return new EmbedBuilder()
-    .setColor(color)
-    .setDescription(description.toString());
+  return new EmbedBuilder().setColor(color).setDescription(description.toString());
 }
 
 export function calculateAverageRating(ratings: number[]): number {
@@ -175,15 +173,25 @@ export function calculateAverageRating(ratings: number[]): number {
 export async function checkAndFetchImgurUrl(url: string): Promise<string | false> {
   const regex = REGEX.IMGUR_LINKS;
   const match = url.match(regex);
-  if (!match || !match[1] && !match[2]) return false;
 
-  const response = await fetch(`https://api.imgur.com/3/image/${match[1] || match[2]}`, {
+  if (!match || !match[1]) return false;
+
+  const type = match[0].includes('/a/') || match[0].includes('/gallery/') ? 'gallery' : 'image';
+
+  const response = await fetch(`https://api.imgur.com/3/${type}/${match[1]}`, {
     headers: {
       Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
     },
   });
   const data = await response.json().catch(() => null);
-  if (!data || data?.data?.nsfw) return false;
+  if (!data || data?.data?.nsfw) {
+    return false;
+  }
+  // if means the image is an album or gallery
+  else if (data.data.cover) {
+    // refetch the cover image
+    return await checkAndFetchImgurUrl(`https://imgur.com/${data.data.cover}`);
+  }
 
   return data.data.link;
 }

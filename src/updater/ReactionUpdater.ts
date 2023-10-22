@@ -16,16 +16,14 @@ import {
   User,
   WebhookClient,
 } from 'discord.js';
-import { messageData, MessageDataChannelAndMessageIds } from '@prisma/client';
+import { MessageDataChannelAndMessageIds } from '@prisma/client';
 import { sortReactions } from '../utils/Utils.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
-import BlacklistManager from '../structures/BlacklistManager.js';
+import BlacklistManager from '../managers/BlacklistManager.js';
 import { CustomID } from '../structures/CustomID.js';
-import { Interaction } from '../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../decorators/Interaction.js';
 import { emojis } from '../utils/Constants.js';
 import { stripIndents } from 'common-tags';
-
-type messageAndHubSettings = messageData & { hub: { settings: number } | null };
 
 export default class ReactionUpdater extends Factory {
   public async listenForReactions(
@@ -45,12 +43,18 @@ export default class ReactionUpdater extends Factory {
       include: { hub: { select: { settings: true } } },
     });
 
-    if (!messageInDb || !reaction.message.inGuild() || !ReactionUpdater.runChecks(messageInDb)) {
+    if (
+      !messageInDb ||
+      !reaction.message.inGuild() ||
+      !messageInDb.hub ||
+      !messageInDb.hubId ||
+      !new HubSettingsBitField(messageInDb.hub.settings).has('Reactions')
+    ) {
       return;
     }
 
     const { userBlacklisted, serverBlacklisted } = await ReactionUpdater.checkBlacklists(
-      messageInDb,
+      messageInDb.hubId,
       reaction.message.guildId,
       user.id,
     );
@@ -81,7 +85,7 @@ export default class ReactionUpdater extends Factory {
     ReactionUpdater.updateReactions(messageInDb.channelAndMessageIds, dbReactions);
   }
 
-  @Interaction('reaction_')
+  @RegisterInteractionHandler('reaction_')
   async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction) {
     await interaction.deferUpdate();
 
@@ -96,12 +100,18 @@ export default class ReactionUpdater extends Factory {
       },
     });
 
-    if (!messageInDb || !interaction.inCachedGuild() || !ReactionUpdater.runChecks(messageInDb)) {
+    if (
+      !messageInDb ||
+      !interaction.inCachedGuild() ||
+      !messageInDb.hub ||
+      !messageInDb.hubId ||
+      !new HubSettingsBitField(messageInDb.hub.settings).has('Reactions')
+    ) {
       return;
     }
 
     const { userBlacklisted, serverBlacklisted } = await ReactionUpdater.checkBlacklists(
-      messageInDb,
+      messageInDb.hubId,
       interaction.guildId,
       interaction.user.id,
     );
@@ -223,10 +233,12 @@ export default class ReactionUpdater extends Factory {
       if (interaction.isStringSelectMenu()) {
         // FIXME seems like emojiAlreadyReacted is getting mutated somewhere
         const action = emojiAlreadyReacted.includes(interaction.user.id) ? 'reacted' : 'unreacted';
-        interaction.followUp({
-          content: `You have ${action} with ${reactedEmoji}!`,
-          ephemeral: true,
-        }).catch(() => null);
+        interaction
+          .followUp({
+            content: `You have ${action} with ${reactedEmoji}!`,
+            ephemeral: true,
+          })
+          .catch(() => null);
       }
 
       // reflect the changes in the message's buttons
@@ -313,27 +325,9 @@ export default class ReactionUpdater extends Factory {
     });
   }
 
-  static runChecks(messageInDb: messageAndHubSettings) {
-    if (
-      !messageInDb.hub ||
-      !messageInDb.hubId ||
-      !new HubSettingsBitField(messageInDb.hub.settings).has('Reactions')
-    ) {
-      return false;
-    }
-
-    return true;
-  }
-
-  static async checkBlacklists(
-    messageInDb: messageAndHubSettings | null,
-    guildId: string,
-    userId: string,
-  ) {
-    if (!messageInDb?.hubId) return { userBlacklisted: false, serverBlacklisted: false };
-
-    const userBlacklisted = await BlacklistManager.fetchUserBlacklist(messageInDb.hubId, userId);
-    const guildBlacklisted = await BlacklistManager.fetchUserBlacklist(messageInDb.hubId, guildId);
+  static async checkBlacklists(hubId: string, guildId: string, userId: string) {
+    const userBlacklisted = await BlacklistManager.fetchUserBlacklist(hubId, userId);
+    const guildBlacklisted = await BlacklistManager.fetchUserBlacklist(hubId, guildId);
     if (userBlacklisted || guildBlacklisted) {
       return { userBlacklisted, serverBlacklisted: guildBlacklisted };
     }

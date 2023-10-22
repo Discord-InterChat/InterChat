@@ -6,7 +6,7 @@ import {
   OAuth2Scopes,
 } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
-import { emojis } from '../../../utils/Constants.js';
+import { URLs, emojis } from '../../../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 
 export default class Invite extends BaseCommand {
@@ -21,7 +21,7 @@ export default class Invite extends BaseCommand {
       permissions: 292662144192n,
     });
 
-    const InviteButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
+    const InviteButton = new ActionRowBuilder<ButtonBuilder>().addComponents([
       new ButtonBuilder()
         .setLabel('Invite Me!')
         .setURL(inviteLink)
@@ -32,10 +32,9 @@ export default class Invite extends BaseCommand {
     await interaction.reply({
       content: stripIndents`
       Thank you for choosing to invite InterChat. Simply click the button below to invite me!
-      !
 
-      - **__Support Server__:** https://discord.gg/6bhXQynAPs`,
-      components: [InviteButtons],
+      - **__Support Server__:** ${URLs.SUPPORT_INVITE}`,
+      components: [InviteButton],
     });
   }
 }

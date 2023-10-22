@@ -9,7 +9,7 @@ import {
 import db from '../../../utils/Db.js';
 import BaseCommand from '../../BaseCommand.js';
 import { cpus, totalmem } from 'os';
-import { colors, isDevBuild } from '../../../utils/Constants.js';
+import { URLs, colors, isDevBuild } from '../../../utils/Constants.js';
 import { msToReadable } from '../../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
 
@@ -34,7 +34,6 @@ export default class Stats extends BaseCommand {
 
     const uptime = msToReadable(interaction.client.uptime);
     const docsLink = 'https://discord-interchat.github.io/docs';
-    const supportServer = 'https://discord.gg/6bhXQynAPs';
 
     const embed = new EmbedBuilder()
       .setColor(colors.invisible)
@@ -86,8 +85,16 @@ export default class Stats extends BaseCommand {
       ]);
 
     const linksRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder().setLabel('Support').setStyle(ButtonStyle.Link).setURL(supportServer),
       new ButtonBuilder().setLabel('Guide').setStyle(ButtonStyle.Link).setURL(docsLink),
+      new ButtonBuilder()
+        .setLabel('Support Server')
+        .setStyle(ButtonStyle.Link)
+        .setURL(URLs.SUPPORT_INVITE),
+      new ButtonBuilder()
+        .setStyle(ButtonStyle.Link)
+        .setLabel('Vote!')
+        .setEmoji('🗳️')
+        .setURL('https://top.gg/bot/769921109209907241/vote'),
       new ButtonBuilder()
         .setLabel('Invite')
         .setStyle(ButtonStyle.Link)

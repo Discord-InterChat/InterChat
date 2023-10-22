@@ -17,6 +17,7 @@ export const interactionsMap = new Collection<string, InteractionFunction | unde
 export default abstract class BaseCommand {
   abstract readonly data: RESTPostAPIApplicationCommandsJSONBody;
   readonly staffOnly?: boolean;
+  readonly cooldown?: number;
   readonly description?: string;
   static readonly subcommands?: Collection<string, BaseCommand>;
 

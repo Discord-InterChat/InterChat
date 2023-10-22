@@ -6,7 +6,7 @@ export type InteractionFunction = (
 ) => Promise<unknown> | void;
 
 // Decorator function to call a specified method when an interaction is created (ie. interactionCreate event)
-export function Interaction(customId: string): MethodDecorator {
+export function RegisterInteractionHandler(customId: string): MethodDecorator {
   return function(
     targetClass: Record<string, any>,
     propertyKey: string | symbol,

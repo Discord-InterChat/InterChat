@@ -11,7 +11,7 @@ import Hub from './index.js';
 import { hubs } from '@prisma/client';
 import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFields.js';
 import { colors, emojis } from '../../../../utils/Constants.js';
-import { Interaction } from '../../../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { CustomID } from '../../../../structures/CustomID.js';
 import { StringSelectMenuInteraction } from 'discord.js';
 import { errorEmbed } from '../../../../utils/Utils.js';
@@ -45,10 +45,19 @@ export default class Settings extends Hub {
     await interaction.reply({ embeds: [embed], components: [selects] });
   }
 
-  @Interaction('hub_settings')
+  @RegisterInteractionHandler('hub_settings')
   async handleComponents(interaction: StringSelectMenuInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const hubName = customId.args[0];
+
+    if (interaction.user.id !== customId.args[1]) {
+      return interaction.reply({
+        embeds: [
+          errorEmbed('Sorry, you can\'t perform this action. Please run the command yourself.'),
+        ],
+        ephemeral: true,
+      });
+    }
 
     // respond to select menu
     const selected = interaction.values[0] as HubSettingsString;
@@ -57,7 +66,11 @@ export default class Settings extends Hub {
     // & only allow network channels to be marked as NSFW
     if (selected === 'BlockNSFW') {
       return interaction.reply({
-        embeds: [errorEmbed(`${emojis.no} This setting cannot be changed yet. Please wait for the next update.`)],
+        embeds: [
+          errorEmbed(
+            `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
+          ),
+        ],
         ephemeral: true,
       });
     }

@@ -19,12 +19,17 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
 import db from '../../../utils/Db.js';
-import { Interaction } from '../../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
 import { buildEmbed } from '../../../scripts/network/buildEmbed.js';
 import { buildConnectionButtons } from '../../../scripts/network/components.js';
 import { emojis } from '../../../utils/Constants.js';
 import { CustomID } from '../../../structures/CustomID.js';
-import { disableComponents, errorEmbed, getOrCreateWebhook } from '../../../utils/Utils.js';
+import {
+  disableComponents,
+  errorEmbed,
+  getOrCreateWebhook,
+  setComponentExpiry,
+} from '../../../utils/Utils.js';
 
 export default class Connection extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -48,7 +53,7 @@ export default class Connection extends BaseCommand {
     const isInDb = await networkManager.fetchConnection({ channelId });
 
     if (!isInDb) {
-      interaction.reply({
+      await interaction.reply({
         content: `${emojis.no} This connection does not exist.`,
         ephemeral: true,
       });
@@ -118,6 +123,11 @@ export default class Connection extends BaseCommand {
     });
 
     // TODO Button expiration
+    setComponentExpiry(
+      interaction.client.getScheduler(),
+      await interaction.fetchReply(),
+      60 * 10_000,
+    );
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
@@ -143,18 +153,14 @@ export default class Connection extends BaseCommand {
     interaction.respond(await Promise.all(filtered));
   }
 
-  @Interaction('connection')
+  @RegisterInteractionHandler('connection')
   async handleComponents(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.args[0];
 
     if (customId.args.at(1) && customId.args[1] !== interaction.user.id) {
       interaction.reply({
-        embeds: [
-          errorEmbed(
-            `${emojis.no} This button is not for you. Execute the command yourself to use this button.`,
-          ),
-        ],
+        embeds: [errorEmbed('Sorry, you can\'t perform this action. Please use the command yourself.')],
         ephemeral: true,
       });
       return;
@@ -253,7 +259,27 @@ export default class Connection extends BaseCommand {
         }
 
         case 'embed_color': {
-          // TODO
+          const modal = new ModalBuilder()
+            .setTitle('Set Embed Color')
+            .setCustomId(
+              new CustomID()
+                .setIdentifier('connectionModal', 'embed_color')
+                .addArgs(channelId)
+                .toString(),
+            )
+            .addComponents(
+              new ActionRowBuilder<TextInputBuilder>().addComponents(
+                new TextInputBuilder()
+                  .setCustomId('embed_color')
+                  .setStyle(TextInputStyle.Short)
+                  .setLabel('Embed Color')
+                  .setPlaceholder('Provide a hex color code or leave blank to remove.')
+                  .setValue(isInDb.embedColor || '#000000')
+                  .setRequired(false),
+              ),
+            );
+
+          await interaction.showModal(modal);
           break;
         }
 
@@ -294,33 +320,61 @@ export default class Connection extends BaseCommand {
     }
   }
 
-  @Interaction('connectionModal')
+  @RegisterInteractionHandler('connectionModal')
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    if (customId.prefix !== 'connectionModal') return;
+    if (customId.postfix === 'invite') {
+      const invite = interaction.fields.getTextInputValue('connInviteField');
+      const channelId = customId.args[0];
+      const networkManager = interaction.client.getNetworkManager();
 
-    const invite = interaction.fields.getTextInputValue('connInviteField');
-    const channelId = customId.args[0];
-    const networkManager = interaction.client.getNetworkManager();
+      if (!invite) {
+        await networkManager.updateConnection({ channelId }, { invite: { unset: true } });
+        await interaction.reply({ content: `${emojis.yes} Invite Removed.`, ephemeral: true });
+        return;
+      }
 
-    if (!invite) {
-      await networkManager.updateConnection({ channelId }, { invite: { unset: true } });
-      await interaction.reply({ content: `${emojis.yes} Invite Removed.`, ephemeral: true });
-      return;
+      const isValid = await interaction.client?.fetchInvite(invite).catch(() => null);
+
+      if (isValid?.guild?.id !== interaction.guildId) {
+        await interaction.reply({ content: `${emojis.no} Invalid Invite.`, ephemeral: true });
+        return;
+      }
+
+      await networkManager.updateConnection({ channelId }, { invite });
+
+      await interaction.reply({
+        content: `${emojis.yes} Invite Added. Others can now join the server by using \`Message Info\` Apps command in the network.`,
+        ephemeral: true,
+      });
+    }
+    else if (customId.postfix === 'embed_color') {
+      const embedColor = interaction.fields.getTextInputValue('embed_color');
+
+      const hex_regex = /^#[0-9A-F]{6}$/i;
+      if (embedColor && !hex_regex.test(embedColor)) {
+        interaction.reply({
+          content: `${emojis.no} Invalid hex color code. Please try again.`,
+          ephemeral: true,
+        });
+        return;
+      }
+
+      await db.connectedList.update({
+        where: { channelId: customId.args[0] },
+        data: { embedColor: embedColor ? embedColor : { unset: true } },
+      });
+
+      await interaction.reply({
+        content: `${emojis.yes} Embed color successfully ${
+          embedColor ? `set to \`${embedColor}\`!` : 'unset'
+        }`,
+        ephemeral: true,
+      });
     }
 
-    const isValid = await interaction.client?.fetchInvite(invite).catch(() => null);
-
-    if (isValid?.guild?.id !== interaction.guildId) {
-      await interaction.reply({ content: `${emojis.no} Invalid Invite.`, ephemeral: true });
-      return;
-    }
-
-    await networkManager.updateConnection({ channelId }, { invite });
-
-    await interaction.reply({
-      content: `${emojis.yes} Invite Added. Others can now join the server by using \`Message Info\` Apps command in the network.`,
-      ephemeral: true,
-    });
+    interaction.message
+      ?.edit({ embeds: [await buildEmbed(interaction, customId.args[0])] })
+      .catch(() => null);
   }
 }

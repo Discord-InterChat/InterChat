@@ -15,9 +15,9 @@ import Hub from './index.js';
 import { hubs, connectedList } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../../utils/Constants.js';
-import { Interaction } from '../../../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { CustomID } from '../../../../structures/CustomID.js';
-import { errorEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
+import { checkAndFetchImgurUrl, errorEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -52,7 +52,7 @@ export default class Manage extends Hub {
     );
   }
 
-  @Interaction('hub_manage')
+  @RegisterInteractionHandler('hub_manage')
   async handleComponents(interaction: StringSelectMenuInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
 
@@ -135,8 +135,9 @@ export default class Manage extends Hub {
             new ActionRowBuilder<TextInputBuilder>().addComponents(
               new TextInputBuilder()
                 .setLabel('Enter Banner URL')
-                .setPlaceholder('Enter a valid imgur image URL.')
+                .setPlaceholder('Enter a valid imgur URL. Leave blank to remove.')
                 .setStyle(TextInputStyle.Short)
+                .setRequired(false)
                 .setCustomId('banner'),
             ),
           );
@@ -170,7 +171,7 @@ export default class Manage extends Hub {
     }
   }
 
-  @Interaction('hub_manage_modal')
+  @RegisterInteractionHandler('hub_manage_modal')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const hubName = customId.args[0];
@@ -216,10 +217,8 @@ export default class Manage extends Hub {
         const newIcon = interaction.fields.getTextInputValue('icon');
 
         // check if icon is a valid imgur link
-        const imgurLink = newIcon.match(
-          /\bhttps?:\/\/i\.imgur\.com\/[A-Za-z0-9]+\.(?:jpg|jpeg|gif|png|bmp)\b/g,
-        );
-        if (!imgurLink) {
+        const iconUrl = await checkAndFetchImgurUrl(newIcon);
+        if (!iconUrl) {
           await interaction.reply({
             content: 'Invalid icon URL. Please make sure it is a valid imgur image URL.',
             ephemeral: true,
@@ -229,7 +228,7 @@ export default class Manage extends Hub {
 
         await db.hubs.update({
           where: { name: hubName },
-          data: { iconUrl: imgurLink[0] },
+          data: { iconUrl },
         });
 
         await interaction.reply({
@@ -242,12 +241,20 @@ export default class Manage extends Hub {
       // change banner modal
       case 'banner': {
         const newBanner = interaction.fields.getTextInputValue('banner');
-        const isImgurUrl = newBanner.match(
-          /\bhttps?:\/\/i\.imgur\.com\/[A-Za-z0-9]+\.(?:jpg|jpeg|gif|png|bmp)\b/g,
-        );
+
+        if (!newBanner) {
+          await db.hubs.update({
+            where: { name: hubName },
+            data: { bannerUrl: { unset: true } },
+          });
+
+          await interaction.reply({ content: 'Successfully removed banner!', ephemeral: true });
+        }
+
+        const bannerUrl = await checkAndFetchImgurUrl(newBanner);
 
         // if banner is not a valid imgur link
-        if (!isImgurUrl) {
+        if (!bannerUrl) {
           await interaction.reply({
             content: 'Invalid banner URL. Please make sure it is a valid imgur image URL.',
             ephemeral: true,
@@ -257,13 +264,10 @@ export default class Manage extends Hub {
 
         await db.hubs.update({
           where: { name: hubName },
-          data: { bannerUrl: isImgurUrl[0] },
+          data: { bannerUrl },
         });
 
-        await interaction.reply({
-          content: 'Successfully updated banner!',
-          ephemeral: true,
-        });
+        await interaction.reply({ content: 'Successfully updated banner!', ephemeral: true });
         break;
       }
 

@@ -9,11 +9,11 @@ import {
   ChatInputCommandInteraction,
   StringSelectMenuInteraction,
 } from 'discord.js';
-import { colors, emojis } from '../../../utils/Constants.js';
+import { URLs, colors, emojis } from '../../../utils/Constants.js';
 import BaseCommand from '../../BaseCommand.js';
 import { getCredits, setComponentExpiry } from '../../../utils/Utils.js';
 import { CustomID } from '../../../structures/CustomID.js';
-import { Interaction } from '../../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
 
 export default class Help extends BaseCommand {
   readonly data = {
@@ -95,7 +95,7 @@ export default class Help extends BaseCommand {
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Support')
-        .setURL('https://discord.gg/6bhXQynAPs'),
+        .setURL(URLs.SUPPORT_INVITE),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Vote me!')
@@ -115,7 +115,7 @@ export default class Help extends BaseCommand {
     );
   }
 
-  @Interaction('credits')
+  @RegisterInteractionHandler('credits')
   async handleComponents(interaction: StringSelectMenuInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     if (interaction.user.id !== customId.args[0]) {
@@ -209,7 +209,7 @@ export default class Help extends BaseCommand {
 
         const creditsEmbed = EmbedBuilder.from(templateEmbed).setDescription(`
           ## ${emojis.wand} The Team
-          InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our support server. 
+          InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${URLs.SUPPORT_INVITE}). 
 
           ${creditsDivider}
           ${emojis.interchatCircle} **Design:** 
@@ -223,13 +223,13 @@ export default class Help extends BaseCommand {
           ${emojis.dotBlue} @${members[2]?.username}
           ${emojis.dotBlue} @${members[0].username}
 
-          ${emojis.staff} **Staff: (Recruiting!)**
+          ${emojis.staff} **Staff: ([Recruiting!](https://forms.gle/8zu7cxx4XPbEmMXJ9))**
           ${emojis.dotBlue} @${members[4]?.username}
           ${emojis.dotBlue} @${members[3]?.username}
           ${emojis.dotBlue} @${members[5]?.username}
 
           ${linksDivider}
-          [Guide](https://discord-interchat.github.io/docs) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](https://discord.gg/6bhXQynAPs) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](https://discord-interchat.github.io/legal/privacy) • [Terms](https://discord-interchat.github.io/legal/terms) 
+          [Guide](https://discord-interchat.github.io/docs) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${URLs.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](https://discord-interchat.github.io/docs/legal/privacy) • [Terms](https://discord-interchat.github.io/docs/legal/terms) 
         `);
 
         await interaction.editReply({ embeds: [creditsEmbed] });

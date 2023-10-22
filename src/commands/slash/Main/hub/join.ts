@@ -2,7 +2,7 @@ import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
 import { emojis } from '../../../../utils/Constants.js';
 import Hub from './index.js';
 import db from '../../../../utils/Db.js';
-import BlacklistManager from '../../../../structures/BlacklistManager.js';
+import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { hubs } from '@prisma/client';
 import { getOrCreateWebhook } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
@@ -87,7 +87,15 @@ export default class JoinSubCommand extends Hub {
     // display onboarding message, also prevents user from joining twice
     const onboardingCompleted = await showOnboarding(interaction, hub.name, channel.id);
     // if user cancels onboarding or it times out
-    if (!onboardingCompleted) return await interaction.deleteReply().catch(() => null);
+    if (!onboardingCompleted) {
+      return await interaction.deleteReply().catch(() => null);
+    }
+    else if (onboardingCompleted === 'in-progress') {
+      return await interaction.reply({
+        content: `${emojis.no} An attempt to join a hub in <#${channel.id}> is currently in progress. Please wait for it to complete before making another attempt.`,
+        ephemeral: true,
+      });
+    }
 
     const webhook = await getOrCreateWebhook(channel);
     if (!webhook) return;

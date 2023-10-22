@@ -3,7 +3,6 @@ import {
   ApplicationCommandType,
   ButtonBuilder,
   ButtonStyle,
-  CacheType,
   EmbedBuilder,
   MessageComponentInteraction,
   MessageContextMenuCommandInteraction,
@@ -17,8 +16,9 @@ import BaseCommand from '../BaseCommand.js';
 import db from '../../utils/Db.js';
 import { emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../structures/CustomID.js';
-import { Interaction } from '../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { errorEmbed } from '../../utils/Utils.js';
+import parse from 'parse-duration';
 
 export default class Blacklist extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -44,7 +44,7 @@ export default class Blacklist extends BaseCommand {
       interaction.reply({
         embeds: [
           errorEmbed(
-            'This message was not sent in a network, has expired or you lack required permissions to perform this action.',
+            `${emojis.info} This message was not sent in a hub, has expired, or you lack permissions to perform this action.`,
           ),
         ],
         ephemeral: true,
@@ -89,13 +89,13 @@ export default class Blacklist extends BaseCommand {
     await interaction.reply({ embeds: [embed], components: [buttons] });
   }
 
-  @Interaction('blacklist')
-  async handleComponents(interaction: MessageComponentInteraction<CacheType>): Promise<void> {
+  @RegisterInteractionHandler('blacklist')
+  async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
 
     if (interaction.user.id !== customId.args[0]) {
       await interaction.reply({
-        embeds: [errorEmbed('This is not your action to perform. Use the command yourself.')],
+        embeds: [errorEmbed('Sorry, you can\'t perform this action. Please use the command yourself.')],
         ephemeral: true,
       });
       return;
@@ -136,8 +136,8 @@ export default class Blacklist extends BaseCommand {
     await interaction.showModal(modal);
   }
 
-  @Interaction('blacklist_modal')
-  async handleModals(interaction: ModalSubmitInteraction<CacheType>): Promise<void> {
+  @RegisterInteractionHandler('blacklist_modal')
+  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferUpdate();
 
     const customId = CustomID.parseCustomId(interaction.customId);
@@ -157,8 +157,8 @@ export default class Blacklist extends BaseCommand {
     }
 
     const reason = interaction.fields.getTextInputValue('reason');
-    const duration = parseInt(interaction.fields.getTextInputValue('duration'));
-    const expires = !isNaN(duration) ? new Date(Date.now() + duration) : undefined;
+    const duration = parse(interaction.fields.getTextInputValue('duration'));
+    const expires = duration ? new Date(Date.now() + duration) : undefined;
 
     const successEmbed = new EmbedBuilder().setColor('Green').addFields(
       {
@@ -193,7 +193,7 @@ export default class Blacklist extends BaseCommand {
       }
       if (user) {
         blacklistManager
-          .notifyBlacklist(user, messageInDb.hubId, expires, reason)
+          .notifyBlacklist('user', messageInDb.authorId, messageInDb.hubId, expires, reason)
           .catch(() => null);
       }
 
@@ -212,6 +212,16 @@ export default class Blacklist extends BaseCommand {
         reason,
         expires,
       );
+
+      // Notify server of blacklist
+      await blacklistManager.notifyBlacklist(
+        'server',
+        messageInDb.serverId,
+        messageInDb.hubId,
+        expires,
+        reason,
+      );
+
       await db.connectedList.deleteMany({
         where: { serverId: messageInDb.serverId, hubId: messageInDb.hubId },
       });
@@ -225,7 +235,6 @@ export default class Blacklist extends BaseCommand {
         );
       }
 
-      // TODO: Notify server of blacklist
       await interaction.editReply({ embeds: [successEmbed], components: [] });
     }
   }

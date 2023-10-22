@@ -199,100 +199,66 @@ export default class Hub extends BaseCommand {
           },
         ],
       },
+      {
+        type: ApplicationCommandOptionType.SubcommandGroup,
+        name: 'invite',
+        description: 'Manage invites for your private hubs.',
+        options: [
+          {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: 'create',
+            description: '🔗 Create a new invite code to your private hub',
+            options: [
+              {
+                type: ApplicationCommandOptionType.String,
+                name: 'hub',
+                description: 'The name of the hub you wish to create this invite for',
+                required: true,
+                autocomplete: true,
+              },
+              {
+                type: ApplicationCommandOptionType.Number,
+                name: 'expiry',
+                description: 'The expiry of the invite link. Eg. 10h (10 hours from now)',
+                required: false,
+              },
+            ],
+          },
+          {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: 'revoke',
+            description: '🚫 Revoke an invite code to your hub',
+            options: [
+              {
+                type: ApplicationCommandOptionType.String,
+                name: 'code',
+                description: 'The invite code',
+                required: true,
+              },
+            ],
+          },
+          {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: 'list',
+            description: 'List all moderators on a hub',
+            options: [
+              {
+                type: ApplicationCommandOptionType.String,
+                name: 'hub',
+                description: 'The name of the hub',
+                required: true,
+                autocomplete: true,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        type: ApplicationCommandOptionType.Subcommand,
+        name: 'joined',
+        description: '📜 List all hubs you have joined from this server.',
+      },
     ],
-    /*
-          .addSubcommandGroup((subcommandGroup) =>
-      subcommandGroup
-        .setName('moderator')
-        .setDescription('Manage hub moderators')
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('add')
-            .setDescription('Add a new hub moderator')
-            .addStringOption(stringOpt =>
-              stringOpt
-                .setName('hub')
-                .setDescription('The name of the hub you wish to add moderators to')
-                .setAutocomplete(true)
-                .setRequired(true),
-            )
-            .addUserOption(stringOpt =>
-              stringOpt
-                .setName('user')
-                .setDescription('User who will become hub moderator')
-                .setRequired(true),
-            )
-            .addStringOption(stringOpt =>
-              stringOpt
-                .setName('role')
-                .setDescription('Determines what hub permissions they have')
-                .addChoices(
-                  { name: 'Network Moderator', value: 'network_mod' },
-                  { name: 'Hub Manager', value: 'manager' },
-                )
-                .setRequired(false),
-            ),
-        )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('remove')
-            .setDescription('Remove a user from moderator position in your hub')
-            .addStringOption(stringOpt =>
-              stringOpt
-                .setName('hub')
-                .setDescription('The name of the hub you wish to add moderators to')
-                .setAutocomplete(true)
-                .setRequired(true),
-            )
-            .addUserOption(userOpt =>
-              userOpt
-                .setName('user')
-                .setDescription('The user who should be removed')
-                .setRequired(true),
-            ),
-        )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('update')
-            .setDescription('Update the role of a hub moderator')
-            .addStringOption(stringOpt =>
-              stringOpt
-                .setName('hub')
-                .setDescription('The name of the hub')
-                .setAutocomplete(true)
-                .setRequired(true),
-            )
-            .addUserOption(userOpt =>
-              userOpt
-                .setName('user')
-                .setDescription('The moderator you wish the change')
-                .setRequired(true),
-            )
-            .addStringOption(stringOpt =>
-              stringOpt
-                .setName('role')
-                .setDescription('The moderator role to update')
-                .setRequired(true)
-                .addChoices(
-                  { name: 'Network Moderator', value: 'network_mod' },
-                  { name: 'Hub Manager', value: 'manager' },
-                ),
-            ),
-        )
-        .addSubcommand((subcommand) =>
-          subcommand
-            .setName('list')
-            .setDescription('List all moderators on a hub')
-            .addStringOption(stringOpt =>
-              stringOpt
-                .setName('hub')
-                .setDescription('The name of the hub')
-                .setAutocomplete(true)
-                .setRequired(true),
-            ),
-        ),
-    )
-      */
   };
 
   // subcommand classes are added to this map in their respective files

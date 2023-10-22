@@ -13,7 +13,7 @@ import { captureException } from '@sentry/node';
 import { emojis } from '../../../../utils/Constants.js';
 import { deleteHubs, setComponentExpiry } from '../../../../utils/Utils.js';
 import { CustomID } from '../../../../structures/CustomID.js';
-import { Interaction } from '../../../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 
 export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -64,9 +64,8 @@ export default class Delete extends Hub {
     setComponentExpiry(interaction.client.getScheduler(), await interaction.fetchReply(), 10_000);
   }
 
-  @Interaction('hub_delete')
+  @RegisterInteractionHandler('hub_delete')
   async handleComponents(interaction: ButtonInteraction) {
-    console.log(interaction.customId);
     const customId = CustomID.parseCustomId(interaction.customId);
     const userId = customId.args[0];
     const hubId = customId.args[1];

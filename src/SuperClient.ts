@@ -10,15 +10,16 @@ import {
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './commands/BaseCommand.js';
 import Logger from './utils/Logger.js';
-import Scheduler from './structures/Scheduler.js';
-import NSFWClient from './structures/NSFWDetection.js';
-import CommandManager from './structures/CommandManager.js';
-import NetworkManager from './structures/NetworkManager.js';
-import ReactionUpdater from './updater/ReactionUpdater.js';
-import BlacklistManager from './structures/BlacklistManager.js';
-import { RemoveMethods } from './typings/index.js';
 import Sentry from '@sentry/node';
+import Scheduler from './services/SchedulerService.js';
+import NSFWClient from './structures/NSFWDetection.js';
+import CommandManager from './managers/CommandManager.js';
+import NetworkManager from './managers/NetworkManager.js';
+import ReactionUpdater from './updater/ReactionUpdater.js';
+import BlacklistManager from './managers/BlacklistManager.js';
+import { RemoveMethods } from './typings/index.js';
 import { isDevBuild } from './utils/Constants.js';
+import CooldownService from './services/CooldownService.js';
 
 export default abstract class SuperClient extends Client {
   readonly logger = Logger;
@@ -28,7 +29,7 @@ export default abstract class SuperClient extends Client {
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;
 
-  readonly commandCooldowns = new Collection<string, number>();
+  readonly commandCooldowns = new CooldownService();
   readonly reactionCooldowns = new Collection<string, number>();
   readonly cluster = new ClusterClient(this);
 

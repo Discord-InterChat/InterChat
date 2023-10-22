@@ -5,6 +5,12 @@ export default class Scheduler {
     this.tasks = new Map();
   }
 
+  /**
+   * Add a recurring task (interval)
+   * @param name The name of the task (must be unique)
+   * @param ms The interval in milliseconds
+   * @param task The function to execute every interval
+   */
   addRecurringTask(name: string, ms: number | Date, task: () => void): void {
     if (this.tasks.has(name)) {
       throw new Error(`Task with name ${name} already exists.`);
@@ -17,6 +23,12 @@ export default class Scheduler {
     this.tasks.set(name, { task, ms, timeout: intervalId });
   }
 
+  /**
+   * Add a task (timeout)
+   * @param name The name of the task (must be unique)
+   * @param ms The interval in milliseconds
+   * @param task The function to execute after the interval
+   */
   addTask(name: string, ms: number | Date, task: () => void): void {
     if (this.tasks.has(name)) {
       throw new Error(`Task with name ${name} already exists.`);
@@ -29,6 +41,11 @@ export default class Scheduler {
     this.tasks.set(name, { task, ms, timeout });
   }
 
+  /**
+   * Stop a task by name, can be used for both recurring and timeout tasks
+   * @param taskName The name of the task
+   * @returns true if task was stopped, undefined if task was not found
+   */
   stopTask(taskName: string): boolean | undefined {
     const taskInfo = this.tasks.get(taskName);
     if (taskInfo) {
@@ -37,6 +54,11 @@ export default class Scheduler {
     }
     return;
   }
+
+  /**
+   * Stop all tasks
+   * @returns void
+   */
   stopAllTasks(): void {
     this.tasks.forEach((taskInfo, taskName) => {
       clearInterval(taskInfo.timeout);
@@ -44,6 +66,10 @@ export default class Scheduler {
     });
   }
 
+  /**
+   * Get all currently running task names
+   * @returns An array of task names
+   */
   get taskNames(): string[] {
     return Array.from(this.tasks.keys());
   }

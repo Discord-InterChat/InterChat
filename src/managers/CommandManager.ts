@@ -1,10 +1,9 @@
 import { access, constants, readdirSync, statSync } from 'fs';
 import { join, dirname } from 'path';
 import Factory from '../Factory.js';
-import Logger from '../utils/Logger.js';
 import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
 import { emojis } from '../utils/Constants.js';
-import { CustomID } from './CustomID.js';
+import { CustomID } from '../structures/CustomID.js';
 import { Interaction } from 'discord.js';
 import { captureException } from '@sentry/node';
 import { errorEmbed } from '../utils/Utils.js';
@@ -25,16 +24,62 @@ export default class CommandManager extends Factory {
         if (command?.autocomplete) command.autocomplete(interaction);
       }
       else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
-        // const cooldown = this.client.commandCooldowns.get(interaction.user.id);
-        // if (cooldown && cooldown > Date.now()) {
-        //   return await interaction.reply({
-        //     content: `You are on a cooldown! Use this command again <t:${Math.ceil(cooldown / 1000)}:R>.`,
-        //     ephemeral: true,
-        //   });
-        // }
+        const command = this.client.commands.get(interaction.commandName);
+        if (!command) return;
+
+        let remainingCooldown: number | undefined = undefined;
+
+        if (interaction.isChatInputCommand()) {
+          const subcommandGroup = interaction.options.getSubcommandGroup();
+          const subcommand = interaction.options.getSubcommand();
+
+          const baseCooldownName = `${interaction.user.id}-${interaction.commandName}`;
+          const subcommandKey = subcommandGroup
+            ? `${baseCooldownName}-${subcommandGroup}-${subcommand}`
+            : subcommand
+              ? `${baseCooldownName}-${subcommand}`
+              : baseCooldownName;
+
+          remainingCooldown = this.client.commandCooldowns.getRemainingCooldown(subcommandKey);
+
+          if (subcommand) {
+            const commandConstructor = command.constructor as typeof BaseCommand;
+            // this wont work for blacklist commands because of how that command is structured...
+            const subcommandClass = commandConstructor.subcommands?.get(
+              subcommandGroup || subcommand,
+            );
+
+            if (subcommandClass?.cooldown) {
+              this.client.commandCooldowns.setCooldown(subcommandKey, subcommandClass.cooldown);
+            }
+          }
+        }
+        else if (interaction.isContextMenuCommand()) {
+          remainingCooldown = this.client.commandCooldowns.getCooldown(
+            `${interaction.user.id}-${interaction.commandName}`,
+          );
+
+          // if command has cooldown, set cooldown for the user
+          if (command.cooldown) {
+            this.client.commandCooldowns.setCooldown(
+              `${interaction.user.id}-${interaction.commandName}`,
+              command.cooldown,
+            );
+          }
+        }
+
+        // check if command is in cooldown for the user
+        if (remainingCooldown) {
+          await interaction.reply({
+            content: `${emojis.timeout} This command is on a cooldown! You can use it again: <t:${
+              Math.ceil((Date.now() + remainingCooldown) / 1000)}:R>.`,
+            ephemeral: true,
+          });
+          return;
+        }
 
         // run the command
-        this.client.commands.get(interaction.commandName)?.execute(interaction);
+        command?.execute(interaction);
       }
       else {
         const customId = CustomID.parseCustomId(interaction.customId);
@@ -61,7 +106,7 @@ export default class CommandManager extends Factory {
       }
     }
     catch (e) {
-      Logger.error(e);
+      interaction.client.logger.error(e);
       captureException(e);
     }
   }

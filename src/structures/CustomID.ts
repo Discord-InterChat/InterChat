@@ -52,12 +52,12 @@ export class CustomID {
   }
 
   /**
- * Parses a custom ID in the specified format.
- * @param customId - The custom ID to parse.
- * @returns ParsedCustomId - The parsed custom ID object.
- */
+   * Parses a custom ID in the specified format.
+   * @param customId - The custom ID to parse.
+   * @returns ParsedCustomId - The parsed custom ID object.
+   */
   static parseCustomId(customId: string): ParsedCustomId {
-  // Split the customId by '&'
+    // Split the customId by '&'
     const split = customId.split('&');
 
     // Extract prefix and postfix
@@ -79,7 +79,6 @@ export class CustomID {
 
     return parsed;
   }
-
 
   /**
    * Converts the CustomID instance to its string representation.

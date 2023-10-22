@@ -8,7 +8,7 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import Hub from './index.js';
-import { Interaction } from '../../../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { CustomID } from '../../../../structures/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
@@ -53,7 +53,7 @@ export default class Leave extends Hub {
     setComponentExpiry(interaction.client.getScheduler(), await interaction.fetchReply(), 10_000);
   }
 
-  @Interaction('hub_leave')
+  @RegisterInteractionHandler('hub_leave')
   async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.args[0];

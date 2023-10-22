@@ -14,10 +14,10 @@ import {
   ThreadChannel,
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { channels, colors, emojis } from '../../../../utils/Constants.js';
+import { URLs, channels, colors, emojis } from '../../../../utils/Constants.js';
 import Support from './index.js';
 import { CustomID } from '../../../../structures/CustomID.js';
-import { Interaction } from '../../../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 
 export default class Report extends Support {
   static readonly reportModal = new ModalBuilder()
@@ -93,7 +93,7 @@ export default class Report extends Support {
     }
   }
 
-  @Interaction('report')
+  @RegisterInteractionHandler('report')
   async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
     if (interaction.isStringSelectMenu()) {
       const modal = new ModalBuilder()
@@ -130,7 +130,7 @@ export default class Report extends Support {
     }
   }
 
-  @Interaction('report_modal')
+  @RegisterInteractionHandler('report_modal')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const affected = customId.args[0];
@@ -274,7 +274,7 @@ export default class Report extends Support {
         }
       }
       await interaction.reply({
-        content: 'Report submitted. Join the support server to get updates on your report.',
+        content: `Report submitted. Join the [**support server**](${URLs.SUPPORT_INVITE}) to get updates on your report.`,
         ephemeral: true,
       });
     }

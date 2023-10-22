@@ -1,7 +1,7 @@
 import db from './utils/Db.js';
 import Logger from './utils/Logger.js';
-import Scheduler from './structures/Scheduler.js';
-import BlacklistManager from './structures/BlacklistManager.js';
+import Scheduler from './services/SchedulerService.js';
+import BlacklistManager from './managers/BlacklistManager.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { updateTopGGStats } from './updater/StatsUpdater.js';
 import { isDevBuild } from './utils/Constants.js';
@@ -10,11 +10,10 @@ import { wait } from './utils/Utils.js';
 import 'dotenv/config';
 
 const manager = new ClusterManager('build/InterChat.js', {
-  totalShards: 1,
+  totalShards: 'auto',
   mode: 'process',
   token: process.env.TOKEN,
   shardsPerClusters: 1,
-  shardArgs: [`--production=${isDevBuild}`],
 });
 
 manager.spawn({ timeout: -1 });
@@ -47,17 +46,17 @@ const deleteOldMessages = async () => {
     .catch(() => null);
 };
 
-const loopThruBlacklists = (blacklists: (blacklistedServers | blacklistedUsers)[], scheduler: Scheduler) => {
+const processAndManageBlacklists = async (blacklists: (blacklistedServers | blacklistedUsers)[], scheduler: Scheduler) => {
   if (blacklists.length === 0) return;
 
   const blacklistManager = new BlacklistManager(scheduler);
   for (const blacklist of blacklists) {
     for (const { hubId, expires } of blacklist.hubs) {
       if (!expires) continue;
-
       if (expires < new Date()) {
         if ('serverId' in blacklist) blacklistManager.removeBlacklist('server', hubId, blacklist.serverId);
-        else blacklistManager.removeBlacklist('user', hubId, blacklist.userId);
+        else await blacklistManager.removeBlacklist('user', hubId, blacklist.userId);
+        continue;
       }
 
       blacklistManager.scheduleRemoval(
@@ -71,7 +70,7 @@ const loopThruBlacklists = (blacklists: (blacklistedServers | blacklistedUsers)[
 };
 
 manager.on('clusterCreate', async (cluster) => {
-  // last cluster
+  // if it is the last cluster and code is in production
   if (cluster.id === manager.totalClusters - 1 && !isDevBuild) {
     // give time for shards to connect
     await wait(10_000);
@@ -90,7 +89,7 @@ manager.on('clusterCreate', async (cluster) => {
 
     // remove expired blacklists or set new timers for them
     const query = { where: { hubs: { some: { expires: { isSet: true } } } } };
-    loopThruBlacklists(await db.blacklistedServers.findMany(query), scheduler);
-    loopThruBlacklists(await db.blacklistedUsers.findMany(query), scheduler);
+    processAndManageBlacklists(await db.blacklistedServers.findMany(query), scheduler);
+    processAndManageBlacklists(await db.blacklistedUsers.findMany(query), scheduler);
   }
 });

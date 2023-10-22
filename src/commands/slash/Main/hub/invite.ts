@@ -4,9 +4,10 @@ import { captureException } from '@sentry/node';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
-import Logger from '../../../../utils/Logger.js';
 
 export default class Invite extends Hub {
+  readonly cooldown = 3000; // 3 seconds
+
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const subcommand = interaction.options.getSubcommand();
 
@@ -96,7 +97,7 @@ export default class Invite extends Hub {
           });
         }
         catch (e) {
-          Logger.error(e);
+          interaction.client.logger.error(e);
           captureException(e);
           await interaction
             .reply({

@@ -11,13 +11,13 @@ import {
 import Hub from './index.js';
 import db from '../../../../utils/Db.js';
 import { stripIndents } from 'common-tags';
-import { Interaction } from '../../../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { HubSettingsBits } from '../../../../utils/BitFields.js';
 import { checkAndFetchImgurUrl, errorEmbed } from '../../../../utils/Utils.js';
 import { emojis } from '../../../../utils/Constants.js';
 
 export default class Create extends Hub {
-  // TODO: readonly cooldown = 60 * 60 * 1000;
+  readonly cooldown = 60 * 60 * 1000; // 1 hour
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const modal = new ModalBuilder()
@@ -71,7 +71,7 @@ export default class Create extends Hub {
     await interaction.showModal(modal);
   }
 
-  @Interaction('hub_create_modal')
+  @RegisterInteractionHandler('hub_create_modal')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     await interaction.deferReply({ ephemeral: true });
 
@@ -137,8 +137,9 @@ export default class Create extends Hub {
       },
     });
 
-    // FIXME this is a temp cooldown until we have a global cooldown system for commands & subcommands
-    // cooldowns.set(interaction.user.id, Date.now() + );
+    // set cooldown after creating a hub (because a failed hub creation should not trigger the cooldown)
+    interaction.client.commandCooldowns.setCooldown(`${interaction.user.id}-hub-create`, this.cooldown); // 1 hour
+
     const successEmbed = new EmbedBuilder()
       .setColor('Green')
       .setDescription(

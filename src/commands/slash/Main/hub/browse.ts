@@ -22,7 +22,7 @@ import { paginate } from '../../../../utils/Pagination.js';
 import { calculateAverageRating, getOrCreateWebhook } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { CustomID } from '../../../../structures/CustomID.js';
-import { Interaction } from '../../../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { stripIndents } from 'common-tags';
 
 export default class Browse extends Hub {
@@ -33,7 +33,7 @@ export default class Browse extends Hub {
       | 'popular'
       | 'recent'
       | undefined;
-    const hubName = interaction.options.getString('search') || undefined;
+    const hubName = interaction.options.getString('hub') ?? undefined;
 
     let sortedHubs: hubs[] = [];
 
@@ -128,9 +128,20 @@ export default class Browse extends Hub {
     });
   }
 
-  @Interaction('hub_browse')
+  @RegisterInteractionHandler('hub_browse')
   async handleComponents(interaction: ButtonInteraction | ChannelSelectMenuInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
+
+    const hubDetails = await db.hubs.findFirst({
+      where: { id: customId.args[0] },
+      include: { connections: true },
+    });
+    if (!hubDetails) {
+      return await interaction.reply({
+        content: 'Hub not found.',
+        ephemeral: true,
+      });
+    }
 
     if (customId.postfix === 'rate') {
       const ratingModal = new ModalBuilder()
@@ -152,21 +163,7 @@ export default class Browse extends Hub {
         );
       await interaction.showModal(ratingModal);
     }
-
-    const hubDetails = await db.hubs.findFirst({
-      where: { id: customId.args[0] },
-      include: { connections: true },
-    });
-
-
-    if (customId.postfix === 'join') {
-      if (!hubDetails) {
-        return await interaction.reply({
-          content: 'Hub not found.',
-          ephemeral: true,
-        });
-      }
-
+    else if (customId.postfix === 'join') {
       const alreadyJoined = hubDetails.connections.find((c) => c.serverId === interaction.guildId);
       if (alreadyJoined) {
         interaction.reply({
@@ -223,14 +220,10 @@ export default class Browse extends Hub {
         ephemeral: true,
       });
     }
-
-
-    else if (interaction.customId === 'cancel') {
+    else if (customId.postfix === 'cancel') {
       await interaction.deleteReply().catch(() => null);
       return;
     }
-
-
     else if (customId.postfix === 'channel_select' || customId.postfix === 'confirm') {
       if (!hubDetails) {
         return await interaction.reply({
@@ -242,12 +235,15 @@ export default class Browse extends Hub {
       if (!interaction.inCachedGuild()) return;
 
       const channel = interaction.isChannelSelectMenu()
-        ? (interaction.guild?.channels.cache.get(interaction.values[0]))
+        ? interaction.guild?.channels.cache.get(interaction.values[0])
         : interaction.channel;
 
       // for type safety
       if (channel?.type !== ChannelType.GuildText && !channel?.isThread()) {
-        await interaction.update(`${emojis.no} Only text and thread channels are supported!`);
+        await interaction.reply({
+          content: `${emojis.no} Only text and thread channels are supported!`,
+          ephemeral: true,
+        });
         return;
       }
 
@@ -265,51 +261,63 @@ export default class Browse extends Hub {
         return;
       }
 
-      if (interaction.customId === 'confirm' || interaction.customId === 'channel_select') {
-        const channelConnected = await db.connectedList.findFirst({
-          where: { channelId: channel.id },
+      const channelConnected = await db.connectedList.findFirst({
+        where: { channelId: channel.id },
+      });
+
+      if (channelConnected) {
+        await interaction.update({
+          content: 'This channel is already connected to another hub!',
+          embeds: [],
+          components: [],
         });
+        return;
+      }
 
-        if (channelConnected) {
-          interaction.update({
-            content: 'This channel is already connected to another hub!',
-            embeds: [],
-            components: [],
-          });
-          return;
-        }
-
-        // Show new users rules & info about network, also prevents user from joining twice
-        const onboardingCompleted = await showOnboarding(interaction, hubDetails.name, channel.id);
-        // if user cancels onboarding or it times out
-        if (!onboardingCompleted) return await interaction.deleteReply().catch(() => null);
-
-        const webhook = await getOrCreateWebhook(channel);
-        if (!webhook) return;
-
-        const networkManager = interaction.client.getNetworkManager();
-        // finally make the connection
-        await networkManager.createConnection({
-          serverId: channel.guildId,
-          channelId: channel.id,
-          parentId: channel.isThread() ? channel.parentId : undefined,
-          webhookURL: webhook.url,
-          hub: { connect: { id: hubDetails.id } },
-          connected: true,
-          compact: false,
-          profFilter: true,
-        });
-
-        await interaction.editReply({
-          content: `Successfully joined hub ${hubDetails.name} from ${channel}! Use \`/network manage\` to manage your connection. And \`/hub leave\` to leave the hub.`,
+      // Show new users rules & info about network, also prevents user from joining twice
+      const onboardingCompleted = await showOnboarding(
+        interaction,
+        hubDetails.name,
+        channel.id,
+        true,
+      );
+      // if user cancels onboarding or it times out
+      if (!onboardingCompleted) {
+        return await interaction.deleteReply().catch(() => null);
+      }
+      else if (onboardingCompleted === 'in-progress') {
+        return await interaction.update({
+          content: `There has already been an attempting to join a hub from ${channel}. Please cancel it or wait for it to complete.`,
           embeds: [],
           components: [],
         });
       }
+
+      const webhook = await getOrCreateWebhook(channel);
+      if (!webhook) return;
+
+      const networkManager = interaction.client.getNetworkManager();
+      // finally make the connection
+      await networkManager.createConnection({
+        serverId: channel.guildId,
+        channelId: channel.id,
+        parentId: channel.isThread() ? channel.parentId : undefined,
+        webhookURL: webhook.url,
+        hub: { connect: { id: hubDetails.id } },
+        connected: true,
+        compact: false,
+        profFilter: true,
+      });
+
+      await interaction.editReply({
+        content: `Successfully joined hub ${hubDetails.name} from ${channel}! Use \`/connection\` to manage your connection. And \`/hub leave\` to leave the hub.`,
+        embeds: [],
+        components: [],
+      });
     }
   }
 
-  @Interaction('hub_browse_modal')
+  @RegisterInteractionHandler('hub_browse_modal')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
 

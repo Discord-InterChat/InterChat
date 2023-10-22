@@ -10,7 +10,7 @@ import {
   AnySelectMenuInteraction,
   Collection,
 } from 'discord.js';
-import { colors, emojis, rulesEmbed } from '../../utils/Constants.js';
+import { colors, rulesEmbed } from '../../utils/Constants.js';
 
 const onboardingInProgress = new Collection<string, string>();
 
@@ -20,18 +20,10 @@ export async function showOnboarding(
   hubName: string,
   channelId: string,
   ephemeral = false,
-) {
+): Promise<boolean | 'in-progress'> {
   // Check if server is already attempting to join a hub
-  if (onboardingInProgress.has(channelId)) {
-    const err = {
-      content: `${emojis.no} There has already been an attempt to join a hub in <#${channelId}>. Please wait for that to finish before trying again!`,
-      ephemeral,
-    };
-    interaction.deferred || interaction.replied
-      ? interaction.followUp(err)
-      : interaction.reply(err);
-    return;
-  }
+  if (onboardingInProgress.has(channelId)) return 'in-progress';
+
   // Mark this as in-progress so server can't join twice
   onboardingInProgress.set(channelId, channelId);
 

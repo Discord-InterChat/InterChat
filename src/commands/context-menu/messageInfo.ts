@@ -17,7 +17,7 @@ import { profileImage } from 'discord-arts';
 import { colors, emojis } from '../../utils/Constants.js';
 import BaseCommand from '../BaseCommand.js';
 import { CustomID } from '../../structures/CustomID.js';
-import { Interaction } from '../../decorators/Interaction.js';
+import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -89,7 +89,7 @@ export default class MessageInfo extends BaseCommand {
     });
   }
 
-  @Interaction('msgInfo')
+  @RegisterInteractionHandler('msgInfo')
   async handleComponents(interaction: MessageComponentInteraction) {
     // create a variable to store the profile card buffer
     const customId = CustomID.parseCustomId(interaction.customId);
@@ -155,7 +155,7 @@ export default class MessageInfo extends BaseCommand {
             ? `https://cdn.discordapp.com/icons/${server.id}/${server.banner}.png`
             : null;
           const inviteString = guildConnected?.invite
-            ? `[\`${guildConnected.invite}\`](https://discord.gg/${guildConnected.invite})`
+            ? `${guildConnected.invite}`
             : 'Not Set.';
 
           const serverEmbed = new EmbedBuilder()
