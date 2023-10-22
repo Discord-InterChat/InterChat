@@ -9,7 +9,7 @@ import CommandManager from '../managers/CommandManager.ts';
 import CooldownService from '../services/CooldownService.ts';
 
 type RemoveMethods<T> = {
-  [K in keyof T]: T[K] extends (...args: any[]) => any ? never : RemoveMethods<T[K]>;
+  [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? never : RemoveMethods<T[K]>;
 };
 
 declare module 'discord.js' {

@@ -43,6 +43,10 @@ const MAX_STORE = 3;
 export default class NetworkManager extends Factory {
   private antiSpamMap = new Collection<string, AntiSpamUserOpts>();
 
+  /**
+   * Handles a network message by running checks, fetching relevant data, and sending the message to all connections in the network.
+   * @param message The network message to handle.
+   */
   public async handleNetworkMessage(message: NetworkMessage) {
     const isNetworkMessage = await db.connectedList.findFirst({
       where: { channelId: message.channel.id, connected: true },
@@ -208,6 +212,13 @@ export default class NetworkManager extends Factory {
     await this.storeMessageData(message, await Promise.all(sendResult), isNetworkMessage.hubId);
   }
 
+  /**
+   * Runs various checks on a message to determine if it can be sent in the network.
+   * @param message - The message to check.
+   * @param settings - The settings for the network.
+   * @param hubId - The ID of the hub the message is being sent in.
+   * @returns A boolean indicating whether the message passed all checks.
+   */
   public async runChecks(
     message: Message,
     settings: HubSettingsBitField,
@@ -296,6 +307,13 @@ export default class NetworkManager extends Factory {
     return true;
   }
 
+  /**
+   * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
+   * If the referred message has no content, returns a default message indicating that the original message contains an attachment.
+   * If the referred message's content exceeds 1000 characters, truncates it and appends an ellipsis.
+   * @param referredMessage The message being referred to.
+   * @returns The content of the referred message.
+   */
   public async getReferredContent(referredMessage: Message) {
     let referredContent = referredMessage.content || referredMessage.embeds[0]?.description;
 
@@ -309,6 +327,11 @@ export default class NetworkManager extends Factory {
     return referredContent;
   }
 
+  /**
+   * Returns the URL of an attachment in a message, if it exists.
+   * @param message The message to search for an attachment URL.
+   * @returns The URL of the attachment, or null if no attachment is found.
+   */
   public async getAttachmentURL(message: Message) {
     // Tenor Gifs / Image URLs
     const URLMatch = message.content.match(REGEX.STATIC_IMAGE_URL);
@@ -331,6 +354,16 @@ export default class NetworkManager extends Factory {
     return null;
   }
 
+  /**
+   * Builds an embed for a network message.
+   * @param message The network message to build the embed for.
+   * @param opts Optional parameters for the embed.
+   * @param opts.attachmentURL The URL of the attachment to include in the embed.
+   * @param opts.embedCol The color of the embed.
+   * @param opts.referredContent The content of the message being replied to.
+   * @param opts.useNicknames Whether to use nicknames instead of usernames in the embed.
+   * @returns An object containing the built EmbedBuilder and its censored version.
+   */
   public buildNetworkEmbed(
     message: NetworkMessage,
     opts?: {
@@ -382,9 +415,10 @@ export default class NetworkManager extends Factory {
   }
 
   /**
-   * Stores message in the db after it has been sent to the network
-   * And disconnects the network if the webhook is invalid
-   * */
+   * Stores message data in the database and updates the connectedList based on the webhook status.
+   * @param channelAndMessageIds The result of sending the message to multiple channels.
+   * @param hubId The ID of the hub to connect the message data to.
+   */
   protected async storeMessageData(
     message: Message,
     channelAndMessageIds: NetworkWebhookSendResult[],
@@ -435,6 +469,12 @@ export default class NetworkManager extends Factory {
     }
   }
 
+  /**
+   * Runs the anti-spam mechanism for a given user.
+   * @param author - The user to run the anti-spam mechanism for.
+   * @param maxInfractions - The maximum number of infractions before the user is blacklisted.
+   * @returns The user's anti-spam data if they have reached the maximum number of infractions, otherwise undefined.
+   */
   runAntiSpam(author: User, maxInfractions = MAX_STORE) {
     const userInCol = this.antiSpamMap.get(author.id);
     const currentTimestamp = Date.now();
@@ -476,6 +516,11 @@ export default class NetworkManager extends Factory {
     }
   }
 
+  /**
+   * Sets spam timers for a given user.
+   * @param userId - The ID of the user to set spam timers for.
+   * @returns void
+   */
   setSpamTimers(userId: string): void {
     const five_min = 60 * 5000;
     const userInCol = this.antiSpamMap.get(userId);
@@ -511,6 +556,12 @@ export default class NetworkManager extends Factory {
     return await db.connectedList.create({ data });
   }
 
+  /**
+   * Sends a message to all connections in a hub's network.
+   * @param hubId The ID of the hub to send the message to.
+   * @param message The message to send. Can be a string or a MessageCreateOptions object.
+   * @returns A array of the responses from each connection's webhook.
+   */
   async sendToNetwork(hubId: string, message: string | MessageCreateOptions) {
     const connections = await this.fetchHubNetworks({ hubId });
 

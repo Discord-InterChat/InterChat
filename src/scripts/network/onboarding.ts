@@ -14,7 +14,14 @@ import { colors, rulesEmbed } from '../../utils/Constants.js';
 
 const onboardingInProgress = new Collection<string, string>();
 
-/* Make user accept and understand important info on first setup */
+/**
+ * Shows the onboarding message for a hub in the specified channel.
+ * @param interaction - The interaction that triggered the onboarding message.
+ * @param hubName - The name of the hub to join.
+ * @param channelId - The ID of the channel to show the onboarding message in.
+ * @param ephemeral - Whether the onboarding message should only be visible to the user who triggered it.
+ * @returns A Promise that resolves to `true` if the user accepts the onboarding message, `false` if they cancel it, or `'in-progress'` if onboarding is already in progress for the channel.
+ */
 export async function showOnboarding(
   interaction: ChatInputCommandInteraction | AnySelectMenuInteraction | ButtonInteraction,
   hubName: string,

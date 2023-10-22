@@ -16,8 +16,8 @@ export default class CommandManager extends Factory {
     return this.client.commands;
   }
 
-  /** `InteractionCreate` event handler */
-  async handleInteraction(interaction: Interaction) {
+  /** Handle interactions from the `InteractionCreate` event */
+  async handleInteraction(interaction: Interaction): Promise<void> {
     try {
       if (interaction.isAutocomplete()) {
         const command = this.client.commands.get(interaction.commandName);
@@ -112,8 +112,8 @@ export default class CommandManager extends Factory {
   }
 
   /**
-   * Loads all commands from the Commands directory
-   * Commands are automatically added to the `clientCommands` map
+   * Recursively loads all command files from the given directory and its subdirectories.
+   * @param commandDir The directory to load command files from.
    */
   static async loadCommandFiles(commandDir = join(__dirname, '..', 'commands')): Promise<void> {
     const files = readdirSync(commandDir);

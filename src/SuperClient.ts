@@ -73,6 +73,10 @@ export default abstract class SuperClient extends Client {
     });
   }
 
+  /**
+   * Initializes the SuperClient instance.
+   * Sets the instance to the current object and initializes Sentry error monitoring and handling if not in development mode.
+   */
   protected init() {
     SuperClient.self = this;
 
@@ -86,6 +90,9 @@ export default abstract class SuperClient extends Client {
     }
   }
 
+  /**
+   * Returns the instance of the SuperClient class.
+   */
   public static getInstance(): SuperClient {
     return this.self;
   }
@@ -93,6 +100,11 @@ export default abstract class SuperClient extends Client {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   resolveEval = <T>(value: any[]): T | undefined => value?.find((res) => !!res);
 
+  /**
+   * Fetches a guild by its ID from the cache.
+   * @param guildId The ID of the guild to fetch.
+   * @returns The fetched guild **without any methods**, or undefined if the guild is not found.
+   */
   async fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined> {
     const fetch = await this.cluster.broadcastEval(
       (client, guildID) => client.guilds.cache.get(guildID),

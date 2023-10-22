@@ -26,6 +26,9 @@ import { emojis } from '../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 
 export default class ReactionUpdater extends Factory {
+  /**
+   * Listens for reactions on a message and updates the database with the new reaction data.
+   */
   public async listenForReactions(
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,
@@ -85,6 +88,10 @@ export default class ReactionUpdater extends Factory {
     ReactionUpdater.updateReactions(messageInDb.channelAndMessageIds, dbReactions);
   }
 
+
+  /**
+   * Listens for a reaction button or select menu interaction and updates the reactions accordingly.
+   * */
   @RegisterInteractionHandler('reaction_')
   async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction) {
     await interaction.deferUpdate();
@@ -246,7 +253,13 @@ export default class ReactionUpdater extends Factory {
     }
   }
 
-  // making methods static so we can use them in the decorator
+  /* static methods so we can call them within the decorator */
+
+  /**
+   * Updates reactions on messages in multiple channels.
+   * @param channelAndMessageIds An array of objects containing channel and message IDs.
+   * @param reactions An object containing the reactions data.
+   */
   static async updateReactions(
     channelAndMessageIds: MessageDataChannelAndMessageIds[],
     reactions: { [key: string]: string[] },
@@ -325,6 +338,13 @@ export default class ReactionUpdater extends Factory {
     });
   }
 
+  /**
+   * Checks if a user or server is blacklisted in a given hub.
+   * @param hubId - The ID of the hub to check in.
+   * @param guildId - The ID of the guild to check for blacklist.
+   * @param userId - The ID of the user to check for blacklist.
+   * @returns An object containing whether the user and/or server is blacklisted in the hub.
+   */
   static async checkBlacklists(hubId: string, guildId: string, userId: string) {
     const userBlacklisted = await BlacklistManager.fetchUserBlacklist(hubId, userId);
     const guildBlacklisted = await BlacklistManager.fetchUserBlacklist(hubId, guildId);
@@ -335,9 +355,23 @@ export default class ReactionUpdater extends Factory {
     return { userBlacklisted: false, serverBlacklisted: false };
   }
 
+  /**
+   * Adds a user ID to the array of user IDs for a given emoji in the reactionArr object.
+   * @param reactionArr - The object containing arrays of user IDs for each emoji.
+   * @param userId - The ID of the user to add to the array.
+   * @param emoji - The emoji to add the user ID to.
+   */
   static addReaction(reactionArr: { [key: string]: Snowflake[] }, userId: string, emoji: string) {
     reactionArr[emoji].push(userId);
   }
+
+  /**
+   * Removes a user's reaction from the reaction array.
+   * @param reactionArr - The reaction array to remove the user's reaction from.
+   * @param userId - The ID of the user whose reaction is to be removed.
+   * @param emoji - The emoji of the reaction to be removed.
+   * @returns The updated reaction array after removing the user's reaction.
+   */
   static removeReaction(
     reactionArr: { [key: string]: Snowflake[] },
     userId: string,
@@ -348,11 +382,19 @@ export default class ReactionUpdater extends Factory {
     return reactionArr;
   }
 
+  /**
+   * Sorts the reactions object based on the reaction counts.
+   * @param reactions - The reactions object to be sorted.
+   * @returns The sorted reactions object in the form of an array.
+   * The array is sorted in descending order based on the length of the reaction arrays.
+   * Each element of the array is a tuple containing the reaction and its corresponding array of user IDs.
+   *
+   * ### Example:
+   * ```js
+   * [ [ '👎', ['1020193019332334'] ], [ '👍', ['1020193019332334'] ] ]
+   * ```
+   */
   static sortReactions(reactions: { [key: string]: string[] }) {
-    // Sort the array based on the reaction counts
-    /* { '👍': ['10201930193'], '👎': ['10201930193'] } // before Object.entries
-     => [ [ '👎', ['10201930193'] ], [ '👍', ['10201930193'] ] ] // after Object.entries
-  */
     return Object.entries(reactions).sort((a, b) => b[1].length - a[1].length);
   }
 }
