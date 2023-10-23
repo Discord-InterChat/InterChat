@@ -12,7 +12,7 @@ import {
 } from 'discord.js';
 import Factory from '../Factory.js';
 import db from '../utils/Db.js';
-import { Prisma, connectedList, hubs } from '@prisma/client';
+import { Prisma, connectedList, hubs, messageData } from '@prisma/client';
 import { REGEX, emojis } from '../utils/Constants.js';
 import { censor } from '../utils/Profanity.js';
 import { stripIndents } from 'common-tags';
@@ -209,7 +209,7 @@ export default class NetworkManager extends Factory {
     if (!attachment) message.delete().catch(() => null);
 
     // store the message in the db
-    await this.storeMessageData(message, await Promise.all(sendResult), isNetworkMessage.hubId);
+    await this.storeMessageData(message, await Promise.all(sendResult), isNetworkMessage.hubId, referenceInDb);
   }
 
   /**
@@ -423,6 +423,7 @@ export default class NetworkManager extends Factory {
     message: Message,
     channelAndMessageIds: NetworkWebhookSendResult[],
     hubId: string,
+    dbReference?: messageData | null,
   ): Promise<void> {
     const messageDataObj: { channelId: string; messageId: string }[] = [];
     const invalidWebhookURLs: string[] = [];
@@ -454,7 +455,7 @@ export default class NetworkManager extends Factory {
           timestamp: message.createdAt,
           authorId: message.author.id,
           serverId: message.guild.id,
-          reference: message.reference,
+          referenceDocId: dbReference?.id,
           reactions: {},
         },
       });

@@ -153,10 +153,20 @@ export default class Purge extends BaseCommand {
       }
       case 'replies': {
         const messageId = interaction.options.getString('replied-to', true);
-        messagesInDb = await messageData.findMany({
-          where: { hubId: channelInHub.hubId, reference: { is: { messageId } } },
-          take: limit,
+        const originalMsg = await messageData.findFirst({
+          where: { channelAndMessageIds: { some: { messageId } } },
         });
+
+
+        messagesInDb = originalMsg
+          ? await messageData.findMany({
+            where: {
+              hubId: channelInHub.hubId,
+              referenceDocId: originalMsg.id,
+            },
+            take: limit,
+          })
+          : [];
         break;
       }
       case 'any':
@@ -173,7 +183,8 @@ export default class Purge extends BaseCommand {
 
     if (!messagesInDb || messagesInDb.length < 1) {
       return await interaction.reply({
-        content: 'Messages to purge not found; messages sent over 24 hours ago have been automatically removed.',
+        content:
+          'Messages to purge not found; messages sent over 24 hours ago have been automatically removed.',
         ephemeral: true,
       });
     }
@@ -185,27 +196,29 @@ export default class Purge extends BaseCommand {
       where: { hubId: channelInHub.hubId, connected: true },
     });
 
-
     const promiseResults = allNetworks.map(async (network) => {
       try {
         // TODO: Fine a better way to do this
         // because we are doing this in all the shards, which is double the work
-        const evalRes = await interaction.client.cluster.broadcastEval(async (client, ctx) => {
-          const channel = await client.channels.fetch(ctx.channelId);
+        const evalRes = await interaction.client.cluster.broadcastEval(
+          async (client, ctx) => {
+            const channel = await client.channels.fetch(ctx.channelId);
 
-          if (channel?.type === 0 || channel?.isThread()) {
-            const messageIds = ctx.messagesInDb.flatMap((dbMsg) =>
-              dbMsg.channelAndMessageIds
-                .filter(({ channelId }) => channelId === channel.id)
-                .map(({ messageId }) => messageId),
-            );
+            if (channel?.type === 0 || channel?.isThread()) {
+              const messageIds = ctx.messagesInDb.flatMap((dbMsg) =>
+                dbMsg.channelAndMessageIds
+                  .filter(({ channelId }) => channelId === channel.id)
+                  .map(({ messageId }) => messageId),
+              );
 
-            if (messageIds.length < 1) return [];
+              if (messageIds.length < 1) return [];
 
-            await channel.bulkDelete(messageIds);
-            return messageIds;
-          }
-        }, { context: { channelId: network.channelId, messagesInDb } });
+              await channel.bulkDelete(messageIds);
+              return messageIds;
+            }
+          },
+          { context: { channelId: network.channelId, messagesInDb } },
+        );
 
         return interaction.client.resolveEval(evalRes) || [];
       }
@@ -226,7 +239,9 @@ export default class Purge extends BaseCommand {
         stripIndents`
         ### ${emojis.delete} Purge Results
 
-        Finished purging from **${allNetworks.length}** networks in \`${msToReadable(performance.now() - startTime)}\`.
+        Finished purging from **${allNetworks.length}** networks in \`${msToReadable(
+  performance.now() - startTime,
+)}\`.
       `,
       )
       .addFields([

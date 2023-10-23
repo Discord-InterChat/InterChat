@@ -9,7 +9,7 @@
     "start": "node .",
     "build": "tsc --build && npm run sentry:sourcemaps",
     "build:dev": "tsc --build",
-    "dev": "tsc-watch --outDir ./build --onSuccess \"node .\"",
+    "dev": "tsc-watch --outDir ./build --onSuccess \"node --trace-warnings .\"",
     "register:commands": "node build/utils/RegisterCommands.js",
     "release": "standard-version",
     "lint": "eslint --cache --fix .",

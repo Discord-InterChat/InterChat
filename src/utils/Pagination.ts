@@ -5,9 +5,10 @@ import {
   EmbedBuilder,
   CommandInteraction,
   ComponentType,
+  MessageComponentInteraction,
+  MessageActionRowComponentBuilder,
 } from 'discord.js';
 import { emojis } from './Constants.js';
-import { MessageActionRowComponentBuilder } from 'discord.js';
 
 export interface PaginatorOptions {
   /** Number in milliseconds */
@@ -25,7 +26,7 @@ export interface PaginatorOptions {
 }
 
 export async function paginate(
-  interaction: CommandInteraction,
+  interaction: CommandInteraction | MessageComponentInteraction,
   pages: EmbedBuilder[],
   options?: PaginatorOptions,
 ) {

@@ -44,7 +44,19 @@ export default class Hub extends BaseCommand {
             choices: [
               {
                 name: 'Most Active',
-                value: 'most-active',
+                value: 'active',
+              },
+              {
+                name: 'Most Popular',
+                value: 'popular',
+              },
+              {
+                name: 'Most Connections',
+                value: 'connections',
+              },
+              {
+                name: 'Recently Created',
+                value: 'recent',
               },
             ],
           },

@@ -78,7 +78,12 @@ export default class Browse extends Hub {
           .count({ where: { hubId: hub.id, connected: true } })
           .catch(() => 0);
 
-        return Browse.createHubListingsEmbed(hub, connections);
+        const lastMessage = await db.messageData.findFirst({
+          where: { hubId: hub.id },
+          orderBy: { timestamp: 'desc' },
+        });
+
+        return Browse.createHubListingsEmbed(hub, connections, lastMessage?.timestamp);
       }),
     );
 
@@ -357,20 +362,20 @@ export default class Browse extends Hub {
   }
 
   // utils
-  static createHubListingsEmbed(hub: hubs, connections?: number) {
+  static createHubListingsEmbed(hub: hubs, connections?: number, lastMessage?: Date) {
     return new EmbedBuilder()
       .setDescription(
         stripIndents`
         ### ${hub.name}
         ${hub.description}
   
-        **Rating:** ${
-  hub.rating?.length > 0
+        **Rating:** ${hub.rating?.length > 0
     ? '⭐'.repeat(calculateAverageRating(hub.rating.map((hr) => hr.rating)))
     : '-'
 }
         **Connections:** ${connections ?? 'Unknown.'}
         **Created At:** <t:${Math.round(hub.createdAt.getTime() / 1000)}:d>
+        **Last Message:** ${lastMessage ? `<t:${Math.round(lastMessage.getTime() / 1000)}:R>` : '-'}
       `,
       )
       .setColor('Random')

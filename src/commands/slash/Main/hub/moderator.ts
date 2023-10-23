@@ -73,7 +73,8 @@ export default class Moderator extends Hub {
             moderators: { deleteMany: { where: { userId: user.id } } },
           },
         });
-        interaction.reply(`Removed hub moderator ${user} from **${hub.name}**!`);
+
+        await interaction.reply(`Removed hub moderator ${user} from **${hub.name}**!`);
         break;
       }
 

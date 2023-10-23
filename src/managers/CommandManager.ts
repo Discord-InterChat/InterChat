@@ -30,8 +30,8 @@ export default class CommandManager extends Factory {
         let remainingCooldown: number | undefined = undefined;
 
         if (interaction.isChatInputCommand()) {
-          const subcommandGroup = interaction.options.getSubcommandGroup();
-          const subcommand = interaction.options.getSubcommand();
+          const subcommandGroup = interaction.options.getSubcommandGroup(false);
+          const subcommand = interaction.options.getSubcommand(false);
 
           const baseCooldownName = `${interaction.user.id}-${interaction.commandName}`;
           const subcommandKey = subcommandGroup
