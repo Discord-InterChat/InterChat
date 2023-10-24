@@ -22,7 +22,7 @@ import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
-    name: 'Message Info',
+    name: 'Message Info/Report',
     dm_permission: false,
   };
 

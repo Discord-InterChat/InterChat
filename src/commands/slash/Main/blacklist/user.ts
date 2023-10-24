@@ -52,7 +52,7 @@ export default class Server extends BlacklistCommand {
       }
 
       const expires = duration ? new Date(Date.now() + duration) : undefined;
-      await blacklistManager.addUserBlacklist(hubInDb.id, user.id, String(reason), expires);
+      await blacklistManager.addUserBlacklist(hubInDb.id, user.id, String(reason), interaction.user.id, expires);
       if (expires) blacklistManager.scheduleRemoval('user', user.id, hubInDb.id, expires);
       blacklistManager.notifyBlacklist('user', user.id, hubInDb.id, expires, String(reason));
 

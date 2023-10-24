@@ -116,7 +116,7 @@ export default class NetworkManager extends Factory {
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, {
       attachmentURL,
       referredContent,
-      embedCol: isNetworkMessage.embedColor as `#${string}` ?? undefined,
+      embedCol: (isNetworkMessage.embedColor as `#${string}`) ?? undefined,
       useNicknames: settings.has('UseNicknames'),
     });
 
@@ -181,9 +181,10 @@ export default class NetworkManager extends Factory {
           messageFormat = {
             embeds: replyEmbed ? [replyEmbed] : undefined,
             components: jumpButton ? [jumpButton] : undefined,
-            content: (connection.profFilter ? message.censoredContent : message.content) +
-            // append the attachment url if there is one
-              `${attachmentURL ? `\n${attachmentURL}` : ''}`,
+            content:
+              (connection.profFilter ? message.censoredContent : message.content) +
+              // append the attachment url if there is one
+              `${attachment ? `\n${attachmentURL}` : ''}`,
             username: message.author.username,
             avatarURL: message.author.displayAvatarURL(),
             threadId: connection.parentId ? connection.channelId : undefined,
@@ -209,7 +210,12 @@ export default class NetworkManager extends Factory {
     if (!attachment) message.delete().catch(() => null);
 
     // store the message in the db
-    await this.storeMessageData(message, await Promise.all(sendResult), isNetworkMessage.hubId, referenceInDb);
+    await this.storeMessageData(
+      message,
+      await Promise.all(sendResult),
+      isNetworkMessage.hubId,
+      referenceInDb,
+    );
   }
 
   /**
@@ -262,6 +268,7 @@ export default class NetworkManager extends Factory {
           hubId,
           message.author.id,
           'Auto-blacklisted for spamming.',
+          message.client.user.id,
           60 * 5000,
         );
         blacklistManager.scheduleRemoval('user', message.author.id, hubId, 60 * 5000);

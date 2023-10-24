@@ -65,7 +65,15 @@
     "staff": "<:staff:983962462380511282>",
     "botdev": "<:botdev2:983962441329307659>",
     "link": "<:link:1032318209879179295>",
-    "timeout": "<:timeout:1088474245908152461>"
+    "timeout": "<:timeout:1088474245908152461>",
+
+    "star": "<:ic_star:1166196600666857472>",
+    "star_empty": "<:ic_star_tr:1166196596887793704>",
+    "chat_icon": "<:ic_chat:1165879694403579904>",
+    "clock_icon": "<:ic_clock:1165849366578339840>",
+    "connect_icon": "<:ic_connect:1165877460190101544>",
+    "timeout_icon": "<:ic_timeout:1165843806738980925>",
+    "webhook_icon": "<:ic_webhook:1165851459066277989>"
   },
 
   "mascot": {

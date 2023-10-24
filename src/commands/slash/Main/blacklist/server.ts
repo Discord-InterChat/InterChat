@@ -48,7 +48,13 @@ export default class UserBlacklist extends BlacklistCommand {
       if (!server) return await interaction.followUp('You have inputted an invalid server ID.');
 
       try {
-        await blacklistManager.addServerBlacklist(server.id, hubInDb.id, reason, expires);
+        await blacklistManager.addServerBlacklist(
+          server.id,
+          hubInDb.id,
+          reason,
+          interaction.user.id,
+          expires,
+        );
       }
       catch (err) {
         interaction.client.logger.error(err);

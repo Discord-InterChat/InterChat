@@ -2,7 +2,7 @@ import db from '../utils/Db.js';
 import Scheduler from '../services/SchedulerService.js';
 import SuperClient from '../SuperClient.js';
 import { blacklistedServers, blacklistedUsers } from '@prisma/client';
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, Snowflake } from 'discord.js';
 import { emojis, colors } from '../utils/Constants.js';
 import { captureException } from '@sentry/node';
 import Logger from '../utils/Logger.js';
@@ -20,7 +20,7 @@ export default class BlacklistManager {
    * @param hubId The hub ID to remove the blacklist from.
    * @param userOrServerId The user or server ID to remove from the blacklist.
    * @returns The updated blacklist.
-  */
+   */
   async removeBlacklist(
     type: 'server',
     hubId: string,
@@ -149,7 +149,7 @@ export default class BlacklistManager {
    * Fetch a user blacklist from the database.
    * @param hubId The hub ID to fetch the blacklist from.
    * @param userId The ID of the blacklisted user.
-  */
+   */
   static async fetchUserBlacklist(hubId: string, userId: string) {
     const userBlacklisted = await db.blacklistedUsers.findFirst({
       where: { userId, hubs: { some: { hubId } } },
@@ -161,7 +161,7 @@ export default class BlacklistManager {
    * Fetch a server blacklist from the database.
    * @param hubId The hub ID to fetch the blacklist from.
    * @param serverId The ID of the blacklisted serverId.
-  */
+   */
   static async fetchServerBlacklist(hubId: string, serverId: string) {
     const userBlacklisted = await db.blacklistedServers.findFirst({
       where: { serverId, hubs: { some: { hubId } } },
@@ -177,7 +177,13 @@ export default class BlacklistManager {
    * @param expires The date or milliseconds after which the blacklist will expire.
    * @returns The created blacklist.
    */
-  async addUserBlacklist(hubId: string, userId: string, reason: string, expires?: Date | number) {
+  async addUserBlacklist(
+    hubId: string,
+    userId: Snowflake,
+    reason: string,
+    moderatorId: Snowflake,
+    expires?: Date | number,
+  ) {
     const client = SuperClient.getInstance();
     const user = await client.users.fetch(userId);
     if (typeof expires === 'number') expires = new Date(Date.now() + expires);
@@ -185,7 +191,7 @@ export default class BlacklistManager {
     const dbUser = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
 
     const hubs = dbUser?.hubs.filter((i) => i.hubId !== hubId) || [];
-    hubs?.push({ expires: expires ?? null, reason, hubId });
+    hubs?.push({ expires: expires ?? null, reason, hubId, moderatorId });
 
     const updatedUser = await db.blacklistedUsers.upsert({
       where: {
@@ -213,7 +219,13 @@ export default class BlacklistManager {
    * @param expires The date after which the blacklist will expire.
    * @returns The created blacklist.
    */
-  async addServerBlacklist(serverId: string, hubId: string, reason: string, expires?: Date) {
+  async addServerBlacklist(
+    serverId: Snowflake,
+    hubId: string,
+    reason: string,
+    moderatorId: Snowflake,
+    expires?: Date,
+  ) {
     const client = SuperClient.getInstance();
     const guild = await client.fetchGuild(serverId);
     if (!guild) return;
@@ -224,12 +236,12 @@ export default class BlacklistManager {
       },
       update: {
         serverName: guild.name,
-        hubs: { push: { hubId, expires, reason } },
+        hubs: { push: { hubId, expires, reason, moderatorId } },
       },
       create: {
         serverId: guild.id,
         serverName: guild.name,
-        hubs: [{ hubId, expires, reason }],
+        hubs: [{ hubId, expires, reason, moderatorId }],
       },
     });
 

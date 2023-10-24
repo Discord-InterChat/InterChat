@@ -363,20 +363,35 @@ export default class Browse extends Hub {
 
   // utils
   static createHubListingsEmbed(hub: hubs, connections?: number, lastMessage?: Date) {
+    const rating = calculateAverageRating(hub.rating.map((hr) => hr.rating));
+    const stars =
+      rating < 5
+        ? emojis.star.repeat(rating) + emojis.star_empty.repeat(5 - rating)
+        : emojis.star.repeat(5);
+
+    const lastMessageTimestamp = lastMessage?.getTime() ?? 0;
+    const lastMessageStr = lastMessageTimestamp
+      ? `<t:${Math.round(lastMessageTimestamp / 1000)}:R>`
+      : '-';
+
     return new EmbedBuilder()
-      .setDescription(
-        stripIndents`
-        ### ${hub.name}
-        ${hub.description}
-  
-        **Rating:** ${hub.rating?.length > 0
-    ? '⭐'.repeat(calculateAverageRating(hub.rating.map((hr) => hr.rating)))
-    : '-'
-}
-        **Connections:** ${connections ?? 'Unknown.'}
-        **Created At:** <t:${Math.round(hub.createdAt.getTime() / 1000)}:d>
-        **Last Message:** ${lastMessage ? `<t:${Math.round(lastMessage.getTime() / 1000)}:R>` : '-'}
-      `,
+      .setTitle(hub.name)
+      .setDescription(hub.description)
+      .addFields(
+        {
+          name: 'Information',
+          value: stripIndents`
+            ${emojis.connect_icon} **Connections:** ${connections ?? 'Unknown.'}
+            ${emojis.clock_icon} **Created At:** <t:${Math.round(hub.createdAt.getTime() / 1000)}:d>
+            ${emojis.chat_icon} **Last Message:** ${lastMessageStr}
+          `,
+          inline: true,
+        },
+        {
+          name: 'Rating',
+          value: `${stars}${rating ? `\n*rated by ${hub.rating.length} users*` : ''}`,
+          inline: true,
+        },
       )
       .setColor('Random')
       .setThumbnail(hub.iconUrl)

@@ -185,6 +185,7 @@ export default class Blacklist extends BaseCommand {
         messageInDb.hubId,
         messageInDb.authorId,
         reason,
+        interaction.user.id,
         expires,
       );
 
@@ -210,6 +211,7 @@ export default class Blacklist extends BaseCommand {
         messageInDb.serverId,
         messageInDb.hubId,
         reason,
+        interaction.user.id,
         expires,
       );
 

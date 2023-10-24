@@ -49,9 +49,10 @@ type HubModerator {
 // }
 
 type hubBlacklist {
-  reason  String
-  expires DateTime?
-  hubId   String    @db.ObjectId
+  reason      String
+  expires     DateTime?
+  moderatorId String?
+  hubId       String    @db.ObjectId
 }
 
 model blacklistedServers {
