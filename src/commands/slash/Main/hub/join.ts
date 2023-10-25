@@ -72,7 +72,7 @@ export default class JoinSubCommand extends Hub {
     }
 
     const userBlacklisted = await BlacklistManager.fetchUserBlacklist(hub.id, interaction.user.id);
-    const serverBlacklisted = await BlacklistManager.fetchUserBlacklist(
+    const serverBlacklisted = await BlacklistManager.fetchServerBlacklist(
       hub.id,
       interaction.guildId,
     );

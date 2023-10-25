@@ -380,6 +380,8 @@ export default class NetworkManager extends Factory {
       useNicknames?: boolean;
     },
   ): { embed: EmbedBuilder; censoredEmbed: EmbedBuilder } {
+    const formattedContent = opts?.referredContent?.replaceAll('\n', '\n> ');
+
     const embed = new EmbedBuilder()
       .setAuthor({
         name: opts?.useNicknames
@@ -389,11 +391,11 @@ export default class NetworkManager extends Factory {
       })
       .setDescription(message.content || null)
       .addFields(
-        opts?.referredContent
+        formattedContent
           ? [
             {
               name: 'Replying To:',
-              value: `> ${opts.referredContent.replaceAll('\n', '\n> ')}` ?? 'Unknown.',
+              value: `> ${formattedContent}` ?? 'Unknown.',
             },
           ]
           : [],
@@ -408,11 +410,11 @@ export default class NetworkManager extends Factory {
     const censoredEmbed = EmbedBuilder.from(embed)
       .setDescription(message.censoredContent || null)
       .setFields(
-        opts?.referredContent
+        formattedContent
           ? [
             {
               name: 'Replying To:',
-              value: `> ${censor(opts.referredContent).replaceAll('\n', '\n> ')}` ?? 'Unknown.',
+              value: `> ${censor(formattedContent)}` ?? 'Unknown.',
             },
           ]
           : [],

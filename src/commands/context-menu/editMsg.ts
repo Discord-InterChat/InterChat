@@ -29,7 +29,7 @@ export default class DeleteMessage extends BaseCommand {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
 
-    if (!(await hasVoted(interaction.user.id)) && !checkIfStaff(interaction.user.id)) {
+    if (!checkIfStaff(interaction.user.id) && !(await hasVoted(interaction.user.id))) {
       await interaction.reply({
         content: `${emojis.no} You must [vote](<https://top.gg/bot/769921109209907241/vote>) to use this command.`,
         ephemeral: true,

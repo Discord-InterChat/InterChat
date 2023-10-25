@@ -31,7 +31,9 @@ export async function paginate(
   options?: PaginatorOptions,
 ) {
   if (pages.length < 1) {
-    interaction.reply({ content: `${emojis.tick} No more pages to display!`, ephemeral: true });
+    interaction.replied || interaction.deferred
+      ? await interaction.followUp({ content: `${emojis.tick} No pages to display!`, ephemeral: true })
+      : await interaction.reply({ content: `${emojis.tick} No pages to display!`, ephemeral: true });
     return;
   }
 

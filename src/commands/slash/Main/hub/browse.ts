@@ -24,6 +24,7 @@ import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { CustomID } from '../../../../structures/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { stripIndents } from 'common-tags';
+import BlacklistManager from '../../../../managers/BlacklistManager.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -239,6 +240,28 @@ export default class Browse extends Hub {
 
       if (!interaction.inCachedGuild()) return;
 
+      const userBlacklisted = await BlacklistManager.fetchUserBlacklist(
+        hubDetails.id,
+        interaction.user.id,
+      );
+      if (userBlacklisted) {
+        return await interaction.reply({
+          content: `You have been blacklisted from joining **${hubDetails.name}**.`,
+          ephemeral: true,
+        });
+      }
+
+      const serverBlacklisted = await BlacklistManager.fetchServerBlacklist(
+        hubDetails.id,
+        interaction.guild.id,
+      );
+      if (serverBlacklisted) {
+        return await interaction.reply({
+          content: `This server has been blacklisted from joining **${hubDetails.name}**.`,
+          ephemeral: true,
+        });
+      }
+
       const channel = interaction.isChannelSelectMenu()
         ? interaction.guild?.channels.cache.get(interaction.values[0])
         : interaction.channel;
@@ -318,6 +341,22 @@ export default class Browse extends Hub {
         content: `Successfully joined hub ${hubDetails.name} from ${channel}! Use \`/connection\` to manage your connection. And \`/hub leave\` to leave the hub.`,
         embeds: [],
         components: [],
+      });
+
+      const totalConnections = await db.connectedList.count({
+        where: { hubId: hubDetails.id, connected: true },
+      });
+
+      // announce a new server has joined the hub
+      networkManager.sendToNetwork(hubDetails.id, {
+        content: stripIndents`
+        A new server has joined us! ${emojis.clipart}
+    
+        **Server Name:** __${interaction.guild.name}__
+        **Member Count:** __${interaction.guild.memberCount}__
+
+        We now have **${totalConnections}** servers in the hub!
+      `,
       });
     }
   }

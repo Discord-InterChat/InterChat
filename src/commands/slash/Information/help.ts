@@ -22,6 +22,7 @@ export default class Help extends BaseCommand {
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
+    // TODO ${emojis.slashCommand}  [**All Commands**](https://discord-interchat.github.io/docs/category/commands)
     const embed = new EmbedBuilder()
       .setColor(colors.interchatBlue)
       .setThumbnail(interaction.client.user.avatarURL())
@@ -30,7 +31,6 @@ export default class Help extends BaseCommand {
         ## InterChat Help
         InterChat is a powerful discord bot that enables effortless cross-server chatting! Get started by looking at the categories below.
         ### Categories:
-        - ${emojis.slashCommand}  [**All Commands**](https://discord-interchat.github.io/docs/category/commands)
         - 👥 [**InterChat Hubs**](https://discord-interchat.github.io/docs/hub/joining)
         - ⚙️ [**Setting up InterChat**](https://discord-interchat.github.io/docs/setup)
         - 💬 [**Messaging & Network**](https://discord-interchat.github.io/docs/messaging)
@@ -67,12 +67,6 @@ export default class Help extends BaseCommand {
             description: 'How to send, edit, delete and react to network messages!',
           },
           {
-            label: 'Commands',
-            value: 'commands',
-            emoji: emojis.slashCommand,
-            description: 'View all of InterChat\'s commands.',
-          },
-          {
             label: 'The Team',
             value: 'credits',
             emoji: emojis.wand,
@@ -98,7 +92,7 @@ export default class Help extends BaseCommand {
         .setURL(URLs.SUPPORT_INVITE),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
-        .setLabel('Vote me!')
+        .setLabel('Vote!')
         .setURL('https://top.gg/bot/769921109209907241/vote'),
     );
 
@@ -183,10 +177,7 @@ export default class Help extends BaseCommand {
         await interaction.update({ embeds: [messagingEmbed] });
         break;
       }
-      case 'commands': {
-        await interaction.reply('no');
-        break;
-      }
+
       case 'credits': {
         await interaction.deferUpdate();
 

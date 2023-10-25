@@ -224,10 +224,6 @@ export default class Blacklist extends BaseCommand {
         reason,
       );
 
-      await db.connectedList.deleteMany({
-        where: { serverId: messageInDb.serverId, hubId: messageInDb.hubId },
-      });
-
       if (expires) {
         blacklistManager.scheduleRemoval(
           'server',
@@ -236,6 +232,10 @@ export default class Blacklist extends BaseCommand {
           expires,
         );
       }
+
+      await db.connectedList.deleteMany({
+        where: { serverId: messageInDb.serverId, hubId: messageInDb.hubId },
+      });
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });
     }

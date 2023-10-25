@@ -249,6 +249,7 @@ export default class Manage extends Hub {
           });
 
           await interaction.reply({ content: 'Successfully removed banner!', ephemeral: true });
+          break;
         }
 
         const bannerUrl = await checkAndFetchImgurUrl(newBanner);
