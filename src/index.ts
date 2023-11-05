@@ -13,7 +13,7 @@ const manager = new ClusterManager('build/InterChat.js', {
   totalShards: 'auto',
   mode: 'process',
   token: process.env.TOKEN,
-  shardsPerClusters: 1,
+  shardsPerClusters: 2,
 });
 
 manager.spawn({ timeout: -1 });
