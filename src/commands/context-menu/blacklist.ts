@@ -19,6 +19,7 @@ import { CustomID } from '../../structures/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { errorEmbed } from '../../utils/Utils.js';
 import parse from 'parse-duration';
+import NetworkLogger from '../../structures/NetworkLogger.js';
 
 export default class Blacklist extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -196,6 +197,9 @@ export default class Blacklist extends BaseCommand {
         blacklistManager
           .notifyBlacklist('user', messageInDb.authorId, messageInDb.hubId, expires, reason)
           .catch(() => null);
+
+        const networkLogger = new NetworkLogger(messageInDb.hubId);
+        await networkLogger.logBlacklist(user, interaction.user, reason, expires);
       }
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });
@@ -203,9 +207,10 @@ export default class Blacklist extends BaseCommand {
 
     // server blacklist
     else {
+      const server = interaction.client.guilds.cache.get(messageInDb.serverId);
+
       successEmbed.setDescription(
-        `${emojis.tick} **${interaction.client.guilds.cache.get(messageInDb.serverId)
-          ?.name}** has been successfully blacklisted!`,
+        `${emojis.tick} **${server?.name}** has been successfully blacklisted!`,
       );
       await blacklistManager.addServerBlacklist(
         messageInDb.serverId,
@@ -236,6 +241,11 @@ export default class Blacklist extends BaseCommand {
       await db.connectedList.deleteMany({
         where: { serverId: messageInDb.serverId, hubId: messageInDb.hubId },
       });
+
+      if (server) {
+        const networkLogger = new NetworkLogger(messageInDb.hubId);
+        await networkLogger.logBlacklist(server, interaction.user, reason, expires).catch(() => null);
+      }
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });
     }

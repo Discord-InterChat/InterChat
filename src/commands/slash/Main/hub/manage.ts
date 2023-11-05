@@ -337,6 +337,7 @@ export default class Manage extends Hub {
     const hubBlacklistedServers = await db.blacklistedServers.count({
       where: { hubs: { some: { hubId: hub.id } } },
     });
+
     return new EmbedBuilder()
       .setTitle(hub.name)
       .setColor('Random')
@@ -365,6 +366,15 @@ export default class Manage extends Hub {
         - Connected: ${hub.connections.length}
         - Owner: <@${hub.ownerId}>
         `,
+          inline: true,
+        },
+        {
+          name: 'Log Channels',
+          value: stripIndents`
+          - Profanity: ${hub?.logChannels?.profanity ? `<#${hub?.logChannels?.profanity}>` : emojis.no}
+          - Mod Logs: ${hub?.logChannels?.modLogs ? `<#${hub?.logChannels?.modLogs}>` : emojis.no}
+          - Reports: ${hub?.logChannels?.reports ? `<#${hub?.logChannels?.reports}>` : emojis.no}
+          `,
           inline: true,
         },
       );

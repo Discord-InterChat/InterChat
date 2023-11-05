@@ -70,15 +70,14 @@ const processAndManageBlacklists = async (blacklists: (blacklistedServers | blac
 };
 
 manager.on('clusterCreate', async (cluster) => {
+  const scheduler = new Scheduler();
+  // remove expired blacklists or set new timers for them
+  const query = { where: { hubs: { some: { expires: { isSet: true } } } } };
+  processAndManageBlacklists(await db.blacklistedServers.findMany(query), scheduler);
+  processAndManageBlacklists(await db.blacklistedUsers.findMany(query), scheduler);
+
   // if it is the last cluster and code is in production
   if (cluster.id === manager.totalClusters - 1 && !isDevBuild) {
-    const scheduler = new Scheduler();
-    // remove expired blacklists or set new timers for them
-    const query = { where: { hubs: { some: { expires: { isSet: true } } } } };
-    processAndManageBlacklists(await db.blacklistedServers.findMany(query), scheduler);
-    processAndManageBlacklists(await db.blacklistedUsers.findMany(query), scheduler);
-
-
     // give time for shards to connect for these tasks
     await wait(10_000);
 

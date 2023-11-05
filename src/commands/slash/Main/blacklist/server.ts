@@ -5,6 +5,7 @@ import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
+import NetworkLogger from '../../../../structures/NetworkLogger.js';
 
 export default class UserBlacklist extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -33,6 +34,8 @@ export default class UserBlacklist extends BlacklistCommand {
     const blacklistManager = interaction.client.getBlacklistManager();
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverOpt = interaction.options.getString('server', true);
+
+    const networkLogger = new NetworkLogger(hubInDb.id);
 
     if (subCommandGroup == 'add') {
       const reason = interaction.options.getString('reason', true);
@@ -75,7 +78,7 @@ export default class UserBlacklist extends BlacklistCommand {
         .addFields(
           {
             name: 'Reason',
-            value: reason ? reason : 'No reason provided.',
+            value: reason ?? 'No reason provided.',
             inline: true,
           },
           {
@@ -92,6 +95,9 @@ export default class UserBlacklist extends BlacklistCommand {
 
       // delete all connections from db so they can't reconnect to the hub
       await db.connectedList.deleteMany({ where: { serverId: server.id, hubId: hubInDb.id } });
+
+      // send log to hub's log channel
+      await networkLogger.logBlacklist(server, interaction.user, reason, expires);
     }
     else if (subCommandGroup == 'remove') {
       const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
@@ -101,6 +107,9 @@ export default class UserBlacklist extends BlacklistCommand {
       await interaction.followUp(
         `The server **${result.serverName}** has been removed from the blacklist.`,
       );
+
+      // send log to hub's log channel
+      await networkLogger.logUnblacklist('user', serverOpt, interaction.user);
     }
   }
 }

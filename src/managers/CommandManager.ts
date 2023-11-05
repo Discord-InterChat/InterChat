@@ -116,6 +116,12 @@ export default class CommandManager extends Factory {
    * @param commandDir The directory to load command files from.
    */
   static async loadCommandFiles(commandDir = join(__dirname, '..', 'commands')): Promise<void> {
+    let importPrefix = '';
+    if (process.platform === 'win32') {
+      importPrefix = 'file://';
+      commandDir = commandDir.replace('\\C:\\', 'C:\\');
+    }
+
     const files = readdirSync(commandDir);
 
     for (const file of files) {
@@ -129,7 +135,7 @@ export default class CommandManager extends Factory {
 
       // If the item is a .js file, read its contents
       else if (file.endsWith('.js') && file !== 'BaseCommand.js') {
-        const imported = await import(filePath);
+        const imported = await import(importPrefix + filePath);
         const command = new imported.default();
 
         // if the command extends BaseCommand (ie. its not a subcommand), add it to the commands map

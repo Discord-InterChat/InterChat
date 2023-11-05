@@ -16,6 +16,8 @@ import { DeveloperIds, REGEX, StaffIds, SupporterIds, URLs, colors } from './Con
 import { randomBytes } from 'crypto';
 import Scheduler from '../services/SchedulerService.js';
 import db from './Db.js';
+import startCase from 'lodash/startCase.js';
+import toLower from 'lodash/toLower.js';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function msToReadable(milliseconds: number): string {
@@ -194,4 +196,8 @@ export async function checkAndFetchImgurUrl(url: string): Promise<string | false
   }
 
   return data.data.link;
+}
+
+export function toTitleCase(str: string) {
+  return startCase(toLower(str));
 }

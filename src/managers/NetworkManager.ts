@@ -14,10 +14,11 @@ import Factory from '../Factory.js';
 import db from '../utils/Db.js';
 import { Prisma, connectedList, hubs, messageData } from '@prisma/client';
 import { REGEX, emojis } from '../utils/Constants.js';
-import { censor } from '../utils/Profanity.js';
+import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { stripIndents } from 'common-tags';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { replaceLinks } from '../utils/Utils.js';
+import NetworkLogger from '../structures/NetworkLogger.js';
 
 export interface NetworkMessage extends Message {
   censoredContent: string;
@@ -309,6 +310,15 @@ export default class NetworkManager extends Factory {
         message.reply('Please keep your attachments under 8MB.');
         return false;
       }
+    }
+
+    const hasProfanity = checkProfanity(message.content);
+    if ((hasProfanity.profanity || hasProfanity.slurs) && message.guild) {
+      // send a log to the log channel set by the hub
+      new NetworkLogger(hubId).logProfanity(message.content, message.author, message.guild);
+
+      // we dont want to send the message if it contains slurs
+      if (hasProfanity.slurs) return false;
     }
 
     return true;

@@ -270,6 +270,37 @@ export default class Hub extends BaseCommand {
         name: 'joined',
         description: '📜 List all hubs you have joined from this server.',
       },
+      {
+        type: ApplicationCommandOptionType.Subcommand,
+        name: 'logging',
+        description: '📁 Enable/disable logging for your hub.',
+        options: [
+          hubOption,
+          {
+            type: ApplicationCommandOptionType.String,
+            name: 'log_type',
+            description: 'The type of logs you want to toggle.',
+            choices: [
+              { name: 'reports', value: 'reports' },
+              { name: 'profanity', value: 'profanity' },
+              { name: 'modLogs', value: 'modLogs' },
+              { name: 'memberLogs', value: 'memberLogs' },
+            ],
+            required: true,
+          },
+          {
+            type: ApplicationCommandOptionType.Channel,
+            name: 'channel',
+            description: 'The channel you want to send this type of logs to.',
+            required: true,
+            channel_types: [
+              ChannelType.GuildText,
+              ChannelType.PublicThread,
+              ChannelType.PrivateThread,
+            ],
+          },
+        ],
+      },
     ],
   };
 
@@ -284,7 +315,8 @@ export default class Hub extends BaseCommand {
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
-    const modCmds = ['manage', 'settings', 'connections', 'invite', 'moderator'];
+    const managerCmds = ['manage', 'settings', 'invite', 'moderator', 'logging'];
+    const modCmds = ['connections'];
 
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
@@ -307,6 +339,18 @@ export default class Hub extends BaseCommand {
           OR: [
             { ownerId: interaction.user.id },
             { moderators: { some: { userId: interaction.user.id } } },
+          ],
+        },
+        take: 25,
+      });
+    }
+    else if (managerCmds.includes(subcommandGroup || subcommand)) {
+      hubChoices = await db.hubs.findMany({
+        where: {
+          name: { mode: 'insensitive', contains: focusedValue },
+          OR: [
+            { ownerId: interaction.user.id },
+            { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
           ],
         },
         take: 25,

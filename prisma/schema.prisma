@@ -48,6 +48,13 @@ type HubModerator {
 //   spamFilter      Boolean @default(true)
 // }
 
+type HubLogChannels {
+  reports   String?
+  modLogs    String?
+  joinLeave String?
+  profanity String?
+}
+
 type hubBlacklist {
   reason      String
   expires     DateTime?
@@ -102,6 +109,7 @@ model hubs {
   messages    messageData[]
   moderators  HubModerator[]
   connections connectedList[]
+  logChannels HubLogChannels?
   // approved           Boolean              @default(false)
   // official           Boolean              @default(false)
 }

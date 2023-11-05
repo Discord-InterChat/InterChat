@@ -4,6 +4,7 @@ import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
 import { emojis } from '../../../../utils/Constants.js';
+import NetworkLogger from '../../../../structures/NetworkLogger.js';
 
 export default class Server extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -11,13 +12,14 @@ export default class Server extends BlacklistCommand {
 
     const hub = interaction.options.getString('hub', true);
 
-    const hubInDb = await db.hubs.findFirst({ where: {
-      name: hub,
-      OR: [
-        { ownerId: interaction.user.id },
-        { moderators: { some: { userId: interaction.user.id } } },
-      ],
-    },
+    const hubInDb = await db.hubs.findFirst({
+      where: {
+        name: hub,
+        OR: [
+          { ownerId: interaction.user.id },
+          { moderators: { some: { userId: interaction.user.id } } },
+        ],
+      },
     });
 
     if (!hubInDb) {
@@ -27,9 +29,11 @@ export default class Server extends BlacklistCommand {
       });
     }
 
+    const networkLogger = new NetworkLogger(hubInDb.id);
+
     const subcommandGroup = interaction.options.getSubcommandGroup();
     const userId = interaction.options.getString('user', true);
-    const reason = interaction.options.getString('reason');
+    const reason = interaction.options.getString('reason') ?? 'No reason provided.';
     const duration = parse(`${interaction.options.getString('duration')}`);
 
     const blacklistManager = interaction.client.getBlacklistManager();
@@ -38,12 +42,13 @@ export default class Server extends BlacklistCommand {
       // get ID if user inputted a @ mention
       const userOpt = userId.replaceAll(/<@|!|>/g, '');
       // find user through username if they are cached or fetch them using ID
-      const user = interaction.client.users.cache.find((u) => u.username === userOpt) ??
-        await interaction.client.users.fetch(userOpt).catch(() => null);
+      const user =
+        interaction.client.users.cache.find((u) => u.username === userOpt) ??
+        (await interaction.client.users.fetch(userOpt).catch(() => null));
 
       if (!user) return interaction.followUp('Could not find user. Use an ID instead.');
       // if (user.id === interaction.user.id) return interaction.followUp('You cannot blacklist yourself.');
-      if (user.id === interaction.client.user?.id) return interaction.followUp('You cannot blacklist the bot wtf.');
+      if (user.id === interaction.client.user?.id) {return interaction.followUp('You cannot blacklist the bot wtf.');}
 
       const userInBlacklist = await BlacklistManager.fetchUserBlacklist(hubInDb.id, userOpt);
       if (userInBlacklist) {
@@ -52,9 +57,15 @@ export default class Server extends BlacklistCommand {
       }
 
       const expires = duration ? new Date(Date.now() + duration) : undefined;
-      await blacklistManager.addUserBlacklist(hubInDb.id, user.id, String(reason), interaction.user.id, expires);
+      await blacklistManager.addUserBlacklist(
+        hubInDb.id,
+        user.id,
+        reason,
+        interaction.user.id,
+        expires,
+      );
       if (expires) blacklistManager.scheduleRemoval('user', user.id, hubInDb.id, expires);
-      blacklistManager.notifyBlacklist('user', user.id, hubInDb.id, expires, String(reason));
+      blacklistManager.notifyBlacklist('user', user.id, hubInDb.id, expires, reason);
 
       const successEmbed = new EmbedBuilder()
         .setDescription(`${emojis.tick} **${user.username}** has been successfully blacklisted!`)
@@ -62,7 +73,7 @@ export default class Server extends BlacklistCommand {
         .addFields(
           {
             name: 'Reason',
-            value: reason ? reason : 'No reason provided.',
+            value: reason,
             inline: true,
           },
           {
@@ -73,26 +84,23 @@ export default class Server extends BlacklistCommand {
         );
 
       await interaction.followUp({ embeds: [successEmbed] });
+
+      // send log to hub's log channel
+      await networkLogger.logBlacklist(user, interaction.user, reason, expires);
     }
 
-
     else if (subcommandGroup == 'remove') {
+      // remove the blacklist
       const result = await blacklistManager.removeBlacklist('user', hubInDb.id, userId);
       if (!result) return interaction.followUp('The inputted user is not blacklisted.');
-
 
       const user = await interaction.client.users.fetch(userId).catch(() => null);
       await interaction.followUp(`**${user?.username}** has been removed from the blacklist.`);
 
-      // TODO: Logging
-      // if (user) {
-      //   modActions(interaction.user, {
-      //     user,
-      //     action: 'unblacklistUser',
-      //     blacklistedFor: blacklistedUser.hubs.find(({ hubId }) => hubId === hubInDb.id)?.reason,
-      //     hubId: hubInDb.id,
-      //   });
-      // }
+      if (user) {
+        // send log to hub's log channel
+        await networkLogger.logUnblacklist('user', user.id, interaction.user, { reason });
+      }
     }
   }
 }

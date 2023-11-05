@@ -26,7 +26,16 @@ export default class BlacklistManager {
     hubId: string,
     serverId: string,
   ): Promise<blacklistedServers>;
-  async removeBlacklist(type: 'user', hubId: string, userId: string): Promise<blacklistedUsers>;
+  async removeBlacklist(
+    type: 'user',
+    hubId: string,
+    userId: string,
+  ): Promise<blacklistedUsers | undefined>;
+  async removeBlacklist(
+    type: 'server',
+    hubId: string,
+    userId: string,
+  ): Promise<blacklistedServers | undefined>;
   async removeBlacklist(type: 'user' | 'server', hubId: string, userOrServerId: string) {
     this.scheduler.stopTask(`blacklist_${type}-${userOrServerId}`);
     const data = {
