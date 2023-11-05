@@ -4,6 +4,7 @@ import Hub from './index.js';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import { errorEmbed } from '../../../../utils/Utils.js';
 import { Prisma } from '@prisma/client';
+import { stripIndents } from 'common-tags';
 
 export default class Logging extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -48,9 +49,11 @@ export default class Logging extends Hub {
     });
 
     const embed = new EmbedBuilder()
-      .setTitle('Log Channel Set')
-      .setDescription(
-        `${emojis.yes} ${channel} will be used for sending \`${type}\` logs from now on.`,
+      .setDescription(stripIndents`
+        ### <:beta:1170691588607983699> Log Channel Set
+
+        ${emojis.yes} ${channel} will be used for sending \`${type}\` logs from now on.
+        `,
       )
       .setColor(colors.invisible);
 

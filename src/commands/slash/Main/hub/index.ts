@@ -273,7 +273,7 @@ export default class Hub extends BaseCommand {
       {
         type: ApplicationCommandOptionType.Subcommand,
         name: 'logging',
-        description: '📁 Enable/disable logging for your hub.',
+        description: '📁 Enable/disable logging for your hub. (EXPERIMENTAL)', // TODO remove experimental once finished
         options: [
           hubOption,
           {

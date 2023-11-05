@@ -91,12 +91,13 @@ export default class NetworkLogger {
     const embed = new EmbedBuilder()
       .setTitle('Profanity Detected')
       .setDescription(`||${rawContent}||`)
+      .setColor(colors.interchatBlue)
       .addFields({
         name: 'Details',
         value: stripIndents`
-					- Author: @${author.username} (${author.id})
-					- Server: ${server.name} (${server.id}})
-					- Hub: ${hub?.name}
+					${emojis.dotBlue} **Author:** @${author.username} (${author.id})
+					${emojis.dotBlue} **Server:** ${server.name} (${server.id}})
+					${emojis.dotBlue} **Hub:** ${hub?.name}
 				`,
       });
 
