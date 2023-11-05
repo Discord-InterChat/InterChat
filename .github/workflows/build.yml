@@ -29,12 +29,16 @@ jobs:
           uses: actions/checkout@v3
   
         - name: Install dependencies
-          run: npm install
+          # temporary fix for installing deps for api
+          run: |
+            npm install
+            cd api && npm install 
 
         - name: Build code
           run: |
-              cp ~/important/interchat-env .env
-              npm run build --if-present
+            npm run build --if-present
+            cd .. && npm run build --if-present
+            cp ~/important/interchat-env .env
 
         - name: Deploy Commands
           run: npm run deploy -- -b
