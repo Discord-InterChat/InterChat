@@ -18,6 +18,7 @@ import Scheduler from '../services/SchedulerService.js';
 import db from './Db.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
+import 'dotenv/config';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function msToReadable(milliseconds: number): string {

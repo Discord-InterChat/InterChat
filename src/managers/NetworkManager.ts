@@ -1,4 +1,5 @@
 import {
+  APIMessage,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -8,6 +9,7 @@ import {
   Message,
   MessageCreateOptions,
   User,
+  WebhookClient,
   WebhookMessageCreateOptions,
 } from 'discord.js';
 import Factory from '../Factory.js';
@@ -25,7 +27,7 @@ export interface NetworkMessage extends Message {
 }
 
 export interface NetworkWebhookSendResult {
-  messageOrError: Message | string;
+  messageOrError: APIMessage | string;
   webhookURL: string;
 }
 
@@ -124,12 +126,8 @@ export default class NetworkManager extends Factory {
     const sendResult = allConnections.map(async (connection) => {
       try {
         // parse the webhook url and get the webhook id and token
-        const webhookURL = connection.webhookURL.split('/');
         // fetch the webhook from discord
-        const webhook = await this.client.fetchWebhook(
-          webhookURL[webhookURL.length - 2],
-          webhookURL[webhookURL.length - 1],
-        );
+        const webhook = new WebhookClient({ url: connection.webhookURL });
 
         const reply = referenceInDb?.channelAndMessageIds.find(
           (msg) => msg.channelId === connection.channelId,
@@ -459,7 +457,7 @@ export default class NetworkManager extends Factory {
       }
       else {
         messageDataObj.push({
-          channelId: result.messageOrError.channelId,
+          channelId: result.messageOrError.channel_id,
           messageId: result.messageOrError.id,
         });
       }
@@ -591,11 +589,7 @@ export default class NetworkManager extends Factory {
         typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
 
       try {
-        const webhookURL = connection.webhookURL.split('/');
-        const webhook = await this.client.fetchWebhook(
-          webhookURL[webhookURL.length - 2],
-          webhookURL[webhookURL.length - 1],
-        );
+        const webhook = new WebhookClient({ url: connection.webhookURL });
         return webhook.send(payload);
       }
       catch {

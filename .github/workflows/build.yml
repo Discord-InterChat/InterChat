@@ -41,7 +41,7 @@ jobs:
             cd api && npm run build --if-present
 
         - name: Deploy Commands
-          run: npm run deploy -- -b
+          run: npm run register:commands -- -b
               
         - name: Prune Dev-dependencies
           run: npm prune --omit=dev
