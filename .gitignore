@@ -9,8 +9,7 @@ tsconfig.tsbuildinfo
 # Configuration
 .env
 
-# Unit tests
-tests/
+# Unit test coverage
 __tests__/
 
 # Unit test coverage reports

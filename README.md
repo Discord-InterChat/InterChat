@@ -1,6 +1,9 @@
 # InterChat
 Code for a growing discord bot which provides a fun inter-server chat!
 
+// subcommand files must have the same name as the subcommand registered on discord
+// commands and subcommands must be default exports
+
 ## Starting the bot: 
 1. Install dependencies using `npm install`
 2. Make a file called `.env` and fill it out with the appropriate contents mentioned in the env.example file.

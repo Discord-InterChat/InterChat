@@ -48,22 +48,30 @@ type HubModerator {
 //   spamFilter      Boolean @default(true)
 // }
 
+type HubLogChannels {
+  reports   String?
+  modLogs    String?
+  joinLeave String?
+  profanity String?
+}
+
 type hubBlacklist {
-  reason  String
-  expires DateTime?
-  hubId   String    @db.ObjectId
+  reason      String
+  expires     DateTime?
+  moderatorId String?
+  hubId       String    @db.ObjectId
 }
 
 model blacklistedServers {
-  id         String               @id @default(auto()) @map("_id") @db.ObjectId
-  serverId   String @unique
+  id         String         @id @default(auto()) @map("_id") @db.ObjectId
+  serverId   String         @unique
   serverName String
   hubs       hubBlacklist[]
 }
 
 model blacklistedUsers {
-  id       String             @id @default(auto()) @map("_id") @db.ObjectId
-  userId   String             @unique
+  id       String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String         @unique
   username String
   hubs     hubBlacklist[]
 }
@@ -85,22 +93,23 @@ model connectedList {
 }
 
 model hubs {
-  id                 String               @id @default(auto()) @map("_id") @db.ObjectId
-  name               String               @unique
-  description        String
-  rating             HubRating[]
-  ownerId            String
-  iconUrl            String
-  bannerUrl          String?
-  private            Boolean              @default(true)
-  createdAt          DateTime             @default(now())
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  name        String          @unique
+  description String
+  rating      HubRating[]
+  ownerId     String
+  iconUrl     String
+  bannerUrl   String?
+  private     Boolean         @default(true)
+  createdAt   DateTime        @default(now())
   // settings are stored as a number, each bit is a setting
-  settings           Int
+  settings    Int
   // all the stuff below is relations to other collections
-  invites            hubInvites[]
-  messages           messageData[]
-  moderators         HubModerator[]
-  connections        connectedList[]
+  invites     hubInvites[]
+  messages    messageData[]
+  moderators  HubModerator[]
+  connections connectedList[]
+  logChannels HubLogChannels?
   // approved           Boolean              @default(false)
   // official           Boolean              @default(false)
 }
@@ -117,7 +126,7 @@ model messageData {
   id                   String                            @id @default(auto()) @map("_id") @db.ObjectId
   authorId             String
   channelAndMessageIds MessageDataChannelAndMessageIds[]
-  reference            MessageDataReference?
+  referenceDocId       String?                           @db.ObjectId
   serverId             String
   timestamp            DateTime
   reactions            Json // eg. {"👎": ["9893820930928", "39283902803982"]} "emoji": userId[] basically
