@@ -74,8 +74,8 @@ export default abstract class SuperClient extends Client {
       presence: {
         status: 'idle',
         activities: [{
-          name: 'Watching over 400+ networks | /hub browse',
-          state: 'custom',
+          state: 'Watching over 400+ networks | /hub browse',
+          name: 'custom',
           type: ActivityType.Custom,
         }],
       },
