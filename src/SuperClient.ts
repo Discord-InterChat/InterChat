@@ -72,7 +72,7 @@ export default abstract class SuperClient extends Client {
         IntentsBitField.Flags.GuildMessageReactions,
       ],
       presence: {
-        status: 'invisible',
+        status: 'idle',
         activities: [{
           name: 'Watching over 400+ networks | /hub browse',
           state: 'custom',
