@@ -138,7 +138,7 @@ export default class Create extends Hub {
     });
 
     // set cooldown after creating a hub (because a failed hub creation should not trigger the cooldown)
-    interaction.client.commandCooldowns.setCooldown(`${interaction.user.id}-hub-create`, this.cooldown); // 1 hour
+    interaction.client.commandCooldowns.setCooldown(`${interaction.user.id}-hub-create`, 60 * 60 * 1000); // 1 hour
 
     const successEmbed = new EmbedBuilder()
       .setColor('Green')
