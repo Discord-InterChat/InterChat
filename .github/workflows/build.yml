@@ -38,10 +38,16 @@ jobs:
           run: |
             cp ~/important/interchat-env .env
             npm run build --if-present
-            cd api && npm run build --if-present
+
+        - name: Rebuild Tensorflow
+          run: |
+            cd api && npm rebuild @tensorflow/tfjs-node --build-from-source
+            npm run build --if-present
 
         - name: Deploy Commands
-          run: npm run register:commands -- -b
+          run: |
+            npm run register:commands -- --public
+            npm run register:commands -- --private
               
         - name: Prune Dev-dependencies
           run: npm prune --omit=dev

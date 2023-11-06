@@ -35,11 +35,11 @@ process.argv.forEach((arg) => {
   if (arg === '--public') {
     registerAllCommands().then(() => process.exit(0));
   }
-  else if (arg === '--staff') {
+  else if (arg === '--private') {
     registerAllCommands(true).then(() => process.exit(0));
   }
   else if (arg === '--help') {
-    Logger.info('Usage: node utils/DeployCmdCli.js [--public|--staff|--help]');
+    Logger.info('Usage: node utils/RegisterCmdCli.js [--public|--private|--help]');
     process.exit(0);
   }
   else {
