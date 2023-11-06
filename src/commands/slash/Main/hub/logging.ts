@@ -42,9 +42,7 @@ export default class Logging extends Hub {
     await db.hubs.update({
       where: { id: hubInDb.id },
       data: {
-        logChannels: {
-          set: { [type]: channel.id },
-        },
+        logChannels: { [type]: channel.id },
       },
     });
 
