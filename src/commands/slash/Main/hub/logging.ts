@@ -42,12 +42,13 @@ export default class Logging extends Hub {
     await db.hubs.update({
       where: { id: hubInDb.id },
       data: {
-        logChannels: { [type]: channel.id },
+        logChannels: { upsert: { set: { [type]: channel.id }, update: { [type]: channel.id } } },
       },
     });
 
     const embed = new EmbedBuilder()
-      .setDescription(stripIndents`
+      .setDescription(
+        stripIndents`
         ### <:beta:1170691588607983699> Log Channel Set
 
         ${emojis.yes} ${channel} will be used for sending \`${type}\` logs from now on.
