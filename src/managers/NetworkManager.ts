@@ -583,14 +583,16 @@ export default class NetworkManager extends Factory {
   async sendToNetwork(hubId: string, message: string | MessageCreateOptions) {
     const connections = await this.fetchHubNetworks({ hubId });
 
-    const res = connections.map(async (connection) => {
-      const threadId = connection.parentId ? connection.channelId : undefined;
-      const payload =
-        typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
+    const res = connections
+      .filter((c) => c.connected === true)
+      .map(async (connection) => {
+        const threadId = connection.parentId ? connection.channelId : undefined;
+        const payload =
+          typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
 
-      const webhook = new WebhookClient({ url: connection.webhookURL });
-      return webhook.send(payload).catch(() => null);
-    });
+        const webhook = new WebhookClient({ url: connection.webhookURL });
+        return webhook.send(payload).catch(() => null);
+      });
 
     return res;
   }
