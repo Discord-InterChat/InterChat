@@ -588,15 +588,10 @@ export default class NetworkManager extends Factory {
       const payload =
         typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
 
-      try {
-        const webhook = new WebhookClient({ url: connection.webhookURL });
-        return webhook.send(payload);
-      }
-      catch {
-        return null;
-      }
+      const webhook = new WebhookClient({ url: connection.webhookURL });
+      return webhook.send(payload).catch(() => null);
     });
 
-    return await Promise.all(res);
+    return res;
   }
 }

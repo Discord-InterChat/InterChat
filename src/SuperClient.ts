@@ -20,6 +20,7 @@ import BlacklistManager from './managers/BlacklistManager.js';
 import { RemoveMethods } from './typings/index.js';
 import { isDevBuild } from './utils/Constants.js';
 import CooldownService from './services/CooldownService.js';
+import { ActivityType } from 'discord.js';
 
 export default abstract class SuperClient extends Client {
   readonly logger = Logger;
@@ -70,6 +71,14 @@ export default abstract class SuperClient extends Client {
         IntentsBitField.Flags.GuildMessages,
         IntentsBitField.Flags.GuildMessageReactions,
       ],
+      presence: {
+        status: 'invisible',
+        activities: [{
+          name: 'Watching over 400+ networks | /hub browse',
+          state: 'custom',
+          type: ActivityType.Custom,
+        }],
+      },
     });
   }
 

@@ -120,7 +120,7 @@ export default class NetworkLogger {
       .setAuthor({ name: `${type} ${name} blacklisted`, iconURL })
       .setDescription(
         stripIndents`
-				${emojis.dotBlue} **User:** ${name} (${userOrServer.id})
+				${emojis.dotBlue} **${type}:** ${name} (${userOrServer.id})
 				${emojis.dotBlue} **Moderator:** ${mod.username} (${mod.id})
 				${emojis.dotBlue} **Hub:** ${hub?.name}
 			`,
