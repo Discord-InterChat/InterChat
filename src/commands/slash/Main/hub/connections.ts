@@ -41,8 +41,8 @@ export default class Connections extends Hub {
             const server = client.guilds.cache.get(ctx.connection.serverId);
 
             if (server) {
-              const channel = await server?.channels.fetch(ctx.connection.channelId);
-              return { serverName: server?.name, channelName: channel?.name };
+              const channel = await server?.channels.fetch(ctx.connection.channelId).catch(() => null);
+              return { serverName: server.name, channelName: channel?.name };
             }
           },
           { context: { connection } },

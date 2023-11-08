@@ -73,27 +73,30 @@ export default class NetworkManager extends Factory {
     if (attachmentURL) {
       const reaction = await message.react(emojis.loading).catch(() => null);
 
-      const nsfwDetector = this.client.getNSFWDetector();
-      const predictions = await nsfwDetector.analyzeImage(
-        attachment ? attachment.url : attachmentURL,
-      );
+      // run static images through the nsfw detector
+      if (REGEX.STATIC_IMAGE_URL.test(attachmentURL)) {
+        const nsfwDetector = this.client.getNSFWDetector();
+        const predictions = await nsfwDetector.analyzeImage(
+          attachment ? attachment.url : attachmentURL,
+        );
 
-      if (predictions && nsfwDetector.isUnsafeContent(predictions)) {
-        const nsfwEmbed = new EmbedBuilder()
-          .setTitle('NSFW Image Detected')
-          .setDescription(
-            stripIndents`
-          I have identified this image as NSFW (Not Safe For Work). Sharing NSFW content is against our network guidelines. Refrain from posting such content here.
-          
-          **NSFW Detected:** ${Math.round(predictions[0].probability * 100)}%`,
-          )
-          .setFooter({
-            text: 'Please be aware that AI predictions can be inaccurate at times, and we cannot guarantee perfect accuracy in all cases. 😔',
-            iconURL: 'https://i.imgur.com/625Zy9W.png',
-          })
-          .setColor('Red');
+        if (predictions && nsfwDetector.isUnsafeContent(predictions)) {
+          const nsfwEmbed = new EmbedBuilder()
+            .setTitle('NSFW Image Detected')
+            .setDescription(
+              stripIndents`
+            I have identified this image as NSFW (Not Safe For Work). Sharing NSFW content is against our network guidelines. Refrain from posting such content here.
+            
+            **NSFW Detected:** ${Math.round(predictions[0].probability * 100)}%`,
+            )
+            .setFooter({
+              text: 'Please be aware that AI predictions can be inaccurate at times, and we cannot guarantee perfect accuracy in all cases. 😔',
+              iconURL: 'https://i.imgur.com/625Zy9W.png',
+            })
+            .setColor('Red');
 
-        return await message.reply({ embeds: [nsfwEmbed] });
+          return await message.reply({ embeds: [nsfwEmbed] });
+        }
       }
 
       reaction?.remove().catch(() => null);
@@ -290,7 +293,11 @@ export default class NetworkManager extends Factory {
       return false;
     }
 
-    if (settings.has('HideLinks') && message.content.match(REGEX.LINKS)) {
+    if (
+      settings.has('HideLinks') &&
+      !REGEX.IMAGE_URL.test(message.content) && // ignore image urls
+      REGEX.LINKS.test(message.content)
+    ) {
       message.content = replaceLinks(message.content);
     }
 
@@ -349,7 +356,7 @@ export default class NetworkManager extends Factory {
    */
   public async getAttachmentURL(message: Message) {
     // Tenor Gifs / Image URLs
-    const URLMatch = message.content.match(REGEX.STATIC_IMAGE_URL);
+    const URLMatch = message.content.match(REGEX.IMAGE_URL);
 
     if (URLMatch) return URLMatch[0];
 
