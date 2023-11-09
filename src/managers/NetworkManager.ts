@@ -172,8 +172,8 @@ export default class NetworkManager extends Factory {
             ? new EmbedBuilder({
               description: replyContent,
               author: {
-                name: `${referredMessage?.author.username.slice(0, 30)}`,
-                icon_url: referredMessage?.author.displayAvatarURL(),
+                name: `${referredAuthor?.username.slice(0, 30)}`,
+                icon_url: referredAuthor?.displayAvatarURL(),
               },
             }).setColor('Random')
             : undefined;
