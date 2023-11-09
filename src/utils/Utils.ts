@@ -85,7 +85,7 @@ export async function getOrCreateWebhook(
       ? channel
       : channel.parent;
 
-  const webhooks = await channelOrParent?.fetchWebhooks();
+  const webhooks = await channelOrParent?.fetchWebhooks().catch(() => null);
   const existingWebhook = webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
 
   if (existingWebhook) {
@@ -95,7 +95,7 @@ export async function getOrCreateWebhook(
   return await channelOrParent?.createWebhook({
     name: 'InterChat Network',
     avatar,
-  });
+  }).catch(() => undefined);
 }
 
 export function getCredits() {

@@ -170,8 +170,7 @@ export default class NetworkManager extends Factory {
           // preview embed for the message being replied to
           const replyEmbed = replyContent
             ? new EmbedBuilder({
-              description:
-                  replyContent.length > 30 ? replyContent?.slice(0, 30) + '...' : replyContent,
+              description: replyContent,
               author: {
                 name: `${referredMessage?.author.username.slice(0, 30)}`,
                 icon_url: referredMessage?.author.displayAvatarURL(),
@@ -342,8 +341,8 @@ export default class NetworkManager extends Factory {
     if (!referredContent) {
       referredContent = '*Original message contains attachment <:attachment:1102464803647275028>*';
     }
-    else if (referredContent.length > 1000) {
-      referredContent = referredContent.slice(0, 1000) + '...';
+    else if (referredContent.length > 100) {
+      referredContent = referredContent.slice(0, 100) + '...';
     }
 
     return referredContent;
