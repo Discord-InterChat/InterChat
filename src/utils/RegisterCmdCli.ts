@@ -22,7 +22,9 @@ export default async function registerAllCommands(staffOnly = false) {
       .then(() => Logger.info('Registered all staff application commands.'));
   }
   else {
-    const commands = commandsMap.map((command) => command.data);
+    const commands = commandsMap
+      .filter((command) => !command.staffOnly)
+      .map((command) => command.data);
 
     // register all other commands to the global application;
     return await rest

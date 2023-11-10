@@ -12,7 +12,7 @@ import { captureException } from '@sentry/node';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../utils/Constants.js';
 import { messageData as messageDataCol } from '@prisma/client';
-import { msToReadable } from '../../../utils/Utils.js';
+import { errorEmbed, msToReadable } from '../../../utils/Utils.js';
 
 const limitOpt: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.Integer,
@@ -24,11 +24,12 @@ const limitOpt: APIApplicationCommandBasicOption = {
 
 export default class Purge extends BaseCommand {
   readonly staffOnly = true;
+  readonly cooldown = 10_000;
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'purge',
     description: 'Mass delete network messages. Staff-only',
     dm_permission: false,
-    default_member_permissions: PermissionFlagsBits.ManageGuild.toString(),
+    default_member_permissions: PermissionFlagsBits.ManageChannels.toString(),
     options: [
       {
         type: ApplicationCommandOptionType.Subcommand,
@@ -104,10 +105,25 @@ export default class Purge extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
     const limit = interaction.options.getInteger('limit') || 100;
-    const { messageData, connectedList } = db;
+    const { messageData, connectedList, hubs } = db;
     const channelInHub = await connectedList.findFirst({
       where: { channelId: interaction.channelId, connected: true },
     });
+
+    const isMod = hubs.findFirst({ where: {
+      OR: [
+        { moderators: { some: { userId: interaction.user.id } } },
+        { ownerId: interaction.user.id },
+      ],
+    } });
+
+    if (!isMod) {
+      return await interaction.reply({
+        embeds: [errorEmbed(`${emojis.no} You must be a moderator or owner of this hub to use this command.`)],
+        ephemeral: true,
+      });
+    }
+
 
     if (!channelInHub) {
       return await interaction.reply({
