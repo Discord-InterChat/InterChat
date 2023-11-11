@@ -186,7 +186,7 @@ export default class NetworkManager extends Factory {
               (connection.profFilter ? message.censoredContent : message.content) +
               // append the attachment url if there is one
               `${attachment ? `\n${attachmentURL}` : ''}`,
-            username: `${message.author.username} from ${message.guild}`,
+            username: `@${message.author.username} • ${message.guild}`,
             avatarURL: message.author.displayAvatarURL(),
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },

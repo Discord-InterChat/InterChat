@@ -56,7 +56,7 @@ class InterChat extends SuperClient {
 
             // send message to support server notifying of new guild
             await goalChannel.send({
-              content: `${ctx.flushedEmoji} I've just joined  ${ctx.guild.name}, which is now my **${guildCount}${ordinalSuffix}** guild! 🎉`,
+              content: `${ctx.flushedEmoji} I've just joined  ${ctx.guild.name}, making it my **${guildCount}${ordinalSuffix}** guild! 🎉`,
               embeds: [goalEmbed],
             });
           }
