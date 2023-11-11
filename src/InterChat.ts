@@ -180,7 +180,7 @@ class InterChat extends SuperClient {
           if (goalChannel?.isTextBased()) {
             const goalEmbed: APIEmbed = {
               color: ctx.color,
-              title: `I have been kicked from ${ctx.guild.name} 👢`,
+              title: `${ctx.guild.name} has kicked me 👢`,
               thumbnail: ctx.guild.iconURL ? { url: ctx.guild.iconURL } : undefined,
               description: ctx.goalDesc,
               footer: {
