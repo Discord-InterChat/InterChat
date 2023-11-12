@@ -105,6 +105,7 @@ export default class JoinSubCommand extends Hub {
             `${emojis.no} I could not create a webhook in ${channel}. Please make sure I have the \`Manage Webhooks\` permission in that channel.`,
           ),
         ],
+        components: [],
       });
       return;
     }

@@ -16,11 +16,12 @@ import NSFWClient from './structures/NSFWDetection.js';
 import CommandManager from './managers/CommandManager.js';
 import NetworkManager from './managers/NetworkManager.js';
 import ReactionUpdater from './updater/ReactionUpdater.js';
+import CooldownService from './services/CooldownService.js';
 import BlacklistManager from './managers/BlacklistManager.js';
 import { RemoveMethods } from './typings/index.js';
 import { isDevBuild } from './utils/Constants.js';
-import CooldownService from './services/CooldownService.js';
 import { ActivityType } from 'discord.js';
+import 'dotenv/config';
 
 export default abstract class SuperClient extends Client {
   readonly logger = Logger;
