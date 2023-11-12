@@ -4,9 +4,6 @@ import SuperClient from '../SuperClient.js';
 import { blacklistedServers, blacklistedUsers } from '@prisma/client';
 import { EmbedBuilder, Snowflake } from 'discord.js';
 import { emojis, colors } from '../utils/Constants.js';
-import { captureException } from '@sentry/node';
-import Logger from '../utils/Logger.js';
-
 export default class BlacklistManager {
   private scheduler: Scheduler;
 
@@ -124,13 +121,7 @@ export default class BlacklistManager {
     if (type === 'user') {
       embed.setDescription(`You have been blacklisted from talking in hub **${hub?.name}**.`);
       const user = await SuperClient.getInstance().users.fetch(userOrServerId);
-      try {
-        await user.send({ embeds: [embed] });
-      }
-      catch (e) {
-        Logger.error(e);
-        captureException(e);
-      }
+      await user.send({ embeds: [embed] }).catch(() => null);
     }
     else {
       embed.setDescription(
