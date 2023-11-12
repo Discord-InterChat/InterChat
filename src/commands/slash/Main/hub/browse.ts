@@ -405,7 +405,7 @@ export default class Browse extends Hub {
     const rating = calculateAverageRating(hub.rating.map((hr) => hr.rating));
     const stars =
       rating < 5
-        ? emojis.star.repeat(rating) + emojis.star_empty.repeat(5 - rating)
+        ? emojis.star.repeat(rating) + emojis.star_empty.repeat(Math.round(5 - rating))
         : emojis.star.repeat(5);
 
     const lastMessageTimestamp = lastMessage?.getTime() ?? 0;
