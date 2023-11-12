@@ -146,7 +146,7 @@ export default class NetworkLogger {
     type: 'user' | 'server',
     userOrServerId: string,
     mod: User,
-    opts?: { reason?: string; },
+    opts?: { reason?: string },
   ) {
     const hub = await db.hubs.findFirst({ where: { id: this.hubId } });
 
@@ -156,14 +156,15 @@ export default class NetworkLogger {
 
     if (type === 'user') {
       blacklisted = await BlacklistManager.fetchUserBlacklist(this.hubId, userOrServerId);
-      name = (await this.client.users.fetch(userOrServerId).catch(() => null))?.username ?? blacklisted?.username;
-      originalReason = blacklisted?.hubs.find(h => h.hubId === this.hubId)?.reason;
+      name =
+        (await this.client.users.fetch(userOrServerId).catch(() => null))?.username ??
+        blacklisted?.username;
+      originalReason = blacklisted?.hubs.find((h) => h.hubId === this.hubId)?.reason;
     }
     else {
       blacklisted = await BlacklistManager.fetchServerBlacklist(this.hubId, userOrServerId);
       name = blacklisted?.serverName;
     }
-
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: `${toTitleCase(type)} ${name} unblacklisted` })
@@ -175,8 +176,12 @@ export default class NetworkLogger {
 			`,
       )
       .addFields(
-        { name: 'Reason for Unblacklist', value: opts?.reason ?? 'No reason provided.' },
-        { name: 'Blacklisted For', value: originalReason ?? 'Unknown' },
+        {
+          name: 'Reason for Unblacklist',
+          value: opts?.reason ?? 'No reason provided.',
+          inline: true,
+        },
+        { name: 'Blacklisted For', value: originalReason ?? 'Unknown', inline: true },
       )
       .setColor(colors.interchatBlue)
       .setFooter({ text: `Unblacklisted by: ${mod.username}`, iconURL: mod.displayAvatarURL() });
