@@ -33,6 +33,11 @@ class InterChat extends SuperClient {
       );
     });
 
+
+    this.on('shardReady', (shard) => {
+      this.logger.info(`Shard ${shard} is ready!`);
+    });
+
     this.on('guildCreate', async (guild) => {
       const checkProfanity = check(guild.name);
       const isProfane = checkProfanity.profanity || checkProfanity.slurs;
@@ -155,6 +160,8 @@ class InterChat extends SuperClient {
 
     // delete guild from database
     this.on('guildDelete', async (guild) => {
+      if (!guild.available) return;
+
       this.logger.info(`Left ${guild.name} (${guild.id})`);
       await db.connectedList.deleteMany({ where: { serverId: guild.id } });
 
