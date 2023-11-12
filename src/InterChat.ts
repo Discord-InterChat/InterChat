@@ -33,7 +33,6 @@ class InterChat extends SuperClient {
       );
     });
 
-
     this.on('shardReady', (shard) => {
       this.logger.info(`Shard ${shard} is ready!`);
     });
@@ -127,12 +126,21 @@ class InterChat extends SuperClient {
         .setColor(colors.invisible)
         .setFooter({ text: `Sent for: ${guild.name}`, iconURL: guild.iconURL() || undefined });
 
+      const firstChannel = guild.channels.cache
+        .filter(
+          (c) =>
+            c.type === ChannelType.GuildText && c.permissionsFor(guild.id)?.has('SendMessages'),
+        )
+        .first() as TextChannel;
+
       if (guild.members.me?.permissions.has('ViewAuditLog')) {
         const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 });
         const entry = auditLog.entries.first();
 
         // send message to the person who added the bot
-        await entry?.executor?.send({ embeds: [embed], components: [buttons] }).catch(() => null);
+        await entry?.executor?.send({ embeds: [embed], components: [buttons] }).catch(() => {
+          firstChannel.send({ embeds: [embed], components: [buttons] }).catch(() => null);
+        });
 
         if (isProfane) {
           await entry?.executor?.send({ embeds: [profaneErrorEmbed] }).catch(() => null);
@@ -141,13 +149,6 @@ class InterChat extends SuperClient {
         }
       }
       else {
-        const firstChannel = guild.channels.cache
-          .filter(
-            (c) =>
-              c.type === ChannelType.GuildText && c.permissionsFor(guild.id)?.has('SendMessages'),
-          )
-          .first() as TextChannel;
-
         if (isProfane) {
           await firstChannel?.send({ embeds: [profaneErrorEmbed] }).catch(() => null);
           await guild.leave();
