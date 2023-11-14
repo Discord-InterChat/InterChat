@@ -171,7 +171,7 @@ class InterChat extends SuperClient {
       const guildOwner = await this.users.fetch(guild.ownerId).catch(() => null);
 
       const goalDesc = stripIndents`
-      I am now in **${guildCount}** servers again 🥲
+      I am in **${guildCount}** servers again 🥲
       
       **Server Info**
       - Members: ${guild.memberCount}
