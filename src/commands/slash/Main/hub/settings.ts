@@ -26,7 +26,11 @@ export default class Settings extends Hub {
 
     if (!hub) {
       return interaction.reply({
-        content: 'Hub not found. Make sure there are no typos in the name and that own or moderate the hub.',
+        embeds: [
+          errorEmbed(
+            'Hub not found. Make sure there are no typos in the name and that own or moderate the hub.',
+          ),
+        ],
         ephemeral: true,
       });
     }
@@ -71,7 +75,7 @@ export default class Settings extends Hub {
     let hub = await db.hubs.findFirst({ where: { name: hubName } });
     if (!hub) {
       return interaction.reply({
-        content: 'Hub not found.',
+        embeds: [errorEmbed('Hub not found.')],
         ephemeral: true,
       });
     }

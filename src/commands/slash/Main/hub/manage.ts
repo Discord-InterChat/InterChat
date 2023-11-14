@@ -35,7 +35,13 @@ export default class Manage extends Hub {
     });
 
     if (!hubInDb) {
-      await interaction.reply(`${emojis.no} Hub not found. Make sure there are no typos in the name and that own or moderate the hub.`);
+      await interaction.reply({
+        embeds: [
+          errorEmbed(
+            `${emojis.no} Hub not found. Make sure there are no typos in the name and that own or moderate the hub.`,
+          ),
+        ],
+      });
       return;
     }
 
@@ -371,7 +377,9 @@ export default class Manage extends Hub {
         {
           name: 'Log Channels',
           value: stripIndents`
-          - Profanity: ${hub?.logChannels?.profanity ? `<#${hub?.logChannels?.profanity}>` : emojis.no}
+          - Profanity: ${
+  hub?.logChannels?.profanity ? `<#${hub?.logChannels?.profanity}>` : emojis.no
+}
           - Mod Logs: ${hub?.logChannels?.modLogs ? `<#${hub?.logChannels?.modLogs}>` : emojis.no}
           - Reports: ${hub?.logChannels?.reports ? `<#${hub?.logChannels?.reports}>` : emojis.no}
           `,
