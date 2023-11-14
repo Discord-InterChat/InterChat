@@ -1,31 +1,25 @@
-// import { EmbedBuilder, User, TextChannel } from 'discord';
-// import { constants, getGuildName, getHubName } from './utils';
-import { createRequire } from 'node:module';
-import badwordsType from './JSON/profanity.json';
-
-// create a require a ESM doesn't support importing JSON
-const require = createRequire(import.meta.url);
-const badwords = require('./JSON/profanity.json') as typeof badwordsType;
+import { REGEX } from './Constants.js';
 
 /**
- * Checks if a message contains any bad words.
+ * Checks if a string contains profanity or slurs.
+ * @param string - The string to check.
+ * @returns An object with two boolean properties: `profanity` and `slurs`.
  */
 export function check(string: string | undefined) {
   if (!string) return { profanity: false, slurs: false };
-  const profanity = badwords.profanity.some((word) =>
-    string.split(/\b/).some((w) => w.toLowerCase() === word.toLowerCase()),
-  );
-  const slurs = badwords.slurs.some((word) =>
-    string.split(/\b/).some((w) => w.toLowerCase() === word.toLowerCase()),
-  );
 
-  return { profanity, slurs };
+  return {
+    profanity: REGEX.PROFANITY.test(string),
+    slurs: REGEX.SLURS.test(string),
+  };
 }
 
 /**
- * If the message contains bad words, it will be censored with asterisk(*).
+ * Censors profanity and slurs from a given message by replacing them with asterisks(*).
  *
  * Code referenced from [`@web-mech/badwords`](https://github.com/web-mech/badwords).
+ * @param message - The message to be censored.
+ * @returns The censored message.
  */
 export function censor(message: string): string {
   const splitRegex = /\b/;

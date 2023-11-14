@@ -3,9 +3,13 @@ import { Colors, EmbedBuilder, HexColorString } from 'discord.js';
 import { normal, badge, mascot } from './JSON/emojis.json';
 import { createRequire } from 'module';
 import 'dotenv/config';
+import badwordsType from './JSON/profanity.json';
 
 const require = createRequire(import.meta.url);
+
+// create a require a ESM doesn't support importing JSON
 const emotes = require('./JSON/emojis.json');
+const badwords = require('./JSON/profanity.json') as typeof badwordsType;
 
 export const isDevBuild = process.env.NODE_ENV === 'development';
 
@@ -18,23 +22,27 @@ export const badgeEmojis: typeof badge = emotes.badge;
 
 // Regexp
 export const REGEX = {
-  IMAGE_URL: /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png)/,
+  IMAGE_URL:
+    /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png)/,
   /** no animated images */
-  STATIC_IMAGE_URL: /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.png)/,
+  STATIC_IMAGE_URL:
+    /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.png)/,
   /** ignores giphy and tenor */
   LINKS: /https?:\/\/(?!tenor\.com|giphy\.com)\S+/g,
   /** matches imgur urls */
-  IMGUR_LINKS: /(?:https?:\/\/)?(?:www\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?/i,
+  IMGUR_LINKS:
+    /(?:https?:\/\/)?(?:www\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?/i,
+  /** matches profanity words */
+  PROFANITY: new RegExp(
+    badwords.profanity.map((word) => `(\\b${word}\\b|\\b${word}s\\b)`).join('|'),
+  ),
+  /** matches slurs */
+  SLURS: new RegExp(badwords.slurs.map((word) => `(\\b${word}\\b|\\b${word}s\\b)`).join('|')),
 };
 
 export const StaffIds = ['597265261665714186', '442653948630007808', '689082827979227160'];
-export const DeveloperIds = [
-  '828492978716409856',
-  '701727675311587358',
-  '456961943505338369',
-];
+export const DeveloperIds = ['828492978716409856', '701727675311587358', '456961943505338369'];
 export const SupporterIds = ['880978672037802014'];
-
 
 export const URLs = {
   TOPGG_API: 'https://top.gg/api/bots/769921109209907241',
@@ -96,7 +104,7 @@ export const rulesEmbed = new EmbedBuilder()
   .setImage('https://i.imgur.com/MBG0Rks.png').setDescription(stripIndents`
   ### 📜 InterChat Network Rules
 
-  1. **Use Common Sense:** Be considerate of others and their views. No slurs, derogatory language or any actions that can disrupt the chat's comfort.
+  1. **Use Common Sense:** Be considerate of others and their views. No slurs, extreme derogatory language or any actions that can disrupt the chat's comfort.
   2. **No Spamming or Flooding:** Avoid repeated, nonsensical, or overly lengthy messages.
   3. **Keep Private Matters Private:** Avoid sharing personal information across the network.
   4. **No Harassment:** Trolling, insults, or harassment of any kind are not tolerated.

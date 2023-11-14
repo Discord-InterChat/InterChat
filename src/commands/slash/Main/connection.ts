@@ -54,7 +54,11 @@ export default class Connection extends BaseCommand {
 
     if (!isInDb) {
       await interaction.reply({
-        content: `${emojis.no} This connection does not exist.`,
+        embeds: [
+          errorEmbed(
+            `${emojis.no} Invalid connection. Verify the channel ID or select from displayed options.`,
+          ),
+        ],
         ephemeral: true,
       });
       return;
