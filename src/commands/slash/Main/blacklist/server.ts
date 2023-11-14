@@ -6,6 +6,7 @@ import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
 import NetworkLogger from '../../../../structures/NetworkLogger.js';
+import { errorEmbed } from '../../../../utils/Utils.js';
 
 export default class UserBlacklist extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -25,9 +26,13 @@ export default class UserBlacklist extends BlacklistCommand {
     });
 
     if (!hubInDb) {
-      return await interaction.editReply(
-        `${emojis.no} Unknown hub. Make sure you are the owner or a moderator of the hub.`,
-      );
+      return await interaction.editReply({
+        embeds: [
+          errorEmbed(
+            `${emojis.no} Unknown hub. Make sure you are the owner or a moderator of the hub.`,
+          ),
+        ],
+      });
     }
 
     const blacklistManager = interaction.client.getBlacklistManager();

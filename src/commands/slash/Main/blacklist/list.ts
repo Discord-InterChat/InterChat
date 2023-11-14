@@ -3,7 +3,8 @@ import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import { stripIndents } from 'common-tags';
 import { paginate } from '../../../../utils/Pagination.js';
-import { colors } from '../../../../utils/Constants.js';
+import { colors, emojis } from '../../../../utils/Constants.js';
+import { errorEmbed } from '../../../../utils/Utils.js';
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -22,7 +23,13 @@ export default class ListBlacklists extends BlacklistCommand {
     });
 
     if (!hubInDb) {
-      await interaction.editReply('Unknown hub. Make sure you are the owner or a moderator of the hub.');
+      await interaction.editReply({
+        embeds: [
+          errorEmbed(
+            `${emojis.no} Unknown hub. Make sure you are the owner or a moderator of the hub.`,
+          ),
+        ],
+      });
       return;
     }
 
@@ -55,7 +62,9 @@ export default class ListBlacklists extends BlacklistCommand {
           name: data.serverName,
           value: stripIndents`
           **ServerId:** ${data.serverId}
-          **Moderator:** ${moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown'}
+          **Moderator:** ${
+  moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown'
+}
           **Reason:** ${hubData?.reason}
           **Expires:** ${
   !hubData?.expires ? 'Never.' : `<t:${Math.round(hubData.expires.getTime() / 1000)}:R>`
@@ -96,9 +105,13 @@ export default class ListBlacklists extends BlacklistCommand {
           name: data.username,
           value: stripIndents`
           **UserID:** ${data.userId}
-          **Moderator:** ${moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown'}
+          **Moderator:** ${
+  moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown'
+}
           **Reason:** ${hubData?.reason}
-          **Expires:** ${!hubData?.expires ? 'Never.' : `<t:${Math.round(hubData.expires.getTime() / 1000)}:R>`}
+          **Expires:** ${
+  !hubData?.expires ? 'Never.' : `<t:${Math.round(hubData.expires.getTime() / 1000)}:R>`
+}
         `,
         });
 
