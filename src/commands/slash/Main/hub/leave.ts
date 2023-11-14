@@ -12,7 +12,7 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { CustomID } from '../../../../structures/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
-import { setComponentExpiry } from '../../../../utils/Utils.js';
+import { errorEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -20,9 +20,24 @@ export default class Leave extends Hub {
     const isChannelConnected = await db.connectedList.findFirst({ where: { channelId } });
 
     if (!isChannelConnected) {
-      return await interaction.reply(
-        `${emojis.no} The channel <#${channelId}> does not have any networks.`,
-      );
+      return await interaction.reply({
+        embeds: [
+          errorEmbed(`${emojis.no} The channel <#${channelId}> does not have any networks.`),
+        ],
+      });
+    }
+
+    // check if user has manage channels permission
+    const channel = await interaction.guild?.channels.fetch(channelId);
+    if (!channel?.permissionsFor(interaction.user.id)?.has('ManageChannels')) {
+      return await interaction.reply({
+        embeds: [
+          errorEmbed(
+            `${emojis.no} You do not have the \`Manage Channels\` permission in ${channel}.`,
+          ),
+        ],
+        ephemeral: true,
+      });
     }
 
     const choiceButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([

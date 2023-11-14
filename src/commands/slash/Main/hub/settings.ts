@@ -26,7 +26,7 @@ export default class Settings extends Hub {
 
     if (!hub) {
       return interaction.reply({
-        content: 'Hub not found.',
+        content: 'Hub not found. Make sure there are no typos in the name and that own or moderate the hub.',
         ephemeral: true,
       });
     }

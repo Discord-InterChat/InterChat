@@ -35,7 +35,7 @@ export default class Manage extends Hub {
     });
 
     if (!hubInDb) {
-      await interaction.reply(`${emojis.no} Hub not found.`);
+      await interaction.reply(`${emojis.no} Hub not found. Make sure there are no typos in the name and that own or moderate the hub.`);
       return;
     }
 

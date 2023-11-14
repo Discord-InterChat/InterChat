@@ -49,7 +49,7 @@ export default class Connection extends BaseCommand {
   };
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const networkManager = interaction.client.getNetworkManager();
-    const channelId = interaction.options.getString('channel', true);
+    const channelId = interaction.options.getString('channel', true).replace(/<#|!|>/g, ''); // in case they mention the channel
     const isInDb = await networkManager.fetchConnection({ channelId });
 
     if (!isInDb) {
@@ -159,8 +159,10 @@ export default class Connection extends BaseCommand {
     const channelId = customId.args[0];
 
     if (customId.args.at(1) && customId.args[1] !== interaction.user.id) {
-      interaction.reply({
-        embeds: [errorEmbed('Sorry, you can\'t perform this action. Please use the command yourself.')],
+      await interaction.reply({
+        embeds: [
+          errorEmbed('Sorry, you can\'t perform this action. Please use the command yourself.'),
+        ],
         ephemeral: true,
       });
       return;

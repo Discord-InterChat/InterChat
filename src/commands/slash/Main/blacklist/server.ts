@@ -9,6 +9,9 @@ import NetworkLogger from '../../../../structures/NetworkLogger.js';
 
 export default class UserBlacklist extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
+    // defer the reply as it may take a while to fetch and stuff
+    await interaction.deferReply();
+
     const hub = interaction.options.getString('hub', true);
 
     const hubInDb = await db.hubs.findFirst({
@@ -22,14 +25,10 @@ export default class UserBlacklist extends BlacklistCommand {
     });
 
     if (!hubInDb) {
-      return await interaction.reply({
-        content: 'Unknown hub. Make sure you are the owner or a moderator of the hub.',
-        ephemeral: true,
-      });
+      return await interaction.editReply(
+        `${emojis.no} Unknown hub. Make sure you are the owner or a moderator of the hub.`,
+      );
     }
-
-    // defer the reply as it may take a while to fetch and stuff
-    await interaction.deferReply();
 
     const blacklistManager = interaction.client.getBlacklistManager();
     const subCommandGroup = interaction.options.getSubcommandGroup();

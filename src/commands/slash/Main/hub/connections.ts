@@ -4,26 +4,37 @@ import { stripIndent } from 'common-tags';
 import { emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import db from '../../../../utils/Db.js';
+import { errorEmbed } from '../../../../utils/Utils.js';
 
 export default class Connections extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<unknown> {
     await interaction.deferReply();
 
     const hub = interaction.options.getString('hub', true);
+    const hubExists = await db.hubs.findUnique({ where: { name: hub } });
+
+    if (!hubExists) {
+      return await interaction.editReply({
+        embeds: [errorEmbed(`${emojis.no} Hub **${hub}** doesn't exist.`)],
+      });
+    }
+    else if (
+      hubExists.ownerId !== interaction.user.id ||
+      !hubExists.moderators.some((mod) => mod.userId === interaction.user.id)
+    ) {
+      return await interaction.editReply({
+        embeds: [errorEmbed(`${emojis.no} You don't own or moderate **${hub}**.`)],
+      });
+    }
+
     const allNetworks = await db.connectedList.findMany({
-      where: {
-        hub: {
-          name: hub,
-          OR: [
-            { ownerId: interaction.user.id },
-            { moderators: { some: { userId: interaction.user.id } } },
-          ],
-        },
-      },
+      where: { hub: { id: hubExists.id } },
       orderBy: { date: 'asc' },
     });
 
-    if (allNetworks.length === 0) {return interaction.editReply(`No connected servers yet ${emojis.bruhcat}`);}
+    if (allNetworks.length === 0) {
+      return await interaction.editReply(`${emojis.no} No connected servers yet.`);
+    }
 
     const embeds: EmbedBuilder[] = [];
     let itemsPerPage = 5;
@@ -41,7 +52,9 @@ export default class Connections extends Hub {
             const server = client.guilds.cache.get(ctx.connection.serverId);
 
             if (server) {
-              const channel = await server?.channels.fetch(ctx.connection.channelId).catch(() => null);
+              const channel = await server?.channels
+                .fetch(ctx.connection.channelId)
+                .catch(() => null);
               return { serverName: server.name, channelName: channel?.name };
             }
           },
@@ -52,12 +65,13 @@ export default class Connections extends Hub {
 
         const setup = allNetworks.find((settings) => settings.channelId === connection.channelId);
         let value = stripIndent`
-        ServerID: ${connection.serverId}
-        Channel: #${evalRes?.channelName} \`(${connection.channelId}\`)
+          ServerID: ${connection.serverId}
+          Channel: #${evalRes?.channelName} \`(${connection.channelId}\`)
         `;
         if (setup) {
-          value += '\n' +
-          stripIndent`
+          value +=
+            '\n' +
+            stripIndent`
             Joined At: <t:${Math.round(setup.date.getTime() / 1000)}:d>
             Invite:  ${setup.invite ? setup.invite : 'Not Set.'}
           `;

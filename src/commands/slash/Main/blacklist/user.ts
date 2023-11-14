@@ -23,10 +23,9 @@ export default class Server extends BlacklistCommand {
     });
 
     if (!hubInDb) {
-      return await interaction.reply({
-        content: 'Unknown hub. Make sure you are the owner or a moderator of the hub.',
-        ephemeral: true,
-      });
+      return await interaction.editReply(
+        `${emojis.no} Unknown hub. Make sure you are the owner or a moderator of the hub.`,
+      );
     }
 
     const networkLogger = new NetworkLogger(hubInDb.id);
@@ -48,7 +47,9 @@ export default class Server extends BlacklistCommand {
 
       if (!user) return interaction.followUp('Could not find user. Use an ID instead.');
       // if (user.id === interaction.user.id) return interaction.followUp('You cannot blacklist yourself.');
-      if (user.id === interaction.client.user?.id) {return interaction.followUp('You cannot blacklist the bot wtf.');}
+      if (user.id === interaction.client.user?.id) {
+        return interaction.followUp('You cannot blacklist the bot wtf.');
+      }
 
       const userInBlacklist = await BlacklistManager.fetchUserBlacklist(hubInDb.id, userOpt);
       if (userInBlacklist) {
@@ -88,7 +89,6 @@ export default class Server extends BlacklistCommand {
       // send log to hub's log channel
       await networkLogger.logBlacklist(user, interaction.user, reason, expires);
     }
-
     else if (subcommandGroup == 'remove') {
       // remove the blacklist
       const result = await blacklistManager.removeBlacklist('user', hubInDb.id, userId);
