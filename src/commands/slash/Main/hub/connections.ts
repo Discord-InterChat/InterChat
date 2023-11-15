@@ -19,7 +19,7 @@ export default class Connections extends Hub {
       });
     }
     else if (
-      hubExists.ownerId !== interaction.user.id ||
+      hubExists.ownerId !== interaction.user.id &&
       !hubExists.moderators.some((mod) => mod.userId === interaction.user.id)
     ) {
       return await interaction.editReply({
