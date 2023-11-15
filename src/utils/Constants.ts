@@ -33,11 +33,9 @@ export const REGEX = {
   IMGUR_LINKS:
     /(?:https?:\/\/)?(?:www\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?/i,
   /** matches profanity words */
-  PROFANITY: new RegExp(
-    badwords.profanity.map((word) => `(\\b${word}\\b|\\b${word}s\\b)`).join('|'),
-  ),
+  PROFANITY: new RegExp(`\\b(${badwords.profanity.join('|')})\\b`, 'ig'),
   /** matches slurs */
-  SLURS: new RegExp(badwords.slurs.map((word) => `(\\b${word}\\b|\\b${word}s\\b)`).join('|')),
+  SLURS: new RegExp(`\\b(${badwords.slurs.join('|')})\\b`, 'ig'),
 };
 
 export const StaffIds = ['597265261665714186', '442653948630007808', '689082827979227160'];

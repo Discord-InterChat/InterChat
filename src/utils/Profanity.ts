@@ -9,29 +9,18 @@ export function check(string: string | undefined) {
   if (!string) return { profanity: false, slurs: false };
 
   return {
-    profanity: REGEX.PROFANITY.test(string),
-    slurs: REGEX.SLURS.test(string),
+    profanity: REGEX.PROFANITY.test(string.toLowerCase()),
+    slurs: REGEX.SLURS.test(string.toLowerCase()),
   };
 }
 
 /**
- * Censors profanity and slurs from a given message by replacing them with asterisks(*).
- *
- * Code referenced from [`@web-mech/badwords`](https://github.com/web-mech/badwords).
- * @param message - The message to be censored.
- * @returns The censored message.
+ * Replaces profanity and slurs in a string with a specified symbol.
+ * @param string - The string to censor.
+ * @param symbol - The symbol to replace the profanity and slurs with. Defaults to `\*`.
+ * @returns The censored string.
  */
-export function censor(message: string): string {
-  const splitRegex = /\b/;
-  const specialChars = /[^a-zA-Z0-9|$|@]|\^/g;
-  const matchWord = /\w/g;
-  // filter bad words from message
-  // and replace it with *
-  return message
-    .split(splitRegex)
-    .map((word) => {
-      const { profanity, slurs } = check(word);
-      return profanity || slurs ? word.replace(specialChars, '').replace(matchWord, '\\*') : word;
-    })
-    .join(splitRegex.exec(message)?.at(0));
+export function censor(string: string, symbol = '\\*'): string {
+  const repeatSymbol = (match: string) => symbol.repeat(match.length);
+  return string.replace(REGEX.PROFANITY, repeatSymbol).replace(REGEX.SLURS, repeatSymbol);
 }
