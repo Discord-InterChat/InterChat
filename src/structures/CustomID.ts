@@ -27,17 +27,19 @@ export class CustomID {
 
   /**
    * Adds an argument to the custom ID.
-   * @param value - The value to add as an argument.
+   * @param values - The value to add as an argument.
    * @returns CustomID - The CustomID instance for method chaining.
    */
-  addArgs(value: string): CustomID {
-    if (!value) return this;
+  addArgs(...values: string[]): CustomID {
+    if (!values) return this;
 
-    if (value.includes('&')) {
-      throw new TypeError('Invalid custom ID argument: The custom ID cannot contain "&".');
-    }
+    const invalidChars = ['&'];
 
-    this.customId += `&${value}`;
+    const isValid = values.every((value) => !invalidChars.some((char) => value.includes(char)));
+
+    if (isValid) this.customId += `&${values.join('&')}`;
+    else throw new TypeError('CustomID argument cannot contain "&".');
+
     return this;
   }
 
