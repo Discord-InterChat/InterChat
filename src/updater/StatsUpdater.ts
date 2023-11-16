@@ -5,6 +5,7 @@ export const updateTopGGStats = async (totalGuilds: number, totalShards = 1) => 
   await fetch(`${URLs.TOPGG_API}/stats`, {
     method: 'POST',
     headers: {
+      'Content-Type': 'application/json',
       Authorization: process.env.TOPGG_API_KEY,
     },
     body: JSON.stringify({
