@@ -66,7 +66,7 @@ export default class DeleteMessage extends BaseCommand {
     const deleted = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
     await interaction
       .editReply(
-        `${emojis.yes} Message by **<@${messageInDb.authorId}> (${messageInDb.authorId})** has been deleted from __**${deleted}/${resultsArray.length}**__ servers.`,
+        `${emojis.yes} Message by <@${messageInDb.authorId}> has been deleted from __**${deleted}/${resultsArray.length}**__ servers.`,
       )
       .catch(() => null);
 
