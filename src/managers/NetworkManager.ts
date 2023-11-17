@@ -112,8 +112,12 @@ export default class NetworkManager extends Factory {
         where: { channelAndMessageIds: { some: { messageId: referredMessage?.id } } },
       })
       : undefined;
+
     const referredContent =
-      referenceInDb && referredMessage ? await this.getReferredContent(referredMessage) : undefined;
+      (referenceInDb && referredMessage) || referredMessage?.author.id === message.client.user.id
+        ? await this.getReferredContent(referredMessage)
+        : undefined;
+
     const referredAuthor = referenceInDb
       ? await message.client.users.fetch(referenceInDb.authorId).catch(() => null)
       : null;
