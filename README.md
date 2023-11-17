@@ -30,11 +30,12 @@ This repo contains the source code for the InterChat Discord bot. InterChat is a
 
 ### Creating new commands
 
-To create a new command, create a new file in the `src/commands` directory with the name of the command. The file must export a **default** class that extends the `BaseCommand` class from `src/commands/BaseCommand.ts` file. The class methods/properties:
+To create a new command, create a new file in the `src/commands` directory with the name of the command. The file should export a **default** class that extends the `BaseCommand` class found in the `src/commands/BaseCommand.ts` file. This class is expected to include the following methods and properties:
 
-1. `data` must contain the slash command builder/raw command json
-2. An `execute` method to handle the command.
-There are other optional methods available to use as well.
+1. A `data` property, which should store the slash command builder or raw command JSON.
+2. An `execute` method responsible for handling incoming commands.
+
+Additionally, there are various optional methods and properties at your disposal for further customization. Have a look at `src/commands/BaseCommand.ts` for more information.
 
 #### Subcommands
 
