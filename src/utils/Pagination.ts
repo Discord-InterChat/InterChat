@@ -25,6 +25,12 @@ export interface PaginatorOptions {
   };
 }
 
+/**
+ * Paginates through a collection of embed pages and handles user interactions with pagination buttons.
+ * @param interaction - The command or message component interaction.
+ * @param pages - An array of EmbedBuilder objects representing the pages to be displayed.
+ * @param options - Optional configuration for the paginator.
+ */
 export async function paginate(
   interaction: CommandInteraction | MessageComponentInteraction,
   pages: EmbedBuilder[],
