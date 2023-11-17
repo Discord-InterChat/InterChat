@@ -92,6 +92,11 @@ public async handleComponents(interaction: MessageComponentInteraction) {
 - Commands are loaded automatically by calling the `loadCommandFiles` method from `src/managers/CommandManager.ts` during the bot startup.
 - The `src/commands/BaseCommand.ts` file contains all the methods/properties that can be used in a command.
 - We use the `interactionCreate` event for handling **all** interactions instead of using collectors.
+- If you are using your own bot for testing, make sure to change the CLIENT_ID in `src/utils/Constants.ts` like so:
+
+  ```ts
+  export const CLIENT_ID = isDevBuild ? '<new_client_id_here>' : '769921109209907241';
+  ```
 
 ## Special Comments
 
