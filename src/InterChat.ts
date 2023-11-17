@@ -60,7 +60,7 @@ class InterChat extends SuperClient {
 
             // send message to support server notifying of new guild
             await goalChannel.send({
-              content: `${ctx.flushedEmoji} I've just joined  ${ctx.guild.name}, making it my **${guildCount}${ordinalSuffix}** guild! 🎉`,
+              content: `${ctx.flushedEmoji} I've just joined ${ctx.guild.name}, making it my **${guildCount}${ordinalSuffix}** guild! 🎉`,
               embeds: [goalEmbed],
             });
           }
@@ -170,15 +170,6 @@ class InterChat extends SuperClient {
       const guildCount = count.reduce((p, n) => p + n, 0);
       const guildOwner = await this.users.fetch(guild.ownerId).catch(() => null);
 
-      const goalDesc = stripIndents`
-      I am in **${guildCount}** servers again 🥲
-      
-      **Server Info**
-      - Members: ${guild.memberCount}
-      - Owner: ${guildOwner?.username || 'Unknown'}
-      - Created: <t:${Math.round(guild.createdTimestamp / 1000)}:F>
-      `;
-
       // send message to support server notifying of leave
       // we cant access any variables/functions or anything inside the broadcastEval callback so we pass it in as context
       this.cluster.broadcastEval(
@@ -188,28 +179,30 @@ class InterChat extends SuperClient {
           if (goalChannel?.isTextBased()) {
             const goalEmbed: APIEmbed = {
               color: ctx.color,
-              title: `${ctx.guild.name} has kicked me 👢`,
-              thumbnail: ctx.guild.iconURL ? { url: ctx.guild.iconURL } : undefined,
-              description: ctx.goalDesc,
-              footer: {
-                text: `ID: ${ctx.guild.id}`,
+              author: {
+                name: `${ctx.guild.name} • ${ctx.guild.id} • Owner @${ctx.guild.ownerName} `,
                 icon_url: ctx.guild.iconURL,
               },
             };
 
-            await goalChannel.send({ embeds: [goalEmbed] });
+            await goalChannel.send({
+              content: `${ctx.cryEmoji} ${ctx.guild.name} kicked me. I am back to being in **${ctx.guildCount}** servers 👢`,
+              embeds: [goalEmbed],
+            });
           }
         },
         {
           context: {
+            guildCount,
             guild: {
               id: guild.id,
               name: guild.name,
               iconURL: guild.iconURL() || undefined,
+              ownerName: guildOwner?.username,
             },
-            goalDesc,
-            color: resolveColor(colors.interchatBlue),
+            color: resolveColor('Red'),
             goalChannel: channels.goal,
+            cryEmoji: mascotEmojis.cry,
           },
         },
       );
