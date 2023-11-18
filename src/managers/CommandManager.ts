@@ -3,7 +3,7 @@ import { join, dirname } from 'path';
 import Factory from '../Factory.js';
 import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
 import { emojis } from '../utils/Constants.js';
-import { CustomID } from '../structures/CustomID.js';
+import { CustomID } from '../utils/CustomID.js';
 import { Interaction } from 'discord.js';
 import { captureException } from '@sentry/node';
 import { errorEmbed } from '../utils/Utils.js';

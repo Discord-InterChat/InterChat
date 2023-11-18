@@ -4,7 +4,7 @@ import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
 import { emojis } from '../../../../utils/Constants.js';
-import NetworkLogger from '../../../../structures/NetworkLogger.js';
+import NetworkLogger from '../../../../utils/NetworkLogger.js';
 import { errorEmbed } from '../../../../utils/Utils.js';
 
 export default class Server extends BlacklistCommand {

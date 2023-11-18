@@ -2,7 +2,7 @@ import { ClusterClient } from 'discord-hybrid-sharding';
 import { Collection, Snowflake } from 'discord.js';
 import { Logger } from 'winston';
 import { Scheduler } from '../services/SchedulerService.ts';
-import NSFWClient from '../structures/NSFWDetection.ts';
+import NSFWClient from '../utils/NSFWDetection.ts';
 import NetworkManager from '../structures/NetworkManager.ts';
 import BlacklistManager from '../managers/BlacklistManager.ts';
 import CommandManager from '../managers/CommandManager.ts';

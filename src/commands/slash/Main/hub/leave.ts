@@ -9,7 +9,7 @@ import {
 } from 'discord.js';
 import Hub from './index.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { CustomID } from '../../../../structures/CustomID.js';
+import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
 import { errorEmbed, setComponentExpiry } from '../../../../utils/Utils.js';

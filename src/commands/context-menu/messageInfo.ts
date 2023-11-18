@@ -16,7 +16,7 @@ import { stripIndents } from 'common-tags';
 import { profileImage } from 'discord-arts';
 import { colors, emojis } from '../../utils/Constants.js';
 import BaseCommand from '../BaseCommand.js';
-import { CustomID } from '../../structures/CustomID.js';
+import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 
 export default class MessageInfo extends BaseCommand {

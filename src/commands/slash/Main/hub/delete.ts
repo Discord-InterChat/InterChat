@@ -12,7 +12,7 @@ import Hub from './index.js';
 import { captureException } from '@sentry/node';
 import { emojis } from '../../../../utils/Constants.js';
 import { deleteHubs, setComponentExpiry } from '../../../../utils/Utils.js';
-import { CustomID } from '../../../../structures/CustomID.js';
+import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 
 export default class Delete extends Hub {

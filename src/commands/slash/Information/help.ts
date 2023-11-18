@@ -12,7 +12,7 @@ import {
 import { URLs, colors, emojis } from '../../../utils/Constants.js';
 import BaseCommand from '../../BaseCommand.js';
 import { getCredits, setComponentExpiry } from '../../../utils/Utils.js';
-import { CustomID } from '../../../structures/CustomID.js';
+import { CustomID } from '../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
 
 export default class Help extends BaseCommand {

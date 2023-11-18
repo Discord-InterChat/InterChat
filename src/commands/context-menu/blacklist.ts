@@ -15,11 +15,11 @@ import {
 import BaseCommand from '../BaseCommand.js';
 import db from '../../utils/Db.js';
 import { emojis } from '../../utils/Constants.js';
-import { CustomID } from '../../structures/CustomID.js';
+import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { errorEmbed } from '../../utils/Utils.js';
 import parse from 'parse-duration';
-import NetworkLogger from '../../structures/NetworkLogger.js';
+import NetworkLogger from '../../utils/NetworkLogger.js';
 
 export default class Blacklist extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {

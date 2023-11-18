@@ -5,7 +5,7 @@ import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
-import NetworkLogger from '../../../../structures/NetworkLogger.js';
+import NetworkLogger from '../../../../utils/NetworkLogger.js';
 import { errorEmbed } from '../../../../utils/Utils.js';
 
 export default class UserBlacklist extends BlacklistCommand {

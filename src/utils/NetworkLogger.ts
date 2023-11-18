@@ -1,8 +1,8 @@
-import db from '../utils/Db.js';
+import db from './Db.js';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, User, Guild } from 'discord.js';
-import { emojis, colors } from '../utils/Constants.js';
-import { toTitleCase } from '../utils/Utils.js';
+import { emojis, colors } from './Constants.js';
+import { toTitleCase } from './Utils.js';
 import SuperClient from '../SuperClient.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
 

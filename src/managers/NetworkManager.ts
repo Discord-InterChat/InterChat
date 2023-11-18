@@ -20,7 +20,7 @@ import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { stripIndents } from 'common-tags';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { replaceLinks } from '../utils/Utils.js';
-import NetworkLogger from '../structures/NetworkLogger.js';
+import NetworkLogger from '../utils/NetworkLogger.js';
 
 export interface NetworkMessage extends Message {
   censoredContent: string;

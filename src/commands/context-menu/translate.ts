@@ -18,7 +18,7 @@ import BaseCommand from '../BaseCommand.js';
 import { emojis } from '../../utils/Constants.js';
 import { hasVoted } from '../../utils/Utils.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { CustomID } from '../../structures/CustomID.js';
+import { CustomID } from '../../utils/CustomID.js';
 import { supportedLanguages } from '@translate-tools/core/translators/GoogleTranslator/index.js';
 import translator from '../../utils/Translator.cjs';
 

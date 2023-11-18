@@ -12,7 +12,7 @@ import { commandsMap, interactionsMap } from './commands/BaseCommand.js';
 import Logger from './utils/Logger.js';
 import Sentry from '@sentry/node';
 import Scheduler from './services/SchedulerService.js';
-import NSFWClient from './structures/NSFWDetection.js';
+import NSFWClient from './utils/NSFWDetection.js';
 import CommandManager from './managers/CommandManager.js';
 import NetworkManager from './managers/NetworkManager.js';
 import ReactionUpdater from './updater/ReactionUpdater.js';

@@ -2,7 +2,7 @@ import { ActionRowBuilder, EmbedBuilder, Snowflake, StringSelectMenuBuilder } fr
 import { HubSettingsBitField, HubSettingsString } from '../../utils/BitFields.js';
 import { emojis, colors } from '../../utils/Constants.js';
 import { hubs } from '@prisma/client';
-import { CustomID } from '../../structures/CustomID.js';
+import { CustomID } from '../../utils/CustomID.js';
 
 export function buildSettingsEmbed(hub: hubs) {
   const settings = new HubSettingsBitField(hub.settings);

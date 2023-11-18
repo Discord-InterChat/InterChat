@@ -16,7 +16,7 @@ import {
 import { stripIndents } from 'common-tags';
 import { URLs, channels, colors, emojis } from '../../../../utils/Constants.js';
 import Support from './index.js';
-import { CustomID } from '../../../../structures/CustomID.js';
+import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 
 export default class Report extends Support {

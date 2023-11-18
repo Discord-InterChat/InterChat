@@ -23,7 +23,7 @@ import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
 import { buildEmbed } from '../../../scripts/network/buildEmbed.js';
 import { buildConnectionButtons } from '../../../scripts/network/components.js';
 import { emojis } from '../../../utils/Constants.js';
-import { CustomID } from '../../../structures/CustomID.js';
+import { CustomID } from '../../../utils/CustomID.js';
 import {
   disableComponents,
   errorEmbed,

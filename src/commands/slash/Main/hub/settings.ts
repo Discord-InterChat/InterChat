@@ -4,7 +4,7 @@ import { ChatInputCommandInteraction, CacheType } from 'discord.js';
 import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFields.js';
 import { emojis } from '../../../../utils/Constants.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { CustomID } from '../../../../structures/CustomID.js';
+import { CustomID } from '../../../../utils/CustomID.js';
 import { StringSelectMenuInteraction } from 'discord.js';
 import { errorEmbed } from '../../../../utils/Utils.js';
 import { buildSettingsEmbed, buildSettingsMenu } from '../../../../scripts/hub/settings.js';

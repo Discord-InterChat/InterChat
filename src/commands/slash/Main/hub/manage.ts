@@ -16,7 +16,7 @@ import { hubs, connectedList } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../../utils/Constants.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { CustomID } from '../../../../structures/CustomID.js';
+import { CustomID } from '../../../../utils/CustomID.js';
 import { checkAndFetchImgurUrl, errorEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 
 export default class Manage extends Hub {

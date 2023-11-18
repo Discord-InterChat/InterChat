@@ -1,4 +1,4 @@
-import { REGEX } from '../utils/Constants.js';
+import { REGEX } from './Constants.js';
 
 export declare type predictionType = {
   className: 'Drawing' | 'Hentai' | 'Neutral' | 'Porn' | 'Sexy';

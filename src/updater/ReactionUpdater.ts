@@ -20,7 +20,7 @@ import { MessageDataChannelAndMessageIds } from '@prisma/client';
 import { sortReactions } from '../utils/Utils.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
-import { CustomID } from '../structures/CustomID.js';
+import { CustomID } from '../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../decorators/Interaction.js';
 import { emojis } from '../utils/Constants.js';
 import { stripIndents } from 'common-tags';

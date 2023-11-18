@@ -21,7 +21,7 @@ import { emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import { calculateAverageRating, getOrCreateWebhook } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
-import { CustomID } from '../../../../structures/CustomID.js';
+import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
