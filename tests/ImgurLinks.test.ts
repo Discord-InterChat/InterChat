@@ -32,8 +32,9 @@ describe('checkAndFetchImgurUrl', () => {
   });
 
   it('should return Imgur URL for other links containing imgur.com link', async () => {
-    const url = 'https://images-ext-2.discordapp.net/external/WnWKgbKlgzwldrUZwAdI2aazoE_OirSHiMp7FDly3yA/https/i.imgur.com/SqxbMDm.png?width=493&height=246';
+    const url =
+      'https://images-ext-2.discordapp.net/external/WnWKgbKlgzwldrUZwAdI2aazoE_OirSHiMp7FDly3yA/https/i.imgur.com/SqxbMDm.png?width=493&height=246';
     const result = await (await import('../src/utils/Utils.js')).checkAndFetchImgurUrl(url);
-    expect(result).toBe(url);
+    expect(result).toBe('https://i.imgur.com/SqxbMDm.png');
   });
 });
