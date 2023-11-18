@@ -3,7 +3,7 @@ import { Collection, Snowflake } from 'discord.js';
 import { Logger } from 'winston';
 import { Scheduler } from '../services/SchedulerService.ts';
 import NSFWClient from '../utils/NSFWDetection.ts';
-import NetworkManager from '../structures/NetworkManager.ts';
+import NetworkManager from '../managers/NetworkManager.ts';
 import BlacklistManager from '../managers/BlacklistManager.ts';
 import CommandManager from '../managers/CommandManager.ts';
 import CooldownService from '../services/CooldownService.ts';
@@ -22,11 +22,10 @@ declare module 'discord.js' {
     readonly reactionCooldowns: Collection<string, number>;
     readonly cluster: ClusterClient<Client>;
 
-    resolveEval: <T>(value: T[]) => T | undefined
+    resolveEval: <T>(value: T[]) => T | undefined;
 
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;
-    getCommandManager(): CommandManager;
     getCommandManager(): CommandManager;
     getNetworkManager(): NetworkManager;
     getBlacklistManager(): BlacklistManager;
