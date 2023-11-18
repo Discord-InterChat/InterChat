@@ -50,7 +50,7 @@ type HubModerator {
 
 type HubLogChannels {
   reports   String?
-  modLogs    String?
+  modLogs   String?
   joinLeave String?
   profanity String?
 }
@@ -67,13 +67,6 @@ model blacklistedServers {
   serverId   String         @unique
   serverName String
   hubs       hubBlacklist[]
-}
-
-model blacklistedUsers {
-  id       String         @id @default(auto()) @map("_id") @db.ObjectId
-  userId   String         @unique
-  username String
-  hubs     hubBlacklist[]
 }
 
 model connectedList {
@@ -139,9 +132,18 @@ model userBadges {
   badges String[]
 }
 
-model userWarns {
-  id       String             @id @default(auto()) @map("_id") @db.ObjectId
-  userId   String             @unique
-  userTag  String
-  warnings UserDataWarnings[]
+model blacklistedUsers {
+  id       String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId   String         @unique
+  username String
+  hubs     hubBlacklist[]
+}
+
+model userData {
+  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String         @unique
+  username             String
+  blacklistedFrom      hubBlacklist[]
+  // if user has seen the welcome message when they first use the network
+  viewedNetworkWelcome Boolean        @default(false)
 }

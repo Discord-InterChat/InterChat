@@ -42,11 +42,12 @@ export const StaffIds = ['597265261665714186', '442653948630007808', '6890828279
 export const DeveloperIds = ['828492978716409856', '701727675311587358', '456961943505338369'];
 export const SupporterIds = ['880978672037802014'];
 
-export const URLs = {
+export const LINKS = {
   TOPGG_API: 'https://top.gg/api/bots/769921109209907241',
   VOTE: 'https://top.gg/bot/769921109209907241/vote',
   DOCS: 'https://discord-interchat.github.io/docs',
   SUPPORT_INVITE: 'https://discord.gg/6bhXQynAPs',
+  APP_DIRECTORY: 'https://discord.com/application-directory/769921109209907241',
 } as const;
 
 export const channels = {
@@ -110,5 +111,5 @@ export const rulesEmbed = new EmbedBuilder()
   6. **Respect Sensitive Topics:** Do not trivialize self-harm, suicide, violence, or other offensive topics.
   7. **Report Concerns:**  If you observe a violation of these rules, report it to the appropriate hub moderator or InterChat staff for further action.
 
-  Any questions? Join our [support server](${URLs.SUPPORT_INVITE}).
+  Any questions? Join our [support server](${LINKS.SUPPORT_INVITE}).
 `);

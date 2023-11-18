@@ -12,7 +12,7 @@ import {
   TextChannel,
   ThreadChannel,
 } from 'discord.js';
-import { DeveloperIds, REGEX, StaffIds, SupporterIds, URLs, colors } from './Constants.js';
+import { DeveloperIds, REGEX, StaffIds, SupporterIds, LINKS, colors } from './Constants.js';
 import { randomBytes } from 'crypto';
 import Scheduler from '../services/SchedulerService.js';
 import db from './Db.js';
@@ -53,7 +53,7 @@ export async function hasVoted(userId: Snowflake): Promise<boolean> {
   if (!process.env.TOPGG_API_KEY) throw new TypeError('Missing TOPGG_API_KEY environment variable');
 
   const res = await (
-    await fetch(`${URLs.TOPGG_API}/check?userId=${userId}`, {
+    await fetch(`${LINKS.TOPGG_API}/check?userId=${userId}`, {
       method: 'GET',
       headers: {
         Authorization: process.env.TOPGG_API_KEY,

@@ -1,7 +1,7 @@
 import db from '../utils/Db.js';
 import Scheduler from '../services/SchedulerService.js';
 import SuperClient from '../SuperClient.js';
-import { blacklistedServers, blacklistedUsers } from '@prisma/client';
+import { blacklistedServers, userData } from '@prisma/client';
 import { EmbedBuilder, Snowflake } from 'discord.js';
 import { emojis, colors } from '../utils/Constants.js';
 export default class BlacklistManager {
@@ -23,11 +23,7 @@ export default class BlacklistManager {
     hubId: string,
     serverId: string,
   ): Promise<blacklistedServers>;
-  async removeBlacklist(
-    type: 'user',
-    hubId: string,
-    userId: string,
-  ): Promise<blacklistedUsers | undefined>;
+  async removeBlacklist(type: 'user', hubId: string, userId: string): Promise<userData | undefined>;
   async removeBlacklist(
     type: 'server',
     hubId: string,
@@ -35,17 +31,16 @@ export default class BlacklistManager {
   ): Promise<blacklistedServers | undefined>;
   async removeBlacklist(type: 'user' | 'server', hubId: string, userOrServerId: string) {
     this.scheduler.stopTask(`blacklist_${type}-${userOrServerId}`);
-    const data = {
-      hubs: { deleteMany: { where: { hubId } } },
-    };
-
     if (type === 'user') {
-      const where = { userId: userOrServerId, hubs: { some: { hubId } } };
+      const where = { userId: userOrServerId, blacklistedFrom: { some: { hubId } } };
 
-      const notInBlacklist = await db.blacklistedUsers.findFirst({ where });
+      const notInBlacklist = await db.userData.findFirst({ where });
       if (!notInBlacklist) return;
 
-      return await db.blacklistedUsers.update({ where, data });
+      return await db.userData.update({
+        where,
+        data: { blacklistedFrom: { deleteMany: { where: { hubId } } } },
+      });
     }
     else {
       const where = { serverId: userOrServerId, hubs: { some: { hubId } } };
@@ -53,7 +48,10 @@ export default class BlacklistManager {
       const notInBlacklist = await db.blacklistedServers.findFirst({ where });
       if (!notInBlacklist) return;
 
-      return await db.blacklistedServers.update({ where, data });
+      return await db.blacklistedServers.update({
+        where,
+        data: { hubs: { deleteMany: { where: { hubId } } } },
+      });
     }
   }
 
@@ -151,8 +149,8 @@ export default class BlacklistManager {
    * @param userId The ID of the blacklisted user.
    */
   static async fetchUserBlacklist(hubId: string, userId: string) {
-    const userBlacklisted = await db.blacklistedUsers.findFirst({
-      where: { userId, hubs: { some: { hubId } } },
+    const userBlacklisted = await db.userData.findFirst({
+      where: { userId, blacklistedFrom: { some: { hubId } } },
     });
     return userBlacklisted;
   }
@@ -188,23 +186,23 @@ export default class BlacklistManager {
     const user = await client.users.fetch(userId);
     if (typeof expires === 'number') expires = new Date(Date.now() + expires);
 
-    const dbUser = await db.blacklistedUsers.findFirst({ where: { userId: user.id } });
+    const dbUser = await db.userData.findFirst({ where: { userId: user.id } });
 
-    const hubs = dbUser?.hubs.filter((i) => i.hubId !== hubId) || [];
+    const hubs = dbUser?.blacklistedFrom.filter((i) => i.hubId !== hubId) || [];
     hubs?.push({ expires: expires ?? null, reason, hubId, moderatorId });
 
-    const updatedUser = await db.blacklistedUsers.upsert({
+    const updatedUser = await db.userData.upsert({
       where: {
         userId: user.id,
       },
       update: {
         username: user.username,
-        hubs: { set: hubs },
+        blacklistedFrom: { set: hubs },
       },
       create: {
         userId: user.id,
         username: user.username,
-        hubs,
+        blacklistedFrom: hubs,
       },
     });
 

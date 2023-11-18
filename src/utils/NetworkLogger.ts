@@ -126,7 +126,7 @@ export default class NetworkLogger {
 			`,
       )
       .addFields(
-        { name: 'Reason', value: '```\n' + reason + '```', inline: true },
+        { name: 'Reason', value: reason, inline: true },
         {
           name: 'Expires',
           value: expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never.',
@@ -159,7 +159,7 @@ export default class NetworkLogger {
       name =
         (await this.client.users.fetch(userOrServerId).catch(() => null))?.username ??
         blacklisted?.username;
-      originalReason = blacklisted?.hubs.find((h) => h.hubId === this.hubId)?.reason;
+      originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === this.hubId)?.reason;
     }
     else {
       blacklisted = await BlacklistManager.fetchServerBlacklist(this.hubId, userOrServerId);

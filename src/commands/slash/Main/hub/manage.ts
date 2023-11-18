@@ -337,8 +337,8 @@ export default class Manage extends Hub {
   }
 
   static async hubEmbed(hub: hubs & { connections: connectedList[] }) {
-    const hubBlacklistedUsers = await db.blacklistedUsers.count({
-      where: { hubs: { some: { hubId: hub.id } } },
+    const hubBlacklistedUsers = await db.userData.count({
+      where: { blacklistedFrom: { some: { hubId: hub.id } } },
     });
     const hubBlacklistedServers = await db.blacklistedServers.count({
       where: { hubs: { some: { hubId: hub.id } } },

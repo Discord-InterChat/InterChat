@@ -14,7 +14,7 @@ import {
   ThreadChannel,
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { URLs, channels, colors, emojis } from '../../../../utils/Constants.js';
+import { LINKS, channels, colors, emojis } from '../../../../utils/Constants.js';
 import Support from './index.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
@@ -274,7 +274,7 @@ export default class Report extends Support {
         }
       }
       await interaction.reply({
-        content: `Report submitted. Join the [**support server**](${URLs.SUPPORT_INVITE}) to get updates on your report.`,
+        content: `Report submitted. Join the [**support server**](${LINKS.SUPPORT_INVITE}) to get updates on your report.`,
         ephemeral: true,
       });
     }

@@ -15,7 +15,7 @@ import {
   resolveColor,
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
-import { channels, colors, emojis, mascotEmojis } from './utils/Constants.js';
+import { LINKS, channels, colors, emojis, mascotEmojis } from './utils/Constants.js';
 
 class InterChat extends SuperClient {
   public constructor() {
@@ -94,7 +94,7 @@ class InterChat extends SuperClient {
           - Just a gentle reminder to dance to the beat of our network </rules:924659340898619395>. 
           🎶 Unlock some cool perks by showing your love on [top.gg](https://top.gg/bot/769921109209907241/vote)!
           
-          For a deeper dive, check out the [guide](https://discord-interchat.github.io/docs/). Your adventure with ${guild.client.user.username} is about to begin! 🌟 Questions or feedback? Join us in the [official support server](https://discord.gg/6bhXQynAPs). Happy chatting! 🎊
+          For a deeper dive, check out the [guide](https://discord-interchat.github.io/docs/). Your adventure with ${guild.client.user.username} is about to begin! 🌟 Questions or feedback? Join us in the [official support server](${LINKS.SUPPORT_INVITE}). Happy chatting! 🎊
           `,
         )
         .setColor(colors.interchatBlue)

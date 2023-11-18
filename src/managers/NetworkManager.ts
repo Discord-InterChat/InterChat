@@ -15,7 +15,7 @@ import {
 import Factory from '../Factory.js';
 import db from '../utils/Db.js';
 import { Prisma, connectedList, hubs, messageData } from '@prisma/client';
-import { REGEX, emojis } from '../utils/Constants.js';
+import { LINKS, REGEX, emojis } from '../utils/Constants.js';
 import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { stripIndents } from 'common-tags';
 import { HubSettingsBitField } from '../utils/BitFields.js';
@@ -210,9 +210,63 @@ export default class NetworkManager extends Factory {
       }
     });
 
-    // only delete the message if there is no attachment
+    const userData = await db.userData.findFirst({
+      where: { userId: message.author.id, viewedNetworkWelcome: true },
+    });
+
+    if (!userData) {
+      await db.userData.upsert({
+        where: { userId: message.author.id },
+        create: {
+          userId: message.author.id,
+          username: message.author.username,
+          viewedNetworkWelcome: true,
+        },
+        update: { viewedNetworkWelcome: true },
+      });
+
+      const welcomeEmbed = new EmbedBuilder()
+        .setAuthor({
+          name: 'Welcome to the Network!',
+          iconURL: 'https://i.imgur.com/jlCtQGs.gif',
+        })
+        .setDescription(
+          stripIndents`
+          Messages you send here will be transmitted to multiple other servers that are connected to this hub called **${isNetworkMessage.hub.name}**, and messages from those servers will also be relayed here.
+
+          You can also send images, gifs, reply and even react to messages from other servers! But remember, keep it casual—don't share personal or sensitive info. Have fun chatting with people from other servers right from here! Go wild! ${emojis.tada}
+        `,
+        )
+        .setFooter({
+          text: `Sent for: ${message.author.username}`,
+          iconURL: message.author.displayAvatarURL(),
+        })
+        .setColor('#A0C2EC');
+
+      const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setStyle(ButtonStyle.Link)
+          .setEmoji(emojis.add_icon)
+          .setLabel('Invite Me!')
+          .setURL(LINKS.APP_DIRECTORY),
+        new ButtonBuilder()
+          .setStyle(ButtonStyle.Link)
+          .setEmoji(emojis.code_icon)
+          .setLabel('Support Server')
+          .setURL(LINKS.SUPPORT_INVITE),
+        new ButtonBuilder()
+          .setStyle(ButtonStyle.Link)
+          .setEmoji(emojis.docs_icon)
+          .setLabel('Documentation')
+          .setURL(LINKS.DOCS),
+      );
+
+      await message.reply({ embeds: [welcomeEmbed], components: [linkButtons] }).catch(() => null);
+    }
+
+    // only delete the message if there is no attachment or if the user has already viewed the welcome message
     // deleting attachments will make the image not show up in the embed (discord removes it from its cdn)
-    if (!attachment) message.delete().catch(() => null);
+    if (!attachment && userData) message.delete().catch(() => null);
 
     // store the message in the db
     await this.storeMessageData(
@@ -237,8 +291,8 @@ export default class NetworkManager extends Factory {
   ): Promise<boolean> {
     const blacklistManager = this.client.getBlacklistManager();
 
-    const isUserBlacklisted = await db.blacklistedUsers.findFirst({
-      where: { userId: message.author.id, hubs: { some: { hubId: { equals: hubId } } } },
+    const isUserBlacklisted = await db.userData.findFirst({
+      where: { userId: message.author.id, blacklistedFrom: { some: { hubId: { equals: hubId } } } },
     });
 
     if (isUserBlacklisted) return false;
@@ -503,7 +557,7 @@ export default class NetworkManager extends Factory {
    * @param maxInfractions - The maximum number of infractions before the user is blacklisted.
    * @returns The user's anti-spam data if they have reached the maximum number of infractions, otherwise undefined.
    */
-  runAntiSpam(author: User, maxInfractions = MAX_STORE) {
+  public runAntiSpam(author: User, maxInfractions = MAX_STORE) {
     const userInCol = this.antiSpamMap.get(author.id);
     const currentTimestamp = Date.now();
 
@@ -549,7 +603,7 @@ export default class NetworkManager extends Factory {
    * @param userId - The ID of the user to set spam timers for.
    * @returns void
    */
-  setSpamTimers(userId: string): void {
+  public setSpamTimers(userId: string): void {
     const five_min = 60 * 5000;
     const userInCol = this.antiSpamMap.get(userId);
     const scheduler = this.client.getScheduler();

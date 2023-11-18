@@ -9,7 +9,7 @@ import {
 import db from '../../../utils/Db.js';
 import BaseCommand from '../../BaseCommand.js';
 import { cpus, totalmem } from 'os';
-import { URLs, colors, isDevBuild } from '../../../utils/Constants.js';
+import { LINKS, colors, isDevBuild } from '../../../utils/Constants.js';
 import { msToReadable } from '../../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
 
@@ -89,7 +89,7 @@ export default class Stats extends BaseCommand {
       new ButtonBuilder()
         .setLabel('Support Server')
         .setStyle(ButtonStyle.Link)
-        .setURL(URLs.SUPPORT_INVITE),
+        .setURL(LINKS.SUPPORT_INVITE),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Vote!')

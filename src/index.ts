@@ -5,7 +5,7 @@ import BlacklistManager from './managers/BlacklistManager.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { updateTopGGStats } from './updater/StatsUpdater.js';
 import { isDevBuild } from './utils/Constants.js';
-import { blacklistedServers, blacklistedUsers } from '@prisma/client';
+import { blacklistedServers, userData } from '@prisma/client';
 import { wait } from './utils/Utils.js';
 import 'dotenv/config';
 
@@ -46,16 +46,25 @@ const deleteOldMessages = async () => {
     .catch(() => null);
 };
 
-const processAndManageBlacklists = async (blacklists: (blacklistedServers | blacklistedUsers)[], scheduler: Scheduler) => {
+const processAndManageBlacklists = async (
+  blacklists: (blacklistedServers | userData)[],
+  scheduler: Scheduler,
+) => {
   if (blacklists.length === 0) return;
 
   const blacklistManager = new BlacklistManager(scheduler);
   for (const blacklist of blacklists) {
-    for (const { hubId, expires } of blacklist.hubs) {
+    const blacklistedFrom = 'hubs' in blacklist ? blacklist.hubs : blacklist.blacklistedFrom;
+    for (const { hubId, expires } of blacklistedFrom) {
       if (!expires) continue;
+
       if (expires < new Date()) {
-        if ('serverId' in blacklist) blacklistManager.removeBlacklist('server', hubId, blacklist.serverId);
-        else await blacklistManager.removeBlacklist('user', hubId, blacklist.userId);
+        if ('serverId' in blacklist) {
+          blacklistManager.removeBlacklist('server', hubId, blacklist.serverId);
+        }
+        else {
+          await blacklistManager.removeBlacklist('user', hubId, blacklist.userId);
+        }
         continue;
       }
 
@@ -72,9 +81,10 @@ const processAndManageBlacklists = async (blacklists: (blacklistedServers | blac
 manager.on('clusterCreate', async (cluster) => {
   const scheduler = new Scheduler();
   // remove expired blacklists or set new timers for them
-  const query = { where: { hubs: { some: { expires: { isSet: true } } } } };
-  processAndManageBlacklists(await db.blacklistedServers.findMany(query), scheduler);
-  processAndManageBlacklists(await db.blacklistedUsers.findMany(query), scheduler);
+  const serverQuery = { where: { hubs: { some: { expires: { isSet: true } } } } };
+  const userQuery = { where: { blacklistedFrom: { some: { expires: { isSet: true } } } } };
+  processAndManageBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler);
+  processAndManageBlacklists(await db.userData.findMany(userQuery), scheduler);
 
   // if it is the last cluster and code is in production
   if (cluster.id === manager.totalClusters - 1 && !isDevBuild) {

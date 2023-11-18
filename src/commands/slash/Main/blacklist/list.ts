@@ -90,13 +90,13 @@ export default class ListBlacklists extends BlacklistCommand {
       }
     }
     else if (serverOpt == 'user') {
-      const result = await db.blacklistedUsers.findMany({
-        where: { hubs: { some: { hubId: hubInDb.id } } },
+      const result = await db.userData.findMany({
+        where: { blacklistedFrom: { some: { hubId: hubInDb.id } } },
       });
 
       for (let i = 0; i < result.length; i++) {
         const data = result[i];
-        const hubData = data.hubs.find(({ hubId }) => hubId === hubInDb.id);
+        const hubData = data.blacklistedFrom.find(({ hubId }) => hubId === hubInDb.id);
         const moderator = hubData?.moderatorId
           ? await interaction.client.users.fetch(hubData?.moderatorId).catch(() => null)
           : null;

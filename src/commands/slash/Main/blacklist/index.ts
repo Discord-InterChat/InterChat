@@ -209,9 +209,9 @@ export default class BlacklistCommand extends BaseCommand {
 
         if (!userHubMod) return interaction.respond([]);
 
-        const filteredUsers = await db.blacklistedUsers.findMany({
+        const filteredUsers = await db.userData.findMany({
           where: {
-            hubs: { some: { hubId: userHubMod.id } },
+            blacklistedFrom: { some: { hubId: userHubMod.id } },
             OR: [
               { username: { mode: 'insensitive', contains: userOpt.value } },
               { userId: { mode: 'insensitive', contains: userOpt.value } },

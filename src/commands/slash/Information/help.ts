@@ -9,7 +9,7 @@ import {
   ChatInputCommandInteraction,
   StringSelectMenuInteraction,
 } from 'discord.js';
-import { URLs, colors, emojis } from '../../../utils/Constants.js';
+import { LINKS, colors, emojis } from '../../../utils/Constants.js';
 import BaseCommand from '../../BaseCommand.js';
 import { getCredits, setComponentExpiry } from '../../../utils/Utils.js';
 import { CustomID } from '../../../utils/CustomID.js';
@@ -89,7 +89,7 @@ export default class Help extends BaseCommand {
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Support')
-        .setURL(URLs.SUPPORT_INVITE),
+        .setURL(LINKS.SUPPORT_INVITE),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Vote!')
@@ -200,7 +200,7 @@ export default class Help extends BaseCommand {
 
         const creditsEmbed = EmbedBuilder.from(templateEmbed).setDescription(`
           ## ${emojis.wand} The Team
-          InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${URLs.SUPPORT_INVITE}). 
+          InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${LINKS.SUPPORT_INVITE}). 
 
           ${creditsDivider}
           ${emojis.interchatCircle} **Design:** 
@@ -220,7 +220,7 @@ export default class Help extends BaseCommand {
           ${emojis.dotBlue} @${members[5]?.username}
 
           ${linksDivider}
-          [Guide](https://discord-interchat.github.io/docs) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${URLs.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](https://discord-interchat.github.io/docs/legal/privacy) • [Terms](https://discord-interchat.github.io/docs/legal/terms) 
+          [Guide](https://discord-interchat.github.io/docs) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](https://discord-interchat.github.io/docs/legal/privacy) • [Terms](https://discord-interchat.github.io/docs/legal/terms) 
         `);
 
         await interaction.editReply({ embeds: [creditsEmbed] });

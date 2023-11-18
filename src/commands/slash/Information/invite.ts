@@ -6,7 +6,7 @@ import {
   OAuth2Scopes,
 } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
-import { URLs, emojis } from '../../../utils/Constants.js';
+import { LINKS, emojis } from '../../../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 
 export default class Invite extends BaseCommand {
@@ -33,7 +33,7 @@ export default class Invite extends BaseCommand {
       content: stripIndents`
       Thank you for choosing to invite InterChat. Simply click the button below to invite me!
 
-      - **__Support Server__:** ${URLs.SUPPORT_INVITE}`,
+      - **__Support Server__:** ${LINKS.SUPPORT_INVITE}`,
       components: [InviteButton],
     });
   }
