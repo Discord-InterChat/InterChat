@@ -113,14 +113,19 @@ export default class NetworkManager extends Factory {
       })
       : undefined;
 
-    const referredContent =
-      (referenceInDb && referredMessage) || referredMessage?.author.id === message.client.user.id
-        ? await this.getReferredContent(referredMessage)
-        : undefined;
+    let referredContent: string | undefined = undefined;
+    let referredAuthor: User | null = null;
 
-    const referredAuthor = referenceInDb
-      ? await message.client.users.fetch(referenceInDb.authorId).catch(() => null)
-      : null;
+    if (referredMessage) {
+      referredContent = await this.getReferredContent(referredMessage);
+
+      if (referredMessage?.author.id === message.client.user.id) {
+        referredAuthor = message.client.user;
+      }
+      else if (referenceInDb) {
+        referredAuthor = await message.client.users.fetch(referenceInDb.authorId).catch(() => null);
+      }
+    }
 
     // embeds for the normal mode
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, {
