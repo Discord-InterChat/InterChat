@@ -625,11 +625,11 @@ export default class NetworkManager extends Factory {
 
   // TODO: Add Error handlers for these
   public async fetchHubNetworks(where: { hubId?: string; hubName?: string }) {
-    return await db.connectedList.findMany({ where, cacheStrategy: { ttl: 60 } });
+    return await db.connectedList.findMany({ where });
   }
 
   public async fetchConnection(where: Prisma.connectedListWhereInput) {
-    return await db.connectedList.findFirst({ where, cacheStrategy: { ttl: 60 } });
+    return await db.connectedList.findFirst({ where });
   }
 
   async updateConnection(
