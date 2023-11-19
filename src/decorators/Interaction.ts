@@ -8,7 +8,7 @@ export type InteractionFunction = (
 /** Decorator function to call a specified method when an interaction is created (ie. interactionCreate event) */
 export function RegisterInteractionHandler(customId: string): MethodDecorator {
   return function(
-    targetClass: Record<string, any>,
+    targetClass,
     propertyKey: string | symbol,
     descriptor: PropertyDescriptor,
   ) {

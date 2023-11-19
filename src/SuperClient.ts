@@ -26,7 +26,7 @@ import 'dotenv/config';
 export default abstract class SuperClient extends Client {
   readonly logger = Logger;
 
-  readonly description = 'The only cross-server communication bot you\'ll ever need.';
+  readonly description = 'The only cross-server chatting bot you\'ll ever need.';
   readonly version = process.env.npm_package_version ?? 'Unknown';
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;
@@ -57,7 +57,7 @@ export default abstract class SuperClient extends Client {
         ...Options.DefaultSweeperSettings,
         messages: {
           interval: 3600, // Every hour...
-          lifetime: 1800,	// Remove messages older than 30 minutes.
+          lifetime: 1800, // Remove messages older than 30 minutes.
         },
         reactions: {
           interval: 3600, // Every hour...
@@ -74,11 +74,13 @@ export default abstract class SuperClient extends Client {
       ],
       presence: {
         status: 'idle',
-        activities: [{
-          state: 'Watching over 400+ networks | /hub browse',
-          name: 'custom',
-          type: ActivityType.Custom,
-        }],
+        activities: [
+          {
+            state: 'Watching over 400+ networks | /hub browse',
+            name: 'custom',
+            type: ActivityType.Custom,
+          },
+        ],
       },
     });
   }

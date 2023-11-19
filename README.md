@@ -13,6 +13,9 @@ This repo contains the source code for the InterChat Discord bot. InterChat is a
 3. [MongoDB](https://www.mongodb.com/try/download/community)
 4. [NPM](https://www.npmjs.com/get-npm) or [Yarn](https://yarnpkg.com/getting-started/install) (we are using npm in this guide)
 5. [An Imgur API Key](https://api.imgur.com/oauth2/addclient) (optional, for setting hub icon and banner)
+6. [Python 3.8+](https://www.python.org/downloads/) & [Visual Studio Build Tools (Windows Only)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019) (optional, for the API)
+    * > [!NOTE]
+      > If you are on Windows, you will need to delete the `api/package-lock.json` before installing dependencies. And if that doesn't work, run `npm i` in a terminal with admin privileges. And if you're getting errors related to node-gyp, install `node-gyp` globally using `npm i -g node-gyp`. Or follow the [Installation Instructions](https://github.com/nodejs/node-gyp?tab=readme-ov-file#on-windows). Honestly, why are you on Windows? Anyway, you can also re-install Node.js and tick the "Automatically install the necessary tools" option, which should do all the stuff mentioned above for you.
 
 ### Setting up the bot
 
@@ -89,11 +92,11 @@ public async handleComponents(interaction: MessageComponentInteraction) {
 
 ## Other information
 
-- Events are located in `src/InterChat.ts`.
-- Commands are loaded automatically by calling the `loadCommandFiles` method from `src/managers/CommandManager.ts` during the bot startup.
-- The `src/commands/BaseCommand.ts` file contains all the methods/properties that can be used in a command.
-- We use the `interactionCreate` event for handling **all** interactions instead of using collectors.
-- If you are using your own bot for testing, make sure to change the CLIENT_ID in `src/utils/Constants.ts` like so:
+* Events are located in `src/InterChat.ts`.
+* Commands are loaded automatically by calling the `loadCommandFiles` method from `src/managers/CommandManager.ts` during the bot startup.
+* The `src/commands/BaseCommand.ts` file contains all the methods/properties that can be used in a command.
+* We use the `interactionCreate` event for handling **all** interactions instead of using collectors.
+* If you are using your own bot for testing, make sure to change the CLIENT_ID in `src/utils/Constants.ts` like so:
 
   ```ts
   export const CLIENT_ID = isDevBuild ? '<new_client_id_here>' : '769921109209907241';
@@ -120,19 +123,19 @@ Use semantic commit messages in your commit messages as it will make auto-releas
 
 [Examples](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716):
 
-- `feat`: (new feature for the user, not a new feature for build script)
+* `feat`: (new feature for the user, not a new feature for build script)
 
-- `fix`: (bug fix for the user, not a fix to a build script)
+* `fix`: (bug fix for the user, not a fix to a build script)
 
-- `docs`: (changes to the documentation)
+* `docs`: (changes to the documentation)
 
-- `style`: (formatting, missing semi colons, etc; no production code change)
+* `style`: (formatting, missing semi colons, etc; no production code change)
 
-- `refactor`: (refactoring production code, eg. renaming a variable)
+* `refactor`: (refactoring production code, eg. renaming a variable)
 
-- `test`: (adding missing tests, refactoring tests; no production code change)
+* `test`: (adding missing tests, refactoring tests; no production code change)
 
-- `chore`: (updating grunt tasks etc; no production code change)
+* `chore`: (updating grunt tasks etc; no production code change)
 
 To make our lives easier by not having to remember the commit messages at all times, this repository is [commitizen](https://www.npmjs.com/package/commitizen) friendly! Commitizen is a commandline tool that guides you through the process of choosing your desired commit type.
 
@@ -145,6 +148,6 @@ Run `git cz` or `cz commit` to commit using commitizen.
 
 ## Achievements & Goals
 
-- [x] 1000 servers using InterChat 🎉
+* [x] 1000 servers using InterChat 🎉
 
-- [ ] 101 votes on topgg in a month
+* [ ] 101 votes on topgg in a month
