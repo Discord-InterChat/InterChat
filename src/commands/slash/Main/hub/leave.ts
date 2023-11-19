@@ -27,13 +27,11 @@ export default class Leave extends Hub {
       });
     }
 
-    // check if user has manage channels permission
-    const channel = await interaction.guild?.channels.fetch(channelId);
-    if (!channel?.permissionsFor(interaction.user.id)?.has('ManageChannels')) {
+    if (interaction.inCachedGuild() && interaction.member.permissions.has('ManageChannels')) {
       return await interaction.reply({
         embeds: [
           errorEmbed(
-            `${emojis.no} You do not have the \`Manage Channels\` permission in ${channel}.`,
+            `${emojis.no} You must have the \`Manage Channels\` permission in this server to leave a hub.`,
           ),
         ],
         ephemeral: true,
