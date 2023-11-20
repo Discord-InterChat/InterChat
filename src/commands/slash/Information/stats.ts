@@ -37,7 +37,7 @@ export default class Stats extends BaseCommand {
     const docsLink = 'https://discord-interchat.github.io/docs';
 
     const embed = new EmbedBuilder()
-      .setColor(colors.invisible)
+      .setColor('#A0C2EC')
       .setTitle(`${interaction.client.user.username} Statistics`)
       .setFooter({
         text: `InterChat v${interaction.client.version}${isDevBuild ? '+dev' : ''}`,
@@ -74,7 +74,6 @@ export default class Stats extends BaseCommand {
           `,
           inline: true,
         },
-        { name: '\u200B', value: '\u200B', inline: true },
       ]);
 
     const linksRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
