@@ -96,7 +96,7 @@ export default class Stats extends BaseCommand {
     );
     const otherBtns = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setLabel('Shard Stats')
+        .setLabel('Shard Info')
         .setStyle(ButtonStyle.Secondary)
         .setEmoji(emojis.crystal)
         .setCustomId(new CustomID().setIdentifier('stats', 'shardStats').toString()),
@@ -125,6 +125,7 @@ export default class Stats extends BaseCommand {
               \`\`\`elm
               Status: ${Status[shard.status]}
               Uptime: ${msToReadable(shard.manager.client.uptime || 0)}
+              Servers: ${shard.manager.client.guilds.cache.size}
               Ping: ${shard.ping}ms
               \`\`\`
             `,
