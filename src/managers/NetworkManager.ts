@@ -87,7 +87,7 @@ export default class NetworkManager extends Factory {
               stripIndents`
             I have identified this image as NSFW (Not Safe For Work). Sharing NSFW content is against our network guidelines. Refrain from posting such content here.
             
-            **NSFW Detected:** ${Math.round(predictions[0].probability * 100)}%`,
+            **Detected NSFW:** ${predictions[0].className} ${Math.round(predictions[0].probability * 100)}%`,
             )
             .setFooter({
               text: 'Please be aware that AI predictions can be inaccurate at times, and we cannot guarantee perfect accuracy in all cases. 😔',
