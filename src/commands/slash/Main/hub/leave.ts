@@ -27,7 +27,7 @@ export default class Leave extends Hub {
       });
     }
 
-    if (interaction.inCachedGuild() && interaction.member.permissions.has('ManageChannels')) {
+    if (interaction.inCachedGuild() && interaction.member.permissions.has('ManageChannels', true)) {
       return await interaction.reply({
         embeds: [
           errorEmbed(
