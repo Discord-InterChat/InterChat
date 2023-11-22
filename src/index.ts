@@ -79,15 +79,17 @@ const processAndManageBlacklists = async (
 };
 
 manager.on('clusterCreate', async (cluster) => {
-  const scheduler = new Scheduler();
-  // remove expired blacklists or set new timers for them
-  const serverQuery = { where: { hubs: { some: { expires: { isSet: true } } } } };
-  const userQuery = { where: { blacklistedFrom: { some: { expires: { isSet: true } } } } };
-  processAndManageBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler);
-  processAndManageBlacklists(await db.userData.findMany(userQuery), scheduler);
+  // if it is the last cluster
+  if (cluster.id === manager.totalClusters - 1) {
+    const scheduler = new Scheduler();
+    // remove expired blacklists or set new timers for them
+    const serverQuery = { where: { hubs: { some: { expires: { isSet: true } } } } };
+    const userQuery = { where: { blacklistedFrom: { some: { expires: { isSet: true } } } } };
+    processAndManageBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler);
+    processAndManageBlacklists(await db.userData.findMany(userQuery), scheduler);
 
-  // if it is the last cluster and code is in production
-  if (cluster.id === manager.totalClusters - 1 && !isDevBuild) {
+    // code must be in production to run these tasks
+    if (!isDevBuild) return;
     // give time for shards to connect for these tasks
     await wait(10_000);
 
@@ -98,9 +100,9 @@ manager.on('clusterCreate', async (cluster) => {
 
     // update top.gg stats every 10 minutes
     scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, syncBotlistStats);
-    // delete expired invites every hour
+    // delete expired invites every 1 hour
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1_000, deleteExpiredInvites);
     // delete old network messages every 12 hours
-    scheduler.addRecurringTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages); // every 12 hours
+    scheduler.addRecurringTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages);
   }
 });

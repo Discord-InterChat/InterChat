@@ -114,7 +114,8 @@ export default class Stats extends BaseCommand {
         .setDescription(
           stripIndents`
           ### Shard Stats
-          **Total Shards:** ${interaction.client.cluster.info.TOTAL_SHARDS}
+          **Total Shards:** ${interaction.client.cluster.info.TOTAL_SHARDS} 
+          **On Shard:** ${interaction.guild?.shardId}
           `,
         )
         .setFields(
