@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
 import { stripIndent } from 'common-tags';
-import { emojis } from '../../../../utils/Constants.js';
+import { colors, emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import db from '../../../../utils/Db.js';
 import { errorEmbed } from '../../../../utils/Utils.js';
@@ -10,37 +10,58 @@ export default class Connections extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<unknown> {
     await interaction.deferReply();
 
-    const hub = interaction.options.getString('hub', true);
-    const hubExists = await db.hubs.findUnique({ where: { name: hub } });
+    const hubOpt = interaction.options.getString('hub', true);
+    const serverOpt = interaction.options.getString('server');
 
-    if (!hubExists) {
+    const hub = await db.hubs.findUnique({ where: { name: hubOpt }, include: { connections: true } });
+
+    if (!hub) {
       return await interaction.editReply({
-        embeds: [errorEmbed(`${emojis.no} Hub **${hub}** doesn't exist.`)],
+        embeds: [errorEmbed(`${emojis.no} Hub **${hubOpt}** doesn't exist.`)],
       });
     }
     else if (
-      hubExists.ownerId !== interaction.user.id &&
-      !hubExists.moderators.some((mod) => mod.userId === interaction.user.id)
+      hub.ownerId !== interaction.user.id &&
+      !hub.moderators.some((mod) => mod.userId === interaction.user.id)
     ) {
       return await interaction.editReply({
-        embeds: [errorEmbed(`${emojis.no} You don't own or moderate **${hub}**.`)],
+        embeds: [errorEmbed(`${emojis.no} You don't own or moderate **${hubOpt}**.`)],
       });
     }
 
-    const allNetworks = await db.connectedList.findMany({
-      where: { hub: { id: hubExists.id } },
-      orderBy: { date: 'asc' },
-    });
 
-    if (allNetworks.length === 0) {
+    if (hub.connections.length === 0) {
       return await interaction.editReply(`${emojis.no} No connected servers yet.`);
+    }
+
+    if (serverOpt) {
+      const connection = hub.connections.find((con) => con.serverId === serverOpt);
+      if (!connection) {
+        return await interaction.editReply({
+          embeds: [errorEmbed(`${emojis.no} Server **${serverOpt}** isn't connected to **${hubOpt}**.`)],
+        });
+      }
+      const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
+      const channel = await server?.channels.fetch(connection.channelId).catch(() => null);
+      const embed = new EmbedBuilder()
+        .setTitle(`${server?.name} \`(${connection.serverId})\``)
+        .setColor(colors.interchatBlue)
+        .setDescription(stripIndent`
+          Channel: #${channel?.name} \`(${connection.channelId})\`
+          Joined At: <t:${Math.round(connection.date.getTime() / 1000)}:d>
+          Invite: ${connection.invite ? connection.invite : 'Not Set.'}
+          Connected: ${connection.connected ? 'Yes' : 'No'}
+        `);
+
+      await interaction.editReply({ embeds: [embed] });
+      return;
     }
 
     const embeds: EmbedBuilder[] = [];
     let itemsPerPage = 5;
 
-    for (let index = 0; index < allNetworks.length; index += 5) {
-      const current = allNetworks?.slice(index, itemsPerPage);
+    for (let index = 0; index < hub.connections.length; index += 5) {
+      const current = hub.connections?.slice(index, itemsPerPage);
 
       let j = index;
       let l = index;
@@ -63,7 +84,7 @@ export default class Connections extends Hub {
 
         const evalRes = interaction.client.resolveEval(evalArr);
 
-        const setup = allNetworks.find((settings) => settings.channelId === connection.channelId);
+        const setup = hub.connections.find((settings) => settings.channelId === connection.channelId);
         let value = stripIndent`
           ServerID: ${connection.serverId}
           Channel: #${evalRes?.channelName} \`(${connection.channelId}\`)
@@ -82,7 +103,7 @@ export default class Connections extends Hub {
 
       embeds.push(
         new EmbedBuilder()
-          .setDescription(`Current connected servers: ${++l}-${j} / **${allNetworks.length}**`)
+          .setDescription(`Current connected servers: ${++l}-${j} / **${hub.connections.length}**`)
           .setColor(0x2f3136)
           .setFields(await Promise.all(fields)),
       );

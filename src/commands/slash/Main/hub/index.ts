@@ -128,6 +128,12 @@ export default class Hub extends BaseCommand {
             required: true,
             autocomplete: true,
           },
+          {
+            type: ApplicationCommandOptionType.String,
+            name: 'server',
+            description: 'Show details about a specific server that is in the hub by its ID.',
+            required: false,
+          },
         ],
       },
       {
