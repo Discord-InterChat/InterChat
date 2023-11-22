@@ -11,23 +11,28 @@ import Hub from './index.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
-import db from '../../../../utils/Db.js';
 import { errorEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
+import db from '../../../../utils/Db.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const channelId = interaction.options.getString('hub', true);
     const isChannelConnected = await db.connectedList.findFirst({ where: { channelId } });
 
-    if (!isChannelConnected) {
+    if (!interaction.inCachedGuild()) {
+      return await interaction.reply({
+        embeds: [errorEmbed(`${emojis.no} This command can only be run in a server.`)],
+        ephemeral: true,
+      });
+    }
+    else if (!isChannelConnected) {
       return await interaction.reply({
         embeds: [
           errorEmbed(`${emojis.no} The channel <#${channelId}> does not have any networks.`),
         ],
       });
     }
-
-    if (interaction.inCachedGuild() && interaction.member.permissions.has('ManageChannels', true)) {
+    else if (!interaction.member.permissions.has('ManageChannels', true)) {
       return await interaction.reply({
         embeds: [
           errorEmbed(
