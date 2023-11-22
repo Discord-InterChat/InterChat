@@ -180,13 +180,13 @@ class InterChat extends SuperClient {
             const goalEmbed: APIEmbed = {
               color: ctx.color,
               author: {
-                name: `${ctx.guild.name} • ${ctx.guild.id} • Owner @${ctx.guild.ownerName} `,
+                name: `${ctx.guild.name} • Owner @${ctx.guild.ownerName} • ${ctx.guild.memberCount} • ${ctx.guild.id}`,
                 icon_url: ctx.guild.iconURL,
               },
             };
 
             await goalChannel.send({
-              content: `${ctx.cryEmoji} ${ctx.guild.name} kicked me. I am back to being in **${ctx.guildCount}** servers 👢`,
+              content: `👢 ${ctx.guild.name} kicked me. I'm back to **${ctx.guildCount}** servers ${ctx.cryEmoji}`,
               embeds: [goalEmbed],
             });
           }
@@ -199,6 +199,7 @@ class InterChat extends SuperClient {
               name: guild.name,
               iconURL: guild.iconURL() || undefined,
               ownerName: guildOwner?.username,
+              memberCount: guild.memberCount,
             },
             color: resolveColor('Red'),
             goalChannel: channels.goal,
