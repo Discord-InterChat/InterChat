@@ -165,7 +165,7 @@ export default class Connection extends BaseCommand {
     if (customId.args.at(1) && customId.args[1] !== interaction.user.id) {
       await interaction.reply({
         embeds: [
-          errorEmbed('Sorry, you can\'t perform this action. Please use the command yourself.'),
+          errorEmbed(`${emojis.no} Sorry, you can't perform this action. Please run the command yourself.`),
         ],
         ephemeral: true,
       });

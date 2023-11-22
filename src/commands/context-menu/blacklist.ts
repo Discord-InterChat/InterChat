@@ -96,7 +96,11 @@ export default class Blacklist extends BaseCommand {
 
     if (interaction.user.id !== customId.args[0]) {
       await interaction.reply({
-        embeds: [errorEmbed('Sorry, you can\'t perform this action. Please use the command yourself.')],
+        embeds: [
+          errorEmbed(
+            `${emojis.no} Sorry, you can't perform this action. Please run the command yourself.`,
+          ),
+        ],
         ephemeral: true,
       });
       return;
@@ -244,7 +248,9 @@ export default class Blacklist extends BaseCommand {
 
       if (server) {
         const networkLogger = new NetworkLogger(messageInDb.hubId);
-        await networkLogger.logBlacklist(server, interaction.user, reason, expires).catch(() => null);
+        await networkLogger
+          .logBlacklist(server, interaction.user, reason, expires)
+          .catch(() => null);
       }
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });

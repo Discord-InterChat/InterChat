@@ -50,7 +50,7 @@ export default class Settings extends Hub {
     if (interaction.user.id !== customId.args[1]) {
       return interaction.reply({
         embeds: [
-          errorEmbed('Sorry, you can\'t perform this action. Please run the command yourself.'),
+          errorEmbed(`${emojis.no} Sorry, you can't perform this action. Please run the command yourself.`),
         ],
         ephemeral: true,
       });
