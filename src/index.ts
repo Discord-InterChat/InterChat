@@ -89,7 +89,7 @@ manager.on('clusterCreate', async (cluster) => {
     processAndManageBlacklists(await db.userData.findMany(userQuery), scheduler);
 
     // code must be in production to run these tasks
-    if (!isDevBuild) return;
+    if (isDevBuild) return;
     // give time for shards to connect for these tasks
     await wait(10_000);
 

@@ -131,7 +131,7 @@ class InterChat extends SuperClient {
           (c) =>
             c.type === ChannelType.GuildText && c.permissionsFor(guild.id)?.has('SendMessages'),
         )
-        .first() as TextChannel;
+        .first() as TextChannel | undefined;
 
       if (guild.members.me?.permissions.has('ViewAuditLog')) {
         const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 });
@@ -139,7 +139,7 @@ class InterChat extends SuperClient {
 
         // send message to the person who added the bot
         await entry?.executor?.send({ embeds: [embed], components: [buttons] }).catch(() => {
-          firstChannel.send({ embeds: [embed], components: [buttons] }).catch(() => null);
+          firstChannel?.send({ embeds: [embed], components: [buttons] }).catch(() => null);
         });
 
         if (isProfane) {
