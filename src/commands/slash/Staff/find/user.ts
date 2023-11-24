@@ -23,9 +23,12 @@ export default class Server extends Find {
 
     const userInBlacklist = await db.blacklistedUsers?.findFirst({ where: { userId: user.id } });
 
-    const owns = user.client.guilds.cache
+    const serversOwned = user.client.guilds.cache
       .filter((guild) => guild.ownerId == user.id)
       .map((guild) => guild.name);
+    const hubsOwned = await db.hubs.findMany({
+      where: { ownerId: user.id },
+    });
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
@@ -39,12 +42,17 @@ export default class Server extends Find {
             > ${emojis.id} **ID:** ${user.id}
             > ${emojis.mention} **Username:** ${user.username}
             > ${emojis.members} **Created:** <t:${Math.round(user.createdTimestamp / 1000)}:R>
-            > ${emojis.bot} **Bot:** ${user.bot}`,
+            > ${emojis.bot} **Bot:** ${user.bot}
+            > ${emojis.owner} **Servers Owned:** ${
+  serversOwned.length > 0 ? serversOwned.join(', ') : 'None'
+}
+            `,
         },
         {
           name: 'Network',
           value: stripIndents`
-            > ${emojis.owner} **Owns:** ${owns.length > 0 ? owns.join(', ') : 'None'}
+            > ${emojis.chat_icon} **Hubs Owned:** ${hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None'
+}
             > ${emojis.delete} **Blacklisted:** ${userInBlacklist ? 'Yes' : 'No'}`,
         },
       ]);

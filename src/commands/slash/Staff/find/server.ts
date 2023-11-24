@@ -53,6 +53,7 @@ export default class Server extends Find {
           > **Language:** ${guild.preferredLocale}
           > **Boost Level:** ${guildBoostLevel}
           > **Member Count:** ${guild.memberCount}
+          > **On Shard:** ${guild.shardId}
           `,
         },
 
