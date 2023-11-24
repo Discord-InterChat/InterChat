@@ -14,8 +14,8 @@ This repo contains the source code for the InterChat Discord bot. InterChat is a
 4. [NPM](https://www.npmjs.com/get-npm) or [Yarn](https://yarnpkg.com/getting-started/install) (we are using npm in this guide)
 5. [An Imgur API Key](https://api.imgur.com/oauth2/addclient) (optional, for setting hub icon and banner)
 6. [Python 3.8+](https://www.python.org/downloads/) & [Visual Studio Build Tools (Windows Only)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019) (optional, for the API)
-    * > [!NOTE]
-      > If you are on Windows, you will need to delete the `api/package-lock.json` before installing dependencies. And if that doesn't work, run `npm i` in a terminal with admin privileges. And if you're getting errors related to node-gyp, install `node-gyp` globally using `npm i -g node-gyp`. Or follow the [Installation Instructions](https://github.com/nodejs/node-gyp?tab=readme-ov-file#on-windows). Honestly, why are you on Windows? Anyway, you can also re-install Node.js and tick the "Automatically install the necessary tools" option, which should do all the stuff mentioned above for you.
+> [!NOTE]
+> If you are on Windows, you will need to delete the `api/package-lock.json` before installing dependencies. And if that doesn't work, run `npm i` in a terminal with admin privileges. And if you're getting errors related to node-gyp, install `node-gyp` globally using `npm i -g node-gyp`. Or follow the [Installation Instructions](https://github.com/nodejs/node-gyp?tab=readme-ov-file#on-windows). Honestly, why are you on Windows? You can also just re-install Node.js and tick the "Automatically install the necessary tools" option, which should do all the stuff mentioned above for you.
 
 ### Setting up the bot
 
