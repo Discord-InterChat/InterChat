@@ -13,7 +13,7 @@ const badwords = require('./JSON/profanity.json') as typeof badwordsType;
 
 export const isDevBuild = process.env.NODE_ENV === 'development';
 
-export const CLIENT_ID = isDevBuild ? '798748015435055134' : '769921109209907241';
+export const CLIENT_ID = isDevBuild ? '1075667060241211423' : '769921109209907241';
 export const SUPPORT_SERVER_ID = '770256165300338709';
 
 export const emojis: typeof normal = emotes.normal;
@@ -22,11 +22,9 @@ export const badgeEmojis: typeof badge = emotes.badge;
 
 // Regexp
 export const REGEX = {
-  IMAGE_URL:
-    /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.gif|\.png)/,
+  IMAGE_URL: /\bhttps?:\/\/\S+?\.(?:png|jpe?g|gif)(?:\?\S+)?\b/,
   /** no animated images */
-  STATIC_IMAGE_URL:
-    /(?:(?:(?:[A-Za-z]{3,9}:(?:\/\/)?)(?:[-;:&=+$,\w]+@)?[A-Za-z0-9.-]+|(?:www.|[-;:&=+$,\w]+@)[A-Za-z0-9.-]+)(?:(?:\/[+~%/.\w-_]*)?\??(?:[-+=&;%@.\w_]*)#?(?:[\w]*))?)(?:\.jpg|\.jpeg|\.png)/,
+  STATIC_IMAGE_URL: /\bhttps?:\/\/\S+?\.(?:png|jpe?g)(?:\?\S+)?\b/,
   /** ignores giphy and tenor */
   LINKS: /https?:\/\/(?!tenor\.com|giphy\.com)\S+/g,
   /** matches imgur urls */
@@ -36,6 +34,7 @@ export const REGEX = {
   PROFANITY: new RegExp(`\\b(${badwords.profanity.join('|')})\\b`, 'ig'),
   /** matches slurs */
   SLURS: new RegExp(`\\b(${badwords.slurs.join('|')})\\b`, 'ig'),
+  TENOR_LINKS: /https:\/\/tenor\.com\/view\/.*-(\d+)/,
 };
 
 export const StaffIds = ['597265261665714186', '442653948630007808', '689082827979227160'];

@@ -67,7 +67,11 @@ export default class DeleteMessage extends BaseCommand {
             .setCustomId('newMessage')
             .setStyle(TextInputStyle.Paragraph)
             .setLabel('Please enter your new message.')
-            .setValue(`${target.content || target.embeds[0]?.description}`)
+            .setValue(
+              `${(target.content || target.embeds[0]?.description) ?? ''}\n${
+                target.embeds[0]?.image?.url || ''
+              }`,
+            )
             .setMaxLength(950),
         ),
       );
@@ -98,20 +102,27 @@ export default class DeleteMessage extends BaseCommand {
     const userInput = interaction.fields.getTextInputValue('newMessage');
     const hubSettings = new HubSettingsBitField(messageInDb.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
-    const censoredNewMessage = censor(newMessage);
+    const networkManager = interaction.client.getNetworkManager();
 
     if (
-      newMessage.includes('discord.gg') ||
-      newMessage.includes('discord.com/invite') ||
-      newMessage.includes('dsc.gg')
+      hubSettings.has('BlockInvites') &&
+      (newMessage.includes('discord.gg') ||
+        newMessage.includes('discord.com/invite') ||
+        newMessage.includes('dsc.gg'))
     ) {
       await interaction.editReply(
         `${emojis.no} Do not advertise or promote servers in the network. Set an invite in \`/connection\` instead!`,
       );
       return;
     }
-
+    // get image from embed
+    // get image from content
+    const oldImageUrl = target.content
+      ? await networkManager.getAttachmentURL(target.content)
+      : target.embeds[0]?.image?.url;
+    const newImageUrl = await networkManager.getAttachmentURL(newMessage);
     const guild = await interaction.client.fetchGuild(messageInDb.serverId);
+    const embedContent = newMessage.replace(oldImageUrl ?? '', '').replace(newImageUrl ?? '', '');
 
     // if the message being edited is in compact mode
     // then we create a new embed with the new message and old reply
@@ -119,17 +130,35 @@ export default class DeleteMessage extends BaseCommand {
     const newEmbed = target.content
       ? new EmbedBuilder()
         .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
-        .setDescription(newMessage)
+        .setDescription(embedContent || null)
         .setColor(target.member?.displayHexColor ?? 'Random')
+        .setImage(newImageUrl || oldImageUrl || null)
         .addFields(
-          target.embeds[0]
-            ? [{ name: 'Reply-to', value: `${target.embeds[0].description}` }]
+          target.embeds[0].fields[0]
+            ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
             : [],
         )
         .setFooter({ text: `Server: ${guild?.name}` })
-      : EmbedBuilder.from(target.embeds[0]).setDescription(newMessage);
+      : EmbedBuilder.from(target.embeds[0])
+        .setDescription(embedContent || null)
+        .setImage(newImageUrl || oldImageUrl || null);
 
-    const censoredEmbed = EmbedBuilder.from(newEmbed).setDescription(censoredNewMessage);
+    const censoredEmbed = EmbedBuilder.from(newEmbed).setDescription(
+      censor(newEmbed.data.description ?? '') || null,
+    );
+    let compactMsg = newMessage;
+
+    if (oldImageUrl) {
+      if (newImageUrl) {
+        compactMsg = compactMsg.replace(oldImageUrl, newImageUrl);
+      }
+      else if (!newMessage.includes(oldImageUrl)) {
+        newEmbed.setImage(null);
+        censoredEmbed.setImage(null);
+      }
+    }
+
+    const censoredCmpctMsg = censor(compactMsg);
 
     // find all the messages through the network
     const channelSettingsArr = await db.connectedList.findMany({
@@ -141,13 +170,20 @@ export default class DeleteMessage extends BaseCommand {
       if (!channelSettings) return false;
 
       const webhookURL = channelSettings.webhookURL.split('/');
-      const webhook = await interaction.client.fetchWebhook(webhookURL[webhookURL.length - 2])?.catch(() => null);
+      const webhook = await interaction.client
+        .fetchWebhook(webhookURL[webhookURL.length - 2])
+        ?.catch(() => null);
 
       if (!webhook || webhook.owner?.id !== interaction.client.user.id) return false;
 
       // finally, edit the message
       return await webhook
         .editMessage(element.messageId, {
+          content: channelSettings.compact
+            ? channelSettings.profFilter
+              ? censoredCmpctMsg
+              : compactMsg
+            : undefined,
           threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
           embeds: !channelSettings.compact
             ? [channelSettings.profFilter ? censoredEmbed : newEmbed]

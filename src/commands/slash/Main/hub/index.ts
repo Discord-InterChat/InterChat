@@ -314,10 +314,10 @@ export default class Hub extends BaseCommand {
   static readonly subcommands = new Collection<string, BaseCommand>();
 
   async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
-    const subCommand =
+    const apiSubcommandName =
       interaction.options.getSubcommandGroup() || interaction.options.getSubcommand();
-    const isValid = Hub.subcommands?.get(subCommand);
-    if (isValid) return await isValid.execute(interaction);
+    const subcommand = Hub.subcommands?.get(apiSubcommandName);
+    if (subcommand) return await subcommand.execute(interaction);
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<unknown> {

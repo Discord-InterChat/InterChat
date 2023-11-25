@@ -21,7 +21,7 @@ class InterChat extends SuperClient {
   public constructor() {
     super();
 
-    this.on('ready', () => {
+    this.once('ready', () => {
       // initialize the client
       this.init();
 

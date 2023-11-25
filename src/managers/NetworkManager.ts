@@ -64,11 +64,10 @@ export default class NetworkManager extends Factory {
     if (!checksPassed) return;
 
     const allConnections = await this.fetchHubNetworks({ hubId: isNetworkMessage.hubId });
-
-    message.censoredContent = censor(message.content);
-
     const attachment = message.attachments.first();
-    const attachmentURL = attachment ? attachment.url : await this.getAttachmentURL(message);
+    const attachmentURL = attachment
+      ? attachment.url
+      : await this.getAttachmentURL(message.content);
 
     if (attachmentURL) {
       const reaction = await message.react(emojis.loading).catch(() => null);
@@ -87,7 +86,9 @@ export default class NetworkManager extends Factory {
               stripIndents`
             I have identified this image as NSFW (Not Safe For Work). Sharing NSFW content is against our network guidelines. Refrain from posting such content here.
             
-            **Detected NSFW:** ${predictions[0].className} ${Math.round(predictions[0].probability * 100)}%`,
+            **Detected NSFW:** ${predictions[0].className} ${Math.round(
+  predictions[0].probability * 100,
+)}%`,
             )
             .setFooter({
               text: 'Please be aware that AI predictions can be inaccurate at times, and we cannot guarantee perfect accuracy in all cases. 😔',
@@ -104,6 +105,8 @@ export default class NetworkManager extends Factory {
       message.react('🔗').catch(() => null);
     }
 
+    message.censoredContent = censor(message.content);
+
     // fetch the referred message  (message being replied to) from discord
     const referredMessage = message.reference ? await message.fetchReference() : undefined;
     // check if it was sent in the network
@@ -116,13 +119,14 @@ export default class NetworkManager extends Factory {
     let referredContent: string | undefined = undefined;
     let referredAuthor: User | null = null;
 
+    // only assign to this variable if one of these two conditions are true, not always
     if (referredMessage) {
-      referredContent = await this.getReferredContent(referredMessage);
-
       if (referredMessage?.author.id === message.client.user.id) {
+        referredContent = await this.getReferredContent(referredMessage);
         referredAuthor = message.client.user;
       }
       else if (referenceInDb) {
+        referredContent = await this.getReferredContent(referredMessage);
         referredAuthor = await message.client.users.fetch(referenceInDb.authorId).catch(() => null);
       }
     }
@@ -131,7 +135,7 @@ export default class NetworkManager extends Factory {
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, {
       attachmentURL,
       referredContent,
-      embedCol: (isNetworkMessage.embedColor as `#${string}`) ?? undefined,
+      embedCol: (isNetworkMessage.embedColor as HexColorString) ?? undefined,
       useNicknames: settings.has('UseNicknames'),
     });
 
@@ -144,7 +148,7 @@ export default class NetworkManager extends Factory {
         const reply = referenceInDb?.channelAndMessageIds.find(
           (msg) => msg.channelId === connection.channelId,
         );
-        // create a jump button to reply button
+        // create a jump to reply button
         const jumpButton =
           reply && referredMessage?.author
             ? new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -416,14 +420,12 @@ export default class NetworkManager extends Factory {
    * @param message The message to search for an attachment URL.
    * @returns The URL of the attachment, or null if no attachment is found.
    */
-  public async getAttachmentURL(message: Message) {
+  public async getAttachmentURL(string: string) {
     // Tenor Gifs / Image URLs
-    const URLMatch = message.content.match(REGEX.IMAGE_URL);
-
+    const URLMatch = string.match(REGEX.IMAGE_URL);
     if (URLMatch) return URLMatch[0];
 
-    const tenorRegex = /https:\/\/tenor\.com\/view\/.*-(\d+)/;
-    const gifMatch = message.content.match(tenorRegex);
+    const gifMatch = string.match(REGEX.TENOR_LINKS);
 
     if (gifMatch) {
       if (!process.env.TENOR_KEY) throw new TypeError('Tenor API key not found in .env file.');
@@ -457,7 +459,7 @@ export default class NetworkManager extends Factory {
       useNicknames?: boolean;
     },
   ): { embed: EmbedBuilder; censoredEmbed: EmbedBuilder } {
-    const formattedContent = opts?.referredContent?.replaceAll('\n', '\n> ');
+    const formattedReply = opts?.referredContent?.replaceAll('\n', '\n> ');
 
     const embed = new EmbedBuilder()
       .setAuthor({
@@ -466,13 +468,18 @@ export default class NetworkManager extends Factory {
           : message.author.username,
         iconURL: message.author.displayAvatarURL(),
       })
-      .setDescription(message.content || null)
+      .setDescription(
+        // remove tenor links and image urls from the content
+        (opts?.attachmentURL
+          ? message.content.replace(REGEX.TENOR_LINKS, '').replace(opts?.attachmentURL, '')
+          : message.content) || null,
+      )
       .addFields(
-        formattedContent
+        formattedReply
           ? [
             {
               name: 'Replying To:',
-              value: `> ${formattedContent}` ?? 'Unknown.',
+              value: `> ${formattedReply}` ?? 'Unknown.',
             },
           ]
           : [],
@@ -485,13 +492,18 @@ export default class NetworkManager extends Factory {
       .setColor(opts?.embedCol ?? 'Random');
 
     const censoredEmbed = EmbedBuilder.from(embed)
-      .setDescription(message.censoredContent || null)
+      .setDescription(
+        // remove tenor links and image urls from the content
+        (opts?.attachmentURL
+          ? message.censoredContent.replace(REGEX.TENOR_LINKS, '').replace(opts?.attachmentURL, '')
+          : message.censoredContent) || null,
+      )
       .setFields(
-        formattedContent
+        formattedReply
           ? [
             {
               name: 'Replying To:',
-              value: `> ${censor(formattedContent)}` ?? 'Unknown.',
+              value: `> ${censor(formattedReply)}` ?? 'Unknown.',
             },
           ]
           : [],
