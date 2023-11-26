@@ -31,4 +31,8 @@ declare module 'discord.js' {
     getBlacklistManager(): BlacklistManager;
     getNSFWDetector(): NSFWClient;
   }
+
+  export interface User {
+    locale?: string;
+  }
 }

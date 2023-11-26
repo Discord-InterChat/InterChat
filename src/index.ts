@@ -1,5 +1,6 @@
 import db from './utils/Db.js';
 import Logger from './utils/Logger.js';
+import startApi from './api/index.js';
 import Scheduler from './services/SchedulerService.js';
 import BlacklistManager from './managers/BlacklistManager.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
@@ -27,7 +28,7 @@ const syncBotlistStats = async () => {
     } shards`,
   );
   // update stats
-  updateTopGGStats(
+  await updateTopGGStats(
     count.reduce((p, n) => p + n, 0),
     manager.totalShards,
   );
@@ -106,3 +107,6 @@ manager.on('clusterCreate', async (cluster) => {
     scheduler.addRecurringTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages);
   }
 });
+
+// start the api that handles nsfw filter
+startApi();

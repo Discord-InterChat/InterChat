@@ -20,6 +20,7 @@ import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { errorEmbed } from '../../utils/Utils.js';
 import parse from 'parse-duration';
 import NetworkLogger from '../../utils/NetworkLogger.js';
+import locales from '../../utils/locales.js';
 
 export default class Blacklist extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -45,7 +46,10 @@ export default class Blacklist extends BaseCommand {
       interaction.reply({
         embeds: [
           errorEmbed(
-            `${emojis.info} This message was not sent in a hub, has expired, or you lack permissions to perform this action.`,
+            locales(
+              { phrase: 'errors.messageNotSentOrExpired', locale: interaction.user.locale },
+              { emoji: emojis.info },
+            ),
           ),
         ],
         ephemeral: true,
@@ -98,7 +102,7 @@ export default class Blacklist extends BaseCommand {
       await interaction.reply({
         embeds: [
           errorEmbed(
-            `${emojis.no} Sorry, you can't perform this action. Please run the command yourself.`,
+            locales({ phrase: 'errors.cannotPerformAction', locale: interaction.user.locale }),
           ),
         ],
         ephemeral: true,
@@ -184,7 +188,10 @@ export default class Blacklist extends BaseCommand {
     if (blacklistType.startsWith('u=')) {
       const user = await interaction.client.users.fetch(messageInDb.authorId).catch(() => null);
       successEmbed.setDescription(
-        `${emojis.tick} **${user?.username}** has been successfully blacklisted!`,
+        locales(
+          { phrase: 'blacklist.user.success.embed.description', locale: interaction.user.locale },
+          { username: user?.username ?? 'Unknown User' },
+        ),
       );
       await blacklistManager.addUserBlacklist(
         messageInDb.hubId,

@@ -1,5 +1,4 @@
-import { stripIndents } from 'common-tags';
-import { Colors, EmbedBuilder, HexColorString } from 'discord.js';
+import { Colors, HexColorString } from 'discord.js';
 import { normal, badge, mascot } from './JSON/emojis.json';
 import { createRequire } from 'module';
 import 'dotenv/config';
@@ -47,6 +46,7 @@ export const LINKS = {
   DOCS: 'https://discord-interchat.github.io/docs',
   SUPPORT_INVITE: 'https://discord.gg/6bhXQynAPs',
   APP_DIRECTORY: 'https://discord.com/application-directory/769921109209907241',
+  RULES_BANNER: 'https://i.imgur.com/MBG0Rks.png',
 } as const;
 
 export const channels = {
@@ -97,18 +97,3 @@ export const colors = {
   christmas: ['#00B32C', '#D6001C', '#FFFFFF'] as HexColorString[],
 } as const;
 
-export const rulesEmbed = new EmbedBuilder()
-  .setColor(colors.interchatBlue)
-  .setImage('https://i.imgur.com/MBG0Rks.png').setDescription(stripIndents`
-  ### 📜 InterChat Network Rules
-
-  1. **Use Common Sense:** Be considerate of others and their views. No slurs, extreme derogatory language or any actions that can disrupt the chat's comfort.
-  2. **No Spamming or Flooding:** Avoid repeated, nonsensical, or overly lengthy messages.
-  3. **Keep Private Matters Private:** Avoid sharing personal information across the network.
-  4. **No Harassment:** Trolling, insults, or harassment of any kind are not tolerated.
-  5. **No NSFW/NSFL Content:** Posting explicit NSFW/NSFL content will result in immediate blacklist.
-  6. **Respect Sensitive Topics:** Do not trivialize self-harm, suicide, violence, or other offensive topics.
-  7. **Report Concerns:**  If you observe a violation of these rules, report it to the appropriate hub moderator or InterChat staff for further action.
-
-  Any questions? Join our [support server](${LINKS.SUPPORT_INVITE}).
-`);

@@ -1,4 +1,3 @@
-import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   ButtonStyle,
@@ -10,7 +9,8 @@ import {
   AnySelectMenuInteraction,
   Collection,
 } from 'discord.js';
-import { colors, rulesEmbed } from '../../utils/Constants.js';
+import { LINKS, colors } from '../../utils/Constants.js';
+import locales from '../../utils/locales.js';
 
 const onboardingInProgress = new Collection<string, string>();
 
@@ -35,20 +35,35 @@ export async function showOnboarding(
   onboardingInProgress.set(channelId, channelId);
 
   const embed = new EmbedBuilder()
-    .setTitle(`👋 Hey there, welcome to ${hubName}!`)
+    .setTitle(
+      locales(
+        { phrase: 'network.onboarding.embed.title', locale: interaction.user.locale },
+        { hubName },
+      ),
+    )
     .setDescription(
-      stripIndents`
-        To keep things organized, it's recommended to use a separate channel for just for this hub. But don't worry, you can always change this later.
-
-        **How it works:** The InterChat Network is like a magic bridge that links channels on different servers that are with us in this hub. Learn more at our [guide](https://discord-interchat.github.io/docs).
-        `,
+      locales(
+        { phrase: 'network.onboarding.embed.description', locale: interaction.user.locale },
+        { hubName },
+      ),
     )
     .setColor(colors.interchatBlue)
-    .setFooter({ text: `InterChat Network | Version ${interaction.client.version}` });
+    .setFooter({
+      text: locales(
+        { phrase: 'network.onboarding.embed.footer', locale: interaction.user.locale },
+        { version: interaction.client.version },
+      ),
+    });
 
   const nextButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder().setCustomId('onboarding_:cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
-    new ButtonBuilder().setCustomId('onboarding_:next').setLabel('Next').setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
+      .setCustomId('onboarding_:cancel')
+      .setLabel('Cancel')
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId('onboarding_:next')
+      .setLabel('Next')
+      .setStyle(ButtonStyle.Success),
   );
 
   const replyMsg = {
@@ -74,9 +89,25 @@ export async function showOnboarding(
 
   if (response?.customId === 'onboarding_:next') {
     const acceptButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder().setCustomId('onboarding_:cancel').setLabel('Cancel').setStyle(ButtonStyle.Danger),
-      new ButtonBuilder().setCustomId('onboarding_:accept').setLabel('Accept').setStyle(ButtonStyle.Success),
+      new ButtonBuilder()
+        .setCustomId('onboarding_:cancel')
+        .setLabel('Cancel')
+        .setStyle(ButtonStyle.Danger),
+      new ButtonBuilder()
+        .setCustomId('onboarding_:accept')
+        .setLabel('Accept')
+        .setStyle(ButtonStyle.Success),
     );
+
+    const rulesEmbed = new EmbedBuilder()
+      .setDescription(
+        locales(
+          { phrase: 'commands.rules.embed.description', locale: interaction.user.locale },
+          { support_invite: LINKS.SUPPORT_INVITE },
+        ),
+      )
+      .setImage(LINKS.RULES_BANNER)
+      .setColor(colors.interchatBlue);
 
     const acceptOnboarding = await response.update({
       embeds: [rulesEmbed],
