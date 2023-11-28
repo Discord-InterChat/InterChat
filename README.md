@@ -150,4 +150,4 @@ Run `git cz` or `cz commit` to commit using commitizen.
 
 * [x] 1000 servers using InterChat 🎉
 
-* [ ] 101 votes on topgg in a month
+* [x] 101 votes on topgg in a month
