@@ -6,6 +6,7 @@ import {
   Collection,
   Snowflake,
   Guild,
+  WebhookClient,
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './commands/BaseCommand.js';
@@ -30,6 +31,7 @@ export default abstract class SuperClient extends Client {
   readonly version = process.env.npm_package_version ?? 'Unknown';
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;
+  readonly webhooks = new Collection<string, WebhookClient>;
 
   readonly commandCooldowns = new CooldownService();
   readonly reactionCooldowns = new Collection<string, number>();
@@ -76,7 +78,7 @@ export default abstract class SuperClient extends Client {
         status: 'idle',
         activities: [
           {
-            state: 'Watching over 400+ networks | /hub browse',
+            state: 'Watching over 500+ networks | /hub browse',
             name: 'custom',
             type: ActivityType.Custom,
           },

@@ -143,7 +143,12 @@ export default class NetworkManager extends Factory {
       try {
         // parse the webhook url and get the webhook id and token
         // fetch the webhook from discord
-        const webhook = new WebhookClient({ url: connection.webhookURL });
+        let webhook = message.client.webhooks.get(connection.webhookURL);
+
+        if (!webhook) {
+          webhook = new WebhookClient({ url: connection.webhookURL });
+          message.client.webhooks.set(connection.webhookURL, webhook);
+        }
 
         const reply = referenceInDb?.channelAndMessageIds.find(
           (msg) => msg.channelId === connection.channelId,
@@ -554,7 +559,6 @@ export default class NetworkManager extends Factory {
           authorId: message.author.id,
           serverId: message.guild.id,
           referenceDocId: dbReference?.id,
-          reactions: {},
         },
       });
     }
