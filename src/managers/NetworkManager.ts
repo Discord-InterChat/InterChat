@@ -559,6 +559,7 @@ export default class NetworkManager extends Factory {
           authorId: message.author.id,
           serverId: message.guild.id,
           referenceDocId: dbReference?.id,
+          reactions: {},
         },
       });
     }
