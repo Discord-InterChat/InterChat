@@ -8,6 +8,7 @@ import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import NetworkLogger from '../../../../utils/NetworkLogger.js';
 import parse from 'parse-duration';
 import Logger from '../../../../utils/Logger.js';
+import { __ } from '../../../../utils/Utils.js';
 
 export default class UserBlacklist extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -29,9 +30,7 @@ export default class UserBlacklist extends BlacklistCommand {
     if (!hubInDb) {
       return await interaction.editReply({
         embeds: [
-          errorEmbed(
-            `${emojis.no} Unknown hub. Make sure you are the owner or a moderator of the hub.`,
-          ),
+          errorEmbed(__({ phrase: 'errors.modUnknownHub', locale: interaction.user.locale })),
         ],
       });
     }
@@ -49,11 +48,24 @@ export default class UserBlacklist extends BlacklistCommand {
 
       const serverInBlacklist = await BlacklistManager.fetchServerBlacklist(hubInDb.id, serverOpt);
       if (serverInBlacklist) {
-        return await interaction.followUp('The server is already blacklisted.');
+        return await interaction.followUp({
+          embeds: [
+            errorEmbed(
+              __({
+                phrase: 'blacklist.server.alreadyBlacklisted',
+                locale: interaction.user.locale,
+              }),
+            ),
+          ],
+        });
       }
 
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
-      if (!server) return await interaction.followUp('You have inputted an invalid server ID.');
+      if (!server) {
+        return await interaction.followUp(
+          __({ phrase: 'errors.unknownServer', locale: interaction.user.locale }),
+        );
+      }
 
       try {
         await blacklistManager.addServerBlacklist(
@@ -67,9 +79,16 @@ export default class UserBlacklist extends BlacklistCommand {
       catch (err) {
         Logger.error(err);
         captureException(err);
-        interaction.followUp(
-          `Failed to blacklist **${server.name}**. Enquire with the bot developer for more information.`,
-        );
+        interaction.followUp({
+          embeds: [
+            errorEmbed(
+              __({
+                phrase: 'blacklist.server.unknownError',
+                locale: interaction.user.locale,
+              }),
+            ),
+          ],
+        });
         return;
       }
 
@@ -78,7 +97,12 @@ export default class UserBlacklist extends BlacklistCommand {
       }
 
       const successEmbed = new EmbedBuilder()
-        .setDescription(`${emojis.tick} **${server.name}** has been successfully blacklisted!`)
+        .setDescription(
+          __(
+            { phrase: 'blacklist.server.success', locale: interaction.user.locale },
+            { emoji: emojis.tick, server: server.name },
+          ),
+        )
         .setColor('Green')
         .addFields(
           {
@@ -106,11 +130,18 @@ export default class UserBlacklist extends BlacklistCommand {
     }
     else if (subCommandGroup == 'remove') {
       const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
-      if (!result) return await interaction.followUp('The server is not blacklisted.');
+      if (!result) {
+        return await interaction.followUp(
+          __({ phrase: 'errors.serverNotBlacklisted', locale: interaction.user.locale }),
+        );
+      }
 
       // Using name from DB since the bot can't access server through API.
       await interaction.followUp(
-        `The server **${result.serverName}** has been removed from the blacklist.`,
+        __(
+          { phrase: 'blacklist.server.removed', locale: interaction.user.locale },
+          { emoji: emojis.delete, server: result.serverName },
+        ),
       );
 
       // send log to hub's log channel

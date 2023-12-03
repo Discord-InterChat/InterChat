@@ -13,12 +13,11 @@ import {
 import db from '../../utils/Db.js';
 import BaseCommand from '../BaseCommand.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
-import { emojis } from '../../utils/Constants.js';
 import { checkIfStaff, hasVoted, replaceLinks } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
-import locales from '../../utils/locales.js';
+import { __ } from '../../utils/Utils.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -32,7 +31,7 @@ export default class DeleteMessage extends BaseCommand {
 
     if (!checkIfStaff(interaction.user.id) && !(await hasVoted(interaction.user.id))) {
       await interaction.reply({
-        content: `${emojis.no} You must [vote](<https://top.gg/bot/769921109209907241/vote>) to use this command.`,
+        content: __({ phrase: 'errors.mustVote', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -45,14 +44,11 @@ export default class DeleteMessage extends BaseCommand {
 
     if (!messageInDb) {
       await interaction.reply({
-        content: locales(
-          locales(
-            {
-              phrase: 'errors.unknownNetworkMessage',
-              locale: interaction.user.locale,
-            },
-            { emoji: emojis.no },
-          ),
+        content: __(
+          __({
+            phrase: 'errors.unknownNetworkMessage',
+            locale: interaction.user.locale,
+          }),
         ),
         ephemeral: true,
       });
@@ -60,10 +56,7 @@ export default class DeleteMessage extends BaseCommand {
     }
     else if (interaction.user.id != messageInDb?.authorId) {
       await interaction.reply({
-        content: locales(
-          { phrase: 'errors.notMessageAuthor', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: __({ phrase: 'errors.notMessageAuthor', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -99,13 +92,19 @@ export default class DeleteMessage extends BaseCommand {
     const messageId = customId.args[0];
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
-    if (!target) return await interaction.reply('Unknown Message.');
+    if (!target) {
+      return await interaction.reply(__({ phrase: 'errors.unknownNetworkMessage' }));
+    }
 
     const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
       include: { hub: true },
     });
-    if (!messageInDb?.hub) return await interaction.reply('Unknown Message.');
+    if (!messageInDb?.hub) {
+      return await interaction.reply(
+        __({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+      );
+    }
 
     // defer it because it takes a while to edit the message
     await interaction.deferReply({ ephemeral: true });
@@ -123,7 +122,7 @@ export default class DeleteMessage extends BaseCommand {
         newMessage.includes('dsc.gg'))
     ) {
       await interaction.editReply(
-        `${emojis.no} Do not advertise or promote servers in the network. Set an invite in \`/connection\` instead!`,
+        __({ phrase: 'errors.inviteLinks', locale: interaction.user.locale }),
       );
       return;
     }
@@ -206,9 +205,12 @@ export default class DeleteMessage extends BaseCommand {
     });
 
     const resultsArray = await Promise.all(results);
-    const deleted = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
+    const edited = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
     await interaction.editReply(
-      `${emojis.yes} Your message has been edited in __**${deleted}/${resultsArray.length}**__ servers.`,
+      __(
+        { phrase: 'editMsg.editSuccess', locale: interaction.user.locale },
+        { edited: `${edited}`, total: `${resultsArray.length}` },
+      ),
     );
   }
 }

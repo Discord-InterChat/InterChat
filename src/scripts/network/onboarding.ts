@@ -10,7 +10,7 @@ import {
   Collection,
 } from 'discord.js';
 import { LINKS, colors } from '../../utils/Constants.js';
-import locales from '../../utils/locales.js';
+import { __ } from '../../utils/Utils.js';
 
 const onboardingInProgress = new Collection<string, string>();
 
@@ -36,20 +36,20 @@ export async function showOnboarding(
 
   const embed = new EmbedBuilder()
     .setTitle(
-      locales(
+      __(
         { phrase: 'network.onboarding.embed.title', locale: interaction.user.locale },
         { hubName },
       ),
     )
     .setDescription(
-      locales(
+      __(
         { phrase: 'network.onboarding.embed.description', locale: interaction.user.locale },
         { hubName },
       ),
     )
     .setColor(colors.interchatBlue)
     .setFooter({
-      text: locales(
+      text: __(
         { phrase: 'network.onboarding.embed.footer', locale: interaction.user.locale },
         { version: interaction.client.version },
       ),
@@ -101,7 +101,7 @@ export async function showOnboarding(
 
     const rulesEmbed = new EmbedBuilder()
       .setDescription(
-        locales(
+        __(
           { phrase: 'commands.rules.embed.description', locale: interaction.user.locale },
           { support_invite: LINKS.SUPPORT_INVITE },
         ),

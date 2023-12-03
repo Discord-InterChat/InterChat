@@ -20,7 +20,10 @@ import db from './Db.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
 import 'dotenv/config';
-import locales from './locales.js';
+import i18n from 'i18n';
+
+// i18n is cjs :(
+export const __ = i18n.__;
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function msToReadable(milliseconds: number): string {
@@ -208,7 +211,7 @@ export function toTitleCase(str: string) {
 }
 
 export function genCommandErrMsg(interaction: Interaction, error: string) {
-  return locales(
+  return __(
     { phrase: 'errors.commandError', locale: interaction.user.locale },
     { error, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
   );

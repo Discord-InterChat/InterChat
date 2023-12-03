@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
 import { LINKS, colors } from '../../../utils/Constants.js';
-import locales from '../../../utils/locales.js';
+import { __ } from '../../../utils/Utils.js';
 export default class Rules extends BaseCommand {
   readonly data = {
     name: 'rules',
@@ -10,7 +10,7 @@ export default class Rules extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const rulesEmbed = new EmbedBuilder()
       .setDescription(
-        locales(
+        __(
           { phrase: 'commands.rules.embed.description', locale: interaction.user.locale },
           { support_invite: LINKS.SUPPORT_INVITE },
         ),

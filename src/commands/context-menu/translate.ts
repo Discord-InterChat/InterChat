@@ -15,12 +15,12 @@ import {
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../BaseCommand.js';
-import { emojis } from '../../utils/Constants.js';
 import { hasVoted } from '../../utils/Utils.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { supportedLanguages } from '@translate-tools/core/translators/GoogleTranslator/index.js';
 import translator from '../../utils/Translator.cjs';
+import { __ } from '../../utils/Utils.js';
 
 export default class Translate extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -34,7 +34,7 @@ export default class Translate extends BaseCommand {
 
     if (!(await hasVoted(interaction.user.id))) {
       return await interaction.editReply(
-        'Please [vote](https://top.gg/bot/769921109209907241/vote) for Interchat to use this command, your support is very much appreciated!',
+        __({ phrase: 'errors.mustVote', locale: interaction.user.locale }),
       );
     }
 
@@ -46,7 +46,7 @@ export default class Translate extends BaseCommand {
 
     if (!messageInDb) {
       return interaction.editReply(
-        'This message has expired. If not, please wait a few seconds and try again.',
+        __({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
       );
     }
 
@@ -75,11 +75,7 @@ export default class Translate extends BaseCommand {
       components: [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
           new ButtonBuilder()
-            .setCustomId(
-              new CustomID()
-                .setIdentifier('translate', 'lang')
-                .toString(),
-            )
+            .setCustomId(new CustomID().setIdentifier('translate', 'lang').toString())
             .setLabel('Specify Language')
             .setStyle(ButtonStyle.Secondary)
             .setEmoji('🌐'),
@@ -125,12 +121,11 @@ export default class Translate extends BaseCommand {
     const messageContent = originalMessage.embeds[0]?.fields[0].value;
     if (!messageContent) return await interaction.reply('This message is not translatable.');
 
-
     const to = interaction.fields.getTextInputValue('to');
     const from = interaction.fields.getTextInputValue('from');
     if (!supportedLanguages.includes(from) || !supportedLanguages.includes(to)) {
       await interaction.reply({
-        content: `${emojis.no} Invalid language code. Please use one from the [here](https://cloud.google.com/translate/docs/languages).`,
+        content: __({ phrase: 'errors.invalidLangCode', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
