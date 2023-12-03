@@ -21,6 +21,7 @@ import { stripIndents } from 'common-tags';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { replaceLinks } from '../utils/Utils.js';
 import NetworkLogger from '../utils/NetworkLogger.js';
+import Logger from '../utils/Logger.js';
 
 export interface NetworkMessage extends Message {
   censoredContent: string;
@@ -58,6 +59,10 @@ export default class NetworkManager extends Factory {
 
     // check if the message was sent in a network channel
     if (!isNetworkMessage?.hub) return;
+
+    // FIXME remove later
+    Logger.info(`[Network Debug] ${message.author.tag} sent a message in ${isNetworkMessage.hub.name}.`);
+    Logger.info(`[Network Debug] ${message.client.webhooks.size} webhooks cached.`);
 
     const settings = new HubSettingsBitField(isNetworkMessage.hub.settings);
     const checksPassed = await this.runChecks(message, settings, isNetworkMessage.hubId);
