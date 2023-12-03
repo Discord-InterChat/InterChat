@@ -18,6 +18,7 @@ import { checkIfStaff, hasVoted, replaceLinks } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
+import locales from '../../utils/locales.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -44,14 +45,25 @@ export default class DeleteMessage extends BaseCommand {
 
     if (!messageInDb) {
       await interaction.reply({
-        content: 'This message has expired. If not, please wait a few seconds and try again.',
+        content: locales(
+          locales(
+            {
+              phrase: 'errors.unknownNetworkMessage',
+              locale: interaction.user.locale,
+            },
+            { emoji: emojis.no },
+          ),
+        ),
         ephemeral: true,
       });
       return;
     }
     else if (interaction.user.id != messageInDb?.authorId) {
       await interaction.reply({
-        content: 'You are not the author of this message.',
+        content: locales(
+          { phrase: 'errors.notMessageAuthor', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
       return;

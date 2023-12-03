@@ -1,12 +1,13 @@
 import { captureException } from '@sentry/node';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { errorEmbed } from '../../../../utils/Utils.js';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
-import parse from 'parse-duration';
 import NetworkLogger from '../../../../utils/NetworkLogger.js';
-import { errorEmbed } from '../../../../utils/Utils.js';
+import parse from 'parse-duration';
+import Logger from '../../../../utils/Logger.js';
 
 export default class UserBlacklist extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -64,7 +65,7 @@ export default class UserBlacklist extends BlacklistCommand {
         );
       }
       catch (err) {
-        interaction.client.logger.error(err);
+        Logger.error(err);
         captureException(err);
         interaction.followUp(
           `Failed to blacklist **${server.name}**. Enquire with the bot developer for more information.`,

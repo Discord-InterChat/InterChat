@@ -9,6 +9,9 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../../BaseCommand.js';
 import db from '../../../../utils/Db.js';
+import Logger from '../../../../utils/Logger.js';
+import { captureException } from '@sentry/node';
+import { errorEmbed, genCommandErrMsg } from '../../../../utils/Utils.js';
 
 const hubOption: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.String,
@@ -317,7 +320,21 @@ export default class Hub extends BaseCommand {
     const apiSubcommandName =
       interaction.options.getSubcommandGroup() || interaction.options.getSubcommand();
     const subcommand = Hub.subcommands?.get(apiSubcommandName);
-    if (subcommand) return await subcommand.execute(interaction);
+
+    if (!subcommand) return;
+    await subcommand.execute(interaction).catch((e) => {
+      Logger.error(e);
+      captureException(e);
+
+      if ('reply' in interaction) {
+        const method = interaction.replied ? 'editReply' : 'reply';
+
+        interaction[method]({
+          embeds: [errorEmbed(genCommandErrMsg(interaction, e))],
+          ephemeral: true,
+        }).catch(() => null);
+      }
+    });
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<unknown> {

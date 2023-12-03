@@ -4,6 +4,7 @@ import { captureException } from '@sentry/node';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
+import Logger from '../../../../utils/Logger.js';
 
 export default class Invite extends Hub {
   readonly cooldown = 3000; // 3 seconds
@@ -97,7 +98,7 @@ export default class Invite extends Hub {
           });
         }
         catch (e) {
-          interaction.client.logger.error(e);
+          Logger.error(e);
           captureException(e);
           await interaction
             .reply({

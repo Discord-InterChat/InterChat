@@ -59,9 +59,7 @@ export default class Blacklist extends BaseCommand {
 
     const embed = new EmbedBuilder()
       .setTitle('Blacklist')
-      .setDescription(
-        'Blacklist the server or user of this message from this hub. This will prevent messages by them from being sent.',
-      )
+      .setDescription('Blacklist the server or user of this message from this hub. This will prevent messages by them from being sent.')
       .setColor('Blurple');
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -102,7 +100,10 @@ export default class Blacklist extends BaseCommand {
       await interaction.reply({
         embeds: [
           errorEmbed(
-            locales({ phrase: 'errors.cannotPerformAction', locale: interaction.user.locale }),
+            locales(
+              { phrase: 'errors.cannotPerformAction', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
           ),
         ],
         ephemeral: true,
@@ -159,7 +160,7 @@ export default class Blacklist extends BaseCommand {
 
     if (!messageInDb?.hubId) {
       await interaction.reply({
-        content: 'This message has expired.',
+        content: locales({ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -189,8 +190,8 @@ export default class Blacklist extends BaseCommand {
       const user = await interaction.client.users.fetch(messageInDb.authorId).catch(() => null);
       successEmbed.setDescription(
         locales(
-          { phrase: 'blacklist.user.success.embed.description', locale: interaction.user.locale },
-          { username: user?.username ?? 'Unknown User' },
+          { phrase: 'blacklist.user.success', locale: interaction.user.locale },
+          { username: user?.username ?? 'Unknown User', emoji: emojis.tick },
         ),
       );
       await blacklistManager.addUserBlacklist(
@@ -221,8 +222,12 @@ export default class Blacklist extends BaseCommand {
       const server = interaction.client.guilds.cache.get(messageInDb.serverId);
 
       successEmbed.setDescription(
-        `${emojis.tick} **${server?.name}** has been successfully blacklisted!`,
+        locales(
+          { phrase: 'blacklist.server.success', locale: interaction.user.locale },
+          { username: server?.name ?? 'Unknown Server', emoji: emojis.tick },
+        ),
       );
+
       await blacklistManager.addServerBlacklist(
         messageInDb.serverId,
         messageInDb.hubId,

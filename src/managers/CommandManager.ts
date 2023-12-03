@@ -6,8 +6,9 @@ import { emojis } from '../utils/Constants.js';
 import { CustomID } from '../utils/CustomID.js';
 import { Interaction } from 'discord.js';
 import { captureException } from '@sentry/node';
-import { errorEmbed } from '../utils/Utils.js';
+import { errorEmbed, genCommandErrMsg } from '../utils/Utils.js';
 import db from '../utils/Db.js';
+import Logger from '../utils/Logger.js';
 
 const __filename = new URL(import.meta.url).pathname;
 const __dirname = dirname(__filename);
@@ -113,8 +114,19 @@ export default class CommandManager extends Factory {
       }
     }
     catch (e) {
-      interaction.client.logger.error(e);
+      Logger.error(e);
       captureException(e);
+
+      if ('reply' in interaction) {
+        const errFormat = {
+          embeds: [errorEmbed(genCommandErrMsg(interaction, e))],
+          ephemeral: true,
+        };
+
+        interaction.replied || interaction.deferred
+          ? await interaction.editReply(errFormat)
+          : await interaction.reply(errFormat);
+      }
     }
   }
 
