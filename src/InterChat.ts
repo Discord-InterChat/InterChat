@@ -19,6 +19,7 @@ import { LINKS, channels, colors, emojis, mascotEmojis } from './utils/Constants
 import Logger from './utils/Logger.js';
 import { I18n } from 'i18n';
 import YAML from 'yaml';
+
 class InterChat extends SuperClient {
   public constructor() {
     super();
@@ -235,9 +236,14 @@ class InterChat extends SuperClient {
     // handle messages
     this.on('messageCreate', async (message) => {
       if (message.author.bot || message.system || message.webhookId) return;
-
       this.getNetworkManager().handleNetworkMessage(message as NetworkMessage);
     });
+
+    this.on('debug', (debug) => {
+      Logger.debug(debug);
+    });
+    this.rest.on('restDebug', (debug) => Logger.debug(`[REST] ${debug}`));
+    this.rest.on('rateLimited', (rateLimitData) => Logger.warn(rateLimitData));
   }
 }
 
