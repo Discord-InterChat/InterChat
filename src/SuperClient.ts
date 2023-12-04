@@ -10,7 +10,6 @@ import {
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './commands/BaseCommand.js';
-import Logger from './utils/Logger.js';
 import Sentry from '@sentry/node';
 import Scheduler from './services/SchedulerService.js';
 import NSFWClient from './utils/NSFWDetection.js';
@@ -25,8 +24,6 @@ import { ActivityType } from 'discord.js';
 import 'dotenv/config';
 
 export default abstract class SuperClient extends Client {
-  readonly logger = Logger;
-
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
   readonly version = process.env.npm_package_version ?? 'Unknown';
   readonly commands = commandsMap;

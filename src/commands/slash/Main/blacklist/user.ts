@@ -6,6 +6,7 @@ import parse from 'parse-duration';
 import { emojis } from '../../../../utils/Constants.js';
 import NetworkLogger from '../../../../utils/NetworkLogger.js';
 import { errorEmbed } from '../../../../utils/Utils.js';
+import { __ } from '../../../../utils/Utils.js';
 
 export default class Server extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -26,9 +27,7 @@ export default class Server extends BlacklistCommand {
     if (!hubInDb) {
       return await interaction.editReply({
         embeds: [
-          errorEmbed(
-            `${emojis.no} Unknown hub. Make sure you are the owner or a moderator of the hub.`,
-          ),
+          errorEmbed(__({ phrase: 'errors.modUnknownHub', locale: interaction.user.locale })),
         ],
       });
     }
@@ -50,15 +49,29 @@ export default class Server extends BlacklistCommand {
         interaction.client.users.cache.find((u) => u.username === userOpt) ??
         (await interaction.client.users.fetch(userOpt).catch(() => null));
 
-      if (!user) return interaction.followUp('Could not find user. Use an ID instead.');
-      // if (user.id === interaction.user.id) return interaction.followUp('You cannot blacklist yourself.');
-      if (user.id === interaction.client.user?.id) {
-        return interaction.followUp('You cannot blacklist the bot wtf.');
+      if (!user) {
+        return interaction.followUp(
+          __({ phrase: 'errors.userNotFound', locale: interaction.user.locale }),
+        );
+      }
+
+      // if (user.id === interaction.user.id) {
+      //   return await interaction.followUp('You cannot blacklist yourself.');
+      // }
+      else if (user.id === interaction.client.user?.id) {
+        return interaction.followUp(
+          __({
+            phrase: 'blacklist.easterEggs.blacklistBot',
+            locale: interaction.user.locale,
+          }),
+        );
       }
 
       const userInBlacklist = await BlacklistManager.fetchUserBlacklist(hubInDb.id, userOpt);
       if (userInBlacklist) {
-        interaction.followUp(`**${user.username}** is already blacklisted.`);
+        await interaction.followUp(
+          __({ phrase: 'blacklist.user.alreadyBlacklisted', locale: interaction.user.locale }),
+        );
         return;
       }
 
@@ -74,7 +87,7 @@ export default class Server extends BlacklistCommand {
       blacklistManager.notifyBlacklist('user', user.id, hubInDb.id, expires, reason);
 
       const successEmbed = new EmbedBuilder()
-        .setDescription(`${emojis.tick} **${user.username}** has been successfully blacklisted!`)
+        .setDescription(__({ phrase: 'blacklist.user.success', locale: interaction.user.locale }))
         .setColor('Green')
         .addFields(
           {
@@ -97,11 +110,18 @@ export default class Server extends BlacklistCommand {
     else if (subcommandGroup == 'remove') {
       // remove the blacklist
       const result = await blacklistManager.removeBlacklist('user', hubInDb.id, userId);
-      if (!result) return interaction.followUp('The inputted user is not blacklisted.');
-
+      if (!result) {
+        return await interaction.followUp(
+          __({ phrase: 'errors.userNotBlacklisted', locale: interaction.user.locale }),
+        );
+      }
       const user = await interaction.client.users.fetch(userId).catch(() => null);
-      await interaction.followUp(`**${user?.username}** has been removed from the blacklist.`);
-
+      await interaction.followUp(
+        __(
+          { phrase: 'blacklist.user.removed', locale: interaction.user.locale },
+          { emoji: emojis.delete, server: result.username },
+        ),
+      );
       if (user) {
         // send log to hub's log channel
         await networkLogger.logUnblacklist('user', user.id, interaction.user, { reason });

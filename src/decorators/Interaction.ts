@@ -3,7 +3,7 @@ import { interactionsMap } from '../commands/BaseCommand.js';
 
 export type InteractionFunction = (
   interaction: MessageComponentInteraction | ModalSubmitInteraction,
-) => Promise<unknown> | void;
+) => Promise<unknown>;
 
 /** Decorator function to call a specified method when an interaction is created (ie. interactionCreate event) */
 export function RegisterInteractionHandler(customId: string): MethodDecorator {

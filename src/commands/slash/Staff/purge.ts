@@ -13,6 +13,7 @@ import { stripIndents } from 'common-tags';
 import { emojis } from '../../../utils/Constants.js';
 import { messageData as messageDataCol } from '@prisma/client';
 import { errorEmbed, msToReadable } from '../../../utils/Utils.js';
+import Logger from '../../../utils/Logger.js';
 
 const limitOpt: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.Integer,
@@ -239,7 +240,7 @@ export default class Purge extends BaseCommand {
         return interaction.client.resolveEval(evalRes) || [];
       }
       catch (e) {
-        interaction.client.logger.error(e);
+        Logger.error(e);
         captureException(e);
       }
 

@@ -8,14 +8,14 @@ This repo contains the source code for the InterChat Discord bot. InterChat is a
 
 ### Prerequisites
 
-1. [Node.js v18.0.0](https://nodejs.org/en/download/current/)
+1. [Node.js v18.0.0](https://nodejs.org/en/download/current/), or higher for linux users
 2. [Git](https://git-scm.com/downloads)
 3. [MongoDB](https://www.mongodb.com/try/download/community)
 4. [NPM](https://www.npmjs.com/get-npm) or [Yarn](https://yarnpkg.com/getting-started/install) (we are using npm in this guide)
 5. [An Imgur API Key](https://api.imgur.com/oauth2/addclient) (optional, for setting hub icon and banner)
-6. [Python 3.8+](https://www.python.org/downloads/) & [Visual Studio Build Tools (Windows Only)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019) (optional, for the API)
+6. [Python 3.9.3+](https://www.python.org/downloads/release/python-2718/) & [Visual Studio Build Tools (Windows Only)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019) (for the API)
 > [!NOTE]
-> If you are on Windows, you will need to delete the `api/package-lock.json` before installing dependencies. And if that doesn't work, run `npm i` in a terminal with admin privileges. And if you're getting errors related to node-gyp, install `node-gyp` globally using `npm i -g node-gyp`. Or follow the [Installation Instructions](https://github.com/nodejs/node-gyp?tab=readme-ov-file#on-windows). Honestly, why are you on Windows? You can also just re-install Node.js and tick the "Automatically install the necessary tools" option, which should do all the stuff mentioned above for you.
+> If you are using Windows, make sure to install the build tools from the link above and install the exact Python version v3.9.3 or you will get errors during package installation. Ignore this step if you're a linux user (I use arch btw. - dev-737)
 
 ### Setting up the bot
 
@@ -150,4 +150,4 @@ Run `git cz` or `cz commit` to commit using commitizen.
 
 * [x] 1000 servers using InterChat 🎉
 
-* [ ] 101 votes on topgg in a month
+* [x] 101 votes on topgg in a month

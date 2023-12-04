@@ -17,6 +17,8 @@ import {
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis, mascotEmojis } from './utils/Constants.js';
 import Logger from './utils/Logger.js';
+import { I18n } from 'i18n';
+import YAML from 'yaml';
 
 class InterChat extends SuperClient {
   public constructor() {
@@ -26,16 +28,27 @@ class InterChat extends SuperClient {
       // initialize the client
       this.init();
 
+      new I18n().configure({
+        directory: './locales',
+        fallbacks: { '*': 'en' },
+        objectNotation: true,
+        parser: YAML,
+        extension: '.yml',
+        logDebugFn: Logger.info,
+        logWarnFn: Logger.warn,
+        logErrorFn: Logger.error,
+      });
+
       // load commands
       CommandManager.loadCommandFiles();
 
-      this.logger.info(
+      Logger.info(
         `Logged in as ${this.user?.tag}! Cached ${this.guilds.cache.size} guilds on Cluster ${this.cluster?.id}.`,
       );
     });
 
-    this.on('shardReady', (shard) => {
-      this.logger.info(`Shard ${shard} is ready!`);
+    this.on('shardReady', (shard, uGuilds) => {
+      Logger.info(`Shard ${shard} is ready! Unable to cache ${uGuilds?.size ?? 0} guilds.`);
     });
 
     this.on('guildCreate', async (guild) => {
@@ -164,7 +177,7 @@ class InterChat extends SuperClient {
     this.on('guildDelete', async (guild) => {
       if (!guild.available) return;
 
-      this.logger.info(`Left ${guild.name} (${guild.id})`);
+      Logger.info(`Left ${guild.name} (${guild.id})`);
       await db.connectedList.deleteMany({ where: { serverId: guild.id } });
 
       const count = (await this.cluster.fetchClientValues('guilds.cache.size')) as number[];

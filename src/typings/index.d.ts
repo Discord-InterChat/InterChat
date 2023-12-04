@@ -1,6 +1,5 @@
 import { ClusterClient } from 'discord-hybrid-sharding';
 import { Collection, Snowflake } from 'discord.js';
-import { Logger } from 'winston';
 import { Scheduler } from '../services/SchedulerService.ts';
 import NSFWClient from '../utils/NSFWDetection.ts';
 import NetworkManager from '../managers/NetworkManager.ts';
@@ -14,7 +13,6 @@ type RemoveMethods<T> = {
 
 declare module 'discord.js' {
   export interface Client {
-    readonly logger: Logger;
     readonly version: string;
     readonly development: boolean;
     readonly description: string;
@@ -31,5 +29,9 @@ declare module 'discord.js' {
     getNetworkManager(): NetworkManager;
     getBlacklistManager(): BlacklistManager;
     getNSFWDetector(): NSFWClient;
+  }
+
+  export interface User {
+    locale?: string;
   }
 }

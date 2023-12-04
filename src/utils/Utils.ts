@@ -5,6 +5,7 @@ import {
   ColorResolvable,
   ComponentType,
   EmbedBuilder,
+  Interaction,
   Message,
   MessageActionRowComponent,
   NewsChannel,
@@ -12,13 +13,17 @@ import {
   TextChannel,
   ThreadChannel,
 } from 'discord.js';
-import { DeveloperIds, REGEX, StaffIds, SupporterIds, LINKS, colors } from './Constants.js';
+import { DeveloperIds, REGEX, StaffIds, SupporterIds, LINKS, colors, emojis } from './Constants.js';
 import { randomBytes } from 'crypto';
 import Scheduler from '../services/SchedulerService.js';
 import db from './Db.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
 import 'dotenv/config';
+import i18n from 'i18n';
+
+// i18n is cjs :(
+export const __ = i18n.__;
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function msToReadable(milliseconds: number): string {
@@ -92,10 +97,12 @@ export async function getOrCreateWebhook(
     return existingWebhook;
   }
 
-  return await channelOrParent?.createWebhook({
-    name: 'InterChat Network',
-    avatar,
-  }).catch(() => undefined);
+  return await channelOrParent
+    ?.createWebhook({
+      name: 'InterChat Network',
+      avatar,
+    })
+    .catch(() => undefined);
 }
 
 export function getCredits() {
@@ -201,4 +208,11 @@ export async function checkAndFetchImgurUrl(url: string): Promise<string | false
 
 export function toTitleCase(str: string) {
   return startCase(toLower(str));
+}
+
+export function genCommandErrMsg(interaction: Interaction, error: string) {
+  return __(
+    { phrase: 'errors.commandError', locale: interaction.user.locale },
+    { error, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
+  );
 }

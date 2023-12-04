@@ -1,7 +1,13 @@
-import { stripIndents } from 'common-tags';
-import { ChatInputCommandInteraction, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
+import {
+  ChatInputCommandInteraction,
+  EmbedBuilder,
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+} from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
 import { colors } from '../../../utils/Constants.js';
+import { __ } from '../../../utils/Utils.js';
 
 export default class Vote extends BaseCommand {
   readonly data = {
@@ -10,17 +16,9 @@ export default class Vote extends BaseCommand {
   };
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
-      .setDescription(stripIndents`
-    ## 🗳️ Vote for InterChat and Enjoy Exclusive Perks
-    Your contribution is invaluable in elevating InterChat's position on Top.gg. Each and every vote makes a significant difference! 
-
-    As our way of expressing gratitude for your support, we are thrilled to offer you exclusive advantages. By casting your vote for InterChat, you'll unlock:
-
-    - Edit messages within hubs
-    - Translating messages (and much more on the way!)
-    
-    We deeply appreciate your unwavering support. Thank you! 🙏 
-  `)
+      .setDescription(
+        __({ phrase: 'commands.vote.embed.description', locale: interaction.user.locale }),
+      )
       .setColor(colors.interchatBlue);
 
     const button = new ActionRowBuilder<ButtonBuilder>().addComponents(

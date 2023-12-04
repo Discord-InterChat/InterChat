@@ -7,7 +7,7 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
 import { LINKS, emojis } from '../../../utils/Constants.js';
-import { stripIndents } from 'common-tags';
+import { __ } from '../../../utils/Utils.js';
 
 export default class Invite extends BaseCommand {
   readonly data = {
@@ -30,10 +30,10 @@ export default class Invite extends BaseCommand {
         .setDisabled(false),
     ]);
     await interaction.reply({
-      content: stripIndents`
-      Thank you for choosing to invite InterChat. Simply click the button below to invite me!
-
-      - **__Support Server__:** ${LINKS.SUPPORT_INVITE}`,
+      content: __(
+        { phrase: 'invite', locale: interaction.user.locale },
+        { support: LINKS.SUPPORT_INVITE },
+      ),
       components: [InviteButton],
     });
   }

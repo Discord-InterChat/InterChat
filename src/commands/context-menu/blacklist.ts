@@ -14,12 +14,13 @@ import {
 } from 'discord.js';
 import BaseCommand from '../BaseCommand.js';
 import db from '../../utils/Db.js';
-import { emojis } from '../../utils/Constants.js';
+import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { errorEmbed } from '../../utils/Utils.js';
 import parse from 'parse-duration';
 import NetworkLogger from '../../utils/NetworkLogger.js';
+import { __ } from '../../utils/Utils.js';
 
 export default class Blacklist extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -45,7 +46,10 @@ export default class Blacklist extends BaseCommand {
       interaction.reply({
         embeds: [
           errorEmbed(
-            `${emojis.info} This message was not sent in a hub, has expired, or you lack permissions to perform this action.`,
+            __(
+              { phrase: 'errors.messageNotSentOrExpired', locale: interaction.user.locale },
+              { emoji: emojis.info },
+            ),
           ),
         ],
         ephemeral: true,
@@ -56,9 +60,10 @@ export default class Blacklist extends BaseCommand {
     const embed = new EmbedBuilder()
       .setTitle('Blacklist')
       .setDescription(
+        // FIXME: either remove or improve this
         'Blacklist the server or user of this message from this hub. This will prevent messages by them from being sent.',
       )
-      .setColor('Blurple');
+      .setColor(colors.interchatBlue);
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
@@ -97,9 +102,7 @@ export default class Blacklist extends BaseCommand {
     if (interaction.user.id !== customId.args[0]) {
       await interaction.reply({
         embeds: [
-          errorEmbed(
-            `${emojis.no} Sorry, you can't perform this action. Please run the command yourself.`,
-          ),
+          errorEmbed(__({ phrase: 'errors.cannotPerformAction', locale: interaction.user.locale })),
         ],
         ephemeral: true,
       });
@@ -155,7 +158,7 @@ export default class Blacklist extends BaseCommand {
 
     if (!messageInDb?.hubId) {
       await interaction.reply({
-        content: 'This message has expired.',
+        content: __({ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -184,7 +187,10 @@ export default class Blacklist extends BaseCommand {
     if (blacklistType.startsWith('u=')) {
       const user = await interaction.client.users.fetch(messageInDb.authorId).catch(() => null);
       successEmbed.setDescription(
-        `${emojis.tick} **${user?.username}** has been successfully blacklisted!`,
+        __(
+          { phrase: 'blacklist.user.success', locale: interaction.user.locale },
+          { username: user?.username ?? 'Unknown User', emoji: emojis.tick },
+        ),
       );
       await blacklistManager.addUserBlacklist(
         messageInDb.hubId,
@@ -214,8 +220,12 @@ export default class Blacklist extends BaseCommand {
       const server = interaction.client.guilds.cache.get(messageInDb.serverId);
 
       successEmbed.setDescription(
-        `${emojis.tick} **${server?.name}** has been successfully blacklisted!`,
+        __(
+          { phrase: 'blacklist.server.success', locale: interaction.user.locale },
+          { username: server?.name ?? 'Unknown Server', emoji: emojis.tick },
+        ),
       );
+
       await blacklistManager.addServerBlacklist(
         messageInDb.serverId,
         messageInDb.hubId,
