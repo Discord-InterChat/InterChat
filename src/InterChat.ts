@@ -1,4 +1,6 @@
 import db from './utils/Db.js';
+import YAML from 'yaml';
+import Logger from './utils/Logger.js';
 import SuperClient from './SuperClient.js';
 import CommandManager from './managers/CommandManager.js';
 import { NetworkMessage } from './managers/NetworkManager.js';
@@ -16,9 +18,7 @@ import {
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis, mascotEmojis } from './utils/Constants.js';
-import Logger from './utils/Logger.js';
 import { I18n } from 'i18n';
-import YAML from 'yaml';
 
 class InterChat extends SuperClient {
   public constructor() {
