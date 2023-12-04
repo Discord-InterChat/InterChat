@@ -16,33 +16,11 @@ import {
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis, mascotEmojis } from './utils/Constants.js';
+import Logger from './utils/Logger.js';
 
 class InterChat extends SuperClient {
   public constructor() {
     super();
-
-    this.rest.on('rateLimited', async (rateLimitData) => {
-      const embed = new EmbedBuilder()
-        .setTitle('Rate Limited')
-        .setDescription(
-          stripIndents`
-            ${rateLimitData.method} \`${rateLimitData.route}\`
-
-          - Global: ${rateLimitData.global}
-          - Limit before block: ${rateLimitData.limit}
-          - Retry after: ${rateLimitData.retryAfter}ms
-          - Sublimit Timeout: ${rateLimitData.sublimitTimeout}
-          `,
-        )
-        .setColor(colors.invisible)
-        .setFooter({
-          text: `${rateLimitData.majorParameter}`,
-          iconURL: this.user?.avatarURL() || undefined,
-        });
-
-      const debugLogs = await this.channels.fetch('1180800308146872380').catch(() => null);
-      debugLogs?.isTextBased() ? debugLogs.send({ embeds: [embed] }) : null;
-    });
 
     this.once('ready', () => {
       // initialize the client
@@ -245,9 +223,14 @@ class InterChat extends SuperClient {
     // handle messages
     this.on('messageCreate', async (message) => {
       if (message.author.bot || message.system || message.webhookId) return;
-
       this.getNetworkManager().handleNetworkMessage(message as NetworkMessage);
     });
+
+    this.on('debug', (debug) => {
+      Logger.debug(debug);
+    });
+    this.rest.on('restDebug', (debug) => Logger.debug(`[REST] ${debug}`));
+    this.rest.on('rateLimited', (rateLimitData) => Logger.warn(rateLimitData));
   }
 }
 
