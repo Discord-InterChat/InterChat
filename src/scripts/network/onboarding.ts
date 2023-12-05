@@ -102,7 +102,7 @@ export async function showOnboarding(
     const rulesEmbed = new EmbedBuilder()
       .setDescription(
         __(
-          { phrase: 'commands.rules.embed.description', locale: interaction.user.locale },
+          { phrase: 'rules', locale: interaction.user.locale },
           { support_invite: LINKS.SUPPORT_INVITE },
         ),
       )

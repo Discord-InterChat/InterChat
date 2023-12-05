@@ -17,7 +17,7 @@ export default class Vote extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setDescription(
-        __({ phrase: 'commands.vote.embed.description', locale: interaction.user.locale }),
+        __({ phrase: 'vote', locale: interaction.user.locale }),
       )
       .setColor(colors.interchatBlue);
 

@@ -25,6 +25,7 @@ import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
+import { __ } from 'i18n';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -90,7 +91,7 @@ export default class Browse extends Hub {
 
     if (!hubList || hubList.length === 0) {
       interaction.reply({
-        content: 'There are no hubs listed here at the moment. Please try again later!',
+        content: __({ phrase: 'hub.browse.noHubs', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
