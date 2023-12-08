@@ -49,11 +49,11 @@ export default function start() {
     }
     else {
       res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('404 Not Found');
+      res.end('Why the hell are we even here? This is a 404.');
     }
   });
 
   server.listen(port, () => {
-    Logger.info(`Server listening on port ${port}`);
+    Logger.info(`API listening on port http://localhost:${port}.`);
   });
 }

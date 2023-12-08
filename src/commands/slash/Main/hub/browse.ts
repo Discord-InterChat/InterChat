@@ -25,7 +25,7 @@ import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
-import { __ } from 'i18n';
+import i18n from 'i18n';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -91,7 +91,7 @@ export default class Browse extends Hub {
 
     if (!hubList || hubList.length === 0) {
       interaction.reply({
-        content: __({ phrase: 'hub.browse.noHubs', locale: interaction.user.locale }),
+        content: i18n.__({ phrase: 'hub.browse.noHubs', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -145,7 +145,7 @@ export default class Browse extends Hub {
     });
     if (!hubDetails) {
       return await interaction.reply({
-        content: 'Hub not found.',
+        content: i18n.__({ phrase: 'hub.notFound', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
@@ -174,7 +174,10 @@ export default class Browse extends Hub {
       const alreadyJoined = hubDetails.connections.find((c) => c.serverId === interaction.guildId);
       if (alreadyJoined) {
         interaction.reply({
-          content: `You have already joined **${hubDetails.name}** from <#${alreadyJoined.channelId}>!`,
+          content: i18n.__(
+            { phrase: 'hub.alreadyJoined', locale: interaction.user.locale },
+            { hub: hubDetails.name, channel: `<#${alreadyJoined.channelId}>` },
+          ),
           ephemeral: true,
         });
         return;
@@ -212,11 +215,13 @@ export default class Browse extends Hub {
       // use current channel embed
       const embed = new EmbedBuilder()
         .setDescription(
-          stripIndents`
-          Are you sure you wish to join **${hubDetails.name}** from ${interaction.channel}?
-          
-          **Note:** You can always change this later using \`/connection\`.
-      `,
+          i18n.__(
+            {
+              phrase: 'hub.browse.joinConfirm',
+              locale: interaction.user.locale,
+            },
+            { hub: hubDetails.name, channel: `${interaction.channel}` },
+          ),
         )
         .setColor('Aqua')
         .setFooter({ text: 'Want to use a different channel? Use the dropdown below.' });
@@ -234,7 +239,7 @@ export default class Browse extends Hub {
     else if (customId.postfix === 'channel_select' || customId.postfix === 'confirm') {
       if (!hubDetails) {
         return await interaction.reply({
-          content: 'Hub not found.',
+          content: i18n.__({ phrase: 'hub.notFound', locale: interaction.user.locale }),
           ephemeral: true,
         });
       }
@@ -247,7 +252,10 @@ export default class Browse extends Hub {
       );
       if (userBlacklisted) {
         return await interaction.reply({
-          content: `You have been blacklisted from joining **${hubDetails.name}**.`,
+          content: i18n.__(
+            { phrase: 'hub.userBlacklisted', locale: interaction.user.locale },
+            { hub: hubDetails.name },
+          ),
           ephemeral: true,
         });
       }
@@ -258,7 +266,7 @@ export default class Browse extends Hub {
       );
       if (serverBlacklisted) {
         return await interaction.reply({
-          content: `This server has been blacklisted from joining **${hubDetails.name}**.`,
+          content: `This server is blacklisted from joining **${hubDetails.name}**.`,
           ephemeral: true,
         });
       }

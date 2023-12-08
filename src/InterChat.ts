@@ -1,5 +1,4 @@
 import db from './utils/Db.js';
-import YAML from 'yaml';
 import Logger from './utils/Logger.js';
 import SuperClient from './SuperClient.js';
 import CommandManager from './managers/CommandManager.js';
@@ -18,7 +17,7 @@ import {
 } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis, mascotEmojis } from './utils/Constants.js';
-import { I18n } from 'i18n';
+import { initI18n } from './utils/Locale.js';
 
 class InterChat extends SuperClient {
   public constructor() {
@@ -28,16 +27,8 @@ class InterChat extends SuperClient {
       // initialize the client
       this.init();
 
-      new I18n().configure({
-        directory: './locales',
-        fallbacks: { '*': 'en' },
-        objectNotation: true,
-        parser: YAML,
-        extension: '.yml',
-        logDebugFn: Logger.info,
-        logWarnFn: Logger.warn,
-        logErrorFn: Logger.error,
-      });
+      // initialize i18n for localization
+      initI18n();
 
       // load commands
       CommandManager.loadCommandFiles();

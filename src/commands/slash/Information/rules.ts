@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
 import { LINKS, colors } from '../../../utils/Constants.js';
-import { __ } from '../../../utils/Utils.js';
+import { __ } from '../../../utils/Locale.js';
 export default class Rules extends BaseCommand {
   readonly data = {
     name: 'rules',

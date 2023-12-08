@@ -17,7 +17,7 @@ import { checkIfStaff, hasVoted, replaceLinks } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
-import { __ } from '../../utils/Utils.js';
+import { __ } from '../../utils/Locale.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {

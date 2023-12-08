@@ -17,7 +17,7 @@ import { colors, emojis } from '../../utils/Constants.js';
 import BaseCommand from '../BaseCommand.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { __ } from '../../utils/Utils.js';
+import { __ } from '../../utils/Locale.js';
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {

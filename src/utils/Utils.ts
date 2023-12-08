@@ -20,10 +20,7 @@ import db from './Db.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
 import 'dotenv/config';
-import i18n from 'i18n';
-
-// i18n is cjs :(
-export const __ = i18n.__;
+import { __ } from './Locale.js';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function msToReadable(milliseconds: number): string {

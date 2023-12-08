@@ -4,7 +4,7 @@ import BlacklistCommand from './index.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import { colors } from '../../../../utils/Constants.js';
 import { errorEmbed } from '../../../../utils/Utils.js';
-import { __ } from '../../../../utils/Utils.js';
+import { __ } from '../../../../utils/Locale.js';
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {

@@ -20,7 +20,7 @@ import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { supportedLanguages } from '@translate-tools/core/translators/GoogleTranslator/index.js';
 import translator from '../../utils/Translator.cjs';
-import { __ } from '../../utils/Utils.js';
+import { __ } from '../../utils/Locale.js';
 
 export default class Translate extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {

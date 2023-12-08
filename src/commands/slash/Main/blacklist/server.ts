@@ -8,7 +8,7 @@ import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import NetworkLogger from '../../../../utils/NetworkLogger.js';
 import parse from 'parse-duration';
 import Logger from '../../../../utils/Logger.js';
-import { __ } from '../../../../utils/Utils.js';
+import { __ } from '../../../../utils/Locale.js';
 
 export default class UserBlacklist extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {

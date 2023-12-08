@@ -30,7 +30,7 @@ import {
   getOrCreateWebhook,
   setComponentExpiry,
 } from '../../../utils/Utils.js';
-import { __ } from 'i18n';
+import { __ } from '../../../utils/Locale.js';
 
 export default class Connection extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {

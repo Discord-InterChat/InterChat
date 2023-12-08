@@ -10,7 +10,7 @@ import {
   Collection,
 } from 'discord.js';
 import { LINKS, colors } from '../../utils/Constants.js';
-import { __ } from '../../utils/Utils.js';
+import { __ } from '../../utils/Locale.js';
 
 const onboardingInProgress = new Collection<string, string>();
 

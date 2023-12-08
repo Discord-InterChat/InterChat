@@ -7,7 +7,7 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
 import { LINKS, emojis } from '../../../utils/Constants.js';
-import { __ } from '../../../utils/Utils.js';
+import { __ } from '../../../utils/Locale.js';
 
 export default class Invite extends BaseCommand {
   readonly data = {

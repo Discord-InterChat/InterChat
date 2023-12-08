@@ -8,7 +8,7 @@ import BaseCommand from '../BaseCommand.js';
 import { checkIfStaff } from '../../utils/Utils.js';
 import { emojis } from '../../utils/Constants.js';
 import db from '../../utils/Db.js';
-import { __ } from '../../utils/Utils.js';
+import { __ } from '../../utils/Locale.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {

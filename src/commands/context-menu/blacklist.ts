@@ -20,7 +20,7 @@ import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { errorEmbed } from '../../utils/Utils.js';
 import parse from 'parse-duration';
 import NetworkLogger from '../../utils/NetworkLogger.js';
-import { __ } from '../../utils/Utils.js';
+import { __ } from '../../utils/Locale.js';
 
 export default class Blacklist extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {

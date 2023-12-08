@@ -6,7 +6,7 @@ import parse from 'parse-duration';
 import { emojis } from '../../../../utils/Constants.js';
 import NetworkLogger from '../../../../utils/NetworkLogger.js';
 import { errorEmbed } from '../../../../utils/Utils.js';
-import { __ } from '../../../../utils/Utils.js';
+import { __ } from '../../../../utils/Locale.js';
 
 export default class Server extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
