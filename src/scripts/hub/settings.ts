@@ -1,11 +1,10 @@
 import { ActionRowBuilder, EmbedBuilder, Snowflake, StringSelectMenuBuilder } from 'discord.js';
 import { HubSettingsBitField, HubSettingsString } from '../../utils/BitFields.js';
 import { emojis, colors } from '../../utils/Constants.js';
-import { hubs } from '@prisma/client';
 import { CustomID } from '../../utils/CustomID.js';
 
-export function buildSettingsEmbed(hub: hubs) {
-  const settings = new HubSettingsBitField(hub.settings);
+export function buildSettingsEmbed(name: string, iconURL: string, rawSettings: number) {
+  const settings = new HubSettingsBitField(rawSettings);
   const settingDescriptions = {
     Reactions: '**Reactions** - Allow users to react to messages.',
     HideLinks: '**Hide Links** - Redact links sent by users.',
@@ -16,7 +15,7 @@ export function buildSettingsEmbed(hub: hubs) {
   };
 
   return new EmbedBuilder()
-    .setAuthor({ name: `${hub.name} Settings`, iconURL: hub.iconUrl })
+    .setAuthor({ name: `${name} Settings`, iconURL })
     .setDescription(
       Object.entries(settingDescriptions)
         .map(([key, value]) => {
@@ -30,14 +29,19 @@ export function buildSettingsEmbed(hub: hubs) {
     .setTimestamp();
 }
 
-export function buildSettingsMenu(hubSettings: HubSettingsBitField, hubName: string, userId: Snowflake) {
+export function buildSettingsMenu(
+  rawSettings: number,
+  hubName: string,
+  userId: Snowflake,
+) {
+  const hubSettings = new HubSettingsBitField(rawSettings);
   return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId(
         new CustomID()
-          .setIdentifier('hub_settings', 'settings')
-          .addArgs(hubName)
+          .setIdentifier('hub_manage', 'settingsToggle')
           .addArgs(userId)
+          .addArgs(hubName)
           .toString(),
       )
       .setPlaceholder('Select an option')

@@ -25,12 +25,12 @@ import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
-import i18n from 'i18n';
+import { __ } from '../../../../utils/Locale.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
     const sortBy = interaction.options.getString('sort') as
-      | 'connections'
+      | 'servers'
       | 'active'
       | 'popular'
       | 'recent'
@@ -58,7 +58,7 @@ export default class Browse extends Hub {
           orderBy: { createdAt: 'desc' },
         });
         break;
-      case 'connections':
+      case 'servers':
         sortedHubs = await db.hubs.findMany({
           where: { name: hubName, private: false },
           orderBy: { connections: { _count: 'desc' } },
@@ -91,7 +91,7 @@ export default class Browse extends Hub {
 
     if (!hubList || hubList.length === 0) {
       interaction.reply({
-        content: i18n.__({ phrase: 'hub.browse.noHubs', locale: interaction.user.locale }),
+        content: __({ phrase: 'hub.browse.noHubs', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -145,7 +145,7 @@ export default class Browse extends Hub {
     });
     if (!hubDetails) {
       return await interaction.reply({
-        content: i18n.__({ phrase: 'hub.notFound', locale: interaction.user.locale }),
+        content: __({ phrase: 'hub.notFound', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
@@ -174,7 +174,7 @@ export default class Browse extends Hub {
       const alreadyJoined = hubDetails.connections.find((c) => c.serverId === interaction.guildId);
       if (alreadyJoined) {
         interaction.reply({
-          content: i18n.__(
+          content: __(
             { phrase: 'hub.alreadyJoined', locale: interaction.user.locale },
             { hub: hubDetails.name, channel: `<#${alreadyJoined.channelId}>` },
           ),
@@ -215,7 +215,7 @@ export default class Browse extends Hub {
       // use current channel embed
       const embed = new EmbedBuilder()
         .setDescription(
-          i18n.__(
+          __(
             {
               phrase: 'hub.browse.joinConfirm',
               locale: interaction.user.locale,
@@ -224,7 +224,9 @@ export default class Browse extends Hub {
           ),
         )
         .setColor('Aqua')
-        .setFooter({ text: 'Want to use a different channel? Use the dropdown below.' });
+        .setFooter({
+          text: __({ phrase: 'hub.browse.joinFooter', locale: interaction.user.locale }),
+        });
 
       await interaction.reply({
         embeds: [embed],
@@ -239,7 +241,7 @@ export default class Browse extends Hub {
     else if (customId.postfix === 'channel_select' || customId.postfix === 'confirm') {
       if (!hubDetails) {
         return await interaction.reply({
-          content: i18n.__({ phrase: 'hub.notFound', locale: interaction.user.locale }),
+          content: __({ phrase: 'hub.notFound', locale: interaction.user.locale }),
           ephemeral: true,
         });
       }
@@ -252,8 +254,8 @@ export default class Browse extends Hub {
       );
       if (userBlacklisted) {
         return await interaction.reply({
-          content: i18n.__(
-            { phrase: 'hub.userBlacklisted', locale: interaction.user.locale },
+          content: __(
+            { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
             { hub: hubDetails.name },
           ),
           ephemeral: true,
@@ -266,7 +268,10 @@ export default class Browse extends Hub {
       );
       if (serverBlacklisted) {
         return await interaction.reply({
-          content: `This server is blacklisted from joining **${hubDetails.name}**.`,
+          content: __(
+            { phrase: 'errors.serverBlacklisted', locale: interaction.user.locale },
+            { hub: hubDetails.name },
+          ),
           ephemeral: true,
         });
       }
@@ -278,7 +283,7 @@ export default class Browse extends Hub {
       // for type safety
       if (channel?.type !== ChannelType.GuildText && !channel?.isThread()) {
         await interaction.reply({
-          content: `${emojis.no} Only text and thread channels are supported!`,
+          content: __({ phrase: 'hub.invalidChannel', locale: interaction.user.locale }),
           ephemeral: true,
         });
         return;
@@ -286,14 +291,20 @@ export default class Browse extends Hub {
 
       if (!interaction.guild?.members.me?.permissionsIn(channel).has(['ManageWebhooks'])) {
         await interaction.update(
-          `${emojis.no} I need to have the \`Manage Webhooks\` permission in ${channel} to connect it to a hub!`,
+          __(
+            { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
+            { permissions: 'Manage Webhooks' },
+          ),
         );
         return;
       }
 
       if (!interaction.member.permissionsIn(channel).has('ManageChannels')) {
         await interaction.update(
-          `${emojis.no} You need to have the \`Manage Channels\` permission in ${channel} to connect it to a hub!`,
+          __(
+            { phrase: 'errors.botMissingPermissions', locale: interaction.user.locale },
+            { permissions: 'Manage Channels' },
+          ),
         );
         return;
       }
@@ -304,7 +315,10 @@ export default class Browse extends Hub {
 
       if (channelConnected) {
         await interaction.update({
-          content: 'This channel is already connected to another hub!',
+          content: __(
+            { phrase: 'hub.alreadyConnected', locale: interaction.user.locale },
+            { channel: `${channel}` },
+          ),
           embeds: [],
           components: [],
         });
@@ -324,7 +338,10 @@ export default class Browse extends Hub {
       }
       else if (onboardingCompleted === 'in-progress') {
         return await interaction.update({
-          content: `There has already been an attempting to join a hub from ${channel}. Please cancel it or wait for it to complete.`,
+          content: __(
+            { phrase: 'onboarding.inProgress', locale: interaction.user.locale },
+            { channel: `${channel}` },
+          ),
           embeds: [],
           components: [],
         });
@@ -347,7 +364,10 @@ export default class Browse extends Hub {
       });
 
       await interaction.editReply({
-        content: `Successfully joined hub ${hubDetails.name} from ${channel}! Use \`/connection\` to manage your connection. And \`/hub leave\` to leave the hub.`,
+        content: __(
+          { phrase: 'hub.join.success', locale: interaction.user.locale },
+          { hub: hubDetails.name, channel: `${channel}` },
+        ),
         embeds: [],
         components: [],
       });
@@ -357,10 +377,10 @@ export default class Browse extends Hub {
       });
 
       // announce a new server has joined the hub
-      networkManager.sendToNetwork(hubDetails.id, {
+      await networkManager.sendToHub(hubDetails.id, {
         content: stripIndents`
         A new server has joined us! ${emojis.clipart}
-    
+
         **Server Name:** __${interaction.guild.name}__
         **Member Count:** __${interaction.guild.memberCount}__
 

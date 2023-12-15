@@ -4,10 +4,12 @@ import Logger from './Logger.js';
 
 const { configure, __ } = new I18n();
 
-export function initI18n(locale = 'en') {
+export function initI18n() {
   configure({
     directory: './locales',
-    fallbacks: { '*': locale },
+    defaultLocale: 'en',
+    fallbacks: { '*': 'en' },
+    retryInDefaultLocale: true,
     objectNotation: true,
     parser: YAML,
     extension: '.yml',

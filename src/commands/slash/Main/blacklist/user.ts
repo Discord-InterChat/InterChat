@@ -5,7 +5,7 @@ import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
 import { emojis } from '../../../../utils/Constants.js';
 import NetworkLogger from '../../../../utils/NetworkLogger.js';
-import { errorEmbed } from '../../../../utils/Utils.js';
+import { simpleEmbed } from '../../../../utils/Utils.js';
 import { __ } from '../../../../utils/Locale.js';
 
 export default class Server extends BlacklistCommand {
@@ -27,7 +27,7 @@ export default class Server extends BlacklistCommand {
     if (!hubInDb) {
       return await interaction.editReply({
         embeds: [
-          errorEmbed(__({ phrase: 'errors.modUnknownHub', locale: interaction.user.locale })),
+          simpleEmbed(__({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
         ],
       });
     }

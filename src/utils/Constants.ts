@@ -54,7 +54,7 @@ export const channels = {
   networklogs: '1156144879869632553',
   modlogs: '1042265633896796231',
   reports: '1158773603551162398',
-  goal: '906460473065615403',
+  goal: '1184062391395303445',
   suggestions: '1021256657528954900',
 } as const;
 

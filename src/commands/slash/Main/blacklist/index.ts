@@ -7,6 +7,9 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../../BaseCommand.js';
 import db from '../../../../utils/Db.js';
+import Logger from '../../../../utils/Logger.js';
+import { captureException } from '@sentry/node';
+import { replyWithError } from '../../../../utils/Utils.js';
 
 export default class BlacklistCommand extends BaseCommand {
   // TODO: Put this in readme
@@ -164,10 +167,16 @@ export default class BlacklistCommand extends BaseCommand {
     ],
   };
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
-    const subCommand = interaction.options.getSubcommand();
-    const isValid = BlacklistCommand.subcommands.get(subCommand);
-    if (isValid) return await isValid.execute(interaction);
+  async execute(interaction: ChatInputCommandInteraction) {
+    const subCommandName = interaction.options.getSubcommand();
+    const subcommand = BlacklistCommand.subcommands.get(subCommandName);
+
+    return await subcommand?.execute(interaction).catch((e) => {
+      Logger.error(e);
+      captureException(e);
+      // reply with an error message to the user
+      replyWithError(interaction, e.message);
+    });
   }
 
   async autocomplete(interaction: AutocompleteInteraction) {

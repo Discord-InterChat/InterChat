@@ -1,3 +1,7 @@
+import db from './Db.js';
+import toLower from 'lodash/toLower.js';
+import Scheduler from '../services/SchedulerService.js';
+import startCase from 'lodash/startCase.js';
 import {
   ActionRow,
   ButtonStyle,
@@ -5,7 +9,6 @@ import {
   ColorResolvable,
   ComponentType,
   EmbedBuilder,
-  Interaction,
   Message,
   MessageActionRowComponent,
   NewsChannel,
@@ -15,12 +18,9 @@ import {
 } from 'discord.js';
 import { DeveloperIds, REGEX, StaffIds, SupporterIds, LINKS, colors, emojis } from './Constants.js';
 import { randomBytes } from 'crypto';
-import Scheduler from '../services/SchedulerService.js';
-import db from './Db.js';
-import startCase from 'lodash/startCase.js';
-import toLower from 'lodash/toLower.js';
-import 'dotenv/config';
 import { __ } from './Locale.js';
+import 'dotenv/config';
+import { CmdInteraction } from '../commands/BaseCommand.js';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function msToReadable(milliseconds: number): string {
@@ -165,7 +165,7 @@ export function replaceLinks(string: string, replaceText = '`[LINK HIDDEN]`') {
   return string.replaceAll(REGEX.LINKS, replaceText);
 }
 
-export function errorEmbed(description: string, color: ColorResolvable = colors.invisible) {
+export function simpleEmbed(description: string, color: ColorResolvable = colors.invisible) {
   return new EmbedBuilder().setColor(color).setDescription(description.toString());
 }
 
@@ -207,9 +207,23 @@ export function toTitleCase(str: string) {
   return startCase(toLower(str));
 }
 
-export function genCommandErrMsg(interaction: Interaction, error: string) {
+export function genCommandErrMsg(locale: string, error: string) {
   return __(
-    { phrase: 'errors.commandError', locale: interaction.user.locale },
+    { phrase: 'errors.commandError', locale },
     { error, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
   );
+}
+
+/**
+    Invoke this method to handle errors that occur during command execution.
+    It will send an error message to the user and log the error to the system.
+  */
+export async function replyWithError(interaction: CmdInteraction, e: string) {
+  const method = interaction.replied || interaction.deferred ? 'followUp' : 'reply';
+
+  // reply with an error message if the command failed
+  return await interaction[method]({
+    embeds: [simpleEmbed(genCommandErrMsg(interaction.user.locale || 'en', e))],
+    ephemeral: true,
+  }).catch(() => null);
 }

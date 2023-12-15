@@ -9,11 +9,11 @@ import {
 } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import Hub from './index.js';
-import { captureException } from '@sentry/node';
-import { emojis } from '../../../../utils/Constants.js';
-import { deleteHubs, setComponentExpiry } from '../../../../utils/Utils.js';
+import { LINKS, emojis } from '../../../../utils/Constants.js';
+import { deleteHubs, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
+import { __ } from '../../../../utils/Locale.js';
 
 export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -22,15 +22,17 @@ export default class Delete extends Hub {
 
     if (interaction.user.id !== hubInDb?.ownerId) {
       return await interaction.reply({
-        content: `${emojis.info} Unable to find hub. Make sure you are the owner of the hub.`,
+        content: __({ phrase: 'errors.modUnownedHub', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
 
     const confirmEmbed = new EmbedBuilder()
-      .setTitle('Are you sure?')
       .setDescription(
-        'Are you sure you want to delete this hub? This is a destructive action that will **delete all connections** along with the hub.',
+        __(
+          { phrase: 'hub.delete.confirm', locale: interaction.user.locale },
+          { hub: hubInDb.name },
+        ),
       )
       .setColor('Red');
     const confirmButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -72,13 +74,16 @@ export default class Delete extends Hub {
 
     if (interaction.user.id !== userId) {
       return await interaction.reply({
-        content: 'Only the hub owner can delete this hub.',
+        embeds: [simpleEmbed(__({ phrase: 'errors.ownerOnly', locale: interaction.user.locale }))],
         ephemeral: true,
       });
     }
 
     if (customId.postfix === 'cancel') {
-      await interaction.message.delete().catch(() => null);
+      await interaction.update({
+        embeds: [simpleEmbed(__({ phrase: 'hub.delete.cancel', locale: interaction.user.locale }))],
+        components: [],
+      });
       return;
     }
 
@@ -87,33 +92,29 @@ export default class Delete extends Hub {
     });
     if (!hubInDb) {
       return await interaction.update({
-        content: 'That hub no longer exists.',
-        embeds: [],
+        embeds: [
+          simpleEmbed(
+            __(
+              { phrase: 'errors.unknown', locale: interaction.user.locale },
+              { support_invite: LINKS.SUPPORT_INVITE },
+            ),
+          ),
+        ],
         components: [],
       });
     }
 
-    await interaction.update(
-      `${emojis.loading} Deleting connections, invites, messages and the hub. Please wait...`,
-    );
+    await deleteHubs([hubInDb.id]);
 
-    try {
-      await deleteHubs([hubInDb.id]);
-    }
-    catch (e) {
-      captureException(e, {
-        user: { id: interaction.user.id, username: interaction.user.username },
-      });
-      await interaction.editReply({
-        content:
-          'Something went wrong while trying to delete the hub. The developers have been notified.',
-      });
-      return;
-    }
-
-    await interaction.editReply({
-      content: `${emojis.tick} The hub has been successfully deleted.`,
-      embeds: [],
+    await interaction.update({
+      embeds: [
+        simpleEmbed(
+          __(
+            { phrase: 'hub.delete.success', locale: interaction.user.locale },
+            { emoji: emojis.tick },
+          ),
+        ),
+      ],
       components: [],
     });
   }

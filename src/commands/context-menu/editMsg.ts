@@ -19,7 +19,7 @@ import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { __ } from '../../utils/Locale.js';
 
-export default class DeleteMessage extends BaseCommand {
+export default class EditMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Edit Message',
@@ -145,7 +145,7 @@ export default class DeleteMessage extends BaseCommand {
         .setColor(target.member?.displayHexColor ?? 'Random')
         .setImage(newImageUrl || oldImageUrl || null)
         .addFields(
-          target.embeds[0].fields[0]
+          target.embeds[0]?.fields[0]
             ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
             : [],
         )

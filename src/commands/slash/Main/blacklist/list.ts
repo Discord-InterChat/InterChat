@@ -3,7 +3,7 @@ import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import { colors } from '../../../../utils/Constants.js';
-import { errorEmbed } from '../../../../utils/Utils.js';
+import { simpleEmbed } from '../../../../utils/Utils.js';
 import { __ } from '../../../../utils/Locale.js';
 
 export default class ListBlacklists extends BlacklistCommand {
@@ -25,7 +25,7 @@ export default class ListBlacklists extends BlacklistCommand {
     if (!hubInDb) {
       await interaction.editReply({
         embeds: [
-          errorEmbed(__({ phrase: 'errors.modUnknownHub', locale: interaction.user.locale })),
+          simpleEmbed(__({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
         ],
       });
       return;

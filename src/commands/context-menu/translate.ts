@@ -53,7 +53,7 @@ export default class Translate extends BaseCommand {
     const messageContent = target.content || target.embeds[0]?.description;
     if (!messageContent) return interaction.editReply('This message is not translatable.');
 
-    const translatedMessage = await translator.translateText(messageContent, 'en', 'auto');
+    const translatedMessage = await translator.translateText(messageContent, interaction.user.locale ?? 'en', 'auto');
     const embed = new EmbedBuilder()
       .setDescription('### Translation Results')
       .setColor('Green')

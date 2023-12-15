@@ -6,7 +6,7 @@ import { emojis } from '../utils/Constants.js';
 import { CustomID } from '../utils/CustomID.js';
 import { Interaction } from 'discord.js';
 import { captureException } from '@sentry/node';
-import { errorEmbed, genCommandErrMsg } from '../utils/Utils.js';
+import { simpleEmbed, replyWithError } from '../utils/Utils.js';
 import db from '../utils/Db.js';
 import Logger from '../utils/Logger.js';
 
@@ -22,7 +22,7 @@ export default class CommandManager extends Factory {
   async handleInteraction(interaction: Interaction): Promise<void> {
     try {
       const userData = await db.userData.findFirst({ where: { userId: interaction.user.id } });
-      interaction.user.locale = userData?.locale ?? 'en';
+      interaction.user.locale = userData?.locale || 'en';
 
       if (interaction.isAutocomplete()) {
         const command = this.client.commands.get(interaction.commandName);
@@ -103,7 +103,7 @@ export default class CommandManager extends Factory {
 
         if (!handler || (customId.expiry && customId.expiry < Date.now())) {
           await interaction.reply({
-            embeds: [errorEmbed(`${emojis.no} This is no longer usable.`)],
+            embeds: [simpleEmbed(`${emojis.no} This is no longer usable.`)],
             ephemeral: true,
           });
           return;
@@ -117,15 +117,9 @@ export default class CommandManager extends Factory {
       Logger.error(e);
       captureException(e);
 
-      if ('reply' in interaction) {
-        const errFormat = {
-          embeds: [errorEmbed(genCommandErrMsg(interaction, e))],
-          ephemeral: true,
-        };
-
-        interaction.replied || interaction.deferred
-          ? await interaction.editReply(errFormat)
-          : await interaction.reply(errFormat);
+      // reply with an error message to the user
+      if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+        replyWithError(interaction, e);
       }
     }
   }

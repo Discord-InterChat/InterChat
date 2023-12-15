@@ -4,7 +4,7 @@ import Hub from './index.js';
 import db from '../../../../utils/Db.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { hubs } from '@prisma/client';
-import { errorEmbed, getOrCreateWebhook } from '../../../../utils/Utils.js';
+import { simpleEmbed, getOrCreateWebhook } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 
@@ -101,7 +101,7 @@ export default class JoinSubCommand extends Hub {
     if (!webhook) {
       await interaction.editReply({
         embeds: [
-          errorEmbed(
+          simpleEmbed(
             `${emojis.no} I could not create a webhook in ${channel}. Please make sure I have the \`Manage Webhooks\` permission in that channel.`,
           ),
         ],
@@ -133,7 +133,7 @@ export default class JoinSubCommand extends Hub {
     });
 
     // announce a new server has joined the hub
-    networkManager.sendToNetwork(hub.id, {
+    networkManager.sendToHub(hub.id, {
       content: stripIndents`
         A new server has joined us! ${emojis.clipart}
     

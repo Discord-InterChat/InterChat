@@ -61,7 +61,9 @@ export default class NetworkManager extends Factory {
     if (!isNetworkMessage?.hub) return;
 
     // FIXME remove later
-    Logger.info(`[Network Debug] ${message.author.tag} sent a message in ${isNetworkMessage.hub.name}.`);
+    Logger.info(
+      `[Network Debug] ${message.author.tag} sent a message in ${isNetworkMessage.hub.name}.`,
+    );
     Logger.info(`[Network Debug] ${message.client.webhooks.size} webhooks cached.`);
 
     const settings = new HubSettingsBitField(isNetworkMessage.hub.settings);
@@ -249,13 +251,7 @@ export default class NetworkManager extends Factory {
           name: 'Welcome to the Network!',
           iconURL: 'https://i.imgur.com/jlCtQGs.gif',
         })
-        .setDescription(
-          stripIndents`
-          Messages you send here will be transmitted to multiple other servers that are connected to this hub called **${isNetworkMessage.hub.name}**, and messages from those servers will also be relayed here.
-
-          You can also send images, gifs, reply and even react to messages from other servers! But remember, keep it casual—don't share personal or sensitive info. Have fun chatting with people from other servers right from here! Go wild! ${emojis.tada}
-        `,
-        )
+        .setDescription('Welcome to the network for {hub name}! Messages sent to this channel will be sent across to multiple other servers, enabling seamless communication with them. You can share images & GIFs, reply, react and with messages just as you would normally. Just remember to avoid sharing personal info (check /rules for more). Go ahead and send your first message!')
         .setFooter({
           text: `Sent for: ${message.author.username}`,
           iconURL: message.author.displayAvatarURL(),
@@ -280,7 +276,9 @@ export default class NetworkManager extends Factory {
           .setURL(LINKS.DOCS),
       );
 
-      await message.reply({ embeds: [welcomeEmbed], components: [linkButtons] }).catch(() => null);
+      await message.channel
+        .send({ content: `${message.author}`, embeds: [welcomeEmbed], components: [linkButtons] })
+        .catch(() => null);
     }
 
     // only delete the message if there is no attachment or if the user has already viewed the welcome message
@@ -671,7 +669,7 @@ export default class NetworkManager extends Factory {
    * @param message The message to send. Can be a string or a MessageCreateOptions object.
    * @returns A array of the responses from each connection's webhook.
    */
-  async sendToNetwork(hubId: string, message: string | MessageCreateOptions) {
+  async sendToHub(hubId: string, message: string | MessageCreateOptions) {
     const connections = await this.fetchHubNetworks({ hubId });
 
     const res = connections

@@ -26,7 +26,7 @@ import { emojis } from '../../../utils/Constants.js';
 import { CustomID } from '../../../utils/CustomID.js';
 import {
   disableComponents,
-  errorEmbed,
+  simpleEmbed,
   getOrCreateWebhook,
   setComponentExpiry,
 } from '../../../utils/Utils.js';
@@ -56,7 +56,7 @@ export default class Connection extends BaseCommand {
     if (!isInDb) {
       await interaction.reply({
         embeds: [
-          errorEmbed(__({ phrase: 'connection.notFound', locale: interaction.user.locale })),
+          simpleEmbed(__({ phrase: 'connection.notFound', locale: interaction.user.locale })),
         ],
         ephemeral: true,
       });
@@ -164,7 +164,7 @@ export default class Connection extends BaseCommand {
     if (customId.args.at(1) && customId.args[1] !== interaction.user.id) {
       await interaction.reply({
         embeds: [
-          errorEmbed(__({ phrase: 'errors.cannotPerformAction', locale: interaction.user.locale })),
+          simpleEmbed(__({ phrase: 'errors.notYourAction', locale: interaction.user.locale })),
         ],
         ephemeral: true,
       });

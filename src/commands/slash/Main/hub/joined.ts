@@ -1,8 +1,10 @@
+import Hub from './index.js';
+import db from '../../../../utils/Db.js';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { paginate } from '../../../../utils/Pagination.js';
-import Hub from './index.js';
-import { emojis } from '../../../../utils/Constants.js';
-import db from '../../../../utils/Db.js';
+import { simpleEmbed } from '../../../../utils/Utils.js';
+import { __ } from '../../../../utils/Locale.js';
+import { colors } from '../../../../utils/Constants.js';
 
 export default class Joined extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -11,7 +13,11 @@ export default class Joined extends Hub {
       include: { hub: true },
     });
     if (connections.length === 0) {
-      return await interaction.reply(`${emojis.no} You have not joined any hubs yet!`);
+      return await interaction.reply({
+        embeds: [
+          simpleEmbed(__({ phrase: 'hub.joined.noJoinedHubs', locale: interaction.user.locale })),
+        ],
+      });
     }
 
     const allFields = connections.map((con) => ({
@@ -27,14 +33,16 @@ export default class Joined extends Hub {
       // Split the fields into multiple embeds
       allFields.forEach((field, index) => {
         if (index % 25 === 0) {
-        // Start a new embed
+          // Start a new embed
           currentEmbed = new EmbedBuilder()
-            .setTitle('Joined hubs')
-            .setDescription(`This server is a part of **${connections.length}** hub(s).`)
-            .setColor('Blue')
-            .setFooter({
-              text: 'Use /hub leave <name> to leave a hub.',
-            });
+            .setDescription(
+              __(
+                { phrase: 'hub.joined.joinedHubs', locale: interaction.user.locale },
+                { total: `${allFields.length}` },
+              ),
+            )
+            .setColor(colors.interchatBlue);
+
           paginateEmbeds.push(currentEmbed);
         }
 
@@ -49,13 +57,14 @@ export default class Joined extends Hub {
     }
 
     const embed = new EmbedBuilder()
-      .setTitle('Joined hubs')
-      .setDescription(`This server is a part of **${connections.length}** hub(s).`)
+      .setDescription(
+        __(
+          { phrase: 'hub.joined.joinedHubs', locale: interaction.user.locale },
+          { total: `${allFields.length}` },
+        ),
+      )
       .setFields(allFields)
-      .setColor('Blue')
-      .setFooter({
-        text: 'Use /hub leave <name> to leave a hub.',
-      });
+      .setColor(colors.interchatBlue);
 
     await interaction.reply({ embeds: [embed] });
   }

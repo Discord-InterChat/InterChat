@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/node';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { errorEmbed } from '../../../../utils/Utils.js';
+import { simpleEmbed } from '../../../../utils/Utils.js';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
@@ -28,11 +28,10 @@ export default class UserBlacklist extends BlacklistCommand {
     });
 
     if (!hubInDb) {
-      return await interaction.editReply({
-        embeds: [
-          errorEmbed(__({ phrase: 'errors.modUnknownHub', locale: interaction.user.locale })),
-        ],
+      await interaction.editReply({
+        embeds: [simpleEmbed(__({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
       });
+      return;
     }
 
     const blacklistManager = interaction.client.getBlacklistManager();
@@ -50,7 +49,7 @@ export default class UserBlacklist extends BlacklistCommand {
       if (serverInBlacklist) {
         return await interaction.followUp({
           embeds: [
-            errorEmbed(
+            simpleEmbed(
               __({
                 phrase: 'blacklist.server.alreadyBlacklisted',
                 locale: interaction.user.locale,
@@ -81,7 +80,7 @@ export default class UserBlacklist extends BlacklistCommand {
         captureException(err);
         interaction.followUp({
           embeds: [
-            errorEmbed(
+            simpleEmbed(
               __({
                 phrase: 'blacklist.server.unknownError',
                 locale: interaction.user.locale,

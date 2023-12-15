@@ -63,7 +63,7 @@ export default class MessageInfo extends BaseCommand {
       .setThumbnail(`https://cdn.discordapp.com/icons/${server?.id}/${server?.icon}.png`)
       .setColor('Random');
 
-    const buttonsArr = MessageInfo.buildButtons(target.id);
+    const buttonsArr = MessageInfo.buildButtons(target.id, interaction.user.locale);
 
     if (guildConnected?.invite) {
       buttonsArr.push(
@@ -79,7 +79,7 @@ export default class MessageInfo extends BaseCommand {
 
     await interaction.reply({
       embeds: [embed],
-      components: MessageInfo.buildButtons(target.id),
+      components: MessageInfo.buildButtons(target.id, interaction.user.locale),
       ephemeral: true,
     });
   }
@@ -154,7 +154,9 @@ export default class MessageInfo extends BaseCommand {
                 { phrase: 'msgInfo.server.description', locale: interaction.user.locale },
                 {
                   server: server.name,
-                  description: server.description || 'No Description.',
+                  description:
+                    server.description ||
+                    __({ phrase: 'misc.noDesc', locale: interaction.user.locale }),
                   owner: `${owner.username}#${
                     owner.discriminator !== '0' ? `#${owner.discriminator}` : ''
                   }`,
@@ -266,27 +268,27 @@ export default class MessageInfo extends BaseCommand {
     buttons.components[disableElement].setDisabled(true);
   }
 
-  static buildButtons(messageId: string) {
+  static buildButtons(messageId: string, locale = 'en') {
     return [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'info').addArgs(messageId).toString(),
           )
-          .setLabel('Message Info')
+          .setLabel(__({ phrase: 'msgInfo.buttons.message', locale }))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(true),
         new ButtonBuilder()
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'serverInfo').addArgs(messageId).toString(),
           )
-          .setLabel('Server Info')
+          .setLabel(__({ phrase: 'msgInfo.buttons.server', locale }))
           .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'userInfo').addArgs(messageId).toString(),
           )
-          .setLabel('User Info')
+          .setLabel(__({ phrase: 'msgInfo.buttons.user', locale }))
           .setStyle(ButtonStyle.Secondary),
       ),
     ];
