@@ -208,7 +208,7 @@ export default class EditMessage extends BaseCommand {
     const edited = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
     await interaction.editReply(
       t(
-        { phrase: 'editMsg.editSuccess', locale: interaction.user.locale },
+        { phrase: 'network.editSuccess', locale: interaction.user.locale },
         { edited: `${edited}`, total: `${resultsArray.length}` },
       ),
     );
