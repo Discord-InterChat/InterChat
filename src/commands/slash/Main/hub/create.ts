@@ -20,14 +20,16 @@ export default class Create extends Hub {
   readonly cooldown = 60 * 60 * 1000; // 1 hour
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
+    const locale = interaction.user.locale;
+
     const modal = new ModalBuilder()
-      .setTitle('Create a hub')
+      .setTitle(t({ phrase: 'hub.create.modal.title', locale }))
       .setCustomId('hub_create_modal')
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
-            .setLabel('Name')
-            .setPlaceholder('Give your hub a name.')
+            .setLabel(t({ phrase: 'hub.create.modal.name.label', locale }))
+            .setPlaceholder(t({ phrase: 'hub.create.modal.name.placeholder', locale }))
             .setMinLength(2)
             .setMaxLength(100)
             .setStyle(TextInputStyle.Short)
@@ -35,16 +37,16 @@ export default class Create extends Hub {
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
-            .setLabel('What is the hub about?')
-            .setPlaceholder('A detailed description about your hub.')
+            .setLabel(t({ phrase: 'hub.create.modal.description.label', locale }))
+            .setPlaceholder(t({ phrase: 'hub.create.modal.description.placeholder', locale }))
             .setMaxLength(1024)
             .setStyle(TextInputStyle.Paragraph)
             .setCustomId('description'),
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
-            .setLabel('Icon')
-            .setPlaceholder('Set a custom icon for your hub. Must be a imgur link.')
+            .setLabel(t({ phrase: 'hub.create.modal.icon.label', locale }))
+            .setPlaceholder(t({ phrase: 'hub.create.modal.icon.placeholder', locale }))
             .setMaxLength(300)
             .setStyle(TextInputStyle.Short)
             .setRequired(false)
@@ -52,8 +54,8 @@ export default class Create extends Hub {
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
-            .setLabel('Banner')
-            .setPlaceholder('Set a custom banner for your hub. Must be a imgur link.')
+            .setLabel(t({ phrase: 'hub.create.modal.banner.label', locale }))
+            .setPlaceholder(t({ phrase: 'hub.create.modal.description.placeholder', locale }))
             .setMaxLength(300)
             .setStyle(TextInputStyle.Short)
             .setRequired(false)

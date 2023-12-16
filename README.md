@@ -77,7 +77,7 @@ const customId = CustomID.parseCustomId(interaction.customId);
 /* {
       prefix: string,
       postfix: string,
-      expiry: Date,
+      expiry?: Date,
       args?: string[],
     };
 */
@@ -92,7 +92,7 @@ To handle components (buttons, selects, modals) create a new method called `hand
 @InteractionHandler('cool_button_')
 public async handleComponents(interaction: MessageComponentInteraction) { 
   const customId = CustomID.parseCustomId(interaction.customId);
-  // handle component logic, same as how its with collectors
+  // handle component logic, same as how it is with collectors
 }
 ```
 
@@ -102,7 +102,7 @@ public async handleComponents(interaction: MessageComponentInteraction) {
 - Commands are loaded automatically by calling the `loadCommandFiles` method from `src/managers/CommandManager.ts` during the bot startup.
 - The `src/commands/BaseCommand.ts` file contains all the methods/properties that can be used in a command.
 - We use the `interactionCreate` event for handling **all** interactions instead of using collectors.
-- If you are using your own bot for testing, make sure to change the CLIENT_ID in `src/utils/Constants.ts` like so:
+- If you are using your own bot for testing, make sure to change the CLIENT_ID in `src/utils/Constants.ts` like so (don't commit this change):
 
   ```ts
   export const CLIENT_ID = isDevBuild ? '<new_client_id_here>' : '769921109209907241';

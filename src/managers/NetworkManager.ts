@@ -260,7 +260,11 @@ export default class NetworkManager extends Factory {
         .send({
           content: t(
             { phrase: 'network.welcome', locale },
-            { user: `${message.author}`, hub: isNetworkMessage.hub.name },
+            {
+              user: `${message.author}`,
+              hub: isNetworkMessage.hub.name,
+              channel: `${message.channel}`,
+            },
           ),
           components: [linkButtons],
         })
@@ -269,7 +273,7 @@ export default class NetworkManager extends Factory {
 
     // only delete the message if there is no attachment or if the user has already viewed the welcome message
     // deleting attachments will make the image not show up in the embed (discord removes it from its cdn)
-    if (!attachment && userData) message.delete().catch(() => null);
+    if (!attachment) message.delete().catch(() => null);
 
     // store the message in the db
     await this.storeMessageData(

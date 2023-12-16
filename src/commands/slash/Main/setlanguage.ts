@@ -6,6 +6,7 @@ import {
 import BaseCommand from '../../BaseCommand.js';
 import db from '../../../utils/Db.js';
 import { emojis } from '../../../utils/Constants.js';
+import { t } from '../../../utils/Locale.js';
 
 export default class SetLanguage extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -26,23 +27,23 @@ export default class SetLanguage extends BaseCommand {
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const language = interaction.options.getString('lang', true);
+    const locale = interaction.options.getString('lang', true);
     await db.userData.upsert({
       where: { userId: interaction.user.id },
       create: {
         userId: interaction.user.id,
-        locale: language,
+        locale,
         username: interaction.user.username,
       },
       update: {
-        locale: language,
+        locale,
       },
     });
 
+    const lang = locale === 'en' ? '🇺🇸 English' : '🇹🇷 Turkish';
+
     await interaction.reply({
-      content: `${emojis.yes} Language set! I will now respond to you in **${
-        language === 'en' ? '🇺🇸 English' : '🇹🇷 Turkish'
-      }**.`,
+      content: emojis.yes + t({ phrase: 'language.set', locale }, { lang }),
       ephemeral: true,
     });
   }

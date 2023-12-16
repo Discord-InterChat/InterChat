@@ -1,13 +1,13 @@
-import { access, constants, readdirSync, statSync } from 'fs';
+import { t } from '../utils/Locale.js';
 import { join, dirname } from 'path';
-import Factory from '../Factory.js';
-import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
-import { emojis } from '../utils/Constants.js';
 import { CustomID } from '../utils/CustomID.js';
 import { Interaction } from 'discord.js';
 import { captureException } from '@sentry/node';
 import { simpleEmbed, replyWithError } from '../utils/Utils.js';
+import { access, constants, readdirSync, statSync } from 'fs';
 import Logger from '../utils/Logger.js';
+import Factory from '../Factory.js';
+import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
 
 const __filename = new URL(import.meta.url).pathname;
 const __dirname = dirname(__filename);
@@ -74,11 +74,10 @@ export default class CommandManager extends Factory {
         // check if command is in cooldown for the user
         if (remainingCooldown) {
           await interaction.reply({
-            content: `${
-              emojis.timeout
-            } This command is on a cooldown! You can use it again: <t:${Math.ceil(
-              (Date.now() + remainingCooldown) / 1000,
-            )}:R>.`,
+            content: t(
+              { phrase: 'errors.cooldown', locale: interaction.user.locale },
+              { time: `<t:${Math.ceil((Date.now() + remainingCooldown) / 1000)}:R>` },
+            ),
             ephemeral: true,
           });
           return;
@@ -101,7 +100,9 @@ export default class CommandManager extends Factory {
 
         if (!handler || (customId.expiry && customId.expiry < Date.now())) {
           await interaction.reply({
-            embeds: [simpleEmbed(`${emojis.no} This is no longer usable.`)],
+            embeds: [
+              simpleEmbed(t({ phrase: 'errors.notUsable', locale: interaction.user.locale })),
+            ],
             ephemeral: true,
           });
           return;
