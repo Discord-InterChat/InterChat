@@ -59,11 +59,10 @@ export default class Report extends Support {
         ephemeral: true,
       });
     }
-    else if (reportType === 'server' || reportType === 'user' || reportType === 'other') {
+    else {
       const modal = new ModalBuilder()
         .setTitle(t({ phrase: 'report.modal.title', locale: interaction.user.locale }))
         .setCustomId(new CustomID().setIdentifier('report_modal', reportType).toString())
-
         .addComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
@@ -76,6 +75,10 @@ export default class Report extends Support {
               .setMinLength(10)
               .setMaxLength(950),
           ),
+        );
+
+      if (reportType !== 'other') {
+        modal.addComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('id')
@@ -93,6 +96,7 @@ export default class Report extends Support {
               .setMaxLength(20),
           ),
         );
+      }
 
       await interaction.showModal(modal);
     }
@@ -208,7 +212,7 @@ export default class Report extends Support {
           if (!reportedUser) {
             await interaction.reply({
               content: t(
-                { phrase: 'report.serverOrUser.invalidUser', locale: interaction.user.locale },
+                { phrase: 'report.invalidUser', locale: interaction.user.locale },
                 { dot: emojis.dotYellow },
               ),
               ephemeral: true,
@@ -236,7 +240,7 @@ export default class Report extends Support {
           if (!reportedServer) {
             await interaction.reply({
               content: t(
-                { phrase: 'report.serverOrUser.invalidUser', locale: interaction.user.locale },
+                { phrase: 'report.invalidServer', locale: interaction.user.locale },
                 { dot: emojis.dotYellow },
               ),
               ephemeral: true,
@@ -282,7 +286,7 @@ export default class Report extends Support {
       await interaction.reply({
         content: t(
           { phrase: 'report.submitted', locale: interaction.user.locale },
-          { support_invite: LINKS.SUPPORT_INVITE },
+          { support_invite: `${LINKS.SUPPORT_INVITE} ` },
         ),
         ephemeral: true,
       });

@@ -47,7 +47,9 @@ export default class Servers extends Hub {
       const connection = hub.connections.find((con) => con.serverId === serverOpt);
       if (!connection) {
         return await interaction.reply({
-          embeds: [simpleEmbed(t({ phrase: 'hub.servers.notConnected', locale }))],
+          embeds: [
+            simpleEmbed(t({ phrase: 'hub.servers.notConnected', locale }, { hub: hub.name })),
+          ],
           ephemeral: true,
         });
       }

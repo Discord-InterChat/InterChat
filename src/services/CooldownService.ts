@@ -11,7 +11,7 @@ export default class CooldownService {
       this.cooldowns.forEach((expires, key) => {
         if (expires < Date.now()) this.cooldowns.delete(key);
       });
-    }, 60 * 1000);
+    }, 1000);
   }
 
   /**

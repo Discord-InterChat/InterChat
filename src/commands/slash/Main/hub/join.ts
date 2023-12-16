@@ -72,7 +72,10 @@ export default class JoinSubCommand extends Hub {
       return await interaction.reply({
         embeds: [
           simpleEmbed(
-            t({ phrase: 'hub.alreadyJoined', locale }, { channel: `<#${alreadyInHub.channelId}>` }),
+            t(
+              { phrase: 'hub.alreadyJoined', locale },
+              { hub: hub.name, channel: `<#${alreadyInHub.channelId}>` },
+            ),
           ),
         ],
         ephemeral: true,

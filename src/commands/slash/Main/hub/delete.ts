@@ -29,10 +29,7 @@ export default class Delete extends Hub {
 
     const confirmEmbed = new EmbedBuilder()
       .setDescription(
-        t(
-          { phrase: 'hub.delete.confirm', locale: interaction.user.locale },
-          { hub: hubInDb.name },
-        ),
+        t({ phrase: 'hub.delete.confirm', locale: interaction.user.locale }, { hub: hubInDb.name }),
       )
       .setColor('Red');
     const confirmButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -81,7 +78,14 @@ export default class Delete extends Hub {
 
     if (customId.postfix === 'cancel') {
       await interaction.update({
-        embeds: [simpleEmbed(t({ phrase: 'hub.delete.cancel', locale: interaction.user.locale }))],
+        embeds: [
+          simpleEmbed(
+            t(
+              { phrase: 'hub.delete.cancelled', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
+        ],
         components: [],
       });
       return;
@@ -111,7 +115,7 @@ export default class Delete extends Hub {
         simpleEmbed(
           t(
             { phrase: 'hub.delete.success', locale: interaction.user.locale },
-            { emoji: emojis.tick },
+            { emoji: emojis.tick, hub: hubInDb.name },
           ),
         ),
       ],

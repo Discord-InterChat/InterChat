@@ -73,10 +73,11 @@ export default class CommandManager extends Factory {
 
         // check if command is in cooldown for the user
         if (remainingCooldown) {
+          const waitUntil = Math.round((Date.now() + (remainingCooldown)) / 1000);
           await interaction.reply({
             content: t(
               { phrase: 'errors.cooldown', locale: interaction.user.locale },
-              { time: `<t:${Math.ceil((Date.now() + remainingCooldown) / 1000)}:R>` },
+              { time: `until <t:${waitUntil}:T> (<t:${waitUntil}:R>)` },
             ),
             ephemeral: true,
           });

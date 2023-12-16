@@ -26,9 +26,7 @@ export default class Server extends BlacklistCommand {
 
     if (!hubInDb) {
       return await interaction.editReply({
-        embeds: [
-          simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
-        ],
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
       });
     }
 
@@ -87,7 +85,12 @@ export default class Server extends BlacklistCommand {
       blacklistManager.notifyBlacklist('user', user.id, hubInDb.id, expires, reason);
 
       const successEmbed = new EmbedBuilder()
-        .setDescription(t({ phrase: 'blacklist.user.success', locale: interaction.user.locale }))
+        .setDescription(
+          t(
+            { phrase: 'blacklist.user.success', locale: interaction.user.locale },
+            { username: user.username },
+          ),
+        )
         .setColor('Green')
         .addFields(
           {
@@ -119,7 +122,7 @@ export default class Server extends BlacklistCommand {
       await interaction.followUp(
         t(
           { phrase: 'blacklist.user.removed', locale: interaction.user.locale },
-          { emoji: emojis.delete, server: result.username },
+          { emoji: emojis.delete, username: result.username },
         ),
       );
       if (user) {
