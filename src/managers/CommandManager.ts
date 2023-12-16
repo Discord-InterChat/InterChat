@@ -7,7 +7,6 @@ import { CustomID } from '../utils/CustomID.js';
 import { Interaction } from 'discord.js';
 import { captureException } from '@sentry/node';
 import { simpleEmbed, replyWithError } from '../utils/Utils.js';
-import db from '../utils/Db.js';
 import Logger from '../utils/Logger.js';
 
 const __filename = new URL(import.meta.url).pathname;
@@ -21,8 +20,7 @@ export default class CommandManager extends Factory {
   /** Handle interactions from the `InteractionCreate` event */
   async handleInteraction(interaction: Interaction): Promise<void> {
     try {
-      const userData = await db.userData.findFirst({ where: { userId: interaction.user.id } });
-      interaction.user.locale = userData?.locale || 'en';
+      interaction.user.locale = await interaction.client.getUserLocale(interaction.user.id);
 
       if (interaction.isAutocomplete()) {
         const command = this.client.commands.get(interaction.commandName);

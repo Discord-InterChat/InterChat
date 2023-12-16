@@ -20,21 +20,6 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { t } from '../../../../utils/Locale.js';
 
 export default class Report extends Support {
-  static readonly reportModal = new ModalBuilder()
-    .setTitle(t({ phrase: 'report.modal.title', locale: 'en' }))
-    .setCustomId(new CustomID().setIdentifier('report_modal').toString())
-    .addComponents(
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setCustomId('description')
-          .setLabel(t({ phrase: 'report.modal.other.label', locale: 'en' }))
-          .setPlaceholder(t({ phrase: 'report.modal.other.placeholder', locale: 'en' }))
-          .setStyle(TextInputStyle.Paragraph)
-          .setMinLength(10)
-          .setMaxLength(950),
-      ),
-    );
-
   async execute(interaction: ChatInputCommandInteraction) {
     const reportType = interaction.options.getString('type', true) as
       | 'user'
@@ -75,9 +60,22 @@ export default class Report extends Support {
       });
     }
     else if (reportType === 'server' || reportType === 'user' || reportType === 'other') {
-      const modal = ModalBuilder.from(Report.reportModal.components[0])
+      const modal = new ModalBuilder()
+        .setTitle(t({ phrase: 'report.modal.title', locale: interaction.user.locale }))
         .setCustomId(new CustomID().setIdentifier('report_modal', reportType).toString())
+
         .addComponents(
+          new ActionRowBuilder<TextInputBuilder>().addComponents(
+            new TextInputBuilder()
+              .setCustomId('description')
+              .setLabel(t({ phrase: 'report.modal.other.label', locale: interaction.user.locale }))
+              .setPlaceholder(
+                t({ phrase: 'report.modal.other.placeholder', locale: interaction.user.locale }),
+              )
+              .setStyle(TextInputStyle.Paragraph)
+              .setMinLength(10)
+              .setMaxLength(950),
+          ),
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('id')

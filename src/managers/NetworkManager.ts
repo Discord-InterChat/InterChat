@@ -7,7 +7,6 @@ import {
   EmbedBuilder,
   HexColorString,
   Message,
-  MessageCreateOptions,
   User,
   WebhookClient,
   WebhookMessageCreateOptions,
@@ -17,11 +16,10 @@ import db from '../utils/Db.js';
 import { Prisma, connectedList, hubs, messageData } from '@prisma/client';
 import { LINKS, REGEX, emojis } from '../utils/Constants.js';
 import { check as checkProfanity, censor } from '../utils/Profanity.js';
-import { stripIndents } from 'common-tags';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { replaceLinks } from '../utils/Utils.js';
 import NetworkLogger from '../utils/NetworkLogger.js';
-import Logger from '../utils/Logger.js';
+import { t } from '../utils/Locale.js';
 
 export interface NetworkMessage extends Message {
   censoredContent: string;
@@ -52,6 +50,8 @@ export default class NetworkManager extends Factory {
    * @param message The network message to handle.
    */
   public async handleNetworkMessage(message: NetworkMessage) {
+    const locale = await message.client.getUserLocale(message.author.id);
+
     const isNetworkMessage = await db.connectedList.findFirst({
       where: { channelId: message.channel.id, connected: true },
       include: { hub: true },
@@ -59,12 +59,6 @@ export default class NetworkManager extends Factory {
 
     // check if the message was sent in a network channel
     if (!isNetworkMessage?.hub) return;
-
-    // FIXME remove later
-    Logger.info(
-      `[Network Debug] ${message.author.tag} sent a message in ${isNetworkMessage.hub.name}.`,
-    );
-    Logger.info(`[Network Debug] ${message.client.webhooks.size} webhooks cached.`);
 
     const settings = new HubSettingsBitField(isNetworkMessage.hub.settings);
     const checksPassed = await this.runChecks(message, settings, isNetworkMessage.hubId);
@@ -88,17 +82,15 @@ export default class NetworkManager extends Factory {
 
         if (predictions && nsfwDetector.isUnsafeContent(predictions)) {
           const nsfwEmbed = new EmbedBuilder()
-            .setTitle('NSFW Image Detected')
+            .setTitle(t({ phrase: 'nsfw.title', locale: message.author.locale }))
             .setDescription(
-              stripIndents`
-            I have identified this image as NSFW (Not Safe For Work). Sharing NSFW content is against our network guidelines. Refrain from posting such content here.
-            
-            **Detected NSFW:** ${predictions[0].className} ${Math.round(
-  predictions[0].probability * 100,
-)}%`,
+              t(
+                { phrase: 'nsfw.description', locale: message.author.locale },
+                { confidence: `${Math.round(predictions[0].probability * 100)}` },
+              ),
             )
             .setFooter({
-              text: 'Please be aware that AI predictions can be inaccurate at times, and we cannot guarantee perfect accuracy in all cases. 😔',
+              text: t({ phrase: 'nsfw.footer', locale: message.author.locale }),
               iconURL: 'https://i.imgur.com/625Zy9W.png',
             })
             .setColor('Red');
@@ -246,18 +238,6 @@ export default class NetworkManager extends Factory {
         update: { viewedNetworkWelcome: true },
       });
 
-      const welcomeEmbed = new EmbedBuilder()
-        .setAuthor({
-          name: 'Welcome to the Network!',
-          iconURL: 'https://i.imgur.com/jlCtQGs.gif',
-        })
-        .setDescription('Welcome to the network for {hub name}! Messages sent to this channel will be sent across to multiple other servers, enabling seamless communication with them. You can share images & GIFs, reply, react and with messages just as you would normally. Just remember to avoid sharing personal info (check /rules for more). Go ahead and send your first message!')
-        .setFooter({
-          text: `Sent for: ${message.author.username}`,
-          iconURL: message.author.displayAvatarURL(),
-        })
-        .setColor('#A0C2EC');
-
       const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setStyle(ButtonStyle.Link)
@@ -272,12 +252,18 @@ export default class NetworkManager extends Factory {
         new ButtonBuilder()
           .setStyle(ButtonStyle.Link)
           .setEmoji(emojis.docs_icon)
-          .setLabel('Documentation')
+          .setLabel('How-To Guide')
           .setURL(LINKS.DOCS),
       );
 
       await message.channel
-        .send({ content: `${message.author}`, embeds: [welcomeEmbed], components: [linkButtons] })
+        .send({
+          content: t(
+            { phrase: 'network.welcome', locale },
+            { user: `${message.author}`, hub: isNetworkMessage.hub.name },
+          ),
+          components: [linkButtons],
+        })
         .catch(() => null);
     }
 
@@ -669,7 +655,7 @@ export default class NetworkManager extends Factory {
    * @param message The message to send. Can be a string or a MessageCreateOptions object.
    * @returns A array of the responses from each connection's webhook.
    */
-  async sendToHub(hubId: string, message: string | MessageCreateOptions) {
+  async sendToHub(hubId: string, message: string | WebhookMessageCreateOptions) {
     const connections = await this.fetchHubNetworks({ hubId });
 
     const res = connections

@@ -19,7 +19,11 @@ import Hub from './index.js';
 import { hubs } from '@prisma/client';
 import { emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
-import { calculateAverageRating, getOrCreateWebhook } from '../../../../utils/Utils.js';
+import {
+  calculateAverageRating,
+  getOrCreateWebhook,
+  simpleEmbed,
+} from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
@@ -376,15 +380,16 @@ export default class Browse extends Hub {
         where: { hubId: hubDetails.id, connected: true },
       });
 
-      // announce a new server has joined the hub
+      // announce
       await networkManager.sendToHub(hubDetails.id, {
+        username: `InterChat | ${hubDetails.name}`,
         content: stripIndents`
-        A new server has joined us! ${emojis.clipart}
+        A new server has joined the hub! ${emojis.clipart}
 
         **Server Name:** __${interaction.guild.name}__
         **Member Count:** __${interaction.guild.memberCount}__
 
-        We now have **${totalConnections}** servers in the hub!
+        We now have **${totalConnections}** servers with us!
       `,
       });
     }
@@ -397,7 +402,9 @@ export default class Browse extends Hub {
     const rating = parseInt(interaction.fields.getTextInputValue('rating'));
     if (isNaN(rating) || rating < 1 || rating > 5) {
       return await interaction.reply({
-        content: 'Invalid rating. You must enter a number between 1 and 5.',
+        embeds: [
+          simpleEmbed(t({ phrase: 'hub.browse.rating.invalid', locale: interaction.user.locale })),
+        ],
         ephemeral: true,
       });
     }
@@ -406,7 +413,7 @@ export default class Browse extends Hub {
     const hub = await db.hubs.findFirst({ where: { id: hubId } });
     if (!hub) {
       interaction.reply({
-        content: 'Hub not found.',
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale: interaction.user.locale }))],
         ephemeral: true,
       });
       return;
@@ -424,7 +431,7 @@ export default class Browse extends Hub {
     });
 
     await interaction.reply({
-      content: 'Rating submitted. Thank you!',
+      content: t({ phrase: 'hub.browse.rating.success', locale: interaction.user.locale }),
       ephemeral: true,
     });
   }
@@ -449,7 +456,7 @@ export default class Browse extends Hub {
         {
           name: 'Information',
           value: stripIndents`
-            ${emojis.connect_icon} **Connections:** ${connections ?? 'Unknown.'}
+            ${emojis.connect_icon} **Servers:** ${connections ?? 'Unknown.'}
             ${emojis.clock_icon} **Created At:** <t:${Math.round(hub.createdAt.getTime() / 1000)}:d>
             ${emojis.chat_icon} **Last Message:** ${lastMessageStr}
           `,

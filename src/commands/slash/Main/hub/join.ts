@@ -132,16 +132,17 @@ export default class JoinSubCommand extends Hub {
       where: { hubId: hub.id, connected: true },
     });
 
-    // announce a new server has joined the hub
-    networkManager.sendToHub(hub.id, {
+    // announce
+    await networkManager.sendToHub(hub.id, {
+      username: `InterChat | ${hub.name}`,
       content: stripIndents`
-        A new server has joined us! ${emojis.clipart}
-    
-        **Server Name:** __${interaction.guild.name}__
-        **Member Count:** __${interaction.guild.memberCount}__
+      A new server has joined the hub! ${emojis.clipart}
 
-        We now have **${totalConnections}** servers in the hub!
-      `,
+      **Server Name:** __${interaction.guild.name}__
+      **Member Count:** __${interaction.guild.memberCount}__
+
+      We now have **${totalConnections}** servers with us!
+    `,
     });
   }
 }

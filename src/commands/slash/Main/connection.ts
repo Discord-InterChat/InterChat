@@ -102,7 +102,7 @@ export default class Connection extends BaseCommand {
           new StringSelectMenuOptionBuilder()
             .setLabel('Embed Color')
             .setEmoji('🎨')
-            .setDescription('Set the color of the embeds sent in the network.')
+            .setDescription('Set the color of embeds sent by this server.')
             .setValue('embed_color'),
         ),
     ]);

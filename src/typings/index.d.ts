@@ -23,6 +23,7 @@ declare module 'discord.js' {
 
     resolveEval: <T>(value: T[]) => T | undefined;
 
+    getUserLocale(userId: Snowflake): Promise<string>
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;
     getCommandManager(): CommandManager;

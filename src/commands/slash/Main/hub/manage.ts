@@ -268,7 +268,7 @@ export default class Manage extends Hub {
 
         if (!updHub) {
           await interaction.reply({
-            embeds: [simpleEmbed(t({ phrase: 'errors.unknown', locale: 'en' }))],
+            embeds: [simpleEmbed(t({ phrase: 'errors.unknown', locale: interaction.user.locale }))],
             ephemeral: true,
           });
           return;
