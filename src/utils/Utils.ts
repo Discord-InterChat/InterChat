@@ -18,7 +18,7 @@ import {
 } from 'discord.js';
 import { DeveloperIds, REGEX, StaffIds, SupporterIds, LINKS, colors, emojis } from './Constants.js';
 import { randomBytes } from 'crypto';
-import { __ } from './Locale.js';
+import { t } from './Locale.js';
 import 'dotenv/config';
 import { CmdInteraction } from '../commands/BaseCommand.js';
 
@@ -208,7 +208,7 @@ export function toTitleCase(str: string) {
 }
 
 export function genCommandErrMsg(locale: string, error: string) {
-  return __(
+  return t(
     { phrase: 'errors.commandError', locale },
     { error, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
   );

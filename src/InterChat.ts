@@ -90,7 +90,7 @@ class InterChat extends SuperClient {
         // .setTitle(`Thank you for inviting me! ${emojis.tada}`)
         .setDescription(
           stripIndents`        
-          👋 Hey there! Step into the world of ${guild.client.user.username}, where chatting across servers is a delightful breeze! 🚀 Explore public hubs, connect with multiple servers, and add a splash of excitement to your server experience! ${emojis.clipart}
+          👋 Hey there! Step into the world of ${this.user?.username}, where chatting across servers is a delightful breeze! 🚀 Explore public hubs, connect with multiple servers, and add a splash of excitement to your server experience! ${emojis.clipart}
           ### Let's make this journey even more enjoyable:
           
           - Discover your perfect hub with </hub browse:1107639810014847049>.
@@ -126,7 +126,7 @@ class InterChat extends SuperClient {
       const profaneErrorEmbed = new EmbedBuilder()
         .setTitle('Leave Notice 👋')
         .setDescription(
-          `${emojis.no} Your server name contains profanity and or sensitive content. Please change it before using InterChat.`,
+          `${emojis.no} Your server name contains profanity or sensitive content. Please change it before using InterChat.`,
         )
         .setColor(colors.invisible)
         .setFooter({ text: `Sent for: ${guild.name}`, iconURL: guild.iconURL() || undefined });
@@ -220,9 +220,7 @@ class InterChat extends SuperClient {
     );
 
     // handle network reactions
-    this.on('messageReactionAdd', (reaction, user) =>
-      this.getReactionUpdater().listenForReactions(reaction, user),
-    );
+    this.on('messageReactionAdd', (react, usr) => this.getReactionUpdater().listen(react, usr));
 
     // handle messages
     this.on('messageCreate', async (message) => {

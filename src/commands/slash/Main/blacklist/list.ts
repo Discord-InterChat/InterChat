@@ -4,7 +4,7 @@ import BlacklistCommand from './index.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import { colors } from '../../../../utils/Constants.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -25,7 +25,7 @@ export default class ListBlacklists extends BlacklistCommand {
     if (!hubInDb) {
       await interaction.editReply({
         embeds: [
-          simpleEmbed(__({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
+          simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
         ],
       });
       return;
@@ -58,7 +58,7 @@ export default class ListBlacklists extends BlacklistCommand {
 
         fields.push({
           name: data.serverName,
-          value: __(
+          value: t(
             { phrase: 'blacklist.list.server', locale: interaction.user.locale },
             {
               serverId: data.serverId,
@@ -102,7 +102,7 @@ export default class ListBlacklists extends BlacklistCommand {
 
         fields.push({
           name: data.username,
-          value: __(
+          value: t(
             { phrase: 'blacklist.list.user', locale: interaction.user.locale },
             {
               userId: data.userId,

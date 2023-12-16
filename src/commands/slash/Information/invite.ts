@@ -7,7 +7,7 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
 import { LINKS, emojis } from '../../../utils/Constants.js';
-import { __ } from '../../../utils/Locale.js';
+import { t } from '../../../utils/Locale.js';
 
 export default class Invite extends BaseCommand {
   readonly data = {
@@ -30,7 +30,7 @@ export default class Invite extends BaseCommand {
         .setDisabled(false),
     ]);
     await interaction.reply({
-      content: __(
+      content: t(
         { phrase: 'invite', locale: interaction.user.locale },
         { support: LINKS.SUPPORT_INVITE },
       ),

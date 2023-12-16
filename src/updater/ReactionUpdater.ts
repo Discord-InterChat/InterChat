@@ -29,7 +29,7 @@ export default class ReactionUpdater extends Factory {
   /**
    * Listens for reactions on a message and updates the database with the new reaction data.
    */
-  public async listenForReactions(
+  public async listen(
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,
   ): Promise<void> {

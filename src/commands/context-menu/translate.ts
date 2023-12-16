@@ -20,7 +20,7 @@ import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { supportedLanguages } from '@translate-tools/core/translators/GoogleTranslator/index.js';
 import translator from '../../utils/Translator.cjs';
-import { __ } from '../../utils/Locale.js';
+import { t } from '../../utils/Locale.js';
 
 export default class Translate extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -34,7 +34,7 @@ export default class Translate extends BaseCommand {
 
     if (!(await hasVoted(interaction.user.id))) {
       return await interaction.editReply(
-        __({ phrase: 'errors.mustVote', locale: interaction.user.locale }),
+        t({ phrase: 'errors.mustVote', locale: interaction.user.locale }),
       );
     }
 
@@ -46,7 +46,7 @@ export default class Translate extends BaseCommand {
 
     if (!messageInDb) {
       return interaction.editReply(
-        __({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+        t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
       );
     }
 
@@ -125,7 +125,7 @@ export default class Translate extends BaseCommand {
     const from = interaction.fields.getTextInputValue('from');
     if (!supportedLanguages.includes(from) || !supportedLanguages.includes(to)) {
       await interaction.reply({
-        content: __({ phrase: 'errors.invalidLangCode', locale: interaction.user.locale }),
+        content: t({ phrase: 'errors.invalidLangCode', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;

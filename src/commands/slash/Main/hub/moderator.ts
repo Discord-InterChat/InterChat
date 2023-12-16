@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js
 import Hub from './index.js';
 import db from '../../../../utils/Db.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 import { emojis } from '../../../../utils/Constants.js';
 
 export default class Moderator extends Hub {
@@ -20,7 +20,7 @@ export default class Moderator extends Hub {
 
     if (!hub) {
       return await interaction.reply({
-        embeds: [simpleEmbed(__({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
         ephemeral: true,
       });
     }
@@ -33,7 +33,7 @@ export default class Moderator extends Hub {
           return interaction.reply({
             embeds: [
               simpleEmbed(
-                __(
+                t(
                   { phrase: 'hub.moderator.add.alreadyModerator', locale: interaction.user.locale },
                   { user: user.toString() },
                 ),
@@ -50,7 +50,7 @@ export default class Moderator extends Hub {
         });
 
         await interaction.reply({
-          content: __(
+          content: t(
             { phrase: 'hub.moderator.add.success', locale: interaction.user.locale },
             { user: user.toString(), position, emoji: emojis.yes },
           ),
@@ -63,7 +63,7 @@ export default class Moderator extends Hub {
 
         if (!hub.moderators.find((mod) => mod.userId === user.id)) {
           await interaction.reply({
-            content: __(
+            content: t(
               { phrase: 'hub.moderator.remove.notModerator', locale: interaction.user.locale },
               { user: user.toString() },
             ),
@@ -77,7 +77,7 @@ export default class Moderator extends Hub {
           hub.moderators.find((m) => m.position === 'manager' && m.userId === user.id)
         ) {
           await interaction.reply({
-            content: __({
+            content: t({
               phrase: 'hub.moderator.remove.notOwner',
               locale: interaction.user.locale,
             }),
@@ -94,7 +94,7 @@ export default class Moderator extends Hub {
         });
 
         await interaction.reply(
-          __(
+          t(
             { phrase: 'hub.moderator.remove.success', locale: interaction.user.locale },
             { user: user.toString(), emoji: emojis.yes },
           ),
@@ -116,7 +116,7 @@ export default class Moderator extends Hub {
           await interaction.reply({
             embeds: [
               simpleEmbed(
-                __({ phrase: 'hub.moderator.update.notAllowed', locale: interaction.user.locale }),
+                t({ phrase: 'hub.moderator.update.notAllowed', locale: interaction.user.locale }),
               ),
             ],
             ephemeral: true,
@@ -127,7 +127,7 @@ export default class Moderator extends Hub {
           await interaction.reply({
             embeds: [
               simpleEmbed(
-                __(
+                t(
                   {
                     phrase: 'hub.moderator.update.nodModerator',
                     locale: interaction.user.locale,
@@ -147,7 +147,7 @@ export default class Moderator extends Hub {
           await interaction.reply({
             embeds: [
               simpleEmbed(
-                __({
+                t({
                   phrase: 'hub.moderator.update.notOwner',
                   locale: interaction.user.locale,
                 }),
@@ -168,7 +168,7 @@ export default class Moderator extends Hub {
         });
 
         await interaction.reply(
-          __(
+          t(
             { phrase: 'hub.moderator.update.success', locale: interaction.user.locale },
             { user: user.toString(), position, emoji: emojis.yes },
           ),
@@ -191,7 +191,7 @@ export default class Moderator extends Hub {
                         }`,
                     )
                     .join('\n')
-                  : __({ phrase: 'hub.moderator.noModerators', locale: interaction.user.locale }),
+                  : t({ phrase: 'hub.moderator.noModerators', locale: interaction.user.locale }),
               )
               .setColor('Aqua')
               .setTimestamp(),

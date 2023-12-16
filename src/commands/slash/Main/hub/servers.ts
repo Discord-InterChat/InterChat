@@ -4,7 +4,7 @@ import { colors } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import db from '../../../../utils/Db.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class Servers extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -19,7 +19,7 @@ export default class Servers extends Hub {
 
     if (!hub) {
       await interaction.reply({
-        embeds: [simpleEmbed(__({ phrase: 'hub.notFound', locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }))],
         ephemeral: true,
       });
       return;
@@ -29,7 +29,7 @@ export default class Servers extends Hub {
       !hub.moderators.some((mod) => mod.userId === interaction.user.id)
     ) {
       await interaction.reply({
-        embeds: [simpleEmbed(__({ phrase: 'hub.notFound_mod', locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale }))],
         ephemeral: true,
       });
       return;
@@ -37,7 +37,7 @@ export default class Servers extends Hub {
 
     if (hub.connections.length === 0) {
       await interaction.reply({
-        embeds: [simpleEmbed(__({ phrase: 'hub.servers.noConnections', locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.servers.noConnections', locale }))],
         ephemeral: true,
       });
       return;
@@ -47,7 +47,7 @@ export default class Servers extends Hub {
       const connection = hub.connections.find((con) => con.serverId === serverOpt);
       if (!connection) {
         return await interaction.reply({
-          embeds: [simpleEmbed(__({ phrase: 'hub.servers.notConnected', locale }))],
+          embeds: [simpleEmbed(t({ phrase: 'hub.servers.notConnected', locale }))],
           ephemeral: true,
         });
       }
@@ -57,7 +57,7 @@ export default class Servers extends Hub {
         .setTitle(`${server?.name} \`(${connection.serverId})\``)
         .setColor(colors.interchatBlue)
         .setDescription(
-          __(
+          t(
             { phrase: 'hub.servers.connectionInfo', locale },
             {
               channelName: `${channel?.name}`,
@@ -100,7 +100,7 @@ export default class Servers extends Hub {
 
         const evalRes = interaction.client.resolveEval(evalArr);
 
-        const value = __(
+        const value = t(
           { phrase: 'hub.servers.connectionInfo', locale },
           {
             total: `${hub.connections.length}`,
@@ -118,7 +118,7 @@ export default class Servers extends Hub {
       embeds.push(
         new EmbedBuilder()
           .setDescription(
-            __(
+            t(
               { phrase: 'hub.servers.total', locale },
               {
                 from: `${++l}`,

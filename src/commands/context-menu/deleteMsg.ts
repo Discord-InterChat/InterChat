@@ -8,7 +8,7 @@ import BaseCommand from '../BaseCommand.js';
 import { checkIfStaff } from '../../utils/Utils.js';
 import { emojis } from '../../utils/Constants.js';
 import db from '../../utils/Db.js';
-import { __ } from '../../utils/Locale.js';
+import { t } from '../../utils/Locale.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -27,7 +27,7 @@ export default class DeleteMessage extends BaseCommand {
 
     if (!messageInDb) {
       return await interaction.editReply(
-        __({
+        t({
           phrase: 'errors.unknownNetworkMessage',
           locale: interaction.user.locale,
         }),
@@ -42,7 +42,7 @@ export default class DeleteMessage extends BaseCommand {
       interaction.user.id !== messageInDb.authorId
     ) {
       return await interaction.editReply(
-        __({
+        t({
           phrase: 'errors.notMessageAuthor',
           locale: interaction.user.locale,
         }),
@@ -75,7 +75,7 @@ export default class DeleteMessage extends BaseCommand {
     const deleted = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
     await interaction
       .editReply(
-        __(
+        t(
           {
             phrase: 'network.deleteSuccess',
             locale: interaction.user.locale,

@@ -32,8 +32,7 @@ export default function start() {
 
       try {
         const imageBuffer = await (await fetch(imageUrl)).arrayBuffer();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const imageTensor = (await node.decodeImage(Buffer.from(imageBuffer), 3)) as any;
+        const imageTensor = (await node.decodeImage(Buffer.from(imageBuffer), 3)) as any; // eslint-disable-line @typescript-eslint/no-explicit-any
         const predictions = await model.classify(imageTensor);
         imageTensor.dispose();
 

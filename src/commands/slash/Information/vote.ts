@@ -7,7 +7,7 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
 import { colors } from '../../../utils/Constants.js';
-import { __ } from '../../../utils/Locale.js';
+import { t } from '../../../utils/Locale.js';
 
 export default class Vote extends BaseCommand {
   readonly data = {
@@ -17,7 +17,7 @@ export default class Vote extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const embed = new EmbedBuilder()
       .setDescription(
-        __({ phrase: 'vote', locale: interaction.user.locale }),
+        t({ phrase: 'vote', locale: interaction.user.locale }),
       )
       .setColor(colors.interchatBlue);
 

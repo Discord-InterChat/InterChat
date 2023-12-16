@@ -17,7 +17,7 @@ import { colors, emojis } from '../../utils/Constants.js';
 import BaseCommand from '../BaseCommand.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { __ } from '../../utils/Locale.js';
+import { t } from '../../utils/Locale.js';
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -35,7 +35,7 @@ export default class MessageInfo extends BaseCommand {
 
     if (!networkMessage) {
       await interaction.reply({
-        content: __({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+        content: t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -48,7 +48,7 @@ export default class MessageInfo extends BaseCommand {
 
     const embed = new EmbedBuilder()
       .setDescription(
-        __(
+        t(
           { phrase: 'msgInfo.message.description', locale: interaction.user.locale },
           {
             emoji: emojis.clipart,
@@ -96,7 +96,7 @@ export default class MessageInfo extends BaseCommand {
     });
     if (!networkMessage) {
       return await interaction.update({
-        content: __({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+        content: t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
         embeds: [],
         components: [],
       });
@@ -128,7 +128,7 @@ export default class MessageInfo extends BaseCommand {
         case 'serverInfo': {
           if (!server) {
             return await interaction.update({
-              content: __({ phrase: 'errors.unknownServer', locale: interaction.user.locale }),
+              content: t({ phrase: 'errors.unknownServer', locale: interaction.user.locale }),
               embeds: [],
               components: [],
             });
@@ -150,13 +150,13 @@ export default class MessageInfo extends BaseCommand {
             .setThumbnail(iconUrl)
             .setImage(bannerUrL)
             .setDescription(
-              __(
+              t(
                 { phrase: 'msgInfo.server.description', locale: interaction.user.locale },
                 {
                   server: server.name,
                   description:
                     server.description ||
-                    __({ phrase: 'misc.noDesc', locale: interaction.user.locale }),
+                    t({ phrase: 'misc.noDesc', locale: interaction.user.locale }),
                   owner: `${owner.username}#${
                     owner.discriminator !== '0' ? `#${owner.discriminator}` : ''
                   }`,
@@ -185,7 +185,7 @@ export default class MessageInfo extends BaseCommand {
             .setColor('Random')
             .setImage(author.bannerURL() ?? null)
             .setDescription(
-              __(
+              t(
                 { phrase: 'msgInfo.user.description', locale: interaction.user.locale },
                 {
                   user: author.discriminator !== '0' ? author.tag : author.username,
@@ -222,7 +222,7 @@ export default class MessageInfo extends BaseCommand {
 
           if (!message) {
             await interaction.update({
-              content: __({ phrase: 'errors.unknownMessage', locale: interaction.user.locale }),
+              content: t({ phrase: 'errors.unknownMessage', locale: interaction.user.locale }),
               embeds: [],
               components: [],
             });
@@ -231,7 +231,7 @@ export default class MessageInfo extends BaseCommand {
 
           const embed = new EmbedBuilder()
             .setDescription(
-              __(
+              t(
                 { phrase: 'msgInfo.message.description', locale: interaction.user.locale },
                 {
                   emoji: emojis.clipart,
@@ -275,20 +275,20 @@ export default class MessageInfo extends BaseCommand {
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'info').addArgs(messageId).toString(),
           )
-          .setLabel(__({ phrase: 'msgInfo.buttons.message', locale }))
+          .setLabel(t({ phrase: 'msgInfo.buttons.message', locale }))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(true),
         new ButtonBuilder()
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'serverInfo').addArgs(messageId).toString(),
           )
-          .setLabel(__({ phrase: 'msgInfo.buttons.server', locale }))
+          .setLabel(t({ phrase: 'msgInfo.buttons.server', locale }))
           .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'userInfo').addArgs(messageId).toString(),
           )
-          .setLabel(__({ phrase: 'msgInfo.buttons.user', locale }))
+          .setLabel(t({ phrase: 'msgInfo.buttons.user', locale }))
           .setStyle(ButtonStyle.Secondary),
       ),
     ];

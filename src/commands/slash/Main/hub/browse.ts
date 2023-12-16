@@ -25,7 +25,7 @@ import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -91,7 +91,7 @@ export default class Browse extends Hub {
 
     if (!hubList || hubList.length === 0) {
       interaction.reply({
-        content: __({ phrase: 'hub.browse.noHubs', locale: interaction.user.locale }),
+        content: t({ phrase: 'hub.browse.noHubs', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -145,7 +145,7 @@ export default class Browse extends Hub {
     });
     if (!hubDetails) {
       return await interaction.reply({
-        content: __({ phrase: 'hub.notFound', locale: interaction.user.locale }),
+        content: t({ phrase: 'hub.notFound', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
@@ -174,7 +174,7 @@ export default class Browse extends Hub {
       const alreadyJoined = hubDetails.connections.find((c) => c.serverId === interaction.guildId);
       if (alreadyJoined) {
         interaction.reply({
-          content: __(
+          content: t(
             { phrase: 'hub.alreadyJoined', locale: interaction.user.locale },
             { hub: hubDetails.name, channel: `<#${alreadyJoined.channelId}>` },
           ),
@@ -215,7 +215,7 @@ export default class Browse extends Hub {
       // use current channel embed
       const embed = new EmbedBuilder()
         .setDescription(
-          __(
+          t(
             {
               phrase: 'hub.browse.joinConfirm',
               locale: interaction.user.locale,
@@ -225,7 +225,7 @@ export default class Browse extends Hub {
         )
         .setColor('Aqua')
         .setFooter({
-          text: __({ phrase: 'hub.browse.joinFooter', locale: interaction.user.locale }),
+          text: t({ phrase: 'hub.browse.joinFooter', locale: interaction.user.locale }),
         });
 
       await interaction.reply({
@@ -241,7 +241,7 @@ export default class Browse extends Hub {
     else if (customId.postfix === 'channel_select' || customId.postfix === 'confirm') {
       if (!hubDetails) {
         return await interaction.reply({
-          content: __({ phrase: 'hub.notFound', locale: interaction.user.locale }),
+          content: t({ phrase: 'hub.notFound', locale: interaction.user.locale }),
           ephemeral: true,
         });
       }
@@ -254,7 +254,7 @@ export default class Browse extends Hub {
       );
       if (userBlacklisted) {
         return await interaction.reply({
-          content: __(
+          content: t(
             { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
             { hub: hubDetails.name },
           ),
@@ -268,7 +268,7 @@ export default class Browse extends Hub {
       );
       if (serverBlacklisted) {
         return await interaction.reply({
-          content: __(
+          content: t(
             { phrase: 'errors.serverBlacklisted', locale: interaction.user.locale },
             { hub: hubDetails.name },
           ),
@@ -283,7 +283,7 @@ export default class Browse extends Hub {
       // for type safety
       if (channel?.type !== ChannelType.GuildText && !channel?.isThread()) {
         await interaction.reply({
-          content: __({ phrase: 'hub.invalidChannel', locale: interaction.user.locale }),
+          content: t({ phrase: 'hub.invalidChannel', locale: interaction.user.locale }),
           ephemeral: true,
         });
         return;
@@ -291,7 +291,7 @@ export default class Browse extends Hub {
 
       if (!interaction.guild?.members.me?.permissionsIn(channel).has(['ManageWebhooks'])) {
         await interaction.update(
-          __(
+          t(
             { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
             { permissions: 'Manage Webhooks' },
           ),
@@ -301,7 +301,7 @@ export default class Browse extends Hub {
 
       if (!interaction.member.permissionsIn(channel).has('ManageChannels')) {
         await interaction.update(
-          __(
+          t(
             { phrase: 'errors.botMissingPermissions', locale: interaction.user.locale },
             { permissions: 'Manage Channels' },
           ),
@@ -315,7 +315,7 @@ export default class Browse extends Hub {
 
       if (channelConnected) {
         await interaction.update({
-          content: __(
+          content: t(
             { phrase: 'hub.alreadyConnected', locale: interaction.user.locale },
             { channel: `${channel}` },
           ),
@@ -338,7 +338,7 @@ export default class Browse extends Hub {
       }
       else if (onboardingCompleted === 'in-progress') {
         return await interaction.update({
-          content: __(
+          content: t(
             { phrase: 'onboarding.inProgress', locale: interaction.user.locale },
             { channel: `${channel}` },
           ),
@@ -364,7 +364,7 @@ export default class Browse extends Hub {
       });
 
       await interaction.editReply({
-        content: __(
+        content: t(
           { phrase: 'hub.join.success', locale: interaction.user.locale },
           { hub: hubDetails.name, channel: `${channel}` },
         ),

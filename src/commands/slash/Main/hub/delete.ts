@@ -13,7 +13,7 @@ import { LINKS, emojis } from '../../../../utils/Constants.js';
 import { deleteHubs, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -22,14 +22,14 @@ export default class Delete extends Hub {
 
     if (interaction.user.id !== hubInDb?.ownerId) {
       return await interaction.reply({
-        content: __({ phrase: 'errors.modUnownedHub', locale: interaction.user.locale }),
+        content: t({ phrase: 'errors.modUnownedHub', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
 
     const confirmEmbed = new EmbedBuilder()
       .setDescription(
-        __(
+        t(
           { phrase: 'hub.delete.confirm', locale: interaction.user.locale },
           { hub: hubInDb.name },
         ),
@@ -74,14 +74,14 @@ export default class Delete extends Hub {
 
     if (interaction.user.id !== userId) {
       return await interaction.reply({
-        embeds: [simpleEmbed(__({ phrase: 'errors.ownerOnly', locale: interaction.user.locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'errors.ownerOnly', locale: interaction.user.locale }))],
         ephemeral: true,
       });
     }
 
     if (customId.postfix === 'cancel') {
       await interaction.update({
-        embeds: [simpleEmbed(__({ phrase: 'hub.delete.cancel', locale: interaction.user.locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.delete.cancel', locale: interaction.user.locale }))],
         components: [],
       });
       return;
@@ -94,7 +94,7 @@ export default class Delete extends Hub {
       return await interaction.update({
         embeds: [
           simpleEmbed(
-            __(
+            t(
               { phrase: 'errors.unknown', locale: interaction.user.locale },
               { support_invite: LINKS.SUPPORT_INVITE },
             ),
@@ -109,7 +109,7 @@ export default class Delete extends Hub {
     await interaction.update({
       embeds: [
         simpleEmbed(
-          __(
+          t(
             { phrase: 'hub.delete.success', locale: interaction.user.locale },
             { emoji: emojis.tick },
           ),

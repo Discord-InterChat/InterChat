@@ -13,7 +13,7 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -27,7 +27,7 @@ export default class Leave extends Hub {
 
     if (!isChannelConnected) {
       return await interaction.reply({
-        embeds: [simpleEmbed(__({ phrase: 'hub.leave.noHub', locale: interaction.user.locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.leave.noHub', locale: interaction.user.locale }))],
         ephemeral: true,
       });
     }
@@ -35,7 +35,7 @@ export default class Leave extends Hub {
       return await interaction.reply({
         embeds: [
           simpleEmbed(
-            __(
+            t(
               { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
               { permission: 'Manage Channels' },
             ),
@@ -58,14 +58,14 @@ export default class Leave extends Hub {
 
     const resetConfirmEmbed = new EmbedBuilder()
       .setDescription(
-        __(
+        t(
           { phrase: 'hub.leave.confirm', locale: interaction.user.locale },
           { channel: `<#${channelId}>`, hub: `${isChannelConnected.hub?.name}` },
         ),
       )
       .setColor('Red')
       .setFooter({
-        text: __({ phrase: 'hub.leave.confirmFooter', locale: interaction.user.locale }),
+        text: t({ phrase: 'hub.leave.confirmFooter', locale: interaction.user.locale }),
       });
 
     await interaction.reply({
@@ -89,7 +89,7 @@ export default class Leave extends Hub {
 
     await db.connectedList.delete({ where: { channelId } });
     await interaction.update({
-      content: __(
+      content: t(
         { phrase: 'hub.leave.success', locale: interaction.user.locale },
         { channel: `<#${channelId}>`, emoji: emojis.yes },
       ),

@@ -12,7 +12,7 @@ const badwords = require('./JSON/profanity.json') as typeof badwordsType;
 
 export const isDevBuild = process.env.NODE_ENV === 'development';
 
-export const CLIENT_ID = isDevBuild ? '1075667060241211423' : '769921109209907241';
+export const CLIENT_ID = isDevBuild ? '798748015435055134' : '769921109209907241';
 export const SUPPORT_SERVER_ID = '770256165300338709';
 
 export const emojis: typeof normal = emotes.normal;
@@ -50,11 +50,11 @@ export const LINKS = {
 } as const;
 
 export const channels = {
-  bugs: '1035135196053393418',
+  devChat: '770488420521738250',
   networklogs: '1156144879869632553',
   modlogs: '1042265633896796231',
   reports: '1158773603551162398',
-  goal: '1184062391395303445',
+  goal: '906460473065615403',
   suggestions: '1021256657528954900',
 } as const;
 

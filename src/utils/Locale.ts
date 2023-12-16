@@ -20,4 +20,4 @@ export function initI18n() {
 }
 
 // i18n is cjs :(
-export { __ };
+export { __ as t };

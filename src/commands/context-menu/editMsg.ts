@@ -17,7 +17,7 @@ import { checkIfStaff, hasVoted, replaceLinks } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
-import { __ } from '../../utils/Locale.js';
+import { t } from '../../utils/Locale.js';
 
 export default class EditMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -31,7 +31,7 @@ export default class EditMessage extends BaseCommand {
 
     if (!checkIfStaff(interaction.user.id) && !(await hasVoted(interaction.user.id))) {
       await interaction.reply({
-        content: __({ phrase: 'errors.mustVote', locale: interaction.user.locale }),
+        content: t({ phrase: 'errors.mustVote', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -44,8 +44,8 @@ export default class EditMessage extends BaseCommand {
 
     if (!messageInDb) {
       await interaction.reply({
-        content: __(
-          __({
+        content: t(
+          t({
             phrase: 'errors.unknownNetworkMessage',
             locale: interaction.user.locale,
           }),
@@ -56,7 +56,7 @@ export default class EditMessage extends BaseCommand {
     }
     else if (interaction.user.id != messageInDb?.authorId) {
       await interaction.reply({
-        content: __({ phrase: 'errors.notMessageAuthor', locale: interaction.user.locale }),
+        content: t({ phrase: 'errors.notMessageAuthor', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -93,7 +93,7 @@ export default class EditMessage extends BaseCommand {
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
-      return await interaction.reply(__({ phrase: 'errors.unknownNetworkMessage' }));
+      return await interaction.reply(t({ phrase: 'errors.unknownNetworkMessage' }));
     }
 
     const messageInDb = await db.messageData.findFirst({
@@ -102,7 +102,7 @@ export default class EditMessage extends BaseCommand {
     });
     if (!messageInDb?.hub) {
       return await interaction.reply(
-        __({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+        t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
       );
     }
 
@@ -122,7 +122,7 @@ export default class EditMessage extends BaseCommand {
         newMessage.includes('dsc.gg'))
     ) {
       await interaction.editReply(
-        __({ phrase: 'errors.inviteLinks', locale: interaction.user.locale }),
+        t({ phrase: 'errors.inviteLinks', locale: interaction.user.locale }),
       );
       return;
     }
@@ -207,7 +207,7 @@ export default class EditMessage extends BaseCommand {
     const resultsArray = await Promise.all(results);
     const edited = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
     await interaction.editReply(
-      __(
+      t(
         { phrase: 'editMsg.editSuccess', locale: interaction.user.locale },
         { edited: `${edited}`, total: `${resultsArray.length}` },
       ),

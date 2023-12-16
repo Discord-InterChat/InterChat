@@ -3,7 +3,7 @@ import db from '../../../../utils/Db.js';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 import { colors } from '../../../../utils/Constants.js';
 
 export default class Joined extends Hub {
@@ -15,7 +15,7 @@ export default class Joined extends Hub {
     if (connections.length === 0) {
       return await interaction.reply({
         embeds: [
-          simpleEmbed(__({ phrase: 'hub.joined.noJoinedHubs', locale: interaction.user.locale })),
+          simpleEmbed(t({ phrase: 'hub.joined.noJoinedHubs', locale: interaction.user.locale })),
         ],
       });
     }
@@ -36,7 +36,7 @@ export default class Joined extends Hub {
           // Start a new embed
           currentEmbed = new EmbedBuilder()
             .setDescription(
-              __(
+              t(
                 { phrase: 'hub.joined.joinedHubs', locale: interaction.user.locale },
                 { total: `${allFields.length}` },
               ),
@@ -58,7 +58,7 @@ export default class Joined extends Hub {
 
     const embed = new EmbedBuilder()
       .setDescription(
-        __(
+        t(
           { phrase: 'hub.joined.joinedHubs', locale: interaction.user.locale },
           { total: `${allFields.length}` },
         ),

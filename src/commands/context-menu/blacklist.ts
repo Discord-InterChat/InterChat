@@ -16,7 +16,7 @@ import db from '../../utils/Db.js';
 import parse from 'parse-duration';
 import BaseCommand from '../BaseCommand.js';
 import NetworkLogger from '../../utils/NetworkLogger.js';
-import { __ } from '../../utils/Locale.js';
+import { t } from '../../utils/Locale.js';
 import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
@@ -48,7 +48,7 @@ export default class Blacklist extends BaseCommand {
       interaction.reply({
         embeds: [
           simpleEmbed(
-            __({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
+            t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
           ),
         ],
         ephemeral: true,
@@ -74,7 +74,7 @@ export default class Blacklist extends BaseCommand {
             .addArgs('u=1')
             .toString(),
         )
-        .setLabel(__({ phrase: 'blacklist.components.user', locale }))
+        .setLabel(t({ phrase: 'blacklist.components.user', locale }))
         .setStyle(ButtonStyle.Secondary)
         .setEmoji('👤'),
       new ButtonBuilder()
@@ -86,7 +86,7 @@ export default class Blacklist extends BaseCommand {
             .addArgs('s=1')
             .toString(),
         )
-        .setLabel(__({ phrase: 'blacklist.components.user', locale }))
+        .setLabel(t({ phrase: 'blacklist.components.user', locale }))
         .setStyle(ButtonStyle.Secondary)
         .setEmoji('🏠'),
     );
@@ -101,7 +101,7 @@ export default class Blacklist extends BaseCommand {
     if (interaction.user.id !== customId.args[0]) {
       await interaction.reply({
         embeds: [
-          simpleEmbed(__({ phrase: 'errors.notYourAction', locale: interaction.user.locale })),
+          simpleEmbed(t({ phrase: 'errors.notYourAction', locale: interaction.user.locale })),
         ],
         ephemeral: true,
       });
@@ -125,10 +125,10 @@ export default class Blacklist extends BaseCommand {
           new TextInputBuilder()
             .setCustomId('reason')
             .setLabel(
-              __({ phrase: 'blacklist.modal.reason.label', locale: interaction.user.locale }),
+              t({ phrase: 'blacklist.modal.reason.label', locale: interaction.user.locale }),
             )
             .setPlaceholder(
-              __({ phrase: 'blacklist.modal.reason.placeholder', locale: interaction.user.locale }),
+              t({ phrase: 'blacklist.modal.reason.placeholder', locale: interaction.user.locale }),
             )
             .setStyle(TextInputStyle.Paragraph)
             .setMaxLength(500),
@@ -137,10 +137,10 @@ export default class Blacklist extends BaseCommand {
           new TextInputBuilder()
             .setCustomId('duration')
             .setLabel(
-              __({ phrase: 'blacklist.modal.duration.label', locale: interaction.user.locale }),
+              t({ phrase: 'blacklist.modal.duration.label', locale: interaction.user.locale }),
             )
             .setPlaceholder(
-              __({ phrase: 'blacklist.modal.reason.placeholder', locale: interaction.user.locale }),
+              t({ phrase: 'blacklist.modal.reason.placeholder', locale: interaction.user.locale }),
             )
             .setStyle(TextInputStyle.Short)
             .setMinLength(2)
@@ -165,7 +165,7 @@ export default class Blacklist extends BaseCommand {
 
     if (!messageInDb?.hubId) {
       await interaction.reply({
-        content: __({ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale }),
+        content: t({ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -178,7 +178,7 @@ export default class Blacklist extends BaseCommand {
     const successEmbed = new EmbedBuilder().setColor('Green').addFields(
       {
         name: 'Reason',
-        value: reason ? reason : __({ phrase: 'misc.noReason', locale: interaction.user.locale }),
+        value: reason ? reason : t({ phrase: 'misc.noReason', locale: interaction.user.locale }),
         inline: true,
       },
       {
@@ -194,7 +194,7 @@ export default class Blacklist extends BaseCommand {
     if (blacklistType.startsWith('u=')) {
       const user = await interaction.client.users.fetch(messageInDb.authorId).catch(() => null);
       successEmbed.setDescription(
-        __(
+        t(
           { phrase: 'blacklist.user.success', locale: interaction.user.locale },
           { username: user?.username ?? 'Unknown User', emoji: emojis.tick },
         ),
@@ -227,7 +227,7 @@ export default class Blacklist extends BaseCommand {
       const server = interaction.client.guilds.cache.get(messageInDb.serverId);
 
       successEmbed.setDescription(
-        __(
+        t(
           { phrase: 'blacklist.server.success', locale: interaction.user.locale },
           { username: server?.name ?? 'Unknown Server', emoji: emojis.tick },
         ),

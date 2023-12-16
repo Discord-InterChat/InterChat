@@ -8,7 +8,7 @@ import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import NetworkLogger from '../../../../utils/NetworkLogger.js';
 import parse from 'parse-duration';
 import Logger from '../../../../utils/Logger.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class UserBlacklist extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -29,7 +29,7 @@ export default class UserBlacklist extends BlacklistCommand {
 
     if (!hubInDb) {
       await interaction.editReply({
-        embeds: [simpleEmbed(__({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
       });
       return;
     }
@@ -50,7 +50,7 @@ export default class UserBlacklist extends BlacklistCommand {
         return await interaction.followUp({
           embeds: [
             simpleEmbed(
-              __({
+              t({
                 phrase: 'blacklist.server.alreadyBlacklisted',
                 locale: interaction.user.locale,
               }),
@@ -62,7 +62,7 @@ export default class UserBlacklist extends BlacklistCommand {
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
       if (!server) {
         return await interaction.followUp(
-          __({ phrase: 'errors.unknownServer', locale: interaction.user.locale }),
+          t({ phrase: 'errors.unknownServer', locale: interaction.user.locale }),
         );
       }
 
@@ -81,7 +81,7 @@ export default class UserBlacklist extends BlacklistCommand {
         interaction.followUp({
           embeds: [
             simpleEmbed(
-              __({
+              t({
                 phrase: 'blacklist.server.unknownError',
                 locale: interaction.user.locale,
               }),
@@ -97,7 +97,7 @@ export default class UserBlacklist extends BlacklistCommand {
 
       const successEmbed = new EmbedBuilder()
         .setDescription(
-          __(
+          t(
             { phrase: 'blacklist.server.success', locale: interaction.user.locale },
             { emoji: emojis.tick, server: server.name },
           ),
@@ -131,13 +131,13 @@ export default class UserBlacklist extends BlacklistCommand {
       const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
       if (!result) {
         return await interaction.followUp(
-          __({ phrase: 'errors.serverNotBlacklisted', locale: interaction.user.locale }),
+          t({ phrase: 'errors.serverNotBlacklisted', locale: interaction.user.locale }),
         );
       }
 
       // Using name from DB since the bot can't access server through API.
       await interaction.followUp(
-        __(
+        t(
           { phrase: 'blacklist.server.removed', locale: interaction.user.locale },
           { emoji: emojis.delete, server: result.serverName },
         ),

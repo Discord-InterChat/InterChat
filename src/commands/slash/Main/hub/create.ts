@@ -14,7 +14,7 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { HubSettingsBits } from '../../../../utils/BitFields.js';
 import { checkAndFetchImgurUrl, simpleEmbed } from '../../../../utils/Utils.js';
 import { LINKS } from '../../../../utils/Constants.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class Create extends Hub {
   readonly cooldown = 60 * 60 * 1000; // 1 hour
@@ -83,7 +83,7 @@ export default class Create extends Hub {
     // if hubName contains "discord", "clyde" "```" then return
     if (name.match(/discord|clyde|```/gi)) {
       return await interaction.followUp({
-        content: __({ phrase: 'hub.create.invalidName', locale: interaction.user.locale }),
+        content: t({ phrase: 'hub.create.invalidName', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
@@ -94,7 +94,7 @@ export default class Create extends Hub {
 
     if (hubs.find((hub) => hub.name === name)) {
       return await interaction.followUp({
-        content: __({ phrase: 'hub.create.nameTaken', locale: interaction.user.locale }),
+        content: t({ phrase: 'hub.create.nameTaken', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
@@ -102,7 +102,7 @@ export default class Create extends Hub {
       hubs.reduce((acc, hub) => (hub.ownerId === interaction.user.id ? acc + 1 : acc), 0) >= 3
     ) {
       return await interaction.followUp({
-        content: __({ phrase: 'hub.create.maxHubs', locale: interaction.user.locale }),
+        content: t({ phrase: 'hub.create.maxHubs', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
@@ -114,7 +114,7 @@ export default class Create extends Hub {
     if (iconUrl === false || bannerUrl === false) {
       return await interaction.followUp({
         embeds: [
-          simpleEmbed(__({ phrase: 'hub.create.invalidUrl', locale: interaction.user.locale })),
+          simpleEmbed(t({ phrase: 'hub.invalidImgurUrl', locale: interaction.user.locale })),
         ],
         ephemeral: true,
       });
@@ -142,7 +142,7 @@ export default class Create extends Hub {
     const successEmbed = new EmbedBuilder()
       .setColor('Green')
       .setDescription(
-        __(
+        t(
           { phrase: 'hub.create.success', locale: interaction.user.locale },
           { name, support_invite: LINKS.SUPPORT_INVITE },
         ),

@@ -5,7 +5,7 @@ import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
 import Logger from '../../../../utils/Logger.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
-import { __ } from '../../../../utils/Locale.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class Invite extends Hub {
   readonly cooldown = 3000; // 3 seconds
@@ -36,7 +36,7 @@ export default class Invite extends Hub {
         if (!hubInDb) {
           await interaction.reply({
             embeds: [
-              simpleEmbed(__({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
+              simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
             ],
             ephemeral: true,
           });
@@ -51,7 +51,7 @@ export default class Invite extends Hub {
 
         const embed = new EmbedBuilder()
           .setDescription(
-            __(
+            t(
               { phrase: 'hub.invite.create.success', locale: interaction.user.locale },
               {
                 inviteCode: createdInvite.code,
@@ -85,7 +85,7 @@ export default class Invite extends Hub {
 
         if (!inviteInDb) {
           await interaction.reply({
-            content: __({
+            content: t({
               phrase: 'hub.invite.revoke.invalidCode',
               locale: interaction.user.locale,
             }),
@@ -99,7 +99,7 @@ export default class Invite extends Hub {
           await interaction.reply({
             embeds: [
               simpleEmbed(
-                __(
+                t(
                   { phrase: 'hub.invite.revoke.success', locale: interaction.user.locale },
                   { emoji: emojis.yes, inviteCode: code },
                 ),
@@ -114,7 +114,7 @@ export default class Invite extends Hub {
           await interaction
             .reply({
               embeds: [
-                simpleEmbed(__({ phrase: 'errors.unknown', locale: interaction.user.locale })),
+                simpleEmbed(t({ phrase: 'errors.unknown', locale: interaction.user.locale })),
               ],
               ephemeral: true,
             })
@@ -140,7 +140,7 @@ export default class Invite extends Hub {
           await interaction.reply({
             embeds: [
               simpleEmbed(
-                __({ phrase: 'hub.invite.list.notPrivate', locale: interaction.user.locale }),
+                t({ phrase: 'hub.invite.list.notPrivate', locale: interaction.user.locale }),
               ),
             ],
             ephemeral: true,
@@ -153,7 +153,7 @@ export default class Invite extends Hub {
           await interaction.reply({
             embeds: [
               simpleEmbed(
-                __({ phrase: 'hub.invite.list.noInvites', locale: interaction.user.locale }),
+                t({ phrase: 'hub.invite.list.noInvites', locale: interaction.user.locale }),
               ),
             ],
             ephemeral: true,
@@ -167,7 +167,7 @@ export default class Invite extends Hub {
         );
 
         const inviteEmbed = new EmbedBuilder()
-          .setTitle(__({ phrase: 'hub.invite.list.title', locale: interaction.user.locale }))
+          .setTitle(t({ phrase: 'hub.invite.list.title', locale: interaction.user.locale }))
           .setDescription(inviteArr.join('\n'))
           .setColor('Yellow')
           .setTimestamp();
