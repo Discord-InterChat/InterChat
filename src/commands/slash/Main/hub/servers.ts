@@ -8,6 +8,8 @@ import { t } from '../../../../utils/Locale.js';
 
 export default class Servers extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
+    await interaction.deferReply();
+
     const hubOpt = interaction.options.getString('hub', true);
     const serverOpt = interaction.options.getString('server');
     const locale = interaction.user.locale;
@@ -18,27 +20,22 @@ export default class Servers extends Hub {
     });
 
     if (!hub) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }))],
-        ephemeral: true,
-      });
+      await interaction.editReply({ embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }))] });
       return;
     }
     else if (
       hub.ownerId !== interaction.user.id &&
       !hub.moderators.some((mod) => mod.userId === interaction.user.id)
     ) {
-      await interaction.reply({
+      await interaction.editReply({
         embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale }))],
-        ephemeral: true,
       });
       return;
     }
 
     if (hub.connections.length === 0) {
-      await interaction.reply({
+      await interaction.editReply({
         embeds: [simpleEmbed(t({ phrase: 'hub.servers.noConnections', locale }))],
-        ephemeral: true,
       });
       return;
     }
@@ -46,11 +43,10 @@ export default class Servers extends Hub {
     if (serverOpt) {
       const connection = hub.connections.find((con) => con.serverId === serverOpt);
       if (!connection) {
-        return await interaction.reply({
+        return await interaction.editReply({
           embeds: [
             simpleEmbed(t({ phrase: 'hub.servers.notConnected', locale }, { hub: hub.name })),
           ],
-          ephemeral: true,
         });
       }
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
@@ -71,7 +67,7 @@ export default class Servers extends Hub {
           ),
         );
 
-      await interaction.reply({ embeds: [embed] });
+      await interaction.editReply({ embeds: [embed] });
       return;
     }
 
