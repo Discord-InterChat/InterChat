@@ -38,6 +38,9 @@ jobs:
             npm rebuild @tensorflow/tfjs-node --build-from-source 
           # rebuilds tfjs-node for the current os
 
+        - name: Initialize Git Submodules
+          run: git submodule update --init --recursive
+
         - name: Deploy Commands
           run: |
             npm run register:commands -- --public

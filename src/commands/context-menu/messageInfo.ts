@@ -56,7 +56,7 @@ export default class MessageInfo extends BaseCommand {
             server: `${server?.name}`,
             messageId: target.id,
             hub: `${networkMessage.hub?.name}`,
-            created: `${Math.floor(target.createdTimestamp / 1000)}`,
+            createdAt: `${Math.floor(target.createdTimestamp / 1000)}`,
           },
         ),
       )
