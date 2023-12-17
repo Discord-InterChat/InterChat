@@ -26,10 +26,11 @@ import { emojis } from '../../../utils/Constants.js';
 import { CustomID } from '../../../utils/CustomID.js';
 import {
   disableComponents,
-  errorEmbed,
+  simpleEmbed,
   getOrCreateWebhook,
   setComponentExpiry,
 } from '../../../utils/Utils.js';
+import { t } from '../../../utils/Locale.js';
 
 export default class Connection extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -55,9 +56,7 @@ export default class Connection extends BaseCommand {
     if (!isInDb) {
       await interaction.reply({
         embeds: [
-          errorEmbed(
-            `${emojis.no} Invalid connection. Verify the channel ID or select from displayed options.`,
-          ),
+          simpleEmbed(t({ phrase: 'connection.notFound', locale: interaction.user.locale })),
         ],
         ephemeral: true,
       });
@@ -103,7 +102,7 @@ export default class Connection extends BaseCommand {
           new StringSelectMenuOptionBuilder()
             .setLabel('Embed Color')
             .setEmoji('🎨')
-            .setDescription('Set the color of the embeds sent in the network.')
+            .setDescription('Set the color of embeds sent by this server.')
             .setValue('embed_color'),
         ),
     ]);
@@ -116,7 +115,7 @@ export default class Connection extends BaseCommand {
         { connected: !isInDb.connected },
       );
       await interaction.followUp({
-        content: `${emojis.no} Automatically disconnected from network due to errors. Change the channel to use the network.`,
+        content: t({ phrase: 'connection.channelNotFound', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
@@ -165,7 +164,7 @@ export default class Connection extends BaseCommand {
     if (customId.args.at(1) && customId.args[1] !== interaction.user.id) {
       await interaction.reply({
         embeds: [
-          errorEmbed(`${emojis.no} Sorry, you can't perform this action. Please run the command yourself.`),
+          simpleEmbed(t({ phrase: 'errors.notYourAction', locale: interaction.user.locale })),
         ],
         ephemeral: true,
       });
@@ -176,7 +175,7 @@ export default class Connection extends BaseCommand {
     const isInDb = await networkManager.fetchConnection({ channelId });
     if (!isInDb || !channelId) {
       await interaction.reply({
-        content: `${emojis.no} This connection no longer exists.`,
+        content: t({ phrase: 'connection.channelNotFound', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -251,14 +250,20 @@ export default class Connection extends BaseCommand {
           );
 
           await interaction.reply({
-            content: `${emojis.info} Select a channel to switch to using the select menu below:`,
+            content: t(
+              { phrase: 'connection.switchChannel', locale: interaction.user.locale },
+              { emoji: emojis.info },
+            ),
             components: [channelSelect],
             ephemeral: true,
           });
 
           // current interaction will become outdated due to new channelId
           await interaction.message.edit({
-            content: `${emojis.info} Channel switch called, use the command again to view new connection.`,
+            content: t(
+              { phrase: 'connection.switchCalled', locale: interaction.user.locale },
+              { emoji: emojis.info },
+            ),
             components: disableComponents(interaction.message),
           });
           break;
@@ -302,12 +307,17 @@ export default class Connection extends BaseCommand {
     // channel select menu interactions
     else if (interaction.isChannelSelectMenu()) {
       if (customId.postfix !== 'change_channel') return;
+      await interaction.deferUpdate();
+
       const newChannel = interaction.channels.first();
 
       const channelInHub = await networkManager.fetchConnection({ channelId: newChannel?.id });
       if (channelInHub) {
         await interaction.reply({
-          content: `${emojis.no} Channel ${newChannel} is already connected to a hub.`,
+          content: t(
+            { phrase: 'connection.alreadyConnected', locale: interaction.user.locale },
+            { channel: `${newChannel}` },
+          ),
           ephemeral: true,
         });
         return;
@@ -319,8 +329,11 @@ export default class Connection extends BaseCommand {
         { channelId: newChannel?.id, webhookURL: newWebhook?.url },
       );
 
-      await interaction.update({
-        content: `${emojis.yes} Switched network channel to <#${newChannel?.id}>.`,
+      await interaction.editReply({
+        content: t(
+          { phrase: 'connection.switchSuccess', locale: interaction.user.locale },
+          { channel: `${newChannel}`, emoji: emojis.yes },
+        ),
         components: [],
       });
     }
@@ -336,21 +349,33 @@ export default class Connection extends BaseCommand {
 
       if (!invite) {
         await networkManager.updateConnection({ channelId }, { invite: { unset: true } });
-        await interaction.reply({ content: `${emojis.yes} Invite Removed.`, ephemeral: true });
+        await interaction.reply({
+          content: t(
+            { phrase: 'connection.inviteRemoved', locale: interaction.user.locale },
+            { emoji: emojis.yes },
+          ),
+          ephemeral: true,
+        });
         return;
       }
 
       const isValid = await interaction.client?.fetchInvite(invite).catch(() => null);
 
       if (isValid?.guild?.id !== interaction.guildId) {
-        await interaction.reply({ content: `${emojis.no} Invalid Invite.`, ephemeral: true });
+        await interaction.reply({
+          content: t({ phrase: 'connection.inviteInvalid', locale: interaction.user.locale }),
+          ephemeral: true,
+        });
         return;
       }
 
       await networkManager.updateConnection({ channelId }, { invite });
 
       await interaction.reply({
-        content: `${emojis.yes} Invite Added. Others can now join the server by using \`Message Info\` Apps command in the network.`,
+        content: t(
+          { phrase: 'connection.inviteAdded', locale: interaction.user.locale },
+          { emoji: emojis.yes },
+        ),
         ephemeral: true,
       });
     }
@@ -360,7 +385,7 @@ export default class Connection extends BaseCommand {
       const hex_regex = /^#[0-9A-F]{6}$/i;
       if (embedColor && !hex_regex.test(embedColor)) {
         interaction.reply({
-          content: `${emojis.no} Invalid hex color code. Please try again.`,
+          content: t({ phrase: 'connection.emColorInvalid', locale: interaction.user.locale }),
           ephemeral: true,
         });
         return;
@@ -372,14 +397,15 @@ export default class Connection extends BaseCommand {
       });
 
       await interaction.reply({
-        content: `${emojis.yes} Embed color successfully ${
-          embedColor ? `set to \`${embedColor}\`!` : 'unset'
-        }`,
+        content: t(
+          { phrase: 'connection.emColorChange', locale: interaction.user.locale },
+          { action: embedColor ? `set to \`${embedColor}\`!` : 'unset', emoji: emojis.yes },
+        ),
         ephemeral: true,
       });
     }
 
-    interaction.message
+    await interaction.message
       ?.edit({ embeds: [await buildEmbed(interaction, customId.args[0])] })
       .catch(() => null);
   }

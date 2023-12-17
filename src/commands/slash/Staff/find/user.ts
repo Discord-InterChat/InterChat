@@ -3,7 +3,7 @@ import Find from './index.js';
 import { stripIndents } from 'common-tags';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
-import { errorEmbed } from '../../../../utils/Utils.js';
+import { simpleEmbed } from '../../../../utils/Utils.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -13,7 +13,7 @@ export default class Server extends Find {
     if (!user) {
       return interaction.reply({
         embeds: [
-          errorEmbed(
+          simpleEmbed(
             `${emojis.no} Unknown user. Try using user\`s ID instead if you used username.`,
           ),
         ],

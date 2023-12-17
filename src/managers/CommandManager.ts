@@ -1,12 +1,13 @@
-import { access, constants, readdirSync, statSync } from 'fs';
+import { t } from '../utils/Locale.js';
 import { join, dirname } from 'path';
-import Factory from '../Factory.js';
-import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
-import { emojis } from '../utils/Constants.js';
 import { CustomID } from '../utils/CustomID.js';
 import { Interaction } from 'discord.js';
 import { captureException } from '@sentry/node';
-import { errorEmbed } from '../utils/Utils.js';
+import { simpleEmbed, replyWithError } from '../utils/Utils.js';
+import { access, constants, readdirSync, statSync } from 'fs';
+import Logger from '../utils/Logger.js';
+import Factory from '../Factory.js';
+import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
 
 const __filename = new URL(import.meta.url).pathname;
 const __dirname = dirname(__filename);
@@ -19,6 +20,8 @@ export default class CommandManager extends Factory {
   /** Handle interactions from the `InteractionCreate` event */
   async handleInteraction(interaction: Interaction): Promise<void> {
     try {
+      interaction.user.locale = await interaction.client.getUserLocale(interaction.user.id);
+
       if (interaction.isAutocomplete()) {
         const command = this.client.commands.get(interaction.commandName);
         if (command?.autocomplete) command.autocomplete(interaction);
@@ -70,9 +73,12 @@ export default class CommandManager extends Factory {
 
         // check if command is in cooldown for the user
         if (remainingCooldown) {
+          const waitUntil = Math.round((Date.now() + (remainingCooldown)) / 1000);
           await interaction.reply({
-            content: `${emojis.timeout} This command is on a cooldown! You can use it again: <t:${
-              Math.ceil((Date.now() + remainingCooldown) / 1000)}:R>.`,
+            content: t(
+              { phrase: 'errors.cooldown', locale: interaction.user.locale },
+              { time: `until <t:${waitUntil}:T> (<t:${waitUntil}:R>)` },
+            ),
             ephemeral: true,
           });
           return;
@@ -95,7 +101,9 @@ export default class CommandManager extends Factory {
 
         if (!handler || (customId.expiry && customId.expiry < Date.now())) {
           await interaction.reply({
-            embeds: [errorEmbed(`${emojis.no} This is no longer usable.`)],
+            embeds: [
+              simpleEmbed(t({ phrase: 'errors.notUsable', locale: interaction.user.locale })),
+            ],
             ephemeral: true,
           });
           return;
@@ -106,8 +114,13 @@ export default class CommandManager extends Factory {
       }
     }
     catch (e) {
-      interaction.client.logger.error(e);
+      Logger.error(e);
       captureException(e);
+
+      // reply with an error message to the user
+      if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+        replyWithError(interaction, e);
+      }
     }
   }
 

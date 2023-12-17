@@ -12,12 +12,12 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 import db from '../../utils/Db.js';
-import { stripIndents } from 'common-tags';
 import { profileImage } from 'discord-arts';
 import { colors, emojis } from '../../utils/Constants.js';
 import BaseCommand from '../BaseCommand.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
+import { t } from '../../utils/Locale.js';
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -35,40 +35,35 @@ export default class MessageInfo extends BaseCommand {
 
     if (!networkMessage) {
       await interaction.reply({
-        content: 'Information about this message is no longer available.',
+        content: t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
     }
-    const guildConnected = await db.connectedList.findFirst({ where: { serverId: networkMessage.serverId } });
+    const guildConnected = await db.connectedList.findFirst({
+      where: { serverId: networkMessage.serverId },
+    });
     const author = await interaction.client.users.fetch(networkMessage.authorId);
     const server = await interaction.client.fetchGuild(networkMessage.serverId);
 
     const embed = new EmbedBuilder()
       .setDescription(
-        stripIndents`
-        ## ${emojis.clipart} Message Info
-
-        **Sent By:** 
-        __${author.discriminator !== '0' ? author.tag : author.username}__
-
-        **Sent From:**
-        __${server?.name}__
-
-        **Message ID:**
-        __${target.id}__
-        
-        **Sent In (Hub):**
-        __${networkMessage.hub?.name}__
-
-        **Message Created:**
-        <t:${Math.floor(target.createdTimestamp / 1000)}:R>
-        `,
+        t(
+          { phrase: 'msgInfo.message.description', locale: interaction.user.locale },
+          {
+            emoji: emojis.clipart,
+            author: author.discriminator !== '0' ? author.tag : author.username,
+            server: `${server?.name}`,
+            messageId: target.id,
+            hub: `${networkMessage.hub?.name}`,
+            created: `${Math.floor(target.createdTimestamp / 1000)}`,
+          },
+        ),
       )
       .setThumbnail(`https://cdn.discordapp.com/icons/${server?.id}/${server?.icon}.png`)
       .setColor('Random');
 
-    const buttonsArr = MessageInfo.buildButtons(target.id);
+    const buttonsArr = MessageInfo.buildButtons(target.id, interaction.user.locale);
 
     if (guildConnected?.invite) {
       buttonsArr.push(
@@ -84,7 +79,7 @@ export default class MessageInfo extends BaseCommand {
 
     await interaction.reply({
       embeds: [embed],
-      components: MessageInfo.buildButtons(target.id),
+      components: MessageInfo.buildButtons(target.id, interaction.user.locale),
       ephemeral: true,
     });
   }
@@ -101,7 +96,7 @@ export default class MessageInfo extends BaseCommand {
     });
     if (!networkMessage) {
       return await interaction.update({
-        content: 'Information about this message is no longer available.',
+        content: t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
         embeds: [],
         components: [],
       });
@@ -133,19 +128,13 @@ export default class MessageInfo extends BaseCommand {
         case 'serverInfo': {
           if (!server) {
             return await interaction.update({
-              content: 'Unable to find server!',
+              content: t({ phrase: 'errors.unknownServer', locale: interaction.user.locale }),
               embeds: [],
               components: [],
             });
           }
 
           const owner = await interaction.client.users.fetch(server.ownerId);
-
-          if (!server) {
-            await interaction.update({ content: 'Unable to find server!', embeds: [] });
-            return;
-          }
-
           const createdAt = Math.round(server.createdTimestamp / 1000);
 
           const iconUrl = server.icon
@@ -154,31 +143,28 @@ export default class MessageInfo extends BaseCommand {
           const bannerUrL = server.icon
             ? `https://cdn.discordapp.com/icons/${server.id}/${server.banner}.png`
             : null;
-          const inviteString = guildConnected?.invite
-            ? `${guildConnected.invite}`
-            : 'Not Set.';
+          const inviteString = guildConnected?.invite ? `${guildConnected.invite}` : 'Not Set.';
 
           const serverEmbed = new EmbedBuilder()
             .setColor(colors.invisible)
             .setThumbnail(iconUrl)
             .setImage(bannerUrL)
             .setDescription(
-              stripIndents`
-              ## ${server?.name}
-              ${server.description || 'No Description.'}
-    
-              **Owner:** 
-            __${owner.username}__${owner.discriminator !== '0' ? `#${owner.discriminator}` : ''}
-    
-              **Created:** 
-              <t:${createdAt}:d> (<t:${createdAt}:R>)
-    
-              **Member Count:** 
-              __${server.memberCount}__
-    
-              **Invite:**
-              __${inviteString}__,
-              `,
+              t(
+                { phrase: 'msgInfo.server.description', locale: interaction.user.locale },
+                {
+                  server: server.name,
+                  description:
+                    server.description ||
+                    t({ phrase: 'misc.noDesc', locale: interaction.user.locale }),
+                  owner: `${owner.username}#${
+                    owner.discriminator !== '0' ? `#${owner.discriminator}` : ''
+                  }`,
+                  createdAt: `${createdAt}`,
+                  memberCount: `${server.memberCount}`,
+                  invite: `${inviteString}`,
+                },
+              ),
             )
             .setFooter({ text: `ID: ${server.id}` });
 
@@ -199,22 +185,16 @@ export default class MessageInfo extends BaseCommand {
             .setColor('Random')
             .setImage(author.bannerURL() ?? null)
             .setDescription(
-              stripIndents`
-                ## ${author.username}
-                __${author.discriminator !== '0' ? author.tag : author.username}__
-    
-                **ID:**
-                __${author.id}__
-    
-                **Created:**
-                <t:${createdAt}:d> (<t:${createdAt}:R>)
-                
-                **Display Name:**
-                __${author.globalName || 'Not Set.'}__
-    
-                **Hubs Owned:**
-                __${await db.hubs.count({ where: { ownerId: author.id } })}__
-              `,
+              t(
+                { phrase: 'msgInfo.user.description', locale: interaction.user.locale },
+                {
+                  user: author.discriminator !== '0' ? author.tag : author.username,
+                  id: author.id,
+                  createdAt: `${createdAt}`,
+                  globalName: author.globalName || 'Not Set.',
+                  hubsOwned: `${await db.hubs.count({ where: { ownerId: author.id } })}`,
+                },
+              ),
             )
             .setImage('attachment://customCard.png') // link to image that will be generated afterwards
             .setTimestamp();
@@ -242,7 +222,7 @@ export default class MessageInfo extends BaseCommand {
 
           if (!message) {
             await interaction.update({
-              content: 'Unable to find message!',
+              content: t({ phrase: 'errors.unknownMessage', locale: interaction.user.locale }),
               embeds: [],
               components: [],
             });
@@ -251,24 +231,17 @@ export default class MessageInfo extends BaseCommand {
 
           const embed = new EmbedBuilder()
             .setDescription(
-              stripIndents`
-              ## ${emojis.clipart} Message Info
-      
-              **Sent By:** 
-              __${author.discriminator !== '0' ? author.tag : author.username}__
-      
-              **Sent From:**
-              __${server?.name}__
-      
-              **Message ID:**
-              __${message.id}__
-              
-              **Sent In (Hub):**
-              __${networkMessage.hub?.name}__
-      
-              **Message Created:**
-              <t:${Math.floor(message?.createdTimestamp / 1000)}:R>
-              `,
+              t(
+                { phrase: 'msgInfo.message.description', locale: interaction.user.locale },
+                {
+                  emoji: emojis.clipart,
+                  author: author.discriminator !== '0' ? author.tag : author.username,
+                  server: `${server?.name}`,
+                  messageId: message.id,
+                  hub: `${networkMessage.hub?.name}`,
+                  createdAt: `${Math.floor(message.createdTimestamp / 1000)}`,
+                },
+              ),
             )
             .setThumbnail(
               server?.icon
@@ -295,27 +268,27 @@ export default class MessageInfo extends BaseCommand {
     buttons.components[disableElement].setDisabled(true);
   }
 
-  static buildButtons(messageId: string) {
+  static buildButtons(messageId: string, locale = 'en') {
     return [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'info').addArgs(messageId).toString(),
           )
-          .setLabel('Message Info')
+          .setLabel(t({ phrase: 'msgInfo.buttons.message', locale }))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(true),
         new ButtonBuilder()
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'serverInfo').addArgs(messageId).toString(),
           )
-          .setLabel('Server Info')
+          .setLabel(t({ phrase: 'msgInfo.buttons.server', locale }))
           .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'userInfo').addArgs(messageId).toString(),
           )
-          .setLabel('User Info')
+          .setLabel(t({ phrase: 'msgInfo.buttons.user', locale }))
           .setStyle(ButtonStyle.Secondary),
       ),
     ];

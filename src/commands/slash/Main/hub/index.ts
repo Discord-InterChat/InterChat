@@ -9,6 +9,9 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../../BaseCommand.js';
 import db from '../../../../utils/Db.js';
+import { replyWithError } from '../../../../utils/Utils.js';
+import Logger from '../../../../utils/Logger.js';
+import { captureException } from '@sentry/node';
 
 const hubOption: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.String,
@@ -51,8 +54,8 @@ export default class Hub extends BaseCommand {
                 value: 'popular',
               },
               {
-                name: 'Most Connections',
-                value: 'connections',
+                name: 'Most Servers',
+                value: 'servers',
               },
               {
                 name: 'Recently Created',
@@ -118,8 +121,8 @@ export default class Hub extends BaseCommand {
       },
       {
         type: ApplicationCommandOptionType.Subcommand,
-        name: 'connections',
-        description: '📜 List all connected servers to your hub.',
+        name: 'servers',
+        description: '📜 List all servers in your hub.',
         options: [
           {
             type: ApplicationCommandOptionType.String,
@@ -313,16 +316,22 @@ export default class Hub extends BaseCommand {
   // subcommand classes are added to this map in their respective files
   static readonly subcommands = new Collection<string, BaseCommand>();
 
-  async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
-    const apiSubcommandName =
-      interaction.options.getSubcommandGroup() || interaction.options.getSubcommand();
-    const subcommand = Hub.subcommands?.get(apiSubcommandName);
-    if (subcommand) return await subcommand.execute(interaction);
+  async execute(interaction: ChatInputCommandInteraction) {
+    const subcommand = Hub.subcommands?.get(
+      interaction.options.getSubcommandGroup() || interaction.options.getSubcommand(),
+    );
+
+    return await subcommand?.execute(interaction).catch((e) => {
+      Logger.error(e);
+      captureException(e);
+
+      replyWithError(interaction, e.message);
+    });
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
     const managerCmds = ['manage', 'settings', 'invite', 'moderator', 'logging'];
-    const modCmds = ['connections'];
+    const modCmds = ['servers'];
 
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();

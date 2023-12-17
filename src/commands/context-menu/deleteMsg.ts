@@ -8,6 +8,7 @@ import BaseCommand from '../BaseCommand.js';
 import { checkIfStaff } from '../../utils/Utils.js';
 import { emojis } from '../../utils/Constants.js';
 import db from '../../utils/Db.js';
+import { t } from '../../utils/Locale.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -26,7 +27,10 @@ export default class DeleteMessage extends BaseCommand {
 
     if (!messageInDb) {
       return await interaction.editReply(
-        'Unknown Message. If it has been sent in the past minute, please wait few more seconds and try again.',
+        t({
+          phrase: 'errors.unknownNetworkMessage',
+          locale: interaction.user.locale,
+        }),
       );
     }
 
@@ -37,7 +41,12 @@ export default class DeleteMessage extends BaseCommand {
       messageInDb.hub?.ownerId !== interaction.user.id &&
       interaction.user.id !== messageInDb.authorId
     ) {
-      return await interaction.editReply(`${emojis.no} You are not the author of this message.`);
+      return await interaction.editReply(
+        t({
+          phrase: 'errors.notMessageAuthor',
+          locale: interaction.user.locale,
+        }),
+      );
     }
 
     // find all the messages through the network
@@ -66,7 +75,18 @@ export default class DeleteMessage extends BaseCommand {
     const deleted = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
     await interaction
       .editReply(
-        `${emojis.yes} Message by <@${messageInDb.authorId}> has been deleted from __**${deleted}/${resultsArray.length}**__ servers.`,
+        t(
+          {
+            phrase: 'network.deleteSuccess',
+            locale: interaction.user.locale,
+          },
+          {
+            emoji: emojis.yes,
+            user: `<@${messageInDb.authorId}>`,
+            deleted: deleted.toString(),
+            total: resultsArray.length.toString(),
+          },
+        ),
       )
       .catch(() => null);
 

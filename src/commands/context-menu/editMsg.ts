@@ -13,13 +13,13 @@ import {
 import db from '../../utils/Db.js';
 import BaseCommand from '../BaseCommand.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
-import { emojis } from '../../utils/Constants.js';
 import { checkIfStaff, hasVoted, replaceLinks } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
+import { t } from '../../utils/Locale.js';
 
-export default class DeleteMessage extends BaseCommand {
+export default class EditMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Edit Message',
@@ -31,7 +31,7 @@ export default class DeleteMessage extends BaseCommand {
 
     if (!checkIfStaff(interaction.user.id) && !(await hasVoted(interaction.user.id))) {
       await interaction.reply({
-        content: `${emojis.no} You must [vote](<https://top.gg/bot/769921109209907241/vote>) to use this command.`,
+        content: t({ phrase: 'errors.mustVote', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -44,14 +44,19 @@ export default class DeleteMessage extends BaseCommand {
 
     if (!messageInDb) {
       await interaction.reply({
-        content: 'This message has expired. If not, please wait a few seconds and try again.',
+        content: t(
+          t({
+            phrase: 'errors.unknownNetworkMessage',
+            locale: interaction.user.locale,
+          }),
+        ),
         ephemeral: true,
       });
       return;
     }
     else if (interaction.user.id != messageInDb?.authorId) {
       await interaction.reply({
-        content: 'You are not the author of this message.',
+        content: t({ phrase: 'errors.notMessageAuthor', locale: interaction.user.locale }),
         ephemeral: true,
       });
       return;
@@ -87,13 +92,19 @@ export default class DeleteMessage extends BaseCommand {
     const messageId = customId.args[0];
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
-    if (!target) return await interaction.reply('Unknown Message.');
+    if (!target) {
+      return await interaction.reply(t({ phrase: 'errors.unknownNetworkMessage' }));
+    }
 
     const messageInDb = await db.messageData.findFirst({
       where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
       include: { hub: true },
     });
-    if (!messageInDb?.hub) return await interaction.reply('Unknown Message.');
+    if (!messageInDb?.hub) {
+      return await interaction.reply(
+        t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+      );
+    }
 
     // defer it because it takes a while to edit the message
     await interaction.deferReply({ ephemeral: true });
@@ -111,7 +122,7 @@ export default class DeleteMessage extends BaseCommand {
         newMessage.includes('dsc.gg'))
     ) {
       await interaction.editReply(
-        `${emojis.no} Do not advertise or promote servers in the network. Set an invite in \`/connection\` instead!`,
+        t({ phrase: 'errors.inviteLinks', locale: interaction.user.locale }),
       );
       return;
     }
@@ -134,7 +145,7 @@ export default class DeleteMessage extends BaseCommand {
         .setColor(target.member?.displayHexColor ?? 'Random')
         .setImage(newImageUrl || oldImageUrl || null)
         .addFields(
-          target.embeds[0].fields[0]
+          target.embeds[0]?.fields[0]
             ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
             : [],
         )
@@ -194,9 +205,12 @@ export default class DeleteMessage extends BaseCommand {
     });
 
     const resultsArray = await Promise.all(results);
-    const deleted = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
+    const edited = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
     await interaction.editReply(
-      `${emojis.yes} Your message has been edited in __**${deleted}/${resultsArray.length}**__ servers.`,
+      t(
+        { phrase: 'network.editSuccess', locale: interaction.user.locale },
+        { edited: `${edited}`, total: `${resultsArray.length}` },
+      ),
     );
   }
 }

@@ -4,14 +4,16 @@ import Hub from './index.js';
 import db from '../../../../utils/Db.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { hubs } from '@prisma/client';
-import { errorEmbed, getOrCreateWebhook } from '../../../../utils/Utils.js';
+import { simpleEmbed, getOrCreateWebhook } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
+import { t } from '../../../../utils/Locale.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
     if (!interaction.inCachedGuild()) return;
 
+    const locale = interaction.user.locale;
     const networkManager = interaction.client.getNetworkManager();
     const hubName = interaction.options.getString('hub') ?? 'InterChat Central';
     const invite = interaction.options.getString('invite');
@@ -24,7 +26,9 @@ export default class JoinSubCommand extends Hub {
     const channelInHub = await networkManager.fetchConnection({ channelId: channel.id });
     if (channelInHub) {
       return await interaction.reply({
-        content: `${emojis.no} You are already connected to a hub from ${channel}.`,
+        embeds: [
+          simpleEmbed(t({ phrase: 'hub.alreadyJoined', locale }, { channel: `${channel}` })),
+        ],
         ephemeral: true,
       });
     }
@@ -40,7 +44,7 @@ export default class JoinSubCommand extends Hub {
 
       if (!fetchedInvite) {
         return await interaction.reply({
-          content: `${emojis.no} That invite code is invalid.`,
+          embeds: [simpleEmbed(t({ phrase: 'hub.invite.revoke.invalidCode', locale }))],
           ephemeral: true,
         });
       }
@@ -52,7 +56,7 @@ export default class JoinSubCommand extends Hub {
 
       if (!hub) {
         return await interaction.reply({
-          content: `${emojis.no} That hub does not exist.`,
+          embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }))],
           ephemeral: true,
         });
       }
@@ -66,7 +70,14 @@ export default class JoinSubCommand extends Hub {
 
     if (alreadyInHub) {
       return await interaction.reply({
-        content: `${emojis.no} You are already connected to this hub from <#${alreadyInHub.channelId}>.`,
+        embeds: [
+          simpleEmbed(
+            t(
+              { phrase: 'hub.alreadyJoined', locale },
+              { hub: hub.name, channel: `<#${alreadyInHub.channelId}>` },
+            ),
+          ),
+        ],
         ephemeral: true,
       });
     }
@@ -79,7 +90,7 @@ export default class JoinSubCommand extends Hub {
 
     if (userBlacklisted || serverBlacklisted) {
       return await interaction.reply({
-        content: `${emojis.no} You or this server is blacklisted from this hub.`,
+        embeds: [simpleEmbed(t({ phrase: 'errors.blacklisted', locale }))],
         ephemeral: true,
       });
     }
@@ -92,7 +103,11 @@ export default class JoinSubCommand extends Hub {
     }
     else if (onboardingCompleted === 'in-progress') {
       return await interaction.reply({
-        content: `${emojis.no} An attempt to join a hub in <#${channel.id}> is currently in progress. Please wait for it to complete before making another attempt.`,
+        embeds: [
+          simpleEmbed(
+            t({ phrase: 'hub.onboarding.inProgress', locale }, { channel: `${channel}` }),
+          ),
+        ],
         ephemeral: true,
       });
     }
@@ -101,8 +116,11 @@ export default class JoinSubCommand extends Hub {
     if (!webhook) {
       await interaction.editReply({
         embeds: [
-          errorEmbed(
-            `${emojis.no} I could not create a webhook in ${channel}. Please make sure I have the \`Manage Webhooks\` permission in that channel.`,
+          simpleEmbed(
+            t(
+              { phrase: 'errors.botMissingPermissions', locale },
+              { permissions: 'Manage Webhooks' },
+            ),
           ),
         ],
         components: [],
@@ -123,7 +141,7 @@ export default class JoinSubCommand extends Hub {
     });
 
     await interaction.editReply({
-      content: `${emojis.yes} You have successfully joined **${hub.name}** from ${channel}. Use \`/connection\` to configure your connection.`,
+      content: t({ phrase: 'hub.join.success', locale }, { channel: `${channel}`, hub: hub.name }),
       embeds: [],
       components: [],
     });
@@ -132,16 +150,17 @@ export default class JoinSubCommand extends Hub {
       where: { hubId: hub.id, connected: true },
     });
 
-    // announce a new server has joined the hub
-    networkManager.sendToNetwork(hub.id, {
+    // announce
+    await networkManager.sendToHub(hub.id, {
+      username: `InterChat | ${hub.name}`,
       content: stripIndents`
-        A new server has joined us! ${emojis.clipart}
-    
-        **Server Name:** __${interaction.guild.name}__
-        **Member Count:** __${interaction.guild.memberCount}__
+      A new server has joined the hub! ${emojis.clipart}
 
-        We now have **${totalConnections}** servers in the hub!
-      `,
+      **Server Name:** __${interaction.guild.name}__
+      **Member Count:** __${interaction.guild.memberCount}__
+
+      We now have **${totalConnections}** servers with us!
+    `,
     });
   }
 }

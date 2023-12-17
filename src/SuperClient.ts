@@ -10,7 +10,6 @@ import {
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './commands/BaseCommand.js';
-import Logger from './utils/Logger.js';
 import Sentry from '@sentry/node';
 import Scheduler from './services/SchedulerService.js';
 import NSFWClient from './utils/NSFWDetection.js';
@@ -23,15 +22,14 @@ import { RemoveMethods } from './typings/index.js';
 import { isDevBuild } from './utils/Constants.js';
 import { ActivityType } from 'discord.js';
 import 'dotenv/config';
+import db from './utils/Db.js';
 
 export default abstract class SuperClient extends Client {
-  readonly logger = Logger;
-
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
   readonly version = process.env.npm_package_version ?? 'Unknown';
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;
-  readonly webhooks = new Collection<string, WebhookClient>;
+  readonly webhooks = new Collection<string, WebhookClient>();
 
   readonly commandCooldowns = new CooldownService();
   readonly reactionCooldowns = new Collection<string, number>();
@@ -126,6 +124,12 @@ export default abstract class SuperClient extends Client {
     );
 
     return fetch ? this.resolveEval(fetch) : undefined;
+  }
+
+  async getUserLocale(userId: Snowflake): Promise<string> {
+    const fetch = await db.userData.findFirst({ where: { userId } });
+
+    return fetch?.locale || 'en';
   }
 
   getCommandManager(): CommandManager {

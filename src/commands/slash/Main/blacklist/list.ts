@@ -1,10 +1,10 @@
 import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
-import { stripIndents } from 'common-tags';
 import { paginate } from '../../../../utils/Pagination.js';
-import { colors, emojis } from '../../../../utils/Constants.js';
-import { errorEmbed } from '../../../../utils/Utils.js';
+import { colors } from '../../../../utils/Constants.js';
+import { simpleEmbed } from '../../../../utils/Utils.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -25,9 +25,7 @@ export default class ListBlacklists extends BlacklistCommand {
     if (!hubInDb) {
       await interaction.editReply({
         embeds: [
-          errorEmbed(
-            `${emojis.no} Unknown hub. Make sure you are the owner or a moderator of the hub.`,
-          ),
+          simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
         ],
       });
       return;
@@ -60,16 +58,17 @@ export default class ListBlacklists extends BlacklistCommand {
 
         fields.push({
           name: data.serverName,
-          value: stripIndents`
-          **ServerId:** ${data.serverId}
-          **Moderator:** ${
-  moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown'
-}
-          **Reason:** ${hubData?.reason}
-          **Expires:** ${
-  !hubData?.expires ? 'Never.' : `<t:${Math.round(hubData.expires.getTime() / 1000)}:R>`
-}     
-        `,
+          value: t(
+            { phrase: 'blacklist.list.server', locale: interaction.user.locale },
+            {
+              serverId: data.serverId,
+              moderator: moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown',
+              reason: `${hubData?.reason}`,
+              expires: !hubData?.expires
+                ? 'Never.'
+                : `<t:${Math.round(hubData.expires.getTime() / 1000)}:R>`,
+            },
+          ),
         });
 
         counter++;
@@ -103,16 +102,17 @@ export default class ListBlacklists extends BlacklistCommand {
 
         fields.push({
           name: data.username,
-          value: stripIndents`
-          **UserID:** ${data.userId}
-          **Moderator:** ${
-  moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown'
-}
-          **Reason:** ${hubData?.reason}
-          **Expires:** ${
-  !hubData?.expires ? 'Never.' : `<t:${Math.round(hubData.expires.getTime() / 1000)}:R>`
-}
-        `,
+          value: t(
+            { phrase: 'blacklist.list.user', locale: interaction.user.locale },
+            {
+              userId: data.userId,
+              moderator: moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown',
+              reason: `${hubData?.reason}`,
+              expires: !hubData?.expires
+                ? 'Never.'
+                : `<t:${Math.round(hubData.expires.getTime() / 1000)}:R>`,
+            },
+          ),
         });
 
         counter++;

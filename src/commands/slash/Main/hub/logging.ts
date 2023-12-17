@@ -2,7 +2,7 @@ import { ChatInputCommandInteraction, CacheType, EmbedBuilder, ChannelType } fro
 import db from '../../../../utils/Db.js';
 import Hub from './index.js';
 import { colors, emojis } from '../../../../utils/Constants.js';
-import { errorEmbed } from '../../../../utils/Utils.js';
+import { simpleEmbed } from '../../../../utils/Utils.js';
 import { Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 
@@ -23,7 +23,7 @@ export default class Logging extends Hub {
 
     if (!hubInDb) {
       return await interaction.reply({
-        embeds: [errorEmbed(`${emojis.no} This hub does not exist.`)],
+        embeds: [simpleEmbed(`${emojis.no} This hub does not exist.`)],
       });
     }
     if (
@@ -34,7 +34,7 @@ export default class Logging extends Hub {
     ) {
       return await interaction.reply({
         embeds: [
-          errorEmbed(`${emojis.no} You are not allowed to perform this action on this hub.`),
+          simpleEmbed(`${emojis.no} You are not allowed to perform this action on this hub.`),
         ],
       });
     }

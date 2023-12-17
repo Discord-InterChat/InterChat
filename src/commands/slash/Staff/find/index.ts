@@ -6,6 +6,9 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 import BaseCommand from '../../../BaseCommand.js';
+import Logger from '../../../../utils/Logger.js';
+import { captureException } from '@sentry/node';
+import { replyWithError } from '../../../../utils/Utils.js';
 
 export default class Find extends BaseCommand {
   staffOnly = true;
@@ -60,7 +63,13 @@ export default class Find extends BaseCommand {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = Find.subcommands?.get(interaction.options.getSubcommand());
-    if (subcommand) return await subcommand.execute(interaction);
+
+    return await subcommand?.execute(interaction).catch((e) => {
+      Logger.error(e);
+      captureException(e);
+      // reply with an error message to the user
+      replyWithError(interaction, e.message);
+    });
   }
   async autocomplete(interaction: AutocompleteInteraction) {
     const subcommand = interaction.options.getSubcommand();

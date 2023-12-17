@@ -122,7 +122,7 @@ model messageData {
   referenceDocId       String?                           @db.ObjectId
   serverId             String
   timestamp            DateTime
-  reactions            Json // eg. {"👎": ["9893820930928", "39283902803982"]} "emoji": userId[] basically
+  reactions            Json? // eg. {"👎": ["9893820930928", "39283902803982"]} "emoji": userId[] basically
   hub                  hubs?                             @relation(fields: [hubId], references: [id])
   hubId                String?                           @db.ObjectId
 }
@@ -143,6 +143,7 @@ model userData {
   id                   String         @id @default(auto()) @map("_id") @db.ObjectId
   userId               String         @unique
   username             String
+  locale               String?
   blacklistedFrom      hubBlacklist[]
   // if user has seen the welcome message when they first use the network
   viewedNetworkWelcome Boolean        @default(false)

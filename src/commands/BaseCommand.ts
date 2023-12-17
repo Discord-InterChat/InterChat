@@ -9,7 +9,7 @@ import {
 } from 'discord.js';
 import { InteractionFunction } from '../decorators/Interaction.js';
 
-type CommandInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
+export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
 
 export const commandsMap = new Collection<string, BaseCommand>();
 export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
@@ -21,19 +21,10 @@ export default abstract class BaseCommand {
   readonly description?: string;
   static readonly subcommands?: Collection<string, BaseCommand>;
 
-  abstract execute(interaction: CommandInteraction): Promise<unknown>;
+  abstract execute(interaction: CmdInteraction): Promise<unknown>;
 
   // optional methods
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleComponents(interaction: MessageComponentInteraction) {
-    /**/
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  handleModals(interaction: ModalSubmitInteraction) {
-    /**/
-  }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  autocomplete(interaction: AutocompleteInteraction) {
-    /**/
-  }
+  async handleComponents?(interaction: MessageComponentInteraction): Promise<unknown>;
+  async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
+  async autocomplete?(interaction: AutocompleteInteraction): Promise<unknown>;
 }

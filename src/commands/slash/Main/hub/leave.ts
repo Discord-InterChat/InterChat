@@ -7,36 +7,38 @@ import {
   ButtonStyle,
   EmbedBuilder,
 } from 'discord.js';
+import db from '../../../../utils/Db.js';
 import Hub from './index.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
-import { errorEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
-import db from '../../../../utils/Db.js';
+import { simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
-    const channelId = interaction.options.getString('hub', true);
-    const isChannelConnected = await db.connectedList.findFirst({ where: { channelId } });
+    if (!interaction.inCachedGuild()) return;
 
-    if (!interaction.inCachedGuild()) {
+    const channelId = interaction.options.getString('hub', true);
+    const isChannelConnected = await db.connectedList.findFirst({
+      where: { channelId },
+      include: { hub: true },
+    });
+
+    if (!isChannelConnected) {
       return await interaction.reply({
-        embeds: [errorEmbed(`${emojis.no} This command can only be run in a server.`)],
+        embeds: [simpleEmbed(t({ phrase: 'hub.leave.noHub', locale: interaction.user.locale }))],
         ephemeral: true,
-      });
-    }
-    else if (!isChannelConnected) {
-      return await interaction.reply({
-        embeds: [
-          errorEmbed(`${emojis.no} The channel <#${channelId}> does not have any networks.`),
-        ],
       });
     }
     else if (!interaction.member.permissions.has('ManageChannels', true)) {
       return await interaction.reply({
         embeds: [
-          errorEmbed(
-            `${emojis.no} You must have the \`Manage Channels\` permission in this server to leave a hub.`,
+          simpleEmbed(
+            t(
+              { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
+              { permission: 'Manage Channels' },
+            ),
           ),
         ],
         ephemeral: true,
@@ -55,12 +57,16 @@ export default class Leave extends Hub {
     ]);
 
     const resetConfirmEmbed = new EmbedBuilder()
-      .setTitle('Delete Network Connection')
       .setDescription(
-        'Are you sure? You will have to rejoin the hub to use the network again! All previous connection data will be lost.',
+        t(
+          { phrase: 'hub.leave.confirm', locale: interaction.user.locale },
+          { channel: `<#${channelId}>`, hub: `${isChannelConnected.hub?.name}` },
+        ),
       )
       .setColor('Red')
-      .setFooter({ text: 'Confirm within the next 10 seconds.' });
+      .setFooter({
+        text: t({ phrase: 'hub.leave.confirmFooter', locale: interaction.user.locale }),
+      });
 
     await interaction.reply({
       embeds: [resetConfirmEmbed],
@@ -83,7 +89,10 @@ export default class Leave extends Hub {
 
     await db.connectedList.delete({ where: { channelId } });
     await interaction.update({
-      content: `${emojis.yes} Deleted network connection from <#${channelId}> and left the hub!`,
+      content: t(
+        { phrase: 'hub.leave.success', locale: interaction.user.locale },
+        { channel: `<#${channelId}>`, emoji: emojis.yes },
+      ),
       embeds: [],
       components: [],
     });

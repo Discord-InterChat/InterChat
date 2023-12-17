@@ -1,40 +1,25 @@
+import Support from './index.js';
 import {
   ActionRowBuilder,
   CacheType,
   ChatInputCommandInteraction,
   EmbedBuilder,
-  ForumChannel,
   MessageComponentInteraction,
   ModalBuilder,
   ModalSubmitInteraction,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
+  TextChannel,
   TextInputBuilder,
   TextInputStyle,
   ThreadChannel,
 } from 'discord.js';
-import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis } from '../../../../utils/Constants.js';
-import Support from './index.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class Report extends Support {
-  static readonly reportModal = new ModalBuilder()
-    .setTitle('New Report')
-    .setCustomId(new CustomID().setIdentifier('report_modal').toString())
-    .addComponents(
-      new ActionRowBuilder<TextInputBuilder>().addComponents(
-        new TextInputBuilder()
-          .setCustomId('description')
-          .setLabel('Report Details')
-          .setPlaceholder('A detailed description of the report.')
-          .setStyle(TextInputStyle.Paragraph)
-          .setMinLength(10)
-          .setMaxLength(950),
-      ),
-    );
-
   async execute(interaction: ChatInputCommandInteraction) {
     const reportType = interaction.options.getString('type', true) as
       | 'user'
@@ -64,9 +49,9 @@ export default class Report extends Support {
       );
 
       const bugEmbed = new EmbedBuilder()
-        .setTitle('Affected Components')
-        .setDescription('Please choose what component of the bot you are facing issues with.')
-        .setColor('Random');
+        .setTitle(t({ phrase: 'report.bug.affected', locale: interaction.user.locale }))
+        .setDescription(t({ phrase: 'report.bug.description', locale: interaction.user.locale }))
+        .setColor(colors.interchatBlue);
 
       await interaction.reply({
         embeds: [bugEmbed],
@@ -74,20 +59,44 @@ export default class Report extends Support {
         ephemeral: true,
       });
     }
-    else if (reportType === 'server' || reportType === 'user' || reportType === 'other') {
-      const modal = new ModalBuilder(Report.reportModal)
+    else {
+      const modal = new ModalBuilder()
+        .setTitle(t({ phrase: 'report.modal.title', locale: interaction.user.locale }))
         .setCustomId(new CustomID().setIdentifier('report_modal', reportType).toString())
         .addComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
+              .setCustomId('description')
+              .setLabel(t({ phrase: 'report.modal.other.label', locale: interaction.user.locale }))
+              .setPlaceholder(
+                t({ phrase: 'report.modal.other.placeholder', locale: interaction.user.locale }),
+              )
+              .setStyle(TextInputStyle.Paragraph)
+              .setMinLength(10)
+              .setMaxLength(950),
+          ),
+        );
+
+      if (reportType !== 'other') {
+        modal.addComponents(
+          new ActionRowBuilder<TextInputBuilder>().addComponents(
+            new TextInputBuilder()
               .setCustomId('id')
-              .setLabel('User/Server ID')
-              .setPlaceholder('The IDs of the user/server you are reporting.')
+              .setLabel(
+                t({ phrase: 'report.modal.userOrServer.label', locale: interaction.user.locale }),
+              )
+              .setPlaceholder(
+                t({
+                  phrase: 'report.modal.userOrServer.placeholder',
+                  locale: interaction.user.locale,
+                }),
+              )
               .setStyle(TextInputStyle.Short)
               .setMinLength(17)
               .setMaxLength(20),
           ),
         );
+      }
 
       await interaction.showModal(modal);
     }
@@ -103,21 +112,33 @@ export default class Report extends Support {
             .addArgs(interaction.values.join(', '))
             .toString(),
         )
-        .setTitle('New Bug Report')
+        .setTitle(t({ phrase: 'report.bug.title', locale: interaction.user.locale }))
         .setComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('summary')
-              .setLabel('Whats the bug about?')
-              .setPlaceholder('Frequent interaction failures...')
+              .setLabel(
+                t({ phrase: 'report.modal.bug.input1.label', locale: interaction.user.locale }),
+              )
+              .setPlaceholder(
+                t({
+                  phrase: 'report.modal.bug.input1.placeholder',
+                  locale: interaction.user.locale,
+                }),
+              )
               .setStyle(TextInputStyle.Short),
           ),
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('description')
-              .setLabel('Detailed Description (OPTIONAL)')
+              .setLabel(
+                t({ phrase: 'report.modal.bug.input2.label', locale: interaction.user.locale }),
+              )
               .setPlaceholder(
-                'Please describe the steps to reproduce the issue, include any unexpected behavior.',
+                t({
+                  phrase: 'report.modal.bug.input1.placeholder',
+                  locale: interaction.user.locale,
+                }),
               )
               .setStyle(TextInputStyle.Paragraph)
               .setRequired(false)
@@ -134,7 +155,7 @@ export default class Report extends Support {
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const affected = customId.args[0];
-    const reportType = customId.args[0];
+    const reportType = customId.postfix;
 
     if (reportType === 'bug') {
       const summary = interaction.fields.getTextInputValue('summary');
@@ -157,30 +178,23 @@ export default class Report extends Support {
       // send the bug report to ic central
       await interaction.client.cluster.broadcastEval(
         async (client, ctx) => {
-          const bugReportChannel = (await client.channels
-            .fetch(ctx.bugsChannel)
-            .catch(() => null)) as ForumChannel | null;
+          const devChat = (await client.channels
+            .fetch(ctx.devChannel)
+            .catch(() => null)) as TextChannel | null;
 
-          if (!bugReportChannel) return;
-
-          const appliedTags = bugReportChannel.availableTags
-            .map((tag) => {
-              if (ctx.affected.includes(tag.name)) return tag.id;
-            })
-            .filter((tag) => tag !== undefined) as string[];
+          if (!devChat) return;
 
           // finally make the post in ic central
-          await bugReportChannel.threads.create({
-            name: summary,
-            message: { embeds: [bugReportEmbed] },
-            appliedTags,
-          });
+          await devChat.send({ embeds: [bugReportEmbed] });
         },
-        { context: { affected, bugsChannel: channels.bugs } },
+        { context: { affected, devChannel: channels.devChat } },
       );
 
       await interaction.reply({
-        content: `${emojis.yes} Successfully submitted report. Join the </support server:924659341049626636> to view and/or attach screenshots to it.`,
+        content: t(
+          { phrase: 'report.bug.submitted', locale: interaction.user.locale },
+          { emoji: emojis.yes },
+        ),
         ephemeral: true,
       });
     }
@@ -197,11 +211,10 @@ export default class Report extends Support {
           const reportedUser = await interaction.client.users.fetch(Ids).catch(() => null);
           if (!reportedUser) {
             await interaction.reply({
-              content: stripIndents`
-                ${emojis.no} I couldn't find a user with that ID.\n\n
-                **To find a user's ID within the network, please follow these instructions:**
-                ${emojis.dotYellow} Right click on a message sent from the user in question select \`Apps > Message Info\`. Please double-check the ID and try again.
-              `,
+              content: t(
+                { phrase: 'report.invalidUser', locale: interaction.user.locale },
+                { dot: emojis.dotYellow },
+              ),
               ephemeral: true,
             });
             return;
@@ -226,11 +239,10 @@ export default class Report extends Support {
           const reportedServer = await interaction.client.fetchGuild(id).catch(() => null);
           if (!reportedServer) {
             await interaction.reply({
-              content: stripIndents`
-              ${emojis.no} I couldn't find a server with that ID.\n
-              **To find a server ID within the network, please follow these instructions:**
-              ${emojis.dotYellow}  Right click on a message sent by the server in question and select \`Apps > Message Info\`. Please double-check the ID and try again.
-              `,
+              content: t(
+                { phrase: 'report.invalidServer', locale: interaction.user.locale },
+                { dot: emojis.dotYellow },
+              ),
               ephemeral: true,
             });
             return;
@@ -239,9 +251,7 @@ export default class Report extends Support {
           const serverReport = new EmbedBuilder()
             .setColor('Red')
             .setTitle('New Server Report')
-            .setDescription(
-              `Server Name: ${reportedServer.name}\nServer Id: ${reportedServer.members}`,
-            )
+            .setDescription(`Server Name: ${reportedServer.name}\nServer Id: ${reportedServer.id}`)
             .setFields({ name: 'Reason for report', value: reportDescription })
             .setThumbnail(
               `https://cdn.discordapp.com/icons/${reportedServer.id}/${reportedServer.icon}.png?size=2048`,
@@ -274,7 +284,10 @@ export default class Report extends Support {
         }
       }
       await interaction.reply({
-        content: `Report submitted. Join the [**support server**](${LINKS.SUPPORT_INVITE}) to get updates on your report.`,
+        content: t(
+          { phrase: 'report.submitted', locale: interaction.user.locale },
+          { support_invite: `${LINKS.SUPPORT_INVITE} ` },
+        ),
         ephemeral: true,
       });
     }

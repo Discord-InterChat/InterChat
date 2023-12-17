@@ -89,8 +89,7 @@ export class CustomID {
   toString() {
     let str = `${this.customId}`;
     if (this.data.length > 0) this.data.forEach((element) => (str += `&${element}`));
-
-    if (str.length > 100) throw new TypeError('Custom ID cannot be longer than 100 characters.');
+    if (str.length > 100) throw new Error('CustomID is too long.');
 
     return str;
   }

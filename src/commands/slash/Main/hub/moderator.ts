@@ -1,6 +1,9 @@
 import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
 import db from '../../../../utils/Db.js';
+import { simpleEmbed } from '../../../../utils/Utils.js';
+import { t } from '../../../../utils/Locale.js';
+import { emojis } from '../../../../utils/Constants.js';
 
 export default class Moderator extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -17,7 +20,7 @@ export default class Moderator extends Hub {
 
     if (!hub) {
       return await interaction.reply({
-        content: 'Invalid hub input. Make sure the hub exists and that you are a owner/manager of the hub.',
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
         ephemeral: true,
       });
     }
@@ -28,7 +31,14 @@ export default class Moderator extends Hub {
 
         if (hub.moderators.find((mod) => mod.userId === user.id)) {
           return interaction.reply({
-            content: `User ${user} is already a moderator for **${hub.name}**!`,
+            embeds: [
+              simpleEmbed(
+                t(
+                  { phrase: 'hub.moderator.add.alreadyModerator', locale: interaction.user.locale },
+                  { user: user.toString() },
+                ),
+              ),
+            ],
             ephemeral: true,
           });
         }
@@ -38,7 +48,13 @@ export default class Moderator extends Hub {
           where: { id: hub.id },
           data: { moderators: { push: { userId: user.id, position } } },
         });
-        interaction.reply(`Added ${user} as a hub moderator for **${hub.name}**!`);
+
+        await interaction.reply({
+          content: t(
+            { phrase: 'hub.moderator.add.success', locale: interaction.user.locale },
+            { user: user.toString(), position, emoji: emojis.yes },
+          ),
+        });
         break;
       }
 
@@ -46,27 +62,30 @@ export default class Moderator extends Hub {
         const user = interaction.options.getUser('user', true);
 
         if (!hub.moderators.find((mod) => mod.userId === user.id)) {
-          return interaction.reply({
-            content: `User ${user} is not a moderator for **${hub.name}**!`,
+          await interaction.reply({
+            content: t(
+              { phrase: 'hub.moderator.remove.notModerator', locale: interaction.user.locale },
+              { user: user.toString() },
+            ),
             ephemeral: true,
           });
+          return;
         }
 
-        if (hub.ownerId !== interaction.user.id) {
-          if (user.id === interaction.user.id) {
-            return interaction.reply({
-              content: 'I don\'t know why you would want to do that, but only the owner of the hub can remove you!',
-              ephemeral: true,
-            });
-          }
-
-          if (hub.moderators.find(m => m.position === 'manager' && m.userId === user.id)) {
-            return interaction.reply({
-              content: 'Only the owner of the hub can remove a manager!',
-              ephemeral: true,
-            });
-          }
+        if (
+          (hub.ownerId !== interaction.user.id && user.id === interaction.user.id) ||
+          hub.moderators.find((m) => m.position === 'manager' && m.userId === user.id)
+        ) {
+          await interaction.reply({
+            content: t({
+              phrase: 'hub.moderator.remove.notOwner',
+              locale: interaction.user.locale,
+            }),
+            ephemeral: true,
+          });
+          return;
         }
+
         await db.hubs.update({
           where: { id: hub.id },
           data: {
@@ -74,26 +93,69 @@ export default class Moderator extends Hub {
           },
         });
 
-        await interaction.reply(`Removed hub moderator ${user} from **${hub.name}**!`);
+        await interaction.reply(
+          t(
+            { phrase: 'hub.moderator.remove.success', locale: interaction.user.locale },
+            { user: user.toString(), emoji: emojis.yes },
+          ),
+        );
         break;
       }
 
       case 'update': {
         const user = interaction.options.getUser('user', true);
         const position = interaction.options.getString('position', true);
+        const isUserMod = hub.moderators.find((mod) => mod.userId === user.id);
+        const isExecutorMod = hub.moderators.find(
+          (mod) =>
+            (mod.userId === interaction.user.id && mod.position === 'manager') ||
+            hub.ownerId === interaction.user.id,
+        );
 
-        if (!hub.moderators.find((mod) => mod.userId === user.id)) {
-          return interaction.reply({
-            content: `User ${user} is not a moderator for **${hub.name}**!`,
+        if (!isExecutorMod) {
+          await interaction.reply({
+            embeds: [
+              simpleEmbed(
+                t({ phrase: 'hub.moderator.update.notAllowed', locale: interaction.user.locale }),
+              ),
+            ],
             ephemeral: true,
           });
+          return;
         }
-
-        if (hub.ownerId !== interaction.user.id && user.id === interaction.user.id) {
-          return interaction.reply({
-            content: 'Only the owner of the hub can update your role!',
+        else if (!isUserMod) {
+          await interaction.reply({
+            embeds: [
+              simpleEmbed(
+                t(
+                  {
+                    phrase: 'hub.moderator.update.nodModerator',
+                    locale: interaction.user.locale,
+                  },
+                  { user: user.toString() },
+                ),
+              ),
+            ],
             ephemeral: true,
           });
+          return;
+        }
+        else if (
+          (hub.ownerId !== interaction.user.id && user.id === interaction.user.id) ||
+          isUserMod.position === 'manager'
+        ) {
+          await interaction.reply({
+            embeds: [
+              simpleEmbed(
+                t({
+                  phrase: 'hub.moderator.update.notOwner',
+                  locale: interaction.user.locale,
+                }),
+              ),
+            ],
+            ephemeral: true,
+          });
+          return;
         }
 
         await db.hubs.update({
@@ -104,7 +166,13 @@ export default class Moderator extends Hub {
             },
           },
         });
-        interaction.reply(`Sucessfully moved ${user} to the role of \`${position}\` for **${hub.name}**!`);
+
+        await interaction.reply(
+          t(
+            { phrase: 'hub.moderator.update.success', locale: interaction.user.locale },
+            { user: user.toString(), position, emoji: emojis.yes },
+          ),
+        );
         break;
       }
 
@@ -116,9 +184,14 @@ export default class Moderator extends Hub {
               .setDescription(
                 hub.moderators.length > 0
                   ? hub.moderators
-                    .map((mod, index) => `${index + 1}. <@${mod.userId}> - ${mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'}`)
+                    .map(
+                      (mod, index) =>
+                        `${index + 1}. <@${mod.userId}> - ${
+                          mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'
+                        }`,
+                    )
                     .join('\n')
-                  : 'There are no moderators for this hub yet.',
+                  : t({ phrase: 'hub.moderator.noModerators', locale: interaction.user.locale }),
               )
               .setColor('Aqua')
               .setTimestamp(),

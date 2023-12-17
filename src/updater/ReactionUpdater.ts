@@ -24,12 +24,13 @@ import { CustomID } from '../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../decorators/Interaction.js';
 import { emojis } from '../utils/Constants.js';
 import { stripIndents } from 'common-tags';
+import { t } from '../utils/Locale.js';
 
 export default class ReactionUpdater extends Factory {
   /**
    * Listens for reactions on a message and updates the database with the new reaction data.
    */
-  public async listenForReactions(
+  public async listen(
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,
   ): Promise<void> {
@@ -88,10 +89,7 @@ export default class ReactionUpdater extends Factory {
     ReactionUpdater.updateReactions(messageInDb.channelAndMessageIds, dbReactions);
   }
 
-
-  /**
-   * Listens for a reaction button or select menu interaction and updates the reactions accordingly.
-   * */
+  /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')
   async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction) {
     await interaction.deferUpdate();
@@ -192,14 +190,14 @@ export default class ReactionUpdater extends Factory {
     else {
       if (userBlacklisted) {
         await interaction.followUp({
-          content: 'You are blacklisted from this hub.',
+          content: t({ phrase: 'errors.userBlacklisted', locale: interaction.user.locale }),
           ephemeral: true,
         });
         return;
       }
       else if (serverBlacklisted) {
         await interaction.followUp({
-          content: 'This server is blacklisted from this hub.',
+          content: t({ phrase: 'errors.userBlacklisted', locale: interaction.user.locale }),
           ephemeral: true,
         });
         return;

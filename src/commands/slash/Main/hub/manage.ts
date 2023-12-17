@@ -1,23 +1,28 @@
+import db from '../../../../utils/Db.js';
+import Hub from './index.js';
 import {
   ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   CacheType,
   ChatInputCommandInteraction,
   EmbedBuilder,
+  MessageComponentInteraction,
   ModalBuilder,
   ModalSubmitInteraction,
   StringSelectMenuBuilder,
-  StringSelectMenuInteraction,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import db from '../../../../utils/Db.js';
-import Hub from './index.js';
-import { hubs, connectedList } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import { emojis } from '../../../../utils/Constants.js';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
+import { t } from '../../../../utils/Locale.js';
 import { CustomID } from '../../../../utils/CustomID.js';
-import { checkAndFetchImgurUrl, errorEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
+import { stripIndents } from 'common-tags';
+import { colors, emojis } from '../../../../utils/Constants.js';
+import { hubs, connectedList } from '@prisma/client';
+import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
+import { buildSettingsEmbed, buildSettingsMenu } from '../../../../scripts/hub/settings.js';
+import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFields.js';
+import { checkAndFetchImgurUrl, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -36,18 +41,31 @@ export default class Manage extends Hub {
 
     if (!hubInDb) {
       await interaction.reply({
-        embeds: [
-          errorEmbed(
-            `${emojis.no} Hub not found. Make sure there are no typos in the name and that own or moderate the hub.`,
-          ),
-        ],
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
       });
       return;
     }
 
+    const button = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setLabel('Settings')
+        .setStyle(ButtonStyle.Secondary)
+        .setEmoji(emojis.settings)
+        .setCustomId(
+          new CustomID()
+            .setIdentifier('hub_manage', 'settingsBtn')
+            .addArgs(interaction.user.id)
+            .addArgs(hubInDb.name)
+            .toString(),
+        ),
+    );
+
     await interaction.reply({
       embeds: [await Manage.hubEmbed(hubInDb)],
-      components: [Manage.actionsSelect(hubInDb.name, interaction.user.id)],
+      components: [
+        Manage.actionsSelect(hubInDb.name, interaction.user.id, interaction.user.locale),
+        button,
+      ],
     });
 
     // disable components after 5 minutes
@@ -59,12 +77,13 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage')
-  async handleComponents(interaction: StringSelectMenuInteraction) {
+  async handleComponents(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
+    const locale = interaction.user.locale;
 
     if (customId.args[0] !== interaction.user.id) {
       await interaction.reply({
-        embeds: [errorEmbed('This dropdown is not for you!')],
+        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }))],
         ephemeral: true,
       });
       return;
@@ -76,104 +95,195 @@ export default class Manage extends Hub {
     });
 
     if (!hubInDb) {
-      await interaction.reply({ content: 'This hub no longer exists!', ephemeral: true });
+      await interaction.reply({
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }))],
+        ephemeral: true,
+      });
       return;
     }
 
-    switch (interaction.values[0]) {
-      case 'icon': {
-        const modal = new ModalBuilder()
-          .setCustomId(
-            new CustomID()
-              .setIdentifier('hub_manage_modal', 'icon')
-              .addArgs(hubInDb.name)
-              .toString(),
-          )
-          .setTitle('Change Hub Icon')
-          .addComponents(
-            new ActionRowBuilder<TextInputBuilder>().addComponents(
-              new TextInputBuilder()
-                .setLabel('Enter Icon URL')
-                .setPlaceholder('Enter a valid imgur image URL.')
-                .setStyle(TextInputStyle.Short)
-                .setCustomId('icon'),
-            ),
-          );
+    // settings button
+    if (interaction.isButton()) {
+      if (customId.postfix === 'settingsBtn') {
+        const { name, iconUrl, settings } = hubInDb;
+        const embed = buildSettingsEmbed(name, iconUrl, settings);
+        const selects = buildSettingsMenu(settings, name, customId.args[0]);
 
-        await interaction.showModal(modal);
-        break;
+        await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
+      }
+    }
+
+    // hub manage selects/toggle settings menu
+    else if (interaction.isStringSelectMenu()) {
+      if (customId.postfix === 'actions') {
+        switch (interaction.values[0]) {
+          case 'icon': {
+            const modal = new ModalBuilder()
+              .setCustomId(
+                new CustomID()
+                  .setIdentifier('hub_manage_modal', 'icon')
+                  .addArgs(hubInDb.name)
+                  .toString(),
+              )
+              .setTitle(t({ phrase: 'hub.manage.icon.modal.title', locale }))
+              .addComponents(
+                new ActionRowBuilder<TextInputBuilder>().addComponents(
+                  new TextInputBuilder()
+                    .setLabel(t({ phrase: 'hub.manage.icon.modal.label', locale }))
+                    .setPlaceholder(
+                      t({
+                        phrase: 'hub.manage.enterImgurUrl',
+                        locale,
+                      }),
+                    )
+                    .setStyle(TextInputStyle.Short)
+                    .setCustomId('icon'),
+                ),
+              );
+
+            await interaction.showModal(modal);
+            break;
+          }
+
+          case 'description': {
+            const modal = new ModalBuilder()
+              .setCustomId(
+                new CustomID()
+                  .setIdentifier('hub_manage_modal', 'description')
+                  .addArgs(hubInDb.name)
+                  .toString(),
+              )
+              .setTitle(
+                t({
+                  phrase: 'hub.manage.description.modal.title',
+                  locale,
+                }),
+              )
+              .addComponents(
+                new ActionRowBuilder<TextInputBuilder>().addComponents(
+                  new TextInputBuilder()
+                    .setLabel(
+                      t({
+                        phrase: 'hub.manage.description.modal.label',
+                        locale,
+                      }),
+                    )
+                    .setPlaceholder(
+                      t({
+                        phrase: 'hub.manage.description.modal.placeholder',
+                        locale,
+                      }),
+                    )
+                    .setMaxLength(1024)
+                    .setStyle(TextInputStyle.Paragraph)
+                    .setCustomId('description'),
+                ),
+              );
+
+            await interaction.showModal(modal);
+            break;
+          }
+
+          case 'banner': {
+            const modal = new ModalBuilder()
+              .setCustomId(
+                new CustomID()
+                  .setIdentifier('hub_manage_modal', 'banner')
+                  .addArgs(hubInDb.name)
+                  .toString(),
+              )
+              .setTitle('Set Hub Banner')
+              .addComponents(
+                new ActionRowBuilder<TextInputBuilder>().addComponents(
+                  new TextInputBuilder()
+                    .setLabel(
+                      t({
+                        phrase: 'hub.manage.banner.modal.label',
+                        locale,
+                      }),
+                    )
+                    .setPlaceholder(t({ phrase: 'hub.manage.enterImgurUrl', locale }))
+                    .setStyle(TextInputStyle.Short)
+                    .setRequired(false)
+                    .setCustomId('banner'),
+                ),
+              );
+
+            await interaction.showModal(modal);
+            break;
+          }
+
+          case 'visibility': {
+            const updatedHub = await db.hubs.update({
+              where: { id: hubInDb?.id },
+              data: { private: !hubInDb?.private },
+              include: { connections: true },
+            });
+
+            await interaction.reply({
+              content: t(
+                { phrase: 'hub.manage.visibility.success', locale },
+                {
+                  emoji: updatedHub.private ? '🔒' : '🔓',
+                  visibility: updatedHub.private ? 'private' : 'public',
+                },
+              ),
+              ephemeral: true,
+            });
+
+            await interaction.message
+              .edit({ embeds: [await Manage.hubEmbed(updatedHub)] })
+              .catch(() => null);
+            break;
+          }
+
+          default:
+            break;
+        }
       }
 
-      case 'description': {
-        const modal = new ModalBuilder()
-          .setCustomId(
-            new CustomID()
-              .setIdentifier('hub_manage_modal', 'description')
-              .addArgs(hubInDb.name)
-              .toString(),
-          )
-          .setTitle('Edit Hub Description')
-          .addComponents(
-            new ActionRowBuilder<TextInputBuilder>().addComponents(
-              new TextInputBuilder()
-                .setLabel('Enter Description')
-                .setPlaceholder('A detailed description about the hub.')
-                .setMaxLength(1024)
-                .setStyle(TextInputStyle.Paragraph)
-                .setCustomId('description'),
-            ),
-          );
+      // settings menu
+      else if (customId.postfix === 'settingsToggle') {
+        // respond to select menu
+        const selected = interaction.values[0] as HubSettingsString;
 
-        await interaction.showModal(modal);
-        break;
-      }
+        // TODO: implement BlockNSFW, only allow hubs that are explicitly marked as NSFW to have this setting
+        // & only allow network channels to be marked as NSFW
+        if (selected === 'BlockNSFW') {
+          return interaction.reply({
+            embeds: [
+              simpleEmbed(
+                `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
+              ),
+            ],
+            ephemeral: true,
+          });
+        }
 
-      case 'banner': {
-        const modal = new ModalBuilder()
-          .setCustomId(
-            new CustomID()
-              .setIdentifier('hub_manage_modal', 'banner')
-              .addArgs(hubInDb.name)
-              .toString(),
-          )
-          .setTitle('Set Hub Banner')
-          .addComponents(
-            new ActionRowBuilder<TextInputBuilder>().addComponents(
-              new TextInputBuilder()
-                .setLabel('Enter Banner URL')
-                .setPlaceholder('Enter a valid imgur URL. Leave blank to remove.')
-                .setStyle(TextInputStyle.Short)
-                .setRequired(false)
-                .setCustomId('banner'),
-            ),
-          );
-
-        await interaction.showModal(modal);
-        break;
-      }
-
-      case 'visibility': {
-        const updatedHub = await db.hubs.update({
-          where: { id: hubInDb?.id },
-          data: { private: !hubInDb?.private },
-          include: { connections: true },
+        const hubSettings = new HubSettingsBitField(hubInDb.settings);
+        const updHub = await db.hubs.update({
+          where: { id: hubInDb.id },
+          data: { settings: hubSettings.toggle(selected).bitfield }, // toggle the setting
         });
 
-        await interaction.reply({
-          content: `Successfully set hub visibility to **${
-            updatedHub?.private ? 'Private' : 'Public'
-          }**.`,
-          ephemeral: true,
+        if (!updHub) {
+          await interaction.reply({
+            embeds: [simpleEmbed(t({ phrase: 'errors.unknown', locale: interaction.user.locale }))],
+            ephemeral: true,
+          });
+          return;
+        }
+
+        const { name, iconUrl, settings } = updHub;
+
+        const embed = buildSettingsEmbed(name, iconUrl, settings);
+        const selects = buildSettingsMenu(settings, name, customId.args[0]);
+
+        await interaction.update({
+          embeds: [embed],
+          components: [selects],
         });
-
-        await interaction.message
-          .edit({ embeds: [await Manage.hubEmbed(updatedHub)] })
-          .catch(() => null);
-        break;
       }
-
-      default:
-        break;
     }
   }
 
@@ -181,6 +291,7 @@ export default class Manage extends Hub {
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const hubName = customId.args[0];
+    const locale = interaction.user.locale || 'en';
 
     let hubInDb = await db.hubs.findFirst({
       where: {
@@ -195,8 +306,7 @@ export default class Manage extends Hub {
 
     if (!hubInDb) {
       await interaction.reply({
-        content:
-          'This hub no longer exists or you no longer have permissions to perform this action!',
+        content: t({ phrase: 'hub.notFound_mod', locale }),
         ephemeral: true,
       });
       return;
@@ -212,7 +322,7 @@ export default class Manage extends Hub {
         });
 
         await interaction.reply({
-          content: 'Successfully updated hub description.',
+          content: t({ phrase: 'hub.manage.description.changed', locale }),
           ephemeral: true,
         });
         break;
@@ -226,7 +336,7 @@ export default class Manage extends Hub {
         const iconUrl = await checkAndFetchImgurUrl(newIcon);
         if (!iconUrl) {
           await interaction.reply({
-            content: 'Invalid icon URL. Please make sure it is a valid imgur image URL.',
+            content: t({ phrase: 'hub.invalidImgurUrl', locale }),
             ephemeral: true,
           });
           return;
@@ -238,7 +348,7 @@ export default class Manage extends Hub {
         });
 
         await interaction.reply({
-          content: 'Successfully updated icon!',
+          content: t({ phrase: 'hub.manage.icon.changed', locale }),
           ephemeral: true,
         });
         break;
@@ -254,7 +364,10 @@ export default class Manage extends Hub {
             data: { bannerUrl: { unset: true } },
           });
 
-          await interaction.reply({ content: 'Successfully removed banner!', ephemeral: true });
+          await interaction.reply({
+            content: t({ phrase: 'hub.manage.banner.removed', locale }),
+            ephemeral: true,
+          });
           break;
         }
 
@@ -263,7 +376,7 @@ export default class Manage extends Hub {
         // if banner is not a valid imgur link
         if (!bannerUrl) {
           await interaction.reply({
-            content: 'Invalid banner URL. Please make sure it is a valid imgur image URL.',
+            content: t({ phrase: 'hub.invalidImgurUrl', locale }),
             ephemeral: true,
           });
           return;
@@ -274,7 +387,10 @@ export default class Manage extends Hub {
           data: { bannerUrl },
         });
 
-        await interaction.reply({ content: 'Successfully updated banner!', ephemeral: true });
+        await interaction.reply({
+          content: t({ phrase: 'hub.manage.banner.changed', locale }),
+          ephemeral: true,
+        });
         break;
       }
 
@@ -297,7 +413,7 @@ export default class Manage extends Hub {
   }
 
   // utility methods
-  static actionsSelect(hubName: string, userId: string) {
+  static actionsSelect(hubName: string, userId: string, locale = 'en') {
     return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId(
@@ -309,27 +425,27 @@ export default class Manage extends Hub {
         )
         .addOptions([
           {
-            label: 'Edit Description',
+            label: t({ phrase: 'hub.manage.description.selects.label', locale }),
             value: 'description',
-            description: 'Edit the hub description.',
+            description: t({ phrase: 'hub.manage.description.selects.description', locale }),
             emoji: '✏️',
           },
           {
-            label: 'Toggle Visibility',
+            label: t({ phrase: 'hub.manage.visibility.selects.label', locale }),
             value: 'visibility',
-            description: 'Toggle the hub visibility between public and private.',
+            description: t({ phrase: 'hub.manage.visibility.selects.description', locale }),
             emoji: '🔒',
           },
           {
-            label: 'Set Icon',
+            label: t({ phrase: 'hub.manage.icon.selects.label', locale }),
             value: 'icon',
-            description: 'Set the hub icon.',
+            description: t({ phrase: 'hub.manage.icon.selects.description', locale }),
             emoji: '🖼️',
           },
           {
-            label: 'Set Banner',
+            label: t({ phrase: 'hub.manage.banner.selects.label', locale }),
             value: 'banner',
-            description: 'Set the hub banner.',
+            description: t({ phrase: 'hub.manage.banner.selects.description', locale }),
             emoji: '🎨',
           },
         ]),
@@ -346,7 +462,7 @@ export default class Manage extends Hub {
 
     return new EmbedBuilder()
       .setTitle(hub.name)
-      .setColor('Random')
+      .setColor(colors.interchatBlue)
       .setDescription(
         stripIndents`
       ${hub.description}
@@ -383,7 +499,6 @@ export default class Manage extends Hub {
           - Mod Logs: ${hub?.logChannels?.modLogs ? `<#${hub?.logChannels?.modLogs}>` : emojis.no}
           - Reports: ${hub?.logChannels?.reports ? `<#${hub?.logChannels?.reports}>` : emojis.no}
           `,
-          inline: true,
         },
       );
   }

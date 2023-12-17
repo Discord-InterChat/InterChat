@@ -1,9 +1,11 @@
 import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
 import { captureException } from '@sentry/node';
-import { stripIndents } from 'common-tags';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
+import Logger from '../../../../utils/Logger.js';
+import { simpleEmbed } from '../../../../utils/Utils.js';
+import { t } from '../../../../utils/Locale.js';
 
 export default class Invite extends Hub {
   readonly cooldown = 3000; // 3 seconds
@@ -33,7 +35,9 @@ export default class Invite extends Hub {
 
         if (!hubInDb) {
           await interaction.reply({
-            content: `${emojis.no} Invalid Hub Provided. Make sure you are a owner/manager of the hub and that hub is private.`,
+            embeds: [
+              simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
+            ],
             ephemeral: true,
           });
           return;
@@ -46,16 +50,14 @@ export default class Invite extends Hub {
         });
 
         const embed = new EmbedBuilder()
-          .setTitle('Invite Created')
           .setDescription(
-            stripIndents`
-          Give this code to someone who wishes to join the hub. This invite has unlimited uses.
-
-          Join using: \`/hub join invite:${createdInvite.code}\`
-
-          **Code:** \`${createdInvite.code}\`
-          **Expiry <t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>**
-        `,
+            t(
+              { phrase: 'hub.invite.create.success', locale: interaction.user.locale },
+              {
+                inviteCode: createdInvite.code,
+                expiry: `<t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>`,
+              },
+            ),
           )
           .setColor('Green')
           .setTimestamp();
@@ -83,7 +85,10 @@ export default class Invite extends Hub {
 
         if (!inviteInDb) {
           await interaction.reply({
-            content: `${emojis.no} Invalid Invite Code.`,
+            content: t({
+              phrase: 'hub.invite.revoke.invalidCode',
+              locale: interaction.user.locale,
+            }),
             ephemeral: true,
           });
           return;
@@ -92,17 +97,25 @@ export default class Invite extends Hub {
         try {
           await db.hubInvites.delete({ where: { code } });
           await interaction.reply({
-            content: `Successfully revoked invite \`${code}\`!`,
+            embeds: [
+              simpleEmbed(
+                t(
+                  { phrase: 'hub.invite.revoke.success', locale: interaction.user.locale },
+                  { emoji: emojis.yes, inviteCode: code },
+                ),
+              ),
+            ],
             ephemeral: true,
           });
         }
         catch (e) {
-          interaction.client.logger.error(e);
+          Logger.error(e);
           captureException(e);
           await interaction
             .reply({
-              content:
-                'An error occoured while trying to revoke invite! The developers have been notified.',
+              embeds: [
+                simpleEmbed(t({ phrase: 'errors.unknown', locale: interaction.user.locale })),
+              ],
               ephemeral: true,
             })
             .catch(() => null);
@@ -125,7 +138,11 @@ export default class Invite extends Hub {
 
         if (!hubInDb?.private) {
           await interaction.reply({
-            content: 'You can only view invite codes for private hubs.',
+            embeds: [
+              simpleEmbed(
+                t({ phrase: 'hub.invite.list.notPrivate', locale: interaction.user.locale }),
+              ),
+            ],
             ephemeral: true,
           });
           return;
@@ -134,7 +151,11 @@ export default class Invite extends Hub {
         const invitesInDb = await db.hubInvites.findMany({ where: { hubId: hubInDb.id } });
         if (invitesInDb.length === 0) {
           await interaction.reply({
-            content: `${emojis.yes} There are no invites to this hub yet.`,
+            embeds: [
+              simpleEmbed(
+                t({ phrase: 'hub.invite.list.noInvites', locale: interaction.user.locale }),
+              ),
+            ],
             ephemeral: true,
           });
           return;
@@ -146,7 +167,7 @@ export default class Invite extends Hub {
         );
 
         const inviteEmbed = new EmbedBuilder()
-          .setTitle('Invite Codes')
+          .setTitle(t({ phrase: 'hub.invite.list.title', locale: interaction.user.locale }))
           .setDescription(inviteArr.join('\n'))
           .setColor('Yellow')
           .setTimestamp();
