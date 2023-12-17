@@ -35,10 +35,8 @@ jobs:
           run: |
             cp ~/important/interchat-env .env
             npm run build --if-present
-
-        - name: Rebuild Tensorflow
-          run: npm run build --if-present
-            # cd api && npm rebuild @tensorflow/tfjs-node --build-from-source
+            npm rebuild @tensorflow/tfjs-node --build-from-source 
+          # rebuilds tfjs-node for the current os
 
         - name: Deploy Commands
           run: |
