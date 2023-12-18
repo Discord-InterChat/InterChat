@@ -82,15 +82,15 @@ export default class NetworkManager extends Factory {
 
         if (predictions && nsfwDetector.isUnsafeContent(predictions)) {
           const nsfwEmbed = new EmbedBuilder()
-            .setTitle(t({ phrase: 'nsfw.title', locale: message.author.locale }))
+            .setTitle(t({ phrase: 'nsfw.title', locale }))
             .setDescription(
               t(
-                { phrase: 'nsfw.description', locale: message.author.locale },
-                { confidence: `${Math.round(predictions[0].probability * 100)}` },
+                { phrase: 'nsfw.description', locale },
+                { predictions: `${Math.round(predictions[0].probability * 100)}%` },
               ),
             )
             .setFooter({
-              text: t({ phrase: 'nsfw.footer', locale: message.author.locale }),
+              text: t({ phrase: 'nsfw.footer', locale }),
               iconURL: 'https://i.imgur.com/625Zy9W.png',
             })
             .setColor('Red');
