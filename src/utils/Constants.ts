@@ -92,8 +92,8 @@ export const colors = {
     'NotQuiteBlack',
     'Random',
   ] as (keyof typeof Colors)[],
-  interchatBlue: '#5CB5F9' as HexColorString,
-  invisible: '#2F3136' as HexColorString,
+  interchatBlue: '#58b9ff' as HexColorString,
+  invisible: '#2b2d31' as HexColorString,
   christmas: ['#00B32C', '#D6001C', '#FFFFFF'] as HexColorString[],
 } as const;
 

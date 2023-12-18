@@ -146,12 +146,11 @@ export default class CommandManager extends Factory {
         await this.loadCommandFiles(filePath);
       }
 
-      // If the item is a .js file, read its contents
       else if (file.endsWith('.js') && file !== 'BaseCommand.js') {
         const imported = await import(importPrefix + filePath);
         const command = new imported.default();
 
-        // if the command extends BaseCommand (ie. its not a subcommand), add it to the commands map
+        // if the command extends BaseCommand (ie. is not a subcommand), add it to the commands map
         if (Object.getPrototypeOf(command.constructor) === BaseCommand) {
           commandsMap.set(command.data.name, command);
         }
@@ -164,7 +163,9 @@ export default class CommandManager extends Factory {
           access(subcommandFile, constants.F_OK, async (err) => {
             if (err || file === 'index.js') return;
 
+            // get the parent command class from the subcommand
             const parentCommand = Object.getPrototypeOf(command.constructor);
+            // set the subcommand class to the parent command's subcommands map
             parentCommand.subcommands.set(file.replace('.js', ''), command);
           });
         }

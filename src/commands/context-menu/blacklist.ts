@@ -74,7 +74,7 @@ export default class Blacklist extends BaseCommand {
             .addArgs('u=1')
             .toString(),
         )
-        .setLabel(t({ phrase: 'blacklist.components.user', locale }))
+        .setLabel(t({ phrase: 'blacklist.button.user', locale }))
         .setStyle(ButtonStyle.Secondary)
         .setEmoji('👤'),
       new ButtonBuilder()
@@ -86,7 +86,7 @@ export default class Blacklist extends BaseCommand {
             .addArgs('s=1')
             .toString(),
         )
-        .setLabel(t({ phrase: 'blacklist.components.user', locale }))
+        .setLabel(t({ phrase: 'blacklist.button.user', locale }))
         .setStyle(ButtonStyle.Secondary)
         .setEmoji('🏠'),
     );
