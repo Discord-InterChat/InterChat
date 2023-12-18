@@ -5,6 +5,8 @@ import {
   ButtonBuilder,
   ButtonStyle,
   CacheType,
+  ChannelSelectMenuBuilder,
+  ChannelType,
   ChatInputCommandInteraction,
   EmbedBuilder,
   MessageComponentInteraction,
@@ -18,11 +20,13 @@ import { t } from '../../../../utils/Locale.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { stripIndents } from 'common-tags';
 import { colors, emojis } from '../../../../utils/Constants.js';
-import { hubs, connectedList } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { buildSettingsEmbed, buildSettingsMenu } from '../../../../scripts/hub/settings.js';
 import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFields.js';
 import { checkAndFetchImgurUrl, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
+import { actionsSelect, hubEmbed } from '../../../../scripts/hub/manage.js';
+import { genLogInfoEmbed } from '../../../../scripts/hub/logs.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -58,12 +62,23 @@ export default class Manage extends Hub {
             .addArgs(hubInDb.name)
             .toString(),
         ),
+      new ButtonBuilder()
+        .setLabel('Logging')
+        .setStyle(ButtonStyle.Secondary)
+        .setEmoji(emojis.store)
+        .setCustomId(
+          new CustomID()
+            .setIdentifier('hub_manage', 'logsBtn')
+            .addArgs(interaction.user.id)
+            .addArgs(hubInDb.name)
+            .toString(),
+        ),
     );
 
     await interaction.reply({
-      embeds: [await Manage.hubEmbed(hubInDb)],
+      embeds: [await hubEmbed(hubInDb)],
       components: [
-        Manage.actionsSelect(hubInDb.name, interaction.user.id, interaction.user.locale),
+        actionsSelect(hubInDb.name, interaction.user.id, interaction.user.locale),
         button,
       ],
     });
@@ -109,6 +124,60 @@ export default class Manage extends Hub {
         const embed = buildSettingsEmbed(name, iconUrl, settings);
         const selects = buildSettingsMenu(settings, name, customId.args[0]);
 
+        await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
+      }
+      else if (customId.postfix === 'logsBtn') {
+        const embed = genLogInfoEmbed(hubInDb);
+
+        const selects = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+          new StringSelectMenuBuilder()
+            .setCustomId(
+              new CustomID()
+                .setIdentifier('hub_manage', 'logsSelect')
+                .addArgs(interaction.user.id)
+                .addArgs(hubInDb.name)
+                .toString(),
+            )
+            .setPlaceholder('Choose a log type to set a channel.')
+            .addOptions([
+              {
+                label: 'Profanity',
+                value: 'profanity',
+                description: 'Log messages that contain profanity.',
+                emoji: '🤬',
+              },
+              {
+                label: 'Mod Logs',
+                value: 'modLogs',
+                description: 'Log moderation actions taken by hub moderators.',
+                emoji: '👮',
+              },
+              {
+                label: 'Reports',
+                value: 'reports',
+                description: 'Log reports sent by users.',
+                emoji: '📢',
+              },
+              {
+                label: 'Message Edits',
+                value: 'msgEdits',
+                description: 'Log message edits.',
+                emoji: '📝',
+              },
+              {
+                label: 'Message Deletes',
+                value: 'msgDeletes',
+                description: 'Log message deletes.',
+                emoji: '🗑️',
+              },
+              {
+                label: 'Joins/Leaves',
+                value: 'joinLeaves',
+                description: 'Log when a server joins/leaves the hub.',
+                emoji: '👋',
+              },
+            ]),
+        );
         await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
       }
     }
@@ -232,7 +301,7 @@ export default class Manage extends Hub {
             });
 
             await interaction.message
-              .edit({ embeds: [await Manage.hubEmbed(updatedHub)] })
+              .edit({ embeds: [await hubEmbed(updatedHub)] })
               .catch(() => null);
             break;
           }
@@ -243,7 +312,7 @@ export default class Manage extends Hub {
       }
 
       // settings menu
-      else if (customId.postfix === 'settingsToggle') {
+      else if (customId.postfix === 'settingsSelect') {
         // respond to select menu
         const selected = interaction.values[0] as HubSettingsString;
 
@@ -283,6 +352,68 @@ export default class Manage extends Hub {
           embeds: [embed],
           components: [selects],
         });
+      }
+      else if (customId.postfix === 'logsSelect') {
+        const type = interaction.values[0] as keyof Prisma.HubLogChannelsCreateInput;
+
+        const channelSelect = new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
+          new ChannelSelectMenuBuilder()
+            .setCustomId(
+              new CustomID()
+                .setIdentifier('hub_manage', 'logsChSel')
+                .addArgs(interaction.user.id)
+                .addArgs(hubInDb.name)
+                .addArgs(type)
+                .toString(),
+            )
+            .addChannelTypes(
+              ChannelType.GuildText,
+              ChannelType.PublicThread,
+              ChannelType.PrivateThread,
+            )
+            .setPlaceholder(`#️⃣ Select a log channel for ${type} logs`),
+        );
+
+        // disable log select menu when trying to change channel
+        const oldSelect = new ActionRowBuilder<StringSelectMenuBuilder>(
+          interaction.message.components[0].toJSON(),
+        );
+        oldSelect.components[0].setDisabled(true);
+
+        await interaction.update({ components: [oldSelect, channelSelect] });
+      }
+    }
+    else if (interaction.isChannelSelectMenu()) {
+      if (customId.postfix === 'logsChSel') {
+        const channel = interaction.channels.first();
+        const type = customId.args[2];
+
+        await db.hubs.update({
+          where: { id: hubInDb.id },
+          data: {
+            logChannels: {
+              upsert: { set: { [type]: channel?.id }, update: { [type]: channel?.id } },
+            },
+          },
+        });
+
+        const embed = new EmbedBuilder()
+          .setDescription(
+            stripIndents`
+            ### <:beta:1170691588607983699> Log Channel Set
+    
+            ${emojis.yes} <#${channel?.id}> will be used for sending \`${type}\` logs from now on.
+            `,
+          )
+          .setColor(colors.invisible);
+
+        const newComponents = interaction.message.components
+          .filter((row, index) => (index === 0 ? row : false))
+          .map((row) => row.toJSON());
+        newComponents[0].components[0].disabled = false;
+
+        await interaction.update({ embeds: [genLogInfoEmbed(hubInDb)], components: [newComponents[0]] });
+        await interaction.followUp({ embeds: [embed], ephemeral: true });
       }
     }
   }
@@ -407,99 +538,8 @@ export default class Manage extends Hub {
     // update the original message with new embed
     if (hubInDb) {
       await interaction.message
-        ?.edit({ embeds: [await Manage.hubEmbed(hubInDb)] })
+        ?.edit({ embeds: [await hubEmbed(hubInDb)] })
         .catch(() => null);
     }
-  }
-
-  // utility methods
-  static actionsSelect(hubName: string, userId: string, locale = 'en') {
-    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId(
-          new CustomID()
-            .setIdentifier('hub_manage', 'actions')
-            .addArgs(userId)
-            .addArgs(hubName)
-            .toString(),
-        )
-        .addOptions([
-          {
-            label: t({ phrase: 'hub.manage.description.selects.label', locale }),
-            value: 'description',
-            description: t({ phrase: 'hub.manage.description.selects.description', locale }),
-            emoji: '✏️',
-          },
-          {
-            label: t({ phrase: 'hub.manage.visibility.selects.label', locale }),
-            value: 'visibility',
-            description: t({ phrase: 'hub.manage.visibility.selects.description', locale }),
-            emoji: '🔒',
-          },
-          {
-            label: t({ phrase: 'hub.manage.icon.selects.label', locale }),
-            value: 'icon',
-            description: t({ phrase: 'hub.manage.icon.selects.description', locale }),
-            emoji: '🖼️',
-          },
-          {
-            label: t({ phrase: 'hub.manage.banner.selects.label', locale }),
-            value: 'banner',
-            description: t({ phrase: 'hub.manage.banner.selects.description', locale }),
-            emoji: '🎨',
-          },
-        ]),
-    );
-  }
-
-  static async hubEmbed(hub: hubs & { connections: connectedList[] }) {
-    const hubBlacklistedUsers = await db.userData.count({
-      where: { blacklistedFrom: { some: { hubId: hub.id } } },
-    });
-    const hubBlacklistedServers = await db.blacklistedServers.count({
-      where: { hubs: { some: { hubId: hub.id } } },
-    });
-
-    return new EmbedBuilder()
-      .setTitle(hub.name)
-      .setColor(colors.interchatBlue)
-      .setDescription(
-        stripIndents`
-      ${hub.description}
-      - __**Public:**__ ${hub.private ? emojis.no : emojis.yes}
-    `,
-      )
-      .setThumbnail(hub.iconUrl)
-      .setImage(hub.bannerUrl)
-      .addFields(
-        {
-          name: 'Blacklists',
-          value: stripIndents`
-        - Users: ${hubBlacklistedUsers}
-        - Servers: ${hubBlacklistedServers}
-        `,
-          inline: true,
-        },
-
-        {
-          name: 'Hub Stats',
-          value: stripIndents`
-        - Moderators: ${hub.moderators.length.toString()}
-        - Connected: ${hub.connections.length}
-        - Owner: <@${hub.ownerId}>
-        `,
-          inline: true,
-        },
-        {
-          name: 'Log Channels',
-          value: stripIndents`
-          - Profanity: ${
-  hub?.logChannels?.profanity ? `<#${hub?.logChannels?.profanity}>` : emojis.no
-}
-          - Mod Logs: ${hub?.logChannels?.modLogs ? `<#${hub?.logChannels?.modLogs}>` : emojis.no}
-          - Reports: ${hub?.logChannels?.reports ? `<#${hub?.logChannels?.reports}>` : emojis.no}
-          `,
-        },
-      );
   }
 }

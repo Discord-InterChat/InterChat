@@ -39,7 +39,7 @@ export function buildSettingsMenu(
     new StringSelectMenuBuilder()
       .setCustomId(
         new CustomID()
-          .setIdentifier('hub_manage', 'settingsToggle')
+          .setIdentifier('hub_manage', 'settingsSelect')
           .addArgs(userId)
           .addArgs(hubName)
           .toString(),

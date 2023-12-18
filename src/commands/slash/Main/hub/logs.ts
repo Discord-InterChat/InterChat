@@ -6,11 +6,11 @@ import { simpleEmbed } from '../../../../utils/Utils.js';
 import { Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 
-export default class Logging extends Hub {
+export default class Logs extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const hub = interaction.options.getString('hub', true);
     const type = interaction.options.getString(
-      'log_type',
+      'type',
       true,
     ) as keyof Prisma.HubLogChannelsCreateInput;
     const channel = interaction.options.getChannel('channel', true, [
