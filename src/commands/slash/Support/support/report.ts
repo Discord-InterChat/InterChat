@@ -185,9 +185,9 @@ export default class Report extends Support {
           if (!devChat) return;
 
           // finally make the post in ic central
-          await devChat.send({ embeds: [bugReportEmbed] });
+          await devChat.send({ embeds: [ctx.embed] });
         },
-        { context: { affected, devChannel: channels.devChat } },
+        { context: { affected, devChannel: channels.devChat, embed: bugReportEmbed.toJSON() } },
       );
 
       await interaction.reply({
