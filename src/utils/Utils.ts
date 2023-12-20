@@ -157,7 +157,15 @@ export async function deleteHubs(ids: string[]) {
   // delete all relations first and then delete the hub
   await db.connectedList.deleteMany({ where: { hubId: { in: ids } } });
   await db.hubInvites.deleteMany({ where: { hubId: { in: ids } } });
-  await db.messageData.deleteMany({ where: { hubId: { in: ids } } });
+  await db.originalMessages
+    .findMany({ where: { hubId: { in: ids } }, include: { broadcastMsgs: true } })
+    .then((m) =>
+      deleteNetworkMsgs(
+        m.map(({ broadcastMsgs }) => broadcastMsgs.map(({ messageId }) => messageId)).flat(),
+      ),
+    );
+
+  // finally, delete the hub
   await db.hubs.deleteMany({ where: { id: { in: ids } } });
 }
 
@@ -226,4 +234,33 @@ export async function replyWithError(interaction: CmdInteraction, e: string) {
     embeds: [simpleEmbed(genCommandErrMsg(interaction.user.locale || 'en', e))],
     ephemeral: true,
   }).catch(() => null);
+}
+
+/**
+ * Parses the timestamp from a Snowflake ID and returns it in milliseconds.
+ * @param id The Snowflake ID to parse.
+ * @returns The timestamp in milliseconds.
+ */
+export function parseTimestampFromId(id: Snowflake) {
+  // Convert ID to binary
+  const binaryId = BigInt(id).toString(2);
+
+  // Extract timestamp bits
+  const timestampBits = binaryId.substring(0, binaryId.length - 22);
+
+  // Convert timestamp to milliseconds
+  const timestamp = parseInt(timestampBits, 2);
+
+  return timestamp + 1420070400000; // Discord epoch time
+}
+
+export async function deleteNetworkMsgs(ids: string[]) {
+  // delete all relations first and then delete the hub
+  const msgsToDelete = await db.broadcastedMessages.findMany({ where: { messageId: { in: ids } } });
+  if (!msgsToDelete) return;
+
+  await db.broadcastedMessages.deleteMany({ where: { messageId: { in: ids } } });
+  await db.originalMessages.deleteMany({
+    where: { messageId: { in: msgsToDelete.map((i) => i.originalMsgId) } },
+  });
 }

@@ -25,9 +25,10 @@ export default class JoinSubCommand extends Hub {
 
     const channelInHub = await networkManager.fetchConnection({ channelId: channel.id });
     if (channelInHub) {
+      const alrJoinedHub = await db.hubs.findFirst({ where: { id: channelInHub?.hubId } });
       return await interaction.reply({
         embeds: [
-          simpleEmbed(t({ phrase: 'hub.alreadyJoined', locale }, { channel: `${channel}` })),
+          simpleEmbed(t({ phrase: 'hub.alreadyJoined', locale }, { channel: `${channel}`, hub: `${alrJoinedHub?.name}` })),
         ],
         ephemeral: true,
       });

@@ -37,12 +37,12 @@ export default class EditMessage extends BaseCommand {
       return;
     }
 
-    const messageInDb = await db.messageData.findFirst({
-      where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
-      include: { hub: true },
+    const messageInDb = await db.broadcastedMessages.findFirst({
+      where: { messageId: target.id },
+      include: { originalMsg: { include: { hub: true } } },
     });
 
-    if (!messageInDb) {
+    if (!messageInDb?.originalMsg) {
       await interaction.reply({
         content: t(
           t({
@@ -54,7 +54,7 @@ export default class EditMessage extends BaseCommand {
       });
       return;
     }
-    else if (interaction.user.id != messageInDb?.authorId) {
+    else if (interaction.user.id != messageInDb?.originalMsg.authorId) {
       await interaction.reply({
         content: t({ phrase: 'errors.notMessageAuthor', locale: interaction.user.locale }),
         ephemeral: true,
@@ -96,11 +96,12 @@ export default class EditMessage extends BaseCommand {
       return await interaction.reply(t({ phrase: 'errors.unknownNetworkMessage' }));
     }
 
-    const messageInDb = await db.messageData.findFirst({
-      where: { channelAndMessageIds: { some: { messageId: { equals: target.id } } } },
-      include: { hub: true },
+    const messageInDb = await db.broadcastedMessages.findFirst({
+      where: { messageId: target.id },
+      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
     });
-    if (!messageInDb?.hub) {
+
+    if (!messageInDb?.originalMsg.hub) {
       return await interaction.reply(
         t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
       );
@@ -111,7 +112,7 @@ export default class EditMessage extends BaseCommand {
 
     // get the new message input by user
     const userInput = interaction.fields.getTextInputValue('newMessage');
-    const hubSettings = new HubSettingsBitField(messageInDb.hub.settings);
+    const hubSettings = new HubSettingsBitField(messageInDb.originalMsg.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
     const networkManager = interaction.client.getNetworkManager();
 
@@ -132,7 +133,7 @@ export default class EditMessage extends BaseCommand {
       ? await networkManager.getAttachmentURL(target.content)
       : target.embeds[0]?.image?.url;
     const newImageUrl = await networkManager.getAttachmentURL(newMessage);
-    const guild = await interaction.client.fetchGuild(messageInDb.serverId);
+    const guild = await interaction.client.fetchGuild(messageInDb.originalMsg.serverId);
     const embedContent = newMessage.replace(oldImageUrl ?? '', '').replace(newImageUrl ?? '', '');
 
     // if the message being edited is in compact mode
@@ -173,10 +174,10 @@ export default class EditMessage extends BaseCommand {
 
     // find all the messages through the network
     const channelSettingsArr = await db.connectedList.findMany({
-      where: { channelId: { in: messageInDb.channelAndMessageIds.map((c) => c.channelId) } },
+      where: { channelId: { in: messageInDb.originalMsg.broadcastMsgs.map((c) => c.channelId) } },
     });
 
-    const results = messageInDb.channelAndMessageIds.map(async (element) => {
+    const results = messageInDb.originalMsg.broadcastMsgs.map(async (element) => {
       const channelSettings = channelSettingsArr.find((c) => c.channelId === element.channelId);
       if (!channelSettings) return false;
 

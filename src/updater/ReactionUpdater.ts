@@ -16,7 +16,6 @@ import {
   User,
   WebhookClient,
 } from 'discord.js';
-import { MessageDataChannelAndMessageIds } from '@prisma/client';
 import { sortReactions } from '../utils/Utils.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
@@ -25,6 +24,7 @@ import { RegisterInteractionHandler } from '../decorators/Interaction.js';
 import { emojis } from '../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../utils/Locale.js';
+import { broadcastedMessages } from '@prisma/client';
 
 export default class ReactionUpdater extends Factory {
   /**
@@ -42,23 +42,21 @@ export default class ReactionUpdater extends Factory {
     // add user to cooldown list
     user.client.reactionCooldowns.set(user.id, Date.now() + 3000);
 
-    const messageInDb = await db.messageData.findFirst({
-      where: { channelAndMessageIds: { some: { messageId: reaction.message.id } } },
-      include: { hub: { select: { settings: true } } },
-    });
+    const originalMsg = (await db.broadcastedMessages.findFirst({
+      where: { messageId: reaction.message.id },
+      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+    }))?.originalMsg;
 
     if (
-      !messageInDb ||
+      !originalMsg?.hub ||
       !reaction.message.inGuild() ||
-      !messageInDb.hub ||
-      !messageInDb.hubId ||
-      !new HubSettingsBitField(messageInDb.hub.settings).has('Reactions')
+      !new HubSettingsBitField(originalMsg.hub.settings).has('Reactions')
     ) {
       return;
     }
 
     const { userBlacklisted, serverBlacklisted } = await ReactionUpdater.checkBlacklists(
-      messageInDb.hubId,
+      originalMsg.hub.id,
       reaction.message.guildId,
       user.id,
     );
@@ -66,7 +64,7 @@ export default class ReactionUpdater extends Factory {
     if (userBlacklisted || serverBlacklisted) return;
 
     const reactedEmoji = reaction.emoji.toString();
-    const dbReactions = messageInDb.reactions?.valueOf() as { [key: string]: string[] }; // eg. { '👍': 1, '👎': 2 }
+    const dbReactions = originalMsg.reactions?.valueOf() as { [key: string]: string[] }; // eg. { '👍': 1, '👎': 2 }
     const emojiAlreadyReacted = dbReactions[reactedEmoji] ?? [user.id];
 
     // max 10 reactions
@@ -80,13 +78,13 @@ export default class ReactionUpdater extends Factory {
       : // or update the data with a new arr containing userId
       (dbReactions[reactedEmoji] = emojiAlreadyReacted);
 
-    await db.messageData.update({
-      where: { id: messageInDb.id },
+    await db.originalMessages.update({
+      where: { messageId: originalMsg.messageId },
       data: { reactions: dbReactions },
     });
 
     reaction.users.remove(user.id).catch(() => null);
-    ReactionUpdater.updateReactions(messageInDb.channelAndMessageIds, dbReactions);
+    ReactionUpdater.updateReactions(originalMsg.broadcastMsgs, dbReactions);
   }
 
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
@@ -98,25 +96,28 @@ export default class ReactionUpdater extends Factory {
     const cooldown = interaction.client.reactionCooldowns.get(interaction.user.id);
     const messageId = interaction.isButton() ? interaction.message.id : customId.args[0];
 
-    const messageInDb = await db.messageData.findFirst({
-      where: { channelAndMessageIds: { some: { messageId } } },
+    const messageInDb = await db.broadcastedMessages.findFirst({
+      where: { messageId },
       include: {
-        hub: { select: { connections: { where: { connected: true } }, settings: true } },
+        originalMsg: {
+          include: {
+            hub: { include: { connections: { where: { connected: true } } } },
+            broadcastMsgs: true,
+          },
+        },
       },
     });
 
     if (
-      !messageInDb ||
       !interaction.inCachedGuild() ||
-      !messageInDb.hub ||
-      !messageInDb.hubId ||
-      !new HubSettingsBitField(messageInDb.hub.settings).has('Reactions')
+      !messageInDb?.originalMsg.hub ||
+      !new HubSettingsBitField(messageInDb.originalMsg.hub.settings).has('Reactions')
     ) {
       return;
     }
 
     const { userBlacklisted, serverBlacklisted } = await ReactionUpdater.checkBlacklists(
-      messageInDb.hubId,
+      messageInDb.originalMsg.hub.id,
       interaction.guildId,
       interaction.user.id,
     );
@@ -124,17 +125,21 @@ export default class ReactionUpdater extends Factory {
     // add user to cooldown list
     interaction.client.reactionCooldowns.set(interaction.user.id, Date.now() + 3000);
 
-    const dbReactions = messageInDb.reactions?.valueOf() as { [key: string]: Snowflake[] };
+    const dbReactions = messageInDb.originalMsg.reactions?.valueOf() as {
+      [key: string]: Snowflake[];
+    };
 
     if (customId.postfix === 'view_all') {
-      const networkMessage = await db.messageData.findFirst({
-        where: { channelAndMessageIds: { some: { messageId: interaction.message.id } } },
+      const networkMessage = await db.broadcastedMessages.findFirst({
+        where: { messageId },
         include: {
-          hub: { select: { connections: { where: { connected: true } }, settings: true } },
+          originalMsg: {
+            include: { hub: { include: { connections: { where: { connected: true } } } } },
+          },
         },
       });
 
-      if (!networkMessage?.reactions) {
+      if (!networkMessage?.originalMsg.reactions) {
         await interaction.followUp({
           content: 'There are no more reactions to view.',
           ephemeral: true,
@@ -153,7 +158,7 @@ export default class ReactionUpdater extends Factory {
           .setPlaceholder('Add a reaction'),
       );
 
-      const hubSettings = new HubSettingsBitField(networkMessage.hub?.settings);
+      const hubSettings = new HubSettingsBitField(networkMessage.originalMsg.hub?.settings);
       if (!hubSettings.has('Reactions')) reactionMenu.components[0].setDisabled(true);
 
       sortedReactions.forEach((r, index) => {
@@ -230,8 +235,8 @@ export default class ReactionUpdater extends Factory {
         : // or else add the user to the array
         ReactionUpdater.addReaction(dbReactions, interaction.user.id, reactedEmoji);
 
-      await db.messageData.update({
-        where: { id: messageInDb.id },
+      await db.originalMessages.update({
+        where: { messageId: messageInDb.originalMsgId },
         data: { reactions: dbReactions },
       });
 
@@ -247,7 +252,7 @@ export default class ReactionUpdater extends Factory {
       }
 
       // reflect the changes in the message's buttons
-      await ReactionUpdater.updateReactions(messageInDb.channelAndMessageIds, dbReactions);
+      await ReactionUpdater.updateReactions(messageInDb.originalMsg.broadcastMsgs, dbReactions);
     }
   }
 
@@ -259,7 +264,7 @@ export default class ReactionUpdater extends Factory {
    * @param reactions An object containing the reactions data.
    */
   static async updateReactions(
-    channelAndMessageIds: MessageDataChannelAndMessageIds[],
+    channelAndMessageIds: broadcastedMessages[],
     reactions: { [key: string]: string[] },
   ): Promise<void> {
     const connections = await db.connectedList.findMany({

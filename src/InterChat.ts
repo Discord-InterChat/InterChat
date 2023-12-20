@@ -231,8 +231,8 @@ class InterChat extends SuperClient {
     this.on('debug', (debug) => {
       Logger.debug(debug);
     });
-    this.rest.on('restDebug', (debug) => Logger.debug(`[REST] ${debug}`));
-    this.rest.on('rateLimited', (rateLimitData) => Logger.warn(rateLimitData));
+    this.rest.on('restDebug', (debug) => Logger.debug(debug));
+    this.rest.on('rateLimited', (rl) => Logger.warn(`Rate limited: ${JSON.stringify(rl)}`));
   }
 }
 

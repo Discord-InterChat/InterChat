@@ -13,7 +13,7 @@ import {
 } from 'discord.js';
 import Factory from '../Factory.js';
 import db from '../utils/Db.js';
-import { Prisma, connectedList, hubs, messageData } from '@prisma/client';
+import { Prisma, connectedList, hubs, originalMessages } from '@prisma/client';
 import { LINKS, REGEX, emojis } from '../utils/Constants.js';
 import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
@@ -110,9 +110,12 @@ export default class NetworkManager extends Factory {
     const referredMessage = message.reference ? await message.fetchReference() : undefined;
     // check if it was sent in the network
     const referenceInDb = referredMessage
-      ? await db.messageData.findFirst({
-        where: { channelAndMessageIds: { some: { messageId: referredMessage?.id } } },
-      })
+      ? (
+        await db.broadcastedMessages.findFirst({
+          where: { messageId: referredMessage?.id },
+          include: { originalMsg: { include: { broadcastMsgs: true } } },
+        })
+      )?.originalMsg
       : undefined;
 
     let referredContent: string | undefined = undefined;
@@ -149,7 +152,7 @@ export default class NetworkManager extends Factory {
           message.client.webhooks.set(connection.webhookURL, webhook);
         }
 
-        const reply = referenceInDb?.channelAndMessageIds.find(
+        const reply = referenceInDb?.broadcastMsgs.find(
           (msg) => msg.channelId === connection.channelId,
         );
         // create a jump to reply button
@@ -519,7 +522,7 @@ export default class NetworkManager extends Factory {
     message: Message,
     channelAndMessageIds: NetworkWebhookSendResult[],
     hubId: string,
-    dbReference?: messageData | null,
+    dbReference?: originalMessages | null,
   ): Promise<void> {
     const messageDataObj: { channelId: string; messageId: string }[] = [];
     const invalidWebhookURLs: string[] = [];
@@ -544,14 +547,14 @@ export default class NetworkManager extends Factory {
 
     if (message.guild && hubId) {
       // store message data in db
-      await db.messageData.create({
+      await db.originalMessages.create({
         data: {
-          hub: { connect: { id: hubId } },
-          channelAndMessageIds: messageDataObj,
-          timestamp: message.createdAt,
+          messageId: message.id,
           authorId: message.author.id,
           serverId: message.guild.id,
-          referenceDocId: dbReference?.id,
+          messageReference: dbReference?.messageId,
+          broadcastMsgs: { createMany: { data: messageDataObj } },
+          hub: { connect: { id: hubId } },
           reactions: {},
         },
       });

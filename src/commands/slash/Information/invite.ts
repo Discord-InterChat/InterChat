@@ -17,7 +17,7 @@ export default class Invite extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const inviteLink = interaction.client.generateInvite({
       scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands],
-      // FIXME: Update the permissions every time you update invite
+      // NOTE: Update the permissions every time you update invite
       permissions: 292662144192n,
     });
 
