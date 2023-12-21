@@ -133,12 +133,15 @@ export default class NetworkManager extends Factory {
       }
     }
 
+    const username = settings.has('UseNicknames')
+      ? message.member?.displayName || message.author.displayName
+      : message.author.username;
+
     // embeds for the normal mode
-    const { embed, censoredEmbed } = this.buildNetworkEmbed(message, {
+    const { embed, censoredEmbed } = this.buildNetworkEmbed(message, username, {
       attachmentURL,
       referredContent,
       embedCol: (isNetworkMessage.embedColor as HexColorString) ?? undefined,
-      useNicknames: settings.has('UseNicknames'),
     });
 
     const sendResult = allConnections.map(async (connection) => {
@@ -206,7 +209,7 @@ export default class NetworkManager extends Factory {
               (connection.profFilter ? message.censoredContent : message.content) +
               // append the attachment url if there is one
               `${attachment ? `\n${attachmentURL}` : ''}`,
-            username: `@${message.author.username} • ${message.guild}`,
+            username: `@${username} • ${message.guild}`,
             avatarURL: message.author.displayAvatarURL(),
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
@@ -453,20 +456,18 @@ export default class NetworkManager extends Factory {
    */
   public buildNetworkEmbed(
     message: NetworkMessage,
+    username: string,
     opts?: {
       attachmentURL?: string | null;
       embedCol?: HexColorString;
       referredContent?: string;
-      useNicknames?: boolean;
     },
   ): { embed: EmbedBuilder; censoredEmbed: EmbedBuilder } {
     const formattedReply = opts?.referredContent?.replaceAll('\n', '\n> ');
 
     const embed = new EmbedBuilder()
       .setAuthor({
-        name: opts?.useNicknames
-          ? message.member?.displayName || message.author.displayName
-          : message.author.username,
+        name: username,
         iconURL: message.author.displayAvatarURL(),
       })
       .setDescription(
