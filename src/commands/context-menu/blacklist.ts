@@ -103,14 +103,13 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
-    const messageDocId = customId.args[1];
-
+    const originalMsgId = customId.args[1];
     const modal = new ModalBuilder()
       .setTitle('Blacklist')
       .setCustomId(
         new CustomID()
           .setIdentifier('blacklist_modal', customId.postfix)
-          .addArgs(messageDocId)
+          .addArgs(originalMsgId)
           .toString(),
       )
       .addComponents(
@@ -153,19 +152,12 @@ export default class Blacklist extends BaseCommand {
 
     const customId = CustomID.parseCustomId(interaction.customId);
     const messageId = customId.args[0];
-
-    const originalMsg = (
-      await db.broadcastedMessages.findFirst({
-        where: { messageId },
-        include: { originalMsg: true },
-      })
-    )?.originalMsg;
+    const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });
 
     if (!originalMsg?.hubId) {
-      await interaction.reply({
-        content: t({ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale }),
-        ephemeral: true,
-      });
+      await interaction.editReply(
+        t({ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale }),
+      );
       return;
     }
 
