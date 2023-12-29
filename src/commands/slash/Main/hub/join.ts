@@ -53,7 +53,7 @@ export default class JoinSubCommand extends Hub {
       hub = fetchedInvite.hub;
     }
     else {
-      hub = await db.hubs.findFirst({ where: { name: hubName } });
+      hub = await db.hubs.findFirst({ where: { name: hubName, private: false } });
 
       if (!hub) {
         return await interaction.reply({
