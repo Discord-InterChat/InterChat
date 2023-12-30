@@ -19,7 +19,7 @@ declare module 'discord.js' {
     readonly commandCooldowns: CooldownService;
     readonly reactionCooldowns: Collection<string, number>;
     readonly cluster: ClusterClient<Client>;
-    readonly webhooks: Collection<string, WebhookClient>;
+    readonly webhooks: Collection<string, Webhook>;
 
     resolveEval: <T>(value: T[]) => T | undefined;
 

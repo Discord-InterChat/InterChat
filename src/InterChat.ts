@@ -232,7 +232,7 @@ class InterChat extends SuperClient {
       Logger.debug(debug);
     });
     this.rest.on('restDebug', (debug) => Logger.debug(debug));
-    this.rest.on('rateLimited', (rl) => Logger.warn(`Rate limited: ${JSON.stringify(rl)}`));
+    this.rest.on('rateLimited', (rl) => Logger.warn('Rate limited: %O', rl));
   }
 }
 

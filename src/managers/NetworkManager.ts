@@ -1,10 +1,10 @@
 import {
-  APIMessage,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   Collection,
   EmbedBuilder,
+  GuildTextBasedChannel,
   HexColorString,
   Message,
   User,
@@ -26,7 +26,7 @@ export interface NetworkMessage extends Message {
 }
 
 export interface NetworkWebhookSendResult {
-  messageOrError: APIMessage | string;
+  messageOrError: Message | string;
   webhookURL: string;
 }
 
@@ -61,8 +61,9 @@ export default class NetworkManager extends Factory {
     if (!isNetworkMessage?.hub) return;
 
     const settings = new HubSettingsBitField(isNetworkMessage.hub.settings);
-    const checksPassed = await this.runChecks(message, settings, isNetworkMessage.hubId);
-    if (!checksPassed) return;
+
+    // run checks on the message to determine if it can be sent in the network
+    if (!(await this.runChecks(message, settings, isNetworkMessage.hubId))) return;
 
     const allConnections = await this.fetchHubNetworks({ hubId: isNetworkMessage.hubId });
     const attachment = message.attachments.first();
@@ -149,9 +150,8 @@ export default class NetworkManager extends Factory {
         // parse the webhook url and get the webhook id and token
         // fetch the webhook from discord
         let webhook = message.client.webhooks.get(connection.webhookURL);
-
         if (!webhook) {
-          webhook = new WebhookClient({ url: connection.webhookURL });
+          webhook = await message.client.fetchWebhook(connection.webhookURL.split('/').at(-2)!);
           message.client.webhooks.set(connection.webhookURL, webhook);
         }
 
@@ -539,8 +539,19 @@ export default class NetworkManager extends Factory {
         }
       }
       else {
+        const isValidChannel = result.messageOrError.channel as GuildTextBasedChannel;
+        const botInGuild = isValidChannel.guild.members.me;
+
+        if (
+          !botInGuild ||
+          isValidChannel.permissionsFor(botInGuild)?.has(['ViewChannel', 'SendMessages']) === false
+        ) {
+          invalidWebhookURLs.push(result.webhookURL);
+          return;
+        }
+
         messageDataObj.push({
-          channelId: result.messageOrError.channel_id,
+          channelId: result.messageOrError.channelId,
           messageId: result.messageOrError.id,
         });
       }

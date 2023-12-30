@@ -7,6 +7,7 @@ const custom = format.printf(
 
 const combinedFormat = format.combine(
   format.errors({ stack: true }),
+  format.splat(),
   format.timestamp({ format: '[on] DD MMMM, YYYY [at] hh:mm:ss.SSS' }),
   format((info) => {
     info.level = info.level.toUpperCase();
