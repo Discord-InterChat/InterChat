@@ -1,10 +1,10 @@
 import {
-  APIMessage,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   Collection,
   EmbedBuilder,
+  GuildTextBasedChannel,
   HexColorString,
   Message,
   User,
@@ -13,7 +13,7 @@ import {
 } from 'discord.js';
 import Factory from '../Factory.js';
 import db from '../utils/Db.js';
-import { Prisma, connectedList, hubs, messageData } from '@prisma/client';
+import { Prisma, connectedList, hubs, originalMessages } from '@prisma/client';
 import { LINKS, REGEX, emojis } from '../utils/Constants.js';
 import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
@@ -26,7 +26,7 @@ export interface NetworkMessage extends Message {
 }
 
 export interface NetworkWebhookSendResult {
-  messageOrError: APIMessage | string;
+  messageOrError: Message | string;
   webhookURL: string;
 }
 
@@ -61,8 +61,9 @@ export default class NetworkManager extends Factory {
     if (!isNetworkMessage?.hub) return;
 
     const settings = new HubSettingsBitField(isNetworkMessage.hub.settings);
-    const checksPassed = await this.runChecks(message, settings, isNetworkMessage.hubId);
-    if (!checksPassed) return;
+
+    // run checks on the message to determine if it can be sent in the network
+    if (!(await this.runChecks(message, settings, isNetworkMessage.hubId))) return;
 
     const allConnections = await this.fetchHubNetworks({ hubId: isNetworkMessage.hubId });
     const attachment = message.attachments.first();
@@ -110,9 +111,12 @@ export default class NetworkManager extends Factory {
     const referredMessage = message.reference ? await message.fetchReference() : undefined;
     // check if it was sent in the network
     const referenceInDb = referredMessage
-      ? await db.messageData.findFirst({
-        where: { channelAndMessageIds: { some: { messageId: referredMessage?.id } } },
-      })
+      ? (
+        await db.broadcastedMessages.findFirst({
+          where: { messageId: referredMessage?.id },
+          include: { originalMsg: { include: { broadcastMsgs: true } } },
+        })
+      )?.originalMsg
       : undefined;
 
     let referredContent: string | undefined = undefined;
@@ -130,12 +134,15 @@ export default class NetworkManager extends Factory {
       }
     }
 
+    const username = settings.has('UseNicknames')
+      ? message.member?.displayName || message.author.displayName
+      : message.author.username;
+
     // embeds for the normal mode
-    const { embed, censoredEmbed } = this.buildNetworkEmbed(message, {
+    const { embed, censoredEmbed } = this.buildNetworkEmbed(message, username, {
       attachmentURL,
       referredContent,
       embedCol: (isNetworkMessage.embedColor as HexColorString) ?? undefined,
-      useNicknames: settings.has('UseNicknames'),
     });
 
     const sendResult = allConnections.map(async (connection) => {
@@ -143,13 +150,12 @@ export default class NetworkManager extends Factory {
         // parse the webhook url and get the webhook id and token
         // fetch the webhook from discord
         let webhook = message.client.webhooks.get(connection.webhookURL);
-
         if (!webhook) {
-          webhook = new WebhookClient({ url: connection.webhookURL });
+          webhook = await message.client.fetchWebhook(connection.webhookURL.split('/').at(-2)!);
           message.client.webhooks.set(connection.webhookURL, webhook);
         }
 
-        const reply = referenceInDb?.channelAndMessageIds.find(
+        const reply = referenceInDb?.broadcastMsgs.find(
           (msg) => msg.channelId === connection.channelId,
         );
         // create a jump to reply button
@@ -203,7 +209,7 @@ export default class NetworkManager extends Factory {
               (connection.profFilter ? message.censoredContent : message.content) +
               // append the attachment url if there is one
               `${attachment ? `\n${attachmentURL}` : ''}`,
-            username: `@${message.author.username} • ${message.guild}`,
+            username: `@${username} • ${message.guild}`,
             avatarURL: message.author.displayAvatarURL(),
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
@@ -450,20 +456,18 @@ export default class NetworkManager extends Factory {
    */
   public buildNetworkEmbed(
     message: NetworkMessage,
+    username: string,
     opts?: {
       attachmentURL?: string | null;
       embedCol?: HexColorString;
       referredContent?: string;
-      useNicknames?: boolean;
     },
   ): { embed: EmbedBuilder; censoredEmbed: EmbedBuilder } {
     const formattedReply = opts?.referredContent?.replaceAll('\n', '\n> ');
 
     const embed = new EmbedBuilder()
       .setAuthor({
-        name: opts?.useNicknames
-          ? message.member?.displayName || message.author.displayName
-          : message.author.username,
+        name: username,
         iconURL: message.author.displayAvatarURL(),
       })
       .setDescription(
@@ -519,7 +523,7 @@ export default class NetworkManager extends Factory {
     message: Message,
     channelAndMessageIds: NetworkWebhookSendResult[],
     hubId: string,
-    dbReference?: messageData | null,
+    dbReference?: originalMessages | null,
   ): Promise<void> {
     const messageDataObj: { channelId: string; messageId: string }[] = [];
     const invalidWebhookURLs: string[] = [];
@@ -535,8 +539,19 @@ export default class NetworkManager extends Factory {
         }
       }
       else {
+        const isValidChannel = result.messageOrError.channel as GuildTextBasedChannel;
+        const botInGuild = isValidChannel.guild.members.me;
+
+        if (
+          !botInGuild ||
+          isValidChannel.permissionsFor(botInGuild)?.has(['ViewChannel', 'SendMessages']) === false
+        ) {
+          invalidWebhookURLs.push(result.webhookURL);
+          return;
+        }
+
         messageDataObj.push({
-          channelId: result.messageOrError.channel_id,
+          channelId: result.messageOrError.channelId,
           messageId: result.messageOrError.id,
         });
       }
@@ -544,14 +559,14 @@ export default class NetworkManager extends Factory {
 
     if (message.guild && hubId) {
       // store message data in db
-      await db.messageData.create({
+      await db.originalMessages.create({
         data: {
-          hub: { connect: { id: hubId } },
-          channelAndMessageIds: messageDataObj,
-          timestamp: message.createdAt,
+          messageId: message.id,
           authorId: message.author.id,
           serverId: message.guild.id,
-          referenceDocId: dbReference?.id,
+          messageReference: dbReference?.messageId,
+          broadcastMsgs: { createMany: { data: messageDataObj } },
+          hub: { connect: { id: hubId } },
           reactions: {},
         },
       });

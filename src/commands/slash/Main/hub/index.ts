@@ -73,12 +73,6 @@ export default class Hub extends BaseCommand {
       },
       {
         type: ApplicationCommandOptionType.Subcommand,
-        name: 'settings',
-        description: '⚙️ Edit your hub settings',
-        options: [hubOption],
-      },
-      {
-        type: ApplicationCommandOptionType.Subcommand,
         name: 'join',
         description: '🔗 Join a public/private hub from this server.',
         options: [

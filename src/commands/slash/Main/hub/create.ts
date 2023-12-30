@@ -55,7 +55,7 @@ export default class Create extends Hub {
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
             .setLabel(t({ phrase: 'hub.create.modal.banner.label', locale }))
-            .setPlaceholder(t({ phrase: 'hub.create.modal.description.placeholder', locale }))
+            .setPlaceholder(t({ phrase: 'hub.create.modal.banner.placeholder', locale }))
             .setMaxLength(300)
             .setStyle(TextInputStyle.Short)
             .setRequired(false)

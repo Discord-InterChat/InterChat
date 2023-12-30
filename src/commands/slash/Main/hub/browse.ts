@@ -22,6 +22,7 @@ import { paginate } from '../../../../utils/Pagination.js';
 import {
   calculateAverageRating,
   getOrCreateWebhook,
+  parseTimestampFromId,
   simpleEmbed,
 } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
@@ -73,7 +74,7 @@ export default class Browse extends Hub {
       default:
         sortedHubs = await db.hubs.findMany({
           where: { name: hubName, private: false },
-          orderBy: { messages: { _count: 'desc' } },
+          orderBy: { originalMessages: { _count: 'desc' } },
         });
         break;
     }
@@ -84,12 +85,16 @@ export default class Browse extends Hub {
           .count({ where: { hubId: hub.id, connected: true } })
           .catch(() => 0);
 
-        const lastMessage = await db.messageData.findFirst({
+        const lastMessage = await db.originalMessages.findFirst({
           where: { hubId: hub.id },
-          orderBy: { timestamp: 'desc' },
+          orderBy: { messageId: 'desc' },
         });
 
-        return Browse.createHubListingsEmbed(hub, connections, lastMessage?.timestamp);
+        return Browse.createHubListingsEmbed(
+          hub,
+          connections,
+          lastMessage ? new Date(parseTimestampFromId(lastMessage.messageId)) : undefined,
+        );
       }),
     );
 

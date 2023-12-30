@@ -40,11 +40,12 @@ export default class Translate extends BaseCommand {
 
     const target = interaction.targetMessage;
 
-    const messageInDb = await db.messageData.findFirst({
-      where: { channelAndMessageIds: { some: { messageId: target.id } } },
-    });
+    const originalMsg = (await db.broadcastedMessages.findFirst({
+      where: { messageId: target.id },
+      include: { originalMsg: true } },
+    ))?.originalMsg;
 
-    if (!messageInDb) {
+    if (!originalMsg) {
       return interaction.editReply(
         t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
       );

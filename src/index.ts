@@ -7,8 +7,9 @@ import { ClusterManager } from 'discord-hybrid-sharding';
 import { updateTopGGStats } from './updater/StatsUpdater.js';
 import { isDevBuild } from './utils/Constants.js';
 import { blacklistedServers, userData } from '@prisma/client';
-import { wait } from './utils/Utils.js';
+import { deleteNetworkMsgs, wait } from './utils/Utils.js';
 import 'dotenv/config';
+import { captureException } from '@sentry/node';
 
 const manager = new ClusterManager('build/InterChat.js', {
   totalShards: 'auto',
@@ -39,12 +40,18 @@ const deleteExpiredInvites = async () => {
   await db.hubInvites.deleteMany({ where: { expires: { lte: olderThan1h } } }).catch(() => null);
 };
 
+// Delete all network messages from db that are older than 24 hours old.
 const deleteOldMessages = async () => {
-  // Delete all documents that are older than 24 hours old.
-  const olderThan24h = new Date(Date.now() - 60 * 60 * 24_000);
-  await db.messageData
-    .deleteMany({ where: { timestamp: { lte: olderThan24h } } })
-    .catch(() => null);
+  const olderThan24h = Date.now() - 60 * 60 * 24_000;
+  // the big number is Discord's epoch. ie. the first second of year 2015
+  const snowflakeFor24hAgo = (olderThan24h - 1420070400000) << 22;
+
+  db.broadcastedMessages
+    .findMany({ where: { messageId: { lte: `${snowflakeFor24hAgo}` } } })
+    .then(async (m) => {
+      await deleteNetworkMsgs(m.map(({ messageId }) => messageId));
+    })
+    .catch(captureException);
 };
 
 const processAndManageBlacklists = async (

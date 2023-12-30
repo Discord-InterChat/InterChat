@@ -7,8 +7,8 @@ import {
 import BaseCommand from '../BaseCommand.js';
 import { checkIfStaff } from '../../utils/Utils.js';
 import { emojis } from '../../utils/Constants.js';
-import db from '../../utils/Db.js';
 import { t } from '../../utils/Locale.js';
+import db from '../../utils/Db.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -20,9 +20,9 @@ export default class DeleteMessage extends BaseCommand {
   async execute(interaction: ContextMenuCommandInteraction<CacheType>) {
     await interaction.deferReply({ ephemeral: true });
 
-    const messageInDb = await db?.messageData.findFirst({
-      where: { channelAndMessageIds: { some: { messageId: { equals: interaction.targetId } } } },
-      include: { hub: true },
+    const messageInDb = await db?.broadcastedMessages.findFirst({
+      where: { messageId: interaction.targetId },
+      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
     });
 
     if (!messageInDb) {
@@ -37,9 +37,9 @@ export default class DeleteMessage extends BaseCommand {
     const interchatStaff = checkIfStaff(interaction.user.id);
     if (
       !interchatStaff &&
-      !messageInDb.hub?.moderators.find((m) => m.userId === interaction.user.id) &&
-      messageInDb.hub?.ownerId !== interaction.user.id &&
-      interaction.user.id !== messageInDb.authorId
+      !messageInDb.originalMsg.hub?.moderators.find((m) => m.userId === interaction.user.id) &&
+      messageInDb.originalMsg.hub?.ownerId !== interaction.user.id &&
+      interaction.user.id !== messageInDb.originalMsg.authorId
     ) {
       return await interaction.editReply(
         t({
@@ -51,9 +51,10 @@ export default class DeleteMessage extends BaseCommand {
 
     // find all the messages through the network
     const channelSettingsArr = await db.connectedList.findMany({
-      where: { channelId: { in: messageInDb.channelAndMessageIds.map((c) => c.channelId) } },
+      where: { channelId: { in: messageInDb.originalMsg.broadcastMsgs.map((c) => c.channelId) } },
     });
-    const results = messageInDb.channelAndMessageIds.map(async (element) => {
+
+    const results = messageInDb.originalMsg.broadcastMsgs.map(async (element) => {
       const connection = channelSettingsArr.find((c) => c.channelId === element.channelId);
       if (!connection) return false;
 
@@ -82,7 +83,7 @@ export default class DeleteMessage extends BaseCommand {
           },
           {
             emoji: emojis.yes,
-            user: `<@${messageInDb.authorId}>`,
+            user: `<@${messageInDb.originalMsg.authorId}>`,
             deleted: deleted.toString(),
             total: resultsArray.length.toString(),
           },

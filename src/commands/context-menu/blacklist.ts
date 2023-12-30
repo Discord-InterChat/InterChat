@@ -32,19 +32,16 @@ export default class Blacklist extends BaseCommand {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const locale = interaction.user.locale;
 
-    const messageInDb = await db.messageData.findFirst({
-      where: {
-        channelAndMessageIds: { some: { messageId: interaction.targetId } },
-        hub: {
-          OR: [
-            { moderators: { some: { userId: interaction.user.id } } },
-            { ownerId: interaction.user.id },
-          ],
-        },
-      },
+    const messageInDb = await db.broadcastedMessages.findFirst({
+      where: { messageId: interaction.targetId },
+      include: { originalMsg: { include: { hub: true } } },
     });
 
-    if (!messageInDb) {
+    if (
+      !messageInDb ||
+      (messageInDb.originalMsg?.hub?.ownerId !== interaction.user.id &&
+        !messageInDb.originalMsg?.hub?.moderators.find((mod) => mod.userId === interaction.user.id))
+    ) {
       interaction.reply({
         embeds: [
           simpleEmbed(
@@ -70,8 +67,7 @@ export default class Blacklist extends BaseCommand {
           new CustomID()
             .setIdentifier('blacklist', 'user')
             .addArgs(interaction.user.id)
-            .addArgs(messageInDb.id)
-            .addArgs('u=1')
+            .addArgs(messageInDb.originalMsgId)
             .toString(),
         )
         .setLabel(t({ phrase: 'blacklist.button.user', locale }))
@@ -82,11 +78,10 @@ export default class Blacklist extends BaseCommand {
           new CustomID()
             .setIdentifier('blacklist', 'server')
             .addArgs(interaction.user.id)
-            .addArgs(messageInDb.id)
-            .addArgs('s=1')
+            .addArgs(messageInDb.originalMsgId)
             .toString(),
         )
-        .setLabel(t({ phrase: 'blacklist.button.user', locale }))
+        .setLabel(t({ phrase: 'blacklist.button.server', locale }))
         .setStyle(ButtonStyle.Secondary)
         .setEmoji('🏠'),
     );
@@ -108,16 +103,13 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
-    const messageDocId = customId.args[1];
-    const blacklistType = customId.args[2];
-
+    const originalMsgId = customId.args[1];
     const modal = new ModalBuilder()
       .setTitle('Blacklist')
       .setCustomId(
         new CustomID()
-          .setIdentifier('blacklist_modal')
-          .addArgs(messageDocId)
-          .addArgs(blacklistType)
+          .setIdentifier('blacklist_modal', customId.postfix)
+          .addArgs(originalMsgId)
           .toString(),
       )
       .addComponents(
@@ -140,7 +132,10 @@ export default class Blacklist extends BaseCommand {
               t({ phrase: 'blacklist.modal.duration.label', locale: interaction.user.locale }),
             )
             .setPlaceholder(
-              t({ phrase: 'blacklist.modal.reason.placeholder', locale: interaction.user.locale }),
+              t({
+                phrase: 'blacklist.modal.duration.placeholder',
+                locale: interaction.user.locale,
+              }),
             )
             .setStyle(TextInputStyle.Short)
             .setMinLength(2)
@@ -156,18 +151,13 @@ export default class Blacklist extends BaseCommand {
     await interaction.deferUpdate();
 
     const customId = CustomID.parseCustomId(interaction.customId);
-    const messageDocId = customId.args[0];
-    const blacklistType = customId.args[1];
+    const messageId = customId.args[0];
+    const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });
 
-    const messageInDb = await db.messageData.findFirst({
-      where: { id: messageDocId },
-    });
-
-    if (!messageInDb?.hubId) {
-      await interaction.reply({
-        content: t({ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale }),
-        ephemeral: true,
-      });
+    if (!originalMsg?.hubId) {
+      await interaction.editReply(
+        t({ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale }),
+      );
       return;
     }
 
@@ -191,8 +181,8 @@ export default class Blacklist extends BaseCommand {
     const blacklistManager = interaction.client.getBlacklistManager();
 
     // user blacklist
-    if (blacklistType.startsWith('u=')) {
-      const user = await interaction.client.users.fetch(messageInDb.authorId).catch(() => null);
+    if (customId.postfix === 'user') {
+      const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
       successEmbed.setDescription(
         t(
           { phrase: 'blacklist.user.success', locale: interaction.user.locale },
@@ -200,22 +190,22 @@ export default class Blacklist extends BaseCommand {
         ),
       );
       await blacklistManager.addUserBlacklist(
-        messageInDb.hubId,
-        messageInDb.authorId,
+        originalMsg.hubId,
+        originalMsg.authorId,
         reason,
         interaction.user.id,
         expires,
       );
 
       if (expires) {
-        blacklistManager.scheduleRemoval('user', messageInDb.authorId, messageInDb.hubId, expires);
+        blacklistManager.scheduleRemoval('user', originalMsg.authorId, originalMsg.hubId, expires);
       }
       if (user) {
         blacklistManager
-          .notifyBlacklist('user', messageInDb.authorId, messageInDb.hubId, expires, reason)
+          .notifyBlacklist('user', originalMsg.authorId, originalMsg.hubId, expires, reason)
           .catch(() => null);
 
-        const networkLogger = new NetworkLogger(messageInDb.hubId);
+        const networkLogger = new NetworkLogger(originalMsg.hubId);
         await networkLogger.logBlacklist(user, interaction.user, reason, expires);
       }
 
@@ -224,7 +214,7 @@ export default class Blacklist extends BaseCommand {
 
     // server blacklist
     else {
-      const server = interaction.client.guilds.cache.get(messageInDb.serverId);
+      const server = interaction.client.guilds.cache.get(originalMsg.serverId);
 
       successEmbed.setDescription(
         t(
@@ -234,8 +224,8 @@ export default class Blacklist extends BaseCommand {
       );
 
       await blacklistManager.addServerBlacklist(
-        messageInDb.serverId,
-        messageInDb.hubId,
+        originalMsg.serverId,
+        originalMsg.hubId,
         reason,
         interaction.user.id,
         expires,
@@ -244,8 +234,8 @@ export default class Blacklist extends BaseCommand {
       // Notify server of blacklist
       await blacklistManager.notifyBlacklist(
         'server',
-        messageInDb.serverId,
-        messageInDb.hubId,
+        originalMsg.serverId,
+        originalMsg.hubId,
         expires,
         reason,
       );
@@ -253,18 +243,18 @@ export default class Blacklist extends BaseCommand {
       if (expires) {
         blacklistManager.scheduleRemoval(
           'server',
-          messageInDb.serverId,
-          messageInDb.hubId,
+          originalMsg.serverId,
+          originalMsg.hubId,
           expires,
         );
       }
 
       await db.connectedList.deleteMany({
-        where: { serverId: messageInDb.serverId, hubId: messageInDb.hubId },
+        where: { serverId: originalMsg.serverId, hubId: originalMsg.hubId },
       });
 
       if (server) {
-        const networkLogger = new NetworkLogger(messageInDb.hubId);
+        const networkLogger = new NetworkLogger(originalMsg.hubId);
         await networkLogger
           .logBlacklist(server, interaction.user, reason, expires)
           .catch(() => null);

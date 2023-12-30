@@ -11,9 +11,9 @@ import BaseCommand from '../../BaseCommand.js';
 import { captureException } from '@sentry/node';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../utils/Constants.js';
-import { messageData as messageDataCol } from '@prisma/client';
-import { simpleEmbed, msToReadable } from '../../../utils/Utils.js';
+import { simpleEmbed, msToReadable, deleteNetworkMsgs } from '../../../utils/Utils.js';
 import Logger from '../../../utils/Logger.js';
+import { broadcastedMessages } from '@prisma/client';
 
 const limitOpt: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.Integer,
@@ -106,25 +106,29 @@ export default class Purge extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand();
     const limit = interaction.options.getInteger('limit') || 100;
-    const { messageData, connectedList, hubs } = db;
-    const channelInHub = await connectedList.findFirst({
+    const channelInHub = await db.connectedList.findFirst({
       where: { channelId: interaction.channelId, connected: true },
     });
 
-    const isMod = hubs.findFirst({ where: {
-      OR: [
-        { moderators: { some: { userId: interaction.user.id } } },
-        { ownerId: interaction.user.id },
-      ],
-    } });
+    const isMod = db.hubs.findFirst({
+      where: {
+        OR: [
+          { moderators: { some: { userId: interaction.user.id } } },
+          { ownerId: interaction.user.id },
+        ],
+      },
+    });
 
     if (!isMod) {
       return await interaction.reply({
-        embeds: [simpleEmbed(`${emojis.no} You must be a moderator or owner of this hub to use this command.`)],
+        embeds: [
+          simpleEmbed(
+            `${emojis.no} You must be a moderator or owner of this hub to use this command.`,
+          ),
+        ],
         ephemeral: true,
       });
     }
-
 
     if (!channelInHub) {
       return await interaction.reply({
@@ -133,14 +137,14 @@ export default class Purge extends BaseCommand {
       });
     }
 
-    let messagesInDb: messageDataCol[] = [];
+    let messagesInDb: broadcastedMessages[] = [];
 
     switch (subcommand) {
       case 'server': {
         const serverId = interaction.options.getString('server', true);
-        messagesInDb = await messageData.findMany({
-          where: { serverId, hubId: channelInHub.hubId },
-          orderBy: { id: 'desc' },
+        messagesInDb = await db.broadcastedMessages.findMany({
+          where: { originalMsg: { serverId, hubId: channelInHub.hubId } },
+          orderBy: { messageId: 'desc' },
           take: limit,
         });
         break;
@@ -148,50 +152,50 @@ export default class Purge extends BaseCommand {
 
       case 'user': {
         const authorId = interaction.options.getString('user', true);
-        messagesInDb = await messageData.findMany({
-          where: { authorId, hubId: channelInHub.hubId },
-          orderBy: { id: 'desc' },
-          take: limit,
-        });
+        messagesInDb = (
+          await db.originalMessages.findMany({
+            where: { authorId, hubId: channelInHub.hubId },
+            orderBy: { messageId: 'desc' },
+            take: limit,
+            select: { broadcastMsgs: true },
+          })
+        ).flatMap((i) => i.broadcastMsgs);
         break;
       }
       case 'after': {
         const messageId = interaction.options.getString('message', true);
         const fetchedMsg = await interaction.channel?.messages.fetch(messageId).catch(() => null);
         if (fetchedMsg) {
-          messagesInDb = await messageData.findMany({
+          messagesInDb = await db.broadcastedMessages.findMany({
             take: limit,
             where: {
-              timestamp: { gt: fetchedMsg.createdAt },
+              originalMsg: { hubId: channelInHub.hubId },
+              messageId: { gt: fetchedMsg.id },
             },
           });
         }
         break;
       }
       case 'replies': {
-        const messageId = interaction.options.getString('replied-to', true);
-        const originalMsg = await messageData.findFirst({
-          where: { channelAndMessageIds: { some: { messageId } } },
-        });
-
-
-        messagesInDb = originalMsg
-          ? await messageData.findMany({
-            where: {
-              hubId: channelInHub.hubId,
-              referenceDocId: originalMsg.id,
-            },
-            take: limit,
+        const messageReference = interaction.options.getString('replied-to', true);
+        messagesInDb = (
+          await db.originalMessages.findMany({
+            where: { messageReference },
+            include: { broadcastMsgs: true },
           })
-          : [];
+        ).flatMap((i) => i.broadcastMsgs);
+
         break;
       }
       case 'any':
-        messagesInDb = await messageData.findMany({
-          where: { hubId: channelInHub.hubId },
-          orderBy: { id: 'desc' },
-          take: limit,
-        });
+        messagesInDb = (
+          await db.originalMessages.findMany({
+            where: { hubId: channelInHub.hubId },
+            orderBy: { messageId: 'desc' },
+            include: { broadcastMsgs: true },
+            take: limit,
+          })
+        ).flatMap((i) => i.broadcastMsgs);
         break;
 
       default:
@@ -209,24 +213,23 @@ export default class Purge extends BaseCommand {
     await interaction.deferReply({ fetchReply: true });
 
     const startTime = performance.now();
-    const allNetworks = await connectedList.findMany({
+    const allNetworks = await db.connectedList.findMany({
       where: { hubId: channelInHub.hubId, connected: true },
     });
 
     const promiseResults = allNetworks.map(async (network) => {
       try {
-        // TODO: Fine a better way to do this
+        // TODO: Find a better way to do this
         // because we are doing this in all the shards, which is double the work
         const evalRes = await interaction.client.cluster.broadcastEval(
           async (client, ctx) => {
             const channel = await client.channels.fetch(ctx.channelId);
 
+            // using type as 0 because we cant access ChannelType enum inside eval
             if (channel?.type === 0 || channel?.isThread()) {
-              const messageIds = ctx.messagesInDb.flatMap((dbMsg) =>
-                dbMsg.channelAndMessageIds
-                  .filter(({ channelId }) => channelId === channel.id)
-                  .map(({ messageId }) => messageId),
-              );
+              const messageIds = ctx.messagesInDb
+                .filter(({ channelId }) => channelId === channel.id)
+                .map(({ messageId }) => messageId);
 
               if (messageIds.length < 1) return [];
 
@@ -250,15 +253,14 @@ export default class Purge extends BaseCommand {
     const results = await Promise.all(promiseResults);
     const deletedMessages = results.reduce((acc, cur) => acc + cur.length, 0);
     const failedMessages = results.reduce((acc, cur) => (acc + cur.length > 0 ? 0 : 1), 0);
+    const timeTaken = performance.now() - startTime;
 
     const resultEmbed = new EmbedBuilder()
       .setDescription(
         stripIndents`
         ### ${emojis.delete} Purge Results
 
-        Finished purging from **${allNetworks.length}** networks in \`${msToReadable(
-  performance.now() - startTime,
-)}\`.
+        Finished purging from **${allNetworks.length}** networks in \`${msToReadable(timeTaken)}\`.
       `,
       )
       .addFields([
@@ -276,10 +278,6 @@ export default class Purge extends BaseCommand {
     await interaction.followUp({ embeds: [resultEmbed] }).catch(captureException);
 
     const succeededMessages = results?.filter((i) => i.length > 0).flat();
-    await messageData
-      .deleteMany({
-        where: { channelAndMessageIds: { some: { messageId: { in: succeededMessages } } } },
-      })
-      .catch(captureException);
+    await deleteNetworkMsgs(succeededMessages);
   }
 }

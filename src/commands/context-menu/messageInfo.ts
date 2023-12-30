@@ -12,9 +12,9 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 import db from '../../utils/Db.js';
+import BaseCommand from '../BaseCommand.js';
 import { profileImage } from 'discord-arts';
 import { colors, emojis } from '../../utils/Constants.js';
-import BaseCommand from '../BaseCommand.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { t } from '../../utils/Locale.js';
@@ -28,12 +28,12 @@ export default class MessageInfo extends BaseCommand {
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
-    const networkMessage = await db.messageData.findFirst({
-      where: { channelAndMessageIds: { some: { messageId: target.id } } },
-      include: { hub: true },
-    });
+    const originalMsg = (await db.broadcastedMessages.findFirst({
+      where: { messageId: target.id },
+      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+    }))?.originalMsg;
 
-    if (!networkMessage) {
+    if (!originalMsg) {
       await interaction.reply({
         content: t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
         ephemeral: true,
@@ -41,10 +41,10 @@ export default class MessageInfo extends BaseCommand {
       return;
     }
     const guildConnected = await db.connectedList.findFirst({
-      where: { serverId: networkMessage.serverId },
+      where: { serverId: originalMsg.serverId },
     });
-    const author = await interaction.client.users.fetch(networkMessage.authorId);
-    const server = await interaction.client.fetchGuild(networkMessage.serverId);
+    const author = await interaction.client.users.fetch(originalMsg.authorId);
+    const server = await interaction.client.fetchGuild(originalMsg.serverId);
 
     const embed = new EmbedBuilder()
       .setDescription(
@@ -55,7 +55,7 @@ export default class MessageInfo extends BaseCommand {
             author: author.discriminator !== '0' ? author.tag : author.username,
             server: `${server?.name}`,
             messageId: target.id,
-            hub: `${networkMessage.hub?.name}`,
+            hub: `${originalMsg.hub?.name}`,
             createdAt: `${Math.floor(target.createdTimestamp / 1000)}`,
           },
         ),
@@ -90,11 +90,12 @@ export default class MessageInfo extends BaseCommand {
     const customId = CustomID.parseCustomId(interaction.customId);
     const messageId = customId.args[0];
 
-    const networkMessage = await db.messageData.findFirst({
-      where: { channelAndMessageIds: { some: { messageId } } },
-      include: { hub: true },
-    });
-    if (!networkMessage) {
+    const originalMsg = (await db.broadcastedMessages.findFirst({
+      where: { messageId },
+      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+    }))?.originalMsg;
+
+    if (!originalMsg) {
       return await interaction.update({
         content: t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
         embeds: [],
@@ -102,8 +103,8 @@ export default class MessageInfo extends BaseCommand {
       });
     }
 
-    const author = await interaction.client.users.fetch(networkMessage.authorId);
-    const server = await interaction.client.fetchGuild(networkMessage.serverId);
+    const author = await interaction.client.users.fetch(originalMsg.authorId);
+    const server = await interaction.client.fetchGuild(originalMsg.serverId);
     const guildConnected = await db.connectedList.findFirst({ where: { serverId: server?.id } });
 
     if (interaction.isButton()) {
@@ -238,7 +239,7 @@ export default class MessageInfo extends BaseCommand {
                   author: author.discriminator !== '0' ? author.tag : author.username,
                   server: `${server?.name}`,
                   messageId: message.id,
-                  hub: `${networkMessage.hub?.name}`,
+                  hub: `${originalMsg.hub?.name}`,
                   createdAt: `${Math.floor(message.createdTimestamp / 1000)}`,
                 },
               ),

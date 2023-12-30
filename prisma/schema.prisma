@@ -86,25 +86,25 @@ model connectedList {
 }
 
 model hubs {
-  id          String          @id @default(auto()) @map("_id") @db.ObjectId
-  name        String          @unique
-  description String
-  rating      HubRating[]
-  ownerId     String
-  iconUrl     String
-  bannerUrl   String?
-  private     Boolean         @default(true)
-  createdAt   DateTime        @default(now())
+  id               String             @id @default(auto()) @map("_id") @db.ObjectId
+  name             String             @unique
+  description      String
+  rating           HubRating[]
+  ownerId          String
+  iconUrl          String
+  bannerUrl        String?
+  private          Boolean            @default(true)
+  createdAt        DateTime           @default(now())
   // settings are stored as a number, each bit is a setting
-  settings    Int
+  settings         Int
   // all the stuff below is relations to other collections
-  invites     hubInvites[]
-  messages    messageData[]
-  moderators  HubModerator[]
-  connections connectedList[]
-  logChannels HubLogChannels?
+  invites          hubInvites[]
+  moderators       HubModerator[]
+  connections      connectedList[]
+  logChannels      HubLogChannels?
   // approved           Boolean              @default(false)
   // official           Boolean              @default(false)
+  originalMessages originalMessages[]
 }
 
 model hubInvites {
@@ -115,16 +115,22 @@ model hubInvites {
   hubId   String   @db.ObjectId
 }
 
-model messageData {
-  id                   String                            @id @default(auto()) @map("_id") @db.ObjectId
-  authorId             String
-  channelAndMessageIds MessageDataChannelAndMessageIds[]
-  referenceDocId       String?                           @db.ObjectId
-  serverId             String
-  timestamp            DateTime
-  reactions            Json? // eg. {"👎": ["9893820930928", "39283902803982"]} "emoji": userId[] basically
-  hub                  hubs?                             @relation(fields: [hubId], references: [id])
-  hubId                String?                           @db.ObjectId
+model originalMessages {
+  messageId        String                @id @map("_id") @db.String
+  serverId         String
+  authorId         String
+  reactions        Json? // eg. {"👎": ["9893820930928", "39283902803982"]} "emoji": userId[] basically
+  broadcastMsgs    broadcastedMessages[] // Ids of messages that were broadcasted to other hubs
+  messageReference String?               @db.String // id of the original message this message is replying to
+  hub              hubs?                 @relation(fields: [hubId], references: [id])
+  hubId            String?               @db.ObjectId
+}
+
+model broadcastedMessages {
+  messageId     String           @id @map("_id")
+  channelId     String
+  originalMsg   originalMessages @relation(fields: [originalMsgId], references: [messageId])
+  originalMsgId String           @db.String
 }
 
 model userBadges {
