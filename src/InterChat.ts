@@ -18,6 +18,7 @@ import {
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis, mascotEmojis } from './utils/Constants.js';
 import { initI18n } from './utils/Locale.js';
+import HubLogsManager from './managers/HubLogsManager.js';
 
 class InterChat extends SuperClient {
   public constructor() {
@@ -169,7 +170,16 @@ class InterChat extends SuperClient {
       if (!guild.available) return;
 
       Logger.info(`Left ${guild.name} (${guild.id})`);
+
+      // find all connections that belong to this guild
+      const connections = await db.connectedList.findMany({ where: { serverId: guild.id } });
+      // delete them from the database
       await db.connectedList.deleteMany({ where: { serverId: guild.id } });
+
+      // send server leave log to hubs
+      connections.forEach((connection) =>
+        new HubLogsManager(connection.hubId).logServerLeave(guild),
+      );
 
       const count = (await this.cluster.fetchClientValues('guilds.cache.size')) as number[];
       const guildCount = count.reduce((p, n) => p + n, 0);

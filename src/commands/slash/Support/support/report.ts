@@ -155,7 +155,7 @@ export default class Report extends Support {
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const affected = customId.args[0];
-    const reportType = customId.postfix;
+    const reportType = customId.suffix;
 
     if (reportType === 'bug') {
       const summary = interaction.fields.getTextInputValue('summary');

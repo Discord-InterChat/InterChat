@@ -12,7 +12,7 @@ export async function buildEmbed(interaction: Interaction, channelId: string) {
 
   const { yes, no, enabled, disabled } = emojis;
   const invite = networkData?.invite
-    ? `Code: [\`${networkData.invite.replace('https://discord.gg/', '')}\`](${networkData.invite})`
+    ? `[\`${networkData.invite.replace('https://discord.gg/', '')}\`](${networkData.invite})`
     : 'Not Set.';
   const locale = interaction.user.locale;
 

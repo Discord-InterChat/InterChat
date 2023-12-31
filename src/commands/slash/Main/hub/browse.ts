@@ -31,6 +31,7 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { t } from '../../../../utils/Locale.js';
+import HubLogsManager from '../../../../managers/HubLogsManager.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -159,7 +160,7 @@ export default class Browse extends Hub {
       });
     }
 
-    if (customId.postfix === 'rate') {
+    if (customId.suffix === 'rate') {
       const ratingModal = new ModalBuilder()
         .setCustomId(
           new CustomID().setIdentifier('hub_browse_modal').addArgs(customId.args[0]).toString(),
@@ -179,7 +180,7 @@ export default class Browse extends Hub {
         );
       await interaction.showModal(ratingModal);
     }
-    else if (customId.postfix === 'join') {
+    else if (customId.suffix === 'join') {
       const alreadyJoined = hubDetails.connections.find((c) => c.serverId === interaction.guildId);
       if (alreadyJoined) {
         interaction.reply({
@@ -243,11 +244,11 @@ export default class Browse extends Hub {
         ephemeral: true,
       });
     }
-    else if (customId.postfix === 'cancel') {
+    else if (customId.suffix === 'cancel') {
       await interaction.deleteReply().catch(() => null);
       return;
     }
-    else if (customId.postfix === 'channel_select' || customId.postfix === 'confirm') {
+    else if (customId.suffix === 'channel_select' || customId.suffix === 'confirm') {
       if (!hubDetails) {
         return await interaction.reply({
           content: t({ phrase: 'hub.notFound', locale: interaction.user.locale }),
@@ -397,6 +398,10 @@ export default class Browse extends Hub {
         We now have **${totalConnections}** servers with us!
       `,
       });
+
+      // log the server join to hub
+      const hubLogger = await new HubLogsManager(hubDetails.id).init();
+      await hubLogger.logServerJoin(interaction.guild, { totalConnections, hubName: hubDetails.name });
     }
   }
 

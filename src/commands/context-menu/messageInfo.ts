@@ -6,18 +6,25 @@ import {
   ButtonBuilder,
   ButtonComponent,
   ButtonStyle,
+  CacheType,
   EmbedBuilder,
   MessageComponentInteraction,
   MessageContextMenuCommandInteraction,
+  ModalBuilder,
+  ModalSubmitInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
+  TextInputBuilder,
+  TextInputStyle,
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../BaseCommand.js';
 import { profileImage } from 'discord-arts';
-import { colors, emojis } from '../../utils/Constants.js';
+import { REGEX, colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { t } from '../../utils/Locale.js';
+import HubLogsManager from '../../managers/HubLogsManager.js';
+import { simpleEmbed } from '../../utils/Utils.js';
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -28,10 +35,12 @@ export default class MessageInfo extends BaseCommand {
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
     const target = interaction.targetMessage;
-    const originalMsg = (await db.broadcastedMessages.findFirst({
-      where: { messageId: target.id },
-      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
-    }))?.originalMsg;
+    const originalMsg = (
+      await db.broadcastedMessages.findFirst({
+        where: { messageId: target.id },
+        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+      })
+    )?.originalMsg;
 
     if (!originalMsg) {
       await interaction.reply({
@@ -40,9 +49,6 @@ export default class MessageInfo extends BaseCommand {
       });
       return;
     }
-    const guildConnected = await db.connectedList.findFirst({
-      where: { serverId: originalMsg.serverId },
-    });
     const author = await interaction.client.users.fetch(originalMsg.authorId);
     const server = await interaction.client.fetchGuild(originalMsg.serverId);
 
@@ -63,23 +69,25 @@ export default class MessageInfo extends BaseCommand {
       .setThumbnail(`https://cdn.discordapp.com/icons/${server?.id}/${server?.icon}.png`)
       .setColor('Random');
 
-    const buttonsArr = MessageInfo.buildButtons(target.id, interaction.user.locale);
+    const components = MessageInfo.buildButtons(target.id, interaction.user.locale);
+
+    const guildConnected = await db.connectedList.findFirst({
+      where: { serverId: originalMsg.serverId, hubId: originalMsg.hub?.id },
+    });
 
     if (guildConnected?.invite) {
-      buttonsArr.push(
-        new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder()
-            .setStyle(ButtonStyle.Link)
-            .setURL(`https://discord.gg/${guildConnected?.invite}`)
-            .setEmoji(emojis.join)
-            .setLabel('Join'),
-        ),
+      components[1].addComponents(
+        new ButtonBuilder()
+          .setStyle(ButtonStyle.Link)
+          .setURL(`https://discord.gg/${guildConnected?.invite}`)
+          .setEmoji(emojis.join)
+          .setLabel('Join Server'),
       );
     }
 
     await interaction.reply({
       embeds: [embed],
-      components: MessageInfo.buildButtons(target.id, interaction.user.locale),
+      components,
       ephemeral: true,
     });
   }
@@ -90,10 +98,12 @@ export default class MessageInfo extends BaseCommand {
     const customId = CustomID.parseCustomId(interaction.customId);
     const messageId = customId.args[0];
 
-    const originalMsg = (await db.broadcastedMessages.findFirst({
-      where: { messageId },
-      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
-    }))?.originalMsg;
+    const originalMsg = (
+      await db.broadcastedMessages.findFirst({
+        where: { messageId },
+        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+      })
+    )?.originalMsg;
 
     if (!originalMsg) {
       return await interaction.update({
@@ -124,7 +134,7 @@ export default class MessageInfo extends BaseCommand {
       }
 
       // button responses
-      switch (customId.postfix) {
+      switch (customId.suffix) {
         // server info button
         case 'serverInfo': {
           if (!server) {
@@ -257,10 +267,68 @@ export default class MessageInfo extends BaseCommand {
           break;
         }
 
+        case 'report': {
+          const modal = new ModalBuilder()
+            .setCustomId(new CustomID('msgInfoModal:report', [messageId]).toString())
+            .setTitle('Report Message')
+            .addComponents(
+              new ActionRowBuilder<TextInputBuilder>().addComponents(
+                new TextInputBuilder()
+                  .setCustomId('reason')
+                  .setLabel('Reason for report')
+                  .setPlaceholder('Spamming text, sending NSFW content etc.')
+                  .setStyle(TextInputStyle.Paragraph)
+                  .setRequired(true),
+              ),
+            );
+
+          await interaction.showModal(modal);
+          break;
+        }
+
         default:
           break;
       }
     }
+  }
+
+  @RegisterInteractionHandler('msgInfoModal')
+  async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
+    const customId = CustomID.parseCustomId(interaction.customId);
+    const messageId = customId.args[0];
+    const messageInDb = await db.broadcastedMessages.findFirst({
+      where: { messageId },
+      include: { originalMsg: { include: { hub: true } } },
+    });
+
+    if (!messageInDb?.originalMsg.hub?.logChannels?.reports) {
+      return await interaction.reply({
+        embeds: [
+          simpleEmbed(t({ phrase: 'msgInfo.report.notEnabled', locale: interaction.user.locale })),
+        ],
+      });
+    }
+
+    const hubLogger = await new HubLogsManager(messageInDb.originalMsg.hub.id).init();
+    const { authorId, serverId } = messageInDb.originalMsg;
+
+    const reason = interaction.fields.getTextInputValue('reason');
+    const message = await interaction.channel?.messages.fetch(messageId).catch(() => null);
+    const content = message?.content || message?.embeds[0].description || undefined;
+    const attachmentUrl = message?.embeds[0].image?.url || content?.match(REGEX.IMAGE_URL)?.at(0);
+
+    await hubLogger.logReport(authorId, serverId, reason, interaction.user, {
+      content,
+      attachmentUrl,
+      messageId,
+    });
+
+    await interaction.reply({
+      embeds: [
+        simpleEmbed(t({ phrase: 'msgInfo.report.success', locale: interaction.user.locale }, { emoji: emojis.yes })),
+      ],
+      ephemeral: true,
+    });
   }
 
   // utility methods
@@ -273,24 +341,32 @@ export default class MessageInfo extends BaseCommand {
     return [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-          .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'info').addArgs(messageId).toString(),
-          )
           .setLabel(t({ phrase: 'msgInfo.buttons.message', locale }))
           .setStyle(ButtonStyle.Secondary)
-          .setDisabled(true),
+          .setDisabled(true)
+          .setCustomId(
+            new CustomID().setIdentifier('msgInfo', 'info').addArgs(messageId).toString(),
+          ),
         new ButtonBuilder()
+          .setLabel(t({ phrase: 'msgInfo.buttons.server', locale }))
+          .setStyle(ButtonStyle.Secondary)
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'serverInfo').addArgs(messageId).toString(),
-          )
-          .setLabel(t({ phrase: 'msgInfo.buttons.server', locale }))
-          .setStyle(ButtonStyle.Secondary),
+          ),
         new ButtonBuilder()
+          .setLabel(t({ phrase: 'msgInfo.buttons.user', locale }))
+          .setStyle(ButtonStyle.Secondary)
           .setCustomId(
             new CustomID().setIdentifier('msgInfo', 'userInfo').addArgs(messageId).toString(),
-          )
-          .setLabel(t({ phrase: 'msgInfo.buttons.user', locale }))
-          .setStyle(ButtonStyle.Secondary),
+          ),
+      ),
+      new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder()
+          .setLabel(t({ phrase: 'msgInfo.buttons.report', locale }))
+          .setStyle(ButtonStyle.Danger)
+          .setCustomId(
+            new CustomID().setIdentifier('msgInfo', 'report').addArgs(messageId).toString(),
+          ),
       ),
     ];
   }

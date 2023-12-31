@@ -18,7 +18,7 @@ import { LINKS, REGEX, emojis } from '../utils/Constants.js';
 import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { replaceLinks } from '../utils/Utils.js';
-import NetworkLogger from '../utils/NetworkLogger.js';
+import HubLogsManager from './HubLogsManager.js';
 import { t } from '../utils/Locale.js';
 
 export interface NetworkMessage extends Message {
@@ -390,7 +390,11 @@ export default class NetworkManager extends Factory {
     const hasProfanity = checkProfanity(message.content);
     if ((hasProfanity.profanity || hasProfanity.slurs) && message.guild) {
       // send a log to the log channel set by the hub
-      new NetworkLogger(hubId).logProfanity(message.content, message.author, message.guild);
+      (await new HubLogsManager(hubId).init()).logProfanity(
+        message.content,
+        message.author,
+        message.guild,
+      );
 
       // we dont want to send the message if it contains slurs
       if (hasProfanity.slurs) return false;

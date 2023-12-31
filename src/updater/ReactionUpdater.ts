@@ -129,7 +129,7 @@ export default class ReactionUpdater extends Factory {
       [key: string]: Snowflake[];
     };
 
-    if (customId.postfix === 'view_all') {
+    if (customId.suffix === 'view_all') {
       const networkMessage = await db.broadcastedMessages.findFirst({
         where: { messageId },
         include: {
@@ -219,7 +219,7 @@ export default class ReactionUpdater extends Factory {
 
       const reactedEmoji = interaction.isStringSelectMenu()
         ? interaction.values[0]
-        : customId.postfix;
+        : customId.suffix;
       const emojiAlreadyReacted = dbReactions[reactedEmoji];
 
       if (!emojiAlreadyReacted) {

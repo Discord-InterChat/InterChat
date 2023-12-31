@@ -5,7 +5,7 @@ import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
-import NetworkLogger from '../../../../utils/NetworkLogger.js';
+import HubLogsManager from '../../../../managers/HubLogsManager.js';
 import parse from 'parse-duration';
 import Logger from '../../../../utils/Logger.js';
 import { t } from '../../../../utils/Locale.js';
@@ -38,7 +38,7 @@ export default class UserBlacklist extends BlacklistCommand {
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverOpt = interaction.options.getString('server', true);
 
-    const networkLogger = new NetworkLogger(hubInDb.id);
+    const hubLogger = await new HubLogsManager(hubInDb.id).init();
 
     if (subCommandGroup == 'add') {
       const reason = interaction.options.getString('reason', true);
@@ -125,7 +125,7 @@ export default class UserBlacklist extends BlacklistCommand {
       await db.connectedList.deleteMany({ where: { serverId: server.id, hubId: hubInDb.id } });
 
       // send log to hub's log channel
-      await networkLogger.logBlacklist(server, interaction.user, reason, expires);
+      await hubLogger.logBlacklist(server, interaction.user, reason, expires);
     }
     else if (subCommandGroup == 'remove') {
       const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
@@ -144,7 +144,7 @@ export default class UserBlacklist extends BlacklistCommand {
       );
 
       // send log to hub's log channel
-      await networkLogger.logUnblacklist('user', serverOpt, interaction.user);
+      await hubLogger.logUnblacklist('user', serverOpt, interaction.user);
     }
   }
 }
