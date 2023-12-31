@@ -140,10 +140,10 @@ export default class Manage extends Hub {
             .setPlaceholder('Choose a log type to set a channel.')
             .addOptions([
               {
-                label: 'Profanity',
-                value: 'profanity',
-                description: 'Log messages that contain profanity.',
-                emoji: '🤬',
+                label: 'Reports',
+                value: 'reports',
+                description: 'Log reports sent by users.',
+                emoji: '📢',
               },
               {
                 label: 'Mod Logs',
@@ -152,10 +152,10 @@ export default class Manage extends Hub {
                 emoji: '👮',
               },
               {
-                label: 'Reports',
-                value: 'reports',
-                description: 'Log reports sent by users.',
-                emoji: '📢',
+                label: 'Profanity',
+                value: 'profanity',
+                description: 'Log messages that contain profanity.',
+                emoji: '🤬',
               },
               // {
               //   label: 'Message Edits',
