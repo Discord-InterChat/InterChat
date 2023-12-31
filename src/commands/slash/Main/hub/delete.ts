@@ -76,7 +76,7 @@ export default class Delete extends Hub {
       });
     }
 
-    if (customId.postfix === 'cancel') {
+    if (customId.suffix === 'cancel') {
       await interaction.update({
         embeds: [
           simpleEmbed(

@@ -8,6 +8,7 @@ import { simpleEmbed, getOrCreateWebhook } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
+import HubLogsManager from '../../../../managers/HubLogsManager.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
@@ -163,5 +164,8 @@ export default class JoinSubCommand extends Hub {
       We now have **${totalConnections}** servers with us!
     `,
     });
+
+    // send log
+    (await new HubLogsManager(hub.id).init()).logServerJoin(interaction.guild, { totalConnections, hubName });
   }
 }

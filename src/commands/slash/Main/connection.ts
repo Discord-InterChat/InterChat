@@ -182,7 +182,7 @@ export default class Connection extends BaseCommand {
     }
 
     // button interactions
-    if (interaction.isButton() && customId.postfix === 'toggle') {
+    if (interaction.isButton() && customId.suffix === 'toggle') {
       const toggleRes = await networkManager.updateConnection(
         { channelId },
         { connected: !isInDb.connected },
@@ -222,7 +222,7 @@ export default class Connection extends BaseCommand {
                 new TextInputBuilder()
                   .setLabel('Invite Link')
                   .setValue('https://discord.gg/')
-                  .setCustomId(new CustomID().setIdentifier('connInviteField').toString())
+                  .setCustomId('connInviteField')
                   .setRequired(false)
                   .setStyle(TextInputStyle.Short),
               ),
@@ -306,7 +306,7 @@ export default class Connection extends BaseCommand {
 
     // channel select menu interactions
     else if (interaction.isChannelSelectMenu()) {
-      if (customId.postfix !== 'change_channel') return;
+      if (customId.suffix !== 'change_channel') return;
       await interaction.deferUpdate();
 
       const newChannel = interaction.channels.first();
@@ -342,7 +342,7 @@ export default class Connection extends BaseCommand {
   @RegisterInteractionHandler('connectionModal')
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    if (customId.postfix === 'invite') {
+    if (customId.suffix === 'invite') {
       const invite = interaction.fields.getTextInputValue('connInviteField');
       const channelId = customId.args[0];
       const networkManager = interaction.client.getNetworkManager();
@@ -379,7 +379,7 @@ export default class Connection extends BaseCommand {
         ephemeral: true,
       });
     }
-    else if (customId.postfix === 'embed_color') {
+    else if (customId.suffix === 'embed_color') {
       const embedColor = interaction.fields.getTextInputValue('embed_color');
 
       const hex_regex = /^#[0-9A-F]{6}$/i;

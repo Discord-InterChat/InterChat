@@ -1,47 +1,49 @@
 import { Prisma, hubs } from '@prisma/client';
-import { EmbedBuilder, Snowflake } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { colors, emojis } from '../../utils/Constants.js';
 import { stripIndents } from 'common-tags';
+import { channelMention } from '../../utils/Utils.js';
 
-type logChannelType = Prisma.$HubLogChannelsPayload['scalars'];
+/*
+for later:
+${emojis.arrow} \`msgEdit:\`
+${emojis.divider} Log message when it is edited.
+${emojis.dividerEnd} Channel: ${undefined ?? emojis.no}
+${emojis.arrow} \`msgDelete:\`
+${emojis.divider} Log message when it is deleted.
+${emojis.dividerEnd} Channel: ${undefined ?? emojis.no}
+*/
+
+// FIXME errors
 
 export function genLogInfoEmbed(hubInDb: hubs) {
-  const { reports, modLogs, profanity, joinLeave } = (hubInDb.logChannels || {}) as logChannelType;
+  // NOTE: reports is actually [string, string] | undefined but prisma doesnt support optional arrays
+  const { reports, modLogs, profanity, joinLeaves } = (hubInDb.logChannels || {}) as Prisma.HubLogChannelsCreateInput;
+  const reportRole = reports?.roleId ? `<@&${reports.roleId}>` : emojis.no;
 
   return new EmbedBuilder()
-    .setAuthor({ name: hubInDb.name, iconURL: hubInDb.iconUrl })
     .setTitle('Manage Hub Logs')
     .setDescription(
       stripIndents`
         Choose a log type from the dropdown below to select a channel.
-        <:arrow:1186172756031717487> \`reports:\`
-        <:divider:1077200517379403816> Log reports made by users of the hub.
-        <:divider_end:1077200586803527690> **Channel:** ${channelMention(reports)}
-        <:arrow:1186172756031717487> \`modLogs:\`
-        <:divider:1077200517379403816> Log moderation actions taken by hub moderators.
-        <:divider_end:1077200586803527690> **Channel:** ${channelMention(modLogs)}
-        <:arrow:1186172756031717487> \`msgEdit:\`
-        <:divider:1077200517379403816> Log message when it is edited.
-        <:divider_end:1077200586803527690> **Channel:** ${undefined ?? emojis.no}
-        <:arrow:1186172756031717487> \`msgDelete:\`
-        <:divider:1077200517379403816> Log message when it is deleted.
-        <:divider_end:1077200586803527690> **Channel:** ${undefined ?? emojis.no}
-        <:arrow:1186172756031717487> \`profanity:\`
-        <:divider:1077200517379403816> Log messages that contains profanity.
-        <:divider_end:1077200586803527690> **Channel:** ${channelMention(profanity)}
-        <:arrow:1186172756031717487> \`joinLeave:\`
-        <:divider:1077200517379403816> Log when a new server joins or leaves the hub.
-        <:divider_end:1077200586803527690> **Channel:** ${channelMention(joinLeave)}
+        ${emojis.arrow} \`reports:\`
+        ${emojis.divider} Log reports made by users of the hub.
+        ${emojis.divider} Channel: ${channelMention(reports?.channelId)}
+        ${emojis.dividerEnd} Role Mention: ${reportRole}
+        ${emojis.arrow} \`modLogs:\`
+        ${emojis.divider} Log moderation actions taken by hub moderators.
+        ${emojis.dividerEnd} Channel: ${channelMention(modLogs)}
+        ${emojis.arrow} \`profanity:\`
+        ${emojis.divider} Log messages that contains profanity.
+        ${emojis.dividerEnd} Channel: ${channelMention(profanity)}
+        ${emojis.arrow} \`joinLeave:\`
+        ${emojis.divider} Log when a new server joins or leaves the hub.
+        ${emojis.dividerEnd} Channel: ${channelMention(joinLeaves)}
   `,
     )
-    .setColor(colors.interchatBlue)
-    .setTimestamp()
+    .setColor(colors.invisible)
+    .setThumbnail(hubInDb.iconUrl)
     .setFooter({
-      text: 'Note: This is still experimental. Report any bugs using /support report',
+      text: 'Note: This feature is still experimental. Report bugs using /support report.',
     });
-}
-
-export function channelMention(channelId: Snowflake | null | undefined) {
-  if (!channelId) return emojis.no;
-  return `<#${channelId}>`;
 }

@@ -49,10 +49,15 @@ type HubModerator {
 // }
 
 type HubLogChannels {
-  reports   String?
-  modLogs   String?
-  joinLeave String?
-  profanity String?
+  modLogs    String?
+  joinLeaves String?
+  profanity  String?
+  reports    hubLogReports?
+}
+
+type hubLogReports {
+  channelId String
+  roleId    String?
 }
 
 type hubBlacklist {

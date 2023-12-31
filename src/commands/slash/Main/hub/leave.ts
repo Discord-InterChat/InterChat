@@ -14,6 +14,7 @@ import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
+import HubLogsManager from '../../../../managers/HubLogsManager.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -47,11 +48,13 @@ export default class Leave extends Hub {
 
     const choiceButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
       new ButtonBuilder()
-        .setCustomId(new CustomID('hub_leave:yes', [channelId]).toString())
+        .setCustomId(
+          new CustomID('hub_leave:yes', [channelId, isChannelConnected.hubId]).toString(),
+        )
         .setLabel('Yes')
         .setStyle(ButtonStyle.Success),
       new ButtonBuilder()
-        .setCustomId(new CustomID('hub_leave:no', [channelId]).toString())
+        .setCustomId(new CustomID('hub_leave:no', [channelId, isChannelConnected.hubId]).toString())
         .setLabel('No')
         .setStyle(ButtonStyle.Danger),
     ]);
@@ -82,7 +85,7 @@ export default class Leave extends Hub {
     const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.args[0];
 
-    if (customId.postfix === 'no') {
+    if (customId.suffix === 'no') {
       await interaction.message.delete();
       return;
     }
@@ -96,5 +99,8 @@ export default class Leave extends Hub {
       embeds: [],
       components: [],
     });
+
+    // log server leave
+    if (interaction.guild) (await new HubLogsManager(customId.args[1]).init()).logServerLeave(interaction.guild);
   }
 }

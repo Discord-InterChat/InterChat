@@ -12,6 +12,7 @@ import {
   Message,
   MessageActionRowComponent,
   NewsChannel,
+  RepliableInteraction,
   Snowflake,
   TextChannel,
   ThreadChannel,
@@ -20,7 +21,6 @@ import { DeveloperIds, REGEX, StaffIds, SupporterIds, LINKS, colors, emojis } fr
 import { randomBytes } from 'crypto';
 import { t } from './Locale.js';
 import 'dotenv/config';
-import { CmdInteraction } from '../commands/BaseCommand.js';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function msToReadable(milliseconds: number): string {
@@ -226,7 +226,7 @@ export function genCommandErrMsg(locale: string, error: string) {
     Invoke this method to handle errors that occur during command execution.
     It will send an error message to the user and log the error to the system.
   */
-export async function replyWithError(interaction: CmdInteraction, e: string) {
+export async function replyWithError(interaction: RepliableInteraction, e: string) {
   const method = interaction.replied || interaction.deferred ? 'followUp' : 'reply';
 
   // reply with an error message if the command failed
@@ -264,3 +264,9 @@ export async function deleteNetworkMsgs(ids: string[]) {
     where: { messageId: { in: msgsToDelete.map((i) => i.originalMsgId) } },
   });
 }
+
+export function channelMention(channelId: Snowflake | null | undefined) {
+  if (!channelId) return emojis.no;
+  return `<#${channelId}>`;
+}
+

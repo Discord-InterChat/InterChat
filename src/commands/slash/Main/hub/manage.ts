@@ -12,6 +12,7 @@ import {
   MessageComponentInteraction,
   ModalBuilder,
   ModalSubmitInteraction,
+  RoleSelectMenuBuilder,
   StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
@@ -27,6 +28,7 @@ import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFie
 import { checkAndFetchImgurUrl, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { actionsSelect, hubEmbed } from '../../../../scripts/hub/manage.js';
 import { genLogInfoEmbed } from '../../../../scripts/hub/logs.js';
+import HubLogsManager from '../../../../managers/HubLogsManager.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -59,7 +61,7 @@ export default class Manage extends Hub {
           new CustomID()
             .setIdentifier('hub_manage', 'settingsBtn')
             .addArgs(interaction.user.id)
-            .addArgs(hubInDb.name)
+            .addArgs(hubInDb.id)
             .toString(),
         ),
       new ButtonBuilder()
@@ -70,17 +72,14 @@ export default class Manage extends Hub {
           new CustomID()
             .setIdentifier('hub_manage', 'logsBtn')
             .addArgs(interaction.user.id)
-            .addArgs(hubInDb.name)
+            .addArgs(hubInDb.id)
             .toString(),
         ),
     );
 
     await interaction.reply({
       embeds: [await hubEmbed(hubInDb)],
-      components: [
-        actionsSelect(hubInDb.name, interaction.user.id, interaction.user.locale),
-        button,
-      ],
+      components: [actionsSelect(hubInDb.id, interaction.user.id, interaction.user.locale), button],
     });
 
     // disable components after 5 minutes
@@ -105,7 +104,7 @@ export default class Manage extends Hub {
     }
 
     const hubInDb = await db.hubs.findFirst({
-      where: { name: customId.args[1] },
+      where: { id: customId.args[1] },
       include: { connections: true },
     });
 
@@ -119,14 +118,14 @@ export default class Manage extends Hub {
 
     // settings button
     if (interaction.isButton()) {
-      if (customId.postfix === 'settingsBtn') {
+      if (customId.suffix === 'settingsBtn') {
         const { name, iconUrl, settings } = hubInDb;
         const embed = buildSettingsEmbed(name, iconUrl, settings);
         const selects = buildSettingsMenu(settings, name, customId.args[0]);
 
         await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
       }
-      else if (customId.postfix === 'logsBtn') {
+      else if (customId.suffix === 'logsBtn' || customId.suffix === 'logsBackBtn') {
         const embed = genLogInfoEmbed(hubInDb);
 
         const selects = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -135,7 +134,7 @@ export default class Manage extends Hub {
               new CustomID()
                 .setIdentifier('hub_manage', 'logsSelect')
                 .addArgs(interaction.user.id)
-                .addArgs(hubInDb.name)
+                .addArgs(hubInDb.id)
                 .toString(),
             )
             .setPlaceholder('Choose a log type to set a channel.')
@@ -158,18 +157,18 @@ export default class Manage extends Hub {
                 description: 'Log reports sent by users.',
                 emoji: '📢',
               },
-              {
-                label: 'Message Edits',
-                value: 'msgEdits',
-                description: 'Log message edits.',
-                emoji: '📝',
-              },
-              {
-                label: 'Message Deletes',
-                value: 'msgDeletes',
-                description: 'Log message deletes.',
-                emoji: '🗑️',
-              },
+              // {
+              //   label: 'Message Edits',
+              //   value: 'msgEdits',
+              //   description: 'Log message edits.',
+              //   emoji: '📝',
+              // },
+              // {
+              //   label: 'Message Deletes',
+              //   value: 'msgDeletes',
+              //   description: 'Log message deletes.',
+              //   emoji: '🗑️',
+              // },
               {
                 label: 'Joins/Leaves',
                 value: 'joinLeaves',
@@ -178,20 +177,50 @@ export default class Manage extends Hub {
               },
             ]),
         );
-        await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
+
+        const msgToSend = { embeds: [embed], components: [selects], ephemeral: true };
+        customId.suffix === 'logsBtn'
+          ? await interaction.reply(msgToSend)
+          : await interaction.update(msgToSend);
+      }
+      else if (customId.suffix === 'logsDel') {
+        const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
+
+        if (type === 'reports') {
+          await (await new HubLogsManager(hubInDb.id).init()).setReportData(null);
+        }
+        else {
+          const currentConfig = hubInDb.logChannels;
+          if (currentConfig) {
+            // remove the channel key and value from the config
+            delete currentConfig[type];
+          }
+
+          await db.hubs.update({
+            where: { id: hubInDb.id },
+            data: { logChannels: currentConfig ? { set: currentConfig } : { unset: true } },
+          });
+        }
+
+        await interaction.reply({
+          embeds: [
+            simpleEmbed(`${emojis.yes} Successfully reset the logs configuration for \`${type}\` logs`),
+          ],
+          ephemeral: true,
+        });
       }
     }
 
     // hub manage selects/toggle settings menu
     else if (interaction.isStringSelectMenu()) {
-      if (customId.postfix === 'actions') {
+      if (customId.suffix === 'actions') {
         switch (interaction.values[0]) {
           case 'icon': {
             const modal = new ModalBuilder()
               .setCustomId(
                 new CustomID()
                   .setIdentifier('hub_manage_modal', 'icon')
-                  .addArgs(hubInDb.name)
+                  .addArgs(hubInDb.id)
                   .toString(),
               )
               .setTitle(t({ phrase: 'hub.manage.icon.modal.title', locale }))
@@ -219,7 +248,7 @@ export default class Manage extends Hub {
               .setCustomId(
                 new CustomID()
                   .setIdentifier('hub_manage_modal', 'description')
-                  .addArgs(hubInDb.name)
+                  .addArgs(hubInDb.id)
                   .toString(),
               )
               .setTitle(
@@ -258,7 +287,7 @@ export default class Manage extends Hub {
               .setCustomId(
                 new CustomID()
                   .setIdentifier('hub_manage_modal', 'banner')
-                  .addArgs(hubInDb.name)
+                  .addArgs(hubInDb.id)
                   .toString(),
               )
               .setTitle('Set Hub Banner')
@@ -312,7 +341,7 @@ export default class Manage extends Hub {
       }
 
       // settings menu
-      else if (customId.postfix === 'settingsSelect') {
+      else if (customId.suffix === 'settingsSelect') {
         // respond to select menu
         const selected = interaction.values[0] as HubSettingsString;
 
@@ -353,8 +382,9 @@ export default class Manage extends Hub {
           components: [selects],
         });
       }
-      else if (customId.postfix === 'logsSelect') {
+      else if (customId.suffix === 'logsSelect') {
         const type = interaction.values[0] as keyof Prisma.HubLogChannelsCreateInput;
+        const logChannel = hubInDb.logChannels ? hubInDb.logChannels[type] : null;
 
         const channelSelect = new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
           new ChannelSelectMenuBuilder()
@@ -362,7 +392,7 @@ export default class Manage extends Hub {
               new CustomID()
                 .setIdentifier('hub_manage', 'logsChSel')
                 .addArgs(interaction.user.id)
-                .addArgs(hubInDb.name)
+                .addArgs(hubInDb.id)
                 .addArgs(type)
                 .toString(),
             )
@@ -371,49 +401,134 @@ export default class Manage extends Hub {
               ChannelType.PublicThread,
               ChannelType.PrivateThread,
             )
-            .setPlaceholder(`#️⃣ Select a log channel for ${type} logs`),
+            .setPlaceholder('#️⃣ Select a channel to send logs to'),
+        );
+
+        const roleSelect = new ActionRowBuilder<RoleSelectMenuBuilder>().addComponents(
+          new RoleSelectMenuBuilder()
+            .setCustomId(
+              new CustomID()
+                .setIdentifier('hub_manage', 'logsRoleSel')
+                .addArgs(interaction.user.id)
+                .addArgs(hubInDb.id)
+                .addArgs(type)
+                .toString(),
+            )
+            .setPlaceholder('🏓 Select a role to ping when sending logs'),
+        );
+
+        const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+          new ButtonBuilder()
+            .setEmoji(emojis.back)
+            .setStyle(ButtonStyle.Secondary)
+            .setCustomId(
+              new CustomID()
+                .setIdentifier('hub_manage', 'logsBackBtn')
+                .addArgs(interaction.user.id)
+                .addArgs(hubInDb.id)
+                .addArgs(type)
+                .toString(),
+            ),
+          new ButtonBuilder()
+            .setLabel('Reset Log')
+            .setEmoji(emojis.delete)
+            .setStyle(ButtonStyle.Danger)
+            .setCustomId(
+              new CustomID()
+                .setIdentifier('hub_manage', 'logsDel')
+                .addArgs(interaction.user.id)
+                .addArgs(hubInDb.id)
+                .addArgs(type)
+                .toString(),
+            ),
         );
 
         // disable log select menu when trying to change channel
-        const oldSelect = new ActionRowBuilder<StringSelectMenuBuilder>(
-          interaction.message.components[0].toJSON(),
-        );
-        oldSelect.components[0].setDisabled(true);
-
-        await interaction.update({ components: [oldSelect, channelSelect] });
-      }
-    }
-    else if (interaction.isChannelSelectMenu()) {
-      if (customId.postfix === 'logsChSel') {
-        const channel = interaction.channels.first();
-        const type = customId.args[2];
-
-        await db.hubs.update({
-          where: { id: hubInDb.id },
-          data: {
-            logChannels: {
-              upsert: { set: { [type]: channel?.id }, update: { [type]: channel?.id } },
-            },
-          },
-        });
-
         const embed = new EmbedBuilder()
+          .setTitle(`Config \`${type}\` logs`)
           .setDescription(
             stripIndents`
-            ### <:beta:1170691588607983699> Log Channel Set
-    
-            ${emojis.yes} <#${channel?.id}> will be used for sending \`${type}\` logs from now on.
+              ${emojis.arrow} Select a log channel and/or role to be pinged from the dropdown below.
+              ${emojis.arrow} You can also disable logging by using the button below.
             `,
+          )
+          .addFields(
+            typeof logChannel === 'string'
+              ? [{ name: 'Current Channel', value: logChannel ? `<#${logChannel}>` : 'None' }]
+              : [
+                {
+                  name: 'Current Channel',
+                  value: logChannel?.channelId ? `<#${logChannel.channelId}>` : 'None',
+                  inline: true,
+                },
+                {
+                  name: 'Current Role Ping',
+                  value: logChannel?.roleId ? `<@&${logChannel.roleId}>` : 'None',
+                  inline: true,
+                },
+              ],
           )
           .setColor(colors.invisible);
 
-        const newComponents = interaction.message.components
-          .filter((row, index) => (index === 0 ? row : false))
-          .map((row) => row.toJSON());
-        newComponents[0].components[0].disabled = false;
+        // reports have both channel and role selects
+        const componentsToSend =
+          type === 'reports' ? [channelSelect, roleSelect, buttons] : [channelSelect, buttons];
 
-        await interaction.update({ embeds: [genLogInfoEmbed(hubInDb)], components: [newComponents[0]] });
-        await interaction.followUp({ embeds: [embed], ephemeral: true });
+        await interaction.update({ embeds: [embed], components: componentsToSend });
+      }
+    }
+
+    // channel selects
+    else if (interaction.isChannelSelectMenu()) {
+      if (customId.suffix === 'logsChSel') {
+        const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
+        const hubLogsManager = (await new HubLogsManager(hubInDb.id).init());
+
+        const channelId = interaction.values[0];
+        const channel = interaction.channels.first();
+
+        if (type === 'reports') await hubLogsManager.setReportData({ channelId });
+        else hubLogsManager[type] = channelId;
+
+        // update the old embed with new channel value
+        const embed = interaction.message.embeds[0].toJSON();
+        if (embed.fields?.at(0)) embed.fields[0].value = `${channel || 'None'}`;
+        await interaction.update({ embeds: [embed] });
+
+        await interaction.followUp({
+          embeds: [
+            simpleEmbed(
+              `${emojis.yes} Logs of type \`${type}\` will be sent to  ${channel} from now!`,
+            ),
+          ],
+          ephemeral: true,
+        });
+      }
+    }
+
+    // role selects
+    else if (interaction.isRoleSelectMenu()) {
+      if (customId.suffix === 'logsRoleSel') {
+        const role = interaction.roles.first();
+        const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
+
+        if (type === 'reports' && role?.id) {
+          await (await new HubLogsManager(hubInDb.id).init()).setReportData({ roleId: role.id });
+        }
+
+        // update the old embed with new role value
+        const embed = interaction.message.embeds[0].toJSON();
+        if (embed.fields?.at(1)) embed.fields[1].value = `${role || 'None'}`;
+        await interaction.update({ embeds: [embed] });
+
+        await interaction.followUp({
+          embeds: [
+            simpleEmbed(
+              `${emojis.yes} The role ${role} will be pinged next time this log is sent!`,
+            ),
+          ],
+          ephemeral: true,
+        });
       }
     }
   }
@@ -421,12 +536,12 @@ export default class Manage extends Hub {
   @RegisterInteractionHandler('hub_manage_modal')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const hubName = customId.args[0];
+    const hubId = customId.args[0];
     const locale = interaction.user.locale || 'en';
 
     let hubInDb = await db.hubs.findFirst({
       where: {
-        name: hubName,
+        id: hubId,
         OR: [
           { ownerId: interaction.user.id },
           { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
@@ -443,12 +558,12 @@ export default class Manage extends Hub {
       return;
     }
 
-    switch (customId.postfix) {
+    switch (customId.suffix) {
       // update description modal
       case 'description': {
         const description = interaction.fields.getTextInputValue('description');
         await db.hubs.update({
-          where: { name: hubName },
+          where: { id: hubId },
           data: { description },
         });
 
@@ -474,7 +589,7 @@ export default class Manage extends Hub {
         }
 
         await db.hubs.update({
-          where: { name: hubName },
+          where: { id: hubId },
           data: { iconUrl },
         });
 
@@ -491,7 +606,7 @@ export default class Manage extends Hub {
 
         if (!newBanner) {
           await db.hubs.update({
-            where: { name: hubName },
+            where: { id: hubId },
             data: { bannerUrl: { unset: true } },
           });
 
@@ -514,7 +629,7 @@ export default class Manage extends Hub {
         }
 
         await db.hubs.update({
-          where: { name: hubName },
+          where: { id: hubId },
           data: { bannerUrl },
         });
 
@@ -531,15 +646,13 @@ export default class Manage extends Hub {
 
     // fetch updated data
     hubInDb = await db.hubs.findFirst({
-      where: { name: hubName },
+      where: { id: hubId },
       include: { connections: true },
     });
 
     // update the original message with new embed
     if (hubInDb) {
-      await interaction.message
-        ?.edit({ embeds: [await hubEmbed(hubInDb)] })
-        .catch(() => null);
+      await interaction.message?.edit({ embeds: [await hubEmbed(hubInDb)] }).catch(() => null);
     }
   }
 }

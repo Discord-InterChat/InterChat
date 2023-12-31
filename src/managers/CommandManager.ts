@@ -118,9 +118,7 @@ export default class CommandManager extends Factory {
       captureException(e);
 
       // reply with an error message to the user
-      if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
-        replyWithError(interaction, e);
-      }
+      if (interaction.isRepliable()) replyWithError(interaction, e);
     }
   }
 

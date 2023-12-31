@@ -108,7 +108,7 @@ export default class Stats extends BaseCommand {
   async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
 
-    if (customId.postfix === 'shardStats') {
+    if (customId.suffix === 'shardStats') {
       const embed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setDescription(

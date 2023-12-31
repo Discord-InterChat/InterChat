@@ -1,6 +1,8 @@
+import lz from 'lz-string';
+
 interface ParsedCustomId {
   prefix: string;
-  postfix: string;
+  suffix: string;
   expiry?: number;
   args: string[];
 }
@@ -17,11 +19,11 @@ export class CustomID {
   /**
    * Sets the identifier of the custom ID.
    * @param prefix - The prefix for the custom ID.
-   * @param postfix - The postfix for the custom ID (optional).
+   * @param suffix - The suffix for the custom ID (optional).
    * @returns CustomID - The CustomID instance for method chaining.
    */
-  setIdentifier(prefix: string, postfix?: string): CustomID {
-    this.customId = `${prefix}${postfix ? `:${postfix}` : ''}`;
+  setIdentifier(prefix: string, suffix?: string): CustomID {
+    this.customId = `${prefix}${suffix ? `:${suffix}` : ''}`;
     return this;
   }
 
@@ -59,11 +61,13 @@ export class CustomID {
    * @returns ParsedCustomId - The parsed custom ID object.
    */
   static parseCustomId(customId: string): ParsedCustomId {
+    const decoded = lz.decompressFromUTF16(customId) || customId;
+
     // Split the customId by '&'
-    const split = customId.split('&');
+    const split = decoded.split('&');
 
     // Extract prefix and postfix
-    const [prefix, ...postfix] = split[0].split(':');
+    const [prefix, ...suffix] = split[0].split(':');
 
     // Extract expiry from arguments
     const expiryArg = split.slice(1).find((arg) => arg.startsWith('ex='));
@@ -74,7 +78,7 @@ export class CustomID {
 
     const parsed: ParsedCustomId = {
       prefix,
-      postfix: postfix.join(':'),
+      suffix: suffix.join(':'),
       expiry,
       args,
     };
@@ -87,10 +91,12 @@ export class CustomID {
    * @returns string - The string representation of the CustomID.
    */
   toString() {
-    let str = `${this.customId}`;
+    let str = this.customId;
     if (this.data.length > 0) this.data.forEach((element) => (str += `&${element}`));
-    if (str.length > 100) throw new Error('CustomID is too long.');
 
+    // compress and encode the string
+    str = lz.compressToUTF16(str).toString();
+    if (str.length > 100) throw new Error(`CustomID is too long: ${str} (length: ${str.length})`);
     return str;
   }
 }

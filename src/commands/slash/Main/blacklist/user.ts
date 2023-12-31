@@ -4,7 +4,7 @@ import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
 import { emojis } from '../../../../utils/Constants.js';
-import NetworkLogger from '../../../../utils/NetworkLogger.js';
+import HubLogsManager from '../../../../managers/HubLogsManager.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
 
@@ -30,7 +30,7 @@ export default class Server extends BlacklistCommand {
       });
     }
 
-    const networkLogger = new NetworkLogger(hubInDb.id);
+    const hubLogger = await new HubLogsManager(hubInDb.id).init();
 
     const subcommandGroup = interaction.options.getSubcommandGroup();
     const userId = interaction.options.getString('user', true);
@@ -108,7 +108,7 @@ export default class Server extends BlacklistCommand {
       await interaction.followUp({ embeds: [successEmbed] });
 
       // send log to hub's log channel
-      await networkLogger.logBlacklist(user, interaction.user, reason, expires);
+      await hubLogger.logBlacklist(user, interaction.user, reason, expires);
     }
     else if (subcommandGroup == 'remove') {
       // remove the blacklist
@@ -127,7 +127,7 @@ export default class Server extends BlacklistCommand {
       );
       if (user) {
         // send log to hub's log channel
-        await networkLogger.logUnblacklist('user', user.id, interaction.user, { reason });
+        await hubLogger.logUnblacklist('user', user.id, interaction.user, { reason });
       }
     }
   }

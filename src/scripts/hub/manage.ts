@@ -6,14 +6,14 @@ import { CustomID } from '../../utils/CustomID.js';
 import db from '../../utils/Db.js';
 import { t } from '../../utils/Locale.js';
 
-export function actionsSelect(hubName: string, userId: string, locale = 'en') {
+export function actionsSelect(hubId: string, userId: string, locale = 'en') {
   return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId(
         new CustomID()
           .setIdentifier('hub_manage', 'actions')
           .addArgs(userId)
-          .addArgs(hubName)
+          .addArgs(hubId)
           .toString(),
       )
       .addOptions([
