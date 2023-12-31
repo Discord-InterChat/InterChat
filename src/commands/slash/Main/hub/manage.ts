@@ -19,7 +19,6 @@ import {
 } from 'discord.js';
 import { t } from '../../../../utils/Locale.js';
 import { CustomID } from '../../../../utils/CustomID.js';
-import { stripIndents } from 'common-tags';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import { Prisma } from '@prisma/client';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
@@ -126,7 +125,7 @@ export default class Manage extends Hub {
         await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
       }
       else if (customId.suffix === 'logsBtn' || customId.suffix === 'logsBackBtn') {
-        const embed = genLogInfoEmbed(hubInDb);
+        const embed = genLogInfoEmbed(hubInDb, locale);
 
         const selects = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
           new StringSelectMenuBuilder()
@@ -140,21 +139,21 @@ export default class Manage extends Hub {
             .setPlaceholder('Choose a log type to set a channel.')
             .addOptions([
               {
-                label: 'Reports',
+                label: t({ phrase: 'hub.manage.logs.reports.label', locale }),
                 value: 'reports',
-                description: 'Log reports sent by users.',
+                description: t({ phrase: 'hub.manage.logs.reports.description', locale }),
                 emoji: '📢',
               },
               {
-                label: 'Mod Logs',
+                label: t({ phrase: 'hub.manage.logs.modLogs.label', locale }),
                 value: 'modLogs',
-                description: 'Log moderation actions taken by hub moderators.',
+                description: t({ phrase: 'hub.manage.logs.modLogs.description', locale }),
                 emoji: '👮',
               },
               {
-                label: 'Profanity',
+                label: t({ phrase: 'hub.manage.logs.profanity.label', locale }),
                 value: 'profanity',
-                description: 'Log messages that contain profanity.',
+                description: t({ phrase: 'hub.manage.logs.profanity.description', locale }),
                 emoji: '🤬',
               },
               // {
@@ -170,9 +169,9 @@ export default class Manage extends Hub {
               //   emoji: '🗑️',
               // },
               {
-                label: 'Joins/Leaves',
+                label: t({ phrase: 'hub.manage.logs.joinLeave.label', locale }),
                 value: 'joinLeaves',
-                description: 'Log when a server joins/leaves the hub.',
+                description: t({ phrase: 'hub.manage.logs.joinLeave.description', locale }),
                 emoji: '👋',
               },
             ]),
@@ -204,7 +203,9 @@ export default class Manage extends Hub {
 
         await interaction.reply({
           embeds: [
-            simpleEmbed(`${emojis.yes} Successfully reset the logs configuration for \`${type}\` logs`),
+            simpleEmbed(
+              t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.yes, type }),
+            ),
           ],
           ephemeral: true,
         });
@@ -401,7 +402,7 @@ export default class Manage extends Hub {
               ChannelType.PublicThread,
               ChannelType.PrivateThread,
             )
-            .setPlaceholder('#️⃣ Select a channel to send logs to'),
+            .setPlaceholder(t({ phrase: 'hub.manage.logs.channelSelect', locale })),
         );
 
         const roleSelect = new ActionRowBuilder<RoleSelectMenuBuilder>().addComponents(
@@ -414,7 +415,7 @@ export default class Manage extends Hub {
                 .addArgs(type)
                 .toString(),
             )
-            .setPlaceholder('🏓 Select a role to ping when sending logs'),
+            .setPlaceholder(t({ phrase: 'hub.manage.logs.roleSelect', locale })),
         );
 
         const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -430,7 +431,6 @@ export default class Manage extends Hub {
                 .toString(),
             ),
           new ButtonBuilder()
-            .setLabel('Reset Log')
             .setEmoji(emojis.delete)
             .setStyle(ButtonStyle.Danger)
             .setCustomId(
@@ -445,25 +445,27 @@ export default class Manage extends Hub {
 
         // disable log select menu when trying to change channel
         const embed = new EmbedBuilder()
-          .setTitle(`Config \`${type}\` logs`)
+          .setTitle(t({ phrase: 'hub.manage.logs.config.title', locale }, { type }))
           .setDescription(
-            stripIndents`
-              ${emojis.arrow} Select a log channel and/or role to be pinged from the dropdown below.
-              ${emojis.arrow} You can also disable logging by using the button below.
-            `,
+            t({ phrase: 'hub.manage.logs.config.description', locale }, { arrow: emojis.arrow }),
           )
           .addFields(
             typeof logChannel === 'string'
-              ? [{ name: 'Current Channel', value: logChannel ? `<#${logChannel}>` : 'None' }]
+              ? [
+                {
+                  name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
+                  value: logChannel ? `<#${logChannel}>` : 'N/A',
+                },
+              ]
               : [
                 {
-                  name: 'Current Channel',
-                  value: logChannel?.channelId ? `<#${logChannel.channelId}>` : 'None',
+                  name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
+                  value: logChannel?.channelId ? `<#${logChannel.channelId}>` : 'N/A',
                   inline: true,
                 },
                 {
-                  name: 'Current Role Ping',
-                  value: logChannel?.roleId ? `<@&${logChannel.roleId}>` : 'None',
+                  name: t({ phrase: 'hub.manage.logs.config.fields.role', locale }),
+                  value: logChannel?.roleId ? `<@&${logChannel.roleId}>` : 'N/A',
                   inline: true,
                 },
               ],
@@ -482,7 +484,7 @@ export default class Manage extends Hub {
     else if (interaction.isChannelSelectMenu()) {
       if (customId.suffix === 'logsChSel') {
         const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
-        const hubLogsManager = (await new HubLogsManager(hubInDb.id).init());
+        const hubLogsManager = await new HubLogsManager(hubInDb.id).init();
 
         const channelId = interaction.values[0];
         const channel = interaction.channels.first();
@@ -498,7 +500,10 @@ export default class Manage extends Hub {
         await interaction.followUp({
           embeds: [
             simpleEmbed(
-              `${emojis.yes} Logs of type \`${type}\` will be sent to  ${channel} from now!`,
+              t(
+                { phrase: 'hub.manage.logs.channelSuccess', locale },
+                { emoji: emojis.yes, type, channel: `${channel}` },
+              ),
             ),
           ],
           ephemeral: true,
@@ -513,18 +518,29 @@ export default class Manage extends Hub {
         const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
 
         if (type === 'reports' && role?.id) {
+          if (!hubInDb.logChannels?.reports?.channelId) {
+            await interaction.reply({
+              embeds: [simpleEmbed(t({ phrase: 'hub.manage.logs.reportChannelFirst', locale }))],
+              ephemeral: true,
+            });
+            return;
+          }
+
           await (await new HubLogsManager(hubInDb.id).init()).setReportData({ roleId: role.id });
         }
 
         // update the old embed with new role value
         const embed = interaction.message.embeds[0].toJSON();
         if (embed.fields?.at(1)) embed.fields[1].value = `${role || 'None'}`;
-        await interaction.update({ embeds: [embed] });
 
+        await interaction.update({ embeds: [embed] });
         await interaction.followUp({
           embeds: [
             simpleEmbed(
-              `${emojis.yes} The role ${role} will be pinged next time this log is sent!`,
+              t(
+                { phrase: 'hub.manage.logs.roleSuccess', locale },
+                { emoji: emojis.yes, type, role: `${role}` },
+              ),
             ),
           ],
           ephemeral: true,
