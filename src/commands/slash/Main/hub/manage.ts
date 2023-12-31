@@ -119,9 +119,9 @@ export default class Manage extends Hub {
     // settings button
     if (interaction.isButton()) {
       if (customId.suffix === 'settingsBtn') {
-        const { name, iconUrl, settings } = hubInDb;
+        const { id, name, iconUrl, settings } = hubInDb;
         const embed = buildSettingsEmbed(name, iconUrl, settings);
-        const selects = buildSettingsMenu(settings, name, customId.args[0]);
+        const selects = buildSettingsMenu(settings, id, customId.args[0]);
 
         await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
       }
@@ -372,10 +372,10 @@ export default class Manage extends Hub {
           return;
         }
 
-        const { name, iconUrl, settings } = updHub;
+        const { id, name, iconUrl, settings } = updHub;
 
         const embed = buildSettingsEmbed(name, iconUrl, settings);
-        const selects = buildSettingsMenu(settings, name, customId.args[0]);
+        const selects = buildSettingsMenu(settings, id, customId.args[0]);
 
         await interaction.update({
           embeds: [embed],

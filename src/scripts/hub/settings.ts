@@ -31,7 +31,7 @@ export function buildSettingsEmbed(name: string, iconURL: string, rawSettings: n
 
 export function buildSettingsMenu(
   rawSettings: number,
-  hubName: string,
+  hubId: string,
   userId: Snowflake,
 ) {
   const hubSettings = new HubSettingsBitField(rawSettings);
@@ -41,7 +41,7 @@ export function buildSettingsMenu(
         new CustomID()
           .setIdentifier('hub_manage', 'settingsSelect')
           .addArgs(userId)
-          .addArgs(hubName)
+          .addArgs(hubId)
           .toString(),
       )
       .setPlaceholder('Select an option')
