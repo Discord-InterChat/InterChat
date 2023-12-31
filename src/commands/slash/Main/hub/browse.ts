@@ -31,6 +31,7 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { t } from '../../../../utils/Locale.js';
+import HubLogsManager from '../../../../managers/HubLogsManager.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -397,6 +398,10 @@ export default class Browse extends Hub {
         We now have **${totalConnections}** servers with us!
       `,
       });
+
+      // log the server join to hub
+      const hubLogger = await new HubLogsManager(hubDetails.id).init();
+      await hubLogger.logServerJoin(interaction.guild, { totalConnections, hubName: hubDetails.name });
     }
   }
 
