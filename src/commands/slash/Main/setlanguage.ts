@@ -8,6 +8,12 @@ import db from '../../../utils/Db.js';
 import { emojis } from '../../../utils/Constants.js';
 import { t } from '../../../utils/Locale.js';
 
+const locales = {
+  en: '🇺🇸 English',
+  tr: '🇹🇷 Turkish',
+  hi: '🇮🇳 Hindi',
+};
+
 export default class SetLanguage extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'setlanguage',
@@ -18,16 +24,13 @@ export default class SetLanguage extends BaseCommand {
         description: 'The language to set',
         type: ApplicationCommandOptionType.String,
         required: true,
-        choices: [
-          { name: '🇺🇸 English', value: 'en' },
-          { name: '🇹🇷 Turkish', value: 'tr' },
-        ],
+        choices: Object.entries(locales).map((locale) => ({ name: locale[1], value: locale[0] })),
       },
     ],
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const locale = interaction.options.getString('lang', true);
+    const locale = interaction.options.getString('lang', true) as keyof typeof locales;
     await db.userData.upsert({
       where: { userId: interaction.user.id },
       create: {
@@ -40,7 +43,7 @@ export default class SetLanguage extends BaseCommand {
       },
     });
 
-    const lang = locale === 'en' ? '🇺🇸 English' : '🇹🇷 Turkish';
+    const lang = locales[locale];
 
     await interaction.reply({
       content: emojis.yes + t({ phrase: 'language.set', locale }, { lang }),
