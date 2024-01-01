@@ -39,7 +39,9 @@ jobs:
           # rebuilds tfjs-node for the current os
 
         - name: Initialize Git Submodules
-          run: git submodule update --init --recursive
+          run: |
+            rm -rf locales/
+            git submodule update --init --recursive
 
         - name: Deploy Commands
           run: |
