@@ -15,6 +15,7 @@ import { HubSettingsBits } from '../../../../utils/BitFields.js';
 import { checkAndFetchImgurUrl, simpleEmbed } from '../../../../utils/Utils.js';
 import { LINKS } from '../../../../utils/Constants.js';
 import { t } from '../../../../utils/Locale.js';
+import { CustomID } from '../../../../utils/CustomID.js';
 
 export default class Create extends Hub {
   readonly cooldown = 60 * 60 * 1000; // 1 hour
@@ -24,7 +25,7 @@ export default class Create extends Hub {
 
     const modal = new ModalBuilder()
       .setTitle(t({ phrase: 'hub.create.modal.title', locale }))
-      .setCustomId('hub_create_modal')
+      .setCustomId(new CustomID('hub_create_modal').toString())
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()

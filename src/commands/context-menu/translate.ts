@@ -89,7 +89,7 @@ export default class Translate extends BaseCommand {
   @RegisterInteractionHandler('translate')
   async handleComponents(interaction: ButtonInteraction) {
     const modal = new ModalBuilder()
-      .setCustomId('translate_modal')
+      .setCustomId(new CustomID('translate_modal').toString())
       .setTitle('Specify Language')
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(
