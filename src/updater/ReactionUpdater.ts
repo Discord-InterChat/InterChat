@@ -42,10 +42,12 @@ export default class ReactionUpdater extends Factory {
     // add user to cooldown list
     user.client.reactionCooldowns.set(user.id, Date.now() + 3000);
 
-    const originalMsg = (await db.broadcastedMessages.findFirst({
-      where: { messageId: reaction.message.id },
-      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
-    }))?.originalMsg;
+    const originalMsg = (
+      await db.broadcastedMessages.findFirst({
+        where: { messageId: reaction.message.id },
+        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+      })
+    )?.originalMsg;
 
     if (
       !originalMsg?.hub ||
@@ -315,14 +317,17 @@ export default class ReactionUpdater extends Factory {
         })
         .catch(() => null);
 
+
+      // FIXME: Fix not being able to react to messages with no reply button
       const components = message?.components?.filter((row) => {
         // filter all buttons that are not reaction buttons
         row.components = row.components.filter((component) => {
-          return component.type === ComponentType.Button &&
-            component.style === ButtonStyle.Secondary
-            ? !component.custom_id.startsWith('reaction_') &&
-                component.custom_id !== 'reaction_:view_all'
-            : true;
+          const isButton = component.type === ComponentType.Button;
+          if (isButton && component.style === ButtonStyle.Secondary) {
+            const custom_id = CustomID.parseCustomId(component.custom_id);
+            return custom_id.prefix !== 'reaction_' && custom_id.suffix !== 'view_all';
+          }
+          return true;
         });
 
         // if the filtered row  has components, that means it has components other than reaction buttons
