@@ -6,6 +6,7 @@ import db from '../../../../utils/Db.js';
 import Logger from '../../../../utils/Logger.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
+import parse from 'parse-duration';
 
 export default class Invite extends Hub {
   readonly cooldown = 3000; // 3 seconds
@@ -15,12 +16,10 @@ export default class Invite extends Hub {
 
     switch (subcommand) {
       case 'create': {
-        const expires = new Date();
         const hubName = interaction.options.getString('hub', true);
-        const hours = interaction.options.getNumber('expiry');
-        hours
-          ? expires.setHours(expires.getHours() + hours)
-          : expires.setHours(expires.getHours() + 24);
+        const expiryStr = interaction.options.getString('expiry');
+        const duration = expiryStr ? parse(expiryStr) : undefined;
+        const expires = new Date(Date.now() + (duration || 60 * 60 * 4000));
 
         const hubInDb = await db.hubs.findFirst({
           where: {
@@ -44,8 +43,8 @@ export default class Invite extends Hub {
         }
         const createdInvite = await db.hubInvites.create({
           data: {
-            expires,
             hub: { connect: { name: hubName } },
+            expires,
           },
         });
 

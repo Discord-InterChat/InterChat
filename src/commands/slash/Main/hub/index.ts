@@ -232,7 +232,7 @@ export default class Hub extends BaseCommand {
                 autocomplete: true,
               },
               {
-                type: ApplicationCommandOptionType.Number,
+                type: ApplicationCommandOptionType.String,
                 name: 'expiry',
                 description: 'The expiry of the invite link. Eg. 10h (10 hours from now)',
                 required: false,
