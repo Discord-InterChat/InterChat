@@ -249,22 +249,22 @@ export default class Connection extends BaseCommand {
               .setPlaceholder('Select a channel to switch to.'),
           );
 
-          await interaction.reply({
+          // current interaction will become outdated due to new channelId
+          await interaction.update({
+            content: t(
+              { phrase: 'connection.switchCalled', locale: interaction.user.locale },
+              { emoji: emojis.info },
+            ),
+            components: disableComponents(interaction.message),
+          });
+
+          await interaction.followUp({
             content: t(
               { phrase: 'connection.switchChannel', locale: interaction.user.locale },
               { emoji: emojis.info },
             ),
             components: [channelSelect],
             ephemeral: true,
-          });
-
-          // current interaction will become outdated due to new channelId
-          await interaction.message.edit({
-            content: t(
-              { phrase: 'connection.switchCalled', locale: interaction.user.locale },
-              { emoji: emojis.info },
-            ),
-            components: disableComponents(interaction.message),
           });
           break;
         }
@@ -313,12 +313,16 @@ export default class Connection extends BaseCommand {
 
       const channelInHub = await networkManager.fetchConnection({ channelId: newChannel?.id });
       if (channelInHub) {
-        await interaction.reply({
-          content: t(
-            { phrase: 'connection.alreadyConnected', locale: interaction.user.locale },
-            { channel: `${newChannel}` },
-          ),
-          ephemeral: true,
+        await interaction.editReply({
+          content: null,
+          embeds: [
+            simpleEmbed(
+              t(
+                { phrase: 'connection.alreadyConnected', locale: interaction.user.locale },
+                { channel: `${newChannel}` },
+              ),
+            ),
+          ],
         });
         return;
       }
@@ -334,6 +338,9 @@ export default class Connection extends BaseCommand {
           { phrase: 'connection.switchSuccess', locale: interaction.user.locale },
           { channel: `${newChannel}`, emoji: emojis.yes },
         ),
+        // remove error embed, if it occured
+        embeds: [],
+        // remove channel select menu
         components: [],
       });
     }
