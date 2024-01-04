@@ -337,7 +337,7 @@ export default class HubLogsManager {
       `,
       )
       .setColor(colors.interchatBlue)
-      .setThumbnail(server.iconURL() ?? '')
+      .setThumbnail(server.iconURL())
       .setFooter({
         text: `We have ${opt?.totalConnections} server(s) connected to ${opt?.hubName} now!`,
       });
@@ -365,7 +365,7 @@ export default class HubLogsManager {
       `,
       )
       .setColor('Red')
-      .setThumbnail(server.iconURL() ?? '')
+      .setThumbnail(server.iconURL())
       .setFooter({
         text: `We now have ${totalConnections} server(s) connected to ${hubName} now!`,
       });
