@@ -22,7 +22,7 @@ export default class Delete extends Hub {
 
     if (interaction.user.id !== hubInDb?.ownerId) {
       return await interaction.reply({
-        content: t({ phrase: 'errors.modUnownedHub', locale: interaction.user.locale }),
+        content: t({ phrase: 'errors.ownerOnly', locale: interaction.user.locale }),
         ephemeral: true,
       });
     }
@@ -68,58 +68,51 @@ export default class Delete extends Hub {
     const customId = CustomID.parseCustomId(interaction.customId);
     const userId = customId.args[0];
     const hubId = customId.args[1];
+    const { locale } = interaction.user;
 
     if (interaction.user.id !== userId) {
-      return await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.ownerOnly', locale: interaction.user.locale }))],
+      await interaction.reply({
+        embeds: [simpleEmbed(t({ phrase: 'errors.ownerOnly', locale }))],
         ephemeral: true,
       });
+      return;
     }
 
     if (customId.suffix === 'cancel') {
       await interaction.update({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'hub.delete.cancelled', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
-        ],
+        embeds: [simpleEmbed(t({ phrase: 'hub.delete.cancelled', locale }, { emoji: emojis.no }))],
         components: [],
       });
       return;
     }
 
+    await interaction.update({
+      embeds: [simpleEmbed(t({ phrase: 'misc.loading', locale }, { emoji: emojis.loading }))],
+      components: [],
+    });
+
     const hubInDb = await db.hubs.findFirst({
       where: { id: hubId, ownerId: interaction.user.id },
     });
     if (!hubInDb) {
-      return await interaction.update({
+      return await interaction.editReply({
         embeds: [
           simpleEmbed(
-            t(
-              { phrase: 'errors.unknown', locale: interaction.user.locale },
-              { support_invite: LINKS.SUPPORT_INVITE },
-            ),
+            t({ phrase: 'errors.unknown', locale }, { support_invite: LINKS.SUPPORT_INVITE }),
           ),
         ],
-        components: [],
       });
     }
 
     await deleteHubs([hubInDb.id]);
 
-    await interaction.update({
+    await interaction.editReply({
       embeds: [
         simpleEmbed(
-          t(
-            { phrase: 'hub.delete.success', locale: interaction.user.locale },
-            { emoji: emojis.tick, hub: hubInDb.name },
-          ),
+          t({ phrase: 'hub.delete.success', locale }, { emoji: emojis.tick, hub: hubInDb.name }),
+          'Green',
         ),
       ],
-      components: [],
     });
   }
 }
