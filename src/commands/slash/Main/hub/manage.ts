@@ -618,6 +618,9 @@ export default class Manage extends Hub {
 
       // change banner modal
       case 'banner': {
+        // sometimes it takes a while to fetch the image
+        await interaction.deferReply({ ephemeral: true });
+
         const newBanner = interaction.fields.getTextInputValue('banner');
 
         if (!newBanner) {
@@ -626,10 +629,7 @@ export default class Manage extends Hub {
             data: { bannerUrl: { unset: true } },
           });
 
-          await interaction.reply({
-            content: t({ phrase: 'hub.manage.banner.removed', locale }),
-            ephemeral: true,
-          });
+          await interaction.editReply(t({ phrase: 'hub.manage.banner.removed', locale }));
           break;
         }
 
@@ -637,10 +637,7 @@ export default class Manage extends Hub {
 
         // if banner is not a valid imgur link
         if (!bannerUrl) {
-          await interaction.reply({
-            content: t({ phrase: 'hub.invalidImgurUrl', locale }),
-            ephemeral: true,
-          });
+          await interaction.editReply(t({ phrase: 'hub.invalidImgurUrl', locale }));
           return;
         }
 
@@ -649,10 +646,9 @@ export default class Manage extends Hub {
           data: { bannerUrl },
         });
 
-        await interaction.reply({
-          content: t({ phrase: 'hub.manage.banner.changed', locale }),
-          ephemeral: true,
-        });
+        await interaction.editReply(
+          emojis.yes + t({ phrase: 'hub.manage.banner.changed', locale }),
+        );
         break;
       }
 
