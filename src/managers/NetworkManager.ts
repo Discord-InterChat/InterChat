@@ -443,7 +443,7 @@ export default class NetworkManager extends Factory {
       const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
       const gifJSON = await (await fetch(api)).json();
 
-      return gifJSON.results[0].media[0].gif.url as string;
+      return gifJSON.results.at(0)?.media.at(0)?.gif.url as string | null;
     }
     return null;
   }
