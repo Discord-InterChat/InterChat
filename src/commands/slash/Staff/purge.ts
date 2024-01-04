@@ -104,6 +104,8 @@ export default class Purge extends BaseCommand {
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
+    await interaction.deferReply({ fetchReply: true });
+
     const subcommand = interaction.options.getSubcommand();
     const limit = interaction.options.getInteger('limit') || 100;
     const channelInHub = await db.connectedList.findFirst({
@@ -120,20 +122,18 @@ export default class Purge extends BaseCommand {
     });
 
     if (!isMod) {
-      return await interaction.reply({
+      return await interaction.editReply({
         embeds: [
           simpleEmbed(
             `${emojis.no} You must be a moderator or owner of this hub to use this command.`,
           ),
         ],
-        ephemeral: true,
       });
     }
 
     if (!channelInHub) {
-      return await interaction.reply({
+      return await interaction.editReply({
         content: 'This channel is not connected to a hub.',
-        ephemeral: true,
       });
     }
 
@@ -203,14 +203,10 @@ export default class Purge extends BaseCommand {
     }
 
     if (!messagesInDb || messagesInDb.length < 1) {
-      return await interaction.reply({
-        content:
-          'Messages to purge not found; messages sent over 24 hours ago have been automatically removed.',
-        ephemeral: true,
-      });
+      return await interaction.editReply(
+        'Messages to purge not found; messages sent over 24 hours ago have been automatically removed.',
+      );
     }
-
-    await interaction.deferReply({ fetchReply: true });
 
     const startTime = performance.now();
     const allNetworks = await db.connectedList.findMany({
