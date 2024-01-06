@@ -21,6 +21,7 @@ import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { simpleEmbed } from '../../utils/Utils.js';
+import { time } from 'discord.js';
 
 export default class Blacklist extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -173,7 +174,7 @@ export default class Blacklist extends BaseCommand {
       },
       {
         name: 'Expires',
-        value: expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never.',
+        value: expires ? `${time(Math.round(expires.getTime() / 1000), 'R')}` : 'Never.',
         inline: true,
       },
     );
@@ -255,9 +256,7 @@ export default class Blacklist extends BaseCommand {
 
       if (server) {
         const hubLogger = await new HubLogsManager(originalMsg.hubId).init();
-        await hubLogger
-          .logBlacklist(server, interaction.user, reason, expires)
-          .catch(() => null);
+        await hubLogger.logBlacklist(server, interaction.user, reason, expires).catch(() => null);
       }
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });

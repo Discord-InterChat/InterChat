@@ -5,6 +5,7 @@ import { paginate } from '../../../../utils/Pagination.js';
 import { colors } from '../../../../utils/Constants.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
+import { time } from 'discord.js';
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -24,9 +25,7 @@ export default class ListBlacklists extends BlacklistCommand {
 
     if (!hubInDb) {
       await interaction.editReply({
-        embeds: [
-          simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
-        ],
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
       });
       return;
     }
@@ -66,7 +65,7 @@ export default class ListBlacklists extends BlacklistCommand {
               reason: `${hubData?.reason}`,
               expires: !hubData?.expires
                 ? 'Never.'
-                : `<t:${Math.round(hubData.expires.getTime() / 1000)}:R>`,
+                : `${time(Math.round(hubData.expires.getTime() / 1000), 'R')}`,
             },
           ),
         });
@@ -110,7 +109,7 @@ export default class ListBlacklists extends BlacklistCommand {
               reason: `${hubData?.reason}`,
               expires: !hubData?.expires
                 ? 'Never.'
-                : `<t:${Math.round(hubData.expires.getTime() / 1000)}:R>`,
+                : `${time(Math.round(hubData.expires.getTime() / 1000), 'R')}`,
             },
           ),
         });

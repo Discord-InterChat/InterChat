@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/node';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, time } from 'discord.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
@@ -111,7 +111,7 @@ export default class UserBlacklist extends BlacklistCommand {
           },
           {
             name: 'Expires',
-            value: expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never.',
+            value: expires ? `${time(Math.round(expires.getTime() / 1000), 'R')}` : 'Never.',
             inline: true,
           },
         );

@@ -1,4 +1,5 @@
 import db from './Db.js';
+import Logger from './Logger.js';
 import toLower from 'lodash/toLower.js';
 import Scheduler from '../services/SchedulerService.js';
 import startCase from 'lodash/startCase.js';
@@ -9,6 +10,7 @@ import {
   ColorResolvable,
   ComponentType,
   EmbedBuilder,
+  Interaction,
   Message,
   MessageActionRowComponent,
   NewsChannel,
@@ -21,6 +23,8 @@ import { DeveloperIds, REGEX, StaffIds, SupporterIds, LINKS, colors, emojis } fr
 import { randomBytes } from 'crypto';
 import { t } from './Locale.js';
 import 'dotenv/config';
+import { captureException } from '@sentry/node';
+import { CustomID } from './CustomID.js';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export function msToReadable(milliseconds: number): string {
@@ -270,4 +274,29 @@ export async function deleteMsgsFromDb(ids: string[]) {
 export function channelMention(channelId: Snowflake | null | undefined) {
   if (!channelId) return emojis.no;
   return `<#${channelId}>`;
+}
+
+export function handleError(e: Error, interaction?: Interaction) {
+  // log the error to the system
+  Logger.error(e);
+  let extra;
+
+  if (interaction) {
+    extra = {
+      user: { id: interaction.user.id, username: interaction.user.username },
+      extra: {
+        type: interaction.type,
+        identifier:
+          interaction.isCommand() || interaction.isAutocomplete()
+            ? interaction.commandName
+            : CustomID.parseCustomId(interaction.customId),
+      },
+    };
+  }
+
+  // capture the error to Sentry.io with additional information
+  captureException(e, extra);
+
+  // reply with an error message to the user
+  if (interaction?.isRepliable()) replyWithError(interaction, String(e));
 }

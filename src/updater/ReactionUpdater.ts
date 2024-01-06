@@ -15,6 +15,7 @@ import {
   StringSelectMenuBuilder,
   User,
   WebhookClient,
+  time,
 } from 'discord.js';
 import { sortReactions } from '../utils/Utils.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
@@ -211,10 +212,9 @@ export default class ReactionUpdater extends Factory {
       }
 
       if (cooldown && cooldown > Date.now()) {
+        const timeString = time(Math.round(cooldown / 1000), 'R');
         return await interaction.followUp({
-          content: `A little quick there! You can react again <t:${Math.round(
-            cooldown / 1000,
-          )}:R>!`,
+          content: `A little quick there! You can react again ${timeString}!`,
           ephemeral: true,
         });
       }
@@ -317,8 +317,7 @@ export default class ReactionUpdater extends Factory {
         })
         .catch(() => null);
 
-
-      // FIXME: Fix not being able to react to messages with no reply button
+      // FIXME: Fix not being able to react to messages with reply button
       const components = message?.components?.filter((row) => {
         // filter all buttons that are not reaction buttons
         row.components = row.components.filter((component) => {

@@ -13,6 +13,7 @@ import {
   TextInputStyle,
   ModalSubmitInteraction,
   ChannelSelectMenuInteraction,
+  time,
 } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import Hub from './index.js';
@@ -401,7 +402,10 @@ export default class Browse extends Hub {
 
       // log the server join to hub
       const hubLogger = await new HubLogsManager(hubDetails.id).init();
-      await hubLogger.logServerJoin(interaction.guild, { totalConnections, hubName: hubDetails.name });
+      await hubLogger.logServerJoin(interaction.guild, {
+        totalConnections,
+        hubName: hubDetails.name,
+      });
     }
   }
 
@@ -456,8 +460,9 @@ export default class Browse extends Hub {
 
     const lastMessageTimestamp = lastMessage?.getTime() ?? 0;
     const lastMessageStr = lastMessageTimestamp
-      ? `<t:${Math.round(lastMessageTimestamp / 1000)}:R>`
+      ? `${time(Math.round(lastMessageTimestamp / 1000), 'R')}`
       : '-';
+    const hubCreatedAt = time(Math.round(hub.createdAt.getTime() / 1000), 'd');
 
     return new EmbedBuilder()
       .setTitle(hub.name)
@@ -467,7 +472,7 @@ export default class Browse extends Hub {
           name: 'Information',
           value: stripIndents`
             ${emojis.connect_icon} **Servers:** ${connections ?? 'Unknown.'}
-            ${emojis.clock_icon} **Created At:** <t:${Math.round(hub.createdAt.getTime() / 1000)}:d>
+            ${emojis.clock_icon} **Created At:** ${hubCreatedAt}
             ${emojis.chat_icon} **Last Message:** ${lastMessageStr}
           `,
           inline: true,

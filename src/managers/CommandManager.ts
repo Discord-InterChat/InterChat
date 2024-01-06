@@ -1,11 +1,9 @@
 import { t } from '../utils/Locale.js';
 import { join, dirname } from 'path';
 import { CustomID } from '../utils/CustomID.js';
-import { Interaction } from 'discord.js';
-import { captureException } from '@sentry/node';
-import { simpleEmbed, replyWithError } from '../utils/Utils.js';
+import { Interaction, time } from 'discord.js';
+import { simpleEmbed, handleError } from '../utils/Utils.js';
 import { access, constants, readdirSync, statSync } from 'fs';
-import Logger from '../utils/Logger.js';
 import Factory from '../Factory.js';
 import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
 
@@ -77,7 +75,7 @@ export default class CommandManager extends Factory {
           await interaction.reply({
             content: t(
               { phrase: 'errors.cooldown', locale: interaction.user.locale },
-              { time: `until <t:${waitUntil}:T> (<t:${waitUntil}:R>)` },
+              { time: `until ${time(waitUntil, 'T')} (${time(waitUntil, 'R')})` },
             ),
             ephemeral: true,
           });
@@ -85,7 +83,7 @@ export default class CommandManager extends Factory {
         }
 
         // run the command
-        command?.execute(interaction);
+        await command?.execute(interaction);
       }
       else {
         const customId = CustomID.parseCustomId(interaction.customId);
@@ -114,22 +112,7 @@ export default class CommandManager extends Factory {
       }
     }
     catch (e) {
-      // log the error to the system
-      Logger.error(e);
-      // capture the error to Sentry.io with additional information
-      captureException(e, {
-        user: { id: interaction.user.id, username: interaction.user.username },
-        extra: {
-          type: interaction.type,
-          identifier:
-            interaction.isCommand() || interaction.isAutocomplete()
-              ? interaction.commandName
-              : CustomID.parseCustomId(interaction.customId),
-        },
-      });
-
-      // reply with an error message to the user
-      if (interaction.isRepliable()) replyWithError(interaction, e);
+      handleError(e, interaction);
     }
   }
 

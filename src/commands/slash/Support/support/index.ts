@@ -5,10 +5,8 @@ import {
   Collection,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
+import { handleError } from '../../../../utils/Utils.js';
 import BaseCommand from '../../../BaseCommand.js';
-import Logger from '../../../../utils/Logger.js';
-import { captureException } from '@sentry/node';
-import { replyWithError } from '../../../../utils/Utils.js';
 
 export default class Support extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -50,11 +48,6 @@ export default class Support extends BaseCommand {
     const subCommandName = interaction.options.getSubcommand();
     const subcommand = Support.subcommands?.get(subCommandName);
 
-    await subcommand?.execute(interaction).catch((e) => {
-      Logger.error(e);
-      captureException(e);
-      // reply with an error message to the user
-      replyWithError(interaction, e.message);
-    });
+    await subcommand?.execute(interaction).catch((e) => handleError(e, interaction));
   }
 }

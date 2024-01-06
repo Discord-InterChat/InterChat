@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, time } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
@@ -100,7 +100,7 @@ export default class Server extends BlacklistCommand {
           },
           {
             name: 'Expires',
-            value: expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never.',
+            value: expires ? `${time(Math.round(expires.getTime() / 1000), 'R')}` : 'Never.',
             inline: true,
           },
         );
