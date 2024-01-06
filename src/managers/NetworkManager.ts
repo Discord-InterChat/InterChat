@@ -108,7 +108,10 @@ export default class NetworkManager extends Factory {
     message.censoredContent = censor(message.content);
 
     // fetch the referred message  (message being replied to) from discord
-    const referredMessage = message.reference ? await message.fetchReference() : undefined;
+    const referredMessage = message.reference
+      ? await message.fetchReference().catch(() => undefined)
+      : undefined;
+
     // check if it was sent in the network
     const referenceInDb = referredMessage
       ? (
