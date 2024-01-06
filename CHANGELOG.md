@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.15.0](https://github.com/Discord-interchat/interchat/compare/v3.14.0...v3.15.0) (2024-01-06)
+
+
+### Features
+
+* hub logging, reporting messages, encrypted customIds, join server button ([f0ae9dd](https://github.com/Discord-interchat/interchat/commit/f0ae9ddda5f842d2a2d6be45850a892ec28456ff))
+* **network:** prevent accounts that are not newer than 7 days from using interchat ([5bd416d](https://github.com/Discord-interchat/interchat/commit/5bd416d5f1c24f9d4d94bb54fa5c60440d0e1e73))
+* search for server using `/hub connections` ([b16b13f](https://github.com/Discord-interchat/interchat/commit/b16b13fdab302770c37ad45f98ea1774854d9031))
+
+
+### Bug Fixes
+
+* add hindi locale ([719d06b](https://github.com/Discord-interchat/interchat/commit/719d06b93745d4ad9eb6b6c6ebefad2847b692e6))
+* add shard information to stats command and ([090b6ad](https://github.com/Discord-interchat/interchat/commit/090b6ad3db8d2fa9381d7fb0f3aee9f74d50bd01))
+* **blacklist:** fix bug with `Apps > Blacklist` ([30f9d2f](https://github.com/Discord-interchat/interchat/commit/30f9d2fe9fdc2c2c19a2e900d06c767cdcce0e14))
+* **connection:** fix bug with channel switch when bot is missing permissions ([6b97b5a](https://github.com/Discord-interchat/interchat/commit/6b97b5a61a3c34bda8d3ae69b0894f373bf2aa63))
+* fix `/hub servers` command ([681036a](https://github.com/Discord-interchat/interchat/commit/681036af6c3aad70abb2ce3e95ef76b5296a848b))
+* fix hub create not using `CustomID()` ([35c89d7](https://github.com/Discord-interchat/interchat/commit/35c89d73b80d0d069b7d5151015e3389074e1158))
+* fix hub settings giving errors ([ef37881](https://github.com/Discord-interchat/interchat/commit/ef37881afdeb85582940fd424787e2e6b2e1a2d7))
+* fix issues with /support report for bugs ([a7b5d75](https://github.com/Discord-interchat/interchat/commit/a7b5d75ed066c1414d1b15723a606adcada933d5))
+* fixed being able to join private hubs without invite ([822cf58](https://github.com/Discord-interchat/interchat/commit/822cf583e3614000589601c97d0270929b5f7a87))
+* **hub leave:** fix permission check ([4bebf93](https://github.com/Discord-interchat/interchat/commit/4bebf9314776b8409bc72273b5e9714b4fbe583c))
+* **hub leave:** fix permission check ([0eb2c2d](https://github.com/Discord-interchat/interchat/commit/0eb2c2d248eddae6b56f9e0e14af8c1cbcf0bf1a))
+* **hub:** `/hub leave` bug when a server is no longer part of a hub and user clicks leave button it errors ([5afd61a](https://github.com/Discord-interchat/interchat/commit/5afd61a74c53623fd63e6310f0acbd41bc4f35cc))
+* **hubDelete:** fix bug where hub delete process takes too long causing interaction failure ([0277123](https://github.com/Discord-interchat/interchat/commit/0277123b6a4a6299a988b1a2a2de9790fb039628))
+* **hubInvite:** fix error with `/hub invite create` expiry ([87509fe](https://github.com/Discord-interchat/interchat/commit/87509fe8ea2de16f2bc775a307f2ecd102d938d0))
+* **hubLogs:** fixed bug with embed thumbnails when server doesnt have an icon ([4434aee](https://github.com/Discord-interchat/interchat/commit/4434aeee401b62ef40bc1d4f2f94d02097961c87))
+* **hubManage:** fix interaction failures when setting banner ([8a4c129](https://github.com/Discord-interchat/interchat/commit/8a4c129e70a62626ed73f28c378627a8ca183ec7))
+* localization for hub logs ([373aeca](https://github.com/Discord-interchat/interchat/commit/373aecafb10896ee5ef01e1a9e8ff3504d71983c))
+* make crib default hub ([90f92f6](https://github.com/Discord-interchat/interchat/commit/90f92f69aacbd53676a37a537264edf804561643))
+* **msgData:** fix bug where original messages cant be deleted from the db ([23f19a8](https://github.com/Discord-interchat/interchat/commit/23f19a809e9fb9d2a97f361a882411b4ade44b40))
+* **msgData:** split storing network messages into two collections ([91d51b2](https://github.com/Discord-interchat/interchat/commit/91d51b2e7b1cec5fe5a1d6d62c6c8b057e2ee119))
+* **network:** add webhook caching ([e0269b1](https://github.com/Discord-interchat/interchat/commit/e0269b198654fa7d3d4dacd4407b750c6a8527cb))
+* **network:** fix bug where bot cant reply about the nsfw warning ([6c8fa20](https://github.com/Discord-interchat/interchat/commit/6c8fa202eb20a0926eef1bfcfd0cd9f7978a67f4))
+* **network:** fix errors when tenor url is invalid/doesn't exist ([1770538](https://github.com/Discord-interchat/interchat/commit/1770538cd7245765efc989d7af2b82c07c5d46d5))
+* **network:** fix image urls showing in embed ([60e439f](https://github.com/Discord-interchat/interchat/commit/60e439fdb87053d70d00d5424e8b9a979191c8be))
+* **network:** fix nickname setting not working on network ([1c0dae1](https://github.com/Discord-interchat/interchat/commit/1c0dae1e44411fae8eff5de247427f19c0b286d4))
+* **network:** use discord.js to fetch webhooks instead of webhookclient ([94187f8](https://github.com/Discord-interchat/interchat/commit/94187f847cfb208cfa91ecfcc1b1b56d90386ea5))
+* **purge:** fix `/purge server` failing ([57c5753](https://github.com/Discord-interchat/interchat/commit/57c5753b82bb198cded2ac49d381d2c4d8f028df))
+* reaction button filtering issue ([9f40fe6](https://github.com/Discord-interchat/interchat/commit/9f40fe6ebc883237e821d5ee30b7efed6ee10639))
+* **scheduler:** exit if task to set is a very long timeout ([9b6e30f](https://github.com/Discord-interchat/interchat/commit/9b6e30f11d99a76cb54ebfdaff2dae3838b75f3b))
+* Updatei18n  button label for blacklist and fix invisible color hex ([d3c8e69](https://github.com/Discord-interchat/interchat/commit/d3c8e6913996e58c130e992b4db3965b5b6f2292))
+
 ## [3.14.0](https://github.com/discord-interchat/interchat/compare/v3.13.0...v3.14.0) (2023-11-22)
 
 
