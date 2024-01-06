@@ -50,7 +50,8 @@ export default class NetworkManager extends Factory {
    * @param message The network message to handle.
    */
   public async handleNetworkMessage(message: NetworkMessage) {
-    const locale = await message.client.getUserLocale(message.author.id);
+    message.author.locale = await message.client.getUserLocale(message.author.id);
+    const { locale } = message.author;
 
     const isNetworkMessage = await db.connectedList.findFirst({
       where: { channelId: message.channel.id, connected: true },
@@ -301,11 +302,19 @@ export default class NetworkManager extends Factory {
    * @param hubId - The ID of the hub the message is being sent in.
    * @returns A boolean indicating whether the message passed all checks.
    */
-  public async runChecks(
-    message: Message,
-    settings: HubSettingsBitField,
-    hubId: string,
-  ): Promise<boolean> {
+  public async runChecks(message: Message, settings: HubSettingsBitField, hubId: string) {
+    const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
+    // if account is created within the last 7 days
+    if (message.author.createdTimestamp > sevenDaysAgo) {
+      await message.channel.send(
+        t(
+          { phrase: 'network.accountTooNew', locale: message.author.locale },
+          { user: `${message.author}` },
+        ),
+      );
+      return false;
+    }
+
     const blacklistManager = this.client.getBlacklistManager();
 
     const isUserBlacklisted = await db.userData.findFirst({
