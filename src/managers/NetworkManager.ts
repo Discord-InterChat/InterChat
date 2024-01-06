@@ -96,7 +96,8 @@ export default class NetworkManager extends Factory {
             })
             .setColor('Red');
 
-          return await message.reply({ embeds: [nsfwEmbed] });
+          await message.channel.send({ content: `${message.author}`, embeds: [nsfwEmbed] });
+          return;
         }
       }
 
