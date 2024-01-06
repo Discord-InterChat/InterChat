@@ -7,7 +7,7 @@ import { ClusterManager } from 'discord-hybrid-sharding';
 import { updateTopGGStats } from './updater/StatsUpdater.js';
 import { isDevBuild } from './utils/Constants.js';
 import { blacklistedServers, userData } from '@prisma/client';
-import { deleteNetworkMsgs, wait } from './utils/Utils.js';
+import { deleteMsgsFromDb, wait } from './utils/Utils.js';
 import 'dotenv/config';
 import { captureException } from '@sentry/node';
 
@@ -49,7 +49,7 @@ const deleteOldMessages = async () => {
   db.broadcastedMessages
     .findMany({ where: { messageId: { lte: `${snowflakeFor24hAgo}` } } })
     .then(async (m) => {
-      await deleteNetworkMsgs(m.map(({ messageId }) => messageId));
+      await deleteMsgsFromDb(m.map(({ messageId }) => messageId));
     })
     .catch(captureException);
 };

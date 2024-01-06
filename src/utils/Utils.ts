@@ -160,7 +160,7 @@ export async function deleteHubs(ids: string[]) {
   await db.originalMessages
     .findMany({ where: { hubId: { in: ids } }, include: { broadcastMsgs: true } })
     .then((m) =>
-      deleteNetworkMsgs(
+      deleteMsgsFromDb(
         m.map(({ broadcastMsgs }) => broadcastMsgs.map(({ messageId }) => messageId)).flat(),
       ),
     );
@@ -254,14 +254,16 @@ export function parseTimestampFromId(id: Snowflake) {
   return timestamp + 1420070400000; // Discord epoch time
 }
 
-export async function deleteNetworkMsgs(ids: string[]) {
+export async function deleteMsgsFromDb(ids: string[]) {
   // delete all relations first and then delete the hub
   const msgsToDelete = await db.broadcastedMessages.findMany({ where: { messageId: { in: ids } } });
   if (!msgsToDelete) return;
 
-  await db.broadcastedMessages.deleteMany({ where: { messageId: { in: ids } } });
+  await db.broadcastedMessages.deleteMany({
+    where: { messageId: { in: msgsToDelete.map(({ messageId }) => messageId) } },
+  });
   await db.originalMessages.deleteMany({
-    where: { messageId: { in: msgsToDelete.map((i) => i.originalMsgId) } },
+    where: { messageId: { in: msgsToDelete.map(({ originalMsgId }) => originalMsgId) } },
   });
 }
 
@@ -269,4 +271,3 @@ export function channelMention(channelId: Snowflake | null | undefined) {
   if (!channelId) return emojis.no;
   return `<#${channelId}>`;
 }
-

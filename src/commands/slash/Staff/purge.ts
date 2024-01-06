@@ -11,7 +11,7 @@ import BaseCommand from '../../BaseCommand.js';
 import { captureException } from '@sentry/node';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../utils/Constants.js';
-import { simpleEmbed, msToReadable, deleteNetworkMsgs } from '../../../utils/Utils.js';
+import { simpleEmbed, msToReadable, deleteMsgsFromDb } from '../../../utils/Utils.js';
 import Logger from '../../../utils/Logger.js';
 import { broadcastedMessages } from '@prisma/client';
 
@@ -274,6 +274,6 @@ export default class Purge extends BaseCommand {
     await interaction.followUp({ embeds: [resultEmbed] }).catch(captureException);
 
     const succeededMessages = results?.filter((i) => i.length > 0).flat();
-    await deleteNetworkMsgs(succeededMessages);
+    await deleteMsgsFromDb(succeededMessages);
   }
 }
