@@ -84,16 +84,27 @@ export default class Leave extends Hub {
   async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.args[0];
+    const { locale } = interaction.user;
 
     if (customId.suffix === 'no') {
       await interaction.message.delete();
       return;
     }
 
+    const validConnection = await db.connectedList.findFirst({ where: { id: customId.args[1] } });
+    if (!validConnection) {
+      await interaction.update({
+        content: t({ phrase: 'connection.notFound', locale }),
+        embeds: [],
+        components: [],
+      });
+      return;
+    }
+
     await db.connectedList.delete({ where: { channelId } });
     await interaction.update({
       content: t(
-        { phrase: 'hub.leave.success', locale: interaction.user.locale },
+        { phrase: 'hub.leave.success', locale },
         { channel: `<#${channelId}>`, emoji: emojis.yes },
       ),
       embeds: [],
@@ -101,6 +112,9 @@ export default class Leave extends Hub {
     });
 
     // log server leave
-    if (interaction.guild) (await new HubLogsManager(customId.args[1]).init()).logServerLeave(interaction.guild);
+    if (interaction.guild) {
+      const hubLogger = await new HubLogsManager(customId.args[1]).init();
+      hubLogger.logServerLeave(interaction.guild);
+    }
   }
 }
