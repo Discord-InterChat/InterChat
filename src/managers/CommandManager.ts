@@ -73,7 +73,7 @@ export default class CommandManager extends Factory {
 
         // check if command is in cooldown for the user
         if (remainingCooldown) {
-          const waitUntil = Math.round((Date.now() + (remainingCooldown)) / 1000);
+          const waitUntil = Math.round((Date.now() + remainingCooldown) / 1000);
           await interaction.reply({
             content: t(
               { phrase: 'errors.cooldown', locale: interaction.user.locale },
@@ -114,8 +114,19 @@ export default class CommandManager extends Factory {
       }
     }
     catch (e) {
+      // log the error to the system
       Logger.error(e);
-      captureException(e);
+      // capture the error to Sentry.io with additional information
+      captureException(e, {
+        user: { id: interaction.user.id, username: interaction.user.username },
+        extra: {
+          type: interaction.type,
+          identifier:
+            interaction.isCommand() || interaction.isAutocomplete()
+              ? interaction.commandName
+              : CustomID.parseCustomId(interaction.customId),
+        },
+      });
 
       // reply with an error message to the user
       if (interaction.isRepliable()) replyWithError(interaction, e);
@@ -143,7 +154,6 @@ export default class CommandManager extends Factory {
       if (stats.isDirectory()) {
         await this.loadCommandFiles(filePath);
       }
-
       else if (file.endsWith('.js') && file !== 'BaseCommand.js') {
         const imported = await import(importPrefix + filePath);
         const command = new imported.default();
