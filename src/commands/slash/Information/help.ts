@@ -96,17 +96,14 @@ export default class Help extends BaseCommand {
         .setURL('https://top.gg/bot/769921109209907241/vote'),
     );
 
-    await interaction.reply({
+    const initReply = await interaction.reply({
       embeds: [embed],
       components: [selects, linkButtons],
+      fetchReply: true,
     });
 
     // Disable the components after 10 minutes
-    setComponentExpiry(
-      interaction.client.getScheduler(),
-      await interaction.fetchReply(),
-      60 * 15000,
-    );
+    setComponentExpiry(interaction.client.getScheduler(), initReply, 60 * 15000);
   }
 
   @RegisterInteractionHandler('credits')
