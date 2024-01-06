@@ -300,7 +300,7 @@ export default class Connection extends BaseCommand {
 
       const newEmbeds = await buildEmbed(interaction, channelId);
       interaction.replied || interaction.deferred
-        ? await interaction.message.edit({ embeds: [newEmbeds] })
+        ? await interaction.message.edit({ embeds: [newEmbeds] }).catch(() => null)
         : await interaction.update({ embeds: [newEmbeds] });
     }
 
