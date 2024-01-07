@@ -270,6 +270,17 @@ export default class MessageInfo extends BaseCommand {
         }
 
         case 'report': {
+          if (!originalMsg.hub?.logChannels?.reports) {
+            return await interaction.reply({
+              embeds: [
+                simpleEmbed(
+                  t({ phrase: 'msgInfo.report.notEnabled', locale: interaction.user.locale }),
+                ),
+              ],
+              ephemeral: true,
+            });
+          }
+
           const modal = new ModalBuilder()
             .setCustomId(new CustomID('msgInfoModal:report', [messageId]).toString())
             .setTitle('Report Message')
@@ -308,6 +319,7 @@ export default class MessageInfo extends BaseCommand {
         embeds: [
           simpleEmbed(t({ phrase: 'msgInfo.report.notEnabled', locale: interaction.user.locale })),
         ],
+        ephemeral: true,
       });
     }
 
@@ -327,7 +339,12 @@ export default class MessageInfo extends BaseCommand {
 
     await interaction.reply({
       embeds: [
-        simpleEmbed(t({ phrase: 'msgInfo.report.success', locale: interaction.user.locale }, { emoji: emojis.yes })),
+        simpleEmbed(
+          t(
+            { phrase: 'msgInfo.report.success', locale: interaction.user.locale },
+            { emoji: emojis.yes },
+          ),
+        ),
       ],
       ephemeral: true,
     });
