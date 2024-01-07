@@ -34,6 +34,8 @@ export default class MessageInfo extends BaseCommand {
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
+    await interaction.deferReply({ ephemeral: true });
+
     const target = interaction.targetMessage;
     const originalMsg = (
       await db.broadcastedMessages.findFirst({
@@ -43,7 +45,7 @@ export default class MessageInfo extends BaseCommand {
     )?.originalMsg;
 
     if (!originalMsg) {
-      await interaction.reply({
+      await interaction.followUp({
         content: t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
         ephemeral: true,
       });
@@ -85,7 +87,7 @@ export default class MessageInfo extends BaseCommand {
       );
     }
 
-    await interaction.reply({
+    await interaction.followUp({
       embeds: [embed],
       components,
       ephemeral: true,
