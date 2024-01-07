@@ -139,9 +139,11 @@ export default class NetworkManager extends Factory {
       }
     }
 
-    const username = settings.has('UseNicknames')
-      ? message.member?.displayName || message.author.displayName
-      : message.author.username;
+    const username = (
+      settings.has('UseNicknames')
+        ? message.member?.displayName || message.author.displayName
+        : message.author.username
+    ).slice(0, 50);
 
     // embeds for the normal mode
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, username, {
@@ -214,7 +216,8 @@ export default class NetworkManager extends Factory {
               (connection.profFilter ? message.censoredContent : message.content) +
               // append the attachment url if there is one
               `${attachment ? `\n${attachmentURL}` : ''}`,
-            username: `@${username} • ${message.guild}`,
+            // username is already limited to 50 characters, server name is limited to 40 (char limit is 100)
+            username: `@${username} • ${message.guild?.name.slice(0, 40)}`,
             avatarURL: message.author.displayAvatarURL(),
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
