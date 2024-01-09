@@ -327,7 +327,7 @@ export default class Browse extends Hub {
       if (channelConnected) {
         await interaction.update({
           content: t(
-            { phrase: 'hub.alreadyConnected', locale: interaction.user.locale },
+            { phrase: 'connection.alreadyConnected', locale: interaction.user.locale },
             { channel: `${channel}` },
           ),
           embeds: [],
