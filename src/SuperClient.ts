@@ -98,6 +98,7 @@ export default abstract class SuperClient extends Client {
         dsn: process.env.SENTRY_DSN,
         release: this.version,
         tracesSampleRate: 1.0,
+        maxValueLength: 1000,
       });
     }
   }
