@@ -52,7 +52,7 @@ export async function paginate(
     new ButtonBuilder()
       .setEmoji(emojiBack)
       .setCustomId('page_:back')
-      .setStyle(ButtonStyle.Primary)
+      .setStyle(ButtonStyle.Secondary)
       .setDisabled(true),
     new ButtonBuilder()
       .setEmoji(emojiExit)
@@ -62,7 +62,7 @@ export async function paginate(
     new ButtonBuilder()
       .setEmoji(emojiNext)
       .setCustomId('page_:next')
-      .setStyle(ButtonStyle.Primary)
+      .setStyle(ButtonStyle.Secondary)
       .setDisabled(pages.length <= index + 1),
   ]);
 
