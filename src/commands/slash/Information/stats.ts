@@ -37,7 +37,7 @@ export default class Stats extends BaseCommand {
     const docsLink = 'https://discord-interchat.github.io/docs';
 
     const embed = new EmbedBuilder()
-      .setColor('#A0C2EC')
+      .setColor(colors.interchatBlue)
       .setTitle(`${interaction.client.user.username} Statistics`)
       .setFooter({
         text: `InterChat v${interaction.client.version}${isDevBuild ? '+dev' : ''}`,

@@ -18,7 +18,7 @@ import {
 import db from '../../../../utils/Db.js';
 import Hub from './index.js';
 import { hubs } from '@prisma/client';
-import { emojis } from '../../../../utils/Constants.js';
+import { colors, emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import {
   calculateAverageRating,
@@ -483,7 +483,7 @@ export default class Browse extends Hub {
           inline: true,
         },
       )
-      .setColor('Random')
+      .setColor(colors.interchatBlue)
       .setThumbnail(hub.iconUrl)
       .setImage(hub.bannerUrl);
   }
