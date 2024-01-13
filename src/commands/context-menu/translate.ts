@@ -18,9 +18,9 @@ import BaseCommand from '../BaseCommand.js';
 import { hasVoted } from '../../utils/Utils.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
-import { supportedLanguages } from '@translate-tools/core/translators/GoogleTranslator/index.js';
-import translator from '../../utils/Translator.cjs';
 import { t } from '../../utils/Locale.js';
+// @ts-expect-error no types provided for this package
+import { translate, isSupported } from 'google-translate-api-x';
 
 export default class Translate extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -54,19 +54,19 @@ export default class Translate extends BaseCommand {
     const messageContent = target.content || target.embeds[0]?.description;
     if (!messageContent) return interaction.editReply('This message is not translatable.');
 
-    const translatedMessage = await translator.translateText(messageContent, interaction.user.locale ?? 'en', 'auto');
+    const translatedMessage = await translate(messageContent, { to: interaction.user.locale });
     const embed = new EmbedBuilder()
       .setDescription('### Translation Results')
       .setColor('Green')
       .addFields(
         {
-          name: 'Original Message',
+          name: `Original Message (${translatedMessage.from.language.iso})`,
           value: messageContent,
           inline: true,
         },
         {
           name: 'Translated Message',
-          value: translatedMessage,
+          value: translatedMessage.text,
           inline: true,
         },
       )
@@ -124,7 +124,7 @@ export default class Translate extends BaseCommand {
 
     const to = interaction.fields.getTextInputValue('to');
     const from = interaction.fields.getTextInputValue('from');
-    if (!supportedLanguages.includes(from) || !supportedLanguages.includes(to)) {
+    if (!isSupported(from) || !isSupported(to)) {
       await interaction.reply({
         content: t({ phrase: 'errors.invalidLangCode', locale: interaction.user.locale }),
         ephemeral: true,
@@ -132,10 +132,10 @@ export default class Translate extends BaseCommand {
       return;
     }
 
-    const newTranslation = await translator.translateText(messageContent, to, from);
+    const newTranslation = await translate(messageContent, { to, from });
     const newEmbed = EmbedBuilder.from(originalMessage.embeds[0]).spliceFields(1, 1, {
       name: `Translated Message (${to})`,
-      value: newTranslation,
+      value: newTranslation.text,
       inline: true,
     });
 
