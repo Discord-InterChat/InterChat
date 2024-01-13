@@ -17,7 +17,7 @@ import { Prisma, connectedList, hubs, originalMessages } from '@prisma/client';
 import { LINKS, REGEX, emojis } from '../utils/Constants.js';
 import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
-import { replaceLinks } from '../utils/Utils.js';
+import { parseTimestampFromId, replaceLinks } from '../utils/Utils.js';
 import HubLogsManager from './HubLogsManager.js';
 import { t } from '../utils/Locale.js';
 
@@ -545,7 +545,7 @@ export default class NetworkManager extends Factory {
     hubId: string,
     dbReference?: originalMessages | null,
   ): Promise<void> {
-    const messageDataObj: { channelId: string; messageId: string }[] = [];
+    const messageDataObj: { channelId: string; messageId: string, createdAt: number }[] = [];
     const invalidWebhookURLs: string[] = [];
 
     // loop through all results and extract message data and invalid webhook urls
@@ -573,6 +573,7 @@ export default class NetworkManager extends Factory {
         messageDataObj.push({
           channelId: result.messageOrError.channelId,
           messageId: result.messageOrError.id,
+          createdAt: parseTimestampFromId(result.messageOrError.id),
         });
       }
     });

@@ -134,6 +134,7 @@ model originalMessages {
 model broadcastedMessages {
   messageId     String           @id @map("_id")
   channelId     String
+  createdAt     Int
   originalMsg   originalMessages @relation(fields: [originalMsgId], references: [messageId])
   originalMsgId String           @db.String
 }

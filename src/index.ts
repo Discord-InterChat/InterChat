@@ -43,14 +43,10 @@ const deleteExpiredInvites = async () => {
 // Delete all network messages from db that are older than 24 hours old.
 const deleteOldMessages = async () => {
   const olderThan24h = Date.now() - 60 * 60 * 24_000;
-  // the big number is Discord's epoch. ie. the first second of year 2015
-  const snowflakeFor24hAgo = (olderThan24h - 1420070400000) << 22;
 
   db.broadcastedMessages
-    .findMany({ where: { messageId: { lte: `${snowflakeFor24hAgo}` } } })
-    .then(async (m) => {
-      await deleteMsgsFromDb(m.map(({ messageId }) => messageId));
-    })
+    .findMany({ where: { createdAt: { lte: olderThan24h } } })
+    .then(async (m) => deleteMsgsFromDb(m.map(({ messageId }) => messageId)))
     .catch(captureException);
 };
 
