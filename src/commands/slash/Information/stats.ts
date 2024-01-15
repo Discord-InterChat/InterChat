@@ -34,7 +34,6 @@ export default class Stats extends BaseCommand {
     const guildCount = count.reduce((p, n) => p + n, 0);
 
     const uptime = msToReadable(interaction.client.uptime);
-    const docsLink = 'https://discord-interchat.github.io/docs';
 
     const embed = new EmbedBuilder()
       .setColor(colors.interchatBlue)
@@ -81,7 +80,7 @@ export default class Stats extends BaseCommand {
         .setLabel('Guide')
         .setStyle(ButtonStyle.Link)
         .setEmoji(emojis.docs_icon)
-        .setURL(docsLink),
+        .setURL(LINKS.DOCS),
       new ButtonBuilder()
         .setLabel('Support')
         .setStyle(ButtonStyle.Link)

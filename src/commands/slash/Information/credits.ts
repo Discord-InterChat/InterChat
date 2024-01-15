@@ -57,7 +57,7 @@ export default class Credits extends BaseCommand {
       ${emojis.dotBlue} @${members[5]?.username}
 
       ${linksDivider}
-      [Guide](https://discord-interchat.github.io/docs) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](https://discord-interchat.github.io/docs/legal/privacy) • [Terms](https://discord-interchat.github.io/docs/legal/terms) 
+      [Guide](${LINKS.DOCS}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${LINKS.DOCS}/legal/privacy) • [Terms](${LINKS.DOCS}/legal/terms) 
     `);
 
     const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -70,7 +70,7 @@ export default class Credits extends BaseCommand {
         .setStyle(ButtonStyle.Link)
         .setLabel('Guide')
         .setEmoji(emojis.guide_icon)
-        .setURL('https://discord-interchat.github.io/docs'),
+        .setURL(LINKS.DOCS),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Support')

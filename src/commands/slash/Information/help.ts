@@ -2,7 +2,7 @@ import { EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
 import { paginate } from '../../../utils/Pagination.js';
 import { stripIndents } from 'common-tags';
-import { colors, emojis } from '../../../utils/Constants.js';
+import { LINKS, colors, emojis } from '../../../utils/Constants.js';
 
 export default class Help extends BaseCommand {
   readonly data = {
@@ -69,7 +69,7 @@ export default class Help extends BaseCommand {
     `);
 
     const page4 = EmbedBuilder.from(baseEmbed).setTitle('Final Notes').setDescription(stripIndents`
-    You\'re all set! You can now chat with people from other servers in real-time. For more detailed information and advanced features, refer to the official  [InterChat online guide](https://discord-interchat.github.io/docs). Have fun! 🎉
+    You\'re all set! You can now chat with people from other servers in real-time. For more detailed information and advanced features, refer to the official  [InterChat online guide](${LINKS.DOCS}). Have fun! 🎉
     
     For any questions, suggestions or feedback, join the [support server](https://discord.gg/2YkZAP2) or [vote for InterChat](https://top.gg/bot/769921109209907241/vote).
     `);

@@ -44,7 +44,7 @@ export async function showOnboarding(
     .setDescription(
       t(
         { phrase: 'network.onboarding.embed.description', locale: interaction.user.locale },
-        { hubName },
+        { hubName, docs_link: LINKS.DOCS },
       ),
     )
     .setColor(colors.interchatBlue)

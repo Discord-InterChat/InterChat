@@ -43,7 +43,7 @@ export const SupporterIds = ['880978672037802014'];
 export const LINKS = {
   TOPGG_API: 'https://top.gg/api/bots/769921109209907241',
   VOTE: 'https://top.gg/bot/769921109209907241/vote',
-  DOCS: 'https://discord-interchat.github.io/docs',
+  DOCS: 'https://docs.interchat.fun',
   SUPPORT_INVITE: 'https://discord.gg/6bhXQynAPs',
   APP_DIRECTORY: 'https://discord.com/application-directory/769921109209907241',
   RULES_BANNER: 'https://i.imgur.com/MBG0Rks.png',

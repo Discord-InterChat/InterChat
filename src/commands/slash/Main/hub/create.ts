@@ -147,7 +147,7 @@ export default class Create extends Hub {
       .setDescription(
         t(
           { phrase: 'hub.create.success', locale: interaction.user.locale },
-          { name, support_invite: LINKS.SUPPORT_INVITE },
+          { name, support_invite: LINKS.SUPPORT_INVITE, docs_link: LINKS.DOCS },
         ),
       )
       .setTimestamp();

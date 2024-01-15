@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
 import { captureException } from '@sentry/node';
-import { emojis } from '../../../../utils/Constants.js';
+import { LINKS, emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
 import Logger from '../../../../utils/Logger.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
@@ -54,6 +54,7 @@ export default class Invite extends Hub {
               { phrase: 'hub.invite.create.success', locale: interaction.user.locale },
               {
                 inviteCode: createdInvite.code,
+                docs_link: LINKS.DOCS,
                 expiry: `<t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>`,
               },
             ),
