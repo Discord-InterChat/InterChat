@@ -84,7 +84,7 @@ export function disableComponents(message: Message) {
 
 export async function getOrCreateWebhook(
   channel: NewsChannel | TextChannel | ThreadChannel,
-  avatar = 'https://i.imgur.com/80nqtSg.png',
+  avatar = LINKS.EASTER_AVATAR,
 ) {
   const channelOrParent =
     channel.type === ChannelType.GuildText || channel.type == ChannelType.GuildAnnouncement

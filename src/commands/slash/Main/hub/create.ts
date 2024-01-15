@@ -129,7 +129,7 @@ export default class Create extends Hub {
         description,
         private: true,
         ownerId: interaction.user.id,
-        iconUrl: iconUrl ?? interaction.client.user.displayAvatarURL(),
+        iconUrl: iconUrl ?? LINKS.EASTER_AVATAR,
         bannerUrl,
         settings:
           HubSettingsBits.SpamFilter | HubSettingsBits.Reactions | HubSettingsBits.BlockNSFW,

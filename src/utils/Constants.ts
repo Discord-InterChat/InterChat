@@ -47,6 +47,7 @@ export const LINKS = {
   SUPPORT_INVITE: 'https://discord.gg/BwhB9SHaxe',
   APP_DIRECTORY: 'https://discord.com/application-directory/769921109209907241',
   RULES_BANNER: 'https://i.imgur.com/MBG0Rks.png',
+  EASTER_AVATAR: 'https://i.imgur.com/80nqtSg.png',
 } as const;
 
 export const channels = {
