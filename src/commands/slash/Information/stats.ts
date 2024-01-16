@@ -6,6 +6,7 @@ import {
   ChatInputCommandInteraction,
   EmbedBuilder,
   Status,
+  time,
 } from 'discord.js';
 import db from '../../../utils/Db.js';
 import BaseCommand from '../../BaseCommand.js';
@@ -32,8 +33,11 @@ export default class Stats extends BaseCommand {
 
     const count: number[] = await interaction.client.cluster.fetchClientValues('guilds.cache.size');
     const guildCount = count.reduce((p, n) => p + n, 0);
+    const memberCount = await interaction.client.cluster.fetchClientValues('guilds.cache.reduce((p, n) => p + n.memberCount, 0)');
 
-    const uptime = msToReadable(interaction.client.uptime);
+    const upSince = new Date(Date.now() - interaction.client.uptime);
+    const totalMemory = Math.round(totalmem() / 1024 / 1024 / 1024);
+    const memoryUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
 
     const embed = new EmbedBuilder()
       .setColor(colors.interchatBlue)
@@ -46,9 +50,10 @@ export default class Stats extends BaseCommand {
         {
           name: 'Bot Stats',
           value: stripIndents`
-          - Uptime: \`${uptime}\`
-          - Servers ${guildCount}
-          - Shards: ${interaction.client.cluster.info.TOTAL_SHARDS}
+          - Up Since: ${time(upSince, 'R')}
+          - Servers: ${guildCount}
+          - Members: ${memberCount}
+          - Total Shards: ${interaction.client.cluster.info.TOTAL_SHARDS}
           `,
           inline: true,
         },
@@ -57,13 +62,10 @@ export default class Stats extends BaseCommand {
           value: stripIndents`
             - OS: Linux
             - CPU Cores: ${cpus().length}
-            - RAM Usage: ${Math.round(
-    process.memoryUsage().heapUsed / 1024 / 1024,
-  )} MB / ${Math.round(totalmem() / 1024 / 1024 / 1024)} GB
+            - RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
             `,
           inline: true,
         },
-        { name: '\u200B', value: '\u200B', inline: true },
         {
           name: 'Hub Stats',
           value: stripIndents`
@@ -71,7 +73,7 @@ export default class Stats extends BaseCommand {
           - Total Connected: ${totalConnections}
           - Messages (Today): ${totalNetworkMessages}
           `,
-          inline: true,
+          inline: false,
         },
       ]);
 
