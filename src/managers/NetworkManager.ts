@@ -13,7 +13,7 @@ import {
 } from 'discord.js';
 import Factory from '../Factory.js';
 import db from '../utils/Db.js';
-import { Prisma, connectedList, hubs, originalMessages } from '@prisma/client';
+import { connectedList, hubs, originalMessages } from '@prisma/client';
 import { LINKS, REGEX, emojis } from '../utils/Constants.js';
 import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
@@ -545,7 +545,7 @@ export default class NetworkManager extends Factory {
     hubId: string,
     dbReference?: originalMessages | null,
   ): Promise<void> {
-    const messageDataObj: { channelId: string; messageId: string, createdAt: number }[] = [];
+    const messageDataObj: { channelId: string; messageId: string; createdAt: number }[] = [];
     const invalidWebhookURLs: string[] = [];
 
     // loop through all results and extract message data and invalid webhook urls
@@ -660,7 +660,7 @@ export default class NetworkManager extends Factory {
     const scheduler = this.client.getScheduler();
     const lastMsgTimestamp = userInCol?.timestamps[userInCol.timestamps.length - 1];
 
-    if (userInCol && lastMsgTimestamp && Date.now() - five_min <= lastMsgTimestamp) {
+    if (lastMsgTimestamp && Date.now() - five_min <= lastMsgTimestamp) {
       scheduler.stopTask(`removeFromCol_${userId}`);
     }
 
@@ -674,20 +674,6 @@ export default class NetworkManager extends Factory {
     return await db.connectedList.findMany({ where });
   }
 
-  public async fetchConnection(where: Prisma.connectedListWhereInput) {
-    return await db.connectedList.findFirst({ where });
-  }
-
-  async updateConnection(
-    where: Prisma.connectedListWhereUniqueInput,
-    data: Prisma.connectedListUpdateInput,
-  ) {
-    return await db.connectedList.update({ where, data });
-  }
-
-  async createConnection(data: Prisma.connectedListCreateInput) {
-    return await db.connectedList.create({ data });
-  }
 
   /**
    * Sends a message to all connections in a hub's network.

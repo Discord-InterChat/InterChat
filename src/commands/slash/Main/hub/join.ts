@@ -25,12 +25,17 @@ export default class JoinSubCommand extends Hub {
       ChannelType.PrivateThread,
     ]);
 
-    const channelInHub = await networkManager.fetchConnection({ channelId: channel.id });
+    const channelInHub = await db.connectedList.findFirst({ where: { channelId: channel.id } });
     if (channelInHub) {
       const alrJoinedHub = await db.hubs.findFirst({ where: { id: channelInHub?.hubId } });
       return await interaction.reply({
         embeds: [
-          simpleEmbed(t({ phrase: 'hub.alreadyJoined', locale }, { channel: `${channel}`, hub: `${alrJoinedHub?.name}` })),
+          simpleEmbed(
+            t(
+              { phrase: 'hub.alreadyJoined', locale },
+              { channel: `${channel}`, hub: `${alrJoinedHub?.name}` },
+            ),
+          ),
         ],
         ephemeral: true,
       });
@@ -66,9 +71,11 @@ export default class JoinSubCommand extends Hub {
     }
 
     // actual code starts here
-    const alreadyInHub = await networkManager.fetchConnection({
-      hubId: hub.id,
-      serverId: channel.guildId,
+    const alreadyInHub = await db.connectedList.findFirst({
+      where: {
+        hubId: hub.id,
+        serverId: channel.guildId,
+      },
     });
 
     if (alreadyInHub) {
@@ -132,15 +139,17 @@ export default class JoinSubCommand extends Hub {
     }
 
     // finally make the connection
-    await networkManager.createConnection({
-      serverId: channel.guildId,
-      channelId: channel.id,
-      parentId: channel.isThread() ? channel.parentId : undefined,
-      webhookURL: webhook.url,
-      hub: { connect: { id: hub.id } },
-      connected: true,
-      compact: false,
-      profFilter: true,
+    await db.connectedList.create({
+      data: {
+        serverId: channel.guildId,
+        channelId: channel.id,
+        parentId: channel.isThread() ? channel.parentId : undefined,
+        webhookURL: webhook.url,
+        hub: { connect: { id: hub.id } },
+        connected: true,
+        compact: false,
+        profFilter: true,
+      },
     });
 
     await interaction.editReply({
@@ -167,6 +176,7 @@ export default class JoinSubCommand extends Hub {
     });
 
     // send log
-    (await new HubLogsManager(hub.id).init()).logServerJoin(interaction.guild, { totalConnections, hubName });
+    const hubLogger = await new HubLogsManager(hub.id).init();
+    await hubLogger.logServerJoin(interaction.guild, { totalConnections, hubName });
   }
 }

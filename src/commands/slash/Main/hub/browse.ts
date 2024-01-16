@@ -363,15 +363,17 @@ export default class Browse extends Hub {
 
       const networkManager = interaction.client.getNetworkManager();
       // finally make the connection
-      await networkManager.createConnection({
-        serverId: channel.guildId,
-        channelId: channel.id,
-        parentId: channel.isThread() ? channel.parentId : undefined,
-        webhookURL: webhook.url,
-        hub: { connect: { id: hubDetails.id } },
-        connected: true,
-        compact: false,
-        profFilter: true,
+      await db.connectedList.create({
+        data: {
+          serverId: channel.guildId,
+          channelId: channel.id,
+          parentId: channel.isThread() ? channel.parentId : undefined,
+          webhookURL: webhook.url,
+          hub: { connect: { id: hubDetails.id } },
+          connected: true,
+          compact: false,
+          profFilter: true,
+        },
       });
 
       await interaction.editReply({

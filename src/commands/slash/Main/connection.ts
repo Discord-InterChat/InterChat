@@ -49,9 +49,8 @@ export default class Connection extends BaseCommand {
     ],
   };
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    const networkManager = interaction.client.getNetworkManager();
     const channelId = interaction.options.getString('channel', true).replace(/<#|!|>/g, ''); // in case they mention the channel
-    const isInDb = await networkManager.fetchConnection({ channelId });
+    const isInDb = await db.connectedList.findFirst({ where: { channelId } });
 
     if (!isInDb) {
       await interaction.reply({
@@ -110,10 +109,10 @@ export default class Connection extends BaseCommand {
     const channelExists = await interaction.guild?.channels.fetch(channelId).catch(() => null);
 
     if (!channelExists) {
-      await networkManager.updateConnection(
-        { channelId: channelId },
-        { connected: !isInDb.connected },
-      );
+      await db.connectedList.update({
+        where: { channelId: channelId },
+        data: { connected: !isInDb.connected },
+      });
       await interaction.followUp({
         content: t({ phrase: 'connection.channelNotFound', locale: interaction.user.locale }),
         ephemeral: true,
@@ -171,9 +170,8 @@ export default class Connection extends BaseCommand {
       return;
     }
 
-    const networkManager = interaction.client.getNetworkManager();
-    const isInDb = await networkManager.fetchConnection({ channelId });
-    if (!isInDb || !channelId) {
+    const isInDb = await db.connectedList.findFirst({ where: { channelId } });
+    if (!channelId || !isInDb) {
       await interaction.reply({
         content: t({ phrase: 'connection.channelNotFound', locale: interaction.user.locale }),
         ephemeral: true,
@@ -183,10 +181,10 @@ export default class Connection extends BaseCommand {
 
     // button interactions
     if (interaction.isButton() && customId.suffix === 'toggle') {
-      const toggleRes = await networkManager.updateConnection(
-        { channelId },
-        { connected: !isInDb.connected },
-      );
+      const toggleRes = await db.connectedList.update({
+        where: { channelId },
+        data: { connected: !isInDb.connected },
+      });
 
       await interaction.update({
         embeds: [await buildEmbed(interaction, channelId)],
@@ -201,11 +199,17 @@ export default class Connection extends BaseCommand {
     else if (interaction.isStringSelectMenu()) {
       switch (interaction.values[0]) {
         case 'compact':
-          await networkManager.updateConnection({ channelId }, { compact: !isInDb.compact });
+          await db.connectedList.update({
+            where: { channelId },
+            data: { compact: !isInDb.compact },
+          });
           break;
 
         case 'profanity':
-          await networkManager.updateConnection({ channelId }, { profFilter: !isInDb.profFilter });
+          await db.connectedList.update({
+            where: { channelId },
+            data: { profFilter: !isInDb.profFilter },
+          });
           break;
 
         case 'invite': {
@@ -311,7 +315,9 @@ export default class Connection extends BaseCommand {
 
       const newChannel = interaction.channels.first();
 
-      const channelInHub = await networkManager.fetchConnection({ channelId: newChannel?.id });
+      const channelInHub = await db.connectedList.findFirst({
+        where: { channelId: newChannel?.id },
+      });
       if (channelInHub) {
         await interaction.editReply({
           content: null,
@@ -328,10 +334,10 @@ export default class Connection extends BaseCommand {
       }
 
       const newWebhook = await getOrCreateWebhook(newChannel as TextChannel | ThreadChannel);
-      await networkManager.updateConnection(
-        { channelId },
-        { channelId: newChannel?.id, webhookURL: newWebhook?.url },
-      );
+      await db.connectedList.update({
+        where: { channelId },
+        data: { channelId: newChannel?.id, webhookURL: newWebhook?.url },
+      });
 
       await interaction.editReply({
         content: t(
@@ -352,10 +358,9 @@ export default class Connection extends BaseCommand {
     if (customId.suffix === 'invite') {
       const invite = interaction.fields.getTextInputValue('connInviteField');
       const channelId = customId.args[0];
-      const networkManager = interaction.client.getNetworkManager();
 
       if (!invite) {
-        await networkManager.updateConnection({ channelId }, { invite: { unset: true } });
+        await db.connectedList.update({ where: { channelId }, data: { invite: { unset: true } } });
         await interaction.reply({
           content: t(
             { phrase: 'connection.inviteRemoved', locale: interaction.user.locale },
@@ -376,7 +381,7 @@ export default class Connection extends BaseCommand {
         return;
       }
 
-      await networkManager.updateConnection({ channelId }, { invite });
+      await db.connectedList.update({ where: { channelId }, data: { invite } });
 
       await interaction.reply({
         content: t(
