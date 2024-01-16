@@ -19,7 +19,7 @@ export default class Help extends BaseCommand {
       .setTitle('Welcome to InterChat!')
       .setDescription(
         stripIndents`
-        With InterChat you can chat with friends from different servers in real-time—just invite InterChat, create a special chat space or join one, and start talking! Boosting your server's activity and making it more fun for everyone.
+        With InterChat you can have real-time conversations between different servers—just invite InterChat, create a special chat space or join one, and let the exiting journey begin!
 
         This simple guide will show you how to set up InterChat and start enjoying the benefits of cross-server communication.
     `,
