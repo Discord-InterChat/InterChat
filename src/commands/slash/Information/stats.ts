@@ -53,7 +53,6 @@ export default class Stats extends BaseCommand {
           - Up Since: ${time(upSince, 'R')}
           - Servers: ${guildCount}
           - Members: ${memberCount}
-          - Total Shards: ${interaction.client.cluster.info.TOTAL_SHARDS}
           `,
           inline: true,
         },
@@ -110,6 +109,9 @@ export default class Stats extends BaseCommand {
     const customId = CustomID.parseCustomId(interaction.customId);
 
     if (customId.suffix === 'shardStats') {
+      const totalMemory = Math.round(totalmem() / 1024 / 1024 / 1024);
+      const memoryUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
+
       const embed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setDescription(
@@ -121,13 +123,13 @@ export default class Stats extends BaseCommand {
         )
         .setFields(
           interaction.client.ws.shards.map((shard) => ({
-            name: `Shard #${shard.id}`,
+            name: `Shard #${shard.id} - ${Status[shard.status]}`,
             value: stripIndents`
               \`\`\`elm
-              Status: ${Status[shard.status]}
-              Uptime: ${msToReadable(shard.manager.client.uptime || 0)}
-              Servers: ${shard.manager.client.guilds.cache.size}
               Ping: ${shard.ping}ms
+              Uptime: ${msToReadable(shard.manager.client.uptime || 0)}
+              Total Servers: ${shard.manager.client.guilds.cache.size}
+              RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
               \`\`\`
             `,
             inline: true,
