@@ -1,58 +1,74 @@
 import db from '../utils/Db.js';
 import { stripIndents } from 'common-tags';
-import { EmbedBuilder, User, Guild, messageLink, GuildTextBasedChannel } from 'discord.js';
+import { EmbedBuilder, User, Guild } from 'discord.js';
 import { emojis, colors } from '../utils/Constants.js';
 import { toTitleCase } from '../utils/Utils.js';
 import SuperClient from '../SuperClient.js';
 import BlacklistManager from './BlacklistManager.js';
 import { Prisma } from '@prisma/client';
+import { getJumpLinkForReports } from '../scripts/hub/logs.js';
 
-export type reportEvidenceOpts = {
+export type ReportEvidenceOpts = {
   // the message content
   content?: string;
   messageId?: string;
   attachmentUrl?: string;
 };
 
+export type LogReportOpts = {
+  userId: string;
+  serverId: string;
+  reason: string;
+  reportedBy: User;
+  evidence?: ReportEvidenceOpts;
+};
+
 export default class HubLogsManager {
   private readonly client = SuperClient.getInstance();
 
-  public hubId: string;
+  public _hubId: string;
   private reports?: Prisma.hubLogReportsCreateInput;
   private modChannelId?: string;
   private profanityChannelId?: string;
   private joinLeaveChannelId?: string;
+  private _initialized: boolean;
 
   constructor(hubId: string) {
-    this.hubId = hubId;
+    this._hubId = hubId;
+    this._initialized = false;
   }
 
-  async init() {
+  public async init() {
     const hub = await this.fetchHub();
     if (!hub) throw new Error('Hub not found.');
-    if (hub) {
-      this.profanityChannelId = hub.logChannels?.profanity ?? undefined;
-      this.modChannelId = hub.logChannels?.modLogs ?? undefined;
-      this.reports = hub.logChannels?.reports ?? undefined;
-      this.joinLeaveChannelId = hub.logChannels?.joinLeaves ?? undefined;
-    }
+    this.profanityChannelId = hub.logChannels?.profanity ?? undefined;
+    this.modChannelId = hub.logChannels?.modLogs ?? undefined;
+    this.reports = hub.logChannels?.reports ?? undefined;
+    this.joinLeaveChannelId = hub.logChannels?.joinLeaves ?? undefined;
+
+    // set the flag to true
+    this._initialized = true;
 
     return this;
   }
 
-  async fetchHub() {
-    return await db.hubs.findFirst({ where: { id: this.hubId } });
+  private async checkAndInit() {
+    if (!this._initialized) await this.init();
+  }
+
+  public async fetchHub() {
+    return await db.hubs.findFirst({ where: { id: this._hubId } });
   }
 
   // setters
-  public set setHubId(hubId: string) {
-    this.hubId = hubId;
+  public set hubId(hubId: string) {
+    this._hubId = hubId;
   }
 
   public set channel(obj: { type: 'profanity' | 'modLogs' | 'joinLeaves'; channelId: string }) {
     db.hubs
       .update({
-        where: { id: this.hubId },
+        where: { id: this._hubId },
         data: {
           logChannels: {
             upsert: {
@@ -80,6 +96,8 @@ export default class HubLogsManager {
   }
 
   public async setReportData(data: { channelId?: string; roleId?: string | null } | null) {
+    await this.checkAndInit();
+
     const reports = data as Prisma.hubLogReportsCreateInput | null;
 
     // unset reports
@@ -89,7 +107,7 @@ export default class HubLogsManager {
       delete logChannels.reports;
 
       await db.hubs.update({
-        where: { id: this.hubId },
+        where: { id: this._hubId },
         data: { logChannels },
       });
       return;
@@ -99,18 +117,20 @@ export default class HubLogsManager {
     if (data?.roleId === null) delete reports?.roleId;
 
     // if no channelId is provided, use the one in the database
-    if (!reports.channelId) {
-      // if there is no report channel even after fetching from database, throw an error
-      if (!this.reports?.channelId) throw new Error('No report channel found.');
-
-      // if there is a report channel, use that
-      reports.channelId = this.reports.channelId;
-    }
+    if (!reports.channelId) reports.channelId = this.getReportChannelId();
 
     await db.hubs.update({
-      where: { id: this.hubId },
+      where: { id: this._hubId },
       data: { logChannels: { upsert: { set: { reports }, update: { reports } } } },
     });
+  }
+
+  private getReportChannelId() {
+    // if there is no report channel even after fetching from database, throw an error
+    if (!this.reports?.channelId) throw new Error('Must select a report channel first.');
+
+    // if there is a report channel, use that
+    return this.reports.channelId;
   }
 
   /**
@@ -119,6 +139,8 @@ export default class HubLogsManager {
    * @param embed The embed object containing the log message.
    */
   public async sendLog(channelId: string, embed: EmbedBuilder, content?: string) {
+    await this.checkAndInit();
+
     this.client.cluster.broadcastEval(
       async (client, ctx) => {
         const channel = await client.channels.fetch(ctx.channelId).catch(() => null);
@@ -137,6 +159,8 @@ export default class HubLogsManager {
    * @param server - The server where the content was posted.
    */
   async logProfanity(rawContent: string, author: User, server: Guild) {
+    await this.checkAndInit();
+
     if (!this.profanityChannelId) return;
 
     const hub = await this.fetchHub();
@@ -164,6 +188,8 @@ export default class HubLogsManager {
    * @param expires - The optional expiration date for the blacklisting.
    */
   async logBlacklist(userOrServer: User | Guild, mod: User, reason: string, expires?: Date) {
+    await this.checkAndInit();
+
     if (!this.modChannelId) return;
 
     const hub = await this.fetchHub();
@@ -203,6 +229,8 @@ export default class HubLogsManager {
     mod: User,
     opts?: { reason?: string },
   ) {
+    await this.checkAndInit();
+
     if (!this.modChannelId) return;
 
     const hub = await this.fetchHub();
@@ -212,14 +240,14 @@ export default class HubLogsManager {
     let originalReason: string | undefined = undefined;
 
     if (type === 'user') {
-      blacklisted = await BlacklistManager.fetchUserBlacklist(this.hubId, userOrServerId);
+      blacklisted = await BlacklistManager.fetchUserBlacklist(this._hubId, userOrServerId);
       name =
         (await this.client.users.fetch(userOrServerId).catch(() => null))?.username ??
         blacklisted?.username;
-      originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === this.hubId)?.reason;
+      originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === this._hubId)?.reason;
     }
     else {
-      blacklisted = await BlacklistManager.fetchServerBlacklist(this.hubId, userOrServerId);
+      blacklisted = await BlacklistManager.fetchServerBlacklist(this._hubId, userOrServerId);
       name = blacklisted?.serverName;
     }
 
@@ -254,16 +282,17 @@ export default class HubLogsManager {
    * @param reportedBy - The user who reported the incident.
    * @param evidence - Optional evidence for the report.
    */
-  async logReport(
-    userId: string,
-    serverId: string,
-    reason: string,
-    reportedBy: User,
-    evidence?: reportEvidenceOpts,
-  ) {
+  async logReport({ userId, serverId, reason, reportedBy, evidence }: LogReportOpts) {
+    await this.checkAndInit();
+
     if (!this.reports?.channelId) return;
 
     const server = await this.client.fetchGuild(serverId);
+    const jumpLink = await getJumpLinkForReports(this.client, {
+      hubId: this._hubId,
+      messageId: evidence?.messageId,
+      reportsChannelId: this.reports.channelId,
+    });
 
     // TODO: make it mandatory for hubs to set a report channel
     // and support server
@@ -280,49 +309,22 @@ export default class HubLogsManager {
         \`\`\`${evidence?.content?.replaceAll('`', '\\`')}\`\`\`
       `,
       )
-      .addFields({ name: 'Reason', value: reason, inline: true })
+      .addFields([
+        { name: 'Reason', value: reason, inline: true },
+        { name: 'Jump To Reported Message', value: jumpLink ?? 'N/A', inline: true },
+      ])
       .setFooter({
         text: `Reported by: ${reportedBy.username}`,
         iconURL: reportedBy.displayAvatarURL(),
       });
-
-    if (evidence?.messageId) {
-      const messageInDb = await db.broadcastedMessages.findFirst({
-        where: { messageId: evidence.messageId },
-        include: { originalMsg: { include: { broadcastMsgs: true } } },
-      });
-
-      const reportsServerId = this.client.resolveEval<string | undefined>(
-        await this.client.cluster.broadcastEval(
-          async (client, ctx) => {
-            const channel = (await client.channels
-              .fetch(ctx.channelId)
-              .catch(() => null)) as GuildTextBasedChannel | null;
-            return channel?.guild.id;
-          },
-          { context: { channelId: this.reports.channelId } },
-        ),
-      );
-
-      if (messageInDb) {
-        const networkChannel = await db.connectedList.findFirst({
-          where: { serverId: reportsServerId, hubId: this.hubId },
-        });
-        const reportsServerMsg = messageInDb.originalMsg.broadcastMsgs.find((msg) => msg.channelId === networkChannel?.channelId);
-
-        const jumpUrl = networkChannel && reportsServerMsg
-          ? messageLink(networkChannel.channelId, reportsServerMsg.messageId, networkChannel.serverId)
-          : undefined;
-
-        if (jumpUrl) embed.addFields({ name: 'Jump to Message', value: jumpUrl, inline: true });
-      }
-    }
 
     const mentionRole = this.reports.roleId ? `<@&${this.reports.roleId}>` : undefined;
     await this.sendLog(this.reports.channelId, embed, mentionRole);
   }
 
   async logServerJoin(server: Guild, opt?: { totalConnections: number; hubName: string }) {
+    await this.checkAndInit();
+
     if (!this.joinLeaveChannelId) return;
 
     const owner = await server.fetchOwner();
@@ -346,10 +348,12 @@ export default class HubLogsManager {
   }
 
   async logServerLeave(server: Guild) {
+    await this.checkAndInit();
+
     if (!this.joinLeaveChannelId) return;
 
     const totalConnections = await db.connectedList.count({
-      where: { hubId: this.hubId, connected: true },
+      where: { hubId: this._hubId, connected: true },
     });
     const hubName = (await this.fetchHub())?.name;
 

@@ -186,7 +186,7 @@ export default class Manage extends Hub {
         const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
 
         if (type === 'reports') {
-          await (await new HubLogsManager(hubInDb.id).init()).setReportData(null);
+          await new HubLogsManager(hubInDb.id).setReportData(null);
         }
         else {
           const currentConfig = hubInDb.logChannels;
@@ -204,7 +204,7 @@ export default class Manage extends Hub {
         await interaction.reply({
           embeds: [
             simpleEmbed(
-              t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.yes, type }),
+              t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.deleteDanger_icon, type }),
             ),
           ],
           ephemeral: true,
@@ -526,7 +526,7 @@ export default class Manage extends Hub {
             return;
           }
 
-          await (await new HubLogsManager(hubInDb.id).init()).setReportData({ roleId: role.id });
+          new HubLogsManager(hubInDb.id).setReportData({ roleId: role.id });
         }
 
         // update the old embed with new role value

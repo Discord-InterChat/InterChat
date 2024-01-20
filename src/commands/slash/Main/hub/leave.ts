@@ -113,8 +113,7 @@ export default class Leave extends Hub {
 
     // log server leave
     if (interaction.guild) {
-      const hubLogger = await new HubLogsManager(customId.args[1]).init();
-      hubLogger.logServerLeave(interaction.guild);
+      new HubLogsManager(customId.args[1]).logServerLeave(interaction.guild);
     }
   }
 }

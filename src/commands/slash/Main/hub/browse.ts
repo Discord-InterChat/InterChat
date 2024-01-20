@@ -403,8 +403,7 @@ export default class Browse extends Hub {
       });
 
       // log the server join to hub
-      const hubLogger = await new HubLogsManager(hubDetails.id).init();
-      await hubLogger.logServerJoin(interaction.guild, {
+      await new HubLogsManager(hubDetails.id).logServerJoin(interaction.guild, {
         totalConnections,
         hubName: hubDetails.name,
       });

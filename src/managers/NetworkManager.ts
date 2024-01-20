@@ -417,7 +417,7 @@ export default class NetworkManager extends Factory {
     const hasProfanity = checkProfanity(message.content);
     if ((hasProfanity.profanity || hasProfanity.slurs) && message.guild) {
       // send a log to the log channel set by the hub
-      (await new HubLogsManager(hubId).init()).logProfanity(
+      new HubLogsManager(hubId).logProfanity(
         message.content,
         message.author,
         message.guild,

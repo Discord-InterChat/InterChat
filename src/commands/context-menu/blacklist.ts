@@ -206,8 +206,12 @@ export default class Blacklist extends BaseCommand {
           .notifyBlacklist('user', originalMsg.authorId, originalMsg.hubId, expires, reason)
           .catch(() => null);
 
-        const hubLogger = await new HubLogsManager(originalMsg.hubId).init();
-        await hubLogger.logBlacklist(user, interaction.user, reason, expires);
+        await new HubLogsManager(originalMsg.hubId).logBlacklist(
+          user,
+          interaction.user,
+          reason,
+          expires,
+        );
       }
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });
@@ -255,8 +259,9 @@ export default class Blacklist extends BaseCommand {
       });
 
       if (server) {
-        const hubLogger = await new HubLogsManager(originalMsg.hubId).init();
-        await hubLogger.logBlacklist(server, interaction.user, reason, expires).catch(() => null);
+        await new HubLogsManager(originalMsg.hubId)
+          .logBlacklist(server, interaction.user, reason, expires)
+          .catch(() => null);
       }
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });

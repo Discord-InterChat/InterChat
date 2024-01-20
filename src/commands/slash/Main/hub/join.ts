@@ -176,7 +176,6 @@ export default class JoinSubCommand extends Hub {
     });
 
     // send log
-    const hubLogger = await new HubLogsManager(hub.id).init();
-    await hubLogger.logServerJoin(interaction.guild, { totalConnections, hubName });
+    await new HubLogsManager(hub.id).logServerJoin(interaction.guild, { totalConnections, hubName });
   }
 }

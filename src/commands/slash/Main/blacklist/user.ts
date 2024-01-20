@@ -30,7 +30,7 @@ export default class Server extends BlacklistCommand {
       });
     }
 
-    const hubLogger = await new HubLogsManager(hubInDb.id).init();
+    const hubLogger = new HubLogsManager(hubInDb.id);
 
     const subcommandGroup = interaction.options.getSubcommandGroup();
     const userId = interaction.options.getString('user', true);

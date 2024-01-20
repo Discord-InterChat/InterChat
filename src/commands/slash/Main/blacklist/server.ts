@@ -38,7 +38,7 @@ export default class UserBlacklist extends BlacklistCommand {
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverOpt = interaction.options.getString('server', true);
 
-    const hubLogger = await new HubLogsManager(hubInDb.id).init();
+    const hubLogger = new HubLogsManager(hubInDb.id);
 
     if (subCommandGroup == 'add') {
       const reason = interaction.options.getString('reason', true);

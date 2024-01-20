@@ -323,7 +323,7 @@ export default class MessageInfo extends BaseCommand {
       });
     }
 
-    const hubLogger = await new HubLogsManager(messageInDb.originalMsg.hub.id).init();
+    const hubLogger = new HubLogsManager(messageInDb.originalMsg.hub.id);
     const { authorId, serverId } = messageInDb.originalMsg;
 
     const reason = interaction.fields.getTextInputValue('reason');
@@ -331,10 +331,16 @@ export default class MessageInfo extends BaseCommand {
     const content = message?.content || message?.embeds[0].description || undefined;
     const attachmentUrl = message?.embeds[0].image?.url || content?.match(REGEX.IMAGE_URL)?.at(0);
 
-    await hubLogger.logReport(authorId, serverId, reason, interaction.user, {
-      content,
-      attachmentUrl,
-      messageId,
+    await hubLogger.logReport({
+      userId: authorId,
+      serverId,
+      reason,
+      reportedBy: interaction.user,
+      evidence: {
+        content,
+        attachmentUrl,
+        messageId,
+      },
     });
 
     await interaction.reply({
