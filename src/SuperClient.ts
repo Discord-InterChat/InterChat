@@ -6,7 +6,7 @@ import {
   Collection,
   Snowflake,
   Guild,
-  Webhook,
+  WebhookClient,
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './commands/BaseCommand.js';
@@ -29,7 +29,7 @@ export default abstract class SuperClient extends Client {
   readonly version = process.env.npm_package_version ?? 'Unknown';
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;
-  readonly webhooks = new Collection<string, Webhook>();
+  readonly webhooks = new Collection<string, WebhookClient>();
 
   readonly commandCooldowns = new CooldownService();
   readonly reactionCooldowns = new Collection<string, number>();

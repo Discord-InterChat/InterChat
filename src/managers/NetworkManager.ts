@@ -1,10 +1,10 @@
 import {
+  APIMessage,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   Collection,
   EmbedBuilder,
-  GuildTextBasedChannel,
   HexColorString,
   Message,
   User,
@@ -20,13 +20,14 @@ import { HubSettingsBitField } from '../utils/BitFields.js';
 import { parseTimestampFromId, replaceLinks } from '../utils/Utils.js';
 import HubLogsManager from './HubLogsManager.js';
 import { t } from '../utils/Locale.js';
+import Logger from '../utils/Logger.js';
 
 export interface NetworkMessage extends Message {
   censoredContent: string;
 }
 
 export interface NetworkWebhookSendResult {
-  messageOrError: Message | string;
+  messageOrError: APIMessage | string;
   webhookURL: string;
 }
 
@@ -158,7 +159,17 @@ export default class NetworkManager extends Factory {
         // fetch the webhook from discord
         let webhook = message.client.webhooks.get(connection.webhookURL);
         if (!webhook) {
-          webhook = await message.client.fetchWebhook(connection.webhookURL.split('/').at(-2)!);
+          webhook = new WebhookClient(
+            { url: connection.webhookURL },
+            {
+              rest: {
+                rejectOnRateLimit: (r) => {
+                  Logger.warn('Webhook rate limited: %O', r);
+                  return false;
+                },
+              },
+            },
+          );
           message.client.webhooks.set(connection.webhookURL, webhook);
         }
 
@@ -553,25 +564,15 @@ export default class NetworkManager extends Factory {
       if (typeof result.messageOrError === 'string') {
         if (
           result.messageOrError.includes('Invalid Webhook Token') ||
-          result.messageOrError.includes('Unknown Webhook')
+          result.messageOrError.includes('Unknown Webhook') ||
+          result.messageOrError.includes('Missing Permissions')
         ) {
           invalidWebhookURLs.push(result.webhookURL);
         }
       }
       else {
-        const isValidChannel = result.messageOrError.channel as GuildTextBasedChannel;
-        const botInGuild = isValidChannel.guild.members.me;
-
-        if (
-          !botInGuild ||
-          isValidChannel.permissionsFor(botInGuild)?.has(['ViewChannel', 'SendMessages']) === false
-        ) {
-          invalidWebhookURLs.push(result.webhookURL);
-          return;
-        }
-
         messageDataObj.push({
-          channelId: result.messageOrError.channelId,
+          channelId: result.messageOrError.channel_id,
           messageId: result.messageOrError.id,
           createdAt: parseTimestampFromId(result.messageOrError.id),
         });
@@ -673,7 +674,6 @@ export default class NetworkManager extends Factory {
   public async fetchHubNetworks(where: { hubId?: string; hubName?: string }) {
     return await db.connectedList.findMany({ where });
   }
-
 
   /**
    * Sends a message to all connections in a hub's network.
