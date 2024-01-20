@@ -1,9 +1,11 @@
 import { createLogger, format, transports } from 'winston';
-
+import { isDevBuild } from './Constants.js';
+import 'source-map-support/register.js';
 const custom = format.printf(
   (info) =>
     `${info.level}: ${info.message} | ${info.timestamp} ${info.stack ? `\n${info.stack}` : ''}`,
 );
+
 
 const combinedFormat = format.combine(
   format.errors({ stack: true }),
@@ -19,7 +21,10 @@ const combinedFormat = format.combine(
 export default createLogger({
   format: combinedFormat,
   transports: [
-    new transports.Console({ format: format.combine(format.colorize(), custom) }),
+    new transports.Console({
+      format: format.combine(format.colorize(), custom),
+      level: isDevBuild ? 'debug' : 'info',
+    }),
     new transports.File({ filename: 'logs/error.log', level: 'error' }),
     new transports.File({
       filename: 'logs/debug.log',
