@@ -26,8 +26,7 @@ import { buildSettingsEmbed, buildSettingsMenu } from '../../../../scripts/hub/s
 import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFields.js';
 import { checkAndFetchImgurUrl, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { actionsSelect, hubEmbed } from '../../../../scripts/hub/manage.js';
-import { genLogInfoEmbed } from '../../../../scripts/hub/logs.js';
-import HubLogsManager from '../../../../managers/HubLogsManager.js';
+import { genLogInfoEmbed, setHubLogChannel } from '../../../../scripts/hub/logs.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -46,7 +45,14 @@ export default class Manage extends Hub {
 
     if (!hubInDb) {
       await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
+        embeds: [
+          simpleEmbed(
+            t(
+              { phrase: 'hub.notFound_mod', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
+        ],
       });
       return;
     }
@@ -96,7 +102,7 @@ export default class Manage extends Hub {
 
     if (customId.args[0] !== interaction.user.id) {
       await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }))],
         ephemeral: true,
       });
       return;
@@ -109,7 +115,7 @@ export default class Manage extends Hub {
 
     if (!hubInDb) {
       await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
         ephemeral: true,
       });
       return;
@@ -186,7 +192,7 @@ export default class Manage extends Hub {
         const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
 
         if (type === 'reports') {
-          await new HubLogsManager(hubInDb.id).setReportData(null);
+          await interaction.client.reportLogger.removeReports(hubInDb.id);
         }
         else {
           const currentConfig = hubInDb.logChannels;
@@ -204,7 +210,10 @@ export default class Manage extends Hub {
         await interaction.reply({
           embeds: [
             simpleEmbed(
-              t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.deleteDanger_icon, type }),
+              t(
+                { phrase: 'hub.manage.logs.reset', locale },
+                { emoji: emojis.delete, type },
+              ),
             ),
           ],
           ephemeral: true,
@@ -367,7 +376,14 @@ export default class Manage extends Hub {
 
         if (!updHub) {
           await interaction.reply({
-            embeds: [simpleEmbed(t({ phrase: 'errors.unknown', locale: interaction.user.locale }))],
+            embeds: [
+              simpleEmbed(
+                t(
+                  { phrase: 'errors.unknown', locale: interaction.user.locale },
+                  { emoji: emojis.no },
+                ),
+              ),
+            ],
             ephemeral: true,
           });
           return;
@@ -484,13 +500,12 @@ export default class Manage extends Hub {
     else if (interaction.isChannelSelectMenu()) {
       if (customId.suffix === 'logsChSel') {
         const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
-        const hubLogsManager = await new HubLogsManager(hubInDb.id).init();
 
         const channelId = interaction.values[0];
         const channel = interaction.channels.first();
 
-        if (type === 'reports') await hubLogsManager.setReportData({ channelId });
-        else hubLogsManager[type] = channelId;
+        // set the channel in the db
+        await setHubLogChannel(hubInDb.id, type, channelId);
 
         // update the old embed with new channel value
         const embed = interaction.message.embeds[0].toJSON();
@@ -520,13 +535,17 @@ export default class Manage extends Hub {
         if (type === 'reports' && role?.id) {
           if (!hubInDb.logChannels?.reports?.channelId) {
             await interaction.reply({
-              embeds: [simpleEmbed(t({ phrase: 'hub.manage.logs.reportChannelFirst', locale }))],
+              embeds: [
+                simpleEmbed(
+                  t({ phrase: 'hub.manage.logs.reportChannelFirst', locale }, { emoji: emojis.no }),
+                ),
+              ],
               ephemeral: true,
             });
             return;
           }
 
-          new HubLogsManager(hubInDb.id).setReportData({ roleId: role.id });
+          await interaction.client.reportLogger.setRoleId(hubInDb, role.id);
         }
 
         // update the old embed with new role value
@@ -568,7 +587,7 @@ export default class Manage extends Hub {
 
     if (!hubInDb) {
       await interaction.reply({
-        content: t({ phrase: 'hub.notFound_mod', locale }),
+        content: t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -598,7 +617,7 @@ export default class Manage extends Hub {
         const iconUrl = await checkAndFetchImgurUrl(newIcon);
         if (!iconUrl) {
           await interaction.reply({
-            content: t({ phrase: 'hub.invalidImgurUrl', locale }),
+            content: t({ phrase: 'hub.invalidImgurUrl', locale }, { emoji: emojis.no }),
             ephemeral: true,
           });
           return;
@@ -637,7 +656,9 @@ export default class Manage extends Hub {
 
         // if banner is not a valid imgur link
         if (!bannerUrl) {
-          await interaction.editReply(t({ phrase: 'hub.invalidImgurUrl', locale }));
+          await interaction.editReply(
+            t({ phrase: 'hub.invalidImgurUrl', locale }, { emoji: emojis.no }),
+          );
           return;
         }
 

@@ -10,6 +10,7 @@ import {
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './commands/BaseCommand.js';
+import db from './utils/Db.js';
 import Sentry from '@sentry/node';
 import Scheduler from './services/SchedulerService.js';
 import NSFWClient from './utils/NSFWDetection.js';
@@ -21,8 +22,8 @@ import BlacklistManager from './managers/BlacklistManager.js';
 import { RemoveMethods } from './typings/index.js';
 import { isDevBuild } from './utils/Constants.js';
 import { ActivityType } from 'discord.js';
+import { JoinLeaveLogger, ModLogsLogger, ProfanityLogger, ReportLogger } from './services/HubLoggerService.js';
 import 'dotenv/config';
-import db from './utils/Db.js';
 
 export default abstract class SuperClient extends Client {
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
@@ -41,6 +42,10 @@ export default abstract class SuperClient extends Client {
   private readonly blacklistManager = new BlacklistManager(this.scheduler);
   private readonly reactionUpdater = new ReactionUpdater(this);
   private readonly nsfwDetector = new NSFWClient();
+  public readonly reportLogger = new ReportLogger(this);
+  public readonly profanityLogger = new ProfanityLogger(this);
+  public readonly modLogsLogger = new ModLogsLogger(this);
+  public readonly joinLeaveLogger = new JoinLeaveLogger(this);
 
   private static self: SuperClient;
 
@@ -76,7 +81,7 @@ export default abstract class SuperClient extends Client {
         status: 'idle',
         activities: [
           {
-            state: 'Watching over 500+ networks | /hub browse',
+            state: 'Watching over 100+ cross-server hubs',
             name: 'custom',
             type: ActivityType.Custom,
           },

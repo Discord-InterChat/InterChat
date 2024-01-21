@@ -6,6 +6,7 @@ import { simpleEmbed, handleError } from '../utils/Utils.js';
 import { access, constants, readdirSync, statSync } from 'fs';
 import Factory from '../Factory.js';
 import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
+import { emojis } from '../utils/Constants.js';
 
 const __filename = new URL(import.meta.url).pathname;
 const __dirname = dirname(__filename);
@@ -75,7 +76,7 @@ export default class CommandManager extends Factory {
           await interaction.reply({
             content: t(
               { phrase: 'errors.cooldown', locale: interaction.user.locale },
-              { time: `until ${time(waitUntil, 'T')} (${time(waitUntil, 'R')})` },
+              { time: `until ${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`, emoji: emojis.no },
             ),
             ephemeral: true,
           });
@@ -100,7 +101,12 @@ export default class CommandManager extends Factory {
         if (!handler || (customId.expiry && customId.expiry < Date.now())) {
           await interaction.reply({
             embeds: [
-              simpleEmbed(t({ phrase: 'errors.notUsable', locale: interaction.user.locale })),
+              simpleEmbed(
+                t(
+                  { phrase: 'errors.notUsable', locale: interaction.user.locale },
+                  { emoji: emojis.no },
+                ),
+              ),
             ],
             ephemeral: true,
           });

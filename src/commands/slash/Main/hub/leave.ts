@@ -14,7 +14,6 @@ import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
-import HubLogsManager from '../../../../managers/HubLogsManager.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -28,7 +27,11 @@ export default class Leave extends Hub {
 
     if (!isChannelConnected) {
       return await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.leave.noHub', locale: interaction.user.locale }))],
+        embeds: [
+          simpleEmbed(
+            t({ phrase: 'hub.leave.noHub', locale: interaction.user.locale }, { emoji: emojis.no }),
+          ),
+        ],
         ephemeral: true,
       });
     }
@@ -38,7 +41,7 @@ export default class Leave extends Hub {
           simpleEmbed(
             t(
               { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
-              { permission: 'Manage Channels' },
+              { permission: 'Manage Channels', emoji: emojis.no },
             ),
           ),
         ],
@@ -94,7 +97,7 @@ export default class Leave extends Hub {
     const validConnection = await db.connectedList.findFirst({ where: { id: customId.args[1] } });
     if (!validConnection) {
       await interaction.update({
-        content: t({ phrase: 'connection.notFound', locale }),
+        content: t({ phrase: 'connection.notFound', locale }, { emoji: emojis.no }),
         embeds: [],
         components: [],
       });
@@ -113,7 +116,8 @@ export default class Leave extends Hub {
 
     // log server leave
     if (interaction.guild) {
-      new HubLogsManager(customId.args[1]).logServerLeave(interaction.guild);
+      const hubId = customId.args[1];
+      interaction.client.joinLeaveLogger.logServerLeave(hubId, interaction.guild);
     }
   }
 }

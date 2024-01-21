@@ -8,7 +8,6 @@ import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'disc
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis } from './utils/Constants.js';
 import { initI18n } from './utils/Locale.js';
-import HubLogsManager from './managers/HubLogsManager.js';
 import { logGuildJoin, logGuildLeave } from './scripts/guilds/goals.js';
 import getWelcomeTargets from './scripts/guilds/getWelcomeTarget.js';
 
@@ -117,7 +116,7 @@ class InterChat extends SuperClient {
 
       // send server leave log to hubs
       connections.forEach((connection) =>
-        new HubLogsManager(connection.hubId).logServerLeave(guild),
+        this.joinLeaveLogger.logServerLeave(connection.hubId, guild),
       );
 
       await logGuildLeave(guild, channels.goal);

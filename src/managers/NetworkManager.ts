@@ -18,7 +18,6 @@ import { LINKS, REGEX, emojis } from '../utils/Constants.js';
 import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { parseTimestampFromId, replaceLinks } from '../utils/Utils.js';
-import HubLogsManager from './HubLogsManager.js';
 import { t } from '../utils/Locale.js';
 import Logger from '../utils/Logger.js';
 
@@ -89,7 +88,10 @@ export default class NetworkManager extends Factory {
             .setDescription(
               t(
                 { phrase: 'network.nsfw.description', locale },
-                { predictions: `${Math.round(predictions[0].probability * 100)}%` },
+                {
+                  predictions: `${Math.round(predictions[0].probability * 100)}%`,
+                  rules_command: '</rules:924659340898619395>',
+                },
               ),
             )
             .setFooter({
@@ -289,6 +291,8 @@ export default class NetworkManager extends Factory {
               user: `${message.author}`,
               hub: isNetworkMessage.hub.name,
               channel: `${message.channel}`,
+              emoji: emojis.wave_anim,
+              rules_command: '</rules:924659340898619395>',
             },
           ),
           components: [linkButtons],
@@ -323,7 +327,7 @@ export default class NetworkManager extends Factory {
       await message.channel.send(
         t(
           { phrase: 'network.accountTooNew', locale: message.author.locale },
-          { user: `${message.author}` },
+          { user: `${message.author}`, emoji: emojis.no },
         ),
       );
       return false;
@@ -417,13 +421,9 @@ export default class NetworkManager extends Factory {
     const hasProfanity = checkProfanity(message.content);
     if ((hasProfanity.profanity || hasProfanity.slurs) && message.guild) {
       // send a log to the log channel set by the hub
-      new HubLogsManager(hubId).logProfanity(
-        message.content,
-        message.author,
-        message.guild,
-      );
+      this.client.profanityLogger.log(hubId, message.content, message.author, message.guild);
 
-      // we dont want to send the message if it contains slurs
+      // we don't want to send the message if it contains slurs
       if (hasProfanity.slurs) return false;
     }
 

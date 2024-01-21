@@ -8,7 +8,6 @@ import { simpleEmbed, getOrCreateWebhook } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
-import HubLogsManager from '../../../../managers/HubLogsManager.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
@@ -33,7 +32,7 @@ export default class JoinSubCommand extends Hub {
           simpleEmbed(
             t(
               { phrase: 'hub.alreadyJoined', locale },
-              { channel: `${channel}`, hub: `${alrJoinedHub?.name}` },
+              { channel: `${channel}`, hub: `${alrJoinedHub?.name}`, emoji: emojis.no },
             ),
           ),
         ],
@@ -52,7 +51,11 @@ export default class JoinSubCommand extends Hub {
 
       if (!fetchedInvite) {
         return await interaction.reply({
-          embeds: [simpleEmbed(t({ phrase: 'hub.invite.revoke.invalidCode', locale }))],
+          embeds: [
+            simpleEmbed(
+              t({ phrase: 'hub.invite.revoke.invalidCode', locale }, { emoji: emojis.no }),
+            ),
+          ],
           ephemeral: true,
         });
       }
@@ -64,7 +67,7 @@ export default class JoinSubCommand extends Hub {
 
       if (!hub) {
         return await interaction.reply({
-          embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }))],
+          embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
           ephemeral: true,
         });
       }
@@ -84,7 +87,7 @@ export default class JoinSubCommand extends Hub {
           simpleEmbed(
             t(
               { phrase: 'hub.alreadyJoined', locale },
-              { hub: hub.name, channel: `<#${alreadyInHub.channelId}>` },
+              { hub: hub.name, channel: `<#${alreadyInHub.channelId}>`, emoji: emojis.no },
             ),
           ),
         ],
@@ -100,7 +103,7 @@ export default class JoinSubCommand extends Hub {
 
     if (userBlacklisted || serverBlacklisted) {
       return await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.blacklisted', locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'errors.blacklisted', locale }, { emoji: emojis.no }))],
         ephemeral: true,
       });
     }
@@ -129,7 +132,7 @@ export default class JoinSubCommand extends Hub {
           simpleEmbed(
             t(
               { phrase: 'errors.botMissingPermissions', locale },
-              { permissions: 'Manage Webhooks' },
+              { permissions: 'Manage Webhooks', emoji: emojis.no },
             ),
           ),
         ],
@@ -176,6 +179,9 @@ export default class JoinSubCommand extends Hub {
     });
 
     // send log
-    await new HubLogsManager(hub.id).logServerJoin(interaction.guild, { totalConnections, hubName });
+    await interaction.client.joinLeaveLogger.logServerJoin(hub.id, interaction.guild, {
+      totalConnections,
+      hubName,
+    });
   }
 }

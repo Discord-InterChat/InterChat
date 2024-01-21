@@ -18,6 +18,7 @@ import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { t } from '../../utils/Locale.js';
+import { emojis } from '../../utils/Constants.js';
 
 export default class EditMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -31,7 +32,10 @@ export default class EditMessage extends BaseCommand {
 
     if (!checkIfStaff(interaction.user.id) && !(await hasVoted(interaction.user.id))) {
       await interaction.reply({
-        content: t({ phrase: 'errors.mustVote', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'errors.mustVote', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
       return;
@@ -45,10 +49,13 @@ export default class EditMessage extends BaseCommand {
     if (!messageInDb?.originalMsg) {
       await interaction.reply({
         content: t(
-          t({
-            phrase: 'errors.unknownNetworkMessage',
-            locale: interaction.user.locale,
-          }),
+          t(
+            {
+              phrase: 'errors.unknownNetworkMessage',
+              locale: interaction.user.locale,
+            },
+            { emoji: emojis.no },
+          ),
         ),
         ephemeral: true,
       });
@@ -56,7 +63,10 @@ export default class EditMessage extends BaseCommand {
     }
     else if (interaction.user.id != messageInDb?.originalMsg.authorId) {
       await interaction.reply({
-        content: t({ phrase: 'errors.notMessageAuthor', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'errors.notMessageAuthor', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
       return;
@@ -93,7 +103,9 @@ export default class EditMessage extends BaseCommand {
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
-      return await interaction.reply(t({ phrase: 'errors.unknownNetworkMessage' }));
+      return await interaction.reply(
+        t({ phrase: 'errors.unknownNetworkMessage' }, { emoji: emojis.no }),
+      );
     }
 
     const messageInDb = await db.broadcastedMessages.findFirst({
@@ -103,7 +115,10 @@ export default class EditMessage extends BaseCommand {
 
     if (!messageInDb?.originalMsg.hub) {
       return await interaction.reply(
-        t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+        t(
+          { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
       );
     }
 
@@ -123,7 +138,7 @@ export default class EditMessage extends BaseCommand {
         newMessage.includes('dsc.gg'))
     ) {
       await interaction.editReply(
-        t({ phrase: 'errors.inviteLinks', locale: interaction.user.locale }),
+        t({ phrase: 'errors.inviteLinks', locale: interaction.user.locale }, { emoji: emojis.no }),
       );
       return;
     }

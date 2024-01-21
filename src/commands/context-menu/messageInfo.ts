@@ -15,6 +15,7 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
   TextInputBuilder,
   TextInputStyle,
+  time,
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../BaseCommand.js';
@@ -23,7 +24,6 @@ import { REGEX, colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { t } from '../../utils/Locale.js';
-import HubLogsManager from '../../managers/HubLogsManager.js';
 import { simpleEmbed } from '../../utils/Utils.js';
 
 export default class MessageInfo extends BaseCommand {
@@ -46,7 +46,10 @@ export default class MessageInfo extends BaseCommand {
 
     if (!originalMsg) {
       await interaction.followUp({
-        content: t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
       return;
@@ -64,7 +67,7 @@ export default class MessageInfo extends BaseCommand {
             server: `${server?.name}`,
             messageId: target.id,
             hub: `${originalMsg.hub?.name}`,
-            createdAt: `${Math.floor(target.createdTimestamp / 1000)}`,
+            createdAt: time(Math.floor(target.createdTimestamp / 1000), 'R'),
           },
         ),
       )
@@ -109,7 +112,10 @@ export default class MessageInfo extends BaseCommand {
 
     if (!originalMsg) {
       return await interaction.update({
-        content: t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         embeds: [],
         components: [],
       });
@@ -141,7 +147,10 @@ export default class MessageInfo extends BaseCommand {
         case 'serverInfo': {
           if (!server) {
             return await interaction.update({
-              content: t({ phrase: 'errors.unknownServer', locale: interaction.user.locale }),
+              content: t(
+                { phrase: 'errors.unknownServer', locale: interaction.user.locale },
+                { emoji: emojis.no },
+              ),
               embeds: [],
               components: [],
             });
@@ -173,7 +182,8 @@ export default class MessageInfo extends BaseCommand {
                   owner: `${owner.username}#${
                     owner.discriminator !== '0' ? `#${owner.discriminator}` : ''
                   }`,
-                  createdAt: `${createdAt}`,
+                  createdAt: time(createdAt, 'R'),
+                  createdAtFull: time(createdAt, 'd'),
                   memberCount: `${server.memberCount}`,
                   invite: `${inviteString}`,
                 },
@@ -203,7 +213,8 @@ export default class MessageInfo extends BaseCommand {
                 {
                   user: author.discriminator !== '0' ? author.tag : author.username,
                   id: author.id,
-                  createdAt: `${createdAt}`,
+                  createdAt: time(createdAt, 'R'),
+                  createdAtFull: time(createdAt, 'd'),
                   globalName: author.globalName || 'Not Set.',
                   hubsOwned: `${await db.hubs.count({ where: { ownerId: author.id } })}`,
                 },
@@ -235,7 +246,10 @@ export default class MessageInfo extends BaseCommand {
 
           if (!message) {
             await interaction.update({
-              content: t({ phrase: 'errors.unknownMessage', locale: interaction.user.locale }),
+              content: t(
+                { phrase: 'errors.unknownMessage', locale: interaction.user.locale },
+                { emoji: emojis.no },
+              ),
               embeds: [],
               components: [],
             });
@@ -252,7 +266,7 @@ export default class MessageInfo extends BaseCommand {
                   server: `${server?.name}`,
                   messageId: message.id,
                   hub: `${originalMsg.hub?.name}`,
-                  createdAt: `${Math.floor(message.createdTimestamp / 1000)}`,
+                  createdAt: time(Math.floor(message.createdTimestamp / 1000), 'R'),
                 },
               ),
             )
@@ -274,7 +288,10 @@ export default class MessageInfo extends BaseCommand {
             return await interaction.reply({
               embeds: [
                 simpleEmbed(
-                  t({ phrase: 'msgInfo.report.notEnabled', locale: interaction.user.locale }),
+                  t(
+                    { phrase: 'msgInfo.report.notEnabled', locale: interaction.user.locale },
+                    { emoji: emojis.no },
+                  ),
                 ),
               ],
               ephemeral: true,
@@ -317,13 +334,17 @@ export default class MessageInfo extends BaseCommand {
     if (!messageInDb?.originalMsg.hub?.logChannels?.reports) {
       return await interaction.reply({
         embeds: [
-          simpleEmbed(t({ phrase: 'msgInfo.report.notEnabled', locale: interaction.user.locale })),
+          simpleEmbed(
+            t(
+              { phrase: 'msgInfo.report.notEnabled', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
         ],
         ephemeral: true,
       });
     }
 
-    const hubLogger = new HubLogsManager(messageInDb.originalMsg.hub.id);
     const { authorId, serverId } = messageInDb.originalMsg;
 
     const reason = interaction.fields.getTextInputValue('reason');
@@ -331,7 +352,7 @@ export default class MessageInfo extends BaseCommand {
     const content = message?.content || message?.embeds[0].description || undefined;
     const attachmentUrl = message?.embeds[0].image?.url || content?.match(REGEX.IMAGE_URL)?.at(0);
 
-    await hubLogger.logReport({
+    await interaction.client.reportLogger.log(messageInDb.originalMsg.hub.id, {
       userId: authorId,
       serverId,
       reason,

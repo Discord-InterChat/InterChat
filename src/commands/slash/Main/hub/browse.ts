@@ -32,7 +32,6 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { t } from '../../../../utils/Locale.js';
-import HubLogsManager from '../../../../managers/HubLogsManager.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -102,7 +101,10 @@ export default class Browse extends Hub {
 
     if (!hubList || hubList.length === 0) {
       interaction.reply({
-        content: t({ phrase: 'hub.browse.noHubs', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'hub.browse.noHubs', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
       return;
@@ -156,7 +158,10 @@ export default class Browse extends Hub {
     });
     if (!hubDetails) {
       return await interaction.reply({
-        content: t({ phrase: 'hub.notFound', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'hub.notFound', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
     }
@@ -187,7 +192,7 @@ export default class Browse extends Hub {
         interaction.reply({
           content: t(
             { phrase: 'hub.alreadyJoined', locale: interaction.user.locale },
-            { hub: hubDetails.name, channel: `<#${alreadyJoined.channelId}>` },
+            { hub: hubDetails.name, channel: `<#${alreadyJoined.channelId}>`, emoji: emojis.no },
           ),
           ephemeral: true,
         });
@@ -252,7 +257,10 @@ export default class Browse extends Hub {
     else if (customId.suffix === 'channel_select' || customId.suffix === 'confirm') {
       if (!hubDetails) {
         return await interaction.reply({
-          content: t({ phrase: 'hub.notFound', locale: interaction.user.locale }),
+          content: t(
+            { phrase: 'hub.notFound', locale: interaction.user.locale },
+            { emoji: emojis.no },
+          ),
           ephemeral: true,
         });
       }
@@ -267,7 +275,7 @@ export default class Browse extends Hub {
         return await interaction.reply({
           content: t(
             { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
-            { hub: hubDetails.name },
+            { hub: hubDetails.name, emoji: emojis.no },
           ),
           ephemeral: true,
         });
@@ -281,7 +289,7 @@ export default class Browse extends Hub {
         return await interaction.reply({
           content: t(
             { phrase: 'errors.serverBlacklisted', locale: interaction.user.locale },
-            { hub: hubDetails.name },
+            { hub: hubDetails.name, emoji: emojis.no },
           ),
           ephemeral: true,
         });
@@ -294,7 +302,10 @@ export default class Browse extends Hub {
       // for type safety
       if (channel?.type !== ChannelType.GuildText && !channel?.isThread()) {
         await interaction.reply({
-          content: t({ phrase: 'hub.invalidChannel', locale: interaction.user.locale }),
+          content: t(
+            { phrase: 'hub.invalidChannel', locale: interaction.user.locale },
+            { emoji: emojis.no },
+          ),
           ephemeral: true,
         });
         return;
@@ -304,7 +315,7 @@ export default class Browse extends Hub {
         await interaction.update(
           t(
             { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
-            { permissions: 'Manage Webhooks' },
+            { permissions: 'Manage Webhooks', emoji: emojis.no },
           ),
         );
         return;
@@ -314,7 +325,7 @@ export default class Browse extends Hub {
         await interaction.update(
           t(
             { phrase: 'errors.botMissingPermissions', locale: interaction.user.locale },
-            { permissions: 'Manage Channels' },
+            { permissions: 'Manage Channels', emoji: emojis.no },
           ),
         );
         return;
@@ -328,7 +339,7 @@ export default class Browse extends Hub {
         await interaction.update({
           content: t(
             { phrase: 'connection.alreadyConnected', locale: interaction.user.locale },
-            { channel: `${channel}` },
+            { channel: `${channel}`, emoji: emojis.no },
           ),
           embeds: [],
           components: [],
@@ -403,7 +414,7 @@ export default class Browse extends Hub {
       });
 
       // log the server join to hub
-      await new HubLogsManager(hubDetails.id).logServerJoin(interaction.guild, {
+      await interaction.client.joinLeaveLogger.logServerJoin(hubDetails.id, interaction.guild, {
         totalConnections,
         hubName: hubDetails.name,
       });
@@ -428,7 +439,11 @@ export default class Browse extends Hub {
     const hub = await db.hubs.findFirst({ where: { id: hubId } });
     if (!hub) {
       interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale: interaction.user.locale }))],
+        embeds: [
+          simpleEmbed(
+            t({ phrase: 'hub.notFound', locale: interaction.user.locale }, { emoji: emojis.no }),
+          ),
+        ],
         ephemeral: true,
       });
       return;

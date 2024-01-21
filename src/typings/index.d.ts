@@ -6,6 +6,7 @@ import NetworkManager from '../managers/NetworkManager.ts';
 import BlacklistManager from '../managers/BlacklistManager.ts';
 import CommandManager from '../managers/CommandManager.ts';
 import CooldownService from '../services/CooldownService.ts';
+import { JoinLeaveLogger, ModLogsLogger, ProfanityLogger, ReportLogger } from '../services/HubLoggerService.ts';
 
 type RemoveMethods<T> = {
   [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? never : RemoveMethods<T[K]>;
@@ -20,6 +21,10 @@ declare module 'discord.js' {
     readonly reactionCooldowns: Collection<string, number>;
     readonly cluster: ClusterClient<Client>;
     readonly webhooks: Collection<string, WebhookClient>;
+    readonly reportLogger: ReportLogger;
+    readonly profanityLogger: ProfanityLogger;
+    readonly modLogsLogger: ModLogsLogger;
+    readonly joinLeaveLogger: JoinLeaveLogger;
 
     resolveEval: <T>(value: T[]) => T | undefined;
 

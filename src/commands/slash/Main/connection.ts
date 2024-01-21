@@ -55,7 +55,12 @@ export default class Connection extends BaseCommand {
     if (!isInDb) {
       await interaction.reply({
         embeds: [
-          simpleEmbed(t({ phrase: 'connection.notFound', locale: interaction.user.locale })),
+          simpleEmbed(
+            t(
+              { phrase: 'connection.notFound', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
         ],
         ephemeral: true,
       });
@@ -114,7 +119,10 @@ export default class Connection extends BaseCommand {
         data: { connected: !isInDb.connected },
       });
       await interaction.followUp({
-        content: t({ phrase: 'connection.channelNotFound', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'connection.channelNotFound', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
     }
@@ -163,7 +171,12 @@ export default class Connection extends BaseCommand {
     if (customId.args.at(1) && customId.args[1] !== interaction.user.id) {
       await interaction.reply({
         embeds: [
-          simpleEmbed(t({ phrase: 'errors.notYourAction', locale: interaction.user.locale })),
+          simpleEmbed(
+            t(
+              { phrase: 'errors.notYourAction', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
         ],
         ephemeral: true,
       });
@@ -173,7 +186,10 @@ export default class Connection extends BaseCommand {
     const isInDb = await db.connectedList.findFirst({ where: { channelId } });
     if (!channelId || !isInDb) {
       await interaction.reply({
-        content: t({ phrase: 'connection.channelNotFound', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'connection.channelNotFound', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
       return;
@@ -325,7 +341,7 @@ export default class Connection extends BaseCommand {
             simpleEmbed(
               t(
                 { phrase: 'connection.alreadyConnected', locale: interaction.user.locale },
-                { channel: `${newChannel}` },
+                { channel: `${newChannel}`, emoji: emojis.no },
               ),
             ),
           ],
@@ -375,7 +391,10 @@ export default class Connection extends BaseCommand {
 
       if (isValid?.guild?.id !== interaction.guildId) {
         await interaction.reply({
-          content: t({ phrase: 'connection.inviteInvalid', locale: interaction.user.locale }),
+          content: t(
+            { phrase: 'connection.inviteInvalid', locale: interaction.user.locale },
+            { emoji: emojis.no },
+          ),
           ephemeral: true,
         });
         return;
@@ -397,7 +416,10 @@ export default class Connection extends BaseCommand {
       const hex_regex = /^#[0-9A-F]{6}$/i;
       if (embedColor && !hex_regex.test(embedColor)) {
         interaction.reply({
-          content: t({ phrase: 'connection.emColorInvalid', locale: interaction.user.locale }),
+          content: t(
+            { phrase: 'connection.emColorInvalid', locale: interaction.user.locale },
+            { emoji: emojis.no },
+          ),
           ephemeral: true,
         });
         return;

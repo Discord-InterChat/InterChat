@@ -21,6 +21,7 @@ import { CustomID } from '../../utils/CustomID.js';
 import { t } from '../../utils/Locale.js';
 // @ts-expect-error no types provided for this package
 import { translate, isSupported } from 'google-translate-api-x';
+import { emojis } from '../../utils/Constants.js';
 
 export default class Translate extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -34,20 +35,25 @@ export default class Translate extends BaseCommand {
 
     if (!(await hasVoted(interaction.user.id))) {
       return await interaction.editReply(
-        t({ phrase: 'errors.mustVote', locale: interaction.user.locale }),
+        t({ phrase: 'errors.mustVote', locale: interaction.user.locale }, { emoji: emojis.no }),
       );
     }
 
     const target = interaction.targetMessage;
 
-    const originalMsg = (await db.broadcastedMessages.findFirst({
-      where: { messageId: target.id },
-      include: { originalMsg: true } },
-    ))?.originalMsg;
+    const originalMsg = (
+      await db.broadcastedMessages.findFirst({
+        where: { messageId: target.id },
+        include: { originalMsg: true },
+      })
+    )?.originalMsg;
 
     if (!originalMsg) {
       return interaction.editReply(
-        t({ phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale }),
+        t(
+          { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
       );
     }
 
@@ -126,7 +132,10 @@ export default class Translate extends BaseCommand {
     const from = interaction.fields.getTextInputValue('from');
     if (!isSupported(from) || !isSupported(to)) {
       await interaction.reply({
-        content: t({ phrase: 'errors.invalidLangCode', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'errors.invalidLangCode', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
       return;

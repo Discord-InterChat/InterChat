@@ -2,7 +2,7 @@ import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder } from 'discor
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import { paginate } from '../../../../utils/Pagination.js';
-import { colors } from '../../../../utils/Constants.js';
+import { colors, emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
 import { time } from 'discord.js';
@@ -25,7 +25,14 @@ export default class ListBlacklists extends BlacklistCommand {
 
     if (!hubInDb) {
       await interaction.editReply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
+        embeds: [
+          simpleEmbed(
+            t(
+              { phrase: 'hub.notFound_mod', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
+        ],
       });
       return;
     }
@@ -73,13 +80,10 @@ export default class ListBlacklists extends BlacklistCommand {
         counter++;
         if (counter >= LIMIT || i === result.length - 1) {
           embeds.push(
-            new EmbedBuilder()
-              .setFields(fields)
-              .setColor('#0099ff')
-              .setAuthor({
-                name: 'Blacklisted Servers:',
-                iconURL: interaction.client.user?.avatarURL()?.toString(),
-              }),
+            new EmbedBuilder().setFields(fields).setColor('#0099ff').setAuthor({
+              name: 'Blacklisted Servers:',
+              iconURL: interaction.client.user?.avatarURL()?.toString(),
+            }),
           );
 
           counter = 0;
@@ -117,13 +121,10 @@ export default class ListBlacklists extends BlacklistCommand {
         counter++;
         if (counter >= LIMIT || i === result.length - 1) {
           embeds.push(
-            new EmbedBuilder()
-              .setFields(fields)
-              .setColor(colors.interchatBlue)
-              .setAuthor({
-                name: 'Blacklisted Users:',
-                iconURL: interaction.client.user?.avatarURL()?.toString(),
-              }),
+            new EmbedBuilder().setFields(fields).setColor(colors.interchatBlue).setAuthor({
+              name: 'Blacklisted Users:',
+              iconURL: interaction.client.user?.avatarURL()?.toString(),
+            }),
           );
 
           counter = 0;

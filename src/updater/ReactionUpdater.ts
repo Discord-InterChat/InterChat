@@ -198,14 +198,20 @@ export default class ReactionUpdater extends Factory {
     else {
       if (userBlacklisted) {
         await interaction.followUp({
-          content: t({ phrase: 'errors.userBlacklisted', locale: interaction.user.locale }),
+          content: t(
+            { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
+            { emoji: emojis.no },
+          ),
           ephemeral: true,
         });
         return;
       }
       else if (serverBlacklisted) {
         await interaction.followUp({
-          content: t({ phrase: 'errors.userBlacklisted', locale: interaction.user.locale }),
+          content: t(
+            { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
+            { emoji: emojis.no },
+          ),
           ephemeral: true,
         });
         return;

@@ -22,7 +22,10 @@ export default class Delete extends Hub {
 
     if (interaction.user.id !== hubInDb?.ownerId) {
       return await interaction.reply({
-        content: t({ phrase: 'errors.ownerOnly', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'hub.delete.ownerOnly', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
     }
@@ -72,7 +75,7 @@ export default class Delete extends Hub {
 
     if (interaction.user.id !== userId) {
       await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.ownerOnly', locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.delete.ownerOnly', locale }, { emoji: emojis.no }))],
         ephemeral: true,
       });
       return;
@@ -98,7 +101,10 @@ export default class Delete extends Hub {
       return await interaction.editReply({
         embeds: [
           simpleEmbed(
-            t({ phrase: 'errors.unknown', locale }, { support_invite: LINKS.SUPPORT_INVITE }),
+            t(
+              { phrase: 'errors.unknown', locale },
+              { support_invite: LINKS.SUPPORT_INVITE, emoji: emojis.no },
+            ),
           ),
         ],
       });

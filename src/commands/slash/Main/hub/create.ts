@@ -13,7 +13,7 @@ import db from '../../../../utils/Db.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { HubSettingsBits } from '../../../../utils/BitFields.js';
 import { checkAndFetchImgurUrl, simpleEmbed } from '../../../../utils/Utils.js';
-import { LINKS } from '../../../../utils/Constants.js';
+import { LINKS, emojis } from '../../../../utils/Constants.js';
 import { t } from '../../../../utils/Locale.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 
@@ -86,7 +86,10 @@ export default class Create extends Hub {
     // if hubName contains "discord", "clyde" "```" then return
     if (name.match(/discord|clyde|```/gi)) {
       return await interaction.followUp({
-        content: t({ phrase: 'hub.create.invalidName', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'hub.create.invalidName', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
     }
@@ -97,7 +100,10 @@ export default class Create extends Hub {
 
     if (hubs.find((hub) => hub.name === name)) {
       return await interaction.followUp({
-        content: t({ phrase: 'hub.create.nameTaken', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'hub.create.nameTaken', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
     }
@@ -105,7 +111,10 @@ export default class Create extends Hub {
       hubs.reduce((acc, hub) => (hub.ownerId === interaction.user.id ? acc + 1 : acc), 0) >= 3
     ) {
       return await interaction.followUp({
-        content: t({ phrase: 'hub.create.maxHubs', locale: interaction.user.locale }),
+        content: t(
+          { phrase: 'hub.create.maxHubs', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
         ephemeral: true,
       });
     }
@@ -117,7 +126,12 @@ export default class Create extends Hub {
     if (iconUrl === false || bannerUrl === false) {
       return await interaction.followUp({
         embeds: [
-          simpleEmbed(t({ phrase: 'hub.invalidImgurUrl', locale: interaction.user.locale })),
+          simpleEmbed(
+            t(
+              { phrase: 'hub.invalidImgurUrl', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
         ],
         ephemeral: true,
       });

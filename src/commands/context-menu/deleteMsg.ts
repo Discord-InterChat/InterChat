@@ -30,7 +30,7 @@ export default class DeleteMessage extends BaseCommand {
         t({
           phrase: 'errors.unknownNetworkMessage',
           locale: interaction.user.locale,
-        }),
+        }, { emoji: emojis.no }),
       );
     }
 
@@ -45,7 +45,7 @@ export default class DeleteMessage extends BaseCommand {
         t({
           phrase: 'errors.notMessageAuthor',
           locale: interaction.user.locale,
-        }),
+        }, { emoji: emojis.no }),
       );
     }
 

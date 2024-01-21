@@ -1,10 +1,11 @@
 import { Prisma, hubs } from '@prisma/client';
-import { Client, EmbedBuilder, GuildTextBasedChannel, messageLink } from 'discord.js';
+import { EmbedBuilder } from 'discord.js';
 import { colors, emojis } from '../../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { channelMention } from '../../utils/Utils.js';
 import { t } from '../../utils/Locale.js';
 import db from '../../utils/Db.js';
+import SuperClient from '../../SuperClient.js';
 
 /*
 for later:
@@ -16,7 +17,7 @@ ${emojis.divider} Log message when it is deleted.
 ${emojis.dividerEnd} ${channelStr} ${undefined ?? emojis.no}
 */
 
-export function genLogInfoEmbed(hubInDb: hubs, locale = 'en') {
+export const genLogInfoEmbed = (hubInDb: hubs, locale = 'en') => {
   const { reports, modLogs, profanity, joinLeaves } = (hubInDb.logChannels ||
     {}) as Prisma.HubLogChannelsCreateInput;
   const reportRole = reports?.roleId ? `<@&${reports.roleId}>` : emojis.no;
@@ -46,46 +47,27 @@ export function genLogInfoEmbed(hubInDb: hubs, locale = 'en') {
     .setFooter({
       text: 'Note: This feature is still experimental. Report bugs using /support report.',
     });
-}
+};
 
-export async function getJumpLinkForReports(
-  client: Client,
-  opts: {
-    hubId: string;
-    messageId?: string;
-    reportsChannelId: string;
-  },
-) {
-  if (!opts.messageId) return;
-
-  const messageInDb = await db.broadcastedMessages.findFirst({
-    where: { messageId: opts.messageId },
-    include: { originalMsg: { include: { broadcastMsgs: true } } },
-  });
-
-  // fetch the reports server ID from the log channel's ID
-  const reportsServerId = client.resolveEval<string | undefined>(
-    await client.cluster.broadcastEval(
-      async (cl, ctx) => {
-        const channel = (await cl.channels
-          .fetch(ctx.reportsChannelId)
-          .catch(() => null)) as GuildTextBasedChannel | null;
-        return channel?.guild.id;
-      },
-      { context: { reportsChannelId: opts.reportsChannelId } },
-    ),
-  );
-
-  if (messageInDb) {
-    const networkChannel = await db.connectedList.findFirst({
-      where: { serverId: reportsServerId, hubId: opts.hubId },
-    });
-    const reportsServerMsg = messageInDb.originalMsg.broadcastMsgs.find(
-      (msg) => msg.channelId === networkChannel?.channelId,
-    );
-
-    return networkChannel && reportsServerMsg
-      ? messageLink(networkChannel.channelId, reportsServerMsg.messageId, networkChannel.serverId)
-      : undefined;
+export const setHubLogChannel = async (
+  hubId: string,
+  type: keyof Prisma.HubLogChannelsCreateInput,
+  channelId: string,
+) => {
+  if (type === 'reports') {
+    await SuperClient.getInstance().reportLogger.setChannelId(hubId, channelId);
+    return;
   }
-}
+
+  await db.hubs.update({
+    where: { id: hubId },
+    data: {
+      logChannels: {
+        upsert: {
+          set: { [type]: channelId },
+          update: { [type]: channelId },
+        },
+      },
+    },
+  });
+};

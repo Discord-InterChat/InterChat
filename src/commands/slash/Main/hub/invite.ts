@@ -35,7 +35,12 @@ export default class Invite extends Hub {
         if (!hubInDb) {
           await interaction.reply({
             embeds: [
-              simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale })),
+              simpleEmbed(
+                t(
+                  { phrase: 'hub.notFound_mod', locale: interaction.user.locale },
+                  { emoji: emojis.no },
+                ),
+              ),
             ],
             ephemeral: true,
           });
@@ -85,10 +90,13 @@ export default class Invite extends Hub {
 
         if (!inviteInDb) {
           await interaction.reply({
-            content: t({
-              phrase: 'hub.invite.revoke.invalidCode',
-              locale: interaction.user.locale,
-            }),
+            content: t(
+              {
+                phrase: 'hub.invite.revoke.invalidCode',
+                locale: interaction.user.locale,
+              },
+              { emoji: emojis.no },
+            ),
             ephemeral: true,
           });
           return;
@@ -114,7 +122,12 @@ export default class Invite extends Hub {
           await interaction
             .reply({
               embeds: [
-                simpleEmbed(t({ phrase: 'errors.unknown', locale: interaction.user.locale })),
+                simpleEmbed(
+                  t(
+                    { phrase: 'errors.unknown', locale: interaction.user.locale },
+                    { emoji: emojis.no },
+                  ),
+                ),
               ],
               ephemeral: true,
             })
@@ -140,7 +153,10 @@ export default class Invite extends Hub {
           await interaction.reply({
             embeds: [
               simpleEmbed(
-                t({ phrase: 'hub.invite.list.notPrivate', locale: interaction.user.locale }),
+                t(
+                  { phrase: 'hub.invite.list.notPrivate', locale: interaction.user.locale },
+                  { emoji: emojis.no },
+                ),
               ),
             ],
             ephemeral: true,
@@ -153,7 +169,10 @@ export default class Invite extends Hub {
           await interaction.reply({
             embeds: [
               simpleEmbed(
-                t({ phrase: 'hub.invite.list.noInvites', locale: interaction.user.locale }),
+                t(
+                  { phrase: 'hub.invite.list.noInvites', locale: interaction.user.locale },
+                  { emoji: emojis.no },
+                ),
               ),
             ],
             ephemeral: true,

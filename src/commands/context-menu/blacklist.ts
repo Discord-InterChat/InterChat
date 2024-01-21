@@ -15,7 +15,6 @@ import {
 import db from '../../utils/Db.js';
 import parse from 'parse-duration';
 import BaseCommand from '../BaseCommand.js';
-import HubLogsManager from '../../managers/HubLogsManager.js';
 import { t } from '../../utils/Locale.js';
 import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
@@ -97,7 +96,12 @@ export default class Blacklist extends BaseCommand {
     if (interaction.user.id !== customId.args[0]) {
       await interaction.reply({
         embeds: [
-          simpleEmbed(t({ phrase: 'errors.notYourAction', locale: interaction.user.locale })),
+          simpleEmbed(
+            t(
+              { phrase: 'errors.notYourAction', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
         ],
         ephemeral: true,
       });
@@ -157,7 +161,10 @@ export default class Blacklist extends BaseCommand {
 
     if (!originalMsg?.hubId) {
       await interaction.editReply(
-        t({ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale }),
+        t(
+          { phrase: 'errors.networkMessageExpired', locale: interaction.user.locale },
+          { emoji: emojis.no },
+        ),
       );
       return;
     }
@@ -206,12 +213,12 @@ export default class Blacklist extends BaseCommand {
           .notifyBlacklist('user', originalMsg.authorId, originalMsg.hubId, expires, reason)
           .catch(() => null);
 
-        await new HubLogsManager(originalMsg.hubId).logBlacklist(
-          user,
-          interaction.user,
+        await interaction.client.modLogsLogger.logBlacklist(originalMsg.hubId, {
+          userOrServer: user,
+          mod: interaction.user,
           reason,
           expires,
-        );
+        });
       }
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });
@@ -259,8 +266,13 @@ export default class Blacklist extends BaseCommand {
       });
 
       if (server) {
-        await new HubLogsManager(originalMsg.hubId)
-          .logBlacklist(server, interaction.user, reason, expires)
+        await interaction.client.modLogsLogger
+          .logBlacklist(originalMsg.hubId, {
+            userOrServer: server,
+            mod: interaction.user,
+            reason,
+            expires,
+          })
           .catch(() => null);
       }
 

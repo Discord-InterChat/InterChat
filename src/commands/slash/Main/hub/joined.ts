@@ -4,7 +4,7 @@ import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
-import { colors } from '../../../../utils/Constants.js';
+import { colors, emojis } from '../../../../utils/Constants.js';
 
 export default class Joined extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -15,7 +15,12 @@ export default class Joined extends Hub {
     if (connections.length === 0) {
       return await interaction.reply({
         embeds: [
-          simpleEmbed(t({ phrase: 'hub.joined.noJoinedHubs', locale: interaction.user.locale })),
+          simpleEmbed(
+            t(
+              { phrase: 'hub.joined.noJoinedHubs', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
         ],
       });
     }

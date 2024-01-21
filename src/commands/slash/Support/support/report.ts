@@ -193,7 +193,7 @@ export default class Report extends Support {
       await interaction.reply({
         content: t(
           { phrase: 'report.bug.submitted', locale: interaction.user.locale },
-          { emoji: emojis.yes },
+          { emoji: emojis.yes, support_command: '</support server:924659341049626636>' },
         ),
         ephemeral: true,
       });
@@ -213,7 +213,7 @@ export default class Report extends Support {
             await interaction.reply({
               content: t(
                 { phrase: 'report.invalidUser', locale: interaction.user.locale },
-                { dot: emojis.dotYellow },
+                { dot: emojis.dotYellow, emoji: emojis.no },
               ),
               ephemeral: true,
             });
@@ -241,7 +241,7 @@ export default class Report extends Support {
             await interaction.reply({
               content: t(
                 { phrase: 'report.invalidServer', locale: interaction.user.locale },
-                { dot: emojis.dotYellow },
+                { dot: emojis.dotYellow, emoji: emojis.no },
               ),
               ephemeral: true,
             });

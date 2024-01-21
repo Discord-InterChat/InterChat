@@ -5,7 +5,6 @@ import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
-import HubLogsManager from '../../../../managers/HubLogsManager.js';
 import parse from 'parse-duration';
 import Logger from '../../../../utils/Logger.js';
 import { t } from '../../../../utils/Locale.js';
@@ -29,7 +28,14 @@ export default class UserBlacklist extends BlacklistCommand {
 
     if (!hubInDb) {
       await interaction.editReply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }))],
+        embeds: [
+          simpleEmbed(
+            t(
+              { phrase: 'hub.notFound_mod', locale: interaction.user.locale },
+              { emoji: emojis.no },
+            ),
+          ),
+        ],
       });
       return;
     }
@@ -37,8 +43,6 @@ export default class UserBlacklist extends BlacklistCommand {
     const blacklistManager = interaction.client.getBlacklistManager();
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverOpt = interaction.options.getString('server', true);
-
-    const hubLogger = new HubLogsManager(hubInDb.id);
 
     if (subCommandGroup == 'add') {
       const reason = interaction.options.getString('reason', true);
@@ -50,10 +54,13 @@ export default class UserBlacklist extends BlacklistCommand {
         return await interaction.followUp({
           embeds: [
             simpleEmbed(
-              t({
-                phrase: 'blacklist.server.alreadyBlacklisted',
-                locale: interaction.user.locale,
-              }),
+              t(
+                {
+                  phrase: 'blacklist.server.alreadyBlacklisted',
+                  locale: interaction.user.locale,
+                },
+                { emoji: emojis.no },
+              ),
             ),
           ],
         });
@@ -62,7 +69,10 @@ export default class UserBlacklist extends BlacklistCommand {
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
       if (!server) {
         return await interaction.followUp(
-          t({ phrase: 'errors.unknownServer', locale: interaction.user.locale }),
+          t(
+            { phrase: 'errors.unknownServer', locale: interaction.user.locale },
+            { emoji: emojis.no },
+          ),
         );
       }
 
@@ -125,13 +135,21 @@ export default class UserBlacklist extends BlacklistCommand {
       await db.connectedList.deleteMany({ where: { serverId: server.id, hubId: hubInDb.id } });
 
       // send log to hub's log channel
-      await hubLogger.logBlacklist(server, interaction.user, reason, expires);
+      await interaction.client.modLogsLogger.logBlacklist(hubInDb.id, {
+        userOrServer: server,
+        mod: interaction.user,
+        reason,
+        expires,
+      });
     }
     else if (subCommandGroup == 'remove') {
       const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
       if (!result) {
         return await interaction.followUp(
-          t({ phrase: 'errors.serverNotBlacklisted', locale: interaction.user.locale }),
+          t(
+            { phrase: 'errors.serverNotBlacklisted', locale: interaction.user.locale },
+            { emoji: emojis.no },
+          ),
         );
       }
 
@@ -144,7 +162,12 @@ export default class UserBlacklist extends BlacklistCommand {
       );
 
       // send log to hub's log channel
-      await hubLogger.logUnblacklist('user', serverOpt, interaction.user);
+      await interaction.client.modLogsLogger.logUnblacklist(
+        hubInDb.id,
+        'user',
+        serverOpt,
+        interaction.user,
+      );
     }
   }
 }

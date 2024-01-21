@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
-import { colors } from '../../../../utils/Constants.js';
+import { colors, emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import db from '../../../../utils/Db.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
@@ -20,7 +20,9 @@ export default class Servers extends Hub {
     });
 
     if (!hub) {
-      await interaction.editReply({ embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }))] });
+      await interaction.editReply({
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
+      });
       return;
     }
     else if (
@@ -28,14 +30,16 @@ export default class Servers extends Hub {
       !hub.moderators.some((mod) => mod.userId === interaction.user.id)
     ) {
       await interaction.editReply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale }))],
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }))],
       });
       return;
     }
 
     if (hub.connections.length === 0) {
       await interaction.editReply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.servers.noConnections', locale }))],
+        embeds: [
+          simpleEmbed(t({ phrase: 'hub.servers.noConnections', locale }, { emoji: emojis.no })),
+        ],
       });
       return;
     }
@@ -45,7 +49,12 @@ export default class Servers extends Hub {
       if (!connection) {
         return await interaction.editReply({
           embeds: [
-            simpleEmbed(t({ phrase: 'hub.servers.notConnected', locale }, { hub: hub.name })),
+            simpleEmbed(
+              t(
+                { phrase: 'hub.servers.notConnected', locale },
+                { hub: hub.name, emoji: emojis.no },
+              ),
+            ),
           ],
         });
       }
