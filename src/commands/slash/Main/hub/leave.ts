@@ -94,7 +94,7 @@ export default class Leave extends Hub {
       return;
     }
 
-    const validConnection = await db.connectedList.findFirst({ where: { id: customId.args[1] } });
+    const validConnection = await db.connectedList.findFirst({ where: { channelId } });
     if (!validConnection) {
       await interaction.update({
         content: t({ phrase: 'connection.notFound', locale }, { emoji: emojis.no }),
