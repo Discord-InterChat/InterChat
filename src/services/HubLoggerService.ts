@@ -11,8 +11,9 @@ import {
 import { emojis, colors } from '../utils/Constants.js';
 import { toTitleCase } from '../utils/Utils.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
-import { hubs } from '@prisma/client';
+import { Prisma, hubs } from '@prisma/client';
 import Factory from '../Factory.js';
+import SuperClient from '../SuperClient.js';
 
 export type ReportEvidenceOpts = {
   // the message content
@@ -32,6 +33,29 @@ export type LogReportOpts = {
 export default class HubLoggerService extends Factory {
   public async fetchHub(id: string) {
     return await db.hubs.findFirst({ where: { id } });
+  }
+
+  static async setLogChannelFor(
+    hubId: string,
+    type: keyof Prisma.HubLogChannelsCreateInput,
+    channelId: string,
+  ) {
+    if (type === 'reports') {
+      await SuperClient.getInstance().reportLogger.setChannelId(hubId, channelId);
+      return;
+    }
+
+    return await db.hubs.update({
+      where: { id: hubId },
+      data: {
+        logChannels: {
+          upsert: {
+            set: { [type]: channelId },
+            update: { [type]: channelId },
+          },
+        },
+      },
+    });
   }
 
   /**

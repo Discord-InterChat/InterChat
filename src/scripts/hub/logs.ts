@@ -4,8 +4,6 @@ import { colors, emojis } from '../../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { channelMention } from '../../utils/Utils.js';
 import { t } from '../../utils/Locale.js';
-import db from '../../utils/Db.js';
-import SuperClient from '../../SuperClient.js';
 
 /*
 for later:
@@ -47,27 +45,4 @@ export const genLogInfoEmbed = (hubInDb: hubs, locale = 'en') => {
     .setFooter({
       text: 'Note: This feature is still experimental. Report bugs using /support report.',
     });
-};
-
-export const setHubLogChannel = async (
-  hubId: string,
-  type: keyof Prisma.HubLogChannelsCreateInput,
-  channelId: string,
-) => {
-  if (type === 'reports') {
-    await SuperClient.getInstance().reportLogger.setChannelId(hubId, channelId);
-    return;
-  }
-
-  await db.hubs.update({
-    where: { id: hubId },
-    data: {
-      logChannels: {
-        upsert: {
-          set: { [type]: channelId },
-          update: { [type]: channelId },
-        },
-      },
-    },
-  });
 };

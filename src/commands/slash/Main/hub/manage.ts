@@ -26,7 +26,8 @@ import { buildSettingsEmbed, buildSettingsMenu } from '../../../../scripts/hub/s
 import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFields.js';
 import { checkAndFetchImgurUrl, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { actionsSelect, hubEmbed } from '../../../../scripts/hub/manage.js';
-import { genLogInfoEmbed, setHubLogChannel } from '../../../../scripts/hub/logs.js';
+import { genLogInfoEmbed } from '../../../../scripts/hub/logs.js';
+import HubLoggerService from '../../../../services/HubLoggerService.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -505,7 +506,7 @@ export default class Manage extends Hub {
         const channel = interaction.channels.first();
 
         // set the channel in the db
-        await setHubLogChannel(hubInDb.id, type, channelId);
+        await HubLoggerService.setLogChannelFor(hubInDb.id, type, channelId);
 
         // update the old embed with new channel value
         const embed = interaction.message.embeds[0].toJSON();
