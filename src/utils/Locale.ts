@@ -6,7 +6,7 @@ const { configure, __ } = new I18n();
 
 export function initI18n() {
   configure({
-    directory: './locales',
+    directory: './locales/src/locales',
     defaultLocale: 'en',
     fallbacks: { '*': 'en' },
     retryInDefaultLocale: true,
