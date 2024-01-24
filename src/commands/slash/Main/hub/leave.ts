@@ -41,7 +41,7 @@ export default class Leave extends Hub {
           simpleEmbed(
             t(
               { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
-              { permission: 'Manage Channels', emoji: emojis.no },
+              { permissions: 'Manage Channels', emoji: emojis.no },
             ),
           ),
         ],
