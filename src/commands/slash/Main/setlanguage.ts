@@ -12,6 +12,7 @@ const locales = {
   en: '🇺🇸 English',
   tr: '🇹🇷 Turkish',
   hi: '🇮🇳 Hindi',
+  es: '🇪🇸 Spanish',
 };
 
 export default class SetLanguage extends BaseCommand {
