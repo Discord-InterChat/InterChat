@@ -1,23 +1,22 @@
 import { Colors, HexColorString } from 'discord.js';
-import { normal, badge, mascot } from './JSON/emojis.json';
 import { createRequire } from 'module';
-import 'dotenv/config';
+import jsonEmotes from './JSON/emojis.json';
 import badwordsType from './JSON/profanity.json';
-
+import 'dotenv/config';
+// create a require a ESM doesn't support importing JSON
 const require = createRequire(import.meta.url);
 
-// create a require a ESM doesn't support importing JSON
-const emotes = require('./JSON/emojis.json');
-const badwords = require('./JSON/profanity.json') as typeof badwordsType;
+const { slurs, profanity } = require('./JSON/profanity.json') as typeof badwordsType;
+export const {
+  normal: emojis,
+  mascot: mascotEmojis,
+  badge: badgeEmojis,
+} = require('./JSON/emojis.json') as typeof jsonEmotes;
 
 export const isDevBuild = process.env.NODE_ENV === 'development';
 
 export const CLIENT_ID = isDevBuild ? '798748015435055134' : '769921109209907241';
 export const SUPPORT_SERVER_ID = '770256165300338709';
-
-export const emojis: typeof normal = emotes.normal;
-export const mascotEmojis: typeof mascot = emotes.mascot;
-export const badgeEmojis: typeof badge = emotes.badge;
 
 // Regexp
 export const REGEX = {
@@ -30,9 +29,9 @@ export const REGEX = {
   IMGUR_LINKS:
     /(?:https?:\/\/)?(?:www\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?/i,
   /** matches profanity words */
-  PROFANITY: new RegExp(`\\b(${badwords.profanity.join('|')})\\b`, 'ig'),
+  PROFANITY: new RegExp(`\\b(${profanity.join('|')})\\b`, 'ig'),
   /** matches slurs */
-  SLURS: new RegExp(`\\b(${badwords.slurs.join('|')})\\b`, 'ig'),
+  SLURS: new RegExp(`\\b(${slurs.join('|')})\\b`, 'ig'),
   TENOR_LINKS: /https:\/\/tenor\.com\/view\/.*-(\d+)/,
 };
 
@@ -97,4 +96,3 @@ export const colors = {
   invisible: '#2b2d31' as HexColorString,
   christmas: ['#00B32C', '#D6001C', '#FFFFFF'] as HexColorString[],
 } as const;
-
