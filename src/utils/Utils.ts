@@ -272,17 +272,23 @@ export const parseTimestampFromId = (id: Snowflake) => {
   return timestamp + 1420070400000; // Discord epoch time
 };
 
-export const deleteMsgsFromDb = async (ids: string[]) => {
+export const deleteMsgsFromDb = async (broadcastMsgs: string[]) => {
   // delete all relations first and then delete the hub
-  const msgsToDelete = await db.broadcastedMessages.findMany({ where: { messageId: { in: ids } } });
+  const msgsToDelete = await db.broadcastedMessages.findMany({
+    where: { messageId: { in: broadcastMsgs } },
+  });
   if (!msgsToDelete) return;
 
-  await db.broadcastedMessages.deleteMany({
-    where: { messageId: { in: msgsToDelete.map(({ messageId }) => messageId) } },
+  const originalMsgIds = msgsToDelete.map(({ originalMsgId }) => originalMsgId);
+
+  const childrenBatch = db.broadcastedMessages.deleteMany({
+    where: { originalMsgId: { in: originalMsgIds } },
   });
-  await db.originalMessages.deleteMany({
-    where: { messageId: { in: msgsToDelete.map(({ originalMsgId }) => originalMsgId) } },
+  const originalBatch = db.originalMessages.deleteMany({
+    where: { messageId: { in: originalMsgIds } },
   });
+
+  return await db.$transaction([childrenBatch, originalBatch]);
 };
 
 export const channelMention = (channelId: Snowflake | null | undefined) => {
@@ -317,4 +323,8 @@ export const handleError = (e: Error, interaction?: Interaction) => {
 
 export const isDev = (userId: Snowflake) => {
   return DeveloperIds.includes(userId);
+};
+
+export const escapeRegexChars = (input: string): string => {
+  return input.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 };

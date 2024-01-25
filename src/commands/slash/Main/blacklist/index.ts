@@ -5,7 +5,7 @@ import {
   Collection,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import { handleError } from '../../../../utils/Utils.js';
+import { escapeRegexChars, handleError } from '../../../../utils/Utils.js';
 import BaseCommand from '../../../BaseCommand.js';
 import db from '../../../../utils/Db.js';
 
@@ -181,7 +181,7 @@ export default class BlacklistCommand extends BaseCommand {
     if (focusedHub.focused) {
       const hub = await db.hubs.findMany({
         where: {
-          name: { mode: 'insensitive', contains: focusedHub.value },
+          name: { mode: 'insensitive', contains: escapeRegexChars(focusedHub.value) },
           OR: [
             { ownerId: interaction.user.id },
             { moderators: { some: { userId: interaction.user.id } } },

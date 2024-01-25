@@ -9,7 +9,7 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../../BaseCommand.js';
 import db from '../../../../utils/Db.js';
-import { handleError } from '../../../../utils/Utils.js';
+import { escapeRegexChars, handleError } from '../../../../utils/Utils.js';
 
 const hubOption: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.String,
@@ -291,7 +291,7 @@ export default class Hub extends BaseCommand {
 
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
-    const focusedValue = interaction.options.getFocused();
+    const focusedValue = escapeRegexChars(interaction.options.getFocused());
     let hubChoices;
 
     if (subcommand === 'browse' || subcommand === 'join') {

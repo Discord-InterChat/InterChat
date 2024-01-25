@@ -29,6 +29,7 @@ import {
   simpleEmbed,
   getOrCreateWebhook,
   setComponentExpiry,
+  escapeRegexChars,
 } from '../../../utils/Utils.js';
 import { t } from '../../../utils/Locale.js';
 
@@ -141,7 +142,7 @@ export default class Connection extends BaseCommand {
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const focusedValue = interaction.options.getFocused();
+    const focusedValue = escapeRegexChars(interaction.options.getFocused());
 
     const isInDb = await db.connectedList.findMany({
       where: {

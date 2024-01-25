@@ -70,19 +70,17 @@ export default class Find extends BaseCommand {
       case 'server': {
         const guilds = interaction.client.guilds.cache;
         const focusedValue = interaction.options.getFocused().toLowerCase();
-        const choices: { name: string; id: string }[] = [];
+        const choices = guilds.map((guild) => ({ name: guild.name, value: guild.id }));
 
-        guilds.map((guild) => choices.push({ name: guild.name, id: guild.id }));
         const filtered = choices
           .filter(
             (choice) =>
               choice.name.toLowerCase().includes(focusedValue) ||
-              choice.id.toLowerCase().includes(focusedValue),
+              choice.value.toLowerCase().includes(focusedValue),
           )
-          .slice(0, 25)
-          .map((choice) => ({ name: choice.name, value: choice.id }));
+          .slice(0, 25);
 
-        interaction.respond(filtered);
+        await interaction.respond(filtered);
         break;
       }
 
@@ -101,7 +99,7 @@ export default class Find extends BaseCommand {
           .slice(0, 25)
           .map((choice) => ({ name: choice.username, value: choice.id }));
 
-        interaction.respond(filtered);
+        await interaction.respond(filtered);
         break;
       }
       default:
