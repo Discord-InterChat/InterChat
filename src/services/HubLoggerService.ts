@@ -214,14 +214,14 @@ export class JoinLeaveLogger extends HubLoggerService {
     const totalConnections = await db.connectedList.count({
       where: { hubId: hub.id, connected: true },
     });
-    const owner = await server.fetchOwner();
+    const owner = await server.client.users.fetch(server.ownerId).catch(() => null);
 
     const embed = new EmbedBuilder()
       .setTitle('Server Left')
       .setDescription(
         stripIndents`
         ${emojis.dotRed} **Server:** ${server.name} (${server.id})
-        ${emojis.dotRed} **Owner:** ${owner.user.tag} (${server.ownerId})
+        ${emojis.dotRed} **Owner:** ${owner?.username} (${server.ownerId})
         ${emojis.dotRed} **Member Count:** ${server.memberCount}
       `,
       )
