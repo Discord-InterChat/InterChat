@@ -101,7 +101,7 @@ export default abstract class SuperClient extends Client {
       // error monitoring & handling
       Sentry.init({
         dsn: process.env.SENTRY_DSN,
-        release: `v${this.version}`,
+        release: this.version,
         tracesSampleRate: 1.0,
         maxValueLength: 1000,
       });
