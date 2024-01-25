@@ -350,7 +350,7 @@ export default class MessageInfo extends BaseCommand {
     const reason = interaction.fields.getTextInputValue('reason');
     const message = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     const content = message?.content || message?.embeds[0].description || undefined;
-    const attachmentUrl = content?.match(REGEX.IMAGE_URL)?.at(0) ?? message?.embeds[0].image?.url;
+    const attachmentUrl = content?.match(REGEX.IMAGE_URL)?.at(0) ?? message?.embeds[0]?.image?.url;
 
     await interaction.client.reportLogger.log(messageInDb.originalMsg.hub.id, {
       userId: authorId,
