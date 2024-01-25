@@ -5,14 +5,12 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
   EmbedBuilder,
-  Status,
   time,
 } from 'discord.js';
 import db from '../../../utils/Db.js';
 import BaseCommand from '../../BaseCommand.js';
 import { cpus, totalmem } from 'os';
 import { LINKS, colors, emojis, isDevBuild } from '../../../utils/Constants.js';
-import { msToReadable } from '../../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import { CustomID } from '../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
@@ -33,7 +31,9 @@ export default class Stats extends BaseCommand {
 
     const count: number[] = await interaction.client.cluster.fetchClientValues('guilds.cache.size');
     const guildCount = count.reduce((p, n) => p + n, 0);
-    const memberCount = await interaction.client.cluster.fetchClientValues('guilds.cache.reduce((p, n) => p + n.memberCount, 0)');
+    const memberCount = await interaction.client.cluster.fetchClientValues(
+      'guilds.cache.reduce((p, n) => p + n.memberCount, 0)',
+    );
 
     const upSince = new Date(Date.now() - interaction.client.uptime);
     const totalMemory = Math.round(totalmem() / 1024 / 1024 / 1024);
@@ -108,10 +108,21 @@ export default class Stats extends BaseCommand {
   async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
 
-    if (customId.suffix === 'shardStats') {
-      const totalMemory = Math.round(totalmem() / 1024 / 1024 / 1024);
+    const allCusterData = await interaction.client.cluster.broadcastEval((client) => {
+      const { Status } = require('discord.js');
       const memoryUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
 
+      const res = client.ws.shards.map((shard) => ({
+        name: `Shard #${shard.id} - ${Status[shard.status]}`,
+        value:
+          `\`\`\`elm\n\nPing: ${shard.ping}ms\nUptime: ${shard.manager.client.uptime}ms\nTotal Servers: ${shard.manager.client.guilds.cache.size}\nRAM Usage: ${memoryUsed} MB\`\`\``,
+        inline: true,
+      }));
+
+      return res;
+    });
+
+    if (customId.suffix === 'shardStats') {
       const embed = new EmbedBuilder()
         .setColor(colors.invisible)
         .setDescription(
@@ -121,20 +132,7 @@ export default class Stats extends BaseCommand {
           **On Shard:** ${interaction.guild?.shardId}
           `,
         )
-        .setFields(
-          interaction.client.ws.shards.map((shard) => ({
-            name: `Shard #${shard.id} - ${Status[shard.status]}`,
-            value: stripIndents`
-              \`\`\`elm
-              Ping: ${shard.ping}ms
-              Uptime: ${msToReadable(shard.manager.client.uptime || 0)}
-              Total Servers: ${shard.manager.client.guilds.cache.size}
-              RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
-              \`\`\`
-            `,
-            inline: true,
-          })),
-        )
+        .setFields(allCusterData.flat().slice(0, 25))
         .setFooter({
           text: `InterChat v${interaction.client.version}${isDevBuild ? '+dev' : ''}`,
           iconURL: interaction.client.user.displayAvatarURL(),
