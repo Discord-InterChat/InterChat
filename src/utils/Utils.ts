@@ -328,3 +328,16 @@ export const isDev = (userId: Snowflake) => {
 export const escapeRegexChars = (input: string): string => {
   return input.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 };
+
+export const parseEmoji = (emoji: string) => {
+  const match = emoji.match(REGEX.EMOJI);
+  if (!match) return null;
+
+  const [, animated, name, id] = match;
+  return { animated: !!animated, name, id };
+};
+
+export const getEmojiId = (emoji: string | undefined) => {
+  const res = parseEmoji(emoji || '');
+  return res?.id ?? emoji;
+};

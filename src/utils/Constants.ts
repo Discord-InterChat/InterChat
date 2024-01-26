@@ -33,6 +33,7 @@ export const REGEX = {
   /** matches slurs */
   SLURS: new RegExp(`\\b(${slurs.join('|')})\\b`, 'ig'),
   TENOR_LINKS: /https:\/\/tenor\.com\/view\/.*-(\d+)/,
+  EMOJI: /<(a)?:([a-zA-Z0-9_]+):(\d+)>/,
 };
 
 export const StaffIds = ['597265261665714186', '442653948630007808', '689082827979227160'];

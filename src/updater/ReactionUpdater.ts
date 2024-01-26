@@ -17,7 +17,7 @@ import {
   WebhookClient,
   time,
 } from 'discord.js';
-import { sortReactions } from '../utils/Utils.js';
+import { getEmojiId, sortReactions } from '../utils/Utils.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
 import { CustomID } from '../utils/CustomID.js';
@@ -67,7 +67,7 @@ export default class ReactionUpdater extends Factory {
     if (userBlacklisted || serverBlacklisted) return;
 
     const reactedEmoji = reaction.emoji.toString();
-    const dbReactions = originalMsg.reactions?.valueOf() as { [key: string]: string[] }; // eg. { '👍': 1, '👎': 2 }
+    const dbReactions = (originalMsg.reactions?.valueOf() ?? {}) as { [key: string]: string[] }; // eg. { '👍': 1, '👎': 2 }
     const emojiAlreadyReacted = dbReactions[reactedEmoji] ?? [user.id];
 
     // max 10 reactions
@@ -128,7 +128,7 @@ export default class ReactionUpdater extends Factory {
     // add user to cooldown list
     interaction.client.reactionCooldowns.set(interaction.user.id, Date.now() + 3000);
 
-    const dbReactions = messageInDb.originalMsg.reactions?.valueOf() as {
+    const dbReactions = (messageInDb.originalMsg.reactions?.valueOf() ?? {}) as {
       [key: string]: Snowflake[];
     };
 
@@ -169,7 +169,7 @@ export default class ReactionUpdater extends Factory {
         reactionMenu.components[0].addOptions({
           label: 'React/Unreact',
           value: r[0],
-          emoji: r[0],
+          emoji: getEmojiId(r[0]),
         });
         totalReactions++;
         reactionString += `- ${r[0]}: ${r[1].length}\n`;
@@ -287,13 +287,17 @@ export default class ReactionUpdater extends Factory {
     // sortedReactions[x] = emojiIds
     // sortedReactions[x][y] = arr of users
     const sortedReactions = sortReactions(reactions);
+    console.log(getEmojiId(sortedReactions[0][0]));
     const reactionCount = sortedReactions[0][1].length;
     const mostReaction = sortedReactions[0][0];
+    const mostReactionEmoji = getEmojiId(mostReaction);
+
+    if (!mostReactionEmoji) return;
 
     const reactionBtn = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(new CustomID().setIdentifier('reaction_', mostReaction).toString())
-        .setEmoji(mostReaction)
+        .setEmoji(mostReactionEmoji)
         .setStyle(ButtonStyle.Secondary)
         .setLabel(`${reactionCount}`),
     );
@@ -390,6 +394,11 @@ export default class ReactionUpdater extends Factory {
     userId: string,
     emoji: string,
   ) {
+    // if (reactionArr[emoji].length <= 1) {
+    //   delete reactionArr[emoji];
+    //   return;
+    // }
+
     const userIndex = reactionArr[emoji].indexOf(userId);
     reactionArr[emoji].splice(userIndex, 1);
     return reactionArr;
