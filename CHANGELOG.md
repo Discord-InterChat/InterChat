@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.16.0](https://github.com/Discord-interchat/interchat/compare/v3.15.0...v3.16.0) (2024-01-26)
+
+
+### Features
+
+* new `/help` and `/credits` command ([578d56a](https://github.com/Discord-interchat/interchat/commit/578d56af46917b54e33ae7aac0bf313111675d91))
+
+
+### Bug Fixes
+
+* **autocomplete:** fix errors and db vulnerability where users were able to query regex through searches ([1e0d44c](https://github.com/Discord-interchat/interchat/commit/1e0d44c23a76f865afb5419ed25e66b3f18ca885))
+* **browse:** fix wrong locale naming ([d65a309](https://github.com/Discord-interchat/interchat/commit/d65a309cf63928e99c2bb8af252b125d546c9f79))
+* fix a bugaroo with leave i18n call ([bba519b](https://github.com/Discord-interchat/interchat/commit/bba519b052dddc4c2d6733c314af609c29b4ea0f))
+* **hub:** fix bug that preventing leaving hubs ([6169d2d](https://github.com/Discord-interchat/interchat/commit/6169d2d0211970a1f1c1016c6d983b5832160f55))
+* **hubLogs:** fix owner retrieval in `JoinLeaveLogger` ([f4d1122](https://github.com/Discord-interchat/interchat/commit/f4d1122db222b72fff82ed5edca787496190b0de))
+* **msgInfo/report:** fix attachment URL retrieval ([003e5ae](https://github.com/Discord-interchat/interchat/commit/003e5ae8dac17456ed897edca89548b20b40518b))
+* **msgInfo:** changed `reportNotEnabled` error msg to ephemeral ([0d7d5fe](https://github.com/Discord-interchat/interchat/commit/0d7d5feab950db8a351cdc7d58a2bc7c39f73056))
+* **msgInfo:** deferring the reply ([ac2e898](https://github.com/Discord-interchat/interchat/commit/ac2e898b2d09ace614c56928d063cf2373f6b353))
+* **msgInfo:** fix problem with reporting compact messages ([978ded0](https://github.com/Discord-interchat/interchat/commit/978ded0b4b3f66393cfa61133659352dc82cd6a7))
+* **msgs:** fix old messages not getting deleted ([ec99483](https://github.com/Discord-interchat/interchat/commit/ec9948388757ec9c904d8c37cb885c9bbd69bb04))
+* **network:** truncate user/server names to 90 chars ([9e1a466](https://github.com/Discord-interchat/interchat/commit/9e1a46678b7b9f7b1e7e266669eba7fa2d5b3377))
+* **network:** using webhookclient again ([2dff73d](https://github.com/Discord-interchat/interchat/commit/2dff73dd759c1289619ab0a54a6da8231fb0f35b))
+* **reaction:** fix bug with reacting with custom emojis ([46646e1](https://github.com/Discord-interchat/interchat/commit/46646e120f1e48dace034bab02e24764194690d5))
+* **stats:** show shards from all clusters ([ac9dc79](https://github.com/Discord-interchat/interchat/commit/ac9dc7921f4d2c6980c676f41778f92ad6012c8b))
+* update iconUrl and add EASTER_AVATAR constant ([bb636ff](https://github.com/Discord-interchat/interchat/commit/bb636ffaefd33ca5754685dd4cf71826a0ac8289))
+* update support server invite ([355205f](https://github.com/Discord-interchat/interchat/commit/355205f19d353c1c11cf45a9be2e3f20cee608bc))
+
 ## [3.15.0](https://github.com/Discord-interchat/interchat/compare/v3.14.0...v3.15.0) (2024-01-06)
 
 
