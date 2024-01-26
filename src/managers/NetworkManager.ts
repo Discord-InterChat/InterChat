@@ -17,7 +17,7 @@ import { connectedList, hubs, originalMessages } from '@prisma/client';
 import { LINKS, REGEX, emojis } from '../utils/Constants.js';
 import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
-import { parseTimestampFromId, replaceLinks } from '../utils/Utils.js';
+import { parseTimestampFromId, replaceLinks, wait } from '../utils/Utils.js';
 import { t } from '../utils/Locale.js';
 import Logger from '../utils/Logger.js';
 
@@ -155,7 +155,10 @@ export default class NetworkManager extends Factory {
       embedCol: (isNetworkMessage.embedColor as HexColorString) ?? undefined,
     });
 
-    const sendResult = allConnections.map(async (connection) => {
+    const sendResult = allConnections.map(async (connection, index) => {
+      // wait 1 second every 50 messages to avoid rate limits
+      if (index % 50) await wait(1000);
+
       try {
         // parse the webhook url and get the webhook id and token
         // fetch the webhook from discord
