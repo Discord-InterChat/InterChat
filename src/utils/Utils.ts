@@ -22,7 +22,7 @@ import {
   TextChannel,
   ThreadChannel,
 } from 'discord.js';
-import { DeveloperIds, REGEX, StaffIds, SupporterIds, LINKS, colors, emojis } from './Constants.js';
+import { DeveloperIds, REGEX, StaffIds, SupporterIds, LINKS, colors, emojis, SUPPORT_SERVER_ID } from './Constants.js';
 import { randomBytes } from 'crypto';
 import { t } from './Locale.js';
 import 'dotenv/config';
@@ -390,9 +390,9 @@ export const modifyUserRole = async (
     const guild = client.guilds.cache.get(ctx.guildId);
     const voterRole = guild?.roles.cache.find(({ id }) => id === ctx.roleId);
     const member = await guild?.members.fetch(ctx.userId).catch(() => null);
-    if (!member || !voterRole) return;
+    if (!guild || !voterRole) return;
 
     // add or remove role
-    await member.roles[ctx.action](voterRole);
-  }, { context: { userId, roleId, guildId, action } });
+    await member?.roles[ctx.action](voterRole).catch(() => null);
+  }, { guildId: SUPPORT_SERVER_ID, context: { userId, roleId, guildId, action } });
 };
