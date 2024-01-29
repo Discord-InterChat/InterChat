@@ -146,7 +146,7 @@ export class ModLogsLogger extends HubLoggerService {
       blacklisted = await BlacklistManager.fetchUserBlacklist(hub.id, userOrServerId);
       name =
         (await this.client.users.fetch(userOrServerId).catch(() => null))?.username ??
-        blacklisted?.username;
+        `${blacklisted?.username}`;
       originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === hub.id)?.reason;
     }
     else {
@@ -323,7 +323,7 @@ export class ReportLogger extends HubLoggerService {
     });
 
     // fetch the reports server ID from the log channel's ID
-    const reportsServerId = this.client.resolveEval<string | undefined>(
+    const reportsServerId = SuperClient.resolveEval(
       await this.client.cluster.broadcastEval(
         async (cl, ctx) => {
           const channel = (await cl.channels

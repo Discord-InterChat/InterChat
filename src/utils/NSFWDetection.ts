@@ -13,7 +13,7 @@ export default class NSFWDetector {
    */
   public async analyzeImage(url: string): Promise<predictionType[] | null> {
     if (!REGEX.STATIC_IMAGE_URL.test(url)) return null;
-    const res = await fetch(`http://localhost:3000/nsfw?url=${url}`);
+    const res = await fetch(`http://localhost:443/nsfw?url=${url}`);
 
     return res.status === 200 ? await res.json() : null;
   }

@@ -1,5 +1,6 @@
 import { APIEmbed, Guild, resolveColor } from 'discord.js';
 import { colors, mascotEmojis } from '../../utils/Constants.js';
+import { getOrdinalSuffix } from '../../utils/Utils.js';
 
 /**
  * @param channelId must be a channel ID in the support server
@@ -12,7 +13,7 @@ export function logGuildJoin(guild: Guild, channelId: string) {
       if (goalChannel?.isTextBased()) {
         const count = (await client.cluster.fetchClientValues('guilds.cache.size')) as number[];
         const guildCount = count.reduce((p, n) => p + n, 0);
-        const ordinalSuffix = guildCount.toString().endsWith('1') ? 'st' : 'th';
+        const ordinalSuffix = getOrdinalSuffix(guildCount);
 
         const goalEmbed: APIEmbed = {
           color: ctx.color,

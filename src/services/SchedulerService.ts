@@ -28,10 +28,10 @@ export default class Scheduler {
    * Adds a new task to the scheduler.
    * @param name - The name of the task.
    * @param ms - The number of milliseconds after which the task should be executed, or a Date object representing the time at which the task should be executed.
-   * @param task - The function to be executed when the task is run.
+   * @param callback - The function to be executed when the task is run.
    * @throws An error if a task with the same name already exists.
    */
-  addTask(name: string, ms: number | Date, task: () => void): void {
+  addTask(name: string, ms: number | Date, callback: () => void): void {
     if (this.tasks.has(name)) {
       throw new Error(`Task with name ${name} already exists.`);
     }
@@ -42,8 +42,8 @@ export default class Scheduler {
     // FIXME: do not set loong timeouts throughout the code, only set timeouts that end in like a week or smth!
     if (ms > 2147483647) return;
 
-    const timeout = setTimeout(task, ms);
-    this.tasks.set(name, { task, ms, timeout });
+    const timeout = setTimeout(callback, ms);
+    this.tasks.set(name, { task: callback, ms, timeout });
   }
 
   /**

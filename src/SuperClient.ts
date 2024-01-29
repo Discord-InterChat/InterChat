@@ -116,7 +116,7 @@ export default abstract class SuperClient extends Client {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  resolveEval = <T>(value: any[]): T | undefined => value?.find((res) => !!res);
+  static resolveEval = <T>(value: T[]) => value?.find((res) => !!res) as RemoveMethods<T> | undefined;
 
   /**
    * Fetches a guild by its ID from the cache.
@@ -127,9 +127,9 @@ export default abstract class SuperClient extends Client {
     const fetch = await this.cluster.broadcastEval(
       (client, guildID) => client.guilds.cache.get(guildID),
       { context: guildId },
-    );
+    ) as Guild[];
 
-    return fetch ? this.resolveEval(fetch) : undefined;
+    return fetch ? SuperClient.resolveEval(fetch) : undefined;
   }
 
   async getUserLocale(userId: Snowflake): Promise<string> {

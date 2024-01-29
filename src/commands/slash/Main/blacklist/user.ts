@@ -140,7 +140,7 @@ export default class Server extends BlacklistCommand {
       await interaction.followUp(
         t(
           { phrase: 'blacklist.user.removed', locale: interaction.user.locale },
-          { emoji: emojis.delete, username: result.username },
+          { emoji: emojis.delete, username: `${result.username}` },
         ),
       );
       if (user) {

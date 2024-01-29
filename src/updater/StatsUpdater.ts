@@ -1,4 +1,5 @@
 import { LINKS } from '../utils/Constants.js';
+
 export const updateTopGGStats = async (totalGuilds: number, totalShards = 1) => {
   if (!process.env.TOPGG_API_KEY) throw new TypeError('Missing TOPGG_TOKEN environment variable');
 

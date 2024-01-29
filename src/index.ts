@@ -1,96 +1,32 @@
 import db from './utils/Db.js';
-import Logger from './utils/Logger.js';
-import startApi from './api/index.js';
 import Scheduler from './services/SchedulerService.js';
-import BlacklistManager from './managers/BlacklistManager.js';
-import { ClusterManager } from 'discord-hybrid-sharding';
-import { updateTopGGStats } from './updater/StatsUpdater.js';
+import { startApi } from './api/index.js';
 import { isDevBuild } from './utils/Constants.js';
-import { blacklistedServers, userData } from '@prisma/client';
-import { deleteMsgsFromDb, wait } from './utils/Utils.js';
+import { VoteManager } from './managers/VoteManager.js';
+import { ClusterManager } from 'discord-hybrid-sharding';
+import syncBotlistStats from './scripts/tasks/syncBotlistStats.js';
+import deleteExpiredInvites from './scripts/tasks/deleteExpiredInvites.js';
+import updateBlacklists from './scripts/tasks/updateBlacklists.js';
+import deleteOldMessages from './scripts/tasks/deleteOldMessages.js';
 import 'dotenv/config';
-import { captureException } from '@sentry/node';
+import { getUsername, wait } from './utils/Utils.js';
 
-const manager = new ClusterManager('build/InterChat.js', {
+const clusterManager = new ClusterManager('build/InterChat.js', {
   totalShards: 'auto',
   mode: 'process',
   token: process.env.TOKEN,
   shardsPerClusters: 2,
 });
 
-manager.spawn({ timeout: -1 });
-
-// other jobs
-const syncBotlistStats = async () => {
-  const count = (await manager.fetchClientValues('guilds.cache.size')) as number[];
-  Logger.info(
-    `Updated top.gg stats with ${count.reduce((p, n) => p + n, 0)} guilds and ${
-      manager.totalShards
-    } shards`,
-  );
-  // update stats
-  await updateTopGGStats(
-    count.reduce((p, n) => p + n, 0),
-    manager.totalShards,
-  );
-};
-
-const deleteExpiredInvites = async () => {
-  const olderThan1h = new Date(Date.now() - 60 * 60 * 1_000);
-  await db.hubInvites.deleteMany({ where: { expires: { lte: olderThan1h } } }).catch(() => null);
-};
-
-// Delete all network messages from db that are older than 24 hours old.
-const deleteOldMessages = async () => {
-  const olderThan24h = Date.now() - 60 * 60 * 24_000;
-
-  db.broadcastedMessages
-    .findMany({ where: { createdAt: { lte: olderThan24h } } })
-    .then(async (m) => deleteMsgsFromDb(m.map(({ messageId }) => messageId)))
-    .catch(captureException);
-};
-
-const processAndManageBlacklists = async (
-  blacklists: (blacklistedServers | userData)[],
-  scheduler: Scheduler,
-) => {
-  if (blacklists.length === 0) return;
-
-  const blacklistManager = new BlacklistManager(scheduler);
-  for (const blacklist of blacklists) {
-    const blacklistedFrom = 'hubs' in blacklist ? blacklist.hubs : blacklist.blacklistedFrom;
-    for (const { hubId, expires } of blacklistedFrom) {
-      if (!expires) continue;
-
-      if (expires < new Date()) {
-        if ('serverId' in blacklist) {
-          blacklistManager.removeBlacklist('server', hubId, blacklist.serverId);
-        }
-        else {
-          await blacklistManager.removeBlacklist('user', hubId, blacklist.userId);
-        }
-        continue;
-      }
-
-      blacklistManager.scheduleRemoval(
-        'serverId' in blacklist ? 'server' : 'user',
-        'serverId' in blacklist ? blacklist.serverId : blacklist.userId,
-        hubId,
-        expires,
-      );
-    }
-  }
-};
-
-manager.on('clusterCreate', async (cluster) => {
+clusterManager.on('clusterCreate', async (cluster) => {
   // if it is the last cluster
-  if (cluster.id === manager.totalClusters - 1) {
+  if (cluster.id === clusterManager.totalClusters - 1) {
     const scheduler = new Scheduler();
     // remove expired blacklists or set new timers for them
     const serverQuery = { where: { hubs: { some: { expires: { isSet: true } } } } };
     const userQuery = { where: { blacklistedFrom: { some: { expires: { isSet: true } } } } };
-    processAndManageBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler);
-    processAndManageBlacklists(await db.userData.findMany(userQuery), scheduler);
+    updateBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler);
+    updateBlacklists(await db.userData.findMany(userQuery), scheduler);
 
     // code must be in production to run these tasks
     if (isDevBuild) return;
@@ -98,12 +34,12 @@ manager.on('clusterCreate', async (cluster) => {
     await wait(10_000);
 
     // perform start up tasks
-    syncBotlistStats();
+    syncBotlistStats(clusterManager);
     deleteOldMessages();
     deleteExpiredInvites();
 
     // update top.gg stats every 10 minutes
-    scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, syncBotlistStats);
+    scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, () => syncBotlistStats(clusterManager));
     // delete expired invites every 1 hour
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1_000, deleteExpiredInvites);
     // delete old network messages every 12 hours
@@ -111,5 +47,14 @@ manager.on('clusterCreate', async (cluster) => {
   }
 });
 
-// start the api that handles nsfw filter
-startApi();
+const voteManager = new VoteManager(clusterManager);
+voteManager.on('vote', async (vote) => {
+  await voteManager.incrementAndScheduleVote(
+    vote.user,
+    (await getUsername(clusterManager, vote.user)) ?? undefined,
+  );
+  await voteManager.announceVote(vote);
+});
+
+// spawn clusters and start the api that handles nsfw filter and votes
+clusterManager.spawn({ timeout: -1 }).then(() => startApi({ voteManager }));

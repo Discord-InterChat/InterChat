@@ -104,7 +104,7 @@ export default class ListBlacklists extends BlacklistCommand {
           : null;
 
         fields.push({
-          name: data.username,
+          name: `${data.username}`,
           value: t(
             { phrase: 'blacklist.list.user', locale: interaction.user.locale },
             {

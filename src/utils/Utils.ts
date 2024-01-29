@@ -7,6 +7,7 @@ import {
   ActionRow,
   ButtonStyle,
   ChannelType,
+  Client,
   ColorResolvable,
   ComponentType,
   EmbedBuilder,
@@ -27,6 +28,8 @@ import { t } from './Locale.js';
 import 'dotenv/config';
 import { captureException } from '@sentry/node';
 import { CustomID } from './CustomID.js';
+import SuperClient from '../SuperClient.js';
+import { ClusterClient, ClusterManager } from 'discord-hybrid-sharding';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export const msToReadable = (milliseconds: number) => {
@@ -340,4 +343,56 @@ export const parseEmoji = (emoji: string) => {
 export const getEmojiId = (emoji: string | undefined) => {
   const res = parseEmoji(emoji || '');
   return res?.id ?? emoji;
+};
+// get ordinal suffix for a number
+export const getOrdinalSuffix = (num: number) => {
+  const j = num % 10;
+  const k = num % 100;
+
+  if (j == 1 && k != 11) return 'st';
+  else if (j == 2 && k != 12) return 'nd';
+  else if (j == 3 && k != 13) return 'rd';
+  return 'th';
+};
+
+export const getUsername = async (client: ClusterManager, userId: Snowflake) => {
+  if (client) {
+    const username = SuperClient.resolveEval(
+      await client.broadcastEval(
+        async (c, ctx) => {
+          const user = await c.users.fetch(ctx.userId).catch(() => null);
+          return user?.username;
+        },
+        {
+          context: { userId },
+        },
+      ),
+    );
+
+    return username ?? (await getDbUser(userId))?.username ?? null;
+  }
+
+  return (await getDbUser(userId))?.username ?? null;
+};
+
+export const getDbUser = async (userId: Snowflake) => {
+  return await db.userData.findFirst({ where: { userId } });
+};
+
+export const modifyUserRole = async (
+  cluster: ClusterClient<Client> | ClusterManager,
+  action: 'add' | 'remove',
+  userId: Snowflake,
+  guildId: Snowflake,
+  roleId: Snowflake,
+) => {
+  await cluster.broadcastEval(async (client, ctx) => {
+    const guild = client.guilds.cache.get(ctx.guildId);
+    const voterRole = guild?.roles.cache.find(({ id }) => id === ctx.roleId);
+    const member = await guild?.members.fetch(ctx.userId).catch(() => null);
+    if (!member || !voterRole) return;
+
+    // add or remove role
+    await member.roles[ctx.action](voterRole);
+  }, { context: { userId, roleId, guildId, action } });
 };

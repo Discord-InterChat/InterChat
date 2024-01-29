@@ -287,7 +287,6 @@ export default class ReactionUpdater extends Factory {
     // sortedReactions[x] = emojiIds
     // sortedReactions[x][y] = arr of users
     const sortedReactions = sortReactions(reactions);
-    console.log(getEmojiId(sortedReactions[0][0]));
     const reactionCount = sortedReactions[0][1].length;
     const mostReaction = sortedReactions[0][0];
     const mostReactionEmoji = getEmojiId(mostReaction);
@@ -327,7 +326,6 @@ export default class ReactionUpdater extends Factory {
         })
         .catch(() => null);
 
-      // FIXME: Fix not being able to react to messages with reply button
       const components = message?.components?.filter((row) => {
         // filter all buttons that are not reaction buttons
         row.components = row.components.filter((component) => {

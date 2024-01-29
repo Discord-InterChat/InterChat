@@ -14,6 +14,7 @@ import { emojis } from '../../../utils/Constants.js';
 import { simpleEmbed, msToReadable, deleteMsgsFromDb } from '../../../utils/Utils.js';
 import Logger from '../../../utils/Logger.js';
 import { broadcastedMessages } from '@prisma/client';
+import SuperClient from '../../../SuperClient.js';
 
 const limitOpt: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.Integer,
@@ -236,7 +237,7 @@ export default class Purge extends BaseCommand {
           { context: { channelId: network.channelId, messagesInDb } },
         );
 
-        return interaction.client.resolveEval(evalRes) || [];
+        return SuperClient.resolveEval(evalRes) || [];
       }
       catch (e) {
         Logger.error(e);

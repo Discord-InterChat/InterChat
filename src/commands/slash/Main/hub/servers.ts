@@ -5,6 +5,7 @@ import { paginate } from '../../../../utils/Pagination.js';
 import db from '../../../../utils/Db.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
+import SuperClient from '../../../../SuperClient.js';
 
 export default class Servers extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -105,7 +106,7 @@ export default class Servers extends Hub {
           { context: { connection } },
         );
 
-        const evalRes = interaction.client.resolveEval(evalArr);
+        const evalRes = SuperClient.resolveEval(evalArr);
 
         const value = t(
           { phrase: 'hub.servers.connectionInfo', locale },

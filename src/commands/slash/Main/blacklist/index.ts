@@ -223,7 +223,7 @@ export default class BlacklistCommand extends BaseCommand {
         });
 
         const choices = filteredUsers.map((user) => {
-          return { name: user.username, value: user.userId };
+          return { name: user.username ?? `Unknown User - ${user.userId}`, value: user.userId };
         });
         interaction.respond(choices);
         break;
