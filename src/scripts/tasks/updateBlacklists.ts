@@ -2,10 +2,7 @@ import { blacklistedServers, userData } from '@prisma/client';
 import BlacklistManager from '../../managers/BlacklistManager.js';
 import Scheduler from '../../services/SchedulerService.js';
 
-const updateBlacklists = async (
-  blacklists: (blacklistedServers | userData)[],
-  scheduler: Scheduler,
-) => {
+export default async (blacklists: (blacklistedServers | userData)[], scheduler: Scheduler) => {
   if (blacklists.length === 0) return;
 
   const blacklistManager = new BlacklistManager(scheduler);
@@ -33,5 +30,3 @@ const updateBlacklists = async (
     }
   }
 };
-
-export default updateBlacklists;
