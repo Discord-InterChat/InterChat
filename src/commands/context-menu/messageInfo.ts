@@ -2,7 +2,6 @@ import {
   ActionRow,
   ActionRowBuilder,
   ApplicationCommandType,
-  AttachmentBuilder,
   ButtonBuilder,
   ButtonComponent,
   ButtonStyle,
@@ -19,7 +18,6 @@ import {
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../BaseCommand.js';
-import { profileImage } from 'discord-arts';
 import { REGEX, colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
@@ -220,20 +218,13 @@ export default class MessageInfo extends BaseCommand {
                 },
               ),
             )
-            .setImage('attachment://customCard.png') // link to image that will be generated afterwards
             .setTimestamp();
 
           // disable the user info button
           MessageInfo.greyOutButton(components[0], 2);
 
-          // generate the profile card
-          const customCard = new AttachmentBuilder(await profileImage(author.id), {
-            name: 'customCard.png',
-          });
-
           await interaction.editReply({
             // attach the profile card to the message
-            files: [customCard],
             embeds: [userEmbed],
             components,
           });
