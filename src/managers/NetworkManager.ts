@@ -66,7 +66,11 @@ export default class NetworkManager extends Factory {
     // run checks on the message to determine if it can be sent in the network
     if (!(await this.runChecks(message, settings, isNetworkMessage.hubId))) return;
 
-    const allConnections = await this.fetchHubNetworks({ hubId: isNetworkMessage.hubId });
+    const allConnections = await this.fetchHubNetworks({
+      hubId: isNetworkMessage.hubId,
+      connected: true,
+    });
+
     const attachment = message.attachments.first();
     const attachmentURL = attachment
       ? attachment.url
@@ -660,7 +664,7 @@ export default class NetworkManager extends Factory {
   }
 
   // TODO: Add Error handlers for these
-  public async fetchHubNetworks(where: { hubId?: string; hubName?: string }) {
+  public async fetchHubNetworks(where: { hubId?: string; hubName?: string; connected?: boolean }) {
     return await db.connectedList.findMany({ where });
   }
 
