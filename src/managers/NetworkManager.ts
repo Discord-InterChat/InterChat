@@ -19,7 +19,7 @@ import { check as checkProfanity, censor } from '../utils/Profanity.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { parseTimestampFromId, replaceLinks, wait } from '../utils/Utils.js';
 import { t } from '../utils/Locale.js';
-import Logger from '../utils/Logger.js';
+import sendMessage from '../scripts/network/sendMessage.js';
 
 export interface NetworkMessage extends Message {
   censoredContent: string;
@@ -160,24 +160,6 @@ export default class NetworkManager extends Factory {
       if (index % 50) await wait(1000);
 
       try {
-        // parse the webhook url and get the webhook id and token
-        // fetch the webhook from discord
-        let webhook = message.client.webhooks.get(connection.webhookURL);
-        if (!webhook) {
-          webhook = new WebhookClient(
-            { url: connection.webhookURL },
-            {
-              rest: {
-                rejectOnRateLimit: (r) => {
-                  Logger.warn('Webhook rate limited: %O', r);
-                  return false;
-                },
-              },
-            },
-          );
-          message.client.webhooks.set(connection.webhookURL, webhook);
-        }
-
         const reply = referenceInDb?.broadcastMsgs.find(
           (msg) => msg.channelId === connection.channelId,
         );
@@ -240,9 +222,13 @@ export default class NetworkManager extends Factory {
           };
         }
         // send the message
-        const messageOrError = await webhook.send(messageFormat);
+        const messageOrError = await sendMessage(messageFormat, connection.webhookURL);
+
         // return the message and webhook URL to store the message in the db
-        return { messageOrError, webhookURL: connection.webhookURL } as NetworkWebhookSendResult;
+        return {
+          messageOrError: messageOrError,
+          webhookURL: connection.webhookURL,
+        } as NetworkWebhookSendResult;
       }
       catch (e) {
         // return the error and webhook URL to store the message in the db
