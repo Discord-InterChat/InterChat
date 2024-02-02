@@ -7,7 +7,7 @@ import { check } from './utils/Profanity.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis } from './utils/Constants.js';
-import { initI18n } from './utils/Locale.js';
+import { loadLocales } from './utils/Locale.js';
 import { logGuildJoin, logGuildLeave } from './scripts/guilds/goals.js';
 import getWelcomeTargets from './scripts/guilds/getWelcomeTarget.js';
 
@@ -20,7 +20,7 @@ class InterChat extends SuperClient {
       this.init();
 
       // initialize i18n for localization
-      initI18n();
+      loadLocales('locales/src/locales');
 
       // load commands
       CommandManager.loadCommandFiles();

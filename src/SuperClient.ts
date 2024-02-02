@@ -22,8 +22,14 @@ import BlacklistManager from './managers/BlacklistManager.js';
 import { RemoveMethods } from './typings/index.js';
 import { isDevBuild } from './utils/Constants.js';
 import { ActivityType } from 'discord.js';
-import { JoinLeaveLogger, ModLogsLogger, ProfanityLogger, ReportLogger } from './services/HubLoggerService.js';
+import {
+  JoinLeaveLogger,
+  ModLogsLogger,
+  ProfanityLogger,
+  ReportLogger,
+} from './services/HubLoggerService.js';
 import 'dotenv/config';
+import { supportedLocaleCodes } from './utils/Locale.js';
 
 export default abstract class SuperClient extends Client {
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
@@ -116,7 +122,8 @@ export default abstract class SuperClient extends Client {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static resolveEval = <T>(value: T[]) => value?.find((res) => !!res) as RemoveMethods<T> | undefined;
+  static resolveEval = <T>(value: T[]) =>
+    value?.find((res) => !!res) as RemoveMethods<T> | undefined;
 
   /**
    * Fetches a guild by its ID from the cache.
@@ -124,18 +131,18 @@ export default abstract class SuperClient extends Client {
    * @returns The fetched guild **without any methods**, or undefined if the guild is not found.
    */
   async fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined> {
-    const fetch = await this.cluster.broadcastEval(
+    const fetch = (await this.cluster.broadcastEval(
       (client, guildID) => client.guilds.cache.get(guildID),
       { context: guildId },
-    ) as Guild[];
+    )) as Guild[];
 
     return fetch ? SuperClient.resolveEval(fetch) : undefined;
   }
 
-  async getUserLocale(userId: Snowflake): Promise<string> {
+  async getUserLocale(userId: Snowflake) {
     const fetch = await db.userData.findFirst({ where: { userId } });
 
-    return fetch?.locale || 'en';
+    return (fetch?.locale as supportedLocaleCodes | undefined) || 'en';
   }
 
   getCommandManager(): CommandManager {

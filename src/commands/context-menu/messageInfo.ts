@@ -21,7 +21,7 @@ import BaseCommand from '../BaseCommand.js';
 import { REGEX, colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { t } from '../../utils/Locale.js';
+import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 import { simpleEmbed } from '../../utils/Utils.js';
 
 export default class MessageInfo extends BaseCommand {
@@ -374,7 +374,7 @@ export default class MessageInfo extends BaseCommand {
     buttons.components[disableElement].setDisabled(true);
   }
 
-  static buildButtons(messageId: string, locale = 'en') {
+  static buildButtons(messageId: string, locale: supportedLocaleCodes = 'en') {
     return [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()

@@ -3,7 +3,7 @@ import { EmbedBuilder } from 'discord.js';
 import { colors, emojis } from '../../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { channelMention } from '../../utils/Utils.js';
-import { t } from '../../utils/Locale.js';
+import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 
 /*
 for later:
@@ -15,7 +15,7 @@ ${emojis.divider} Log message when it is deleted.
 ${emojis.dividerEnd} ${channelStr} ${undefined ?? emojis.no}
 */
 
-export const genLogInfoEmbed = (hubInDb: hubs, locale = 'en') => {
+export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'en') => {
   const { reports, modLogs, profanity, joinLeaves } = (hubInDb.logChannels ||
     {}) as Prisma.HubLogChannelsCreateInput;
   const reportRole = reports?.roleId ? `<@&${reports.roleId}>` : emojis.no;

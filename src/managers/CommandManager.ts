@@ -1,7 +1,7 @@
 import { t } from '../utils/Locale.js';
 import { join, dirname } from 'path';
 import { CustomID } from '../utils/CustomID.js';
-import { Interaction, time } from 'discord.js';
+import { Collection, Interaction, time } from 'discord.js';
 import { simpleEmbed, handleError } from '../utils/Utils.js';
 import { access, constants, readdirSync, statSync } from 'fs';
 import Factory from '../Factory.js';
@@ -12,7 +12,7 @@ const __filename = new URL(import.meta.url).pathname;
 const __dirname = dirname(__filename);
 
 export default class CommandManager extends Factory {
-  public get commandsMap() {
+  public get commandsMap(): Collection<string, BaseCommand> {
     return this.client.commands;
   }
 

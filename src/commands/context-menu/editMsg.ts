@@ -49,13 +49,11 @@ export default class EditMessage extends BaseCommand {
     if (!messageInDb?.originalMsg) {
       await interaction.reply({
         content: t(
-          t(
-            {
-              phrase: 'errors.unknownNetworkMessage',
-              locale: interaction.user.locale,
-            },
-            { emoji: emojis.no },
-          ),
+          {
+            phrase: 'errors.unknownNetworkMessage',
+            locale: interaction.user.locale,
+          },
+          { emoji: emojis.no },
         ),
         ephemeral: true,
       });

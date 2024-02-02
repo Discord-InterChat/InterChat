@@ -4,9 +4,9 @@ import { ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder } from 'discord
 import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import db from '../../utils/Db.js';
-import { t } from '../../utils/Locale.js';
+import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 
-export function actionsSelect(hubId: string, userId: string, locale = 'en') {
+export function actionsSelect(hubId: string, userId: string, locale: supportedLocaleCodes = 'en') {
   return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId(

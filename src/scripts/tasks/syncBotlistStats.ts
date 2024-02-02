@@ -1,17 +1,15 @@
+import { Api } from '@top-gg/sdk';
 import Logger from '../../utils/Logger.js';
-import { updateTopGGStats } from '../../updater/StatsUpdater.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
+
+export const topgg = new Api(process.env.TOPGG_API_KEY as string);
 
 export default async (manager: ClusterManager) => {
   const count = (await manager.fetchClientValues('guilds.cache.size')) as number[];
-  Logger.info(
-    `Updated top.gg stats with ${count.reduce((p, n) => p + n, 0)} guilds and ${
-      manager.totalShards
-    } shards`,
-  );
-  // update stats
-  await updateTopGGStats(
-    count.reduce((p, n) => p + n, 0),
-    manager.totalShards,
-  );
+  const serverCount = count.reduce((p, n) => p + n, 0);
+  const { totalShards: shardCount } = manager;
+
+  await topgg.postStats({ serverCount, shardCount });
+
+  Logger.info(`Updated top.gg stats with ${serverCount} guilds and ${shardCount} shards`);
 };

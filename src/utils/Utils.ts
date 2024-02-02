@@ -33,7 +33,7 @@ import {
   SUPPORT_SERVER_ID,
 } from './Constants.js';
 import { randomBytes } from 'crypto';
-import { t } from './Locale.js';
+import { supportedLocaleCodes, t } from './Locale.js';
 import 'dotenv/config';
 import { captureException } from '@sentry/node';
 import { CustomID } from './CustomID.js';
@@ -245,7 +245,7 @@ export const toTitleCase = (str: string) => {
   return startCase(toLower(str));
 };
 
-const genCommandErrMsg = (locale: string, error: string) => {
+const genCommandErrMsg = (locale: supportedLocaleCodes, error: string) => {
   return t(
     { phrase: 'errors.commandError', locale },
     { error, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },

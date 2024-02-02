@@ -1,0 +1,44 @@
+import { ChatInputCommandInteraction } from 'discord.js';
+import db from '../../../../utils/Db.js';
+import { emojis } from '../../../../utils/Constants.js';
+import { supportedLocaleCodes, t } from '../../../../utils/Locale.js';
+import Set from './index.js';
+
+const locales: { [key: string]: string } = {
+  en: '🇺🇸 English',
+  tr: '🇹🇷 Turkish',
+  hi: '🇮🇳 Hindi',
+  es: '🇪🇸 Spanish',
+};
+
+
+export default class SetLanguage extends Set {
+  async execute(interaction: ChatInputCommandInteraction) {
+    const locale = interaction.options.getString('lang', true) as supportedLocaleCodes;
+
+    if (locale in locales === false) {
+      return await interaction.reply({
+        content:
+          t(
+            { phrase: 'errors.invalidLanguageCode', locale: interaction.user.locale },
+            { emoji: emojis.info },
+          ),
+        ephemeral: true,
+      });
+    }
+
+    const { id: userId, username } = interaction.user;
+    await db.userData.upsert({
+      where: { userId: interaction.user.id },
+      create: { userId, locale, username },
+      update: { locale },
+    });
+
+    const lang = locales[locale];
+
+    await interaction.reply({
+      content: emojis.yes + t({ phrase: 'language.set', locale }, { lang }),
+      ephemeral: true,
+    });
+  }
+}
