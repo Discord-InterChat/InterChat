@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.17.0](https://github.com/Discord-interchat/interchat/compare/v3.16.0...v3.17.0) (2024-02-02)
+
+
+### Features
+
+* Vote annoucements, and storage of topgg votes in db ([aae6882](https://github.com/Discord-interchat/interchat/commit/aae68824c43ce918afdf016cf9f6fb00f42b1ba7))
+
+
+### Bug Fixes
+
+* fixed deletion of old messages function ([41cff8b](https://github.com/Discord-interchat/interchat/commit/41cff8b5b5c70cfbb97db098bb555f90477fcf1e))
+* **goal:** fix bug with server join ([9d09f06](https://github.com/Discord-interchat/interchat/commit/9d09f06999913335859271452e78abe18e7087da))
+* improved nsfw image detection capabilities ([7c4ae63](https://github.com/Discord-interchat/interchat/commit/7c4ae63699d24a8cd6c8087f43d83a86d7053739))
+* **messageinfo:** remove user card ([b459abe](https://github.com/Discord-interchat/interchat/commit/b459abeea94c964ad82f472ed5b5454d6efca56f))
+* **network:** add a 1s wait every 50 sends ([aaa0382](https://github.com/Discord-interchat/interchat/commit/aaa03822c60b6e1786c1224a17990e97df945171))
+* **network:** fix message going to ([a9e7a46](https://github.com/Discord-interchat/interchat/commit/a9e7a46aa6756c0fac39c36283eca42761cf08bd))
+* **network:** fix ratelimit issue by using different ips for each webhook send ([591c635](https://github.com/Discord-interchat/interchat/commit/591c635b2080eea946774de3f5d2143f5717796e))
+* **vote:** update vote role ([495dbb0](https://github.com/Discord-interchat/interchat/commit/495dbb0a50e302c2b9ad0cc6cca253903395e835))
+
 ## [3.16.0](https://github.com/Discord-interchat/interchat/compare/v3.15.0...v3.16.0) (2024-01-26)
 
 
