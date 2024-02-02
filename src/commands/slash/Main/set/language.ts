@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import { emojis } from '../../../../utils/Constants.js';
-import { supportedLocaleCodes, t } from '../../../../utils/Locale.js';
+import { supportedLocaleCodes, supportedLocales, t } from '../../../../utils/Locale.js';
 import Set from './index.js';
 
 const locales: { [key: string]: string } = {
@@ -16,11 +16,11 @@ export default class SetLanguage extends Set {
   async execute(interaction: ChatInputCommandInteraction) {
     const locale = interaction.options.getString('lang', true) as supportedLocaleCodes;
 
-    if (locale in locales === false) {
+    if (Object.keys(supportedLocales).includes(locale)) {
       return await interaction.reply({
         content:
           t(
-            { phrase: 'errors.invalidLanguageCode', locale: interaction.user.locale },
+            { phrase: 'errors.invalidLangCode', locale: interaction.user.locale },
             { emoji: emojis.info },
           ),
         ephemeral: true,
