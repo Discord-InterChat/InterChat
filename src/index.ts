@@ -38,12 +38,9 @@ clusterManager.on('clusterCreate', async (cluster) => {
     deleteOldMessages();
     deleteExpiredInvites();
 
-    // update top.gg stats every 10 minutes
-    scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, () => syncBotlistStats(clusterManager));
-    // delete expired invites every 1 hour
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1_000, deleteExpiredInvites);
-    // delete old network messages every 12 hours
     scheduler.addRecurringTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages);
+    scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, () => syncBotlistStats(clusterManager));
   }
 });
 
