@@ -4,25 +4,16 @@ import { emojis } from '../../../../utils/Constants.js';
 import { supportedLocaleCodes, supportedLocales, t } from '../../../../utils/Locale.js';
 import Set from './index.js';
 
-const locales: { [key: string]: string } = {
-  en: '🇺🇸 English',
-  tr: '🇹🇷 Turkish',
-  hi: '🇮🇳 Hindi',
-  es: '🇪🇸 Spanish',
-};
-
-
 export default class SetLanguage extends Set {
   async execute(interaction: ChatInputCommandInteraction) {
     const locale = interaction.options.getString('lang', true) as supportedLocaleCodes;
 
-    if (Object.keys(supportedLocales).includes(locale)) {
+    if (!Object.keys(supportedLocales).includes(locale)) {
       return await interaction.reply({
-        content:
-          t(
-            { phrase: 'errors.invalidLangCode', locale: interaction.user.locale },
-            { emoji: emojis.info },
-          ),
+        content: t(
+          { phrase: 'errors.invalidLangCode', locale: interaction.user.locale },
+          { emoji: emojis.info },
+        ),
         ephemeral: true,
       });
     }
@@ -34,7 +25,8 @@ export default class SetLanguage extends Set {
       update: { locale },
     });
 
-    const lang = locales[locale];
+    const langInfo = supportedLocales[locale];
+    const lang = `${langInfo.emoji} ${langInfo.name}`;
 
     await interaction.reply({
       content: emojis.yes + t({ phrase: 'language.set', locale }, { lang }),
