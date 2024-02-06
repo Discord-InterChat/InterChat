@@ -36,6 +36,10 @@ export const supportedLocales = {
   hi: { name: 'Hindi', emoji: '🇮🇳' },
 } as const;
 
+export interface tParams {
+  phrase: string;
+  locale?: supportedLocaleCodes;
+}
 
 export const loadLocales = (localesDirectory: string) => {
   const files = fs.readdirSync(localesDirectory);
@@ -61,8 +65,8 @@ export const loadLocales = (localesDirectory: string) => {
 
 // Function to get the translated text with variable replacement
 export const t = (
-  { phrase, locale = 'en' }: { phrase: string; locale?: supportedLocaleCodes },
-  variables?: Record<string, string>,
+  { phrase, locale = 'en' }: tParams,
+  variables?: { [key: string]: string },
 ): string => {
   const localeFile = localesMap.get(locale);
 

@@ -1,5 +1,6 @@
 import Support from './index.js';
 import {
+  APIEmbed,
   ActionRowBuilder,
   CacheType,
   ChatInputCommandInteraction,
@@ -12,7 +13,6 @@ import {
   TextChannel,
   TextInputBuilder,
   TextInputStyle,
-  ThreadChannel,
 } from 'discord.js';
 import { LINKS, channels, colors, emojis } from '../../../../utils/Constants.js';
 import { CustomID } from '../../../../utils/CustomID.js';
@@ -156,26 +156,9 @@ export default class Report extends Support {
     const customId = CustomID.parseCustomId(interaction.customId);
     const affected = customId.args[0];
     const reportType = customId.suffix;
+    const reportDescription = interaction.fields.getTextInputValue('description');
 
-    if (reportType === 'bug') {
-      const summary = interaction.fields.getTextInputValue('summary');
-      const description = interaction.fields.getTextInputValue('description');
-
-      const bugReportEmbed = new EmbedBuilder()
-        .setColor(colors.invisible)
-        .setTitle(summary)
-        .setDescription(`**Affects:** ${affected}`)
-        .setThumbnail(
-          interaction.user.avatarURL({ size: 2048 }) ?? interaction.user.defaultAvatarURL,
-        )
-        .setFooter({
-          text: `Reported by ${interaction.user.username} (${interaction.user.id})`,
-          iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,
-        });
-
-      if (description) bugReportEmbed.addFields({ name: 'Details', value: description });
-
-      // send the bug report to ic central
+    const sendReport = async (embed: APIEmbed) => {
       await interaction.client.cluster.broadcastEval(
         async (client, ctx) => {
           const devChat = (await client.channels
@@ -187,109 +170,67 @@ export default class Report extends Support {
           // finally make the post in ic central
           await devChat.send({ embeds: [ctx.embed] });
         },
-        { context: { affected, devChannel: channels.devChat, embed: bugReportEmbed.toJSON() } },
+        { context: { affected, devChannel: channels.devChat, embed } },
       );
+    };
 
-      await interaction.reply({
-        content: t(
-          { phrase: 'report.bug.submitted', locale: interaction.user.locale },
-          { emoji: emojis.yes, support_command: '</support server:924659341049626636>' },
-        ),
-        ephemeral: true,
-      });
-    }
-    else {
-      const reportChannel = (await interaction.client.channels
-        .fetch(channels.reports)
-        .catch(() => null)) as ThreadChannel | null;
+    switch (reportType) {
+      case 'user':
+      case 'server': {
+        const content = t(
+          {
+            phrase: 'misc.reportOptionMoved',
+            locale: interaction.user.locale,
+          },
+          { emoji: emojis.exclamation, support_invite: LINKS.SUPPORT_INVITE },
+        );
 
-      const reportDescription = interaction.fields.getTextInputValue('description');
-
-      switch (reportType) {
-        case 'user': {
-          const Ids = interaction.fields.getTextInputValue('id');
-          const reportedUser = await interaction.client.users.fetch(Ids).catch(() => null);
-          if (!reportedUser) {
-            await interaction.reply({
-              content: t(
-                { phrase: 'report.invalidUser', locale: interaction.user.locale },
-                { dot: emojis.dotYellow, emoji: emojis.no },
-              ),
-              ephemeral: true,
-            });
-            return;
-          }
-
-          const userReport = new EmbedBuilder()
-            .setColor('Red')
-            .setTitle('New User Report')
-            .setDescription(`Username: ${reportedUser.username}\nUser Id: ${reportedUser.id}`)
-            .setFields({ name: 'Reason for report', value: reportDescription })
-            .setThumbnail(reportedUser.avatarURL({ size: 2048 }) ?? reportedUser.defaultAvatarURL)
-            .setFooter({
-              text: `Reported by ${interaction.user.username} (${interaction.user.id})`,
-              iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,
-            });
-          await reportChannel?.send({ content: '<@&1088677008260726854>', embeds: [userReport] });
-          break;
-        }
-
-        case 'server': {
-          const id = interaction.fields.getTextInputValue('id');
-          const reportedServer = await interaction.client.fetchGuild(id).catch(() => null);
-          if (!reportedServer) {
-            await interaction.reply({
-              content: t(
-                { phrase: 'report.invalidServer', locale: interaction.user.locale },
-                { dot: emojis.dotYellow, emoji: emojis.no },
-              ),
-              ephemeral: true,
-            });
-            return;
-          }
-
-          const serverReport = new EmbedBuilder()
-            .setColor('Red')
-            .setTitle('New Server Report')
-            .setDescription(`Server Name: ${reportedServer.name}\nServer Id: ${reportedServer.id}`)
-            .setFields({ name: 'Reason for report', value: reportDescription })
-            .setThumbnail(
-              `https://cdn.discordapp.com/icons/${reportedServer.id}/${reportedServer.icon}.png?size=2048`,
-            )
-            .setFooter({
-              text: `Reported by ${interaction.user.username} (${interaction.user.id})`,
-              iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,
-            });
-          await reportChannel?.send({
-            content: '<@&1088677008260726854>',
-            embeds: [serverReport],
-          });
-          break;
-        }
-        default: {
-          const otherReport = new EmbedBuilder()
-            .setColor('Random')
-            .setTitle('New Report')
-            .setDescription('**Type:** Other')
-            .setFields({ name: 'Description', value: reportDescription })
-            .setFooter({
-              text: `Reported by ${interaction.user.username} (${interaction.user.id})`,
-              iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,
-            });
-          await reportChannel?.send({
-            content: '<@&1088677008260726854>',
-            embeds: [otherReport],
-          });
-          break;
-        }
+        await interaction.reply({ content, ephemeral: true });
+        break;
       }
-      await interaction.reply({
-        content: t(
-          { phrase: 'report.submitted', locale: interaction.user.locale },
-          { support_invite: `${LINKS.SUPPORT_INVITE} ` },
-        ),
-        ephemeral: true,
-      });
+
+      case 'bug': {
+        const summary = interaction.fields.getTextInputValue('summary');
+        const description = interaction.fields.getTextInputValue('description');
+
+        const bugReportEmbed = new EmbedBuilder()
+          .setColor(colors.invisible)
+          .setTitle(summary)
+          .setDescription(`**Affects:** ${affected}`)
+          .setThumbnail(
+            interaction.user.avatarURL({ size: 2048 }) ?? interaction.user.defaultAvatarURL,
+          )
+          .addFields(description ? [{ name: 'Details', value: description }] : [])
+          .setFooter({
+            text: `Reported by ${interaction.user.username} (${interaction.user.id})`,
+            iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,
+          });
+
+        await sendReport(bugReportEmbed.toJSON());
+        break;
+      }
+
+      default: {
+        const otherReport = new EmbedBuilder()
+          .setColor('Random')
+          .setTitle('New Report')
+          .setDescription('**Type:** Other')
+          .setFields({ name: 'Description', value: reportDescription })
+          .setFooter({
+            text: `Reported by ${interaction.user.username} (${interaction.user.id})`,
+            iconURL: interaction.user.avatarURL() || interaction.user.defaultAvatarURL,
+          });
+
+        await sendReport(otherReport.toJSON());
+        break;
+      }
     }
+    await interaction.reply({
+      content: t(
+        { phrase: 'report.submitted', locale: interaction.user.locale },
+        { emoji: emojis.yes, support_command: '</support server:924659341049626636>' },
+      ),
+      ephemeral: true,
+    });
   }
 }
