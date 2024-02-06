@@ -8,10 +8,10 @@ This repo contains the source code for the InterChat Discord bot. InterChat is a
 
 ## Prerequisites
 
-1. [Node.js v18.**16**.0](https://nodejs.org/download/release/v18.16.0/) (or higher for non-Windows based systems)
+1. [Node.js v18.**17**.0](https://nodejs.org/download/release/v18.17.0/) (or higher for linux and other systems)
 2. [Git](https://git-scm.com/downloads)
 3. [MongoDB](https://www.mongodb.com/try/download/community)
-4. [NPM](https://www.npmjs.com/get-npm) or [Yarn](https://yarnpkg.com/getting-started/install) (we are using npm in this guide)
+4. [NPM](https://www.npmjs.com/get-npm) or [Yarn](https://yarnpkg.com/getting-started/install) (we are using yarn in this guide)
 5. [An Imgur API Key](https://api.imgur.com/oauth2/addclient) (optional, for setting hub icon and banner)
 6. [Python 3.9.13](https://www.python.org/downloads/release/python-3913/) & [Visual Studio Build Tools (Windows Only)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019) (for the API)
 
@@ -56,12 +56,11 @@ To add a cooldown to a command/subcommand, simply add a `cooldown` property to t
 
 ## Creating Custom IDs
 
-To help with handling components, we have a custom ID class that can be used to create custom IDs for components. To create a custom ID, simply call the `CustomID` method with the custom ID prefix and the custom postfix. Example:
+To help with handling components, we have a custom ID class that can be used to create custom IDs for components. To create a custom ID, simply call the `CustomID` method with the custom ID prefix and the custom suffix. Example:
 
 ```ts
 const customId = new CustomID()
-.setIdentifier('cool_button_')
-.setPostfix('1')
+.setIdentifier('cool_button_', '1') // add a prefix and a suffix
 .addArgs('arg1', 'arg2') // to add extra info like executor ID, page number, etc.
 .toString(); // convert it to a string to use it as a custom ID
 
@@ -76,7 +75,7 @@ const customId = CustomID.parseCustomId(interaction.customId);
 // this will return an object containing the following:
 /* {
       prefix: string,
-      postfix: string,
+      suffix: string,
       expiry?: Date,
       args?: string[],
     };

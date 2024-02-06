@@ -1,9 +1,12 @@
 {
   "name": "interchat",
+  "private": true,
   "version": "3.17.0",
   "description": "A growing Discord bot which provides inter-server chat!",
   "main": "build/index.js",
+
   "license": "GPL-3.0-or-later",
+
   "scripts": {
     "test": "node --experimental-vm-modules ./node_modules/.bin/jest",
     "start": "node .",
@@ -15,14 +18,15 @@
     "lint": "eslint --cache --fix .",
     "prepare": "husky"
   },
-  "engines": {
-    "node": ">=18.0.0"
+    "engines": {
+    "node": "18.17.0"
   },
   "type": "module",
   "dependencies": {
     "@prisma/client": "^5.9.1",
     "@sentry/node": "^7.99.0",
     "@tensorflow/tfjs": "3.18.0",
+    "@tensorflow/tfjs-node": "^4.17.0",
     "@top-gg/sdk": "^3.1.6",
     "common-tags": "^1.8.2",
     "discord-hybrid-sharding": "^2.1.4",

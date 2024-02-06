@@ -1,7 +1,8 @@
 import { load } from 'nsfwjs';
 import { Router } from 'express';
 import { captureException } from '@sentry/node';
-import { tensor3d, enableProdMode } from '@tensorflow/tfjs';
+import { enableProdMode, tensor3d } from '@tensorflow/tfjs-node';
+import { Tensor3D } from '@tensorflow/tfjs';
 import Logger from '../../utils/Logger.js';
 import sharp from 'sharp';
 import jpeg from 'jpeg-js';
@@ -9,7 +10,7 @@ import jpeg from 'jpeg-js';
 // disable tfjs logs
 enableProdMode();
 
-const nsfwModel = await load('https://nsfwjs.com/quant_nsfw_mobilenet/');
+let nsfwModel;
 const router: Router = Router();
 
 const imageToTensor = async (rawImageData: ArrayBuffer) => {
@@ -26,11 +27,12 @@ const imageToTensor = async (rawImageData: ArrayBuffer) => {
     offset += 4;
   }
 
-  return tensor3d(buffer, [height, width, 3]);
+  return tensor3d(buffer, [height, width, 3]) as unknown as Tensor3D;
 };
 
 
 router.get('/nsfw', async (req, res) => {
+  nsfwModel = await load('http://localhost:443/model/');
 
   const url = new URL(req.url, `http://${req.headers.host}`);
   const imageUrl = url.searchParams.get('url');
