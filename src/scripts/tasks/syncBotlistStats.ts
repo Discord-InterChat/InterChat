@@ -1,6 +1,7 @@
 import { Api } from '@top-gg/sdk';
 import Logger from '../../utils/Logger.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
+import 'dotenv/config';
 
 export const topgg = new Api(process.env.TOPGG_API_KEY as string);
 

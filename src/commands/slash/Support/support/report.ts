@@ -78,24 +78,16 @@ export default class Report extends Support {
         );
 
       if (reportType !== 'other') {
-        modal.addComponents(
-          new ActionRowBuilder<TextInputBuilder>().addComponents(
-            new TextInputBuilder()
-              .setCustomId('id')
-              .setLabel(
-                t({ phrase: 'report.modal.userOrServer.label', locale: interaction.user.locale }),
-              )
-              .setPlaceholder(
-                t({
-                  phrase: 'report.modal.userOrServer.placeholder',
-                  locale: interaction.user.locale,
-                }),
-              )
-              .setStyle(TextInputStyle.Short)
-              .setMinLength(17)
-              .setMaxLength(20),
-          ),
+        const content = t(
+          {
+            phrase: 'misc.reportOptionMoved',
+            locale: interaction.user.locale,
+          },
+          { emoji: emojis.exclamation, support_invite: LINKS.SUPPORT_INVITE },
         );
+
+        await interaction.reply({ content, ephemeral: true });
+        return;
       }
 
       await interaction.showModal(modal);
@@ -175,20 +167,6 @@ export default class Report extends Support {
     };
 
     switch (reportType) {
-      case 'user':
-      case 'server': {
-        const content = t(
-          {
-            phrase: 'misc.reportOptionMoved',
-            locale: interaction.user.locale,
-          },
-          { emoji: emojis.exclamation, support_invite: LINKS.SUPPORT_INVITE },
-        );
-
-        await interaction.reply({ content, ephemeral: true });
-        break;
-      }
-
       case 'bug': {
         const summary = interaction.fields.getTextInputValue('summary');
         const description = interaction.fields.getTextInputValue('description');
