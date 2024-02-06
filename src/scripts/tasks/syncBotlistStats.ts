@@ -10,7 +10,12 @@ export default async (manager: ClusterManager) => {
   const serverCount = count.reduce((p, n) => p + n, 0);
   const { totalShards: shardCount } = manager;
 
-  await topgg.postStats({ serverCount, shardCount });
+  try {
+    await topgg.postStats({ serverCount, shardCount });
 
-  Logger.info(`Updated top.gg stats with ${serverCount} guilds and ${shardCount} shards`);
+    Logger.info(`Updated top.gg stats with ${serverCount} guilds and ${shardCount} shards`);
+  }
+  catch (e) {
+    Logger.error('Error updating top.gg stats', e);
+  }
 };
