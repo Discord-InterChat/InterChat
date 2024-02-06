@@ -18,6 +18,7 @@ import { t } from '../../../../utils/Locale.js';
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     if (!interaction.inCachedGuild()) return;
+    await interaction.deferReply({ ephemeral: true });
 
     const channelId = interaction.options.getString('hub', true);
     const isChannelConnected = await db.connectedList.findFirst({
@@ -26,17 +27,16 @@ export default class Leave extends Hub {
     });
 
     if (!isChannelConnected) {
-      return await interaction.reply({
+      return await interaction.editReply({
         embeds: [
           simpleEmbed(
             t({ phrase: 'hub.leave.noHub', locale: interaction.user.locale }, { emoji: emojis.no }),
           ),
         ],
-        ephemeral: true,
       });
     }
     else if (!interaction.member.permissions.has('ManageChannels', true)) {
-      return await interaction.reply({
+      return await interaction.editReply({
         embeds: [
           simpleEmbed(
             t(
@@ -45,7 +45,6 @@ export default class Leave extends Hub {
             ),
           ),
         ],
-        ephemeral: true,
       });
     }
 
@@ -74,13 +73,12 @@ export default class Leave extends Hub {
         text: t({ phrase: 'hub.leave.confirmFooter', locale: interaction.user.locale }),
       });
 
-    await interaction.reply({
+    const reply = await interaction.editReply({
       embeds: [resetConfirmEmbed],
       components: [choiceButtons],
-      fetchReply: true,
     });
 
-    setComponentExpiry(interaction.client.getScheduler(), await interaction.fetchReply(), 10_000);
+    setComponentExpiry(interaction.client.getScheduler(), reply, 10_000);
   }
 
   @RegisterInteractionHandler('hub_leave')
