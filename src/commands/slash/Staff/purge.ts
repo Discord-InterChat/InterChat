@@ -14,7 +14,7 @@ import { emojis } from '../../../utils/Constants.js';
 import { simpleEmbed, msToReadable, deleteMsgsFromDb } from '../../../utils/Utils.js';
 import Logger from '../../../utils/Logger.js';
 import { broadcastedMessages } from '@prisma/client';
-import SuperClient from '../../../SuperClient.js';
+import SuperClient from '../../../core/Client.js';
 
 const limitOpt: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.Integer,
@@ -105,6 +105,9 @@ export default class Purge extends BaseCommand {
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
+    const isOnCooldown = await this.handleCooldown(interaction);
+    if (isOnCooldown) return;
+
     await interaction.deferReply({ fetchReply: true });
 
     const subcommand = interaction.options.getSubcommand();

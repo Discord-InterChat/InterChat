@@ -1,4 +1,4 @@
-import SuperClient from './SuperClient.js';
+import SuperClient from './Client.js';
 
 export default abstract class Factory {
   protected readonly client: SuperClient;

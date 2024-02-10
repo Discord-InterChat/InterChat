@@ -1,8 +1,7 @@
 import db from './utils/Db.js';
 import Logger from './utils/Logger.js';
-import SuperClient from './SuperClient.js';
+import SuperClient from './core/Client.js';
 import CommandManager from './managers/CommandManager.js';
-import { NetworkMessage } from './managers/NetworkManager.js';
 import { check } from './utils/Profanity.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { stripIndents } from 'common-tags';
@@ -17,7 +16,7 @@ class InterChat extends SuperClient {
 
     this.once('ready', () => {
       // initialize the client
-      this.init();
+      this.boot();
 
       // initialize i18n for localization
       loadLocales('locales/src/locales');
@@ -122,19 +121,13 @@ class InterChat extends SuperClient {
       await logGuildLeave(guild, channels.goal);
     });
 
-    // handle slash/ctx commands
+    this.on('messageCreate', (message) => this.networkManager.onMessageCreate(message));
     this.on('interactionCreate', (interaction) =>
-      this.getCommandManager().handleInteraction(interaction),
+      this.commandManager.onInteractionCreate(interaction),
     );
-
-    // handle network reactions
-    this.on('messageReactionAdd', (react, usr) => this.getReactionUpdater().listen(react, usr));
-
-    // handle messages
-    this.on('messageCreate', async (message) => {
-      if (message.author.bot || message.system || message.webhookId) return;
-      this.getNetworkManager().handleNetworkMessage(message as NetworkMessage);
-    });
+    this.on('messageReactionAdd', (react, usr) =>
+      this.reactionUpdater.onMessageReactionAdd(react, usr),
+    );
 
     this.on('debug', (debug) => {
       Logger.debug(debug);

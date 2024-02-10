@@ -30,10 +30,10 @@ declare module 'discord.js' {
     getUserLocale(userId: Snowflake): Promise<supportedLocaleCodes>
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;
-    getCommandManager(): CommandManager;
-    getNetworkManager(): NetworkManager;
-    getBlacklistManager(): BlacklistManager;
-    getNSFWDetector(): NSFWClient;
+    commandManager: CommandManager;
+    networkManager: NetworkManager;
+    blacklistManager: BlacklistManager;
+    nsfwDetector: NSFWClient;
   }
 
   export interface User {

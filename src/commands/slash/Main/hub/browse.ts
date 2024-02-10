@@ -372,7 +372,7 @@ export default class Browse extends Hub {
       const webhook = await getOrCreateWebhook(channel);
       if (!webhook) return;
 
-      const networkManager = interaction.client.getNetworkManager();
+      const networkManager = interaction.client.networkManager;
       // finally make the connection
       await db.connectedList.create({
         data: {

@@ -1,6 +1,6 @@
 import { Collection } from 'discord.js';
 
-/** A service to manage cooldowns */
+/** Manage and store individual cooldowns */
 export default class CooldownService {
   private readonly cooldowns: Collection<string, number>;
 

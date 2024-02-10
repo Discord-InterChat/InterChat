@@ -11,7 +11,6 @@ import {
   WebhookClient,
   WebhookMessageCreateOptions,
 } from 'discord.js';
-import Factory from '../Factory.js';
 import db from '../utils/Db.js';
 import { connectedList, hubs, originalMessages } from '@prisma/client';
 import { LINKS, REGEX, emojis } from '../utils/Constants.js';
@@ -20,10 +19,6 @@ import { HubSettingsBitField } from '../utils/BitFields.js';
 import { parseTimestampFromId, replaceLinks, wait } from '../utils/Utils.js';
 import { t } from '../utils/Locale.js';
 import sendMessage from '../scripts/network/sendMessage.js';
-
-export interface NetworkMessage extends Message {
-  censoredContent: string;
-}
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
@@ -42,14 +37,16 @@ interface AntiSpamUserOpts {
 const WINDOW_SIZE = 5000;
 const MAX_STORE = 3;
 
-export default class NetworkManager extends Factory {
+export default class NetworkManager {
   private antiSpamMap = new Collection<string, AntiSpamUserOpts>();
 
   /**
    * Handles a network message by running checks, fetching relevant data, and sending the message to all connections in the network.
    * @param message The network message to handle.
    */
-  public async handleNetworkMessage(message: NetworkMessage) {
+  public async onMessageCreate(message: Message) {
+    if (message.author.bot || message.system || message.webhookId) return;
+
     message.author.locale = await message.client.getUserLocale(message.author.id);
     const { locale } = message.author;
 
@@ -81,12 +78,11 @@ export default class NetworkManager extends Factory {
 
       // run static images through the nsfw detector
       if (REGEX.STATIC_IMAGE_URL.test(attachmentURL)) {
-        const nsfwDetector = this.client.getNSFWDetector();
-        const predictions = await nsfwDetector.analyzeImage(
+        const predictions = await message.client.nsfwDetector.analyzeImage(
           attachment ? attachment.url : attachmentURL,
         );
 
-        if (predictions && nsfwDetector.isUnsafeContent(predictions)) {
+        if (predictions && message.client.nsfwDetector.isUnsafeContent(predictions)) {
           const nsfwEmbed = new EmbedBuilder()
             .setTitle(t({ phrase: 'network.nsfw.title', locale }))
             .setDescription(
@@ -114,7 +110,7 @@ export default class NetworkManager extends Factory {
       message.react('🔗').catch(() => null);
     }
 
-    message.censoredContent = censor(message.content);
+    const censoredContent = censor(message.content);
 
     // fetch the referred message  (message being replied to) from discord
     const referredMessage = message.reference
@@ -153,7 +149,7 @@ export default class NetworkManager extends Factory {
     ).slice(0, 50);
 
     // embeds for the normal mode
-    const { embed, censoredEmbed } = this.buildNetworkEmbed(message, username, {
+    const { embed, censoredEmbed } = this.buildNetworkEmbed(message, username, censoredContent, {
       attachmentURL,
       referredContent,
       embedCol: (isNetworkMessage.embedColor as HexColorString) ?? undefined,
@@ -215,7 +211,7 @@ export default class NetworkManager extends Factory {
             embeds: replyEmbed ? [replyEmbed] : undefined,
             components: jumpButton ? [jumpButton] : undefined,
             content:
-              (connection.profFilter ? message.censoredContent : message.content) +
+              (connection.profFilter ? censoredContent : message.content) +
               // append the attachment url if there is one
               `${attachment ? `\n${attachmentURL}` : ''}`,
             // username is already limited to 50 characters, server name is limited to 40 (char limit is 100)
@@ -314,6 +310,8 @@ export default class NetworkManager extends Factory {
    * @returns A boolean indicating whether the message passed all checks.
    */
   public async runChecks(message: Message, settings: HubSettingsBitField, hubId: string) {
+    if (!message.inGuild()) return false;
+
     const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
     // if account is created within the last 7 days
     if (message.author.createdTimestamp > sevenDaysAgo) {
@@ -325,8 +323,6 @@ export default class NetworkManager extends Factory {
       );
       return false;
     }
-
-    const blacklistManager = this.client.getBlacklistManager();
 
     const isUserBlacklisted = await db.userData.findFirst({
       where: { userId: message.author.id, blacklistedFrom: { some: { hubId: { equals: hubId } } } },
@@ -359,6 +355,8 @@ export default class NetworkManager extends Factory {
 
     const antiSpamResult = this.runAntiSpam(message.author, 3);
     if (antiSpamResult) {
+      const { blacklistManager } = message.client;
+
       if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
         await blacklistManager.addUserBlacklist(
           hubId,
@@ -411,13 +409,14 @@ export default class NetworkManager extends Factory {
       }
     }
 
-    const hasProfanity = checkProfanity(message.content);
-    if ((hasProfanity.profanity || hasProfanity.slurs) && message.guild) {
+    const { profanity, slurs } = checkProfanity(message.content);
+
+    if (profanity || slurs) {
       // send a log to the log channel set by the hub
-      this.client.profanityLogger.log(hubId, message.content, message.author, message.guild);
+      message.client.profanityLogger.log(hubId, message.content, message.author, message.guild);
 
       // we don't want to send the message if it contains slurs
-      if (hasProfanity.slurs) return false;
+      if (slurs) return false;
     }
 
     return true;
@@ -479,7 +478,8 @@ export default class NetworkManager extends Factory {
    * @returns An object containing the built EmbedBuilder and its censored version.
    */
   public buildNetworkEmbed(
-    message: NetworkMessage,
+    message: Message,
+    censoredContent: string,
     username: string,
     opts?: {
       attachmentURL?: string | null;
@@ -521,8 +521,8 @@ export default class NetworkManager extends Factory {
       .setDescription(
         // remove tenor links and image urls from the content
         (opts?.attachmentURL
-          ? message.censoredContent.replace(REGEX.TENOR_LINKS, '').replace(opts?.attachmentURL, '')
-          : message.censoredContent) || null,
+          ? censoredContent.replace(REGEX.TENOR_LINKS, '').replace(opts?.attachmentURL, '')
+          : censoredContent) || null,
       )
       .setFields(
         formattedReply
@@ -624,7 +624,7 @@ export default class NetworkManager extends Factory {
           timestamps: [...timestamps.slice(1), currentTimestamp],
           infractions: isWithinWindow ? userInCol.infractions + 1 : userInCol.infractions,
         });
-        this.setSpamTimers(author.id);
+        this.setSpamTimers(author);
         if (isWithinWindow) return userInCol;
       }
       else {
@@ -639,7 +639,7 @@ export default class NetworkManager extends Factory {
         timestamps: [currentTimestamp],
         infractions: 0,
       });
-      this.setSpamTimers(author.id);
+      this.setSpamTimers(author);
     }
   }
 
@@ -648,18 +648,18 @@ export default class NetworkManager extends Factory {
    * @param userId - The ID of the user to set spam timers for.
    * @returns void
    */
-  public setSpamTimers(userId: string): void {
+  public setSpamTimers(user: User): void {
     const five_min = 60 * 5000;
-    const userInCol = this.antiSpamMap.get(userId);
-    const scheduler = this.client.getScheduler();
+    const userInCol = this.antiSpamMap.get(user.id);
+    const scheduler = user.client.getScheduler();
     const lastMsgTimestamp = userInCol?.timestamps[userInCol.timestamps.length - 1];
 
     if (lastMsgTimestamp && Date.now() - five_min <= lastMsgTimestamp) {
-      scheduler.stopTask(`removeFromCol_${userId}`);
+      scheduler.stopTask(`removeFromCol_${user.id}`);
     }
 
-    scheduler.addRecurringTask(`removeFromCol_${userId}`, new Date(Date.now() + five_min), () => {
-      this.antiSpamMap.delete(userId);
+    scheduler.addRecurringTask(`removeFromCol_${user.id}`, new Date(Date.now() + five_min), () => {
+      this.antiSpamMap.delete(user.id);
     });
   }
 

@@ -1,6 +1,6 @@
 import db from '../utils/Db.js';
 import Scheduler from '../services/SchedulerService.js';
-import SuperClient from '../SuperClient.js';
+import SuperClient from '../core/Client.js';
 import { blacklistedServers, userData } from '@prisma/client';
 import { EmbedBuilder, Snowflake } from 'discord.js';
 import { emojis, colors } from '../utils/Constants.js';
@@ -118,7 +118,7 @@ export default class BlacklistManager {
 
     if (type === 'user') {
       embed.setDescription(`You have been blacklisted from talking in hub **${hub?.name}**.`);
-      const user = await SuperClient.getInstance().users.fetch(userOrServerId);
+      const user = await SuperClient.instance.users.fetch(userOrServerId);
       await user.send({ embeds: [embed] }).catch(() => null);
     }
     else {
@@ -131,7 +131,7 @@ export default class BlacklistManager {
 
       if (!serverConnected) return;
 
-      await SuperClient.getInstance().cluster.broadcastEval(
+      await SuperClient.instance.cluster.broadcastEval(
         async (client, ctx) => {
           const channel = await client.channels.fetch(ctx.channelId).catch(() => null);
           if (!channel?.isTextBased()) return;
@@ -182,7 +182,7 @@ export default class BlacklistManager {
     moderatorId: Snowflake,
     expires?: Date | number,
   ) {
-    const client = SuperClient.getInstance();
+    const client = SuperClient.instance;
     const user = await client.users.fetch(userId);
     if (typeof expires === 'number') expires = new Date(Date.now() + expires);
 
@@ -224,8 +224,7 @@ export default class BlacklistManager {
     moderatorId: Snowflake,
     expires?: Date,
   ) {
-    const client = SuperClient.getInstance();
-    const guild = await client.fetchGuild(serverId);
+    const guild = await SuperClient.instance.fetchGuild(serverId);
     if (!guild) return;
 
     const dbGuild = await db.blacklistedServers.upsert({

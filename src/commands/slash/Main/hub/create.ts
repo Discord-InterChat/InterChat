@@ -21,7 +21,10 @@ export default class Create extends Hub {
   readonly cooldown = 60 * 60 * 1000; // 1 hour
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
-    const locale = interaction.user.locale;
+    const { locale } = interaction.user;
+
+    const isOnCooldown = this.getRemainingCooldown(interaction);
+    if (isOnCooldown) return this.sendCooldownError(interaction, isOnCooldown);
 
     const modal = new ModalBuilder()
       .setTitle(t({ phrase: 'hub.create.modal.title', locale }))
@@ -165,6 +168,9 @@ export default class Create extends Hub {
         ),
       )
       .setTimestamp();
+
+    const command = Hub.subcommands.get('create');
+    command?.setCooldownFor(interaction);
 
     await interaction.editReply({ embeds: [successEmbed] });
   }

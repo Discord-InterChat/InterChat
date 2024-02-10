@@ -186,7 +186,7 @@ export default class Blacklist extends BaseCommand {
       },
     );
 
-    const blacklistManager = interaction.client.getBlacklistManager();
+    const blacklistManager = interaction.client.blacklistManager;
 
     // user blacklist
     if (customId.suffix === 'user') {
