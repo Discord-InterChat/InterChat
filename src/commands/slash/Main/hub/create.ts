@@ -170,7 +170,7 @@ export default class Create extends Hub {
       .setTimestamp();
 
     const command = Hub.subcommands.get('create');
-    command?.setCooldownFor(interaction);
+    command?.setUserCooldown(interaction);
 
     await interaction.editReply({ embeds: [successEmbed] });
   }

@@ -40,7 +40,7 @@ export default abstract class BaseCommand {
       return true;
     }
 
-    this.setCooldownFor(interaction);
+    this.setUserCooldown(interaction);
     return false;
   }
 
@@ -53,7 +53,7 @@ export default abstract class BaseCommand {
     await interaction.reply({
       content: t(
         { phrase: 'errors.cooldown', locale: interaction.user.locale },
-        { time: `until ${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`, emoji: emojis.no },
+        { time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`, emoji: emojis.no },
       ),
       ephemeral: true,
     });
@@ -79,7 +79,7 @@ export default abstract class BaseCommand {
     return remainingCooldown || 0;
   }
 
-  setCooldownFor(interaction: RepliableInteraction): void {
+  setUserCooldown(interaction: RepliableInteraction): void {
     if (!this.cooldown) return;
 
     if (interaction.isChatInputCommand()) {
