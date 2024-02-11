@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, CacheType, EmbedBuilder, time } from 'discord.js';
 import Hub from './index.js';
 import { captureException } from '@sentry/node';
 import { LINKS, emojis } from '../../../../utils/Constants.js';
@@ -12,14 +12,14 @@ export default class Invite extends Hub {
   readonly cooldown = 3000; // 3 seconds
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
-    const subcommand = interaction.options.getSubcommand();
+    const isOnCooldown = await this.handleCooldown(interaction);
+    if (isOnCooldown) return;
 
-    switch (subcommand) {
+    switch (interaction.options.getSubcommand()) {
       case 'create': {
         const hubName = interaction.options.getString('hub', true);
         const expiryStr = interaction.options.getString('expiry');
-        const duration = expiryStr ? parse(expiryStr) : undefined;
-        const expires = new Date(Date.now() + (duration || 60 * 60 * 4000));
+        const parsedStr = expiryStr ? parse(expiryStr) : undefined;
 
         const hubInDb = await db.hubs.findFirst({
           where: {
@@ -49,9 +49,13 @@ export default class Invite extends Hub {
         const createdInvite = await db.hubInvites.create({
           data: {
             hub: { connect: { name: hubName } },
-            expires,
+            expiresAt: parsedStr ? new Date(Date.now() + parsedStr).getTime() : undefined,
           },
         });
+
+        const expiresAtStr = createdInvite.expiresAt
+          ? time(Math.round(createdInvite.expiresAt / 1000), 'R')
+          : 'Never.';
 
         const embed = new EmbedBuilder()
           .setDescription(
@@ -60,7 +64,7 @@ export default class Invite extends Hub {
               {
                 inviteCode: createdInvite.code,
                 docs_link: LINKS.DOCS,
-                expiry: `<t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>`,
+                expiry: expiresAtStr,
               },
             ),
           )
@@ -181,8 +185,8 @@ export default class Invite extends Hub {
         }
 
         const inviteArr = invitesInDb.map(
-          (inv, index) =>
-            `${index + 1}. \`${inv.code}\` - <t:${Math.round(inv.expires.getTime() / 1000)}:R>`,
+          ({ code, expiresAt }, index) =>
+            `${index + 1}. \`${code}\` - <t:${expiresAt ? Math.round(expiresAt / 1000) : 'Never.'}:R>`,
         );
 
         const inviteEmbed = new EmbedBuilder()

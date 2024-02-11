@@ -113,11 +113,11 @@ model hubs {
 }
 
 model hubInvites {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  code    String   @unique @default(nanoid(10))
-  expires DateTime
-  hub     hubs     @relation(fields: [hubId], references: [id])
-  hubId   String   @db.ObjectId
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  code      String @unique @default(nanoid(10))
+  expiresAt Int?
+  hub       hubs   @relation(fields: [hubId], references: [id])
+  hubId     String @db.ObjectId
 }
 
 model originalMessages {

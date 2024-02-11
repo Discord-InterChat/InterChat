@@ -246,6 +246,7 @@ export default class Hub extends BaseCommand {
                 type: ApplicationCommandOptionType.String,
                 name: 'code',
                 description: 'The invite code',
+                autocomplete: true,
                 required: true,
               },
             ],
@@ -293,6 +294,25 @@ export default class Hub extends BaseCommand {
     const subcommandGroup = interaction.options.getSubcommandGroup();
     const focusedValue = escapeRegexChars(interaction.options.getFocused());
     let hubChoices;
+
+    if (subcommandGroup === 'invite' && subcommand === 'revoke') {
+      const invites = await db.hubInvites.findMany({
+        where: {
+          hub: {
+            OR: [
+              { ownerId: interaction.user.id },
+              { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
+            ],
+          },
+          code: { mode: 'insensitive', contains: focusedValue },
+        },
+        include: { hub: true },
+        take: 25,
+      });
+
+      const filtered = invites.map((invite) => ({ name: `${invite.hub.name} - ${invite.code}`, value: invite.code }));
+      return await interaction.respond(filtered);
+    }
 
     if (subcommand === 'browse' || subcommand === 'join') {
       hubChoices = await db.hubs.findMany({
