@@ -12,8 +12,8 @@ import { emojis, colors } from '../utils/Constants.js';
 import { toTitleCase } from '../utils/Utils.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
 import { Prisma, hubs } from '@prisma/client';
-import Factory from '../Factory.js';
-import SuperClient from '../SuperClient.js';
+import SuperClient from '../core/Client.js';
+import Factory from '../core/Factory.js';
 
 export type ReportEvidenceOpts = {
   // the message content
@@ -41,7 +41,7 @@ export default class HubLoggerService extends Factory {
     channelId: string,
   ) {
     if (type === 'reports') {
-      await SuperClient.getInstance().reportLogger.setChannelId(hubId, channelId);
+      await SuperClient.instance.reportLogger.setChannelId(hubId, channelId);
       return;
     }
 

@@ -40,7 +40,7 @@ export default class UserBlacklist extends BlacklistCommand {
       return;
     }
 
-    const blacklistManager = interaction.client.getBlacklistManager();
+    const blacklistManager = interaction.client.blacklistManager;
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverOpt = interaction.options.getString('server', true);
 

@@ -1,5 +1,5 @@
 import {
-  Client,
+  Client as Client,
   IntentsBitField,
   Partials,
   Options,
@@ -9,29 +9,34 @@ import {
   WebhookClient,
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
-import { commandsMap, interactionsMap } from './commands/BaseCommand.js';
-import db from './utils/Db.js';
+import { commandsMap, interactionsMap } from '../commands/BaseCommand.js';
+import db from '../utils/Db.js';
 import Sentry from '@sentry/node';
-import Scheduler from './services/SchedulerService.js';
-import NSFWClient from './utils/NSFWDetection.js';
-import CommandManager from './managers/CommandManager.js';
-import NetworkManager from './managers/NetworkManager.js';
-import ReactionUpdater from './updater/ReactionUpdater.js';
-import CooldownService from './services/CooldownService.js';
-import BlacklistManager from './managers/BlacklistManager.js';
-import { RemoveMethods } from './typings/index.js';
-import { isDevBuild } from './utils/Constants.js';
+import Scheduler from '../services/SchedulerService.js';
+import NSFWClient from '../utils/NSFWDetection.js';
+import CommandManager from '../managers/CommandManager.js';
+import NetworkManager from '../managers/NetworkManager.js';
+import ReactionUpdater from '../updater/ReactionUpdater.js';
+import CooldownService from '../services/CooldownService.js';
+import BlacklistManager from '../managers/BlacklistManager.js';
+import { RemoveMethods } from '../typings/index.js';
+import { isDevBuild } from '../utils/Constants.js';
 import { ActivityType } from 'discord.js';
 import {
   JoinLeaveLogger,
   ModLogsLogger,
   ProfanityLogger,
   ReportLogger,
-} from './services/HubLoggerService.js';
+} from '../services/HubLoggerService.js';
 import 'dotenv/config';
-import { supportedLocaleCodes } from './utils/Locale.js';
+import { supportedLocaleCodes } from '../utils/Locale.js';
 
-export default abstract class SuperClient extends Client {
+export default abstract class SuperClient<R extends boolean = boolean> extends Client<R> {
+  // A static instance of the SuperClient class to be used globally.
+  public static instance: SuperClient;
+
+  private readonly scheduler = new Scheduler();
+
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
   readonly version = process.env.npm_package_version ?? 'Unknown';
   readonly commands = commandsMap;
@@ -41,19 +46,15 @@ export default abstract class SuperClient extends Client {
   readonly commandCooldowns = new CooldownService();
   readonly reactionCooldowns = new Collection<string, number>();
   readonly cluster = new ClusterClient(this);
-
-  private readonly scheduler = new Scheduler();
-  private readonly commandHandler = new CommandManager(this);
-  private readonly networkHandler = new NetworkManager(this);
-  private readonly blacklistManager = new BlacklistManager(this.scheduler);
-  private readonly reactionUpdater = new ReactionUpdater(this);
-  private readonly nsfwDetector = new NSFWClient();
-  public readonly reportLogger = new ReportLogger(this);
-  public readonly profanityLogger = new ProfanityLogger(this);
-  public readonly modLogsLogger = new ModLogsLogger(this);
-  public readonly joinLeaveLogger = new JoinLeaveLogger(this);
-
-  private static self: SuperClient;
+  readonly commandManager = new CommandManager(this);
+  readonly networkManager = new NetworkManager();
+  readonly blacklistManager = new BlacklistManager(this.scheduler);
+  readonly nsfwDetector = new NSFWClient();
+  readonly reportLogger = new ReportLogger(this);
+  readonly reactionUpdater = new ReactionUpdater(this);
+  readonly profanityLogger = new ProfanityLogger(this);
+  readonly modLogsLogger = new ModLogsLogger(this);
+  readonly joinLeaveLogger = new JoinLeaveLogger(this);
 
   constructor() {
     super({
@@ -87,7 +88,7 @@ export default abstract class SuperClient extends Client {
         status: 'idle',
         activities: [
           {
-            state: 'Watching over 100+ cross-server hubs',
+            state: 'Watching over 200+ cross-server hubs',
             name: 'custom',
             type: ActivityType.Custom,
           },
@@ -100,8 +101,8 @@ export default abstract class SuperClient extends Client {
    * Initializes the SuperClient instance.
    * Sets the instance to the current object and initializes Sentry error monitoring and handling if not in development mode.
    */
-  protected init() {
-    SuperClient.self = this;
+  protected boot() {
+    SuperClient.instance = this;
 
     if (!isDevBuild) {
       // error monitoring & handling
@@ -112,13 +113,6 @@ export default abstract class SuperClient extends Client {
         maxValueLength: 1000,
       });
     }
-  }
-
-  /**
-   * Returns the instance of the SuperClient class.
-   */
-  public static getInstance(): SuperClient {
-    return this.self;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -145,22 +139,7 @@ export default abstract class SuperClient extends Client {
     return (fetch?.locale as supportedLocaleCodes | undefined) || 'en';
   }
 
-  getCommandManager(): CommandManager {
-    return this.commandHandler;
-  }
-  getNetworkManager(): NetworkManager {
-    return this.networkHandler;
-  }
   getScheduler(): Scheduler {
     return this.scheduler;
-  }
-  getBlacklistManager(): BlacklistManager {
-    return this.blacklistManager;
-  }
-  getReactionUpdater(): ReactionUpdater {
-    return this.reactionUpdater;
-  }
-  getNSFWDetector(): NSFWClient {
-    return this.nsfwDetector;
   }
 }

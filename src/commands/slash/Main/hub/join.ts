@@ -14,7 +14,7 @@ export default class JoinSubCommand extends Hub {
     if (!interaction.inCachedGuild()) return;
 
     const locale = interaction.user.locale;
-    const networkManager = interaction.client.getNetworkManager();
+    const networkManager = interaction.client.networkManager;
     // FIXME: Change later
     const hubName = interaction.options.getString('hub') ?? 'Crib';
     const invite = interaction.options.getString('invite');

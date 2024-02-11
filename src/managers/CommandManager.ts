@@ -1,15 +1,15 @@
 import { t } from '../utils/Locale.js';
-import { join, dirname } from 'path';
+import { emojis } from '../utils/Constants.js';
 import { CustomID } from '../utils/CustomID.js';
-import { Collection, Interaction, time } from 'discord.js';
+import { join, dirname } from 'path';
+import { Collection, Interaction } from 'discord.js';
 import { simpleEmbed, handleError } from '../utils/Utils.js';
 import { access, constants, readdirSync, statSync } from 'fs';
-import Factory from '../Factory.js';
+import { fileURLToPath } from 'url';
 import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
-import { emojis } from '../utils/Constants.js';
+import Factory from '../core/Factory.js';
 
-const __filename = new URL(import.meta.url).pathname;
-const __dirname = dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default class CommandManager extends Factory {
   public get commandsMap(): Collection<string, BaseCommand> {
@@ -17,71 +17,17 @@ export default class CommandManager extends Factory {
   }
 
   /** Handle interactions from the `InteractionCreate` event */
-  async handleInteraction(interaction: Interaction): Promise<void> {
+  async onInteractionCreate(interaction: Interaction): Promise<void> {
     try {
       interaction.user.locale = await interaction.client.getUserLocale(interaction.user.id);
 
       if (interaction.isAutocomplete()) {
-        const command = this.client.commands.get(interaction.commandName);
+        const command = this.commandsMap.get(interaction.commandName);
         if (command?.autocomplete) command.autocomplete(interaction);
       }
       else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
-        const command = this.client.commands.get(interaction.commandName);
+        const command = this.commandsMap.get(interaction.commandName);
         if (!command) return;
-
-        let remainingCooldown: number | undefined = undefined;
-
-        if (interaction.isChatInputCommand()) {
-          const subcommandGroup = interaction.options.getSubcommandGroup(false);
-          const subcommand = interaction.options.getSubcommand(false);
-
-          const baseCooldownName = `${interaction.user.id}-${interaction.commandName}`;
-          const subcommandKey = subcommandGroup
-            ? `${baseCooldownName}-${subcommandGroup}-${subcommand}`
-            : subcommand
-              ? `${baseCooldownName}-${subcommand}`
-              : baseCooldownName;
-
-          remainingCooldown = this.client.commandCooldowns.getRemainingCooldown(subcommandKey);
-
-          if (subcommand) {
-            const commandConstructor = command.constructor as typeof BaseCommand;
-            // this wont work for blacklist commands because of how that command is structured...
-            const subcommandClass = commandConstructor.subcommands?.get(
-              subcommandGroup || subcommand,
-            );
-
-            if (subcommandClass?.cooldown) {
-              this.client.commandCooldowns.setCooldown(subcommandKey, subcommandClass.cooldown);
-            }
-          }
-        }
-        else if (interaction.isContextMenuCommand()) {
-          remainingCooldown = this.client.commandCooldowns.getCooldown(
-            `${interaction.user.id}-${interaction.commandName}`,
-          );
-
-          // if command has cooldown, set cooldown for the user
-          if (command.cooldown) {
-            this.client.commandCooldowns.setCooldown(
-              `${interaction.user.id}-${interaction.commandName}`,
-              command.cooldown,
-            );
-          }
-        }
-
-        // check if command is in cooldown for the user
-        if (remainingCooldown) {
-          const waitUntil = Math.round((Date.now() + remainingCooldown) / 1000);
-          await interaction.reply({
-            content: t(
-              { phrase: 'errors.cooldown', locale: interaction.user.locale },
-              { time: `until ${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`, emoji: emojis.no },
-            ),
-            ephemeral: true,
-          });
-          return;
-        }
 
         // run the command
         await command?.execute(interaction);
@@ -91,14 +37,13 @@ export default class CommandManager extends Factory {
 
         // for components have own component collector
         const ignoreList = ['page_', 'onboarding_'];
-        if (ignoreList.includes(customId.prefix)) {
-          return;
-        }
+        if (ignoreList.includes(customId.prefix)) return;
 
         // component decorator stuff
-        const handler = this.client.interactions.get(customId.prefix);
+        const interactionHandler = this.client.interactions.get(customId.prefix);
+        const isExpiredInteraction = customId.expiry && customId.expiry < Date.now();
 
-        if (!handler || (customId.expiry && customId.expiry < Date.now())) {
+        if (!interactionHandler || isExpiredInteraction) {
           await interaction.reply({
             embeds: [
               simpleEmbed(
@@ -114,7 +59,7 @@ export default class CommandManager extends Factory {
         }
 
         // call function that handles the component
-        await handler(interaction);
+        await interactionHandler(interaction);
       }
     }
     catch (e) {
@@ -127,12 +72,7 @@ export default class CommandManager extends Factory {
    * @param commandDir The directory to load command files from.
    */
   static async loadCommandFiles(commandDir = join(__dirname, '..', 'commands')): Promise<void> {
-    let importPrefix = '';
-    if (process.platform === 'win32') {
-      importPrefix = 'file://';
-      commandDir = commandDir.replace('\\C:\\', 'C:\\');
-    }
-
+    const importPrefix = process.platform === 'win32' ? 'file://' : '';
     const files = readdirSync(commandDir);
 
     for (const file of files) {

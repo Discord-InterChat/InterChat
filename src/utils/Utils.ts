@@ -37,7 +37,7 @@ import { supportedLocaleCodes, t } from './Locale.js';
 import 'dotenv/config';
 import { captureException } from '@sentry/node';
 import { CustomID } from './CustomID.js';
-import SuperClient from '../SuperClient.js';
+import SuperClient from '../core/Client.js';
 import { ClusterClient, ClusterManager } from 'discord-hybrid-sharding';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */

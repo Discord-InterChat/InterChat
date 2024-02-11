@@ -1,5 +1,4 @@
 import db from '../utils/Db.js';
-import Factory from '../Factory.js';
 import {
   ActionRowBuilder,
   AnySelectMenuInteraction,
@@ -26,12 +25,13 @@ import { emojis } from '../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../utils/Locale.js';
 import { broadcastedMessages } from '@prisma/client';
+import Factory from '../core/Factory.js';
 
 export default class ReactionUpdater extends Factory {
   /**
    * Listens for reactions on a message and updates the database with the new reaction data.
    */
-  public async listen(
+  public async onMessageReactionAdd(
     reaction: MessageReaction | PartialMessageReaction,
     user: User | PartialUser,
   ): Promise<void> {

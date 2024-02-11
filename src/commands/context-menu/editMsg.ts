@@ -127,7 +127,7 @@ export default class EditMessage extends BaseCommand {
     const userInput = interaction.fields.getTextInputValue('newMessage');
     const hubSettings = new HubSettingsBitField(messageInDb.originalMsg.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
-    const networkManager = interaction.client.getNetworkManager();
+    const networkManager = interaction.client.networkManager;
 
     if (
       hubSettings.has('BlockInvites') &&

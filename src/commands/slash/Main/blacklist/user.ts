@@ -41,7 +41,7 @@ export default class Server extends BlacklistCommand {
     const reason = interaction.options.getString('reason') ?? 'No reason provided.';
     const duration = parse(`${interaction.options.getString('duration')}`);
 
-    const blacklistManager = interaction.client.getBlacklistManager();
+    const blacklistManager = interaction.client.blacklistManager;
 
     if (subcommandGroup == 'add') {
       // get ID if user inputted a @ mention
