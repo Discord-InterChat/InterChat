@@ -479,8 +479,8 @@ export default class NetworkManager {
    */
   public buildNetworkEmbed(
     message: Message,
-    censoredContent: string,
     username: string,
+    censoredContent: string,
     opts?: {
       attachmentURL?: string | null;
       embedCol?: HexColorString;
