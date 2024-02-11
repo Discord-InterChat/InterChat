@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.17.1](https://github.com/Discord-interchat/interchat/compare/v3.17.0...v3.17.1) (2024-02-11)
+
+
+### Bug Fixes
+
+* **commands:** better command cooldown system ([#39](https://github.com/Discord-interchat/interchat/issues/39)) ([31c84e2](https://github.com/Discord-interchat/interchat/commit/31c84e269fa6c4d91d53b57e15d6a2fbf4b472d4))
+* fixed botlist stats not getting updated ([8b72383](https://github.com/Discord-interchat/interchat/commit/8b7238361f3732b2f660a55af160bf28e2d040a9))
+* **leave:** fix interaction failure with `/hub leave` ([bd086a8](https://github.com/Discord-interchat/interchat/commit/bd086a8de91679cdc275a1c6dbd7798742e0e06e))
+* **locale:** fix locale setting problem ([63c87ad](https://github.com/Discord-interchat/interchat/commit/63c87adc3b53728d71b394b745bd56b9b4915f12))
+* **locales:** `/set language` doesnt show invalid language anymore ([7400c21](https://github.com/Discord-interchat/interchat/commit/7400c216b7568c57649250c5cbef93071efb1a76))
+* **nsfw:** use tfjs-node to speed up tensor conversions & host ai model locally ([47b13d8](https://github.com/Discord-interchat/interchat/commit/47b13d8c81c34fb64201210a2a478bbfaa9bbbc5))
+* **reports:** remove server & user reports ([f2a22c1](https://github.com/Discord-interchat/interchat/commit/f2a22c1de17e1ae45f3e65f04ccc8331f2f7aaaf))
+* **topgg:** Fix error handling in syncBotlistStats task ([39a5d7a](https://github.com/Discord-interchat/interchat/commit/39a5d7a90812926cbd2bab035c135732b88423d3))
+
 ## [3.17.0](https://github.com/Discord-interchat/interchat/compare/v3.16.0...v3.17.0) (2024-02-02)
 
 
