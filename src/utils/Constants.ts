@@ -38,7 +38,7 @@ export const REGEX = {
   EMOJI: /<(a)?:([a-zA-Z0-9_]+):(\d+)>/,
 };
 
-export const StaffIds = ['597265261665714186', '442653948630007808', '689082827979227160'];
+export const StaffIds = ['597265261665714186', '442653948630007808'];
 export const DeveloperIds = ['828492978716409856', '701727675311587358', '456961943505338369'];
 export const SupporterIds = ['880978672037802014'];
 

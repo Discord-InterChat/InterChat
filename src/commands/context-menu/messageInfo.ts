@@ -209,7 +209,7 @@ export default class MessageInfo extends BaseCommand {
               t(
                 { phrase: 'msgInfo.user.description', locale: interaction.user.locale },
                 {
-                  user: author.discriminator !== '0' ? author.tag : author.username,
+                  username: author.discriminator !== '0' ? author.tag : author.username,
                   id: author.id,
                   createdAt: time(createdAt, 'R'),
                   createdAtFull: time(createdAt, 'd'),

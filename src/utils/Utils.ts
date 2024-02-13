@@ -51,9 +51,9 @@ export const msToReadable = (milliseconds: number) => {
   const seconds = Math.floor(totalSeconds % 60);
   let readable;
 
-  if (days == 0 && hours == 0 && minutes == 0) readable = `${seconds} seconds`;
-  else if (days == 0 && hours == 0) readable = `${minutes}m ${seconds}s`;
-  else if (days == 0) readable = `${hours}h, ${minutes}m ${seconds}s`;
+  if (days === 0 && hours === 0 && minutes === 0) readable = `${seconds} seconds`;
+  else if (days === 0 && hours === 0) readable = `${minutes}m ${seconds}s`;
+  else if (days === 0) readable = `${hours}h, ${minutes}m ${seconds}s`;
   else readable = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
 
   return readable;
@@ -101,7 +101,7 @@ export const getOrCreateWebhook = async (
   avatar = LINKS.EASTER_AVATAR,
 ) => {
   const channelOrParent =
-    channel.type === ChannelType.GuildText || channel.type == ChannelType.GuildAnnouncement
+    channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement
       ? channel
       : channel.parent;
 
@@ -138,9 +138,7 @@ export const getCredits = () => {
 
 export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
   const staffMembers = [...DeveloperIds, ...(onlyCheckForDev ? [] : StaffIds)];
-
-  if (staffMembers.includes(userId)) return true;
-  return false;
+  return staffMembers.includes(userId);
 };
 
 /**
@@ -358,9 +356,9 @@ export const getOrdinalSuffix = (num: number) => {
   const j = num % 10;
   const k = num % 100;
 
-  if (j == 1 && k != 11) return 'st';
-  else if (j == 2 && k != 12) return 'nd';
-  else if (j == 3 && k != 13) return 'rd';
+  if (j === 1 && k !== 11) return 'st';
+  else if (j === 2 && k !== 12) return 'nd';
+  else if (j === 3 && k !== 13) return 'rd';
   return 'th';
 };
 

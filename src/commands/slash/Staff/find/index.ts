@@ -87,17 +87,14 @@ export default class Find extends BaseCommand {
       case 'user': {
         const users = interaction.client.users.cache;
         const focusedValue = interaction.options.getFocused().toLowerCase();
-        const choices: { username: string; id: string }[] = [];
-
-        users.map((user) => choices.push({ username: user.username, id: user.id }));
-        const filtered = choices
+        const filtered = users
           .filter(
             (choice) =>
               choice.username.toLowerCase().includes(focusedValue) ||
               choice.id.toLowerCase().includes(focusedValue),
           )
-          .slice(0, 25)
-          .map((choice) => ({ name: choice.username, value: choice.id }));
+          .map((user) => ({ name: user.username, value: user.id }))
+          .slice(0, 25);
 
         await interaction.respond(filtered);
         break;

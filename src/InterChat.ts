@@ -129,11 +129,15 @@ class InterChat extends SuperClient {
       this.reactionUpdater.onMessageReactionAdd(react, usr),
     );
 
+    this.rest.on('rateLimited', (rl) => Logger.warn('Rate limited: %O', rl));
+
+    if (process.env.DEBUG === 'true') this.startDebugLogging();
+  }
+  private startDebugLogging() {
     this.on('debug', (debug) => {
       Logger.debug(debug);
     });
     this.rest.on('restDebug', (debug) => Logger.debug(debug));
-    this.rest.on('rateLimited', (rl) => Logger.warn('Rate limited: %O', rl));
   }
 }
 

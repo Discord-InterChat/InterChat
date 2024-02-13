@@ -87,7 +87,7 @@ export default class Create extends Hub {
     const banner = interaction.fields.getTextInputValue('banner');
 
     // if hubName contains "discord", "clyde" "```" then return
-    if (name.match(/discord|clyde|```/gi)) {
+    if (/discord|clyde|```/gi.test(name)) {
       return await interaction.followUp({
         content: t(
           { phrase: 'hub.create.invalidName', locale: interaction.user.locale },

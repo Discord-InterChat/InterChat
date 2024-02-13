@@ -231,7 +231,7 @@ export default class Blacklist extends BaseCommand {
       successEmbed.setDescription(
         t(
           { phrase: 'blacklist.server.success', locale: interaction.user.locale },
-          { username: server?.name ?? 'Unknown Server', emoji: emojis.tick },
+          { server: server?.name ?? 'Unknown Server', emoji: emojis.tick },
         ),
       );
 

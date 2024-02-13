@@ -8,12 +8,12 @@ This repo contains the source code for the InterChat Discord bot. InterChat is a
 
 ## Prerequisites
 
-1. [Node.js v18.**17**.0](https://nodejs.org/download/release/v18.17.0/) (or higher for linux and other systems)
+1. [Node.js](https://nodejs.org/)
 2. [Git](https://git-scm.com/downloads)
 3. [MongoDB](https://www.mongodb.com/try/download/community)
 4. [NPM](https://www.npmjs.com/get-npm) or [Yarn](https://yarnpkg.com/getting-started/install) (we are using yarn in this guide)
 5. [An Imgur API Key](https://api.imgur.com/oauth2/addclient) (optional, for setting hub icon and banner)
-6. [Python 3.9.13](https://www.python.org/downloads/release/python-3913/) & [Visual Studio Build Tools (Windows Only)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019) (for the API)
+6. [Python 3.9.13](https://www.python.org/downloads/release/python-3913/) & [Visual Studio Build Tools (Windows Only)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019) (for Tensorflow)
 
 ## Running the code
 
@@ -106,6 +106,18 @@ public async handleComponents(interaction: MessageComponentInteraction) {
   ```ts
   export const CLIENT_ID = isDevBuild ? '<new_client_id_here>' : '769921109209907241';
   ```
+
+### Tensorflow Errors
+
+If you are facing errors that looks like this during runtime:
+
+```sh
+Error: The specified module could not be found.
+\\?\C:\Users\<username>\...otherpathstuff\InterChat\node_modules\@tensorflow\tfjs-node\lib\napi-v8\tfjs_binding.node
+```
+
+Don't worry, because some Windows users face this problem. A simple fix would be to copy `node_modules/@tensorflow/tfjs-node/lib/napi-v9/tensorflow.dll` into `node_modules/@tensorflow/tfjs-node/lib/napi-v8/`. Everything should work fine after that.
+
 
 ## Contributing
 
