@@ -104,7 +104,7 @@ export default class BlacklistManager {
     userOrServerId: string,
     hubId: string,
     expires?: Date,
-    reason: string = 'No reason provided.',
+    reason = 'No reason provided.',
   ): Promise<void> {
     const hub = await db.hubs.findUnique({ where: { id: hubId } });
     const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
