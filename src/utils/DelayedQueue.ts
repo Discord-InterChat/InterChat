@@ -2,10 +2,10 @@ import { wait } from './Utils.js';
 
 export default class DelayedQueue {
   private queue: (() => Promise<void>)[] = [];
-  private isProcessing: boolean = false;
+  private isProcessing = false;
   private intervalMs: number;
 
-  constructor(intervalMs: number = 1000) {
+  constructor(intervalMs = 1000) {
     this.intervalMs = intervalMs;
   }
 
