@@ -41,10 +41,10 @@ export default class Credits extends BaseCommand {
 
       ${creditsDivider}
       ${emojis.interchatCircle} **Design:** 
-      ${emojis.dotBlue} @${members[6]?.username} (Mascot)
+      ${emojis.dotBlue} @${members[5]?.username} (Mascot)
       ${emojis.dotBlue} @${members[4]?.username} (Avatar)
       ${emojis.dotBlue} @${members[0]?.username} (Avatar)
-      ${emojis.dotBlue} @${members[5]?.username} (Avatar & Server Icon)
+      ${emojis.dotBlue} @${members[6]?.username} (Avatar & Server Icon)
 
       ${emojis.botdev} **Developers:**
       ${emojis.dotBlue} @${members[1]?.username}
@@ -54,11 +54,10 @@ export default class Credits extends BaseCommand {
       ${emojis.staff} **Staff: ([Recruiting!](https://forms.gle/8zu7cxx4XPbEmMXJ9))**
       ${emojis.dotBlue} @${members[4]?.username}
       ${emojis.dotBlue} @${members[3]?.username}
-      ${emojis.dotBlue} @${members[5]?.username}
 
       ${linksDivider}
       [Guide](${LINKS.DOCS}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${LINKS.DOCS}/legal/privacy) • [Terms](${LINKS.DOCS}/legal/terms) 
-    `);
+    `.replaceAll('_', '\\_'));
 
     const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()

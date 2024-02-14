@@ -16,9 +16,6 @@
     "lint": "eslint --cache --fix .",
     "prepare": "husky"
   },
-  "engines": {
-    "node": "18.17.0"
-  },
   "type": "module",
   "dependencies": {
     "@prisma/client": "^5.9.1",
