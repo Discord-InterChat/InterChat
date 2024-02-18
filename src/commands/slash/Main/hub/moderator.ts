@@ -79,9 +79,13 @@ export default class Moderator extends Hub {
           return;
         }
 
+        const isExecutorOwner = hub.ownerId === interaction.user.id;
+        const mod = hub.moderators.find((m) => m.userId === user.id);
+        const userIsManager = mod?.position === 'manager';
+
         if (
-          (hub.ownerId !== interaction.user.id && user.id === interaction.user.id) ||
-          hub.moderators.find((m) => m.position === 'manager' && m.userId === user.id)
+          (userIsManager && !isExecutorOwner) ||
+          (user.id === interaction.user.id && !isExecutorOwner)
         ) {
           await interaction.reply({
             content: t(
@@ -202,8 +206,7 @@ export default class Moderator extends Hub {
                   ? hub.moderators
                     .map(
                       (mod, index) =>
-                        `${index + 1}. <@${mod.userId}> - ${
-                          mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'
+                        `${index + 1}. <@${mod.userId}> - ${mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'
                         }`,
                     )
                     .join('\n')
