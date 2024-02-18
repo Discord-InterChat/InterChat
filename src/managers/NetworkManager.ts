@@ -280,6 +280,7 @@ export default class NetworkManager {
               user: `${message.author}`,
               hub: isNetworkMessage.hub.name,
               channel: `${message.channel}`,
+              totalServers: allConnections.length.toString(),
               emoji: emojis.wave_anim,
               rules_command: '</rules:924659340898619395>',
             },
@@ -572,7 +573,7 @@ export default class NetworkManager {
       }
     });
 
-    if (message.guild && hubId) {
+    if (message.guild && hubId && messageDataObj.length > 0) {
       // store message data in db
       await db.originalMessages.create({
         data: {
