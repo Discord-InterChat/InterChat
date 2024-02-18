@@ -62,12 +62,12 @@ export default class BlacklistManager {
    * @param hubId The hub ID to remove the blacklist from.
    * @param expires The date or milliseconds to wait before removing the blacklist.
    */
-  async scheduleRemoval(
+  scheduleRemoval(
     type: 'server' | 'user',
     userOrServerId: string,
     hubId: string,
     expires: Date | number,
-  ): Promise<void> {
+  ): void {
     let name: string;
     let execute;
 

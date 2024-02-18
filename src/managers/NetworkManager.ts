@@ -133,11 +133,11 @@ export default class NetworkManager {
     // only assign to this variable if one of these two conditions are true, not always
     if (referredMessage) {
       if (referredMessage?.author.id === message.client.user.id) {
-        referredContent = await this.getReferredContent(referredMessage);
+        referredContent = this.getReferredContent(referredMessage);
         referredAuthor = message.client.user;
       }
       else if (referenceInDb) {
-        referredContent = await this.getReferredContent(referredMessage);
+        referredContent = this.getReferredContent(referredMessage);
         referredAuthor = await message.client.users.fetch(referenceInDb.authorId).catch(() => null);
       }
     }
@@ -429,7 +429,7 @@ export default class NetworkManager {
    * @param referredMessage The message being referred to.
    * @returns The content of the referred message.
    */
-  public async getReferredContent(referredMessage: Message) {
+  public getReferredContent(referredMessage: Message) {
     let referredContent = referredMessage.content || referredMessage.embeds[0]?.description;
 
     if (!referredContent) {
@@ -685,9 +685,9 @@ export default class NetworkManager {
           typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
 
         const webhook = new WebhookClient({ url: connection.webhookURL });
-        return webhook.send(payload).catch(() => null);
+        return await webhook.send(payload).catch(() => null);
       });
 
-    return res;
+    return await Promise.all(res);
   }
 }

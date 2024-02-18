@@ -64,7 +64,7 @@ export default class HubLoggerService extends Factory {
    * @param embed The embed object containing the log message.
    */
   public async sendLog(channelId: string, embed: EmbedBuilder, content?: string) {
-    this.client.cluster.broadcastEval(
+    await this.client.cluster.broadcastEval(
       async (client, ctx) => {
         const channel = await client.channels.fetch(ctx.channelId).catch(() => null);
         if (!channel?.isTextBased()) return;

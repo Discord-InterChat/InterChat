@@ -97,7 +97,7 @@ export default class CommandManager extends Factory {
           const subcommandFile = join(commandDir, '.', 'index.js');
           if (!statSync(subcommandFile).isFile()) return;
 
-          access(subcommandFile, constants.F_OK, async (err) => {
+          access(subcommandFile, constants.F_OK, (err) => {
             if (err || file === 'index.js') return;
 
             // get the parent command class from the subcommand

@@ -359,6 +359,7 @@ export default class Hub extends BaseCommand {
     }
 
     const filtered = hubChoices?.map((hub) => ({ name: hub.name, value: hub.name }));
-    filtered ? await interaction.respond(filtered) : null;
+
+    if (filtered) await interaction.respond(filtered);
   }
 }
