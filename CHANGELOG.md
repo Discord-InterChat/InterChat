@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.17.2](https://github.com/Discord-InterChat/InterChat/compare/v3.17.1...v3.17.2) (2024-02-18)
+
+
+### Bug Fixes
+
+* **hub:** fix hub owner not able to remove a manager ([f8011b3](https://github.com/Discord-InterChat/InterChat/commit/f8011b35aba38ae4faa5e835f50d748df0ee7b42))
+* **network:** fix username and content getting swapped ([71c527a](https://github.com/Discord-InterChat/InterChat/commit/71c527a4d6106c15dee75efeb538c734bb613dd7))
+
 ### [3.17.1](https://github.com/Discord-interchat/interchat/compare/v3.17.0...v3.17.1) (2024-02-11)
 
 
