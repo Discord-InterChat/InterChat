@@ -9,6 +9,7 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
   CacheType,
   ModalSubmitInteraction,
+  userMention,
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../BaseCommand.js';
@@ -81,8 +82,7 @@ export default class EditMessage extends BaseCommand {
             .setStyle(TextInputStyle.Paragraph)
             .setLabel('Please enter your new message.')
             .setValue(
-              `${(target.content || target.embeds[0]?.description) ?? ''}\n${
-                target.embeds[0]?.image?.url || ''
+              `${(target.content ?? target.embeds[0]?.description) ?? ''}\n${target.embeds[0]?.image?.url ?? ''
               }`,
             )
             .setMaxLength(950),
@@ -219,11 +219,16 @@ export default class EditMessage extends BaseCommand {
     });
 
     const resultsArray = await Promise.all(results);
-    const edited = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
+    const edited = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0).toString();
     await interaction.editReply(
       t(
         { phrase: 'network.editSuccess', locale: interaction.user.locale },
-        { edited: `${edited}`, total: `${resultsArray.length}` },
+        {
+          edited,
+          total: resultsArray.length.toString(),
+          emoji: emojis.yes,
+          user: userMention(messageInDb.originalMsg.authorId),
+        },
       ),
     );
   }

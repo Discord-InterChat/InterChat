@@ -44,21 +44,22 @@ class InterChat extends SuperClient {
 
       const { guildOwner, guildChannel } = await getWelcomeTargets(guild);
 
-      const checkProfanity = check(guild.name);
-      if (checkProfanity.profanity || checkProfanity.slurs) {
+      const { profanity, slurs } = check(guild.name);
+      if (profanity || slurs) {
         const profaneErrorEmbed = new EmbedBuilder()
           .setTitle('Leave Notice 👋')
           .setDescription(
             `${emojis.no} Your server name contains profanity or sensitive content. Please change it before using InterChat.`,
           )
           .setColor(colors.invisible)
-          .setFooter({ text: `Sent for: ${guild.name}`, iconURL: guild.iconURL() || undefined });
+          .setFooter({ text: `Sent for: ${guild.name}`, iconURL: guild.iconURL() ?? undefined });
 
         const message = { embeds: [profaneErrorEmbed] };
 
-        (guildOwner || guildChannel)
+        (guildOwner ?? guildChannel)
           ?.send(message)
           .catch(() => guildChannel?.send(message).catch(() => null));
+
         await guild.leave();
       }
 
@@ -76,7 +77,7 @@ class InterChat extends SuperClient {
           `,
         )
         .setColor(colors.interchatBlue)
-        .setFooter({ text: `Sent for: ${guild.name}`, iconURL: guild.iconURL() || undefined });
+        .setFooter({ text: `Sent for: ${guild.name}`, iconURL: guild.iconURL() ?? undefined });
 
       const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
@@ -97,7 +98,7 @@ class InterChat extends SuperClient {
       );
 
       const message = { embeds: [embed], components: [buttons] };
-      await (guildOwner || guildChannel)
+      await (guildOwner ?? guildChannel)
         ?.send(message)
         .catch(() => guildChannel?.send(message).catch(() => null));
     });
@@ -122,9 +123,11 @@ class InterChat extends SuperClient {
     });
 
     this.on('messageCreate', (message) => this.networkManager.onMessageCreate(message));
+
     this.on('interactionCreate', (interaction) =>
       this.commandManager.onInteractionCreate(interaction),
     );
+
     this.on('messageReactionAdd', (react, usr) =>
       this.reactionUpdater.onMessageReactionAdd(react, usr),
     );
@@ -133,6 +136,7 @@ class InterChat extends SuperClient {
 
     if (process.env.DEBUG === 'true') this.startDebugLogging();
   }
+
   private startDebugLogging() {
     this.on('debug', (debug) => {
       Logger.debug(debug);
