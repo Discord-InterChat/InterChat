@@ -46,7 +46,7 @@ export const LINKS = {
   TOPGG_API: 'https://top.gg/api/bots/769921109209907241',
   VOTE: 'https://top.gg/bot/769921109209907241/vote',
   DOCS: 'https://docs.interchat.fun',
-  SUPPORT_INVITE: 'https://discord.gg/BwhB9SHaxe',
+  SUPPORT_INVITE: 'https://discord.gg/8DhUA4HNpD',
   APP_DIRECTORY: 'https://discord.com/application-directory/769921109209907241',
   RULES_BANNER: 'https://i.imgur.com/MBG0Rks.png',
   EASTER_AVATAR: 'https://i.imgur.com/80nqtSg.png',
