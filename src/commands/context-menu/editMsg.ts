@@ -14,7 +14,7 @@ import {
 import db from '../../utils/Db.js';
 import BaseCommand from '../BaseCommand.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
-import { checkIfStaff, hasVoted, replaceLinks } from '../../utils/Utils.js';
+import { checkIfStaff, replaceLinks, userVotedToday } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
@@ -27,11 +27,15 @@ export default class EditMessage extends BaseCommand {
     name: 'Edit Message',
     dm_permission: false,
   };
+  readonly cooldown = 10_000;
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
+    const isOnCooldown = await this.handleCooldown(interaction);
+    if (isOnCooldown) return;
+
     const target = interaction.targetMessage;
 
-    if (!checkIfStaff(interaction.user.id) && !(await hasVoted(interaction.user.id))) {
+    if (!checkIfStaff(interaction.user.id) && !(await userVotedToday(interaction.user.id))) {
       await interaction.reply({
         content: t(
           { phrase: 'errors.mustVote', locale: interaction.user.locale },

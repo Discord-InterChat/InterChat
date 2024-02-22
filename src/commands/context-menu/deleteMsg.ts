@@ -1,7 +1,6 @@
 import {
   ApplicationCommandType,
-  CacheType,
-  ContextMenuCommandInteraction,
+  MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 import BaseCommand from '../BaseCommand.js';
@@ -17,7 +16,12 @@ export default class DeleteMessage extends BaseCommand {
     dm_permission: false,
   };
 
-  async execute(interaction: ContextMenuCommandInteraction<CacheType>) {
+  readonly cooldown = 10_000;
+
+  async execute(interaction: MessageContextMenuCommandInteraction) {
+    const isOnCooldown = await this.handleCooldown(interaction);
+    if (isOnCooldown) return;
+
     await interaction.deferReply({ ephemeral: true });
 
     const messageInDb = await db?.broadcastedMessages.findFirst({

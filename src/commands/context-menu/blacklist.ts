@@ -194,7 +194,7 @@ export default class Blacklist extends BaseCommand {
       successEmbed.setDescription(
         t(
           { phrase: 'blacklist.user.success', locale: interaction.user.locale },
-          { username: user?.username ?? 'Unknown User', emoji: emojis.tick },
+          { user: user?.username ?? 'Unknown User', emoji: emojis.tick },
         ),
       );
       await blacklistManager.addUserBlacklist(
