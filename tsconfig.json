@@ -18,10 +18,10 @@
     "useUnknownInCatchVariables": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-		"allowSyntheticDefaultImports": true,
-		"strictNullChecks": true,
-		"forceConsistentCasingInFileNames": true,
+    "allowSyntheticDefaultImports": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*", "src/**/*.json",],
-  "exclude": ["node_modules"],
+  "include": ["src/**/*", "src/**/*.json"],
+  "exclude": ["node_modules"]
 }

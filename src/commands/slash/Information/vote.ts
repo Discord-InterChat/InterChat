@@ -6,7 +6,7 @@ import {
   ButtonStyle,
 } from 'discord.js';
 import BaseCommand from '../../BaseCommand.js';
-import { colors } from '../../../utils/Constants.js';
+import { colors, emojis } from '../../../utils/Constants.js';
 import { t } from '../../../utils/Locale.js';
 
 export default class Vote extends BaseCommand {
@@ -15,17 +15,17 @@ export default class Vote extends BaseCommand {
     description: 'Voting perks and vote link.',
   };
   async execute(interaction: ChatInputCommandInteraction) {
+    const { locale } = interaction.user;
     const embed = new EmbedBuilder()
-      .setDescription(
-        t({ phrase: 'vote', locale: interaction.user.locale }),
-      )
+      .setDescription(t({ phrase: 'vote.description', locale }))
+      .setFooter({ text: t({ phrase: 'vote.footer', locale }), iconURL: 'https://i.imgur.com/NKKmav5.gif' })
       .setColor(colors.interchatBlue);
 
     const button = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
-        .setLabel('Vote!')
-        .setEmoji('🗳️')
+        .setLabel('Vote')
+        .setEmoji(emojis.ghost_heart)
         .setURL('https://top.gg/bot/769921109209907241/vote'),
     );
 

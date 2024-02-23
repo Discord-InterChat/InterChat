@@ -1,23 +1,20 @@
 import { load } from 'nsfwjs';
 import { Router } from 'express';
 import { captureException } from '@sentry/node';
-import { enableProdMode, tensor3d } from '@tensorflow/tfjs-node';
-import { Tensor3D } from '@tensorflow/tfjs';
+import { tensor3d } from '@tensorflow/tfjs-node';
 import Logger from '../../utils/Logger.js';
 import sharp from 'sharp';
 import jpeg from 'jpeg-js';
-
-// disable tfjs logs
-enableProdMode();
 
 let nsfwModel;
 const router: Router = Router();
 
 const imageToTensor = async (rawImageData: ArrayBuffer) => {
-  rawImageData = await sharp(rawImageData).raw().jpeg().toBuffer();
-  const decoded = jpeg.decode(rawImageData); // This is key for the prediction to work well
-  const { width, height, data } = decoded;
+  const jpegImg = await sharp(rawImageData).jpeg().toBuffer();
+
+  const { width, height, data } = jpeg.decode(jpegImg); // This is key for the prediction to work well
   const buffer = new Uint8Array(width * height * 3);
+
   let offset = 0;
   for (let i = 0; i < buffer.length; i += 3) {
     buffer[i] = data[offset];
@@ -27,7 +24,7 @@ const imageToTensor = async (rawImageData: ArrayBuffer) => {
     offset += 4;
   }
 
-  return tensor3d(buffer, [height, width, 3]) as unknown as Tensor3D;
+  return tensor3d(buffer, [height, width, 3]);
 };
 
 
