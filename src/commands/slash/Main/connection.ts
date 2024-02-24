@@ -373,12 +373,14 @@ export default class Connection extends BaseCommand {
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     if (customId.suffix === 'invite') {
+      await interaction.deferReply({ ephemeral: true });
+
       const invite = interaction.fields.getTextInputValue('connInviteField');
       const channelId = customId.args[0];
 
       if (!invite) {
         await db.connectedList.update({ where: { channelId }, data: { invite: { unset: true } } });
-        await interaction.reply({
+        await interaction.followUp({
           content: t(
             { phrase: 'connection.inviteRemoved', locale: interaction.user.locale },
             { emoji: emojis.yes },
@@ -391,7 +393,7 @@ export default class Connection extends BaseCommand {
       const isValid = await interaction.client?.fetchInvite(invite).catch(() => null);
 
       if (isValid?.guild?.id !== interaction.guildId) {
-        await interaction.reply({
+        await interaction.followUp({
           content: t(
             { phrase: 'connection.inviteInvalid', locale: interaction.user.locale },
             { emoji: emojis.no },
@@ -403,7 +405,7 @@ export default class Connection extends BaseCommand {
 
       await db.connectedList.update({ where: { channelId }, data: { invite } });
 
-      await interaction.reply({
+      await interaction.followUp({
         content: t(
           { phrase: 'connection.inviteAdded', locale: interaction.user.locale },
           { emoji: emojis.yes },

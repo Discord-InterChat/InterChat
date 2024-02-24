@@ -321,7 +321,7 @@ export default class NetworkManager {
           { phrase: 'network.accountTooNew', locale: message.author.locale },
           { user: `${message.author}`, emoji: emojis.no },
         ),
-      );
+      ).catch(() => null);
       return false;
     }
 
