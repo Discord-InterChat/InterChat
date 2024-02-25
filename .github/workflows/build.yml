@@ -14,45 +14,43 @@ on:
       - .husky
 jobs:
   build:
-      name: Build updated code
-      runs-on: self-hosted
+    name: Build updated code
+    runs-on: self-hosted
   
-      steps:
+    steps:
+      - name: Backup Logs
+        run: |
+          if [ -d "logs/" ]; then
+          cp -r logs/ ~/console-logs/$(date +'%Y-%m-%d-%M')
+          fi
+
         # note to self: Checks out to ~/actions-runner/_work/InterChat/InterChat/
-        - name: Backup Logs
-          run: |
-              if [ -d "logs/" ]; then
-                cp -r logs/ ~/console-logs/$(date +'%Y-%m-%d-%M')
-              fi
-        
-        - name: Checkout repository
-          uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-        - name: Checkout submodules
-          run: git submodule update --init --recursive
+      - name: Checkout submodules
+        run: git submodule update --init --recursive
 
-        - name: Install dependencies
-          run: npm install
+      - name: Install dependencies
+        run: | 
+          yarn
+          npm rebuild @tensorflow/tfjs-node --build-from-source
 
-        - name: Build code
-          run: |
-            npm run build --if-present
+      - name: Build code
+        run: |
+            yarn build
             cp ~/important/interchat-env .env
-            npm rebuild @tensorflow/tfjs-node --build-from-source
-
-        - name: Deploy Commands
-          run: |
-            npm run register:commands -- --public
-            npm run register:commands -- --private
-              
-        - name: Prune Dev-dependencies
-          run: npm prune --omit=dev
 
   restart:
-      needs: [build]
-      name: Restart bot
-      runs-on: self-hosted
-  
-      steps:
-        - name: Mark build as successful
-          run: touch build-successful.tmp
+    needs: [build]
+    name: Restart bot
+    runs-on: self-hosted
+      
+    steps:
+      - name: Deploy Commands
+        run: |
+          yarn register:commands --public
+          yarn register:commands --private
+
+      - name: Mark build as successful
+        run: touch build-successful.tmp

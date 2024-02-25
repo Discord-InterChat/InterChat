@@ -11,12 +11,12 @@ jobs:
       - name: Install node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 16
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
+          node-version: 20
+          cache: 'yarn'
+          cache-dependency-path: yarn.lock
 
       - name: Install dependencies
-        run: npm install eslint
+        run: yarn add eslint
         
       - name: Lint files
-        run: npm run lint
+        run: yarn lint
