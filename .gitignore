@@ -24,3 +24,7 @@ build/
 
 # Sentry Auth Token
 .sentryclirc
+
+# other package managers
+.yarn*
+yarn.lock

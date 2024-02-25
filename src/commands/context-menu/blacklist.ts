@@ -14,7 +14,7 @@ import {
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import parse from 'parse-duration';
-import BaseCommand from '../BaseCommand.js';
+import BaseCommand from '../../core/BaseCommand.js';
 import { t } from '../../utils/Locale.js';
 import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';

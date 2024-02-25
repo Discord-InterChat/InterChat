@@ -1,5 +1,5 @@
 import { EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
-import BaseCommand from '../../BaseCommand.js';
+import BaseCommand from '../../../core/BaseCommand.js';
 import { paginate } from '../../../utils/Pagination.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, colors, emojis } from '../../../utils/Constants.js';

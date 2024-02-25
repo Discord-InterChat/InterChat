@@ -6,7 +6,7 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 import { escapeRegexChars, handleError } from '../../../../utils/Utils.js';
-import BaseCommand from '../../../BaseCommand.js';
+import BaseCommand from '../../../../core/BaseCommand.js';
 import db from '../../../../utils/Db.js';
 
 export default class BlacklistCommand extends BaseCommand {

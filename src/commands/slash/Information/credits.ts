@@ -7,7 +7,7 @@ import {
 } from 'discord.js';
 import { emojis, LINKS } from '../../../utils/Constants.js';
 import { getCredits, simpleEmbed } from '../../../utils/Utils.js';
-import BaseCommand from '../../BaseCommand.js';
+import BaseCommand from '../../../core/BaseCommand.js';
 import { stripIndents } from 'common-tags';
 
 export default class Credits extends BaseCommand {

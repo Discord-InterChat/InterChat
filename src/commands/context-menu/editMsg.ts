@@ -12,7 +12,7 @@ import {
   userMention,
 } from 'discord.js';
 import db from '../../utils/Db.js';
-import BaseCommand from '../BaseCommand.js';
+import BaseCommand from '../../core/BaseCommand.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
 import { checkIfStaff, replaceLinks, userVotedToday } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';

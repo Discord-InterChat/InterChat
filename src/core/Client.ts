@@ -9,7 +9,7 @@ import {
   WebhookClient,
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
-import { commandsMap, interactionsMap } from '../commands/BaseCommand.js';
+import { commandsMap, interactionsMap } from './BaseCommand.js';
 import db from '../utils/Db.js';
 import Sentry from '@sentry/node';
 import Scheduler from '../services/SchedulerService.js';

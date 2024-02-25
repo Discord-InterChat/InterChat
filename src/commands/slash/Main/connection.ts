@@ -17,7 +17,7 @@ import {
   TextInputStyle,
   ThreadChannel,
 } from 'discord.js';
-import BaseCommand from '../../BaseCommand.js';
+import BaseCommand from '../../../core/BaseCommand.js';
 import db from '../../../utils/Db.js';
 import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
 import { buildEmbed } from '../../../scripts/network/buildEmbed.js';

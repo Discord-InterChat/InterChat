@@ -5,7 +5,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from 'discord.js';
-import BaseCommand from '../../BaseCommand.js';
+import BaseCommand from '../../../core/BaseCommand.js';
 import { colors, emojis } from '../../../utils/Constants.js';
 import { t } from '../../../utils/Locale.js';
 

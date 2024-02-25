@@ -14,7 +14,7 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import db from '../../utils/Db.js';
-import BaseCommand from '../BaseCommand.js';
+import BaseCommand from '../../core/BaseCommand.js';
 import { hasVoted } from '../../utils/Utils.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';

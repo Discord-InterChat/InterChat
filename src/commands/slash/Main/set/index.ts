@@ -4,7 +4,7 @@ import {
   Collection,
   ChatInputCommandInteraction,
 } from 'discord.js';
-import BaseCommand from '../../../BaseCommand.js';
+import BaseCommand from '../../../../core/BaseCommand.js';
 import { handleError } from '../../../../utils/Utils.js';
 import { supportedLocales } from '../../../../utils/Locale.js';
 

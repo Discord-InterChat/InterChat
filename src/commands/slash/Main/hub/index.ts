@@ -7,7 +7,7 @@ import {
   Collection,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import BaseCommand from '../../../BaseCommand.js';
+import BaseCommand from '../../../../core/BaseCommand.js';
 import db from '../../../../utils/Db.js';
 import { escapeRegexChars, handleError } from '../../../../utils/Utils.js';
 

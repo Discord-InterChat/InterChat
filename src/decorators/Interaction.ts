@@ -1,5 +1,5 @@
 import { MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
-import { interactionsMap } from '../commands/BaseCommand.js';
+import { interactionsMap } from '../core/BaseCommand.js';
 
 export type InteractionFunction = (
   interaction: MessageComponentInteraction | ModalSubmitInteraction,

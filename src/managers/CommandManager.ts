@@ -6,7 +6,7 @@ import { Collection, Interaction } from 'discord.js';
 import { simpleEmbed, handleError } from '../utils/Utils.js';
 import { access, constants, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
-import BaseCommand, { commandsMap } from '../commands/BaseCommand.js';
+import BaseCommand, { commandsMap } from '../core/BaseCommand.js';
 import Factory from '../core/Factory.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

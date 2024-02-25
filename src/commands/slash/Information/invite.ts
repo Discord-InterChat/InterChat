@@ -5,7 +5,7 @@ import {
   ChatInputCommandInteraction,
   OAuth2Scopes,
 } from 'discord.js';
-import BaseCommand from '../../BaseCommand.js';
+import BaseCommand from '../../../core/BaseCommand.js';
 import { LINKS, emojis } from '../../../utils/Constants.js';
 import { t } from '../../../utils/Locale.js';
 
