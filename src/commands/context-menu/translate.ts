@@ -15,7 +15,7 @@ import {
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../../core/BaseCommand.js';
-import { hasVoted } from '../../utils/Utils.js';
+import { userVotedToday } from '../../utils/Utils.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { t } from '../../utils/Locale.js';
@@ -33,7 +33,7 @@ export default class Translate extends BaseCommand {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     await interaction.deferReply({ ephemeral: true });
 
-    if (!(await hasVoted(interaction.user.id))) {
+    if (!(await userVotedToday(interaction.user.id))) {
       return await interaction.editReply(
         t({ phrase: 'errors.mustVote', locale: interaction.user.locale }, { emoji: emojis.no }),
       );
