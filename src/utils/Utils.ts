@@ -103,6 +103,18 @@ export const disableComponents = (message: Message) => {
   });
 };
 
+const createWebhook = async (
+  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
+  avatar: string,
+) => {
+  return await channel
+    ?.createWebhook({
+      name: 'InterChat Network',
+      avatar,
+    })
+    .catch(() => undefined);
+};
+
 export const getOrCreateWebhook = async (
   channel: NewsChannel | TextChannel | ThreadChannel,
   avatar = LINKS.EASTER_AVATAR,
@@ -127,17 +139,6 @@ const findExistingWebhook = async (
   return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
 };
 
-const createWebhook = async (
-  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
-  avatar: string,
-) => {
-  return await channel
-    ?.createWebhook({
-      name: 'InterChat Network',
-      avatar,
-    })
-    .catch(() => undefined);
-};
 
 export const getCredits = () => {
   return [...DeveloperIds, ...StaffIds, ...SupporterIds];
@@ -146,6 +147,23 @@ export const getCredits = () => {
 export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
   const staffMembers = [...DeveloperIds, ...(onlyCheckForDev ? [] : StaffIds)];
   return staffMembers.includes(userId);
+};
+
+export const disableAllComponents = (
+  components: ActionRow<MessageActionRowComponent>[],
+  disableLinks = false,
+) => {
+  return components.map((row) => {
+    const jsonRow = row.toJSON();
+    jsonRow.components.forEach((component) => {
+      !disableLinks &&
+        component.type === ComponentType.Button &&
+        component.style === ButtonStyle.Link
+        ? (component.disabled = false) // leave link buttons enabled
+        : (component.disabled = true);
+    });
+    return jsonRow;
+  });
 };
 
 /**
@@ -171,21 +189,23 @@ export const setComponentExpiry = (
   return timerId;
 };
 
-export const disableAllComponents = (
-  components: ActionRow<MessageActionRowComponent>[],
-  disableLinks = false,
-) => {
-  return components.map((row) => {
-    const jsonRow = row.toJSON();
-    jsonRow.components.forEach((component) => {
-      !disableLinks &&
-        component.type === ComponentType.Button &&
-        component.style === ButtonStyle.Link
-        ? (component.disabled = false) // leave link buttons enabled
-        : (component.disabled = true);
-    });
-    return jsonRow;
+export const deleteMsgsFromDb = async (broadcastMsgs: string[]) => {
+  // delete all relations first and then delete the hub
+  const msgsToDelete = await db.broadcastedMessages.findMany({
+    where: { messageId: { in: broadcastMsgs } },
   });
+  if (!msgsToDelete) return;
+
+  const originalMsgIds = msgsToDelete.map(({ originalMsgId }) => originalMsgId);
+
+  const childrenBatch = db.broadcastedMessages.deleteMany({
+    where: { originalMsgId: { in: originalMsgIds } },
+  });
+  const originalBatch = db.originalMessages.deleteMany({
+    where: { messageId: { in: originalMsgIds } },
+  });
+
+  return await db.$transaction([childrenBatch, originalBatch]);
 };
 
 export const deleteHubs = async (ids: string[]) => {
@@ -289,25 +309,6 @@ export const parseTimestampFromId = (id: Snowflake) => {
   return timestamp + 1420070400000; // Discord epoch time
 };
 
-export const deleteMsgsFromDb = async (broadcastMsgs: string[]) => {
-  // delete all relations first and then delete the hub
-  const msgsToDelete = await db.broadcastedMessages.findMany({
-    where: { messageId: { in: broadcastMsgs } },
-  });
-  if (!msgsToDelete) return;
-
-  const originalMsgIds = msgsToDelete.map(({ originalMsgId }) => originalMsgId);
-
-  const childrenBatch = db.broadcastedMessages.deleteMany({
-    where: { originalMsgId: { in: originalMsgIds } },
-  });
-  const originalBatch = db.originalMessages.deleteMany({
-    where: { messageId: { in: originalMsgIds } },
-  });
-
-  return await db.$transaction([childrenBatch, originalBatch]);
-};
-
 export const channelMention = (channelId: Snowflake | null | undefined) => {
   if (!channelId) return emojis.no;
   return `<#${channelId}>`;
@@ -369,6 +370,10 @@ export const getOrdinalSuffix = (num: number) => {
   return 'th';
 };
 
+export const getDbUser = async (userId: Snowflake) => {
+  return await db.userData.findFirst({ where: { userId } });
+};
+
 export const getUsername = async (client: ClusterManager, userId: Snowflake) => {
   if (client) {
     const username = SuperClient.resolveEval(
@@ -387,10 +392,6 @@ export const getUsername = async (client: ClusterManager, userId: Snowflake) => 
   }
 
   return (await getDbUser(userId))?.username ?? null;
-};
-
-export const getDbUser = async (userId: Snowflake) => {
-  return await db.userData.findFirst({ where: { userId } });
 };
 
 export const modifyUserRole = async (

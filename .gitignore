@@ -24,3 +24,6 @@ build/
 
 # Sentry Auth Token
 .sentryclirc
+
+# Yarn 4 state file
+.yarn/install-state.gz
