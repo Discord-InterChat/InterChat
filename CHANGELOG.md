@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.17.3](https://github.com/Discord-InterChat/InterChat/compare/v3.17.2...v3.17.3) (2024-02-26)
+
+
+### Bug Fixes
+
+* add cooldowns to delete & edit message commands ([8476388](https://github.com/Discord-InterChat/InterChat/commit/84763880c8fb35e82ff66b68ffd8e71275996ead))
+* fix locale and /connection bugs ([14273ab](https://github.com/Discord-InterChat/InterChat/commit/14273abdcb7c66181fe2aa595c1575b02fa871c5))
+* **vote:** rely on database instead of top.gg api for checking votes ([72e1a5d](https://github.com/Discord-InterChat/InterChat/commit/72e1a5d1e6bb218b0ce9f640ff7a0a1f9300a870))
+
 ### [3.17.2](https://github.com/Discord-InterChat/InterChat/compare/v3.17.1...v3.17.2) (2024-02-18)
 
 
