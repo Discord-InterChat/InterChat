@@ -16,7 +16,7 @@ export default class JoinSubCommand extends Hub {
     const locale = interaction.user.locale;
     const networkManager = interaction.client.networkManager;
     // FIXME: Change later
-    const hubName = interaction.options.getString('hub') ?? 'Crib';
+    const hubName = interaction.options.getString('hub') ?? 'InterChat Central';
     const invite = interaction.options.getString('invite');
     const channel = interaction.options.getChannel('channel', true, [
       ChannelType.GuildText,
