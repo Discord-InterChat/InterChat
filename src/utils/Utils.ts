@@ -115,6 +115,13 @@ const createWebhook = async (
     .catch(() => undefined);
 };
 
+const findExistingWebhook = async (
+  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
+) => {
+  const webhooks = await channel?.fetchWebhooks().catch(() => null);
+  return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
+};
+
 export const getOrCreateWebhook = async (
   channel: NewsChannel | TextChannel | ThreadChannel,
   avatar = LINKS.EASTER_AVATAR,
@@ -131,14 +138,6 @@ export const getOrCreateWebhook = async (
   if (existingWebhook) return existingWebhook;
   return await createWebhook(channelOrParent, avatar);
 };
-
-const findExistingWebhook = async (
-  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
-) => {
-  const webhooks = await channel?.fetchWebhooks().catch(() => null);
-  return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
-};
-
 
 export const getCredits = () => {
   return [...DeveloperIds, ...StaffIds, ...SupporterIds];
