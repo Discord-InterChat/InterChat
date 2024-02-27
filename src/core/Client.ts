@@ -117,7 +117,7 @@ export default abstract class SuperClient<R extends boolean = boolean> extends C
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static resolveEval = <T>(value: T[]) =>
-    value?.find((res) => !!res) as RemoveMethods<T> | undefined;
+    value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
 
   /**
    * Fetches a guild by its ID from the cache.

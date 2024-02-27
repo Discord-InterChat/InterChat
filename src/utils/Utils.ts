@@ -81,7 +81,7 @@ export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
     })
   ).json();
 
-  return !!res.voted;
+  return Boolean(res.voted);
 };
 
 export const userVotedToday = async (userId: Snowflake): Promise<boolean> => {
@@ -351,7 +351,7 @@ export const parseEmoji = (emoji: string) => {
   if (!match) return null;
 
   const [, animated, name, id] = match;
-  return { animated: !!animated, name, id };
+  return { animated: Boolean(animated), name, id };
 };
 
 export const getEmojiId = (emoji: string | undefined) => {
