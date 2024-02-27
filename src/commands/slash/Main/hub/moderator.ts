@@ -139,8 +139,7 @@ export default class Moderator extends Hub {
             ephemeral: true,
           });
           return;
-        }
-        else if (!isUserMod) {
+        } else if (!isUserMod) {
           await interaction.reply({
             embeds: [
               simpleEmbed(
@@ -156,8 +155,7 @@ export default class Moderator extends Hub {
             ephemeral: true,
           });
           return;
-        }
-        else if (
+        } else if (
           (hub.ownerId !== interaction.user.id && user.id === interaction.user.id) ||
           isUserMod.position === 'manager'
         ) {
@@ -204,17 +202,17 @@ export default class Moderator extends Hub {
               .setDescription(
                 hub.moderators.length > 0
                   ? hub.moderators
-                    .map(
-                      (mod, index) =>
-                        `${index + 1}. <@${mod.userId}> - ${
-                          mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'
-                        }`,
-                    )
-                    .join('\n')
+                      .map(
+                        (mod, index) =>
+                          `${index + 1}. <@${mod.userId}> - ${
+                            mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'
+                          }`,
+                      )
+                      .join('\n')
                   : t(
-                    { phrase: 'hub.moderator.noModerators', locale: interaction.user.locale },
-                    { emoji: emojis.no },
-                  ),
+                      { phrase: 'hub.moderator.noModerators', locale: interaction.user.locale },
+                      { emoji: emojis.no },
+                    ),
               )
               .setColor('Aqua')
               .setTimestamp(),

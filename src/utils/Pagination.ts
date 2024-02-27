@@ -39,13 +39,13 @@ export async function paginate(
   if (pages.length < 1) {
     interaction.replied || interaction.deferred
       ? await interaction.followUp({
-        content: `${emojis.tick} No pages to display!`,
-        ephemeral: true,
-      })
+          content: `${emojis.tick} No pages to display!`,
+          ephemeral: true,
+        })
       : await interaction.reply({
-        content: `${emojis.tick} No pages to display!`,
-        ephemeral: true,
-      });
+          content: `${emojis.tick} No pages to display!`,
+          ephemeral: true,
+        });
     return;
   }
 
@@ -93,11 +93,9 @@ export async function paginate(
   col.on('collect', (i) => {
     if (i.customId === 'page_:back') {
       index--;
-    }
-    else if (i.customId === 'page_:next') {
+    } else if (i.customId === 'page_:next') {
       index++;
-    }
-    else if (i.customId === 'page_:exit') {
+    } else if (i.customId === 'page_:exit') {
       col.stop();
       return;
     }

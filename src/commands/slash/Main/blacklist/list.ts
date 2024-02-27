@@ -93,8 +93,7 @@ export default class ListBlacklists extends BlacklistCommand {
           fields = [];
         }
       }
-    }
-    else if (serverOpt == 'user') {
+    } else if (serverOpt == 'user') {
       const result = await db.userData.findMany({
         where: { blacklistedFrom: { some: { hubId: hubInDb.id } } },
       });
