@@ -81,7 +81,7 @@ export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
     })
   ).json();
 
-  return !!res.voted;
+  return Boolean(res.voted);
 };
 
 export const userVotedToday = async (userId: Snowflake): Promise<boolean> => {
@@ -156,8 +156,8 @@ export const disableAllComponents = (
     const jsonRow = row.toJSON();
     jsonRow.components.forEach((component) => {
       !disableLinks &&
-        component.type === ComponentType.Button &&
-        component.style === ButtonStyle.Link
+      component.type === ComponentType.Button &&
+      component.style === ButtonStyle.Link
         ? (component.disabled = false) // leave link buttons enabled
         : (component.disabled = true);
     });
@@ -351,7 +351,7 @@ export const parseEmoji = (emoji: string) => {
   if (!match) return null;
 
   const [, animated, name, id] = match;
-  return { animated: !!animated, name, id };
+  return { animated: Boolean(animated), name, id };
 };
 
 export const getEmojiId = (emoji: string | undefined) => {
