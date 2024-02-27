@@ -16,16 +16,16 @@ ${emojis.dividerEnd} ${channelStr} ${undefined ?? emojis.no}
 */
 
 export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'en') => {
-  const { reports, modLogs, profanity, joinLeaves } = (hubInDb.logChannels ||
+	const { reports, modLogs, profanity, joinLeaves } = (hubInDb.logChannels ||
     {}) as Prisma.HubLogChannelsCreateInput;
-  const reportRole = reports?.roleId ? `<@&${reports.roleId}>` : emojis.no;
-  const channelStr = t({ phrase: 'hub.manage.logs.config.fields.channel', locale });
-  const roleStr = t({ phrase: 'hub.manage.logs.config.fields.role', locale });
+	const reportRole = reports?.roleId ? `<@&${reports.roleId}>` : emojis.no;
+	const channelStr = t({ phrase: 'hub.manage.logs.config.fields.channel', locale });
+	const roleStr = t({ phrase: 'hub.manage.logs.config.fields.role', locale });
 
-  return new EmbedBuilder()
-    .setTitle(t({ phrase: 'hub.manage.logs.title', locale }))
-    .setDescription(
-      stripIndents`
+	return new EmbedBuilder()
+		.setTitle(t({ phrase: 'hub.manage.logs.title', locale }))
+		.setDescription(
+			stripIndents`
         ${emojis.arrow} \`reports:\`
         ${emojis.divider} ${t({ phrase: 'hub.manage.logs.reports.description', locale })}
         ${emojis.divider} ${channelStr} ${channelMention(reports?.channelId)}
@@ -39,10 +39,10 @@ export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'e
         ${emojis.arrow} \`joinLeave:\`
         ${emojis.divider} ${t({ phrase: 'hub.manage.logs.joinLeave.description', locale })}
         ${emojis.dividerEnd} ${channelStr} ${channelMention(joinLeaves)}`,
-    )
-    .setColor(colors.invisible)
-    .setThumbnail(hubInDb.iconUrl)
-    .setFooter({
-      text: 'Note: This feature is still experimental. Report bugs using /support report.',
-    });
+		)
+		.setColor(colors.invisible)
+		.setThumbnail(hubInDb.iconUrl)
+		.setFooter({
+			text: 'Note: This feature is still experimental. Report bugs using /support report.',
+		});
 };

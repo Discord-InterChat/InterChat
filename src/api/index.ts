@@ -6,13 +6,13 @@ import nsfwRouter from './routes/nsfw.js';
 
 // to start the server
 export const startApi = (data: { voteManager: VoteManager }) => {
-  const app = express();
+	const app = express();
 
-  app.use(express.static('src/api/public'));
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use(nsfwRouter);
-  if (data.voteManager) app.use(dblRoute(data.voteManager));
+	app.use(express.static('src/api/public'));
+	app.use(express.json());
+	app.use(express.urlencoded({ extended: true }));
+	app.use(nsfwRouter);
+	if (data.voteManager) app.use(dblRoute(data.voteManager));
 
-  app.listen(443, () => Logger.info('API listening on port http://localhost:443.'));
+	app.listen(443, () => Logger.info('API listening on port http://localhost:443.'));
 };

@@ -6,12 +6,12 @@ import { REGEX } from './Constants.js';
  * @returns An object with two boolean properties: `profanity` and `slurs`.
  */
 export function check(string: string | undefined) {
-  if (!string) return { profanity: false, slurs: false };
+	if (!string) return { profanity: false, slurs: false };
 
-  return {
-    profanity: REGEX.PROFANITY.test(string.toLowerCase()),
-    slurs: REGEX.SLURS.test(string.toLowerCase()),
-  };
+	return {
+		profanity: REGEX.PROFANITY.test(string.toLowerCase()),
+		slurs: REGEX.SLURS.test(string.toLowerCase()),
+	};
 }
 
 /**
@@ -21,6 +21,6 @@ export function check(string: string | undefined) {
  * @returns The censored string.
  */
 export function censor(string: string, symbol = '\\*'): string {
-  const repeatSymbol = (match: string) => symbol.repeat(match.length);
-  return string.replace(REGEX.PROFANITY, repeatSymbol).replace(REGEX.SLURS, repeatSymbol);
+	const repeatSymbol = (match: string) => symbol.repeat(match.length);
+	return string.replace(REGEX.PROFANITY, repeatSymbol).replace(REGEX.SLURS, repeatSymbol);
 }

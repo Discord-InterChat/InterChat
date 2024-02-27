@@ -17,6 +17,6 @@ jobs:
 
       - name: Install dependencies
         run: yarn add eslint
-        
+
       - name: Lint files
         run: yarn lint

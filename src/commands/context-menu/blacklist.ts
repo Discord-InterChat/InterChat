@@ -1,16 +1,16 @@
 import {
-  ActionRowBuilder,
-  ApplicationCommandType,
-  ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
-  MessageComponentInteraction,
-  MessageContextMenuCommandInteraction,
-  ModalBuilder,
-  ModalSubmitInteraction,
-  RESTPostAPIApplicationCommandsJSONBody,
-  TextInputBuilder,
-  TextInputStyle,
+	ActionRowBuilder,
+	ApplicationCommandType,
+	ButtonBuilder,
+	ButtonStyle,
+	EmbedBuilder,
+	MessageComponentInteraction,
+	MessageContextMenuCommandInteraction,
+	ModalBuilder,
+	ModalSubmitInteraction,
+	RESTPostAPIApplicationCommandsJSONBody,
+	TextInputBuilder,
+	TextInputStyle,
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import parse from 'parse-duration';
@@ -23,260 +23,260 @@ import { simpleEmbed } from '../../utils/Utils.js';
 import { time } from 'discord.js';
 
 export default class Blacklist extends BaseCommand {
-  data: RESTPostAPIApplicationCommandsJSONBody = {
-    type: ApplicationCommandType.Message,
-    name: 'Blacklist',
-    dm_permission: false,
-  };
+	data: RESTPostAPIApplicationCommandsJSONBody = {
+		type: ApplicationCommandType.Message,
+		name: 'Blacklist',
+		dm_permission: false,
+	};
 
-  async execute(interaction: MessageContextMenuCommandInteraction) {
-    const locale = interaction.user.locale;
+	async execute(interaction: MessageContextMenuCommandInteraction) {
+		const locale = interaction.user.locale;
 
-    const messageInDb = await db.broadcastedMessages.findFirst({
-      where: { messageId: interaction.targetId },
-      include: { originalMsg: { include: { hub: true } } },
-    });
+		const messageInDb = await db.broadcastedMessages.findFirst({
+			where: { messageId: interaction.targetId },
+			include: { originalMsg: { include: { hub: true } } },
+		});
 
-    if (
-      !messageInDb ||
+		if (
+			!messageInDb ||
       (messageInDb.originalMsg?.hub?.ownerId !== interaction.user.id &&
         !messageInDb.originalMsg?.hub?.moderators.find((mod) => mod.userId === interaction.user.id))
-    ) {
-      interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
-          ),
-        ],
-        ephemeral: true,
-      });
-      return;
-    }
+		) {
+			interaction.reply({
+				embeds: [
+					simpleEmbed(
+						t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
+					),
+				],
+				ephemeral: true,
+			});
+			return;
+		}
 
-    const embed = new EmbedBuilder()
-      .setTitle('Blacklist')
-      .setDescription(
-        // FIXME: either remove or improve this
-        'Blacklist the server or user of this message from this hub. This will prevent messages by them from being sent.',
-      )
-      .setColor(colors.interchatBlue);
+		const embed = new EmbedBuilder()
+			.setTitle('Blacklist')
+			.setDescription(
+				// FIXME: either remove or improve this
+				'Blacklist the server or user of this message from this hub. This will prevent messages by them from being sent.',
+			)
+			.setColor(colors.interchatBlue);
 
-    const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(
-          new CustomID()
-            .setIdentifier('blacklist', 'user')
-            .addArgs(interaction.user.id)
-            .addArgs(messageInDb.originalMsgId)
-            .toString(),
-        )
-        .setLabel(t({ phrase: 'blacklist.button.user', locale }))
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji('👤'),
-      new ButtonBuilder()
-        .setCustomId(
-          new CustomID()
-            .setIdentifier('blacklist', 'server')
-            .addArgs(interaction.user.id)
-            .addArgs(messageInDb.originalMsgId)
-            .toString(),
-        )
-        .setLabel(t({ phrase: 'blacklist.button.server', locale }))
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji('🏠'),
-    );
+		const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+			new ButtonBuilder()
+				.setCustomId(
+					new CustomID()
+						.setIdentifier('blacklist', 'user')
+						.addArgs(interaction.user.id)
+						.addArgs(messageInDb.originalMsgId)
+						.toString(),
+				)
+				.setLabel(t({ phrase: 'blacklist.button.user', locale }))
+				.setStyle(ButtonStyle.Secondary)
+				.setEmoji('👤'),
+			new ButtonBuilder()
+				.setCustomId(
+					new CustomID()
+						.setIdentifier('blacklist', 'server')
+						.addArgs(interaction.user.id)
+						.addArgs(messageInDb.originalMsgId)
+						.toString(),
+				)
+				.setLabel(t({ phrase: 'blacklist.button.server', locale }))
+				.setStyle(ButtonStyle.Secondary)
+				.setEmoji('🏠'),
+		);
 
-    await interaction.reply({ embeds: [embed], components: [buttons] });
-  }
+		await interaction.reply({ embeds: [embed], components: [buttons] });
+	}
 
-  @RegisterInteractionHandler('blacklist')
-  async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
-    const customId = CustomID.parseCustomId(interaction.customId);
+	@RegisterInteractionHandler('blacklist')
+	async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
+		const customId = CustomID.parseCustomId(interaction.customId);
 
-    if (interaction.user.id !== customId.args[0]) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'errors.notYourAction', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
-        ],
-        ephemeral: true,
-      });
-      return;
-    }
+		if (interaction.user.id !== customId.args[0]) {
+			await interaction.reply({
+				embeds: [
+					simpleEmbed(
+						t(
+							{ phrase: 'errors.notYourAction', locale: interaction.user.locale },
+							{ emoji: emojis.no },
+						),
+					),
+				],
+				ephemeral: true,
+			});
+			return;
+		}
 
-    const originalMsgId = customId.args[1];
-    const modal = new ModalBuilder()
-      .setTitle('Blacklist')
-      .setCustomId(
-        new CustomID()
-          .setIdentifier('blacklist_modal', customId.suffix)
-          .addArgs(originalMsgId)
-          .toString(),
-      )
-      .addComponents(
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId('reason')
-            .setLabel(
-              t({ phrase: 'blacklist.modal.reason.label', locale: interaction.user.locale }),
-            )
-            .setPlaceholder(
-              t({ phrase: 'blacklist.modal.reason.placeholder', locale: interaction.user.locale }),
-            )
-            .setStyle(TextInputStyle.Paragraph)
-            .setMaxLength(500),
-        ),
-        new ActionRowBuilder<TextInputBuilder>().addComponents(
-          new TextInputBuilder()
-            .setCustomId('duration')
-            .setLabel(
-              t({ phrase: 'blacklist.modal.duration.label', locale: interaction.user.locale }),
-            )
-            .setPlaceholder(
-              t({
-                phrase: 'blacklist.modal.duration.placeholder',
-                locale: interaction.user.locale,
-              }),
-            )
-            .setStyle(TextInputStyle.Short)
-            .setMinLength(2)
-            .setRequired(false),
-        ),
-      );
+		const originalMsgId = customId.args[1];
+		const modal = new ModalBuilder()
+			.setTitle('Blacklist')
+			.setCustomId(
+				new CustomID()
+					.setIdentifier('blacklist_modal', customId.suffix)
+					.addArgs(originalMsgId)
+					.toString(),
+			)
+			.addComponents(
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					new TextInputBuilder()
+						.setCustomId('reason')
+						.setLabel(
+							t({ phrase: 'blacklist.modal.reason.label', locale: interaction.user.locale }),
+						)
+						.setPlaceholder(
+							t({ phrase: 'blacklist.modal.reason.placeholder', locale: interaction.user.locale }),
+						)
+						.setStyle(TextInputStyle.Paragraph)
+						.setMaxLength(500),
+				),
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					new TextInputBuilder()
+						.setCustomId('duration')
+						.setLabel(
+							t({ phrase: 'blacklist.modal.duration.label', locale: interaction.user.locale }),
+						)
+						.setPlaceholder(
+							t({
+								phrase: 'blacklist.modal.duration.placeholder',
+								locale: interaction.user.locale,
+							}),
+						)
+						.setStyle(TextInputStyle.Short)
+						.setMinLength(2)
+						.setRequired(false),
+				),
+			);
 
-    await interaction.showModal(modal);
-  }
+		await interaction.showModal(modal);
+	}
 
-  @RegisterInteractionHandler('blacklist_modal')
-  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
-    await interaction.deferUpdate();
+	@RegisterInteractionHandler('blacklist_modal')
+	async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
+		await interaction.deferUpdate();
 
-    const customId = CustomID.parseCustomId(interaction.customId);
-    const messageId = customId.args[0];
-    const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });
+		const customId = CustomID.parseCustomId(interaction.customId);
+		const messageId = customId.args[0];
+		const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });
 
-    if (!originalMsg?.hubId) {
-      await interaction.editReply(
-        t(
-          { phrase: 'errors.networkMessageExpired', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
-      );
-      return;
-    }
+		if (!originalMsg?.hubId) {
+			await interaction.editReply(
+				t(
+					{ phrase: 'errors.networkMessageExpired', locale: interaction.user.locale },
+					{ emoji: emojis.no },
+				),
+			);
+			return;
+		}
 
-    const reason = interaction.fields.getTextInputValue('reason');
-    const duration = parse(interaction.fields.getTextInputValue('duration'));
-    const expires = duration ? new Date(Date.now() + duration) : undefined;
+		const reason = interaction.fields.getTextInputValue('reason');
+		const duration = parse(interaction.fields.getTextInputValue('duration'));
+		const expires = duration ? new Date(Date.now() + duration) : undefined;
 
-    const successEmbed = new EmbedBuilder().setColor('Green').addFields(
-      {
-        name: 'Reason',
-        value: reason ? reason : t({ phrase: 'misc.noReason', locale: interaction.user.locale }),
-        inline: true,
-      },
-      {
-        name: 'Expires',
-        value: expires ? `${time(Math.round(expires.getTime() / 1000), 'R')}` : 'Never.',
-        inline: true,
-      },
-    );
+		const successEmbed = new EmbedBuilder().setColor('Green').addFields(
+			{
+				name: 'Reason',
+				value: reason ? reason : t({ phrase: 'misc.noReason', locale: interaction.user.locale }),
+				inline: true,
+			},
+			{
+				name: 'Expires',
+				value: expires ? `${time(Math.round(expires.getTime() / 1000), 'R')}` : 'Never.',
+				inline: true,
+			},
+		);
 
-    const blacklistManager = interaction.client.blacklistManager;
+		const blacklistManager = interaction.client.blacklistManager;
 
-    // user blacklist
-    if (customId.suffix === 'user') {
-      const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
-      successEmbed.setDescription(
-        t(
-          { phrase: 'blacklist.user.success', locale: interaction.user.locale },
-          { username: user?.username ?? 'Unknown User', emoji: emojis.tick },
-        ),
-      );
-      await blacklistManager.addUserBlacklist(
-        originalMsg.hubId,
-        originalMsg.authorId,
-        reason,
-        interaction.user.id,
-        expires,
-      );
+		// user blacklist
+		if (customId.suffix === 'user') {
+			const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
+			successEmbed.setDescription(
+				t(
+					{ phrase: 'blacklist.user.success', locale: interaction.user.locale },
+					{ username: user?.username ?? 'Unknown User', emoji: emojis.tick },
+				),
+			);
+			await blacklistManager.addUserBlacklist(
+				originalMsg.hubId,
+				originalMsg.authorId,
+				reason,
+				interaction.user.id,
+				expires,
+			);
 
-      if (expires) {
-        blacklistManager.scheduleRemoval('user', originalMsg.authorId, originalMsg.hubId, expires);
-      }
-      if (user) {
-        blacklistManager
-          .notifyBlacklist('user', originalMsg.authorId, originalMsg.hubId, expires, reason)
-          .catch(() => null);
+			if (expires) {
+				blacklistManager.scheduleRemoval('user', originalMsg.authorId, originalMsg.hubId, expires);
+			}
+			if (user) {
+				blacklistManager
+					.notifyBlacklist('user', originalMsg.authorId, originalMsg.hubId, expires, reason)
+					.catch(() => null);
 
-        await interaction.client.modLogsLogger.logBlacklist(originalMsg.hubId, {
-          userOrServer: user,
-          mod: interaction.user,
-          reason,
-          expires,
-        });
-      }
+				await interaction.client.modLogsLogger.logBlacklist(originalMsg.hubId, {
+					userOrServer: user,
+					mod: interaction.user,
+					reason,
+					expires,
+				});
+			}
 
-      await interaction.editReply({ embeds: [successEmbed], components: [] });
-    }
+			await interaction.editReply({ embeds: [successEmbed], components: [] });
+		}
 
-    // server blacklist
-    else {
-      const server = interaction.client.guilds.cache.get(originalMsg.serverId);
+		// server blacklist
+		else {
+			const server = interaction.client.guilds.cache.get(originalMsg.serverId);
 
-      successEmbed.setDescription(
-        t(
-          { phrase: 'blacklist.server.success', locale: interaction.user.locale },
-          { server: server?.name ?? 'Unknown Server', emoji: emojis.tick },
-        ),
-      );
+			successEmbed.setDescription(
+				t(
+					{ phrase: 'blacklist.server.success', locale: interaction.user.locale },
+					{ server: server?.name ?? 'Unknown Server', emoji: emojis.tick },
+				),
+			);
 
-      await blacklistManager.addServerBlacklist(
-        originalMsg.serverId,
-        originalMsg.hubId,
-        reason,
-        interaction.user.id,
-        expires,
-      );
+			await blacklistManager.addServerBlacklist(
+				originalMsg.serverId,
+				originalMsg.hubId,
+				reason,
+				interaction.user.id,
+				expires,
+			);
 
-      // Notify server of blacklist
-      await blacklistManager.notifyBlacklist(
-        'server',
-        originalMsg.serverId,
-        originalMsg.hubId,
-        expires,
-        reason,
-      );
+			// Notify server of blacklist
+			await blacklistManager.notifyBlacklist(
+				'server',
+				originalMsg.serverId,
+				originalMsg.hubId,
+				expires,
+				reason,
+			);
 
-      if (expires) {
-        blacklistManager.scheduleRemoval(
-          'server',
-          originalMsg.serverId,
-          originalMsg.hubId,
-          expires,
-        );
-      }
+			if (expires) {
+				blacklistManager.scheduleRemoval(
+					'server',
+					originalMsg.serverId,
+					originalMsg.hubId,
+					expires,
+				);
+			}
 
-      await db.connectedList.deleteMany({
-        where: { serverId: originalMsg.serverId, hubId: originalMsg.hubId },
-      });
+			await db.connectedList.deleteMany({
+				where: { serverId: originalMsg.serverId, hubId: originalMsg.hubId },
+			});
 
-      if (server) {
-        await interaction.client.modLogsLogger
-          .logBlacklist(originalMsg.hubId, {
-            userOrServer: server,
-            mod: interaction.user,
-            reason,
-            expires,
-          })
-          .catch(() => null);
-      }
+			if (server) {
+				await interaction.client.modLogsLogger
+					.logBlacklist(originalMsg.hubId, {
+						userOrServer: server,
+						mod: interaction.user,
+						reason,
+						expires,
+					})
+					.catch(() => null);
+			}
 
-      await interaction.editReply({ embeds: [successEmbed], components: [] });
-    }
-  }
+			await interaction.editReply({ embeds: [successEmbed], components: [] });
+		}
+	}
 }
