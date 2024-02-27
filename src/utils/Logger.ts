@@ -6,7 +6,6 @@ const custom = format.printf(
     `${info.level}: ${info.message} | ${info.timestamp} ${info.stack ? `\n${info.stack}` : ''}`,
 );
 
-
 const combinedFormat = format.combine(
   format.errors({ stack: true }),
   format.splat(),

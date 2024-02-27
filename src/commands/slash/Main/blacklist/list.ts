@@ -80,18 +80,20 @@ export default class ListBlacklists extends BlacklistCommand {
         counter++;
         if (counter >= LIMIT || i === result.length - 1) {
           embeds.push(
-            new EmbedBuilder().setFields(fields).setColor('#0099ff').setAuthor({
-              name: 'Blacklisted Servers:',
-              iconURL: interaction.client.user?.avatarURL()?.toString(),
-            }),
+            new EmbedBuilder()
+              .setFields(fields)
+              .setColor('#0099ff')
+              .setAuthor({
+                name: 'Blacklisted Servers:',
+                iconURL: interaction.client.user?.avatarURL()?.toString(),
+              }),
           );
 
           counter = 0;
           fields = [];
         }
       }
-    }
-    else if (serverOpt == 'user') {
+    } else if (serverOpt == 'user') {
       const result = await db.userData.findMany({
         where: { blacklistedFrom: { some: { hubId: hubInDb.id } } },
       });
@@ -121,10 +123,13 @@ export default class ListBlacklists extends BlacklistCommand {
         counter++;
         if (counter >= LIMIT || i === result.length - 1) {
           embeds.push(
-            new EmbedBuilder().setFields(fields).setColor(colors.interchatBlue).setAuthor({
-              name: 'Blacklisted Users:',
-              iconURL: interaction.client.user?.avatarURL()?.toString(),
-            }),
+            new EmbedBuilder()
+              .setFields(fields)
+              .setColor(colors.interchatBlue)
+              .setAuthor({
+                name: 'Blacklisted Users:',
+                iconURL: interaction.client.user?.avatarURL()?.toString(),
+              }),
           );
 
           counter = 0;

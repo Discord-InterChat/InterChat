@@ -24,15 +24,13 @@ export default class CommandManager extends Factory {
       if (interaction.isAutocomplete()) {
         const command = this.commandsMap.get(interaction.commandName);
         if (command?.autocomplete) command.autocomplete(interaction);
-      }
-      else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
+      } else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
         const command = this.commandsMap.get(interaction.commandName);
         if (!command) return;
 
         // run the command
         await command?.execute(interaction);
-      }
-      else {
+      } else {
         const customId = CustomID.parseCustomId(interaction.customId);
 
         // for components have own component collector
@@ -61,8 +59,7 @@ export default class CommandManager extends Factory {
         // call function that handles the component
         await interactionHandler(interaction);
       }
-    }
-    catch (e) {
+    } catch (e) {
       handleError(e, interaction);
     }
   }
@@ -82,8 +79,7 @@ export default class CommandManager extends Factory {
       // If the item is a directory, recursively read its files
       if (stats.isDirectory()) {
         await this.loadCommandFiles(filePath);
-      }
-      else if (file.endsWith('.js') && file !== 'BaseCommand.js') {
+      } else if (file.endsWith('.js') && file !== 'BaseCommand.js') {
         const imported = await import(importPrefix + filePath);
         const command = new imported.default();
 

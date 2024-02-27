@@ -60,12 +60,11 @@ To help with handling components, we have a custom ID class that can be used to 
 
 ```ts
 const customId = new CustomID()
-.setIdentifier('cool_button_', '1') // add a prefix and a suffix
-.addArgs('arg1', 'arg2') // to add extra info like executor ID, page number, etc.
-.toString(); // convert it to a string to use it as a custom ID
+  .setIdentifier('cool_button_', '1') // add a prefix and a suffix
+  .addArgs('arg1', 'arg2') // to add extra info like executor ID, page number, etc.
+  .toString(); // convert it to a string to use it as a custom ID
 
 // add arguments to the custom ID
-
 ```
 
 It can be later parsed when handling the component using the `CustomID.parseCustomId` method. Example:
@@ -89,7 +88,7 @@ To handle components (buttons, selects, modals) create a new method called `hand
 ```ts
 // you can change the type of `interaction` to ButtonInteraction etc. if you are aware of the type of component
 @InteractionHandler('cool_button_')
-public async handleComponents(interaction: MessageComponentInteraction) { 
+public async handleComponents(interaction: MessageComponentInteraction) {
   const customId = CustomID.parseCustomId(interaction.customId);
   // handle component logic, same as how it is with collectors
 }
@@ -117,7 +116,6 @@ Error: The specified module could not be found.
 ```
 
 Don't worry, because some Windows users face this problem. A simple fix would be to copy `node_modules/@tensorflow/tfjs-node/lib/napi-v9/tensorflow.dll` into `node_modules/@tensorflow/tfjs-node/lib/napi-v8/`. Everything should work fine after that.
-
 
 ## Contributing
 

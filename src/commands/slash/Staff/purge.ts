@@ -241,8 +241,7 @@ export default class Purge extends BaseCommand {
         );
 
         return SuperClient.resolveEval(evalRes) || [];
-      }
-      catch (e) {
+      } catch (e) {
         Logger.error(e);
         captureException(e);
       }

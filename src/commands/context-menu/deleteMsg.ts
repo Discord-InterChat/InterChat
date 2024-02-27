@@ -31,10 +31,13 @@ export default class DeleteMessage extends BaseCommand {
 
     if (!messageInDb) {
       return await interaction.editReply(
-        t({
-          phrase: 'errors.unknownNetworkMessage',
-          locale: interaction.user.locale,
-        }, { emoji: emojis.no }),
+        t(
+          {
+            phrase: 'errors.unknownNetworkMessage',
+            locale: interaction.user.locale,
+          },
+          { emoji: emojis.no },
+        ),
       );
     }
 
@@ -46,10 +49,13 @@ export default class DeleteMessage extends BaseCommand {
       interaction.user.id !== messageInDb.originalMsg.authorId
     ) {
       return await interaction.editReply(
-        t({
-          phrase: 'errors.notMessageAuthor',
-          locale: interaction.user.locale,
-        }, { emoji: emojis.no }),
+        t(
+          {
+            phrase: 'errors.notMessageAuthor',
+            locale: interaction.user.locale,
+          },
+          { emoji: emojis.no },
+        ),
       );
     }
 

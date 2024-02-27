@@ -148,8 +148,7 @@ export class ModLogsLogger extends HubLoggerService {
         (await this.client.users.fetch(userOrServerId).catch(() => null))?.username ??
         `${blacklisted?.username}`;
       originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === hub.id)?.reason;
-    }
-    else {
+    } else {
       blacklisted = await BlacklistManager.fetchServerBlacklist(hub.id, userOrServerId);
       name = blacklisted?.serverName;
     }

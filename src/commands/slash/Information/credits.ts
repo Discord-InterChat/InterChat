@@ -35,7 +35,8 @@ export default class Credits extends BaseCommand {
     const linksDivider = `${emojis.blueLine.repeat(9)} **LINKS** ${emojis.blueLine.repeat(9)}`;
     const creditsDivider = `${emojis.blueLine.repeat(9)} **TEAM** ${emojis.blueLine.repeat(9)}`;
 
-    const creditsEmbed = simpleEmbed(stripIndents`
+    const creditsEmbed = simpleEmbed(
+      stripIndents`
       ## ${emojis.wand} The Team
       InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${LINKS.SUPPORT_INVITE}). 
 
@@ -57,7 +58,8 @@ export default class Credits extends BaseCommand {
 
       ${linksDivider}
       [Guide](${LINKS.DOCS}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${LINKS.DOCS}/legal/privacy) • [Terms](${LINKS.DOCS}/legal/terms) 
-    `.replaceAll('_', '\\_'));
+    `.replaceAll('_', '\\_'),
+    );
 
     const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()

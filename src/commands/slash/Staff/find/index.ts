@@ -22,7 +22,7 @@ export default class Find extends BaseCommand {
           {
             type: ApplicationCommandOptionType.String,
             name: 'user',
-            description: 'The username (if they\'ve used the bot within 24h) or user ID',
+            description: "The username (if they've used the bot within 24h) or user ID",
             required: true,
             autocomplete: true,
           },

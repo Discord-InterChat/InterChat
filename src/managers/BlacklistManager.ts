@@ -41,8 +41,7 @@ export default class BlacklistManager {
         where,
         data: { blacklistedFrom: { deleteMany: { where: { hubId } } } },
       });
-    }
-    else {
+    } else {
       const where = { serverId: userOrServerId, hubs: { some: { hubId } } };
 
       const notInBlacklist = await db.blacklistedServers.findFirst({ where });
@@ -78,8 +77,7 @@ export default class BlacklistManager {
 
       name = `unblacklistServer-${userOrServerId}`;
       execute = () => this.removeBlacklist('server', hubId, userOrServerId);
-    }
-    else {
+    } else {
       if (this.scheduler.taskNames.includes(`unblacklistUser-${userOrServerId}`)) {
         this.scheduler.stopTask(`unblacklistUser-${userOrServerId}`);
       }
@@ -120,8 +118,7 @@ export default class BlacklistManager {
       embed.setDescription(`You have been blacklisted from talking in hub **${hub?.name}**.`);
       const user = await SuperClient.instance.users.fetch(userOrServerId);
       await user.send({ embeds: [embed] }).catch(() => null);
-    }
-    else {
+    } else {
       embed.setDescription(
         `This server has been blacklisted from talking in hub **${hub?.name}**.`,
       );

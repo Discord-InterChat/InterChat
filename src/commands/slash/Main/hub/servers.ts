@@ -25,8 +25,7 @@ export default class Servers extends Hub {
         embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
       });
       return;
-    }
-    else if (
+    } else if (
       hub.ownerId !== interaction.user.id &&
       !hub.moderators.some((mod) => mod.userId === interaction.user.id)
     ) {

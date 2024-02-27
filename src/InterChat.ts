@@ -30,8 +30,7 @@ class InterChat extends SuperClient {
     this.on('shardReady', (s, u) => {
       if (u) {
         Logger.warn(`Shard ${s} is ready but ${u.size} guilds are unavailable.`);
-      }
-      else {
+      } else {
         Logger.info(`Shard ${s} is ready!`);
       }
     });

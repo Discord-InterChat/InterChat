@@ -77,9 +77,9 @@ export default class ReactionUpdater extends Factory {
     // and the user hasn't reacted yet
     !emojiAlreadyReacted?.includes(user.id)
       ? // add user to the array
-      ReactionUpdater.addReaction(dbReactions, user.id, reactedEmoji)
+        ReactionUpdater.addReaction(dbReactions, user.id, reactedEmoji)
       : // or update the data with a new arr containing userId
-      (dbReactions[reactedEmoji] = emojiAlreadyReacted);
+        (dbReactions[reactedEmoji] = emojiAlreadyReacted);
 
     await db.originalMessages.update({
       where: { messageId: originalMsg.messageId },
@@ -194,8 +194,7 @@ export default class ReactionUpdater extends Factory {
         components: [reactionMenu],
         ephemeral: true,
       });
-    }
-    else {
+    } else {
       if (userBlacklisted) {
         await interaction.followUp({
           content: t(
@@ -205,8 +204,7 @@ export default class ReactionUpdater extends Factory {
           ephemeral: true,
         });
         return;
-      }
-      else if (serverBlacklisted) {
+      } else if (serverBlacklisted) {
         await interaction.followUp({
           content: t(
             { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
@@ -239,9 +237,9 @@ export default class ReactionUpdater extends Factory {
 
       emojiAlreadyReacted.includes(interaction.user.id)
         ? // If the user already reacted, remove the reaction
-        ReactionUpdater.removeReaction(dbReactions, interaction.user.id, reactedEmoji)
+          ReactionUpdater.removeReaction(dbReactions, interaction.user.id, reactedEmoji)
         : // or else add the user to the array
-        ReactionUpdater.addReaction(dbReactions, interaction.user.id, reactedEmoji);
+          ReactionUpdater.addReaction(dbReactions, interaction.user.id, reactedEmoji);
 
       await db.originalMessages.update({
         where: { messageId: messageInDb.originalMsgId },

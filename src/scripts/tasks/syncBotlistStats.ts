@@ -14,8 +14,7 @@ export default async (manager: ClusterManager) => {
     await topgg.postStats({ serverCount, shardCount });
 
     Logger.info(`Updated top.gg stats with ${serverCount} guilds and ${shardCount} shards`);
-  }
-  catch (e) {
+  } catch (e) {
     Logger.error('Error updating top.gg stats', e);
   }
 };

@@ -156,8 +156,8 @@ export const disableAllComponents = (
     const jsonRow = row.toJSON();
     jsonRow.components.forEach((component) => {
       !disableLinks &&
-        component.type === ComponentType.Button &&
-        component.style === ButtonStyle.Link
+      component.type === ComponentType.Button &&
+      component.style === ButtonStyle.Link
         ? (component.disabled = false) // leave link buttons enabled
         : (component.disabled = true);
     });

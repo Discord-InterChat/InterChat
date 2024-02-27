@@ -44,15 +44,16 @@ export default class Server extends Find {
             > ${emojis.members} **Created:** <t:${Math.round(user.createdTimestamp / 1000)}:R>
             > ${emojis.bot} **Bot:** ${user.bot}
             > ${emojis.owner} **Servers Owned:** ${
-  serversOwned.length > 0 ? serversOwned.join(', ') : 'None'
-}
+              serversOwned.length > 0 ? serversOwned.join(', ') : 'None'
+            }
             `,
         },
         {
           name: 'Network',
           value: stripIndents`
-            > ${emojis.chat_icon} **Hubs Owned:** ${hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None'
-}
+            > ${emojis.chat_icon} **Hubs Owned:** ${
+              hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None'
+            }
             > ${emojis.delete} **Blacklisted:** ${userInBlacklist ? 'Yes' : 'No'}`,
         },
       ]);

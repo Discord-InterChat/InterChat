@@ -18,7 +18,7 @@ import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
 export default class Stats extends BaseCommand {
   readonly data = {
     name: 'stats',
-    description: 'View InterChat\'s statistics.',
+    description: "View InterChat's statistics.",
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -114,8 +114,7 @@ export default class Stats extends BaseCommand {
 
       const res = client.ws.shards.map((shard) => ({
         name: `Shard #${shard.id} - ${Status[shard.status]}`,
-        value:
-          `\`\`\`elm\n\nPing: ${shard.ping}ms\nUptime: ${shard.manager.client.uptime}ms\nTotal Servers: ${shard.manager.client.guilds.cache.size}\nRAM Usage: ${memoryUsed} MB\`\`\``,
+        value: `\`\`\`elm\n\nPing: ${shard.ping}ms\nUptime: ${shard.manager.client.uptime}ms\nTotal Servers: ${shard.manager.client.guilds.cache.size}\nRAM Usage: ${memoryUsed} MB\`\`\``,
         inline: true,
       }));
 

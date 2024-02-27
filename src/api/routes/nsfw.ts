@@ -27,7 +27,6 @@ const imageToTensor = async (rawImageData: ArrayBuffer) => {
   return tensor3d(buffer, [height, width, 3]);
 };
 
-
 router.get('/nsfw', async (req, res) => {
   nsfwModel = await load('http://localhost:443/model/');
 
@@ -58,8 +57,7 @@ router.get('/nsfw', async (req, res) => {
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(predictions));
-  }
-  catch (error) {
+  } catch (error) {
     Logger.error(error);
     captureException(error);
     res.writeHead(500, { 'Content-Type': 'text/plain' });

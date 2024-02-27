@@ -130,8 +130,7 @@ export default class Manage extends Hub {
         const selects = buildSettingsMenu(settings, id, customId.args[0]);
 
         await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
-      }
-      else if (customId.suffix === 'logsBtn' || customId.suffix === 'logsBackBtn') {
+      } else if (customId.suffix === 'logsBtn' || customId.suffix === 'logsBackBtn') {
         const embed = genLogInfoEmbed(hubInDb, locale);
 
         const selects = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -188,14 +187,12 @@ export default class Manage extends Hub {
         customId.suffix === 'logsBtn'
           ? await interaction.reply(msgToSend)
           : await interaction.update(msgToSend);
-      }
-      else if (customId.suffix === 'logsDel') {
+      } else if (customId.suffix === 'logsDel') {
         const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
 
         if (type === 'reports') {
           await interaction.client.reportLogger.removeReports(hubInDb.id);
-        }
-        else {
+        } else {
           const currentConfig = hubInDb.logChannels;
           if (currentConfig) {
             // remove the channel key and value from the config
@@ -211,10 +208,7 @@ export default class Manage extends Hub {
         await interaction.reply({
           embeds: [
             simpleEmbed(
-              t(
-                { phrase: 'hub.manage.logs.reset', locale },
-                { emoji: emojis.delete, type },
-              ),
+              t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.delete, type }),
             ),
           ],
           ephemeral: true,
@@ -399,8 +393,7 @@ export default class Manage extends Hub {
           embeds: [embed],
           components: [selects],
         });
-      }
-      else if (customId.suffix === 'logsSelect') {
+      } else if (customId.suffix === 'logsSelect') {
         const type = interaction.values[0] as keyof Prisma.HubLogChannelsCreateInput;
         const logChannel = hubInDb.logChannels ? hubInDb.logChannels[type] : null;
 
@@ -469,23 +462,23 @@ export default class Manage extends Hub {
           .addFields(
             typeof logChannel === 'string'
               ? [
-                {
-                  name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
-                  value: logChannel ? `<#${logChannel}>` : 'N/A',
-                },
-              ]
+                  {
+                    name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
+                    value: logChannel ? `<#${logChannel}>` : 'N/A',
+                  },
+                ]
               : [
-                {
-                  name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
-                  value: logChannel?.channelId ? `<#${logChannel.channelId}>` : 'N/A',
-                  inline: true,
-                },
-                {
-                  name: t({ phrase: 'hub.manage.logs.config.fields.role', locale }),
-                  value: logChannel?.roleId ? `<@&${logChannel.roleId}>` : 'N/A',
-                  inline: true,
-                },
-              ],
+                  {
+                    name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
+                    value: logChannel?.channelId ? `<#${logChannel.channelId}>` : 'N/A',
+                    inline: true,
+                  },
+                  {
+                    name: t({ phrase: 'hub.manage.logs.config.fields.role', locale }),
+                    value: logChannel?.roleId ? `<@&${logChannel.roleId}>` : 'N/A',
+                    inline: true,
+                  },
+                ],
           )
           .setColor(colors.invisible);
 

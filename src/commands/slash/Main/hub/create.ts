@@ -109,8 +109,7 @@ export default class Create extends Hub {
         ),
         ephemeral: true,
       });
-    }
-    else if (
+    } else if (
       hubs.reduce((acc, hub) => (hub.ownerId === interaction.user.id ? acc + 1 : acc), 0) >= 3
     ) {
       return await interaction.followUp({
