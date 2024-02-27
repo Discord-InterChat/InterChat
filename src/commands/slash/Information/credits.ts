@@ -27,7 +27,8 @@ export default class Credits extends BaseCommand {
         { context: { userId: credit } },
       )) as User[];
 
-      const member = shardValues.find((m) => !!m) ?? (await interaction.client.users.fetch(credit));
+      const member =
+        shardValues.find((m) => Boolean(m)) ?? (await interaction.client.users.fetch(credit));
 
       members.push(member);
     }
