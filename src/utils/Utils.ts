@@ -4,33 +4,33 @@ import toLower from 'lodash/toLower.js';
 import Scheduler from '../services/SchedulerService.js';
 import startCase from 'lodash/startCase.js';
 import {
-  ActionRow,
-  ButtonStyle,
-  ChannelType,
-  Client,
-  ColorResolvable,
-  ComponentType,
-  EmbedBuilder,
-  ForumChannel,
-  Interaction,
-  MediaChannel,
-  Message,
-  MessageActionRowComponent,
-  NewsChannel,
-  RepliableInteraction,
-  Snowflake,
-  TextChannel,
-  ThreadChannel,
+	ActionRow,
+	ButtonStyle,
+	ChannelType,
+	Client,
+	ColorResolvable,
+	ComponentType,
+	EmbedBuilder,
+	ForumChannel,
+	Interaction,
+	MediaChannel,
+	Message,
+	MessageActionRowComponent,
+	NewsChannel,
+	RepliableInteraction,
+	Snowflake,
+	TextChannel,
+	ThreadChannel,
 } from 'discord.js';
 import {
-  DeveloperIds,
-  REGEX,
-  StaffIds,
-  SupporterIds,
-  LINKS,
-  colors,
-  emojis,
-  SUPPORT_SERVER_ID,
+	DeveloperIds,
+	REGEX,
+	StaffIds,
+	SupporterIds,
+	LINKS,
+	colors,
+	emojis,
+	SUPPORT_SERVER_ID,
 } from './Constants.js';
 import { randomBytes } from 'crypto';
 import { supportedLocaleCodes, t } from './Locale.js';
@@ -42,127 +42,127 @@ import { ClusterClient, ClusterManager } from 'discord-hybrid-sharding';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export const msToReadable = (milliseconds: number) => {
-  let totalSeconds = milliseconds / 1000;
-  const days = Math.floor(totalSeconds / 86400);
-  totalSeconds %= 86400;
-  const hours = Math.floor(totalSeconds / 3600);
-  totalSeconds %= 3600;
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = Math.floor(totalSeconds % 60);
-  let readable;
+	let totalSeconds = milliseconds / 1000;
+	const days = Math.floor(totalSeconds / 86400);
+	totalSeconds %= 86400;
+	const hours = Math.floor(totalSeconds / 3600);
+	totalSeconds %= 3600;
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = Math.floor(totalSeconds % 60);
+	let readable;
 
-  if (days === 0 && hours === 0 && minutes === 0) readable = `${seconds} seconds`;
-  else if (days === 0 && hours === 0) readable = `${minutes}m ${seconds}s`;
-  else if (days === 0) readable = `${hours}h, ${minutes}m ${seconds}s`;
-  else readable = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
+	if (days === 0 && hours === 0 && minutes === 0) readable = `${seconds} seconds`;
+	else if (days === 0 && hours === 0) readable = `${minutes}m ${seconds}s`;
+	else if (days === 0) readable = `${hours}h, ${minutes}m ${seconds}s`;
+	else readable = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
 
-  return readable;
+	return readable;
 };
 
 export const wait = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+	return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 /** Sort the array based on the reaction counts */
 export const sortReactions = (reactions: { [key: string]: string[] }): [string, string[]][] => {
-  // before: { '👍': ['10201930193'], '👎': ['10201930193'] }
-  return Object.entries(reactions).sort((a, b) => b[1].length - a[1].length); // => [ [ '👎', ['10201930193'] ], [ '👍', ['10201930193'] ] ]
+	// before: { '👍': ['10201930193'], '👎': ['10201930193'] }
+	return Object.entries(reactions).sort((a, b) => b[1].length - a[1].length); // => [ [ '👎', ['10201930193'] ], [ '👍', ['10201930193'] ] ]
 };
 
 export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
-  if (!process.env.TOPGG_API_KEY) throw new TypeError('Missing TOPGG_API_KEY environment variable');
+	if (!process.env.TOPGG_API_KEY) throw new TypeError('Missing TOPGG_API_KEY environment variable');
 
-  const res = await (
-    await fetch(`${LINKS.TOPGG_API}/check?userId=${userId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: process.env.TOPGG_API_KEY,
-      },
-    })
-  ).json();
+	const res = await (
+		await fetch(`${LINKS.TOPGG_API}/check?userId=${userId}`, {
+			method: 'GET',
+			headers: {
+				Authorization: process.env.TOPGG_API_KEY,
+			},
+		})
+	).json();
 
-  return Boolean(res.voted);
+	return Boolean(res.voted);
 };
 
 export const userVotedToday = async (userId: Snowflake): Promise<boolean> => {
-  const res = await db.userData.findFirst({ where: { userId } });
+	const res = await db.userData.findFirst({ where: { userId } });
 
-  const oneDay = Date.now() - 60 * 60 * 24 * 1000;
-  return (res?.lastVoted && res.lastVoted > oneDay) === true;
+	const oneDay = Date.now() - 60 * 60 * 24 * 1000;
+	return (res?.lastVoted && res.lastVoted > oneDay) === true;
 };
 
 export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) => {
-  return option ? yesEmoji : noEmoji;
+	return option ? yesEmoji : noEmoji;
 };
 
 export const disableComponents = (message: Message) => {
-  return message.components.flatMap((row) => {
-    const jsonRow = row.toJSON();
-    jsonRow.components.forEach((component) => (component.disabled = true));
-    return jsonRow;
-  });
+	return message.components.flatMap((row) => {
+		const jsonRow = row.toJSON();
+		jsonRow.components.forEach((component) => (component.disabled = true));
+		return jsonRow;
+	});
 };
 
 const createWebhook = async (
-  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
-  avatar: string,
+	channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
+	avatar: string,
 ) => {
-  return await channel
-    ?.createWebhook({
-      name: 'InterChat Network',
-      avatar,
-    })
-    .catch(() => undefined);
+	return await channel
+		?.createWebhook({
+			name: 'InterChat Network',
+			avatar,
+		})
+		.catch(() => undefined);
 };
 
 const findExistingWebhook = async (
-  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
+	channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
 ) => {
-  const webhooks = await channel?.fetchWebhooks().catch(() => null);
-  return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
+	const webhooks = await channel?.fetchWebhooks().catch(() => null);
+	return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
 };
 
 export const getOrCreateWebhook = async (
-  channel: NewsChannel | TextChannel | ThreadChannel,
-  avatar = LINKS.EASTER_AVATAR,
+	channel: NewsChannel | TextChannel | ThreadChannel,
+	avatar = LINKS.EASTER_AVATAR,
 ) => {
-  const channelOrParent =
+	const channelOrParent =
     channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement
-      ? channel
-      : channel.parent;
+    	? channel
+    	: channel.parent;
 
-  if (!channelOrParent) return;
+	if (!channelOrParent) return;
 
-  const existingWebhook = await findExistingWebhook(channelOrParent);
+	const existingWebhook = await findExistingWebhook(channelOrParent);
 
-  if (existingWebhook) return existingWebhook;
-  return await createWebhook(channelOrParent, avatar);
+	if (existingWebhook) return existingWebhook;
+	return await createWebhook(channelOrParent, avatar);
 };
 
 export const getCredits = () => {
-  return [...DeveloperIds, ...StaffIds, ...SupporterIds];
+	return [...DeveloperIds, ...StaffIds, ...SupporterIds];
 };
 
 export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
-  const staffMembers = [...DeveloperIds, ...(onlyCheckForDev ? [] : StaffIds)];
-  return staffMembers.includes(userId);
+	const staffMembers = [...DeveloperIds, ...(onlyCheckForDev ? [] : StaffIds)];
+	return staffMembers.includes(userId);
 };
 
 export const disableAllComponents = (
-  components: ActionRow<MessageActionRowComponent>[],
-  disableLinks = false,
+	components: ActionRow<MessageActionRowComponent>[],
+	disableLinks = false,
 ) => {
-  return components.map((row) => {
-    const jsonRow = row.toJSON();
-    jsonRow.components.forEach((component) => {
-      !disableLinks &&
+	return components.map((row) => {
+		const jsonRow = row.toJSON();
+		jsonRow.components.forEach((component) => {
+			!disableLinks &&
       component.type === ComponentType.Button &&
       component.style === ButtonStyle.Link
-        ? (component.disabled = false) // leave link buttons enabled
-        : (component.disabled = true);
-    });
-    return jsonRow;
-  });
+				? (component.disabled = false) // leave link buttons enabled
+				: (component.disabled = true);
+		});
+		return jsonRow;
+	});
 };
 
 /**
@@ -172,108 +172,108 @@ export const disableAllComponents = (
  * @param time The time in milliseconds after which to disable the components
  */
 export const setComponentExpiry = (
-  scheduler: Scheduler,
-  message: Message,
-  time: number | Date,
+	scheduler: Scheduler,
+	message: Message,
+	time: number | Date,
 ): string => {
-  const timerId = randomBytes(8).toString('hex');
-  scheduler.addTask(`disableComponents_${timerId}`, time, async () => {
-    const updatedMsg = await message.fetch().catch(() => null);
-    if (updatedMsg?.components.length === 0 || !updatedMsg?.editable) return;
+	const timerId = randomBytes(8).toString('hex');
+	scheduler.addTask(`disableComponents_${timerId}`, time, async () => {
+		const updatedMsg = await message.fetch().catch(() => null);
+		if (updatedMsg?.components.length === 0 || !updatedMsg?.editable) return;
 
-    const disabled = disableAllComponents(message.components);
-    await updatedMsg.edit({ components: disabled });
-  });
+		const disabled = disableAllComponents(message.components);
+		await updatedMsg.edit({ components: disabled });
+	});
 
-  return timerId;
+	return timerId;
 };
 
 export const deleteMsgsFromDb = async (broadcastMsgs: string[]) => {
-  // delete all relations first and then delete the hub
-  const msgsToDelete = await db.broadcastedMessages.findMany({
-    where: { messageId: { in: broadcastMsgs } },
-  });
-  if (!msgsToDelete) return;
+	// delete all relations first and then delete the hub
+	const msgsToDelete = await db.broadcastedMessages.findMany({
+		where: { messageId: { in: broadcastMsgs } },
+	});
+	if (!msgsToDelete) return;
 
-  const originalMsgIds = msgsToDelete.map(({ originalMsgId }) => originalMsgId);
+	const originalMsgIds = msgsToDelete.map(({ originalMsgId }) => originalMsgId);
 
-  const childrenBatch = db.broadcastedMessages.deleteMany({
-    where: { originalMsgId: { in: originalMsgIds } },
-  });
-  const originalBatch = db.originalMessages.deleteMany({
-    where: { messageId: { in: originalMsgIds } },
-  });
+	const childrenBatch = db.broadcastedMessages.deleteMany({
+		where: { originalMsgId: { in: originalMsgIds } },
+	});
+	const originalBatch = db.originalMessages.deleteMany({
+		where: { messageId: { in: originalMsgIds } },
+	});
 
-  return await db.$transaction([childrenBatch, originalBatch]);
+	return await db.$transaction([childrenBatch, originalBatch]);
 };
 
 export const deleteHubs = async (ids: string[]) => {
-  // delete all relations first and then delete the hub
-  await db.connectedList.deleteMany({ where: { hubId: { in: ids } } });
-  await db.hubInvites.deleteMany({ where: { hubId: { in: ids } } });
-  await db.originalMessages
-    .findMany({ where: { hubId: { in: ids } }, include: { broadcastMsgs: true } })
-    .then((m) =>
-      deleteMsgsFromDb(
-        m.map(({ broadcastMsgs }) => broadcastMsgs.map(({ messageId }) => messageId)).flat(),
-      ),
-    );
+	// delete all relations first and then delete the hub
+	await db.connectedList.deleteMany({ where: { hubId: { in: ids } } });
+	await db.hubInvites.deleteMany({ where: { hubId: { in: ids } } });
+	await db.originalMessages
+		.findMany({ where: { hubId: { in: ids } }, include: { broadcastMsgs: true } })
+		.then((m) =>
+			deleteMsgsFromDb(
+				m.map(({ broadcastMsgs }) => broadcastMsgs.map(({ messageId }) => messageId)).flat(),
+			),
+		);
 
-  // finally, delete the hub
-  await db.hubs.deleteMany({ where: { id: { in: ids } } });
+	// finally, delete the hub
+	await db.hubs.deleteMany({ where: { id: { in: ids } } });
 };
 
 export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') => {
-  return string.replaceAll(REGEX.LINKS, replaceText);
+	return string.replaceAll(REGEX.LINKS, replaceText);
 };
 
 export const simpleEmbed = (description: string, color: ColorResolvable = colors.invisible) => {
-  return new EmbedBuilder().setColor(color).setDescription(description.toString());
+	return new EmbedBuilder().setColor(color).setDescription(description.toString());
 };
 
 export const calculateAverageRating = (ratings: number[]): number => {
-  if (ratings.length === 0) return 0;
+	if (ratings.length === 0) return 0;
 
-  const sum = ratings.reduce((acc, cur) => acc + cur, 0);
-  const average = sum / ratings.length;
-  return Math.round(average * 10) / 10;
+	const sum = ratings.reduce((acc, cur) => acc + cur, 0);
+	const average = sum / ratings.length;
+	return Math.round(average * 10) / 10;
 };
 
 export const checkAndFetchImgurUrl = async (url: string): Promise<string | false> => {
-  const regex = REGEX.IMGUR_LINKS;
-  const match = url.match(regex);
+	const regex = REGEX.IMGUR_LINKS;
+	const match = url.match(regex);
 
-  if (!match || !match[1]) return false;
+	if (!match || !match[1]) return false;
 
-  const type = match[0].includes('/a/') || match[0].includes('/gallery/') ? 'gallery' : 'image';
+	const type = match[0].includes('/a/') || match[0].includes('/gallery/') ? 'gallery' : 'image';
 
-  const response = await fetch(`https://api.imgur.com/3/${type}/${match[1]}`, {
-    headers: {
-      Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
-    },
-  });
-  const data = await response.json().catch(() => null);
-  if (!data || data?.data?.nsfw) {
-    return false;
-  }
-  // if means the image is an album or gallery
-  else if (data.data.cover) {
-    // refetch the cover image
-    return await checkAndFetchImgurUrl(`https://imgur.com/${data.data.cover}`);
-  }
+	const response = await fetch(`https://api.imgur.com/3/${type}/${match[1]}`, {
+		headers: {
+			Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
+		},
+	});
+	const data = await response.json().catch(() => null);
+	if (!data || data?.data?.nsfw) {
+		return false;
+	}
+	// if means the image is an album or gallery
+	else if (data.data.cover) {
+		// refetch the cover image
+		return await checkAndFetchImgurUrl(`https://imgur.com/${data.data.cover}`);
+	}
 
-  return data.data.link;
+	return data.data.link;
 };
 
 export const toTitleCase = (str: string) => {
-  return startCase(toLower(str));
+	return startCase(toLower(str));
 };
 
 const genCommandErrMsg = (locale: supportedLocaleCodes, error: string) => {
-  return t(
-    { phrase: 'errors.commandError', locale },
-    { error, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
-  );
+	return t(
+		{ phrase: 'errors.commandError', locale },
+		{ error, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
+	);
 };
 
 /**
@@ -281,13 +281,13 @@ const genCommandErrMsg = (locale: supportedLocaleCodes, error: string) => {
     It will send an error message to the user and log the error to the system.
   */
 export const replyWithError = async (interaction: RepliableInteraction, e: string) => {
-  const method = interaction.replied || interaction.deferred ? 'followUp' : 'reply';
+	const method = interaction.replied || interaction.deferred ? 'followUp' : 'reply';
 
-  // reply with an error message if the command failed
-  return await interaction[method]({
-    embeds: [simpleEmbed(genCommandErrMsg(interaction.user.locale || 'en', e))],
-    ephemeral: true,
-  }).catch(() => null);
+	// reply with an error message if the command failed
+	return await interaction[method]({
+		embeds: [simpleEmbed(genCommandErrMsg(interaction.user.locale || 'en', e))],
+		ephemeral: true,
+	}).catch(() => null);
 };
 
 /**
@@ -296,120 +296,120 @@ export const replyWithError = async (interaction: RepliableInteraction, e: strin
  * @returns The timestamp in milliseconds.
  */
 export const parseTimestampFromId = (id: Snowflake) => {
-  // Convert ID to binary
-  const binaryId = BigInt(id).toString(2);
+	// Convert ID to binary
+	const binaryId = BigInt(id).toString(2);
 
-  // Extract timestamp bits
-  const timestampBits = binaryId.substring(0, binaryId.length - 22);
+	// Extract timestamp bits
+	const timestampBits = binaryId.substring(0, binaryId.length - 22);
 
-  // Convert timestamp to milliseconds
-  const timestamp = parseInt(timestampBits, 2);
+	// Convert timestamp to milliseconds
+	const timestamp = parseInt(timestampBits, 2);
 
-  return timestamp + 1420070400000; // Discord epoch time
+	return timestamp + 1420070400000; // Discord epoch time
 };
 
 export const channelMention = (channelId: Snowflake | null | undefined) => {
-  if (!channelId) return emojis.no;
-  return `<#${channelId}>`;
+	if (!channelId) return emojis.no;
+	return `<#${channelId}>`;
 };
 
 export const handleError = (e: Error, interaction?: Interaction) => {
-  // log the error to the system
-  Logger.error(e);
-  let extra;
+	// log the error to the system
+	Logger.error(e);
+	let extra;
 
-  if (interaction) {
-    extra = {
-      user: { id: interaction.user.id, username: interaction.user.username },
-      extra: {
-        type: interaction.type,
-        identifier:
+	if (interaction) {
+		extra = {
+			user: { id: interaction.user.id, username: interaction.user.username },
+			extra: {
+				type: interaction.type,
+				identifier:
           interaction.isCommand() || interaction.isAutocomplete()
-            ? interaction.commandName
-            : CustomID.parseCustomId(interaction.customId),
-      },
-    };
-  }
+          	? interaction.commandName
+          	: CustomID.parseCustomId(interaction.customId),
+			},
+		};
+	}
 
-  // capture the error to Sentry.io with additional information
-  captureException(e, extra);
+	// capture the error to Sentry.io with additional information
+	captureException(e, extra);
 
-  // reply with an error message to the user
-  if (interaction?.isRepliable()) replyWithError(interaction, String(e));
+	// reply with an error message to the user
+	if (interaction?.isRepliable()) replyWithError(interaction, String(e));
 };
 
 export const isDev = (userId: Snowflake) => {
-  return DeveloperIds.includes(userId);
+	return DeveloperIds.includes(userId);
 };
 
 export const escapeRegexChars = (input: string): string => {
-  return input.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+	return input.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 };
 
 export const parseEmoji = (emoji: string) => {
-  const match = emoji.match(REGEX.EMOJI);
-  if (!match) return null;
+	const match = emoji.match(REGEX.EMOJI);
+	if (!match) return null;
 
-  const [, animated, name, id] = match;
-  return { animated: Boolean(animated), name, id };
+	const [, animated, name, id] = match;
+	return { animated: Boolean(animated), name, id };
 };
 
 export const getEmojiId = (emoji: string | undefined) => {
-  const res = parseEmoji(emoji || '');
-  return res?.id ?? emoji;
+	const res = parseEmoji(emoji || '');
+	return res?.id ?? emoji;
 };
 // get ordinal suffix for a number
 export const getOrdinalSuffix = (num: number) => {
-  const j = num % 10;
-  const k = num % 100;
+	const j = num % 10;
+	const k = num % 100;
 
-  if (j === 1 && k !== 11) return 'st';
-  else if (j === 2 && k !== 12) return 'nd';
-  else if (j === 3 && k !== 13) return 'rd';
-  return 'th';
+	if (j === 1 && k !== 11) return 'st';
+	else if (j === 2 && k !== 12) return 'nd';
+	else if (j === 3 && k !== 13) return 'rd';
+	return 'th';
 };
 
 export const getDbUser = async (userId: Snowflake) => {
-  return await db.userData.findFirst({ where: { userId } });
+	return await db.userData.findFirst({ where: { userId } });
 };
 
 export const getUsername = async (client: ClusterManager, userId: Snowflake) => {
-  if (client) {
-    const username = SuperClient.resolveEval(
-      await client.broadcastEval(
-        async (c, ctx) => {
-          const user = await c.users.fetch(ctx.userId).catch(() => null);
-          return user?.username;
-        },
-        {
-          context: { userId },
-        },
-      ),
-    );
+	if (client) {
+		const username = SuperClient.resolveEval(
+			await client.broadcastEval(
+				async (c, ctx) => {
+					const user = await c.users.fetch(ctx.userId).catch(() => null);
+					return user?.username;
+				},
+				{
+					context: { userId },
+				},
+			),
+		);
 
-    return username ?? (await getDbUser(userId))?.username ?? null;
-  }
+		return username ?? (await getDbUser(userId))?.username ?? null;
+	}
 
-  return (await getDbUser(userId))?.username ?? null;
+	return (await getDbUser(userId))?.username ?? null;
 };
 
 export const modifyUserRole = async (
-  cluster: ClusterClient<Client> | ClusterManager,
-  action: 'add' | 'remove',
-  userId: Snowflake,
-  guildId: Snowflake,
-  roleId: Snowflake,
+	cluster: ClusterClient<Client> | ClusterManager,
+	action: 'add' | 'remove',
+	userId: Snowflake,
+	guildId: Snowflake,
+	roleId: Snowflake,
 ) => {
-  await cluster.broadcastEval(
-    async (client, ctx) => {
-      const guild = client.guilds.cache.get(ctx.guildId);
-      const voterRole = guild?.roles.cache.find(({ id }) => id === ctx.roleId);
-      const member = await guild?.members.fetch(ctx.userId).catch(() => null);
-      if (!guild || !voterRole) return;
+	await cluster.broadcastEval(
+		async (client, ctx) => {
+			const guild = client.guilds.cache.get(ctx.guildId);
+			const voterRole = guild?.roles.cache.find(({ id }) => id === ctx.roleId);
+			const member = await guild?.members.fetch(ctx.userId).catch(() => null);
+			if (!guild || !voterRole) return;
 
-      // add or remove role
-      await member?.roles[ctx.action](voterRole).catch(() => null);
-    },
-    { guildId: SUPPORT_SERVER_ID, context: { userId, roleId, guildId, action } },
-  );
+			// add or remove role
+			await member?.roles[ctx.action](voterRole).catch(() => null);
+		},
+		{ guildId: SUPPORT_SERVER_ID, context: { userId, roleId, guildId, action } },
+	);
 };

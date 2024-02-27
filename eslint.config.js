@@ -7,7 +7,7 @@ import globals from 'globals';
 export default tseslint.config({
   // @ts-ignore
   files: ['src/**/*.ts', 'locales/src/index.ts'],
-  ignores: ['build', '**/node_modules/', '**/.*'],
+  ignores: ['build', 'locales/', '**/node_modules/', '**/.*'],
 
   extends: [...tseslint.configs.recommended],
   plugins: { '@stylistic': stylistic, '@typescript-eslint': tseslint.plugin },
