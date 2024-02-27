@@ -61,7 +61,8 @@ export default class JoinSubCommand extends Hub {
       }
 
       hub = fetchedInvite.hub;
-    } else {
+    }
+    else {
       hub = await db.hubs.findFirst({ where: { name: hubName, private: false } });
 
       if (!hub) {
@@ -112,7 +113,8 @@ export default class JoinSubCommand extends Hub {
     // if user cancels onboarding or it times out
     if (!onboardingCompleted) {
       return await interaction.deleteReply().catch(() => null);
-    } else if (onboardingCompleted === 'in-progress') {
+    }
+    else if (onboardingCompleted === 'in-progress') {
       return await interaction.reply({
         embeds: [
           simpleEmbed(

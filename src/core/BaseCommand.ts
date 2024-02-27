@@ -71,7 +71,8 @@ export default abstract class BaseCommand {
           subcommandGroup ? `-${subcommandGroup}` : ''
         }${subcommand ? `-${subcommand}` : ''}`,
       );
-    } else if (interaction.isContextMenuCommand()) {
+    }
+    else if (interaction.isContextMenuCommand()) {
       remainingCooldown = interaction.client.commandCooldowns?.getRemainingCooldown(
         `${interaction.user.id}-${interaction.commandName}`,
       );
@@ -93,7 +94,8 @@ export default abstract class BaseCommand {
         }${subcommand ? `-${subcommand}` : ''}`,
         this.cooldown,
       );
-    } else if (interaction.isContextMenuCommand()) {
+    }
+    else if (interaction.isContextMenuCommand()) {
       interaction.client.commandCooldowns?.setCooldown(
         `${interaction.user.id}-${interaction.commandName}`,
         this.cooldown,

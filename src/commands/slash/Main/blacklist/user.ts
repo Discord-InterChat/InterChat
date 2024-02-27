@@ -124,7 +124,8 @@ export default class Server extends BlacklistCommand {
         reason,
         expires,
       });
-    } else if (subcommandGroup == 'remove') {
+    }
+    else if (subcommandGroup == 'remove') {
       // remove the blacklist
       const result = await blacklistManager.removeBlacklist('user', hubInDb.id, userId);
       if (!result) {

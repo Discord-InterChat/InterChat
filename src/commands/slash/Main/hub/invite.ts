@@ -115,7 +115,8 @@ export default class Invite extends Hub {
             ],
             ephemeral: true,
           });
-        } catch (e) {
+        }
+        catch (e) {
           Logger.error(e);
           captureException(e);
           await interaction

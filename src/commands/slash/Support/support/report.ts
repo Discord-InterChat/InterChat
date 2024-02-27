@@ -58,7 +58,8 @@ export default class Report extends Support {
         components: [bugSelect],
         ephemeral: true,
       });
-    } else {
+    }
+    else {
       const modal = new ModalBuilder()
         .setTitle(t({ phrase: 'report.modal.title', locale: interaction.user.locale }))
         .setCustomId(new CustomID().setIdentifier('report_modal', reportType).toString())

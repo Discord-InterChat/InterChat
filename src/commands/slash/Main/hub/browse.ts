@@ -185,7 +185,8 @@ export default class Browse extends Hub {
           ),
         );
       await interaction.showModal(ratingModal);
-    } else if (customId.suffix === 'join') {
+    }
+    else if (customId.suffix === 'join') {
       const alreadyJoined = hubDetails.connections.find((c) => c.serverId === interaction.guildId);
       if (alreadyJoined) {
         interaction.reply({
@@ -248,10 +249,12 @@ export default class Browse extends Hub {
         components: [channelSelect, buttons],
         ephemeral: true,
       });
-    } else if (customId.suffix === 'cancel') {
+    }
+    else if (customId.suffix === 'cancel') {
       await interaction.deleteReply().catch(() => null);
       return;
-    } else if (customId.suffix === 'channel_select' || customId.suffix === 'confirm') {
+    }
+    else if (customId.suffix === 'channel_select' || customId.suffix === 'confirm') {
       if (!hubDetails) {
         return await interaction.reply({
           content: t(
@@ -354,7 +357,8 @@ export default class Browse extends Hub {
       // if user cancels onboarding or it times out
       if (!onboardingCompleted) {
         return await interaction.deleteReply().catch(() => null);
-      } else if (onboardingCompleted === 'in-progress') {
+      }
+      else if (onboardingCompleted === 'in-progress') {
         return await interaction.update({
           content: t(
             { phrase: 'onboarding.inProgress', locale: interaction.user.locale },

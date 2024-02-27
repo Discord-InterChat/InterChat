@@ -412,7 +412,8 @@ export default class Connection extends BaseCommand {
         ),
         ephemeral: true,
       });
-    } else if (customId.suffix === 'embed_color') {
+    }
+    else if (customId.suffix === 'embed_color') {
       const embedColor = interaction.fields.getTextInputValue('embed_color');
 
       const hex_regex = /^#[0-9A-F]{6}$/i;

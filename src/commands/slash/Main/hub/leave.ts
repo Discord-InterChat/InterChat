@@ -34,7 +34,8 @@ export default class Leave extends Hub {
           ),
         ],
       });
-    } else if (!interaction.member.permissions.has('ManageChannels', true)) {
+    }
+    else if (!interaction.member.permissions.has('ManageChannels', true)) {
       return await interaction.editReply({
         embeds: [
           simpleEmbed(

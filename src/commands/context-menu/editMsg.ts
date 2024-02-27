@@ -63,7 +63,8 @@ export default class EditMessage extends BaseCommand {
         ephemeral: true,
       });
       return;
-    } else if (interaction.user.id != messageInDb?.originalMsg.authorId) {
+    }
+    else if (interaction.user.id != messageInDb?.originalMsg.authorId) {
       await interaction.reply({
         content: t(
           { phrase: 'errors.notMessageAuthor', locale: interaction.user.locale },
@@ -158,19 +159,19 @@ export default class EditMessage extends BaseCommand {
     // else we just use the old embed and replace the description
     const newEmbed = target.content
       ? new EmbedBuilder()
-          .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
-          .setDescription(embedContent || null)
-          .setColor(target.member?.displayHexColor ?? 'Random')
-          .setImage(newImageUrl || oldImageUrl || null)
-          .addFields(
-            target.embeds[0]?.fields[0]
-              ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
-              : [],
-          )
-          .setFooter({ text: `Server: ${guild?.name}` })
+        .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
+        .setDescription(embedContent || null)
+        .setColor(target.member?.displayHexColor ?? 'Random')
+        .setImage(newImageUrl || oldImageUrl || null)
+        .addFields(
+          target.embeds[0]?.fields[0]
+            ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
+            : [],
+        )
+        .setFooter({ text: `Server: ${guild?.name}` })
       : EmbedBuilder.from(target.embeds[0])
-          .setDescription(embedContent || null)
-          .setImage(newImageUrl || oldImageUrl || null);
+        .setDescription(embedContent || null)
+        .setImage(newImageUrl || oldImageUrl || null);
 
     const censoredEmbed = EmbedBuilder.from(newEmbed).setDescription(
       censor(newEmbed.data.description ?? '') || null,
@@ -180,7 +181,8 @@ export default class EditMessage extends BaseCommand {
     if (oldImageUrl) {
       if (newImageUrl) {
         compactMsg = compactMsg.replace(oldImageUrl, newImageUrl);
-      } else if (!newMessage.includes(oldImageUrl)) {
+      }
+      else if (!newMessage.includes(oldImageUrl)) {
         newEmbed.setImage(null);
         censoredEmbed.setImage(null);
       }

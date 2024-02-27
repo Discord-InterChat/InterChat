@@ -53,7 +53,8 @@ export const loadLocales = (localesDirectory: string) => {
       const parsedContent = yaml.load(content);
 
       localesMap.set(localeKey, parsedContent);
-    } catch (error) {
+    }
+    catch (error) {
       Logger.error(`Error reading/parsing ${file}: ${error.message}`);
       process.exit(0);
     }
@@ -83,10 +84,12 @@ export const t = (
       }
 
       return result;
-    } else {
+    }
+    else {
       Logger.warn(`Translation for key '${phrase}' not found in ${locale} language.`);
     }
-  } else {
+  }
+  else {
     Logger.warn(`Language ${locale} not supported.`);
   }
 

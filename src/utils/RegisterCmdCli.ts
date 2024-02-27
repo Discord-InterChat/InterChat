@@ -20,7 +20,8 @@ export default async function registerAllCommands(staffOnly = false) {
     return await rest
       .put(Routes.applicationGuildCommands(CLIENT_ID, SUPPORT_SERVER_ID), { body: commands })
       .then(() => Logger.info('Registered all staff application commands.'));
-  } else {
+  }
+  else {
     const commands = commandsMap
       .filter((command) => !command.staffOnly)
       .map((command) => command.data);
@@ -35,12 +36,15 @@ export default async function registerAllCommands(staffOnly = false) {
 process.argv.forEach((arg) => {
   if (arg === '--public') {
     registerAllCommands().then(() => process.exit(0));
-  } else if (arg === '--private') {
+  }
+  else if (arg === '--private') {
     registerAllCommands(true).then(() => process.exit(0));
-  } else if (arg === '--help') {
+  }
+  else if (arg === '--help') {
     Logger.info('Usage: node utils/RegisterCmdCli.js [--public|--private|--help]');
     process.exit(0);
-  } else {
+  }
+  else {
     return;
   }
 });

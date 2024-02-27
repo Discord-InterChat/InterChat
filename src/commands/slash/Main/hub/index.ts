@@ -302,7 +302,8 @@ export default class Hub extends BaseCommand {
         },
         take: 25,
       });
-    } else if (modCmds.includes(subcommandGroup || subcommand)) {
+    }
+    else if (modCmds.includes(subcommandGroup || subcommand)) {
       hubChoices = await db.hubs.findMany({
         where: {
           name: { mode: 'insensitive', contains: focusedValue },
@@ -313,7 +314,8 @@ export default class Hub extends BaseCommand {
         },
         take: 25,
       });
-    } else if (managerCmds.includes(subcommandGroup || subcommand)) {
+    }
+    else if (managerCmds.includes(subcommandGroup || subcommand)) {
       hubChoices = await db.hubs.findMany({
         where: {
           name: { mode: 'insensitive', contains: focusedValue },
@@ -324,7 +326,8 @@ export default class Hub extends BaseCommand {
         },
         take: 25,
       });
-    } else if (subcommand === 'leave') {
+    }
+    else if (subcommand === 'leave') {
       const networks = await db.connectedList.findMany({
         where: { serverId: interaction.guild?.id },
         select: { channelId: true, hub: true },
@@ -344,7 +347,8 @@ export default class Hub extends BaseCommand {
         });
 
       return await interaction.respond(await Promise.all(filteredNets));
-    } else if (subcommand === 'delete') {
+    }
+    else if (subcommand === 'delete') {
       hubChoices = await db.hubs.findMany({
         where: {
           ownerId: interaction.user.id,

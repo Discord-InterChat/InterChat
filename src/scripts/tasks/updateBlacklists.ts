@@ -14,7 +14,8 @@ export default async (blacklists: (blacklistedServers | userData)[], scheduler: 
       if (expires < new Date()) {
         if ('serverId' in blacklist) {
           blacklistManager.removeBlacklist('server', hubId, blacklist.serverId);
-        } else {
+        }
+        else {
           await blacklistManager.removeBlacklist('user', hubId, blacklist.userId);
         }
         continue;

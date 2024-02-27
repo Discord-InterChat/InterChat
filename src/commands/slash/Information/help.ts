@@ -37,20 +37,20 @@ export default class Help extends BaseCommand {
         {
           name: 'Step 2: Join a Hub',
           value:
-            "Once you find a hub you like, simply type </hub join:1107639810014847049>. To avoid clutter, keep a separate channel for InterChat messages. You'll be connected to the hub instantly.",
+            'Once you find a hub you like, simply type </hub join:1107639810014847049>. To avoid clutter, keep a separate channel for InterChat messages. You\'ll be connected to the hub instantly.',
           inline: true,
         },
         {
           name: 'Step 3: All set!',
           value:
-            "To chat with people from other servers, simply type in the channel you just used to join the hub. You'll be able to see messages from other servers and send your own.",
+            'To chat with people from other servers, simply type in the channel you just used to join the hub. You\'ll be able to see messages from other servers and send your own.',
           inline: true,
         },
         {
           // empty field to make the embed look better
           name: '\u200b',
           value:
-            "It's as simple as that! You're now ready to start chatting with people from other servers. 🎉",
+            'It\'s as simple as that! You\'re now ready to start chatting with people from other servers. 🎉',
         },
       );
 

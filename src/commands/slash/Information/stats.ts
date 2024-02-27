@@ -18,7 +18,7 @@ import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
 export default class Stats extends BaseCommand {
   readonly data = {
     name: 'stats',
-    description: "View InterChat's statistics.",
+    description: 'View InterChat\'s statistics.',
   };
 
   async execute(interaction: ChatInputCommandInteraction) {

@@ -120,11 +120,11 @@ export default class NetworkManager {
     // check if it was sent in the network
     const referenceInDb = referredMessage
       ? (
-          await db.broadcastedMessages.findFirst({
-            where: { messageId: referredMessage?.id },
-            include: { originalMsg: { include: { broadcastMsgs: true } } },
-          })
-        )?.originalMsg
+        await db.broadcastedMessages.findFirst({
+          where: { messageId: referredMessage?.id },
+          include: { originalMsg: { include: { broadcastMsgs: true } } },
+        })
+      )?.originalMsg
       : undefined;
 
     let referredContent: string | undefined = undefined;
@@ -135,7 +135,8 @@ export default class NetworkManager {
       if (referredMessage?.author.id === message.client.user.id) {
         referredContent = this.getReferredContent(referredMessage);
         referredAuthor = message.client.user;
-      } else if (referenceInDb) {
+      }
+      else if (referenceInDb) {
         referredContent = this.getReferredContent(referredMessage);
         referredAuthor = await message.client.users.fetch(referenceInDb.authorId).catch(() => null);
       }
@@ -166,18 +167,18 @@ export default class NetworkManager {
         const jumpButton =
           reply && referredMessage?.author
             ? new ActionRowBuilder<ButtonBuilder>().addComponents(
-                new ButtonBuilder()
-                  .setStyle(ButtonStyle.Link)
-                  .setEmoji(emojis.reply)
-                  .setURL(
-                    `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`,
-                  )
-                  .setLabel(
-                    referredAuthor && referredAuthor.username.length >= 80
-                      ? '@' + referredAuthor.username.slice(0, 76) + '...'
-                      : '@' + referredAuthor?.username,
-                  ),
-              )
+              new ButtonBuilder()
+                .setStyle(ButtonStyle.Link)
+                .setEmoji(emojis.reply)
+                .setURL(
+                  `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`,
+                )
+                .setLabel(
+                  referredAuthor && referredAuthor.username.length >= 80
+                    ? '@' + referredAuthor.username.slice(0, 76) + '...'
+                    : '@' + referredAuthor?.username,
+                ),
+            )
             : null;
 
         // embed format
@@ -197,12 +198,12 @@ export default class NetworkManager {
           // preview embed for the message being replied to
           const replyEmbed = replyContent
             ? new EmbedBuilder({
-                description: replyContent,
-                author: {
-                  name: `${referredAuthor?.username.slice(0, 30)}`,
-                  icon_url: referredAuthor?.displayAvatarURL(),
-                },
-              }).setColor('Random')
+              description: replyContent,
+              author: {
+                name: `${referredAuthor?.username.slice(0, 30)}`,
+                icon_url: referredAuthor?.displayAvatarURL(),
+              },
+            }).setColor('Random')
             : undefined;
 
           // compact format (no embeds, only content)
@@ -228,7 +229,8 @@ export default class NetworkManager {
           messageOrError: messageOrError,
           webhookURL: connection.webhookURL,
         } as NetworkWebhookSendResult;
-      } catch (e) {
+      }
+      catch (e) {
         // return the error and webhook URL to store the message in the db
         return {
           messageOrError: e.message,
@@ -349,7 +351,7 @@ export default class NetworkManager {
 
     if (message.stickers.size > 0 && !message.content) {
       message.reply(
-        "Sending stickers in the network is not possible due to discord's limitations.",
+        'Sending stickers in the network is not possible due to discord\'s limitations.',
       );
       return false;
     }
@@ -435,7 +437,8 @@ export default class NetworkManager {
 
     if (!referredContent) {
       referredContent = '*Original message contains attachment <:attachment:1102464803647275028>*';
-    } else if (referredContent.length > 100) {
+    }
+    else if (referredContent.length > 100) {
       referredContent = referredContent.slice(0, 100) + '...';
     }
 
@@ -503,11 +506,11 @@ export default class NetworkManager {
       .addFields(
         formattedReply
           ? [
-              {
-                name: 'Replying To:',
-                value: `> ${formattedReply}` ?? 'Unknown.',
-              },
-            ]
+            {
+              name: 'Replying To:',
+              value: `> ${formattedReply}` ?? 'Unknown.',
+            },
+          ]
           : [],
       )
       .setFooter({
@@ -527,11 +530,11 @@ export default class NetworkManager {
       .setFields(
         formattedReply
           ? [
-              {
-                name: 'Replying To:',
-                value: `> ${censor(formattedReply)}` ?? 'Unknown.',
-              },
-            ]
+            {
+              name: 'Replying To:',
+              value: `> ${censor(formattedReply)}` ?? 'Unknown.',
+            },
+          ]
           : [],
       );
 
@@ -562,7 +565,8 @@ export default class NetworkManager {
         ) {
           invalidWebhookURLs.push(result.webhookURL);
         }
-      } else {
+      }
+      else {
         messageDataObj.push({
           channelId: result.messageOrError.channel_id,
           messageId: result.messageOrError.id,
@@ -625,13 +629,15 @@ export default class NetworkManager {
         });
         this.setSpamTimers(author);
         if (isWithinWindow) return userInCol;
-      } else {
+      }
+      else {
         this.antiSpamMap.set(author.id, {
           timestamps: [...timestamps, currentTimestamp],
           infractions: userInCol.infractions,
         });
       }
-    } else {
+    }
+    else {
       this.antiSpamMap.set(author.id, {
         timestamps: [currentTimestamp],
         infractions: 0,

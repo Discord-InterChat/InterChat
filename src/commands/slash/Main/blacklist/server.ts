@@ -84,7 +84,8 @@ export default class UserBlacklist extends BlacklistCommand {
           interaction.user.id,
           expires,
         );
-      } catch (err) {
+      }
+      catch (err) {
         Logger.error(err);
         captureException(err);
         interaction.followUp({
@@ -140,7 +141,8 @@ export default class UserBlacklist extends BlacklistCommand {
         reason,
         expires,
       });
-    } else if (subCommandGroup == 'remove') {
+    }
+    else if (subCommandGroup == 'remove') {
       const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
       if (!result) {
         return await interaction.followUp(
