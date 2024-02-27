@@ -50,7 +50,7 @@ export default tseslint.config({
     '@stylistic/no-multi-spaces': 'error',
     '@stylistic/space-before-blocks': 'error',
     '@stylistic/no-floating-decimal': 'error',
-    '@stylistic/indent': ['error', 'tab', { 'SwitchCase': 1 }],
+    '@stylistic/indent': ['error', 2],
     '@stylistic/semi': ['error', 'always'],
     '@stylistic/quotes': ['error', 'single'],
     '@stylistic/no-trailing-spaces': ['error'],

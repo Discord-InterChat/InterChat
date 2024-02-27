@@ -8,12 +8,12 @@ const router: Router = Router();
 const TopggWebhook = new Webhook(process.env.TOPGG_AUTH);
 
 export default (voteManager: VoteManager) => {
-	router.post(
-		'/dbl',
-		TopggWebhook.listener((vote) => {
-			// emit the vote event to use in other files
-			voteManager?.emit('vote', vote);
-		}),
-	);
-	return router;
+  router.post(
+    '/dbl',
+    TopggWebhook.listener((vote) => {
+      // emit the vote event to use in other files
+      voteManager?.emit('vote', vote);
+    }),
+  );
+  return router;
 };

@@ -6,18 +6,18 @@ import { AuditLogEvent, ChannelType, Guild, TextChannel } from 'discord.js';
  * @returns The greeting target, which can be a TextChannel or a User.
  */
 export default async function getWelcomeTargets(guild: Guild) {
-	let guildOwner = null;
+  let guildOwner = null;
 
-	if (guild.members.me?.permissions.has('ViewAuditLog', true)) {
-		const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 });
-		guildOwner = auditLog.entries.first()?.executor;
-	}
+  if (guild.members.me?.permissions.has('ViewAuditLog', true)) {
+    const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 });
+    guildOwner = auditLog.entries.first()?.executor;
+  }
 
-	const guildChannel = guild.channels.cache
-		.filter(
-			(c) => c.type === ChannelType.GuildText && c.permissionsFor(guild.id)?.has('SendMessages'),
-		)
-		.first() as TextChannel | undefined;
+  const guildChannel = guild.channels.cache
+    .filter(
+      (c) => c.type === ChannelType.GuildText && c.permissionsFor(guild.id)?.has('SendMessages'),
+    )
+    .first() as TextChannel | undefined;
 
-	return { guildOwner, guildChannel };
+  return { guildOwner, guildChannel };
 }
