@@ -12,6 +12,11 @@ on:
       - .prettierrc
       - .gitignore
       - .husky
+
+concurrency:
+    group: '${{ github.workflow }}-${{ github.ref }}'
+    cancel-in-progress: true
+
 jobs:
   build:
     name: Build updated code
