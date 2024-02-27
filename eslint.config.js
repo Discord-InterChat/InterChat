@@ -6,7 +6,7 @@ import globals from 'globals';
 
 export default tseslint.config({
   // @ts-ignore
-  files: ['src/**/*.ts', 'locales/src/index.ts'],
+  files: ['src/**/*.ts'],
   ignores: ['build', 'locales/', '**/node_modules/', '**/.*'],
 
   extends: [...tseslint.configs.recommended],
@@ -17,7 +17,7 @@ export default tseslint.config({
     parserOptions: { sourceType: 'module' },  
     ecmaVersion: 2022,
     globals: {
-      ...globals.nodeBuiltin,
+      ...globals.node,
     }
   },
 
@@ -30,7 +30,7 @@ export default tseslint.config({
     'no-lonely-if': 'error',
     'no-inline-comments': 'off',
     'no-empty-function': 'error',
-    'handle-callback-err': 'off',
+    'handle-callback-err': 'error',
     'max-nested-callbacks': ['error', { 'max': 4 }],
     'curly': ['error', 'multi-line', 'consistent'],
 
