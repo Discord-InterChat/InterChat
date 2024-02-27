@@ -206,7 +206,8 @@ export default class Moderator extends Hub {
                   ? hub.moderators
                     .map(
                       (mod, index) =>
-                        `${index + 1}. <@${mod.userId}> - ${mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'
+                        `${index + 1}. <@${mod.userId}> - ${
+                          mod.position === 'network_mod' ? 'Network Moderator' : 'Hub Manager'
                         }`,
                     )
                     .join('\n')

@@ -19,8 +19,8 @@
     "emitDecoratorMetadata": true,
     "allowSyntheticDefaultImports": true,
     "strictNullChecks": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
   },
   "include": ["src/**/*", "src/**/*.json"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "build"]
 }

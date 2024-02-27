@@ -36,10 +36,7 @@ export async function showOnboarding(
 
   const embed = new EmbedBuilder()
     .setTitle(
-      t(
-        { phrase: 'network.onboarding.embed.title', locale: interaction.user.locale },
-        { hubName },
-      ),
+      t({ phrase: 'network.onboarding.embed.title', locale: interaction.user.locale }, { hubName }),
     )
     .setDescription(
       t(

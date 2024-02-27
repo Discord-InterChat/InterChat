@@ -316,12 +316,14 @@ export default class NetworkManager {
     const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
     // if account is created within the last 7 days
     if (message.author.createdTimestamp > sevenDaysAgo) {
-      await message.channel.send(
-        t(
-          { phrase: 'network.accountTooNew', locale: message.author.locale },
-          { user: `${message.author}`, emoji: emojis.no },
-        ),
-      ).catch(() => null);
+      await message.channel
+        .send(
+          t(
+            { phrase: 'network.accountTooNew', locale: message.author.locale },
+            { user: `${message.author}`, emoji: emojis.no },
+          ),
+        )
+        .catch(() => null);
       return false;
     }
 

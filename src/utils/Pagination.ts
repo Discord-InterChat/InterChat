@@ -38,8 +38,14 @@ export async function paginate(
 ) {
   if (pages.length < 1) {
     interaction.replied || interaction.deferred
-      ? await interaction.followUp({ content: `${emojis.tick} No pages to display!`, ephemeral: true })
-      : await interaction.reply({ content: `${emojis.tick} No pages to display!`, ephemeral: true });
+      ? await interaction.followUp({
+        content: `${emojis.tick} No pages to display!`,
+        ephemeral: true,
+      })
+      : await interaction.reply({
+        content: `${emojis.tick} No pages to display!`,
+        ephemeral: true,
+      });
     return;
   }
 

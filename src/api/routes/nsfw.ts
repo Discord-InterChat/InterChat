@@ -27,7 +27,6 @@ const imageToTensor = async (rawImageData: ArrayBuffer) => {
   return tensor3d(buffer, [height, width, 3]);
 };
 
-
 router.get('/nsfw', async (req, res) => {
   nsfwModel = await load('http://localhost:443/model/');
 

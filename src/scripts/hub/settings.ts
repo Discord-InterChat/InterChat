@@ -29,11 +29,7 @@ export function buildSettingsEmbed(name: string, iconURL: string, rawSettings: n
     .setTimestamp();
 }
 
-export function buildSettingsMenu(
-  rawSettings: number,
-  hubId: string,
-  userId: Snowflake,
-) {
+export function buildSettingsMenu(rawSettings: number, hubId: string, userId: Snowflake) {
   const hubSettings = new HubSettingsBitField(rawSettings);
   return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()

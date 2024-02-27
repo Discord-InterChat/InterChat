@@ -40,7 +40,9 @@ clusterManager.on('clusterCreate', async (cluster) => {
 
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1_000, deleteExpiredInvites);
     scheduler.addRecurringTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages);
-    scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, () => syncBotlistStats(clusterManager));
+    scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, () =>
+      syncBotlistStats(clusterManager),
+    );
   }
 });
 

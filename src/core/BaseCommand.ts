@@ -67,7 +67,9 @@ export default abstract class BaseCommand {
       const subcommandGroup = interaction.options.getSubcommandGroup(false);
 
       remainingCooldown = interaction.client.commandCooldowns?.getRemainingCooldown(
-        `${interaction.user.id}-${interaction.commandName}${subcommandGroup ? `-${subcommandGroup}` : ''}${subcommand ? `-${subcommand}` : ''}`,
+        `${interaction.user.id}-${interaction.commandName}${
+          subcommandGroup ? `-${subcommandGroup}` : ''
+        }${subcommand ? `-${subcommand}` : ''}`,
       );
     }
     else if (interaction.isContextMenuCommand()) {
@@ -87,7 +89,9 @@ export default abstract class BaseCommand {
       const subcommandGroup = interaction.options.getSubcommandGroup(false);
 
       interaction.client.commandCooldowns?.setCooldown(
-        `${interaction.user.id}-${interaction.commandName}${subcommandGroup ? `-${subcommandGroup}` : ''}${subcommand ? `-${subcommand}` : ''}`,
+        `${interaction.user.id}-${interaction.commandName}${
+          subcommandGroup ? `-${subcommandGroup}` : ''
+        }${subcommand ? `-${subcommand}` : ''}`,
         this.cooldown,
       );
     }

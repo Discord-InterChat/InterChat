@@ -6,7 +6,12 @@ import NetworkManager from '../managers/NetworkManager.ts';
 import BlacklistManager from '../managers/BlacklistManager.ts';
 import CommandManager from '../managers/CommandManager.ts';
 import CooldownService from '../services/CooldownService.ts';
-import { JoinLeaveLogger, ModLogsLogger, ProfanityLogger, ReportLogger } from '../services/HubLoggerService.ts';
+import {
+  JoinLeaveLogger,
+  ModLogsLogger,
+  ProfanityLogger,
+  ReportLogger,
+} from '../services/HubLoggerService.ts';
 import { supportedLocaleCodes } from '../utils/Locale.ts';
 
 type RemoveMethods<T> = {
@@ -27,7 +32,7 @@ declare module 'discord.js' {
     readonly modLogsLogger: ModLogsLogger;
     readonly joinLeaveLogger: JoinLeaveLogger;
 
-    getUserLocale(userId: Snowflake): Promise<supportedLocaleCodes>
+    getUserLocale(userId: Snowflake): Promise<supportedLocaleCodes>;
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;
     commandManager: CommandManager;

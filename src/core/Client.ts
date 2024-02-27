@@ -37,7 +37,7 @@ export default abstract class SuperClient<R extends boolean = boolean> extends C
 
   private readonly scheduler = new Scheduler();
 
-  readonly description = "The only cross-server chatting bot you'll ever need.";
+  readonly description = 'The only cross-server chatting bot you\'ll ever need.';
   readonly version = process.env.npm_package_version ?? 'Unknown';
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;

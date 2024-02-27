@@ -51,7 +51,8 @@ export default class Server extends Find {
         {
           name: 'Network',
           value: stripIndents`
-            > ${emojis.chat_icon} **Hubs Owned:** ${hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None'
+            > ${emojis.chat_icon} **Hubs Owned:** ${
+  hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None'
 }
             > ${emojis.delete} **Blacklisted:** ${userInBlacklist ? 'Yes' : 'No'}`,
         },

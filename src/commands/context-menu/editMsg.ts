@@ -86,7 +86,8 @@ export default class EditMessage extends BaseCommand {
             .setStyle(TextInputStyle.Paragraph)
             .setLabel('Please enter your new message.')
             .setValue(
-              `${(target.content ?? target.embeds[0]?.description) ?? ''}\n${target.embeds[0]?.image?.url ?? ''
+              `${target.content ?? target.embeds[0]?.description ?? ''}\n${
+                target.embeds[0]?.image?.url ?? ''
               }`,
             )
             .setMaxLength(950),

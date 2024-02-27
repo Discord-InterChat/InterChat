@@ -18,7 +18,10 @@ export default class Vote extends BaseCommand {
     const { locale } = interaction.user;
     const embed = new EmbedBuilder()
       .setDescription(t({ phrase: 'vote.description', locale }))
-      .setFooter({ text: t({ phrase: 'vote.footer', locale }), iconURL: 'https://i.imgur.com/NKKmav5.gif' })
+      .setFooter({
+        text: t({ phrase: 'vote.footer', locale }),
+        iconURL: 'https://i.imgur.com/NKKmav5.gif',
+      })
       .setColor(colors.interchatBlue);
 
     const button = new ActionRowBuilder<ButtonBuilder>().addComponents(

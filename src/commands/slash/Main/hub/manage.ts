@@ -211,10 +211,7 @@ export default class Manage extends Hub {
         await interaction.reply({
           embeds: [
             simpleEmbed(
-              t(
-                { phrase: 'hub.manage.logs.reset', locale },
-                { emoji: emojis.delete, type },
-              ),
+              t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.delete, type }),
             ),
           ],
           ephemeral: true,

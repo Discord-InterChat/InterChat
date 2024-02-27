@@ -50,28 +50,24 @@ export default class Stats extends BaseCommand {
         {
           name: 'Bot Stats',
           value: stripIndents`
-          - Up Since: ${time(upSince, 'R')}
-          - Servers: ${guildCount}
-          - Members: ${memberCount}
-          `,
+					- Up Since: ${time(upSince, 'R')}
+					- Servers: ${guildCount}
+					- Members: ${memberCount}
+					`,
           inline: true,
         },
         {
           name: 'System Stats',
           value: stripIndents`
-            - OS: Linux
-            - CPU Cores: ${cpus().length}
-            - RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
-            `,
+						- OS: Linux
+						- CPU Cores: ${cpus().length}
+						- RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
+						`,
           inline: true,
         },
         {
           name: 'Hub Stats',
-          value: stripIndents`
-          - Total Hubs: ${totalHubs}
-          - Total Connected: ${totalConnections}
-          - Messages (Today): ${totalNetworkMessages}
-          `,
+          value: stripIndents`- Total Hubs: ${totalHubs}- Total Connected: ${totalConnections}- Messages (Today): ${totalNetworkMessages}`,
           inline: false,
         },
       ]);
@@ -114,8 +110,7 @@ export default class Stats extends BaseCommand {
 
       const res = client.ws.shards.map((shard) => ({
         name: `Shard #${shard.id} - ${Status[shard.status]}`,
-        value:
-          `\`\`\`elm\n\nPing: ${shard.ping}ms\nUptime: ${shard.manager.client.uptime}ms\nTotal Servers: ${shard.manager.client.guilds.cache.size}\nRAM Usage: ${memoryUsed} MB\`\`\``,
+        value: `\`\`\`elm\n\nPing: ${shard.ping}ms\nUptime: ${shard.manager.client.uptime}ms\nTotal Servers: ${shard.manager.client.guilds.cache.size}\nRAM Usage: ${memoryUsed} MB\`\`\``,
         inline: true,
       }));
 
@@ -127,10 +122,10 @@ export default class Stats extends BaseCommand {
         .setColor(colors.invisible)
         .setDescription(
           stripIndents`
-          ### Shard Stats
-          **Total Shards:** ${interaction.client.cluster.info.TOTAL_SHARDS} 
-          **On Shard:** ${interaction.guild?.shardId}
-          `,
+					### Shard Stats
+					**Total Shards:** ${interaction.client.cluster.info.TOTAL_SHARDS} 
+					**On Shard:** ${interaction.guild?.shardId}
+					`,
         )
         .setFields(allCusterData.flat().slice(0, 25))
         .setFooter({
