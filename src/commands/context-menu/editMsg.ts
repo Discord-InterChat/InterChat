@@ -30,7 +30,7 @@ export default class EditMessage extends BaseCommand {
   readonly cooldown = 10_000;
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
-    const isOnCooldown = await this.handleCooldown(interaction);
+    const isOnCooldown = await this.checkAndSetCooldown(interaction);
     if (isOnCooldown) return;
 
     const target = interaction.targetMessage;

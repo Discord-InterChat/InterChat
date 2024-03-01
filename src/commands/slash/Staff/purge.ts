@@ -105,7 +105,7 @@ export default class Purge extends BaseCommand {
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const isOnCooldown = await this.handleCooldown(interaction);
+    const isOnCooldown = await this.checkAndSetCooldown(interaction);
     if (isOnCooldown) return;
 
     await interaction.deferReply({ fetchReply: true });

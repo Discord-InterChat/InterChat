@@ -19,7 +19,7 @@ export default class DeleteMessage extends BaseCommand {
   readonly cooldown = 10_000;
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
-    const isOnCooldown = await this.handleCooldown(interaction);
+    const isOnCooldown = await this.checkAndSetCooldown(interaction);
     if (isOnCooldown) return;
 
     await interaction.deferReply({ ephemeral: true });

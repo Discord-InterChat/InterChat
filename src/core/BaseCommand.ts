@@ -32,7 +32,7 @@ export default abstract class BaseCommand {
   async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
   async autocomplete?(interaction: AutocompleteInteraction): Promise<unknown>;
 
-  async handleCooldown(interaction: RepliableInteraction): Promise<boolean> {
+  async checkAndSetCooldown(interaction: RepliableInteraction): Promise<boolean> {
     const remainingCooldown = this.getRemainingCooldown(interaction);
 
     if (remainingCooldown) {
