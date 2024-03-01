@@ -2,6 +2,10 @@
 
 <p align="center"><strong>InterChat</strong></p>
 
+[![Maintainability](https://api.codeclimate.com/v1/badges/b13854f1a4e321cbdea5/maintainability)](https://codeclimate.com/repos/65e14df13087a11dde64b238/maintainability) 
+[![Discord Bots](https://top.gg/api/widget/servers/769921109209907241.svg/)](https://top.gg/bot/769921109209907241)
+
+
 This repo contains the source code for the InterChat Discord bot. InterChat is a Discord bot that allows you to chat with users from other servers.
 
 # Getting Started
