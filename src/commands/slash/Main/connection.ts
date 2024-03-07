@@ -133,7 +133,6 @@ export default class Connection extends BaseCommand {
       components: [customizeMenu, buttons],
     });
 
-    // TODO Button expiration
     setComponentExpiry(
       interaction.client.getScheduler(),
       await interaction.fetchReply(),

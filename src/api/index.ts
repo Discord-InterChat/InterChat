@@ -8,7 +8,6 @@ import nsfwRouter from './routes/nsfw.js';
 export const startApi = (data: { voteManager: VoteManager }) => {
   const app = express();
 
-  app.use(express.static('src/api/public'));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(nsfwRouter);
