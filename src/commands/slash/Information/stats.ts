@@ -50,24 +50,27 @@ export default class Stats extends BaseCommand {
         {
           name: 'Bot Stats',
           value: stripIndents`
-					- Up Since: ${time(upSince, 'R')}
-					- Servers: ${guildCount}
-					- Members: ${memberCount}
-					`,
+	    - Up Since: ${time(upSince, 'R')}
+            - Servers: ${guildCount}
+	    - Members: ${memberCount}
+	  `,
           inline: true,
         },
         {
           name: 'System Stats',
           value: stripIndents`
-						- OS: Linux
-						- CPU Cores: ${cpus().length}
-						- RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
-						`,
+            - OS: Linux
+            - CPU Cores: ${cpus().length}
+            - RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
+	  `,
           inline: true,
         },
         {
           name: 'Hub Stats',
-          value: stripIndents`- Total Hubs: ${totalHubs}- Total Connected: ${totalConnections}- Messages (Today): ${totalNetworkMessages}`,
+          value: stripIndents`
+            - Total Hubs: ${totalHubs}
+            - Total Connected: ${totalConnections}
+            - Messages (Today): ${totalNetworkMessages}`,
           inline: false,
         },
       ]);
