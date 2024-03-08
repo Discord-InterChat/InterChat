@@ -85,10 +85,9 @@ export default abstract class SuperClient<R extends boolean = boolean> extends C
         IntentsBitField.Flags.GuildMessageReactions,
       ],
       presence: {
-        status: 'idle',
         activities: [
           {
-            state: 'Watching over 200+ cross-server hubs',
+            state: '🔗 Watching over 700+ cross-server hubs',
             name: 'custom',
             type: ActivityType.Custom,
           },
