@@ -6,7 +6,7 @@ import Logger from '../../utils/Logger.js';
 import sharp from 'sharp';
 import jpeg from 'jpeg-js';
 
-const nsfwModel = await load('MobileNetV2');
+let nsfwModel;
 const router: Router = Router();
 
 const imageToTensor = async (rawImageData: ArrayBuffer) => {
@@ -28,6 +28,8 @@ const imageToTensor = async (rawImageData: ArrayBuffer) => {
 };
 
 router.get('/nsfw', async (req, res) => {
+  nsfwModel = await load('http://localhost:443/model/');
+
   const url = new URL(req.url, `http://${req.headers.host}`);
   const imageUrl = url.searchParams.get('url');
 
