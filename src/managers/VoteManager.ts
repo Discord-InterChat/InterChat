@@ -53,15 +53,17 @@ export class VoteManager extends EventEmitter {
   }
 
   async incrementUserVote(userId: string, username?: string) {
+    const lastVoted = new Date().getTime();
     return await db.userData.upsert({
       where: { userId },
       create: {
         userId,
         username,
-        lastVoted: new Date().getTime(),
+        lastVoted,
         voteCount: 1,
       },
       update: {
+        lastVoted,
         voteCount: { increment: 1 },
       },
     });
