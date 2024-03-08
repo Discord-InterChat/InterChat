@@ -396,7 +396,7 @@ export default class NetworkManager {
       message.content = replaceLinks(message.content);
     }
 
-    // TODO allow multiple attachments when embeds can have multiple images
+    // TODO: allow multiple attachments when embeds can have multiple images
     const attachment = message.attachments.first();
     const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg'];
 

@@ -125,7 +125,7 @@ export default class Create extends Hub {
     const iconUrl = icon ? await checkAndFetchImgurUrl(icon) : undefined;
     const bannerUrl = banner ? await checkAndFetchImgurUrl(banner) : undefined;
 
-    // TODO create a gif showing how to get imgur links
+    // TODO: create a gif showing how to get imgur links
     if (iconUrl === false || bannerUrl === false) {
       return await interaction.followUp({
         embeds: [
