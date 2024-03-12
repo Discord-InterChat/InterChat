@@ -508,7 +508,7 @@ export default class NetworkManager {
           ? [
             {
               name: 'Replying To:',
-              value: `> ${formattedReply}` ?? 'Unknown.',
+              value: `> ${formattedReply}`,
             },
           ]
           : [],
@@ -532,7 +532,7 @@ export default class NetworkManager {
           ? [
             {
               name: 'Replying To:',
-              value: `> ${censor(formattedReply)}` ?? 'Unknown.',
+              value: `> ${censor(formattedReply)}`,
             },
           ]
           : [],
