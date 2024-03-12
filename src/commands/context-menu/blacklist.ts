@@ -11,6 +11,7 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
   TextInputBuilder,
   TextInputStyle,
+  time,
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import parse from 'parse-duration';
@@ -20,7 +21,6 @@ import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { simpleEmbed } from '../../utils/Utils.js';
-import { time } from 'discord.js';
 
 export default class Blacklist extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {

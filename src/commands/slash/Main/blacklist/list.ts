@@ -1,11 +1,10 @@
-import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder, time } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
-import { time } from 'discord.js';
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
