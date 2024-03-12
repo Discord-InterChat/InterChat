@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.17.7](https://github.com/Discord-InterChat/InterChat/compare/v3.17.6...v3.17.7) (2024-03-12)
+
+
+### Bug Fixes
+
+* **vote:** fix vote date not getting stored in db ([9718094](https://github.com/Discord-InterChat/InterChat/commit/97180940f4a83846ffadd066a30a94fb9ab7e58c))
+* **voteManager:**  add recurring task for removing expired votes ([88c9251](https://github.com/Discord-InterChat/InterChat/commit/88c92511de8843dce14b93af914c1f98d8df9933))
+
 ### [3.17.6](https://github.com/Discord-InterChat/InterChat/compare/v3.17.5...v3.17.6) (2024-03-08)
 
 ### [3.17.5](https://github.com/Discord-InterChat/InterChat/compare/v3.17.3...v3.17.5) (2024-02-27)
