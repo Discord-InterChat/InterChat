@@ -43,7 +43,7 @@ export default class Server extends BlacklistCommand {
 
     const blacklistManager = interaction.client.blacklistManager;
 
-    if (subcommandGroup == 'add') {
+    if (subcommandGroup === 'add') {
       // get ID if user inputted a @ mention
       const userOpt = userId.replaceAll(/<@|!|>/g, '');
       // find user through username if they are cached or fetch them using ID
@@ -125,7 +125,7 @@ export default class Server extends BlacklistCommand {
         expires,
       });
     }
-    else if (subcommandGroup == 'remove') {
+    else if (subcommandGroup === 'remove') {
       // remove the blacklist
       const result = await blacklistManager.removeBlacklist('user', hubInDb.id, userId);
       if (!result) {

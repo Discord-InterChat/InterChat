@@ -50,7 +50,7 @@ export default class ListBlacklists extends BlacklistCommand {
     // reset counter & clear fields array
     // repeat until you reach the end
 
-    if (serverOpt == 'server') {
+    if (serverOpt === 'server') {
       const result = await db.blacklistedServers.findMany({
         where: { hubs: { some: { hubId: hubInDb.id } } },
       });
@@ -91,7 +91,7 @@ export default class ListBlacklists extends BlacklistCommand {
         }
       }
     }
-    else if (serverOpt == 'user') {
+    else if (serverOpt === 'user') {
       const result = await db.userData.findMany({
         where: { blacklistedFrom: { some: { hubId: hubInDb.id } } },
       });
