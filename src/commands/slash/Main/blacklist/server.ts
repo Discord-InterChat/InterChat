@@ -44,7 +44,7 @@ export default class UserBlacklist extends BlacklistCommand {
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverOpt = interaction.options.getString('server', true);
 
-    if (subCommandGroup == 'add') {
+    if (subCommandGroup === 'add') {
       const reason = interaction.options.getString('reason', true);
       const duration = parse(`${interaction.options.getString('duration')}`);
       const expires = duration ? new Date(Date.now() + duration) : undefined;
@@ -142,7 +142,7 @@ export default class UserBlacklist extends BlacklistCommand {
         expires,
       });
     }
-    else if (subCommandGroup == 'remove') {
+    else if (subCommandGroup === 'remove') {
       const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
       if (!result) {
         return await interaction.followUp(

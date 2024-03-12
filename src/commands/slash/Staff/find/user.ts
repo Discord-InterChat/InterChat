@@ -24,7 +24,7 @@ export default class Server extends Find {
     const userInBlacklist = await db.blacklistedUsers?.findFirst({ where: { userId: user.id } });
 
     const serversOwned = user.client.guilds.cache
-      .filter((guild) => guild.ownerId == user.id)
+      .filter((guild) => guild.ownerId === user.id)
       .map((guild) => guild.name);
     const hubsOwned = await db.hubs.findMany({
       where: { ownerId: user.id },

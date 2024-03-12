@@ -64,7 +64,7 @@ export default class EditMessage extends BaseCommand {
       });
       return;
     }
-    else if (interaction.user.id != messageInDb?.originalMsg.authorId) {
+    else if (interaction.user.id !== messageInDb?.originalMsg.authorId) {
       await interaction.reply({
         content: t(
           { phrase: 'errors.notMessageAuthor', locale: interaction.user.locale },

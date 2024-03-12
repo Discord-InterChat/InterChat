@@ -131,12 +131,10 @@ export const getOrCreateWebhook = async (
       ? channel
       : channel.parent;
 
-  if (!channelOrParent) return;
+  if (!channelOrParent) return null;
 
   const existingWebhook = await findExistingWebhook(channelOrParent);
-
-  if (existingWebhook) return existingWebhook;
-  return await createWebhook(channelOrParent, avatar);
+  return existingWebhook || await createWebhook(channelOrParent, avatar);
 };
 
 export const getCredits = () => {
@@ -156,8 +154,8 @@ export const disableAllComponents = (
     const jsonRow = row.toJSON();
     jsonRow.components.forEach((component) => {
       !disableLinks &&
-      component.type === ComponentType.Button &&
-      component.style === ButtonStyle.Link
+        component.type === ComponentType.Button &&
+        component.style === ButtonStyle.Link
         ? (component.disabled = false) // leave link buttons enabled
         : (component.disabled = true);
     });
