@@ -14,12 +14,20 @@ export type TopggEvents = {
 };
 
 export class VoteManager extends EventEmitter {
-  private scheduler = new Scheduler();
+  private scheduler: Scheduler;
   private cluster: ClusterManager;
 
-  constructor(cluster: ClusterManager) {
+  constructor(cluster: ClusterManager, scheduler = new Scheduler()) {
     super();
     this.cluster = cluster;
+    this.scheduler = scheduler;
+    this.scheduler.addRecurringTask('removeVoterRole', 60 * 60 * 1_000, async () => {
+      const expiredVotes = await db.userData.findMany({ where: { lastVoted: { lt: new Date().getTime() } } });
+      for (const vote of expiredVotes) {
+        this.emit('voteExpired', vote.userId);
+        await this.removeVoterRole(vote.userId);
+      }
+    });
   }
 
   on<K extends keyof TopggEvents>(event: K, listener: (data: TopggEvents[K]) => void): this {
@@ -32,19 +40,6 @@ export class VoteManager extends EventEmitter {
 
   once<K extends keyof TopggEvents>(event: K, listener: (data: TopggEvents[K]) => void): this {
     return super.once(event, listener);
-  }
-
-  async incrementAndScheduleVote(userId: string, username?: string) {
-    await this.incrementUserVote(userId, username);
-    await this.addVoterRole(userId);
-
-    const taskName = `voteExpired-${userId}`;
-    if (this.scheduler.taskNames.includes(taskName)) this.scheduler.stopTask(taskName);
-
-    this.scheduler.addTask(`voteExpired-${userId}`, 12 * 60 * 60 * 1000, async () => {
-      this.emit('voteExpired', userId);
-      await this.removeVoterRole(userId);
-    });
   }
 
   async getUserVoteCount(userId: string) {
@@ -91,7 +86,7 @@ export class VoteManager extends EventEmitter {
             `,
           )
           .setFooter({ text: `This is your ${voteCount}${ordinalSuffix} time voting!` })
-          .setColor('Green'),
+          .setColor('Orange'),
       ],
     });
   }

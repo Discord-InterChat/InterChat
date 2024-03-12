@@ -397,19 +397,18 @@ export const modifyUserRole = async (
   cluster: ClusterClient<Client> | ClusterManager,
   action: 'add' | 'remove',
   userId: Snowflake,
-  guildId: Snowflake,
+  guildId: Snowflake = SUPPORT_SERVER_ID,
   roleId: Snowflake,
 ) => {
   await cluster.broadcastEval(
     async (client, ctx) => {
       const guild = client.guilds.cache.get(ctx.guildId);
-      const voterRole = guild?.roles.cache.find(({ id }) => id === ctx.roleId);
+      const role = guild?.roles.cache.find(({ id }) => id === ctx.roleId);
       const member = await guild?.members.fetch(ctx.userId).catch(() => null);
-      if (!guild || !voterRole) return;
 
       // add or remove role
-      await member?.roles[ctx.action](voterRole).catch(() => null);
+      if (guild && role) return await member?.roles[ctx.action](role).catch(() => null);
     },
-    { guildId: SUPPORT_SERVER_ID, context: { userId, roleId, guildId, action } },
+    { guildId, context: { userId, roleId, guildId, action } },
   );
 };

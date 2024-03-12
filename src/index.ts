@@ -48,10 +48,9 @@ clusterManager.on('clusterCreate', async (cluster) => {
 
 const voteManager = new VoteManager(clusterManager);
 voteManager.on('vote', async (vote) => {
-  await voteManager.incrementAndScheduleVote(
-    vote.user,
-    (await getUsername(clusterManager, vote.user)) ?? undefined,
-  );
+  const username = await getUsername(clusterManager, vote.user) ?? undefined;
+  await voteManager.incrementUserVote(vote.user, username);
+  await voteManager.addVoterRole(vote.user);
   await voteManager.announceVote(vote);
 });
 
