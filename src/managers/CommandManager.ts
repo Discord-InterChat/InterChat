@@ -85,7 +85,7 @@ export default class CommandManager extends Factory {
       }
       else if (file.endsWith('.js') && file !== 'BaseCommand.js') {
         const imported = await import(importPrefix + filePath);
-        const command = new imported.default();
+        const command: BaseCommand = new imported.default();
 
         // if the command extends BaseCommand (ie. is not a subcommand), add it to the commands map
         if (Object.getPrototypeOf(command.constructor) === BaseCommand) {
