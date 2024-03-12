@@ -397,8 +397,8 @@ export const modifyUserRole = async (
   cluster: ClusterClient<Client> | ClusterManager,
   action: 'add' | 'remove',
   userId: Snowflake,
-  guildId: Snowflake = SUPPORT_SERVER_ID,
   roleId: Snowflake,
+  guildId: Snowflake = SUPPORT_SERVER_ID,
 ) => {
   await cluster.broadcastEval(
     async (client, ctx) => {
