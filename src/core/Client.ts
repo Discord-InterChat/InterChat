@@ -87,7 +87,7 @@ export default abstract class SuperClient<R extends boolean = boolean> extends C
       presence: {
         activities: [
           {
-            state: '🔗 Watching over 700+ cross-server hubs',
+            state: '🔗 Watching over 700+ cross-server chats',
             name: 'custom',
             type: ActivityType.Custom,
           },
