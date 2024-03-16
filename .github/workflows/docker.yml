@@ -42,20 +42,14 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: latest 
           labels: ${{ steps.meta.outputs.labels }}
   restart:
     needs: [build-and-push-image]
     name: run-container-on-server
     runs-on: self-hosted
     steps:
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Pull latest image
-        run: docker pull ghcr.io/discord-interchat/interchat
+        run: sudo docker pull ghcr.io/discord-interchat/interchat
       - name: Run latest image
-        run: docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
+        run: sudo docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
