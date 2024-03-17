@@ -12,11 +12,12 @@ COPY yarn.lock .
 COPY .yarn ./.yarn
 COPY .yarnrc.yml .
 
-RUN yarn 
+RUN yarn
 RUN yarn prisma generate
+RUN npm rebuild @tensorflow/tfjs-node --build-from-source
 
-RUN yarn build 
+RUN yarn build
 RUN yarn workspaces focus --production
 
-EXPOSE 443 
+EXPOSE 443
 CMD ["yarn", "start"]
