@@ -1,4 +1,4 @@
-FROM node:21.7.0
+FROM --platform=linux/arm64 node:21.7.0
 WORKDIR /src
 
 LABEL org.opencontainers.image.source=https://github.com/Discord-InterChat/InterChat
