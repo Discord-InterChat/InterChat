@@ -2,9 +2,9 @@
 name: Create and publish a Docker image
 
 # Configures this workflow to run every time a change is pushed to the branch called `release`.
-on: 
-  push: 
-    tags: 
+on:
+  push:
+    tags:
       - v*
 
 # Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
@@ -20,7 +20,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-      # 
+      #
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -56,7 +56,7 @@ jobs:
       contents: read
       packages: read
     steps:
-      - name: Log in to the Container registry
+      - name: Login to the Container registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Pull latest image
         run: sudo docker pull ghcr.io/discord-interchat/interchat

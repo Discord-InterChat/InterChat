@@ -8,6 +8,7 @@ import {
 import BaseCommand from '../../../core/BaseCommand.js';
 import { colors, emojis } from '../../../utils/Constants.js';
 import { t } from '../../../utils/Locale.js';
+import db from '../../../utils/Db.js';
 
 export default class Vote extends BaseCommand {
   readonly data = {
@@ -16,11 +17,18 @@ export default class Vote extends BaseCommand {
   };
   async execute(interaction: ChatInputCommandInteraction) {
     const { locale } = interaction.user;
+    const userData = await db.userData.findFirst({ where: { userId: interaction.user.id } });
+    const voteCount = String(userData?.voteCount ?? 0);
+
     const embed = new EmbedBuilder()
       .setDescription(t({ phrase: 'vote.description', locale }))
       .setFooter({
         text: t({ phrase: 'vote.footer', locale }),
         iconURL: 'https://i.imgur.com/NKKmav5.gif',
+      })
+      .setFields({
+        name: `${emojis.topggSparkles} Vote Count`,
+        value: voteCount,
       })
       .setColor(colors.interchatBlue);
 

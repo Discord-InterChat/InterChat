@@ -33,7 +33,7 @@
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "lz-string": "^1.5.0",
-    "nsfwjs": "^3.0.0",
+    "nsfwjs": "3.0.0",
     "parse-duration": "^1.1.0",
     "sharp": "^0.33.2",
     "source-map-support": "^0.5.21",
