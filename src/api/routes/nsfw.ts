@@ -7,7 +7,7 @@ import sharp from 'sharp';
 import jpeg from 'jpeg-js';
 
 let nsfwModel;
-const router: Router = Router();
+const router = Router();
 
 const imageToTensor = async (rawImageData: ArrayBuffer) => {
   const jpegImg = await sharp(rawImageData).jpeg().toBuffer();
