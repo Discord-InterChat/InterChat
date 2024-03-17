@@ -736,58 +736,58 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sentry-internal/tracing@npm:7.106.1":
-  version: 7.106.1
-  resolution: "@sentry-internal/tracing@npm:7.106.1"
+"@sentry-internal/tracing@npm:7.107.0":
+  version: 7.107.0
+  resolution: "@sentry-internal/tracing@npm:7.107.0"
   dependencies:
-    "@sentry/core": "npm:7.106.1"
-    "@sentry/types": "npm:7.106.1"
-    "@sentry/utils": "npm:7.106.1"
-  checksum: 10c0/53e873b2f2c786553171e0acfbd3b5da53e1ef53c46a423fa64a6464dfa05629ccbe844d9e20722945e105d26632dfc29abcd1ae52019f9ba3eaf73099881e03
+    "@sentry/core": "npm:7.107.0"
+    "@sentry/types": "npm:7.107.0"
+    "@sentry/utils": "npm:7.107.0"
+  checksum: 10c0/d87143c548659ce018ba320406b098cc04429904b6194ae03e4626ccc71f2838256cee3390a1c8cd9b0ca945e8349456cf6da460772164545199682962218564
   languageName: node
   linkType: hard
 
-"@sentry/core@npm:7.106.1":
-  version: 7.106.1
-  resolution: "@sentry/core@npm:7.106.1"
+"@sentry/core@npm:7.107.0":
+  version: 7.107.0
+  resolution: "@sentry/core@npm:7.107.0"
   dependencies:
-    "@sentry/types": "npm:7.106.1"
-    "@sentry/utils": "npm:7.106.1"
-  checksum: 10c0/fde54bba7dde0a9601cf0a155aabb240dbe2f6ab34094633b7e6b90c21fb1d11a1175c9e2d6d9a907a28b66fadb4dffd82b3a97832e69d8f5f2d8f853291deaf
+    "@sentry/types": "npm:7.107.0"
+    "@sentry/utils": "npm:7.107.0"
+  checksum: 10c0/4d28df638aec9f8b88700a09d6a5d71e05b627a4bd6e75e062a523a51d0aed3dc080909859a2a72fc49e1d7637b732ae616468a3e14482900df7c4b55739f537
   languageName: node
   linkType: hard
 
-"@sentry/node@npm:^7.106.1":
-  version: 7.106.1
-  resolution: "@sentry/node@npm:7.106.1"
+"@sentry/node@npm:^7.107.0":
+  version: 7.107.0
+  resolution: "@sentry/node@npm:7.107.0"
   dependencies:
-    "@sentry-internal/tracing": "npm:7.106.1"
-    "@sentry/core": "npm:7.106.1"
-    "@sentry/types": "npm:7.106.1"
-    "@sentry/utils": "npm:7.106.1"
-  checksum: 10c0/a2d3abecc8d253a922ff82ca3548465f5fcaab9a87533d0196376e2703dd6588f89223a72bb3265cca0f28af171173c3896b589b1e53da7be4ca1cf673c42c1f
+    "@sentry-internal/tracing": "npm:7.107.0"
+    "@sentry/core": "npm:7.107.0"
+    "@sentry/types": "npm:7.107.0"
+    "@sentry/utils": "npm:7.107.0"
+  checksum: 10c0/a2992e2c54a17cd323c7f7362c7742417b4fdff800f104f8de0506ca7c0c225b6709b4580bb82cebfbb28e2c53642f663d9e2ad7a68f5ef71f7b4bc8e1564501
   languageName: node
   linkType: hard
 
-"@sentry/types@npm:7.106.1":
-  version: 7.106.1
-  resolution: "@sentry/types@npm:7.106.1"
-  checksum: 10c0/00aefe4165bd0021876c966cd79ab75a522f14e8d462c6964546471b0a08bc337f7579fd4b2b7357076d05bd30e54febb8f0e57ab20a389c071e7c3df91e77bd
+"@sentry/types@npm:7.107.0":
+  version: 7.107.0
+  resolution: "@sentry/types@npm:7.107.0"
+  checksum: 10c0/08a2b95a27106a974a42a1e2462c979b8d61d9ae63cef0d7bd36eb37603009e1e8e9bb181586d1a449b7fe52a4b696b01a4228ac13083a7c4088774f16c89421
   languageName: node
   linkType: hard
 
-"@sentry/utils@npm:7.106.1":
-  version: 7.106.1
-  resolution: "@sentry/utils@npm:7.106.1"
+"@sentry/utils@npm:7.107.0":
+  version: 7.107.0
+  resolution: "@sentry/utils@npm:7.107.0"
   dependencies:
-    "@sentry/types": "npm:7.106.1"
-  checksum: 10c0/e2697c6fea04a6c7e0cbb75c6df56411a73c70ebe9c6fa31e771fb646a105dbbd74b80007bbc98030215e5505adca1ad87b5e95f7704ef66855277cc01ccbd1a
+    "@sentry/types": "npm:7.107.0"
+  checksum: 10c0/c0a0cd612f4db3d12853311ba8437e0315dee2f842d8ad741afeef75ab030965fc4288d8751c42f0b263d409792388d51257c3d665fba7efdf175527ef8891c4
   languageName: node
   linkType: hard
 
-"@stylistic/eslint-plugin-js@npm:1.6.3, @stylistic/eslint-plugin-js@npm:^1.6.3":
-  version: 1.6.3
-  resolution: "@stylistic/eslint-plugin-js@npm:1.6.3"
+"@stylistic/eslint-plugin-js@npm:1.7.0, @stylistic/eslint-plugin-js@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "@stylistic/eslint-plugin-js@npm:1.7.0"
   dependencies:
     "@types/eslint": "npm:^8.56.2"
     acorn: "npm:^8.11.3"
@@ -796,61 +796,61 @@ __metadata:
     espree: "npm:^9.6.1"
   peerDependencies:
     eslint: ">=8.40.0"
-  checksum: 10c0/f49c87a08579432089c29dd404dee6ad9083d3004096af5b9aeea4c266155ebdd7b13827a4dbaca137912d0a32e90674c9c81660ee009b717dacbb62aa195f28
+  checksum: 10c0/67944f8c0a8030df8b18e096dca02ace98f3039c68afbb9074caa43fdd7809e413a908d3aec981f9dff1f2e943db06744a813d4ad7808bae0643231f9ffda0f9
   languageName: node
   linkType: hard
 
-"@stylistic/eslint-plugin-jsx@npm:1.6.3":
-  version: 1.6.3
-  resolution: "@stylistic/eslint-plugin-jsx@npm:1.6.3"
+"@stylistic/eslint-plugin-jsx@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@stylistic/eslint-plugin-jsx@npm:1.7.0"
   dependencies:
-    "@stylistic/eslint-plugin-js": "npm:^1.6.3"
+    "@stylistic/eslint-plugin-js": "npm:^1.7.0"
     "@types/eslint": "npm:^8.56.2"
     estraverse: "npm:^5.3.0"
     picomatch: "npm:^4.0.1"
   peerDependencies:
     eslint: ">=8.40.0"
-  checksum: 10c0/422e743c5446583e626afea98d683800b56bf44f0627ff3d8de1eb8e5d3fc0f2dcbbb6d8e5d916f3c3fdade2be97287596d1430a1e288006f331db7e26db556c
+  checksum: 10c0/96a7998155a4b5f08bb2db83a048f90ddb9e9dcad2bdb005de94302d23ab5a12f401d7bb146f0f3a4bdb0f083beff20c763b7ef00b0c960026d0c7010db72e8c
   languageName: node
   linkType: hard
 
-"@stylistic/eslint-plugin-plus@npm:1.6.3":
-  version: 1.6.3
-  resolution: "@stylistic/eslint-plugin-plus@npm:1.6.3"
+"@stylistic/eslint-plugin-plus@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@stylistic/eslint-plugin-plus@npm:1.7.0"
   dependencies:
     "@types/eslint": "npm:^8.56.2"
     "@typescript-eslint/utils": "npm:^6.21.0"
   peerDependencies:
     eslint: "*"
-  checksum: 10c0/3c463425bd3bb25a800bc5c5f827da4654f7a979d0d4a494aa9427a55007f1f91758af535ece4a9dbcaa45601f56586833c1f12f9a43beafc5f40701844226b5
+  checksum: 10c0/be4b6fbeab6392589cbbd169b6538b6c69ea0403b04e80c378d7a5fbb9c6192ad8f0f14e990ccba46517a6ab940356a39b31012fdd4f2061a30448989a0bdf7b
   languageName: node
   linkType: hard
 
-"@stylistic/eslint-plugin-ts@npm:1.6.3":
-  version: 1.6.3
-  resolution: "@stylistic/eslint-plugin-ts@npm:1.6.3"
+"@stylistic/eslint-plugin-ts@npm:1.7.0":
+  version: 1.7.0
+  resolution: "@stylistic/eslint-plugin-ts@npm:1.7.0"
   dependencies:
-    "@stylistic/eslint-plugin-js": "npm:1.6.3"
+    "@stylistic/eslint-plugin-js": "npm:1.7.0"
     "@types/eslint": "npm:^8.56.2"
     "@typescript-eslint/utils": "npm:^6.21.0"
   peerDependencies:
     eslint: ">=8.40.0"
-  checksum: 10c0/b62acd0669d9acba6e8e5d834de2a4ed79cb6cb7ba5759cbafcb46b5d4627233f7cc0b2c5343deba8be1d5c0546e993f90cf70a7a698c4b258cc856b8b352f45
+  checksum: 10c0/16900545248e4e9074e068bba3039addc39f1ffb1eea5a9afcad37ba9f9a3bdd45271049e80dd6ca00d901fd9d24ecb06c7940853e7a84413f309204251aaad0
   languageName: node
   linkType: hard
 
-"@stylistic/eslint-plugin@npm:^1.6.3":
-  version: 1.6.3
-  resolution: "@stylistic/eslint-plugin@npm:1.6.3"
+"@stylistic/eslint-plugin@npm:^1.7.0":
+  version: 1.7.0
+  resolution: "@stylistic/eslint-plugin@npm:1.7.0"
   dependencies:
-    "@stylistic/eslint-plugin-js": "npm:1.6.3"
-    "@stylistic/eslint-plugin-jsx": "npm:1.6.3"
-    "@stylistic/eslint-plugin-plus": "npm:1.6.3"
-    "@stylistic/eslint-plugin-ts": "npm:1.6.3"
+    "@stylistic/eslint-plugin-js": "npm:1.7.0"
+    "@stylistic/eslint-plugin-jsx": "npm:1.7.0"
+    "@stylistic/eslint-plugin-plus": "npm:1.7.0"
+    "@stylistic/eslint-plugin-ts": "npm:1.7.0"
     "@types/eslint": "npm:^8.56.2"
   peerDependencies:
     eslint: ">=8.40.0"
-  checksum: 10c0/d8086af7eecaaefc00f93ca043071269548dcce05fa4a0c5588abc407343db018cf1ca95fd799b05d76cd26c9866d1d4d385d0060b081d846b1ea7c35eb9e11e
+  checksum: 10c0/d1d02fae56658459cdfbbf6a2775c8f30cf9bd9335f1fd8db49a701f223a80b035b73ca80759302ae670b9f49daadf1ab3cfbbbc1bcb5455542d8cac4dfae9fc
   languageName: node
   linkType: hard
 
@@ -1139,12 +1139,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^20.11.26":
-  version: 20.11.26
-  resolution: "@types/node@npm:20.11.26"
+"@types/node@npm:^20.11.28":
+  version: 20.11.28
+  resolution: "@types/node@npm:20.11.28"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10c0/2df81e4f109588c4c490f2c7d616a06d2b3b9298f217468134b80711af810c9a6017a59beb3e6b1c596eb9b6c5a39d33403b99179acb89006badfbc55f2468bb
+  checksum: 10c0/c599745243ed9ae4ca87460f18f88d02ab7424b545136aa504ed7a1d898e3a9bb133c927bcc7e861f79d7f6043ef917a173e780c8a001e129221e92f6d97b0ee
   languageName: node
   linkType: hard
 
@@ -4278,8 +4278,8 @@ __metadata:
   resolution: "interchat@workspace:."
   dependencies:
     "@prisma/client": "npm:^5.11.0"
-    "@sentry/node": "npm:^7.106.1"
-    "@stylistic/eslint-plugin": "npm:^1.6.3"
+    "@sentry/node": "npm:^7.107.0"
+    "@stylistic/eslint-plugin": "npm:^1.7.0"
     "@tensorflow/tfjs-node": "npm:^4.17.0"
     "@top-gg/sdk": "npm:^3.1.6"
     "@types/common-tags": "npm:^1.8.4"
@@ -4287,7 +4287,7 @@ __metadata:
     "@types/i18n": "npm:^0.13.10"
     "@types/js-yaml": "npm:^4.0.9"
     "@types/lodash": "npm:^4.17.0"
-    "@types/node": "npm:^20.11.26"
+    "@types/node": "npm:^20.11.28"
     "@types/source-map-support": "npm:^0.5.10"
     common-tags: "npm:^1.8.2"
     cz-conventional-changelog: "npm:^3.3.0"
