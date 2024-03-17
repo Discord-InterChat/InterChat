@@ -1,7 +1,9 @@
-FROM --platform=linux/arm64 node:21.7.0
+FROM node:21-alpine
 WORKDIR /src
 
 LABEL org.opencontainers.image.source=https://github.com/Discord-InterChat/InterChat
+
+RUN apk add --no-cache python3 build-base
 
 COPY src ./src
 COPY locales ./locales
