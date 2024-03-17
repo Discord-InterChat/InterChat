@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.17.8](https://github.com/Discord-InterChat/InterChat/compare/v3.17.7...v3.17.8) (2024-03-17)
+
+
+### Bug Fixes
+
+* **utils:** default parameters should be placed after non-default ones ([#55](https://github.com/Discord-InterChat/InterChat/issues/55)) ([17e9900](https://github.com/Discord-InterChat/InterChat/commit/17e9900092948ddcc44f83a90dcb2114583137a5)), closes [#53](https://github.com/Discord-InterChat/InterChat/issues/53)
+
 ### [3.17.7](https://github.com/Discord-InterChat/InterChat/compare/v3.17.6...v3.17.7) (2024-03-12)
 
 
