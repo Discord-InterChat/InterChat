@@ -57,7 +57,5 @@ jobs:
     steps:
       - name: Login to the Container registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Pull latest image
-        run: sudo docker pull ghcr.io/discord-interchat/interchat
-      # - name: Run latest image
-      #   run: sudo docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
+      - name: Run latest image
+        run: sudo docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
