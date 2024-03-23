@@ -1,16 +1,18 @@
-FROM node:21-alpine
+FROM node:21-slim
 WORKDIR /src
 
 LABEL org.opencontainers.image.source=https://github.com/Discord-InterChat/InterChat
 
-RUN apk add --no-cache python3 build-base g++
+RUN apt-get update && apt-get install -y \
+    python3 \
+    build-essential &&
+    rm -rf /var/lib/apt/lists/*
 
 COPY src ./src
 COPY locales ./locales
 COPY prisma ./prisma
 COPY tsconfig.json .
 COPY package.json .
-COPY yarn.lock .
 COPY .yarn ./.yarn
 COPY .yarnrc.yml .
 
