@@ -13,7 +13,7 @@ import db from '../../../../utils/Db.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { HubSettingsBits } from '../../../../utils/BitFields.js';
 import { checkAndFetchImgurUrl, simpleEmbed } from '../../../../utils/Utils.js';
-import { LINKS, emojis } from '../../../../utils/Constants.js';
+import { LINKS, REGEX, emojis } from '../../../../utils/Constants.js';
 import { t } from '../../../../utils/Locale.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 
@@ -87,7 +87,7 @@ export default class Create extends Hub {
     const banner = interaction.fields.getTextInputValue('banner');
 
     // if hubName contains "discord", "clyde" "```" then return
-    if (/discord|clyde|```/gi.test(name)) {
+    if (REGEX.BANNED_WEBHOOK_WORDS.test(name)) {
       return await interaction.followUp({
         content: t(
           { phrase: 'hub.create.invalidName', locale: interaction.user.locale },
