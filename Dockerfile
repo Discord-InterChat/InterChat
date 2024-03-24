@@ -5,8 +5,8 @@ LABEL org.opencontainers.image.source=https://github.com/Discord-InterChat/Inter
 
 RUN apt-get update && apt-get install -y \
     python3 \
-    build-essential &&
-    rm -rf /var/lib/apt/lists/*
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY src ./src
 COPY locales ./locales
@@ -15,6 +15,9 @@ COPY tsconfig.json .
 COPY package.json .
 COPY .yarn ./.yarn
 COPY .yarnrc.yml .
+
+RUN git submodule update --init
+
 
 RUN yarn
 RUN yarn prisma generate
