@@ -16,9 +16,6 @@ COPY package.json .
 COPY .yarn ./.yarn
 COPY .yarnrc.yml .
 
-RUN git submodule update --init
-
-
 RUN yarn
 RUN yarn prisma generate
 RUN npm rebuild @tensorflow/tfjs-node --build-from-source
