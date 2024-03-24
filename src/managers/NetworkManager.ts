@@ -142,11 +142,14 @@ export default class NetworkManager {
       }
     }
 
+
     const username = (
       settings.has('UseNicknames')
         ? message.member?.displayName || message.author.displayName
         : message.author.username
-    ).slice(0, 50);
+    ).slice(0, 35).replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
+
+    const servername = message.guild?.name.slice(0, 35).replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
 
     // embeds for the normal mode
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, username, censoredContent, {
@@ -154,7 +157,8 @@ export default class NetworkManager {
       referredContent,
       embedCol: (isNetworkMessage.embedColor as HexColorString) ?? undefined,
     });
-
+    
+    // ---------- Broadcasting ---------
     const sendResult = allConnections.map(async (connection, index) => {
       // wait 1 second every 50 messages to avoid rate limits
       if (index % 50) await wait(1000);
@@ -206,13 +210,12 @@ export default class NetworkManager {
               }).setColor('Random')
             : undefined;
 
-          let webhookName = `@${username.slice(0, 35)} • ${message.guild?.name.slice(0, 35)}`;
-          if (REGEX.BANNED_WEBHOOK_WORDS.test(webhookName)) {
-            webhookName = webhookName.replaceAll(webhookName, '[censored]');
-          }
+
 
           // compact format (no embeds, only content)
           messageFormat = {
+            username: `@${username} • ${servername}`,
+            avatarURL: message.author.displayAvatarURL(),
             embeds: replyEmbed ? [replyEmbed] : undefined,
             components: jumpButton ? [jumpButton] : undefined,
             content:
@@ -220,15 +223,12 @@ export default class NetworkManager {
               // append the attachment url if there is one
               `${attachment ? `\n${attachmentURL}` : ''}`,
             // username is already limited to 50 characters, server name is limited to 40 (char limit is 100)
-            username: webhookName,
-            avatarURL: message.author.displayAvatarURL(),
             threadId: connection.parentId ? connection.channelId : undefined,
             allowedMentions: { parse: [] },
           };
         }
         // send the message
         const messageOrError = await sendMessage(messageFormat, connection.webhookURL);
-        if (message.channelId === connection.channelId) Logger.debug('%O', messageOrError);
 
         // return the message and webhook URL to store the message in the db
         return {
