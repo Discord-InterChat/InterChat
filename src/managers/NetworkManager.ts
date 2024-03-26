@@ -61,55 +61,18 @@ export default class NetworkManager {
 
     const settings = new HubSettingsBitField(isNetworkMessage.hub.settings);
 
-    // run checks on the message to determine if it can be sent in the network
-    if (!(await this.runChecks(message, settings, isNetworkMessage.hubId))) return;
-
-    const allConnections = await this.fetchHubNetworks({
-      hubId: isNetworkMessage.hubId,
-      connected: true,
-    });
-
     const attachment = message.attachments.first();
     const attachmentURL = attachment
       ? attachment.url
       : await this.getAttachmentURL(message.content);
 
-    if (attachmentURL) {
-      const reaction = await message.react(emojis.loading).catch(() => null);
+    // run checks on the message to determine if it can be sent in the network
+    if (!(await this.runChecks(message, settings, isNetworkMessage.hubId, { attachmentURL }))) return;
 
-      // run static images through the nsfw detector
-      if (REGEX.STATIC_IMAGE_URL.test(attachmentURL)) {
-        const predictions = await message.client.nsfwDetector.analyzeImage(
-          attachment ? attachment.url : attachmentURL,
-        );
-
-        if (predictions && message.client.nsfwDetector.isUnsafeContent(predictions)) {
-          const nsfwEmbed = new EmbedBuilder()
-            .setTitle(t({ phrase: 'network.nsfw.title', locale }))
-            .setDescription(
-              t(
-                { phrase: 'network.nsfw.description', locale },
-                {
-                  predictions: `${Math.round(predictions[0].probability * 100)}%`,
-                  rules_command: '</rules:924659340898619395>',
-                },
-              ),
-            )
-            .setFooter({
-              text: t({ phrase: 'network.nsfw.footer', locale }),
-              iconURL: 'https://i.imgur.com/625Zy9W.png',
-            })
-            .setColor('Red');
-
-          await message.channel.send({ content: `${message.author}`, embeds: [nsfwEmbed] });
-          return;
-        }
-      }
-
-      reaction?.remove().catch(() => null);
-      // mark that the attachment url is being used
-      message.react('🔗').catch(() => null);
-    }
+    const allConnections = await this.fetchHubNetworks({
+      hubId: isNetworkMessage.hubId,
+      connected: true,
+    });
 
     const censoredContent = censor(message.content);
 
@@ -142,14 +105,17 @@ export default class NetworkManager {
       }
     }
 
-
     const username = (
       settings.has('UseNicknames')
         ? message.member?.displayName || message.author.displayName
         : message.author.username
-    ).slice(0, 35).replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
+    )
+      .slice(0, 35)
+      .replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
 
-    const servername = message.guild?.name.slice(0, 35).replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
+    const servername = message.guild?.name
+      .slice(0, 35)
+      .replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
 
     // embeds for the normal mode
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, username, censoredContent, {
@@ -157,7 +123,7 @@ export default class NetworkManager {
       referredContent,
       embedCol: (isNetworkMessage.embedColor as HexColorString) ?? undefined,
     });
-    
+
     // ---------- Broadcasting ---------
     const sendResult = allConnections.map(async (connection, index) => {
       // wait 1 second every 50 messages to avoid rate limits
@@ -209,8 +175,6 @@ export default class NetworkManager {
                 },
               }).setColor('Random')
             : undefined;
-
-
 
           // compact format (no embeds, only content)
           messageFormat = {
@@ -315,7 +279,7 @@ export default class NetworkManager {
    * @param hubId - The ID of the hub the message is being sent in.
    * @returns A boolean indicating whether the message passed all checks.
    */
-  public async runChecks(message: Message, settings: HubSettingsBitField, hubId: string) {
+  public async runChecks(message: Message, settings: HubSettingsBitField, hubId: string, opts?: { attachmentURL?: string | null }) {
     if (!message.inGuild()) return false;
 
     const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
@@ -425,6 +389,44 @@ export default class NetworkManager {
 
       // we don't want to send the message if it contains slurs
       if (slurs) return false;
+    }
+
+    if (opts?.attachmentURL) {
+      const reaction = await message.react(emojis.loading).catch(() => null);
+      const { locale } = message.author;
+
+      // run static images through the nsfw detector
+      if (REGEX.STATIC_IMAGE_URL.test(opts.attachmentURL)) {
+        const predictions = await message.client.nsfwDetector.analyzeImage(
+          attachment ? attachment.url : opts.attachmentURL,
+        );
+
+        if (predictions && message.client.nsfwDetector.isUnsafeContent(predictions)) {
+          const nsfwEmbed = new EmbedBuilder()
+            .setTitle(t({ phrase: 'network.nsfw.title', locale }))
+            .setDescription(
+              t(
+                { phrase: 'network.nsfw.description', locale },
+                {
+                  predictions: `${Math.round(predictions[0].probability * 100)}%`,
+                  rules_command: '</rules:924659340898619395>',
+                },
+              ),
+            )
+            .setFooter({
+              text: t({ phrase: 'network.nsfw.footer', locale }),
+              iconURL: 'https://i.imgur.com/625Zy9W.png',
+            })
+            .setColor('Red');
+
+          await message.channel.send({ content: `${message.author}`, embeds: [nsfwEmbed] });
+          return false;
+        }
+      }
+
+      reaction?.remove().catch(() => null);
+      // mark that the attachment url is being used
+      message.react('🔗').catch(() => null);
     }
 
     return true;
