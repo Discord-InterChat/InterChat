@@ -135,8 +135,8 @@ export default class Stats extends BaseCommand {
             return {
               name: `Shard #${shard.id} - ${Status[shard.status]}`,
               value: stripIndents`\`\`\`elm
-              Ping: ${msToReadable(shard.ping)}ms
-              Uptime: ${shard.uptime}ms
+              Ping: ${shard.ping}ms
+              Uptime: ${shard.uptime ? msToReadable(shard.uptime) : '0 ms'}
               Servers: ${shard.totalGuilds}
               RAM Usage: ${shard.memUsage} MB
               \`\`\`
