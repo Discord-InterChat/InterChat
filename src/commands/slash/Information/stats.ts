@@ -5,6 +5,7 @@ import {
   ButtonStyle,
   ChatInputCommandInteraction,
   EmbedBuilder,
+  Status,
   time,
 } from 'discord.js';
 import db from '../../../utils/Db.js';
@@ -14,11 +15,12 @@ import { LINKS, colors, emojis, isDevBuild } from '../../../utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { CustomID } from '../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
+import { msToReadable } from '../../../utils/Utils.js';
 
 export default class Stats extends BaseCommand {
   readonly data = {
     name: 'stats',
-    description: 'View InterChat\'s statistics.',
+    description: "View InterChat's statistics.",
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -108,16 +110,14 @@ export default class Stats extends BaseCommand {
     const customId = CustomID.parseCustomId(interaction.customId);
 
     const allCusterData = await interaction.client.cluster.broadcastEval((client) => {
-      const { Status } = require('discord.js');
-      const memoryUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
-
-      const res = client.ws.shards.map((shard) => ({
-        name: `Shard #${shard.id} - ${Status[shard.status]}`,
-        value: `\`\`\`elm\n\nPing: ${shard.ping}ms\nUptime: ${shard.manager.client.uptime}ms\nTotal Servers: ${shard.manager.client.guilds.cache.size}\nRAM Usage: ${memoryUsed} MB\`\`\``,
-        inline: true,
+      return client.ws.shards.map((shard) => ({
+        id: shard.id,
+        status: shard.status,
+        ping: shard.ping,
+        uptime: shard.manager.client.uptime,
+        totalGuilds: shard.manager.client.guilds.cache.size,
+        memUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
       }));
-
-      return res;
     });
 
     if (customId.suffix === 'shardStats') {
@@ -130,7 +130,21 @@ export default class Stats extends BaseCommand {
 					**On Shard:** ${interaction.guild?.shardId}
 					`,
         )
-        .setFields(allCusterData.flat().slice(0, 25))
+        .setFields(
+          allCusterData.flat().map((shard) => {
+            return {
+              name: `Shard #${shard.id} - ${Status[shard.status]}`,
+              value: stripIndents`\`\`\`elm
+              Ping: ${msToReadable(shard.ping)}ms
+              Uptime: ${shard.uptime}ms
+              Servers: ${shard.totalGuilds}
+              RAM Usage: ${shard.memUsage} MB
+              \`\`\`
+            `,
+              inline: true,
+            };
+          }),
+        )
         .setFooter({
           text: `InterChat v${interaction.client.version}${isDevBuild ? '+dev' : ''}`,
           iconURL: interaction.client.user.displayAvatarURL(),
