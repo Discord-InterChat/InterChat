@@ -27,7 +27,7 @@
     "discord-hybrid-sharding": "^2.1.4",
     "discord.js": "^14.14.1",
     "dotenv": "^16.4.5",
-    "express": "^4.19.1",
+    "express": "^4.19.2",
     "google-translate-api-x": "^10.6.8",
     "jpeg-js": "^0.4.4",
     "js-yaml": "^4.1.0",
