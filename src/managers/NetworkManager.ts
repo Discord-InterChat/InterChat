@@ -146,8 +146,8 @@ export default class NetworkManager {
                 )
                 .setLabel(
                   referredAuthor && referredAuthor.username.length >= 80
-                    ? '@' + referredAuthor.username.slice(0, 76) + '...'
-                    : '@' + referredAuthor?.username,
+                    ? `@${referredAuthor.username.slice(0, 76)}...`
+                    : `@${referredAuthor?.username}`,
                 ),
             )
             : null;
