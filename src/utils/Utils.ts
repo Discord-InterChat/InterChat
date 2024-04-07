@@ -134,7 +134,7 @@ export const getOrCreateWebhook = async (
   if (!channelOrParent) return null;
 
   const existingWebhook = await findExistingWebhook(channelOrParent);
-  return existingWebhook || await createWebhook(channelOrParent, avatar);
+  return existingWebhook || (await createWebhook(channelOrParent, avatar));
 };
 
 export const getCredits = () => {
@@ -154,8 +154,8 @@ export const disableAllComponents = (
     const jsonRow = row.toJSON();
     jsonRow.components.forEach((component) => {
       !disableLinks &&
-        component.type === ComponentType.Button &&
-        component.style === ButtonStyle.Link
+      component.type === ComponentType.Button &&
+      component.style === ButtonStyle.Link
         ? (component.disabled = false) // leave link buttons enabled
         : (component.disabled = true);
     });
@@ -379,9 +379,7 @@ export const getUsername = async (client: ClusterManager, userId: Snowflake) => 
           const user = await c.users.fetch(ctx.userId).catch(() => null);
           return user?.username;
         },
-        {
-          context: { userId },
-        },
+        { context: { userId } },
       ),
     );
 

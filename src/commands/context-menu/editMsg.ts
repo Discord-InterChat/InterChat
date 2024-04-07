@@ -10,6 +10,7 @@ import {
   CacheType,
   ModalSubmitInteraction,
   userMention,
+  Message,
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../../core/BaseCommand.js';
@@ -132,7 +133,8 @@ export default class EditMessage extends BaseCommand {
     const userInput = interaction.fields.getTextInputValue('newMessage');
     const hubSettings = new HubSettingsBitField(messageInDb.originalMsg.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
-    const networkManager = interaction.client.networkManager;
+    const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } =
+      await EditMessage.fabricateNewMsg(target, newMessage, messageInDb.originalMsg.serverId);
 
     if (
       hubSettings.has('BlockInvites') &&
@@ -145,50 +147,6 @@ export default class EditMessage extends BaseCommand {
       );
       return;
     }
-    // get image from embed
-    // get image from content
-    const oldImageUrl = target.content
-      ? await networkManager.getAttachmentURL(target.content)
-      : target.embeds[0]?.image?.url;
-    const newImageUrl = await networkManager.getAttachmentURL(newMessage);
-    const guild = await interaction.client.fetchGuild(messageInDb.originalMsg.serverId);
-    const embedContent = newMessage.replace(oldImageUrl ?? '', '').replace(newImageUrl ?? '', '');
-
-    // if the message being edited is in compact mode
-    // then we create a new embed with the new message and old reply
-    // else we just use the old embed and replace the description
-    const newEmbed = target.content
-      ? new EmbedBuilder()
-        .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
-        .setDescription(embedContent || null)
-        .setColor(target.member?.displayHexColor ?? 'Random')
-        .setImage(newImageUrl || oldImageUrl || null)
-        .addFields(
-          target.embeds[0]?.fields[0]
-            ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
-            : [],
-        )
-        .setFooter({ text: `Server: ${guild?.name}` })
-      : EmbedBuilder.from(target.embeds[0])
-        .setDescription(embedContent || null)
-        .setImage(newImageUrl || oldImageUrl || null);
-
-    const censoredEmbed = EmbedBuilder.from(newEmbed).setDescription(
-      censor(newEmbed.data.description ?? '') || null,
-    );
-    let compactMsg = newMessage;
-
-    if (oldImageUrl) {
-      if (newImageUrl) {
-        compactMsg = compactMsg.replace(oldImageUrl, newImageUrl);
-      }
-      else if (!newMessage.includes(oldImageUrl)) {
-        newEmbed.setImage(null);
-        censoredEmbed.setImage(null);
-      }
-    }
-
-    const censoredCmpctMsg = censor(compactMsg);
 
     // find all the messages through the network
     const channelSettingsArr = await db.connectedList.findMany({
@@ -236,5 +194,84 @@ export default class EditMessage extends BaseCommand {
         },
       ),
     );
+  }
+
+  static async getImageUrls(target: Message, newMessage: string) {
+    const { networkManager } = target.client;
+    // get image from embed
+    // get image from content
+    const oldImageUrl = target.content
+      ? await networkManager.getAttachmentURL(target.content)
+      : target.embeds[0]?.image?.url;
+    const newImageUrl = await networkManager.getAttachmentURL(newMessage);
+    return { oldImageUrl, newImageUrl };
+  }
+
+  static async buildNewEmbed(
+    target: Message,
+    newMessage: string,
+    serverId: string,
+    oldImageUrl?: string | null,
+    newImageUrl?: string | null,
+  ) {
+    let newEmbed = new EmbedBuilder();
+    const embedContent =
+      newMessage.replace(oldImageUrl ?? '', '').replace(newImageUrl ?? '', '') || null;
+
+    if (target.content) {
+      const guild = await target.client.fetchGuild(serverId);
+
+      // create a new embed if the message being edited is in compact mode
+      newEmbed
+        .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
+        .setDescription(embedContent)
+        .setColor(target.member?.displayHexColor ?? 'Random')
+        .setImage(newImageUrl ?? oldImageUrl ?? null)
+        .addFields(
+          target.embeds.at(0)?.fields.at(0)
+            ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
+            : [],
+        )
+        .setFooter({ text: `Server: ${guild?.name}` });
+    }
+    else {
+      // utilize the embed directly from the message
+      newEmbed = EmbedBuilder.from(target.embeds[0])
+        .setDescription(embedContent)
+        .setImage(newImageUrl ?? oldImageUrl ?? null);
+    }
+
+    return newEmbed;
+  }
+
+  static async fabricateNewMsg(target: Message, newMessage: string, serverId: string) {
+    const { oldImageUrl, newImageUrl } = await this.getImageUrls(target, newMessage);
+    const newEmbed = await this.buildNewEmbed(
+      target,
+      newMessage,
+      serverId,
+      oldImageUrl,
+      newImageUrl,
+    );
+
+    // if the message being edited is in compact mode
+    // then we create a new embed with the new message and old reply
+    // else we just use the old embed and replace the description
+
+    const censoredEmbed = EmbedBuilder.from(newEmbed).setDescription(
+      censor(newEmbed.data.description ?? '') || null,
+    );
+    let compactMsg = newMessage;
+
+    if (oldImageUrl && newImageUrl) {
+      compactMsg = compactMsg.replace(oldImageUrl, newImageUrl);
+    }
+    else if (oldImageUrl && !newMessage.includes(oldImageUrl)) {
+      newEmbed.setImage(null);
+      censoredEmbed.setImage(null);
+    }
+    const censoredCmpctMsg = censor(compactMsg);
+
+    return { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg };
   }
 }
