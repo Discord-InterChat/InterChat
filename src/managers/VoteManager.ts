@@ -22,7 +22,9 @@ export class VoteManager extends EventEmitter {
     this.cluster = cluster;
     this.scheduler = scheduler;
     this.scheduler.addRecurringTask('removeVoterRole', 60 * 60 * 1_000, async () => {
-      const expiredVotes = await db.userData.findMany({ where: { lastVoted: { lt: new Date().getTime() } } });
+      const expiredVotes = await db.userData.findMany({
+        where: { lastVoted: { lt: new Date().getTime() } },
+      });
       for (const vote of expiredVotes) {
         this.emit('voteExpired', vote.userId);
         await this.removeVoterRole(vote.userId);

@@ -19,7 +19,6 @@ import { HubSettingsBitField } from '../utils/BitFields.js';
 import { parseTimestampFromId, replaceLinks, wait } from '../utils/Utils.js';
 import { t } from '../utils/Locale.js';
 import sendMessage from '../scripts/network/sendMessage.js';
-import Logger from '../utils/Logger.js';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
@@ -67,7 +66,9 @@ export default class NetworkManager {
       : await this.getAttachmentURL(message.content);
 
     // run checks on the message to determine if it can be sent in the network
-    if (!(await this.runChecks(message, settings, isNetworkMessage.hubId, { attachmentURL }))) return;
+    if (!(await this.runChecks(message, settings, isNetworkMessage.hubId, { attachmentURL }))) {
+      return;
+    }
 
     const allConnections = await this.fetchHubNetworks({
       hubId: isNetworkMessage.hubId,
@@ -281,7 +282,12 @@ export default class NetworkManager {
    * @param hubId - The ID of the hub the message is being sent in.
    * @returns A boolean indicating whether the message passed all checks.
    */
-  public async runChecks(message: Message, settings: HubSettingsBitField, hubId: string, opts?: { attachmentURL?: string | null }) {
+  public async runChecks(
+    message: Message,
+    settings: HubSettingsBitField,
+    hubId: string,
+    opts?: { attachmentURL?: string | null },
+  ) {
     if (!message.inGuild()) return false;
 
     const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
