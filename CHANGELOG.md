@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.17.18](https://github.com/Discord-InterChat/InterChat/compare/v3.17.17...v3.17.18) (2024-04-17)
+
+
+### Bug Fixes
+
+* **editmsg:** displyed compact webhook's username on embed mode ([e5de976](https://github.com/Discord-InterChat/InterChat/commit/e5de976fd159356068ebcc643980c6a70a40b32f))
+
 ### [3.17.17](https://github.com/Discord-InterChat/InterChat/compare/v3.17.16...v3.17.17) (2024-04-07)
 
 ### [3.17.15](https://github.com/Discord-InterChat/InterChat/compare/v3.17.14...v3.17.15) (2024-03-26)
