@@ -11,6 +11,7 @@ import {
   ModalSubmitInteraction,
   userMention,
   Message,
+  User,
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../../core/BaseCommand.js';
@@ -134,7 +135,7 @@ export default class EditMessage extends BaseCommand {
     const hubSettings = new HubSettingsBitField(messageInDb.originalMsg.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
     const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } =
-      await EditMessage.fabricateNewMsg(target, newMessage, messageInDb.originalMsg.serverId);
+      await EditMessage.fabricateNewMsg(interaction.user, target, newMessage, messageInDb.originalMsg.serverId);
 
     if (
       hubSettings.has('BlockInvites') &&
@@ -208,6 +209,7 @@ export default class EditMessage extends BaseCommand {
   }
 
   static async buildNewEmbed(
+    user: User,
     target: Message,
     newMessage: string,
     serverId: string,
@@ -223,9 +225,9 @@ export default class EditMessage extends BaseCommand {
 
       // create a new embed if the message being edited is in compact mode
       newEmbed
-        .setAuthor({ name: target.author.username, iconURL: target.author.displayAvatarURL() })
+        .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
         .setDescription(embedContent)
-        .setColor(target.member?.displayHexColor ?? 'Random')
+        .setColor('Random')
         .setImage(newImageUrl ?? oldImageUrl ?? null)
         .addFields(
           target.embeds.at(0)?.fields.at(0)
@@ -244,9 +246,10 @@ export default class EditMessage extends BaseCommand {
     return newEmbed;
   }
 
-  static async fabricateNewMsg(target: Message, newMessage: string, serverId: string) {
+  static async fabricateNewMsg(user: User, target: Message, newMessage: string, serverId: string) {
     const { oldImageUrl, newImageUrl } = await this.getImageUrls(target, newMessage);
     const newEmbed = await this.buildNewEmbed(
+      user,
       target,
       newMessage,
       serverId,
