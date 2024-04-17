@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.17.19](https://github.com/Discord-InterChat/InterChat/compare/v3.17.18...v3.17.19) (2024-04-17)
+
+
+### Bug Fixes
+
+* **vote:** forgot to init env in vote api ([97b4381](https://github.com/Discord-InterChat/InterChat/commit/97b438114ee9291d6755148cc350f709b8955297))
+
 ### [3.17.18](https://github.com/Discord-InterChat/InterChat/compare/v3.17.17...v3.17.18) (2024-04-17)
 
 
