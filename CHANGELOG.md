@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.18.0](https://github.com/Discord-InterChat/InterChat/compare/v3.17.20...v3.18.0) (2024-04-21)
+
+
+### Features
+
+* **notifs:** now notify network channel when a in-use webhook is deleted ([75ad29e](https://github.com/Discord-InterChat/InterChat/commit/75ad29ea907a5757a2eb226de2196553603cfdeb))
+
 ### [3.17.20](https://github.com/Discord-InterChat/InterChat/compare/v3.17.19...v3.17.20) (2024-04-21)
 
 ### [3.17.19](https://github.com/Discord-InterChat/InterChat/compare/v3.17.18...v3.17.19) (2024-04-17)
