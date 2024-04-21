@@ -3,7 +3,7 @@ import Logger from './utils/Logger.js';
 import SuperClient from './core/Client.js';
 import CommandManager from './managers/CommandManager.js';
 import { check } from './utils/Profanity.js';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis } from './utils/Constants.js';
 import { loadLocales, t } from './utils/Locale.js';
@@ -123,20 +123,27 @@ class InterChat extends SuperClient {
     });
 
     this.on('webhookUpdate', async (channel) => {
-      const isNetworkChannel = await db.connectedList.findFirst({
+      const connection = await db.connectedList.findFirst({
         where: { OR: [{ channelId: channel.id }, { parentId: channel.id }], connected: true },
       });
-      if (!isNetworkChannel) return;
+      if (!connection) return;
+
+      Logger.info(`Webhook for ${channel.id} was updated`);
 
       const webhooks = await channel.fetchWebhooks();
-      const webhook = webhooks.find((w) => w.url === isNetworkChannel.webhookURL);
+      const webhook = webhooks.find((w) => w.url === connection.webhookURL);
+
+      // webhook was deleted
       if (!webhook) {
-        const channelToSend = await this.channels.fetch(isNetworkChannel.channelId);
-        if (channelToSend?.isTextBased()) {
-          channelToSend.send(
-            t({ phrase: 'webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }),
-          );
-        }
+        // disconnect the channel
+        await db.connectedList.update({ where: { id: connection.id }, data: { connected: false } });
+
+        // send an alert to the channel
+        const networkChannel = channel.isTextBased() 
+          ? channel 
+          : await this.channels.fetch(connection.channelId) as GuildTextBasedChannel;
+
+        await networkChannel.send(t({ phrase: 'webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }));
       }
     });
 
