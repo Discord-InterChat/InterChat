@@ -6,7 +6,7 @@ import 'dotenv/config';
 // create a require a ESM doesn't support importing JSON
 const require = createRequire(import.meta.url);
 
-const { slurs, profanity } = require('./JSON/profanity.json') as typeof badwordsType;
+export const { slurs, profanity } = require('./JSON/profanity.json') as typeof badwordsType;
 export const {
   normal: emojis,
   mascot: mascotEmojis,
@@ -36,6 +36,9 @@ export const REGEX = {
   TENOR_LINKS: /https:\/\/tenor\.com\/view\/.*-(\d+)/,
   EMOJI: /<(a)?:([a-zA-Z0-9_]+):(\d+)>/,
   BANNED_WEBHOOK_WORDS: /discord|clyde|```/gi,
+  SPECIAL_CHARACTERS: /[^a-zA-Z0-9|$|@]|\^/g,
+  MATCH_WORD: /\w/g,
+  SPLIT_WORDS: /\b/,
 };
 
 export const StaffIds = ['597265261665714186', '442653948630007808'];

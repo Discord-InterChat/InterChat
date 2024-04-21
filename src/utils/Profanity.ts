@@ -1,4 +1,4 @@
-import { REGEX } from './Constants.js';
+import { REGEX, profanity, slurs } from './Constants.js';
 
 /**
  * Checks if a string contains profanity or slurs.
@@ -9,8 +9,16 @@ export function check(string: string | undefined) {
   if (!string) return { profanity: false, slurs: false };
 
   return {
-    profanity: REGEX.PROFANITY.test(string.toLowerCase()),
-    slurs: REGEX.SLURS.test(string.toLowerCase()),
+    profanity: profanity.some((word) =>
+      string
+        .split(/\b/)
+        .some((w) => w.toLowerCase() === word.toLowerCase()),
+    ),
+    slurs: slurs.some((word) =>
+      string
+        .split(/\b/)
+        .some((w) => w.toLowerCase() === word.toLowerCase()),
+    )
   };
 }
 
@@ -21,6 +29,13 @@ export function check(string: string | undefined) {
  * @returns The censored string.
  */
 export function censor(string: string, symbol = '\\*'): string {
-  const repeatSymbol = (match: string) => symbol.repeat(match.length);
-  return string.replace(REGEX.PROFANITY, repeatSymbol).replace(REGEX.SLURS, repeatSymbol);
+  return string
+    .split(REGEX.SPLIT_WORDS)
+    .map((word) => {
+      const { profanity, slurs } = check(word);
+      return profanity ?? slurs
+        ? word.replace(REGEX.SPECIAL_CHARACTERS, '').replace(REGEX.MATCH_WORD, symbol)
+        : word;
+    })
+    .join(string.match(REGEX.SPLIT_WORDS)?.at(0));
 }
