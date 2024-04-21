@@ -83,6 +83,7 @@ export default abstract class SuperClient<R extends boolean = boolean> extends C
         IntentsBitField.Flags.GuildMembers,
         IntentsBitField.Flags.GuildMessages,
         IntentsBitField.Flags.GuildMessageReactions,
+        IntentsBitField.Flags.GuildWebhooks,
       ],
       presence: {
         activities: [
