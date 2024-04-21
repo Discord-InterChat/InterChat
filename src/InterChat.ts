@@ -6,7 +6,7 @@ import { check } from './utils/Profanity.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis } from './utils/Constants.js';
-import { loadLocales } from './utils/Locale.js';
+import { loadLocales, t } from './utils/Locale.js';
 import { logGuildJoin, logGuildLeave } from './scripts/guilds/goals.js';
 import getWelcomeTargets from './scripts/guilds/getWelcomeTarget.js';
 
@@ -120,6 +120,24 @@ class InterChat extends SuperClient {
       );
 
       await logGuildLeave(guild, channels.goal);
+    });
+
+    this.on('webhookUpdate', async (channel) => {
+      const isNetworkChannel = await db.connectedList.findFirst({
+        where: { OR: [{ channelId: channel.id }, { parentId: channel.id }], connected: true },
+      });
+      if (!isNetworkChannel) return;
+
+      const webhooks = await channel.fetchWebhooks();
+      const webhook = webhooks.find((w) => w.url === isNetworkChannel.webhookURL);
+      if (!webhook) {
+        const channelToSend = await this.channels.fetch(isNetworkChannel.channelId);
+        if (channelToSend?.isTextBased()) {
+          channelToSend.send(
+            t({ phrase: 'webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }),
+          );
+        }
+      }
     });
 
     this.on('messageCreate', (message) => this.networkManager.onMessageCreate(message));

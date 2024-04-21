@@ -135,7 +135,12 @@ export default class EditMessage extends BaseCommand {
     const hubSettings = new HubSettingsBitField(messageInDb.originalMsg.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
     const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } =
-      await EditMessage.fabricateNewMsg(interaction.user, target, newMessage, messageInDb.originalMsg.serverId);
+      await EditMessage.fabricateNewMsg(
+        interaction.user,
+        target,
+        newMessage,
+        messageInDb.originalMsg.serverId,
+      );
 
     if (
       hubSettings.has('BlockInvites') &&

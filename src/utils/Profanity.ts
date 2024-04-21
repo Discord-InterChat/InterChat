@@ -10,15 +10,11 @@ export function check(string: string | undefined) {
 
   return {
     profanity: profanity.some((word) =>
-      string
-        .split(/\b/)
-        .some((w) => w.toLowerCase() === word.toLowerCase()),
+      string.split(/\b/).some((w) => w.toLowerCase() === word.toLowerCase()),
     ),
     slurs: slurs.some((word) =>
-      string
-        .split(/\b/)
-        .some((w) => w.toLowerCase() === word.toLowerCase()),
-    )
+      string.split(/\b/).some((w) => w.toLowerCase() === word.toLowerCase()),
+    ),
   };
 }
 
