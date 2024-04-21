@@ -143,7 +143,7 @@ class InterChat extends SuperClient {
           ? channel 
           : await this.channels.fetch(connection.channelId) as GuildTextBasedChannel;
 
-        await networkChannel.send(t({ phrase: 'webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }));
+        await networkChannel.send(t({ phrase: 'misc.webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }));
       }
     });
 
