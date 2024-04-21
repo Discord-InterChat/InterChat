@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.18.3](https://github.com/Discord-InterChat/InterChat/compare/v3.18.2...v3.18.3) (2024-04-21)
+
+
+### Bug Fixes
+
+* call correct `misc.webhookNoLongerExists` ([84311df](https://github.com/Discord-InterChat/InterChat/commit/84311df69a83e702682c6f743b753c9672db9ce3))
+
 ### [3.18.2](https://github.com/Discord-InterChat/InterChat/compare/v3.18.1...v3.18.2) (2024-04-21)
 
 ### [3.18.1](https://github.com/Discord-InterChat/InterChat/compare/v3.18.0...v3.18.1) (2024-04-21)
