@@ -269,22 +269,13 @@ export default class Connection extends BaseCommand {
               .setPlaceholder('Select a channel to switch to.'),
           );
 
-          // current interaction will become outdated due to new channelId
           await interaction.update({
-            content: t(
-              { phrase: 'connection.switchCalled', locale: interaction.user.locale },
-              { emoji: emojis.info },
-            ),
-            components: disableComponents(interaction.message),
-          });
-
-          await interaction.followUp({
             content: t(
               { phrase: 'connection.switchChannel', locale: interaction.user.locale },
               { emoji: emojis.info },
             ),
+            embeds: [],
             components: [channelSelect],
-            ephemeral: true,
           });
           break;
         }
@@ -334,6 +325,7 @@ export default class Connection extends BaseCommand {
       const channelInHub = await db.connectedList.findFirst({
         where: { channelId: newChannel?.id },
       });
+
       if (channelInHub) {
         await interaction.editReply({
           content: null,
