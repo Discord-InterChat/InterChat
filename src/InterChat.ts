@@ -9,6 +9,7 @@ import { LINKS, channels, colors, emojis } from './utils/Constants.js';
 import { loadLocales, t } from './utils/Locale.js';
 import { logGuildJoin, logGuildLeave } from './scripts/guilds/goals.js';
 import getWelcomeTargets from './scripts/guilds/getWelcomeTarget.js';
+import { captureException } from '@sentry/node';
 
 class InterChat extends SuperClient {
   public constructor() {
@@ -122,28 +123,34 @@ class InterChat extends SuperClient {
       await logGuildLeave(guild, channels.goal);
     });
 
-    this.on('webhookUpdate', async (channel) => {
-      const connection = await db.connectedList.findFirst({
-        where: { OR: [{ channelId: channel.id }, { parentId: channel.id }], connected: true },
-      });
-      if (!connection) return;
+    this.on('webhooksUpdate', async (channel) => {
+      try {
+        const connection = await db.connectedList.findFirst({
+          where: { OR: [{ channelId: channel.id }, { parentId: channel.id }], connected: true },
+        });
+        if (!connection) return;
 
-      Logger.info(`Webhook for ${channel.id} was updated`);
+        Logger.info(`Webhook for ${channel.id} was updated`);
 
-      const webhooks = await channel.fetchWebhooks();
-      const webhook = webhooks.find((w) => w.url === connection.webhookURL);
+        const webhooks = await channel.fetchWebhooks();
+        const webhook = webhooks.find((w) => w.url === connection.webhookURL);
 
-      // webhook was deleted
-      if (!webhook) {
-        // disconnect the channel
-        await db.connectedList.update({ where: { id: connection.id }, data: { connected: false } });
+        // webhook was deleted
+        if (!webhook) {
+          // disconnect the channel
+          await db.connectedList.update({ where: { id: connection.id }, data: { connected: false } });
 
-        // send an alert to the channel
-        const networkChannel = channel.isTextBased() 
-          ? channel 
-          : await this.channels.fetch(connection.channelId) as GuildTextBasedChannel;
+          // send an alert to the channel
+          const networkChannel = channel.isTextBased()
+            ? channel
+            : await this.channels.fetch(connection.channelId) as GuildTextBasedChannel;
 
-        await networkChannel.send(t({ phrase: 'misc.webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }));
+          await networkChannel.send(t({ phrase: 'misc.webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }));
+        }
+      }
+      catch (error) {
+        captureException(error);
+        Logger.error('WebhooksUpdateError:', error);
       }
     });
 
