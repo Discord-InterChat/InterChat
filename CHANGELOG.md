@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.18.5](https://github.com/Discord-InterChat/InterChat/compare/v3.18.4...v3.18.5) (2024-04-25)
+
+
+### Bug Fixes
+
+* show channel switch instead of `switchCalled` warning ([b566265](https://github.com/Discord-InterChat/InterChat/commit/b5662659a4a90276bbb82cc7907b947871791e8b))
+
 ### [3.18.4](https://github.com/Discord-InterChat/InterChat/compare/v3.18.3...v3.18.4) (2024-04-25)
 
 
