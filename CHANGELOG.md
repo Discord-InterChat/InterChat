@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.19.1](https://github.com/Discord-InterChat/InterChat/compare/v3.19.0...v3.19.1) (2024-04-26)
+
+
+### Bug Fixes
+
+* **blacklist:** only use icons for `Apps > Blacklist` buttons ([2132310](https://github.com/Discord-InterChat/InterChat/commit/213231065e8a1692bec690d0e90242bc146f583e))
+
 ## [3.19.0](https://github.com/Discord-InterChat/InterChat/compare/v3.18.5...v3.19.0) (2024-04-26)
 
 
