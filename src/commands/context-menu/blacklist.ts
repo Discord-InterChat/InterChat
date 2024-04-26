@@ -21,6 +21,7 @@ import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { simpleEmbed } from '../../utils/Utils.js';
+import { stripIndents } from 'common-tags';
 
 export default class Blacklist extends BaseCommand {
   data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -59,18 +60,11 @@ export default class Blacklist extends BaseCommand {
     const embed = new EmbedBuilder()
       .setTitle('Create A Blacklist')
       .setColor(colors.invisible)
-      .setFields(
-        {
-          name: t({ phrase: 'blacklist.fields.user', locale }, { server: `${server?.name}` }),
-          value: t({ phrase: 'blacklist.fields.userValue', locale }, { user: user.username }),
-          inline: true,
-        },
-        {
-          name: t({ phrase: 'blacklist.fields.server', locale }),
-          value: t({ phrase: 'blacklist.fields.serverValue', locale }),
-          inline: true,
-        },
-      );
+      .setFooter({ text: t({ phrase: 'blacklist.embed.footer', locale }) })
+      .setDescription(stripIndents`
+          **${t({ phrase: 'blacklist.embed.user', locale })}:** ${emojis.arrow} ${t({ phrase: 'blacklist.embed.userValue', locale }, { user: user.username })}
+          **${t({ phrase: 'blacklist.embed.server', locale })}:** ${emojis.arrow} ${t({ phrase: 'blacklist.embed.serverValue', locale }, { server: `${server?.name}` })}
+      `);
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
