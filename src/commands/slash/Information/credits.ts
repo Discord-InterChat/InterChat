@@ -5,7 +5,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
 } from 'discord.js';
-import { emojis, LINKS } from '../../../utils/Constants.js';
+import { badgeEmojis, emojis, LINKS } from '../../../utils/Constants.js';
 import { getCredits, simpleEmbed } from '../../../utils/Utils.js';
 import BaseCommand from '../../../core/BaseCommand.js';
 import { stripIndents } from 'common-tags';
@@ -42,19 +42,15 @@ export default class Credits extends BaseCommand {
       InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${LINKS.SUPPORT_INVITE}). 
 
       ${creditsDivider}
-      ${emojis.interchatCircle} **Design:** 
-      ${emojis.dotBlue} @${members[5]?.username} (Mascot)
-      ${emojis.dotBlue} @${members[4]?.username} (Avatar)
-      ${emojis.dotBlue} @${members[0]?.username} (Avatar)
-      ${emojis.dotBlue} @${members[6]?.username} (Avatar & Server Icon)
+      ✨ **Design:** 
+      ${emojis.dotBlue} @${members[4]?.username} (Mascot)
 
-      ${emojis.botdev} **Developers:**
+      ${badgeEmojis.Developer} **Developers:**
       ${emojis.dotBlue} @${members[1]?.username}
       ${emojis.dotBlue} @${members[2]?.username}
       ${emojis.dotBlue} @${members[0].username}
 
-      ${emojis.staff} **Staff: ([Recruiting!](https://forms.gle/8zu7cxx4XPbEmMXJ9))**
-      ${emojis.dotBlue} @${members[4]?.username}
+      ${badgeEmojis.Staff} **Staff: ([Recruiting!](https://forms.gle/8zu7cxx4XPbEmMXJ9))**
       ${emojis.dotBlue} @${members[3]?.username}
 
       ${linksDivider}

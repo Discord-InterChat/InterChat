@@ -41,9 +41,9 @@ export const REGEX = {
   SPLIT_WORDS: /\b/,
 };
 
-export const StaffIds = ['597265261665714186', '442653948630007808'];
+export const StaffIds = ['442653948630007808'];
 export const DeveloperIds = ['828492978716409856', '701727675311587358', '456961943505338369'];
-export const SupporterIds = ['880978672037802014', '689082827979227160'];
+export const SupporterIds = ['880978672037802014'];
 
 export const LINKS = {
   TOPGG_API: 'https://top.gg/api/bots/769921109209907241',
