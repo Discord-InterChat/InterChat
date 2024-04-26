@@ -42,7 +42,7 @@ export default class Blacklist extends BaseCommand {
       (messageInDb.originalMsg?.hub?.ownerId !== interaction.user.id &&
         !messageInDb.originalMsg?.hub?.moderators.find((mod) => mod.userId === interaction.user.id))
     ) {
-      interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
@@ -53,13 +53,24 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
+    const server = await interaction.client.fetchGuild(messageInDb.originalMsg.serverId);
+    const user = await interaction.client.users.fetch(messageInDb.originalMsg.authorId);
+
     const embed = new EmbedBuilder()
       .setTitle('Blacklist')
-      .setDescription(
-        // FIXME: either remove or improve this
-        'Blacklist the server or user of this message from this hub. This will prevent messages by them from being sent.',
-      )
-      .setColor(colors.interchatBlue);
+      .setColor(colors.invisible)
+      .setFields(
+        {
+          name: '🏠 Server',
+          value: `Blacklist server **${server?.name}** from this hub.`,
+          inline: true,
+        },
+        {
+          name: '👤 User',
+          value: `Blacklist user **${user?.username}** from this hub.`,
+          inline: true,
+        },
+      );
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()

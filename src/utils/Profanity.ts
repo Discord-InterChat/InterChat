@@ -28,8 +28,8 @@ export function censor(string: string, symbol = '\\*'): string {
   return string
     .split(REGEX.SPLIT_WORDS)
     .map((word) => {
-      const { profanity, slurs } = check(word);
-      return profanity ?? slurs
+      const res = check(word);
+      return res.profanity ?? res.slurs
         ? word.replace(REGEX.SPECIAL_CHARACTERS, '').replace(REGEX.MATCH_WORD, symbol)
         : word;
     })

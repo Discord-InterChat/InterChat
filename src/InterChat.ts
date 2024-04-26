@@ -3,7 +3,13 @@ import Logger from './utils/Logger.js';
 import SuperClient from './core/Client.js';
 import CommandManager from './managers/CommandManager.js';
 import { check } from './utils/Profanity.js';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, GuildTextBasedChannel } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  GuildTextBasedChannel,
+} from 'discord.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, channels, colors, emojis } from './utils/Constants.js';
 import { loadLocales, t } from './utils/Locale.js';
@@ -138,14 +144,19 @@ class InterChat extends SuperClient {
         // webhook was deleted
         if (!webhook) {
           // disconnect the channel
-          await db.connectedList.update({ where: { id: connection.id }, data: { connected: false } });
+          await db.connectedList.update({
+            where: { id: connection.id },
+            data: { connected: false },
+          });
 
           // send an alert to the channel
           const networkChannel = channel.isTextBased()
             ? channel
-            : await this.channels.fetch(connection.channelId) as GuildTextBasedChannel;
+            : ((await this.channels.fetch(connection.channelId)) as GuildTextBasedChannel);
 
-          await networkChannel.send(t({ phrase: 'misc.webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }));
+          await networkChannel.send(
+            t({ phrase: 'misc.webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }),
+          );
         }
       }
       catch (error) {
