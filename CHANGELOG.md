@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.19.0](https://github.com/Discord-InterChat/InterChat/compare/v3.18.5...v3.19.0) (2024-04-26)
+
+
+### Features
+
+* **blacklist:** update `Apps > Blacklist` embed ([aede68a](https://github.com/Discord-InterChat/InterChat/commit/aede68a839edd4756fbd4cfbe7874455db6e7c92))
+
 ### [3.18.5](https://github.com/Discord-InterChat/InterChat/compare/v3.18.4...v3.18.5) (2024-04-25)
 
 
