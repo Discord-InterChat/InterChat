@@ -1,6 +1,6 @@
 {
   "name": "interchat",
-  "version": "3.19.2",
+  "version": "3.19.3",
   "description": "A growing Discord bot which provides inter-server chat!",
   "main": "build/index.js",
   "license": "GPL-3.0-or-later",
