@@ -57,17 +57,17 @@ export default class Blacklist extends BaseCommand {
     const user = await interaction.client.users.fetch(messageInDb.originalMsg.authorId);
 
     const embed = new EmbedBuilder()
-      .setTitle('Blacklist')
+      .setTitle('Create A Blacklist')
       .setColor(colors.invisible)
       .setFields(
         {
-          name: '🏠 Server',
-          value: `Blacklist server **${server?.name}** from this hub.`,
+          name: t({ phrase: 'blacklist.fields.user', locale }, { server: `${server?.name}` }),
+          value: t({ phrase: 'blacklist.fields.userValue', locale }, { user: user.username }),
           inline: true,
         },
         {
-          name: '👤 User',
-          value: `Blacklist user **${user?.username}** from this hub.`,
+          name: t({ phrase: 'blacklist.fields.server', locale }),
+          value: t({ phrase: 'blacklist.fields.serverValue', locale }),
           inline: true,
         },
       );
@@ -81,7 +81,6 @@ export default class Blacklist extends BaseCommand {
             .addArgs(messageInDb.originalMsgId)
             .toString(),
         )
-        .setLabel(t({ phrase: 'blacklist.button.user', locale }))
         .setStyle(ButtonStyle.Secondary)
         .setEmoji('👤'),
       new ButtonBuilder()
@@ -92,7 +91,6 @@ export default class Blacklist extends BaseCommand {
             .addArgs(messageInDb.originalMsgId)
             .toString(),
         )
-        .setLabel(t({ phrase: 'blacklist.button.server', locale }))
         .setStyle(ButtonStyle.Secondary)
         .setEmoji('🏠'),
     );
