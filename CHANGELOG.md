@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.19.2](https://github.com/Discord-InterChat/InterChat/compare/v3.19.1...v3.19.2) (2024-04-26)
+
+
+### Bug Fixes
+
+* **blacklist:** i fix the brok field desc OwO .- ([bb9ea00](https://github.com/Discord-InterChat/InterChat/commit/bb9ea00f15574f317f051dbbbbe2b8dd2e4529b8))
+
 ### [3.19.1](https://github.com/Discord-InterChat/InterChat/compare/v3.19.0...v3.19.1) (2024-04-26)
 
 
