@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import {
   APIMessage,
   ActionRowBuilder,
@@ -20,7 +21,6 @@ import { parseTimestampFromId, replaceLinks, wait } from '../utils/Utils.js';
 import { t } from '../utils/Locale.js';
 import sendMessage from '../scripts/network/sendMessage.js';
 import Scheduler from '../services/SchedulerService.js';
-import { predictionType } from 'nsfwjs';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
@@ -72,7 +72,6 @@ export default class NetworkManager {
    * Handles a network message by running checks, fetching relevant data, and sending the message to all connections in the network.
    * @param message The network message to handle.
    */
-  // eslint-disable-next-line complexity
   public async onMessageCreate(message: Message): Promise<void> {
     if (message.author.bot || message.system || message.webhookId) return;
 
@@ -571,7 +570,7 @@ export default class NetworkManager {
       where: { userId: message.author.id, blacklistedFrom: { some: { hubId: { equals: hubId } } } },
     });
 
-    if (isBlacklisted) return false;
+    return !!isBlacklisted;
   }
 
   public async replyToMsg(message: Message, content: string) {
@@ -592,31 +591,31 @@ export default class NetworkManager {
   }
   public async isCaughtSpam(message: Message, settings: HubSettingsBitField, hubId: string) {
     const antiSpamResult = this.runAntiSpam(message.author, 3);
-    if (antiSpamResult) {
-      const { blacklistManager } = message.client;
+    if (!antiSpamResult) return false;
+    const { blacklistManager } = message.client;
 
-      if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
-        await blacklistManager.addUserBlacklist(
-          hubId,
+    if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
+      await blacklistManager.addUserBlacklist(
+        hubId,
+        message.author.id,
+        'Auto-blacklisted for spamming.',
+        message.client.user.id,
+        60 * 5000,
+      );
+      blacklistManager.scheduleRemoval('user', message.author.id, hubId, 60 * 5000);
+      blacklistManager
+        .notifyBlacklist(
+          'user',
           message.author.id,
+          hubId,
+          new Date(Date.now() + 60 * 5000),
           'Auto-blacklisted for spamming.',
-          message.client.user.id,
-          60 * 5000,
-        );
-        blacklistManager.scheduleRemoval('user', message.author.id, hubId, 60 * 5000);
-        blacklistManager
-          .notifyBlacklist(
-            'user',
-            message.author.id,
-            hubId,
-            new Date(Date.now() + 60 * 5000),
-            'Auto-blacklisted for spamming.',
-          )
-          .catch(() => null);
-      }
-      message.react(emojis.timeout).catch(() => null);
-      return false;
+        )
+        .catch(() => null);
     }
+
+    message.react(emojis.timeout).catch(() => null);
+    return true;
   }
 
   public async containsNSFW(
@@ -631,6 +630,7 @@ export default class NetworkManager {
 
     // run static images through the nsfw detector
     const predictions = await nsfwDetector.analyzeImage(attachment ? attachment.url : imgUrl);
+
     return {
       predictions,
       unsafe: (predictions && nsfwDetector.isUnsafeContent(predictions)) === true,
@@ -648,12 +648,12 @@ export default class NetworkManager {
     const attachment = message.attachments.first();
     const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg'];
 
-    return attachment?.contentType && !allowedTypes.includes(attachment.contentType);
+    return (attachment?.contentType && !allowedTypes.includes(attachment.contentType)) === true;
   }
 
   public attachmentTooLarge(message: Message) {
     const attachment = message.attachments.first();
-    return attachment && attachment.size > 1024 * 1024 * 8;
+    return (attachment && attachment.size > 1024 * 1024 * 8) === true;
   }
   /**
    * Runs various checks on a message to determine if it can be sent in the network.
