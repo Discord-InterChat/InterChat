@@ -25,7 +25,7 @@ export default class JoinSubCommand extends Hub {
       ChannelType.PrivateThread,
     ]);
 
-    if (!channel.permissionsFor(interaction.member).has('SendMessages')) {
+    if (!channel.permissionsFor(interaction.member).has('ManageMessages')) {
       return await interaction.reply({
         embeds: [
           simpleEmbed(
