@@ -312,22 +312,33 @@ export default class Browse extends Hub {
       }
 
       if (!interaction.guild?.members.me?.permissionsIn(channel).has(['ManageWebhooks'])) {
-        await interaction.update(
-          t(
-            { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
-            { permissions: 'Manage Webhooks', emoji: emojis.no },
-          ),
-        );
+        await interaction.update({
+          embeds: [
+            simpleEmbed(
+              t(
+                { phrase: 'errors.botMissingPermissions', locale: interaction.user.locale },
+                { permissions: 'Manage Webhooks', emoji: emojis.no },
+              ),
+              { color: 'Red', title: 'Bot Missing Permissions' },
+            ),
+          ],
+        });
         return;
       }
 
-      if (!interaction.member.permissionsIn(channel).has('ManageChannels')) {
-        await interaction.update(
-          t(
-            { phrase: 'errors.botMissingPermissions', locale: interaction.user.locale },
-            { permissions: 'Manage Channels', emoji: emojis.no },
-          ),
-        );
+      if (!interaction.member.permissionsIn(channel).has('ManageMessages')) {
+        await interaction.update({
+          content: null,
+          embeds: [
+            simpleEmbed(
+              t(
+                { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
+                { permissions: 'Manage Messages', emoji: emojis.no },
+              ),
+              { color: 'Red', title: 'Missing Permissions' },
+            ),
+          ],
+        });
         return;
       }
 

@@ -15,6 +15,7 @@ export default class JoinSubCommand extends Hub {
 
     const locale = interaction.user.locale;
     const networkManager = interaction.client.networkManager;
+
     // FIXME: Change later
     const hubName = interaction.options.getString('hub') ?? 'InterChat Central';
     const invite = interaction.options.getString('invite');
@@ -23,6 +24,20 @@ export default class JoinSubCommand extends Hub {
       ChannelType.PublicThread,
       ChannelType.PrivateThread,
     ]);
+
+    if (!channel.permissionsFor(interaction.member).has('SendMessages')) {
+      return await interaction.reply({
+        embeds: [
+          simpleEmbed(
+            t(
+              { phrase: 'errors.missingPermissions', locale },
+              { permissions: 'Manage Messages', emoji: emojis.no },
+            ),
+          ),
+        ],
+        ephemeral: true,
+      });
+    }
 
     const channelInHub = await db.connectedList.findFirst({ where: { channelId: channel.id } });
     if (channelInHub) {

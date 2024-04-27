@@ -116,7 +116,7 @@ export default class Delete extends Hub {
       embeds: [
         simpleEmbed(
           t({ phrase: 'hub.delete.success', locale }, { emoji: emojis.tick, hub: hubInDb.name }),
-          'Green',
+          { color: 'Green' },
         ),
       ],
     });

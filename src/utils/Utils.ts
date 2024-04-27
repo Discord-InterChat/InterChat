@@ -225,8 +225,14 @@ export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') =>
   return string.replaceAll(REGEX.LINKS, replaceText);
 };
 
-export const simpleEmbed = (description: string, color: ColorResolvable = colors.invisible) => {
-  return new EmbedBuilder().setColor(color).setDescription(description.toString());
+export const simpleEmbed = (
+  description: string,
+  opts?: { color: ColorResolvable; title?: string },
+) => {
+  return new EmbedBuilder()
+    .setTitle(opts?.title ?? null)
+    .setColor(opts?.color ?? colors.invisible)
+    .setDescription(description.toString());
 };
 
 export const calculateAverageRating = (ratings: number[]): number => {
