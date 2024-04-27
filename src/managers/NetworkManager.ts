@@ -19,13 +19,14 @@ import { HubSettingsBitField } from '../utils/BitFields.js';
 import { parseTimestampFromId, replaceLinks, wait } from '../utils/Utils.js';
 import { t } from '../utils/Locale.js';
 import sendMessage from '../scripts/network/sendMessage.js';
+import Scheduler from '../services/SchedulerService.js';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
   webhookURL: string;
 }
 
-export interface Networks extends connectedList {
+export interface Connection extends connectedList {
   hub: hubs | null;
 }
 
@@ -38,27 +39,58 @@ const WINDOW_SIZE = 5000;
 const MAX_STORE = 3;
 
 export default class NetworkManager {
-  private antiSpamMap = new Collection<string, AntiSpamUserOpts>();
+  private readonly scheduler: Scheduler;
+  private readonly antiSpamMap: Collection<string, AntiSpamUserOpts>;
+  private connectionCache: Collection<string, Connection>;
+  private cachePopulated = false;
+
+  constructor() {
+    this.scheduler = new Scheduler();
+    this.antiSpamMap = new Collection();
+    this.connectionCache = new Collection();
+
+    db.connectedList
+      .findMany({ where: { connected: true }, include: { hub: true } })
+      .then((connections) => {
+        this.connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
+        this.cachePopulated = true;
+      });
+
+    this.scheduler.addRecurringTask('populateConnectionCache', 60_000, async () => {
+      const connections = await db.connectedList.findMany({
+        where: { connected: true },
+        include: { hub: true },
+      });
+
+      // populate all at once without time delay
+      this.connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
+    });
+  }
 
   /**
    * Handles a network message by running checks, fetching relevant data, and sending the message to all connections in the network.
    * @param message The network message to handle.
    */
-  public async onMessageCreate(message: Message) {
+  // eslint-disable-next-line complexity
+  public async onMessageCreate(message: Message): Promise<unknown> {
     if (message.author.bot || message.system || message.webhookId) return;
 
-    message.author.locale = await message.client.getUserLocale(message.author.id);
-    const { locale } = message.author;
+    if (!this.cachePopulated) {
+      await wait(5000);
+      return this.onMessageCreate(message);
+    }
 
-    const isNetworkMessage = await db.connectedList.findFirst({
-      where: { channelId: message.channel.id, connected: true },
-      include: { hub: true },
-    });
+    const locale = await message.client.getUserLocale(message.author.id);
+    message.author.locale = locale;
+
+    const connection = this.connectionCache.find(
+      (c) => c.channelId === message.channelId && c.connected,
+    );
 
     // check if the message was sent in a network channel
-    if (!isNetworkMessage?.hub) return;
+    if (!connection?.hub) return;
 
-    const settings = new HubSettingsBitField(isNetworkMessage.hub.settings);
+    const settings = new HubSettingsBitField(connection.hub.settings);
 
     const attachment = message.attachments.first();
     const attachmentURL = attachment
@@ -66,12 +98,12 @@ export default class NetworkManager {
       : await this.getAttachmentURL(message.content);
 
     // run checks on the message to determine if it can be sent in the network
-    if (!(await this.runChecks(message, settings, isNetworkMessage.hubId, { attachmentURL }))) {
+    if (!(await this.runChecks(message, settings, connection.hubId, { attachmentURL }))) {
       return;
     }
 
     const allConnections = await this.fetchHubNetworks({
-      hubId: isNetworkMessage.hubId,
+      hubId: connection.hubId,
       connected: true,
     });
 
@@ -123,17 +155,17 @@ export default class NetworkManager {
     const { embed, censoredEmbed } = this.buildNetworkEmbed(message, username, censoredContent, {
       attachmentURL,
       referredContent,
-      embedCol: (isNetworkMessage.embedColor as HexColorString) ?? undefined,
+      embedCol: (connection.embedColor as HexColorString) ?? undefined,
     });
 
     // ---------- Broadcasting ---------
-    const sendResult = allConnections.map(async (connection, index) => {
+    const sendResult = allConnections.map(async (otherConnection, index) => {
       // wait 1 second every 50 messages to avoid rate limits
       if (index % 50) await wait(1000);
 
       try {
         const reply = referenceInDb?.broadcastMsgs.find(
-          (msg) => msg.channelId === connection.channelId,
+          (msg) => msg.channelId === otherConnection.channelId,
         );
         // create a jump to reply button
         const jumpButton =
@@ -143,7 +175,7 @@ export default class NetworkManager {
                 .setStyle(ButtonStyle.Link)
                 .setEmoji(emojis.reply)
                 .setURL(
-                  `https://discord.com/channels/${connection.serverId}/${reply.channelId}/${reply.messageId}`,
+                  `https://discord.com/channels/${otherConnection.serverId}/${reply.channelId}/${reply.messageId}`,
                 )
                 .setLabel(
                   referredAuthor && referredAuthor.username.length >= 80
@@ -156,16 +188,16 @@ export default class NetworkManager {
         // embed format
         let messageFormat: WebhookMessageCreateOptions = {
           components: jumpButton ? [jumpButton] : undefined,
-          embeds: [connection.profFilter ? censoredEmbed : embed],
-          username: `${isNetworkMessage.hub?.name}`,
-          avatarURL: isNetworkMessage.hub?.iconUrl,
-          threadId: connection.parentId ? connection.channelId : undefined,
+          embeds: [otherConnection.profFilter ? censoredEmbed : embed],
+          username: `${connection.hub?.name}`,
+          avatarURL: connection.hub?.iconUrl,
+          threadId: otherConnection.parentId ? otherConnection.channelId : undefined,
           allowedMentions: { parse: [] },
         };
 
-        if (connection.compact) {
+        if (otherConnection.compact) {
           const replyContent =
-            connection.profFilter && referredContent ? censor(referredContent) : referredContent;
+            otherConnection.profFilter && referredContent ? censor(referredContent) : referredContent;
 
           // preview embed for the message being replied to
           const replyEmbed = replyContent
@@ -185,28 +217,28 @@ export default class NetworkManager {
             embeds: replyEmbed ? [replyEmbed] : undefined,
             components: jumpButton ? [jumpButton] : undefined,
             content:
-              (connection.profFilter ? censoredContent : message.content) +
+              (otherConnection.profFilter ? censoredContent : message.content) +
               // append the attachment url if there is one
               `${attachment ? `\n${attachmentURL}` : ''}`,
             // username is already limited to 50 characters, server name is limited to 40 (char limit is 100)
-            threadId: connection.parentId ? connection.channelId : undefined,
+            threadId: otherConnection.parentId ? otherConnection.channelId : undefined,
             allowedMentions: { parse: [] },
           };
         }
         // send the message
-        const messageOrError = await sendMessage(messageFormat, connection.webhookURL);
+        const messageOrError = await sendMessage(messageFormat, otherConnection.webhookURL);
 
         // return the message and webhook URL to store the message in the db
         return {
           messageOrError: messageOrError,
-          webhookURL: connection.webhookURL,
+          webhookURL: otherConnection.webhookURL,
         } as NetworkWebhookSendResult;
       }
       catch (e) {
         // return the error and webhook URL to store the message in the db
         return {
           messageOrError: e.message,
-          webhookURL: connection.webhookURL,
+          webhookURL: otherConnection.webhookURL,
         } as NetworkWebhookSendResult;
       }
     });
@@ -250,7 +282,7 @@ export default class NetworkManager {
             { phrase: 'network.welcome', locale },
             {
               user: `${message.author}`,
-              hub: isNetworkMessage.hub.name,
+              hub: connection.hub.name,
               channel: `${message.channel}`,
               totalServers: allConnections.length.toString(),
               emoji: emojis.wave_anim,
@@ -270,174 +302,9 @@ export default class NetworkManager {
     await this.storeMessageData(
       message,
       await Promise.all(sendResult),
-      isNetworkMessage.hubId,
+      connection.hubId,
       referenceInDb,
     );
-  }
-
-  /**
-   * Runs various checks on a message to determine if it can be sent in the network.
-   * @param message - The message to check.
-   * @param settings - The settings for the network.
-   * @param hubId - The ID of the hub the message is being sent in.
-   * @returns A boolean indicating whether the message passed all checks.
-   */
-  public async runChecks(
-    message: Message,
-    settings: HubSettingsBitField,
-    hubId: string,
-    opts?: { attachmentURL?: string | null },
-  ) {
-    if (!message.inGuild()) return false;
-
-    const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
-    // if account is created within the last 7 days
-    if (message.author.createdTimestamp > sevenDaysAgo) {
-      await message.channel
-        .send(
-          t(
-            { phrase: 'network.accountTooNew', locale: message.author.locale },
-            { user: `${message.author}`, emoji: emojis.no },
-          ),
-        )
-        .catch(() => null);
-      return false;
-    }
-
-    const isUserBlacklisted = await db.userData.findFirst({
-      where: { userId: message.author.id, blacklistedFrom: { some: { hubId: { equals: hubId } } } },
-    });
-
-    if (isUserBlacklisted) return false;
-
-    if (message.content.length > 1000) {
-      message.reply('Your message is too long! Please keep it under 1000 characters.');
-      return false;
-    }
-
-    if (
-      (settings.has('BlockInvites') && message.content.includes('discord.gg')) ||
-      message.content.includes('discord.com/invite') ||
-      message.content.includes('dsc.gg')
-    ) {
-      message.reply(
-        'Do not advertise or promote servers in the network. Set an invite in `/connection` instead!',
-      );
-      return false;
-    }
-
-    if (message.stickers.size > 0 && !message.content) {
-      message.reply(
-        'Sending stickers in the network is not possible due to discord\'s limitations.',
-      );
-      return false;
-    }
-
-    const antiSpamResult = this.runAntiSpam(message.author, 3);
-    if (antiSpamResult) {
-      const { blacklistManager } = message.client;
-
-      if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
-        await blacklistManager.addUserBlacklist(
-          hubId,
-          message.author.id,
-          'Auto-blacklisted for spamming.',
-          message.client.user.id,
-          60 * 5000,
-        );
-        blacklistManager.scheduleRemoval('user', message.author.id, hubId, 60 * 5000);
-        blacklistManager
-          .notifyBlacklist(
-            'user',
-            message.author.id,
-            hubId,
-            new Date(Date.now() + 60 * 5000),
-            'Auto-blacklisted for spamming.',
-          )
-          .catch(() => null);
-      }
-      message.react(emojis.timeout).catch(() => null);
-      return false;
-    }
-
-    if (message.content.length > 1000) {
-      message.reply('Please keep your message shorter than 1000 characters long.');
-      return false;
-    }
-
-    if (
-      settings.has('HideLinks') &&
-      !REGEX.IMAGE_URL.test(message.content) && // ignore image urls
-      REGEX.LINKS.test(message.content)
-    ) {
-      message.content = replaceLinks(message.content);
-    }
-
-    // TODO: allow multiple attachments when embeds can have multiple images
-    const attachment = message.attachments.first();
-    const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg'];
-
-    if (attachment?.contentType) {
-      if (allowedTypes.includes(attachment.contentType) === false) {
-        message.reply('Only images and gifs are allowed to be sent within the network.');
-        return false;
-      }
-
-      if (attachment.size > 1024 * 1024 * 8) {
-        message.reply('Please keep your attachments under 8MB.');
-        return false;
-      }
-    }
-
-    const { profanity, slurs } = checkProfanity(message.content);
-
-    if (profanity || slurs) {
-      // send a log to the log channel set by the hub
-      message.client.profanityLogger.log(hubId, message.content, message.author, message.guild);
-
-      // we don't want to send the message if it contains slurs
-      if (slurs) return false;
-    }
-
-    if (opts?.attachmentURL) {
-      const reaction = await message.react(emojis.loading).catch(() => null);
-      const { locale } = message.author;
-
-      // run static images through the nsfw detector
-      if (REGEX.STATIC_IMAGE_URL.test(opts.attachmentURL)) {
-        const predictions = await message.client.nsfwDetector.analyzeImage(
-          attachment ? attachment.url : opts.attachmentURL,
-        );
-
-        if (predictions && message.client.nsfwDetector.isUnsafeContent(predictions)) {
-          const nsfwEmbed = new EmbedBuilder()
-            .setTitle(t({ phrase: 'network.nsfw.title', locale }))
-            .setDescription(
-              t(
-                { phrase: 'network.nsfw.description', locale },
-                {
-                  predictions: `${Math.round(predictions[0].probability * 100)}%`,
-                  rules_command: '</rules:924659340898619395>',
-                },
-              ),
-            )
-            .setFooter({
-              text: t({ phrase: 'network.nsfw.footer', locale }),
-              iconURL: 'https://i.imgur.com/625Zy9W.png',
-            })
-            .setColor('Red');
-
-          await message.channel.send({ content: `${message.author}`, embeds: [nsfwEmbed] });
-          return false;
-        }
-      }
-
-      reaction?.remove().catch(() => null);
-      // mark that the attachment url is being used
-      message.react('🔗').catch(() => null);
-    }
-
-    return true;
   }
 
   /**
@@ -518,16 +385,7 @@ export default class NetworkManager {
           ? message.content.replace(REGEX.TENOR_LINKS, '').replace(opts?.attachmentURL, '')
           : message.content) || null,
       )
-      .addFields(
-        formattedReply
-          ? [
-            {
-              name: 'Replying To:',
-              value: `> ${formattedReply}`,
-            },
-          ]
-          : [],
-      )
+      .addFields(formattedReply ? [{ name: 'Replying To:', value: `> ${formattedReply}` }] : [])
       .setFooter({
         text: `From: ${message.guild?.name}`,
         iconURL: message.guild?.iconURL() ?? undefined,
@@ -543,14 +401,7 @@ export default class NetworkManager {
           : censoredContent) || null,
       )
       .setFields(
-        formattedReply
-          ? [
-            {
-              name: 'Replying To:',
-              value: `> ${censor(formattedReply)}`,
-            },
-          ]
-          : [],
+        formattedReply ? [{ name: 'Replying To:', value: `> ${censor(formattedReply)}` }] : [],
       );
 
     return { embed, censoredEmbed };
@@ -569,28 +420,25 @@ export default class NetworkManager {
   ): Promise<void> {
     const messageDataObj: { channelId: string; messageId: string; createdAt: number }[] = [];
     const invalidWebhookURLs: string[] = [];
+    const validErrors = ['Invalid Webhook Token', 'Unknown Webhook', 'Missing Permissions'];
 
     // loop through all results and extract message data and invalid webhook urls
     channelAndMessageIds.forEach((result) => {
-      if (typeof result.messageOrError === 'string') {
-        if (
-          result.messageOrError.includes('Invalid Webhook Token') ||
-          result.messageOrError.includes('Unknown Webhook') ||
-          result.messageOrError.includes('Missing Permissions')
-        ) {
-          invalidWebhookURLs.push(result.webhookURL);
-        }
-      }
-      else {
+      if (typeof result.messageOrError !== 'string') {
         messageDataObj.push({
           channelId: result.messageOrError.channel_id,
           messageId: result.messageOrError.id,
           createdAt: parseTimestampFromId(result.messageOrError.id),
         });
       }
+      else if (validErrors.some((e) => (result.messageOrError as string).includes(e))) {
+        invalidWebhookURLs.push(result.webhookURL);
+      }
     });
 
-    if (message.guild && hubId && messageDataObj.length > 0) {
+    if (hubId && messageDataObj.length > 0) {
+      if (!message.inGuild()) return;
+
       // store message data in db
       await db.originalMessages.create({
         data: {
@@ -624,40 +472,40 @@ export default class NetworkManager {
     const userInCol = this.antiSpamMap.get(author.id);
     const currentTimestamp = Date.now();
 
-    if (userInCol) {
-      if (userInCol.infractions >= maxInfractions) {
-        // resetting count as it is assumed they will be blacklisted right after
-        this.antiSpamMap.delete(author.id);
-        return userInCol;
-      }
-
-      const { timestamps } = userInCol;
-
-      if (timestamps.length === MAX_STORE) {
-        // Check if all the timestamps are within the window
-        const oldestTimestamp = timestamps[0];
-        const isWithinWindow = currentTimestamp - oldestTimestamp <= WINDOW_SIZE;
-
-        this.antiSpamMap.set(author.id, {
-          timestamps: [...timestamps.slice(1), currentTimestamp],
-          infractions: isWithinWindow ? userInCol.infractions + 1 : userInCol.infractions,
-        });
-        this.setSpamTimers(author);
-        if (isWithinWindow) return userInCol;
-      }
-      else {
-        this.antiSpamMap.set(author.id, {
-          timestamps: [...timestamps, currentTimestamp],
-          infractions: userInCol.infractions,
-        });
-      }
-    }
-    else {
+    if (!userInCol) {
       this.antiSpamMap.set(author.id, {
         timestamps: [currentTimestamp],
         infractions: 0,
       });
       this.setSpamTimers(author);
+      return;
+    }
+
+    // resetting count as it is assumed they will be blacklisted right after
+    if (userInCol.infractions >= maxInfractions) {
+      this.antiSpamMap.delete(author.id);
+      return userInCol;
+    }
+
+    const { timestamps } = userInCol;
+
+    // Check if all the timestamps are within the window
+    if (timestamps.length === MAX_STORE) {
+      const oldestTimestamp = timestamps[0];
+      const isWithinWindow = currentTimestamp - oldestTimestamp <= WINDOW_SIZE;
+
+      this.antiSpamMap.set(author.id, {
+        timestamps: [...timestamps.slice(1), currentTimestamp],
+        infractions: isWithinWindow ? userInCol.infractions + 1 : userInCol.infractions,
+      });
+      this.setSpamTimers(author);
+      if (isWithinWindow) return userInCol;
+    }
+    else {
+      this.antiSpamMap.set(author.id, {
+        timestamps: [...timestamps, currentTimestamp],
+        infractions: userInCol.infractions,
+      });
     }
   }
 
@@ -707,5 +555,199 @@ export default class NetworkManager {
       });
 
     return await Promise.all(res);
+  }
+
+  // if account is created within the last 7 days
+  public async isNewUser(message: Message) {
+    const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
+    return message.author.createdTimestamp > sevenDaysAgo;
+  }
+
+  public async isUserBlacklisted(message: Message) {
+    const isBlacklisted = await db.userData.findFirst({
+      where: { userId: message.author.id, blacklistedFrom: { some: { hubId: { equals: hubId } } } },
+    });
+
+    if (isBlacklisted) return false;
+  }
+
+  public async replyToMsg(message: Message, content: string) {
+    const reply = await message.reply(content).catch(() => null);
+    if (!reply) await message.channel.send(`${message.author} ${content}`).catch(() => null);
+  }
+  public containsStickers(message: Message) {
+    return message.stickers.size > 0 && !message.content;
+  }
+
+  public containsInviteLinks(message: Message, settings: HubSettingsBitField) {
+    const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
+
+    // check if message contains invite links from the array
+    return (
+      settings.has('BlockInvites') && inviteLinks.some((link) => message.content.includes(link))
+    );
+  }
+  public async isCaughtSpam(message: Message, settings: HubSettingsBitField, hubId: string) {
+    const antiSpamResult = this.runAntiSpam(message.author, 3);
+    if (antiSpamResult) {
+      const { blacklistManager } = message.client;
+
+      if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
+        await blacklistManager.addUserBlacklist(
+          hubId,
+          message.author.id,
+          'Auto-blacklisted for spamming.',
+          message.client.user.id,
+          60 * 5000,
+        );
+        blacklistManager.scheduleRemoval('user', message.author.id, hubId, 60 * 5000);
+        blacklistManager
+          .notifyBlacklist(
+            'user',
+            message.author.id,
+            hubId,
+            new Date(Date.now() + 60 * 5000),
+            'Auto-blacklisted for spamming.',
+          )
+          .catch(() => null);
+      }
+      message.react(emojis.timeout).catch(() => null);
+      return false;
+    }
+  }
+
+  public async containsNSFW(message: Message, imgUrl: string | null | undefined) {
+    const { nsfwDetector } = message.client;
+    const attachment = message.attachments.first();
+
+    if (!imgUrl || !attachment) return;
+    else if (!REGEX.STATIC_IMAGE_URL.test(imgUrl)) return;
+
+    // run static images through the nsfw detector
+    const predictions = await nsfwDetector.analyzeImage(attachment ? attachment.url : imgUrl);
+    return {
+      predictions,
+      unsafe: predictions && nsfwDetector.isUnsafeContent(predictions),
+    };
+  }
+
+  public containsLinks(message: Message, settings: HubSettingsBitField) {
+    return (
+      settings.has('HideLinks') &&
+      !REGEX.IMAGE_URL.test(message.content) &&
+      REGEX.LINKS.test(message.content)
+    );
+  }
+  public unsupportedAttachment(message: Message) {
+    const attachment = message.attachments.first();
+    const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg'];
+
+    return attachment?.contentType && !allowedTypes.includes(attachment.contentType);
+  }
+
+  public attachmentTooLarge(message: Message) {
+    const attachment = message.attachments.first();
+    return attachment && attachment.size > 1024 * 1024 * 8;
+  }
+  /**
+   * Runs various checks on a message to determine if it can be sent in the network.
+   * @param message - The message to check.
+   * @param settings - The settings for the network.
+   * @param hubId - The ID of the hub the message is being sent in.
+   * @returns A boolean indicating whether the message passed all checks.
+   */
+
+  public async runChecks(
+    message: Message,
+    settings: HubSettingsBitField,
+    hubId: string,
+    opts?: { attachmentURL?: string | null },
+  ) {
+    const { locale } = message.author;
+    const { profanity, slurs } = checkProfanity(message.content);
+
+    if (!message.inGuild()) return false;
+    if (await this.isUserBlacklisted(message)) return false;
+    if (await this.isCaughtSpam(message, settings, hubId)) return false;
+    if (this.containsLinks(message, settings)) message.content = replaceLinks(message.content);
+    if (slurs) return false;
+
+    if (profanity || slurs) {
+      // send a log to the log channel set by the hub
+      const { profanityLogger } = message.client;
+      profanityLogger.log(hubId, message.content, message.author, message.guild);
+    }
+
+    if (await this.isNewUser(message)) {
+      await message.channel
+        .send(
+          t(
+            { phrase: 'network.accountTooNew', locale: message.author.locale },
+            { user: `${message.author}`, emoji: emojis.no },
+          ),
+        )
+        .catch(() => null);
+
+      return false;
+    }
+
+    if (message.content.length > 1000) {
+      await this.replyToMsg(
+        message,
+        'Your message is too long! Please keep it under 1000 characters.',
+      );
+      return false;
+    }
+    if (this.containsStickers(message)) {
+      await this.replyToMsg(
+        message,
+        'Sending stickers in the network is not possible due to discord\'s limitations.',
+      );
+      return false;
+    }
+    if (this.containsInviteLinks(message, settings)) {
+      await this.replyToMsg(
+        message,
+        'Advertising is not allowed. Set an invite in `/connection` instead!',
+      );
+      return false;
+    }
+    if (this.unsupportedAttachment(message)) {
+      await this.replyToMsg(
+        message,
+        'Only images and gifs are allowed to be sent within the network.',
+      );
+      return false;
+    }
+
+    if (this.attachmentTooLarge(message)) {
+      await this.replyToMsg(message, 'Please keep your attachments under 8MB.');
+      return false;
+    }
+
+    const isNsfw = await this.containsNSFW(message, opts?.attachmentURL);
+    if (isNsfw?.predictions) {
+      const nsfwEmbed = new EmbedBuilder()
+        .setTitle(t({ phrase: 'network.nsfw.title', locale }))
+        .setDescription(
+          t(
+            { phrase: 'network.nsfw.description', locale },
+            {
+              predictions: `${Math.round(isNsfw.predictions[0].probability * 100)}%`,
+              rules_command: '</rules:924659340898619395>',
+            },
+          ),
+        )
+        .setFooter({
+          text: t({ phrase: 'network.nsfw.footer', locale }),
+          iconURL: 'https://i.imgur.com/625Zy9W.png',
+        })
+        .setColor('Red');
+
+      await message.channel.send({ content: `${message.author}`, embeds: [nsfwEmbed] });
+      return false;
+    }
+
+    return true;
   }
 }
