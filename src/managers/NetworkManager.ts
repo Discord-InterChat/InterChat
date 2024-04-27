@@ -622,13 +622,7 @@ export default class NetworkManager {
   public async containsNSFW(
     message: Message,
     imgUrl: string | null | undefined,
-  ): Promise<
-    | {
-      predictions: predictionType[] | null;
-      unsafe: boolean;
-    }
-    | undefined
-    > {
+  ) {
     const { nsfwDetector } = message.client;
     const attachment = message.attachments.first();
 
