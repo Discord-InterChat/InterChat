@@ -558,7 +558,7 @@ export default class NetworkManager {
   }
 
   // if account is created within the last 7 days
-  public async isNewUser(message: Message) {
+  public isNewUser(message: Message) {
     const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
     return message.author.createdTimestamp > sevenDaysAgo;
   }
@@ -678,7 +678,7 @@ export default class NetworkManager {
       profanityLogger.log(hubId, message.content, message.author, message.guild);
     }
 
-    if (await this.isNewUser(message)) {
+    if (this.isNewUser(message)) {
       await message.channel
         .send(
           t(
