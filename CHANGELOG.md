@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.19.5](https://github.com/Discord-InterChat/InterChat/compare/v3.19.4...v3.19.5) (2024-04-27)
+
+
+### Bug Fixes
+
+* **hub:** anyone being able to join hub regardless of permission ([243a8a7](https://github.com/Discord-InterChat/InterChat/commit/243a8a7d9780c28daedddd6ea80bce08cdbebad9))
+
 ### [3.19.4](https://github.com/Discord-InterChat/InterChat/compare/v3.19.3...v3.19.4) (2024-04-26)
 
 ### [3.19.3](https://github.com/Discord-InterChat/InterChat/compare/v3.19.2...v3.19.3) (2024-04-26)
