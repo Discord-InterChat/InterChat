@@ -20,6 +20,7 @@ import { parseTimestampFromId, replaceLinks, wait } from '../utils/Utils.js';
 import { t } from '../utils/Locale.js';
 import sendMessage from '../scripts/network/sendMessage.js';
 import Scheduler from '../services/SchedulerService.js';
+import { predictionType } from 'nsfwjs';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
@@ -197,7 +198,9 @@ export default class NetworkManager {
 
         if (otherConnection.compact) {
           const replyContent =
-            otherConnection.profFilter && referredContent ? censor(referredContent) : referredContent;
+            otherConnection.profFilter && referredContent
+              ? censor(referredContent)
+              : referredContent;
 
           // preview embed for the message being replied to
           const replyEmbed = replyContent
@@ -563,7 +566,7 @@ export default class NetworkManager {
     return message.author.createdTimestamp > sevenDaysAgo;
   }
 
-  public async isUserBlacklisted(message: Message) {
+  public async isUserBlacklisted(message: Message, hubId: string) {
     const isBlacklisted = await db.userData.findFirst({
       where: { userId: message.author.id, blacklistedFrom: { some: { hubId: { equals: hubId } } } },
     });
@@ -616,7 +619,16 @@ export default class NetworkManager {
     }
   }
 
-  public async containsNSFW(message: Message, imgUrl: string | null | undefined) {
+  public async containsNSFW(
+    message: Message,
+    imgUrl: string | null | undefined,
+  ): Promise<
+    | {
+      predictions: predictionType[] | null;
+      unsafe: boolean;
+    }
+    | undefined
+    > {
     const { nsfwDetector } = message.client;
     const attachment = message.attachments.first();
 
@@ -627,7 +639,7 @@ export default class NetworkManager {
     const predictions = await nsfwDetector.analyzeImage(attachment ? attachment.url : imgUrl);
     return {
       predictions,
-      unsafe: predictions && nsfwDetector.isUnsafeContent(predictions),
+      unsafe: (predictions && nsfwDetector.isUnsafeContent(predictions)) === true,
     };
   }
 
@@ -667,7 +679,7 @@ export default class NetworkManager {
     const { profanity, slurs } = checkProfanity(message.content);
 
     if (!message.inGuild()) return false;
-    if (await this.isUserBlacklisted(message)) return false;
+    if (await this.isUserBlacklisted(message, hubId)) return false;
     if (await this.isCaughtSpam(message, settings, hubId)) return false;
     if (this.containsLinks(message, settings)) message.content = replaceLinks(message.content);
     if (slurs) return false;
