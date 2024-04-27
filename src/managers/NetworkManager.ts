@@ -73,7 +73,7 @@ export default class NetworkManager {
    * @param message The network message to handle.
    */
   // eslint-disable-next-line complexity
-  public async onMessageCreate(message: Message): Promise<unknown> {
+  public async onMessageCreate(message: Message): Promise<void> {
     if (message.author.bot || message.system || message.webhookId) return;
 
     if (!this.cachePopulated) {
