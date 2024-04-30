@@ -25,7 +25,6 @@ import { buildConnectionButtons } from '../../../scripts/network/components.js';
 import { emojis } from '../../../utils/Constants.js';
 import { CustomID } from '../../../utils/CustomID.js';
 import {
-  disableComponents,
   simpleEmbed,
   getOrCreateWebhook,
   setComponentExpiry,

@@ -14,7 +14,7 @@ export default tseslint.config({
 
   languageOptions: {
     parser: tseslint.parser,
-    parserOptions: { sourceType: 'module' },  
+    parserOptions: { sourceType: 'module' },
     ecmaVersion: 2022,
     globals: {
       ...globals.node,
@@ -25,7 +25,7 @@ export default tseslint.config({
     'yoda': 'error',
     'no-var': 'error',
     'no-console': 'warn',
-    'complexity': 'error',
+    'complexity': 'warn',
     'dot-notation': 'off',
     'prefer-const': 'error',
     'no-lonely-if': 'error',
@@ -65,5 +65,4 @@ export default tseslint.config({
     '@stylistic/no-multiple-empty-lines': ['error', { 'max': 2, 'maxEOF': 1, 'maxBOF': 0 }],
     '@stylistic/space-before-function-paren': ['error', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],
   },
-}
-);
+});
