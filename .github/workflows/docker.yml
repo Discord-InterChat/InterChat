@@ -58,14 +58,9 @@ jobs:
     steps:
       - name: Backup Container Logs
         run: |
-          # Get today's date and time
-          current_date_time=$(date +"%Y-%m-%d_%H-%M-%S")
-
-          # Copy the folder from the Docker container to the host
-          docker cp $(docker ps -alq):/logs/ .
-          cp -r logs/ ~/console-logs/interchat-logs-$current_date_time
-
-      - name: Remove old containers
-        run: docker stop $(docker ps -a -q) && docker rm $(sudo docker ps -a -q)
+          docker cp $(docker ps -alq):/src/logs .
+          cp -r logs/ ~/console-logs/interchat-logs-$(date +"%Y-%m-%d_%H-%M-%S")
+      - name: Remove old containers and images
+        run: sudo docker rm $(docker ps -a -q) && sudo docker rmi $(docker images -q)
       - name: Run latest image
         run: sudo docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
