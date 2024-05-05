@@ -22,7 +22,7 @@ export default createLogger({
   transports: [
     new transports.Console({
       format: format.combine(format.colorize(), custom),
-      level: isDevBuild ? 'debug' : 'info',
+      level: isDevBuild || process.env.DEBUG ? 'debug' : 'info',
     }),
     new transports.File({ filename: 'logs/error.log', level: 'error' }),
     new transports.File({

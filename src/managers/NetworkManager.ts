@@ -44,7 +44,7 @@ const MAX_STORE = 3;
 export default class NetworkManager {
   private readonly scheduler: Scheduler;
   private readonly antiSpamMap: Collection<string, AntiSpamUserOpts>;
-  private _connectionCache: Collection<string, Connection>;
+  private _connectionCache: Collection<string, connectedList>;
   private cachePopulated = false;
 
   constructor() {
@@ -61,10 +61,7 @@ export default class NetworkManager {
 
   protected async populateConnectionCache() {
     Logger.debug('[InterChat]: Populating connection cache.');
-    const connections = await db.connectedList.findMany({
-      where: { connected: true },
-      include: { hub: true },
-    });
+    const connections = await db.connectedList.findMany({ where: { connected: true } });
 
     // populate all at once without time delay
     this._connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
@@ -91,12 +88,15 @@ export default class NetworkManager {
     const locale = await message.client.getUserLocale(message.author.id);
     message.author.locale = locale;
 
-    const connection = this._connectionCache.get(message.channelId);
-
     // check if the message was sent in a network channel
-    if (!connection?.connected || !connection.hub) return;
+    const connection = this.connectionCache.get(message.channel.id);
+    if (!connection?.connected) return;
 
-    const settings = new HubSettingsBitField(connection.hub.settings);
+    const hub = await db.hubs.findFirst({ where: { id: connection?.hubId } });
+    if (!hub) return;
+
+    const settings = new HubSettingsBitField(hub.settings);
+    const hubConnections = this.connectionCache.filter((con) => con.hubId === connection.hubId);
 
     const attachment = message.attachments.first();
     const attachmentURL = attachment
@@ -108,7 +108,6 @@ export default class NetworkManager {
       return;
     }
 
-    const hubConnections = this._connectionCache.filter((con) => con.hubId === connection.hubId);
 
     const censoredContent = censor(message.content);
 
@@ -189,8 +188,8 @@ export default class NetworkManager {
         let messageFormat: WebhookMessageCreateOptions = {
           components: jumpButton ? [jumpButton] : undefined,
           embeds: [otherConnection.profFilter ? censoredEmbed : embed],
-          username: `${connection.hub?.name}`,
-          avatarURL: connection.hub?.iconUrl,
+          username: `${hub.name}`,
+          avatarURL: hub.iconUrl,
           threadId: otherConnection.parentId ? otherConnection.channelId : undefined,
           allowedMentions: { parse: [] },
         };
@@ -284,7 +283,7 @@ export default class NetworkManager {
             { phrase: 'network.welcome', locale },
             {
               user: message.author.toString(),
-              hub: connection.hub.name,
+              hub: hub.name,
               channel: message.channel.toString(),
               totalServers: hubConnections.size.toString(),
               emoji: emojis.wave_anim,

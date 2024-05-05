@@ -61,6 +61,9 @@ jobs:
           docker cp $(docker ps -alq):/src/logs .
           cp -r logs/ ~/console-logs/interchat-logs-$(date +"%Y-%m-%d_%H-%M-%S")
       - name: Remove old containers and images
-        run: sudo docker rm $(docker ps -a -q) && sudo docker rmi $(docker images -q)
+        run: |
+          docker stop $(docker ps -a -q)
+          docker rm $(docker ps -a -q)
+          docker rmi $(docker images -q)
       - name: Run latest image
-        run: sudo docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
+        run: docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
