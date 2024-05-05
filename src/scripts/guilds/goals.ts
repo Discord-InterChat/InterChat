@@ -4,8 +4,8 @@ import { colors, mascotEmojis } from '../../utils/Constants.js';
 /**
  * @param channelId must be a channel ID in the support server
  */
-export function logGuildJoin(guild: Guild, channelId: string) {
-  guild.client.cluster.broadcastEval(
+export async function logGuildJoin(guild: Guild, channelId: string) {
+  await guild.client.cluster.broadcastEval(
     async (client, ctx) => {
       const goalChannel = client.channels.cache.get(ctx.goalChannel);
 
@@ -51,7 +51,7 @@ export async function logGuildLeave(guild: Guild, channelId: string) {
 
   // send message to support server notifying of leave
   // we cant access any variables/functions or anything inside the broadcastEval callback so we pass it in as context
-  guild.client.cluster.broadcastEval(
+  await guild.client.cluster.broadcastEval(
     async (client, ctx) => {
       const goalChannel = await client.channels.fetch(ctx.goalChannel).catch(() => null);
 

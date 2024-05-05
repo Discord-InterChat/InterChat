@@ -6,6 +6,8 @@ import parse from 'parse-duration';
 import { emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
+import Logger from '../../../../utils/Logger.js';
+import { captureException } from '@sentry/node';
 
 export default class Server extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -92,7 +94,12 @@ export default class Server extends BlacklistCommand {
         expires,
       );
       if (expires) blacklistManager.scheduleRemoval('user', user.id, hubInDb.id, expires);
-      blacklistManager.notifyBlacklist('user', user.id, hubInDb.id, expires, reason);
+      await blacklistManager
+        .notifyBlacklist('user', user.id, hubInDb.id, expires, reason)
+        .catch((e) => {
+          Logger.error(e);
+          captureException(e);
+        });
 
       const successEmbed = new EmbedBuilder()
         .setDescription(

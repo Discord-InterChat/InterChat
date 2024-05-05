@@ -57,7 +57,7 @@ export default class Joined extends Hub {
         }
       });
 
-      paginate(interaction, paginateEmbeds);
+      await paginate(interaction, paginateEmbeds);
       return;
     }
 

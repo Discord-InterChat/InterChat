@@ -159,7 +159,7 @@ export default class Connection extends BaseCommand {
       return { name: `${hub?.name} | #${channel?.name || channelId}`, value: channelId };
     });
 
-    interaction.respond(await Promise.all(filtered));
+    await interaction.respond(await Promise.all(filtered));
   }
 
   @RegisterInteractionHandler('connection')
@@ -332,7 +332,7 @@ export default class Connection extends BaseCommand {
             simpleEmbed(
               t(
                 { phrase: 'connection.alreadyConnected', locale: interaction.user.locale },
-                { channel: `${newChannel}`, emoji: emojis.no },
+                { channel: `${newChannel?.toString()}`, emoji: emojis.no },
               ),
             ),
           ],
@@ -349,7 +349,7 @@ export default class Connection extends BaseCommand {
       await interaction.editReply({
         content: t(
           { phrase: 'connection.switchSuccess', locale: interaction.user.locale },
-          { channel: `${newChannel}`, emoji: emojis.yes },
+          { channel: `${newChannel?.toString()}`, emoji: emojis.yes },
         ),
         // remove error embed, if it occured
         embeds: [],
@@ -408,7 +408,7 @@ export default class Connection extends BaseCommand {
 
       const hex_regex = /^#[0-9A-F]{6}$/i;
       if (embedColor && !hex_regex.test(embedColor)) {
-        interaction.reply({
+        await interaction.reply({
           content: t(
             { phrase: 'connection.emColorInvalid', locale: interaction.user.locale },
             { emoji: emojis.no },

@@ -62,7 +62,7 @@ export default class Find extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = Find.subcommands?.get(interaction.options.getSubcommand());
 
-    return await subcommand?.execute(interaction).catch((e) => handleError(e, interaction));
+    return await subcommand?.execute(interaction).catch((e: Error) => handleError(e, interaction));
   }
   async autocomplete(interaction: AutocompleteInteraction) {
     const subcommand = interaction.options.getSubcommand();

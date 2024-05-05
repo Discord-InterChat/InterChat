@@ -35,10 +35,14 @@ export default async function registerAllCommands(staffOnly = false) {
 
 process.argv.forEach((arg) => {
   if (arg === '--public') {
-    registerAllCommands().then(() => process.exit(0));
+    registerAllCommands()
+      .then(() => process.exit(0))
+      .catch(Logger.error);
   }
   else if (arg === '--private') {
-    registerAllCommands(true).then(() => process.exit(0));
+    registerAllCommands(true)
+      .then(() => process.exit(0))
+      .catch(Logger.error);
   }
   else if (arg === '--help') {
     Logger.info('Usage: node utils/RegisterCmdCli.js [--public|--private|--help]');

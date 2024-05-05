@@ -231,7 +231,7 @@ export class JoinLeaveLogger extends HubLoggerService {
         text: `We now have ${totalConnections} server(s) connected to ${hub.name} now!`,
       });
 
-    this.sendLog(hub.logChannels.joinLeaves, embed);
+    await this.sendLog(hub.logChannels.joinLeaves, embed);
   }
 }
 

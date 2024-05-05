@@ -7,7 +7,6 @@ import {
   ActionRow,
   ButtonStyle,
   ChannelType,
-  Client,
   ColorResolvable,
   ComponentType,
   EmbedBuilder,
@@ -38,7 +37,7 @@ import 'dotenv/config';
 import { captureException } from '@sentry/node';
 import { CustomID } from './CustomID.js';
 import SuperClient from '../core/Client.js';
-import { ClusterClient, ClusterManager } from 'discord-hybrid-sharding';
+import { ClusterManager } from 'discord-hybrid-sharding';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export const msToReadable = (milliseconds: number) => {
@@ -79,7 +78,7 @@ export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
         Authorization: process.env.TOPGG_API_KEY,
       },
     })
-  ).json();
+  ).json() as { voted: boolean };
 
   return Boolean(res.voted);
 };
@@ -243,20 +242,22 @@ export const calculateAverageRating = (ratings: number[]): number => {
   return Math.round(average * 10) / 10;
 };
 
+type ImgurResponse = { data: { link: string; nsfw: boolean, cover: string } };
+
 export const checkAndFetchImgurUrl = async (url: string): Promise<string | false> => {
   const regex = REGEX.IMGUR_LINKS;
   const match = url.match(regex);
 
-  if (!match || !match[1]) return false;
+  if (!match?.[1]) return false;
 
   const type = match[0].includes('/a/') || match[0].includes('/gallery/') ? 'gallery' : 'image';
-
   const response = await fetch(`https://api.imgur.com/3/${type}/${match[1]}`, {
     headers: {
       Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
     },
   });
-  const data = await response.json().catch(() => null);
+
+  const data = await response.json().catch(() => null) as ImgurResponse;
   if (!data || data?.data?.nsfw) {
     return false;
   }
@@ -339,7 +340,7 @@ export const handleError = (e: Error, interaction?: Interaction) => {
   captureException(e, extra);
 
   // reply with an error message to the user
-  if (interaction?.isRepliable()) replyWithError(interaction, String(e));
+  if (interaction?.isRepliable()) replyWithError(interaction, String(e)).catch(Logger.error);
 };
 
 export const isDev = (userId: Snowflake) => {
@@ -396,7 +397,7 @@ export const getUsername = async (client: ClusterManager, userId: Snowflake) => 
 };
 
 export const modifyUserRole = async (
-  cluster: ClusterClient<Client> | ClusterManager,
+  cluster: ClusterManager,
   action: 'add' | 'remove',
   userId: Snowflake,
   roleId: Snowflake,

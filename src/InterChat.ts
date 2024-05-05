@@ -21,7 +21,7 @@ class InterChat extends SuperClient {
   public constructor() {
     super();
 
-    this.once('ready', () => {
+    this.once('ready', async () => {
       // initialize the client
       this.boot();
 
@@ -29,7 +29,7 @@ class InterChat extends SuperClient {
       loadLocales('locales/src/locales');
 
       // load commands
-      CommandManager.loadCommandFiles();
+      await CommandManager.loadCommandFiles();
 
       Logger.info(`Logged in as ${this.user?.tag}!`);
     });
@@ -47,7 +47,7 @@ class InterChat extends SuperClient {
       Logger.info(`Joined ${guild.name} (${guild.id})`);
 
       // log that bot joined a guild to goal channel in support server
-      logGuildJoin(guild, channels.goal);
+      await logGuildJoin(guild, channels.goal);
 
       const { guildOwner, guildChannel } = await getWelcomeTargets(guild);
 

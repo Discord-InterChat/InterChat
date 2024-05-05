@@ -90,7 +90,7 @@ export async function paginate(
     componentType: ComponentType.Button,
   });
 
-  col.on('collect', (i) => {
+  col.on('collect', async (i) => {
     if (i.customId === 'page_:back') {
       index--;
     }
@@ -114,11 +114,11 @@ export async function paginate(
 
     // edit the message only if the customId is one of the paginator buttons
     if (i.customId.startsWith('page_:')) {
-      i.update({ embeds: [pages[index]], components });
+      await i.update({ embeds: [pages[index]], components });
     }
   });
 
-  col.on('end', () => {
-    listMessage.edit({ components: [] });
+  col.on('end', async () => {
+    await listMessage.edit({ components: [] });
   });
 }

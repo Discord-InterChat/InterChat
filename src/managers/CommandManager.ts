@@ -23,7 +23,7 @@ export default class CommandManager extends Factory {
 
       if (interaction.isAutocomplete()) {
         const command = this.commandsMap.get(interaction.commandName);
-        if (command?.autocomplete) command.autocomplete(interaction);
+        if (command?.autocomplete) await command.autocomplete(interaction);
       }
       else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
         const command = this.commandsMap.get(interaction.commandName);

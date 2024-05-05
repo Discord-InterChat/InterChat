@@ -10,6 +10,7 @@ import updateBlacklists from './scripts/tasks/updateBlacklists.js';
 import deleteOldMessages from './scripts/tasks/deleteOldMessages.js';
 import 'dotenv/config';
 import { getUsername, wait } from './utils/Utils.js';
+import Logger from './utils/Logger.js';
 
 const clusterManager = new ClusterManager('build/InterChat.js', {
   totalShards: 'auto',
@@ -25,8 +26,11 @@ clusterManager.on('clusterCreate', async (cluster) => {
     // remove expired blacklists or set new timers for them
     const serverQuery = { where: { hubs: { some: { expires: { isSet: true } } } } };
     const userQuery = { where: { blacklistedFrom: { some: { expires: { isSet: true } } } } };
-    updateBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler);
-    updateBlacklists(await db.userData.findMany(userQuery), scheduler);
+    updateBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler)
+      .catch(Logger.error);
+
+    updateBlacklists(await db.userData.findMany(userQuery), scheduler)
+      .catch(Logger.error);
 
     // code must be in production to run these tasks
     if (isDevBuild) return;
@@ -34,9 +38,9 @@ clusterManager.on('clusterCreate', async (cluster) => {
     await wait(10_000);
 
     // perform start up tasks
-    syncBotlistStats(clusterManager);
-    deleteOldMessages();
-    deleteExpiredInvites();
+    syncBotlistStats(clusterManager).catch(Logger.error);
+    deleteOldMessages().catch(Logger.error);
+    deleteExpiredInvites().catch(Logger.error);
 
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1_000, deleteExpiredInvites);
     scheduler.addRecurringTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages);
@@ -55,4 +59,7 @@ voteManager.on('vote', async (vote) => {
 });
 
 // spawn clusters and start the api that handles nsfw filter and votes
-clusterManager.spawn({ timeout: -1 }).then(() => startApi({ voteManager }));
+clusterManager.spawn({ timeout: -1 })
+  .then(() => startApi({ voteManager }))
+  .catch(Logger.error);
+

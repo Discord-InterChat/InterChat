@@ -88,7 +88,7 @@ export default class UserBlacklist extends BlacklistCommand {
       catch (err) {
         Logger.error(err);
         captureException(err);
-        interaction.followUp({
+        await interaction.followUp({
           embeds: [
             simpleEmbed(
               t({
@@ -129,7 +129,9 @@ export default class UserBlacklist extends BlacklistCommand {
       await interaction.followUp({ embeds: [successEmbed] });
 
       // notify the server that they have been blacklisted
-      blacklistManager.notifyBlacklist('server', serverOpt, hubInDb.id, expires, reason);
+      await blacklistManager
+        .notifyBlacklist('server', serverOpt, hubInDb.id, expires, reason)
+        .catch(() => null);
 
       // delete all connections from db so they can't reconnect to the hub
       await db.connectedList.deleteMany({ where: { serverId: server.id, hubId: hubInDb.id } });

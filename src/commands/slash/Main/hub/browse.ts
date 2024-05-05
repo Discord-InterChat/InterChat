@@ -100,7 +100,7 @@ export default class Browse extends Hub {
     );
 
     if (!hubList || hubList.length === 0) {
-      interaction.reply({
+      await interaction.reply({
         content: t(
           { phrase: 'hub.browse.noHubs', locale: interaction.user.locale },
           { emoji: emojis.no },
@@ -125,7 +125,7 @@ export default class Browse extends Hub {
         .setStyle(ButtonStyle.Success),
     );
 
-    paginate(interaction, hubList, {
+    await paginate(interaction, hubList, {
       extraComponents: {
         actionRow: [paginateBtns],
         updateComponents(pageNumber) {
@@ -189,7 +189,7 @@ export default class Browse extends Hub {
     else if (customId.suffix === 'join') {
       const alreadyJoined = hubDetails.connections.find((c) => c.serverId === interaction.guildId);
       if (alreadyJoined) {
-        interaction.reply({
+        await interaction.reply({
           content: t(
             { phrase: 'hub.alreadyJoined', locale: interaction.user.locale },
             { hub: hubDetails.name, channel: `<#${alreadyJoined.channelId}>`, emoji: emojis.no },
@@ -350,7 +350,7 @@ export default class Browse extends Hub {
         await interaction.update({
           content: t(
             { phrase: 'connection.alreadyConnected', locale: interaction.user.locale },
-            { channel: `${channel}`, emoji: emojis.no },
+            { channel: channel.toString(), emoji: emojis.no },
           ),
           embeds: [],
           components: [],
@@ -401,7 +401,7 @@ export default class Browse extends Hub {
       await interaction.editReply({
         content: t(
           { phrase: 'hub.join.success', locale: interaction.user.locale },
-          { hub: hubDetails.name, channel: `${channel}` },
+          { hub: hubDetails.name, channel: channel.toString() },
         ),
         embeds: [],
         components: [],
@@ -449,7 +449,7 @@ export default class Browse extends Hub {
     const hubId = customId.args[0];
     const hub = await db.hubs.findFirst({ where: { id: hubId } });
     if (!hub) {
-      interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             t({ phrase: 'hub.notFound', locale: interaction.user.locale }, { emoji: emojis.no }),

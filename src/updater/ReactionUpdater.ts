@@ -54,9 +54,7 @@ export default class ReactionUpdater extends Factory {
       !originalMsg?.hub ||
       !reaction.message.inGuild() ||
       !new HubSettingsBitField(originalMsg.hub.settings).has('Reactions')
-    ) {
-      return;
-    }
+    ) return;
 
     const { userBlacklisted, serverBlacklisted } = await ReactionUpdater.checkBlacklists(
       originalMsg.hub.id,
@@ -87,7 +85,7 @@ export default class ReactionUpdater extends Factory {
     });
 
     reaction.users.remove(user.id).catch(() => null);
-    ReactionUpdater.updateReactions(originalMsg.broadcastMsgs, dbReactions);
+    await ReactionUpdater.updateReactions(originalMsg.broadcastMsgs, dbReactions);
   }
 
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */

@@ -21,6 +21,7 @@ import { parseTimestampFromId, replaceLinks, wait } from '../utils/Utils.js';
 import { t } from '../utils/Locale.js';
 import sendMessage from '../scripts/network/sendMessage.js';
 import Scheduler from '../services/SchedulerService.js';
+import { captureException } from '@sentry/node';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
@@ -55,7 +56,8 @@ export default class NetworkManager {
       .then((connections) => {
         this.connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
         this.cachePopulated = true;
-      });
+      })
+      .catch(captureException);
 
     this.scheduler.addRecurringTask('populateConnectionCache', 60_000, async () => {
       const connections = await db.connectedList.findMany({
@@ -283,9 +285,9 @@ export default class NetworkManager {
           content: t(
             { phrase: 'network.welcome', locale },
             {
-              user: `${message.author}`,
+              user: message.author.toString(),
               hub: connection.hub.name,
-              channel: `${message.channel}`,
+              channel: message.channel.toString(),
               totalServers: allConnections.length.toString(),
               emoji: emojis.wave_anim,
               rules_command: '</rules:924659340898619395>',
@@ -575,7 +577,7 @@ export default class NetworkManager {
 
   public async replyToMsg(message: Message, content: string) {
     const reply = await message.reply(content).catch(() => null);
-    if (!reply) await message.channel.send(`${message.author} ${content}`).catch(() => null);
+    if (!reply) await message.channel.send(`${message.author.toString()} ${content}`).catch(() => null);
   }
   public containsStickers(message: Message) {
     return message.stickers.size > 0 && !message.content;
@@ -618,10 +620,7 @@ export default class NetworkManager {
     return true;
   }
 
-  public async containsNSFW(
-    message: Message,
-    imgUrl: string | null | undefined,
-  ) {
+  public async containsNSFW(message: Message, imgUrl: string | null | undefined) {
     const { nsfwDetector } = message.client;
     const attachment = message.attachments.first();
 
@@ -681,7 +680,7 @@ export default class NetworkManager {
     if (profanity || slurs) {
       // send a log to the log channel set by the hub
       const { profanityLogger } = message.client;
-      profanityLogger.log(hubId, message.content, message.author, message.guild);
+      await profanityLogger.log(hubId, message.content, message.author, message.guild);
     }
 
     if (this.isNewUser(message)) {
@@ -689,7 +688,7 @@ export default class NetworkManager {
         .send(
           t(
             { phrase: 'network.accountTooNew', locale: message.author.locale },
-            { user: `${message.author}`, emoji: emojis.no },
+            { user: message.author.toString(), emoji: emojis.no },
           ),
         )
         .catch(() => null);

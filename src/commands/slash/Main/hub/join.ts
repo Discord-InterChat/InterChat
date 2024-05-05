@@ -47,7 +47,7 @@ export default class JoinSubCommand extends Hub {
           simpleEmbed(
             t(
               { phrase: 'hub.alreadyJoined', locale },
-              { channel: `${channel}`, hub: `${alrJoinedHub?.name}`, emoji: emojis.no },
+              { channel: `${channel.toString()}`, hub: `${alrJoinedHub?.name}`, emoji: emojis.no },
             ),
           ),
         ],

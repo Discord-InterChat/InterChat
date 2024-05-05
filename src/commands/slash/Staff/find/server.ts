@@ -4,6 +4,7 @@ import { stripIndents } from 'common-tags';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import { toTitleCase } from '../../../../utils/Utils.js';
 import db from '../../../../utils/Db.js';
+import { GuildPremiumTier } from 'discord.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -23,13 +24,13 @@ export default class Server extends Find {
 
     const guildBlacklisted = await db.blacklistedServers.count({ where: { serverId: guild.id } });
     const guildBoostLevel =
-      guild.premiumTier === 0
+      guild.premiumTier === GuildPremiumTier.None
         ? 'None'
-        : guild.premiumTier === 1
+        : guild.premiumTier === GuildPremiumTier.Tier1
           ? 'Level 1'
-          : guild.premiumTier === 2
+          : guild.premiumTier === GuildPremiumTier.Tier2
             ? 'Level 2'
-            : guild.premiumTier === 3
+            : guild.premiumTier === GuildPremiumTier.Tier3
               ? 'Level 3'
               : 'Unknown';
 
