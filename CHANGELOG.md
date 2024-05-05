@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.20.4](https://github.com/Discord-InterChat/InterChat/compare/v3.20.3...v3.20.4) (2024-05-05)
+
+
+### Bug Fixes
+
+* **network:** use connectionCache to broadcast messages ([c6c9c9a](https://github.com/Discord-InterChat/InterChat/commit/c6c9c9a2e79274e9fd322576b6130a3df68cc240))
+
 ### [3.20.3](https://github.com/Discord-InterChat/InterChat/compare/v3.20.2...v3.20.3) (2024-05-05)
 
 ### [3.20.2](https://github.com/Discord-InterChat/InterChat/compare/v3.20.1...v3.20.2) (2024-05-05)
