@@ -56,6 +56,17 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: Backup Container Logs
+        run: |
+          # Get today's date and time
+          export current_date_time=$(date +"%Y-%m-%d_%H-%M-%S")
+
+          # Destination directory on the host with today's date and time
+          destination_directory="~/console-logs/$current_date_time"
+
+          # Copy the folder from the Docker container to the host
+          docker cp $(docker ps -alq):/logs/ "$destination_directory"
+
       - name: Remove old containers
         run: docker stop $(docker ps -a -q) && docker rm $(sudo docker ps -a -q)
       - name: Run latest image
