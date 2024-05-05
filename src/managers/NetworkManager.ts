@@ -22,6 +22,7 @@ import { t } from '../utils/Locale.js';
 import sendMessage from '../scripts/network/sendMessage.js';
 import Scheduler from '../services/SchedulerService.js';
 import { captureException } from '@sentry/node';
+import Logger from '../utils/Logger.js';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
@@ -43,31 +44,35 @@ const MAX_STORE = 3;
 export default class NetworkManager {
   private readonly scheduler: Scheduler;
   private readonly antiSpamMap: Collection<string, AntiSpamUserOpts>;
-  private connectionCache: Collection<string, Connection>;
+  private _connectionCache: Collection<string, Connection>;
   private cachePopulated = false;
 
   constructor() {
     this.scheduler = new Scheduler();
     this.antiSpamMap = new Collection();
-    this.connectionCache = new Collection();
+    this._connectionCache = new Collection();
 
-    db.connectedList
-      .findMany({ where: { connected: true }, include: { hub: true } })
-      .then((connections) => {
-        this.connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
-        this.cachePopulated = true;
-      })
-      .catch(captureException);
+    this.populateConnectionCache().catch(captureException);
 
     this.scheduler.addRecurringTask('populateConnectionCache', 60_000, async () => {
-      const connections = await db.connectedList.findMany({
-        where: { connected: true },
-        include: { hub: true },
-      });
-
-      // populate all at once without time delay
-      this.connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
+      await this.populateConnectionCache().catch(captureException);
     });
+  }
+
+  protected async populateConnectionCache() {
+    Logger.debug('[InterChat]: Populating connection cache.');
+    const connections = await db.connectedList.findMany({
+      where: { connected: true },
+      include: { hub: true },
+    });
+
+    // populate all at once without time delay
+    this._connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
+    Logger.debug(`[InterChat]: Connection cache populated with ${this._connectionCache.size} entries.`);
+  }
+
+  public get connectionCache() {
+    return this._connectionCache;
   }
 
   /**
@@ -78,6 +83,7 @@ export default class NetworkManager {
     if (message.author.bot || message.system || message.webhookId) return;
 
     if (!this.cachePopulated) {
+      Logger.debug('[InterChat]: Cache not populated, retrying in 5 seconds...');
       await wait(5000);
       return this.onMessageCreate(message);
     }
@@ -85,12 +91,10 @@ export default class NetworkManager {
     const locale = await message.client.getUserLocale(message.author.id);
     message.author.locale = locale;
 
-    const connection = this.connectionCache.find(
-      (c) => c.channelId === message.channelId && c.connected,
-    );
+    const connection = this._connectionCache.get(message.channelId);
 
     // check if the message was sent in a network channel
-    if (!connection?.hub) return;
+    if (!connection?.connected || !connection.hub) return;
 
     const settings = new HubSettingsBitField(connection.hub.settings);
 
@@ -104,10 +108,7 @@ export default class NetworkManager {
       return;
     }
 
-    const allConnections = await this.fetchHubNetworks({
-      hubId: connection.hubId,
-      connected: true,
-    });
+    const hubConnections = this._connectionCache.filter((con) => con.hubId === connection.hubId);
 
     const censoredContent = censor(message.content);
 
@@ -161,10 +162,7 @@ export default class NetworkManager {
     });
 
     // ---------- Broadcasting ---------
-    const sendResult = allConnections.map(async (otherConnection, index) => {
-      // wait 1 second every 50 messages to avoid rate limits
-      if (index % 50) await wait(1000);
-
+    const sendResult = hubConnections.map(async (otherConnection) => {
       try {
         const reply = referenceInDb?.broadcastMsgs.find(
           (msg) => msg.channelId === otherConnection.channelId,
@@ -288,7 +286,7 @@ export default class NetworkManager {
               user: message.author.toString(),
               hub: connection.hub.name,
               channel: message.channel.toString(),
-              totalServers: allConnections.length.toString(),
+              totalServers: hubConnections.size.toString(),
               emoji: emojis.wave_anim,
               rules_command: '</rules:924659340898619395>',
             },
