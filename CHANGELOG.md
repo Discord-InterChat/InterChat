@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.20.0](https://github.com/Discord-InterChat/InterChat/compare/v3.19.5...v3.20.0) (2024-05-05)
+
+
+### Features
+
+* **network:** add simple db caching layer to `NetworkManager()` ([#61](https://github.com/Discord-InterChat/InterChat/issues/61)) ([769fa5d](https://github.com/Discord-InterChat/InterChat/commit/769fa5d6b138d81860c3be65dbc325fc4d89cccc))
+
+
+### Bug Fixes
+
+* **credits:** fix broken emojis ([4aeceaf](https://github.com/Discord-InterChat/InterChat/commit/4aeceaf73520655fc7cdb14636fcfd8a8583d1ec))
+* **hub:** same thing :( ([b47dd8d](https://github.com/Discord-InterChat/InterChat/commit/b47dd8d4afc6d404bb8655e3e8c3f9aa357037ae))
+
 ### [3.19.5](https://github.com/Discord-InterChat/InterChat/compare/v3.19.4...v3.19.5) (2024-04-27)
 
 
