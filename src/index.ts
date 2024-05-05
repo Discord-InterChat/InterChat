@@ -13,8 +13,6 @@ import { getUsername, wait } from './utils/Utils.js';
 import Logger from './utils/Logger.js';
 
 const clusterManager = new ClusterManager('build/InterChat.js', {
-  totalShards: 'auto',
-  mode: 'process',
   token: process.env.TOKEN,
   shardsPerClusters: 2,
 });
