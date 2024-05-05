@@ -1,9 +1,9 @@
 import {
   ChatInputCommandInteraction,
-  User,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  Client,
 } from 'discord.js';
 import { badgeEmojis, emojis, LINKS } from '../../../utils/Constants.js';
 import { getCredits, simpleEmbed } from '../../../utils/Utils.js';
@@ -16,23 +16,21 @@ export default class Credits extends BaseCommand {
     description: 'Shows the credits for InterChat',
   };
 
+  private async getUsernames(client: Client): Promise<string[]> {
+    const members: string[] = [];
+
+    for (const credit of getCredits()) {
+      const member = await client.users.fetch(credit);
+      members.push(member.username.replaceAll('_', '\\_'));
+    }
+
+    return members;
+  }
+
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
-    const members: User[] = [];
-    const credits = getCredits();
-    for (const credit of credits) {
-      const shardValues = (await interaction.client.cluster.broadcastEval(
-        `this.users.cache.get('${credit}')`,
-        { context: { userId: credit } },
-      )) as User[];
-
-      const member =
-        shardValues.find((m) => Boolean(m)) ?? (await interaction.client.users.fetch(credit));
-
-      members.push(member);
-    }
-
+    const usernames = await this.getUsernames(interaction.client);
     const linksDivider = `${emojis.blueLine.repeat(9)} **LINKS** ${emojis.blueLine.repeat(9)}`;
     const creditsDivider = `${emojis.blueLine.repeat(9)} **TEAM** ${emojis.blueLine.repeat(9)}`;
 
@@ -43,19 +41,19 @@ export default class Credits extends BaseCommand {
 
       ${creditsDivider}
       ✨ **Design:** 
-      ${emojis.dotBlue} @${members[4]?.username} (Mascot)
+      ${emojis.dotBlue} @${usernames[4]} (Mascot)
 
       ${badgeEmojis.Developer} **Developers:**
-      ${emojis.dotBlue} @${members[1]?.username}
-      ${emojis.dotBlue} @${members[2]?.username}
-      ${emojis.dotBlue} @${members[0].username}
+      ${emojis.dotBlue} @${usernames[1]}
+      ${emojis.dotBlue} @${usernames[2]}
+      ${emojis.dotBlue} @${usernames[0]}
 
       ${badgeEmojis.Staff} **Staff: ([Recruiting!](https://forms.gle/8zu7cxx4XPbEmMXJ9))**
-      ${emojis.dotBlue} @${members[3]?.username}
+      ${emojis.dotBlue} @${usernames[3]}
 
       ${linksDivider}
       [Guide](${LINKS.DOCS}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${LINKS.DOCS}/legal/privacy) • [Terms](${LINKS.DOCS}/legal/terms) 
-    `.replaceAll('_', '\\_'),
+    `,
     );
 
     const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -82,6 +80,6 @@ export default class Credits extends BaseCommand {
         .setURL('https://top.gg/bot/769921109209907241/vote'),
     );
 
-    await interaction.followUp({ embeds: [creditsEmbed], components: [linkButtons] });
+    await interaction.editReply({ embeds: [creditsEmbed], components: [linkButtons] });
   }
 }
