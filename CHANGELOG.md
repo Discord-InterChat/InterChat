@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.20.6](https://github.com/Discord-InterChat/InterChat/compare/v3.20.5...v3.20.6) (2024-05-05)
+
 ### [3.20.5](https://github.com/Discord-InterChat/InterChat/compare/v3.20.4...v3.20.5) (2024-05-05)
 
 
