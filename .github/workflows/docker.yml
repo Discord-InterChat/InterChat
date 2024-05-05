@@ -64,6 +64,7 @@ jobs:
         run: |
           docker stop $(docker ps -a -q)
           docker rm $(docker ps -a -q)
+          docker rmi ghcr.io/discord-interchat/interchat
           docker rmi $(docker images -q)
       - name: Run latest image
         run: docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
