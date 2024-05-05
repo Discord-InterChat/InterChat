@@ -45,7 +45,7 @@ export default class NetworkManager {
   private readonly scheduler: Scheduler;
   private readonly antiSpamMap: Collection<string, AntiSpamUserOpts>;
   private _connectionCache: Collection<string, connectedList>;
-  private cachePopulated = false;
+  private _cachePopulated = false;
 
   constructor() {
     this.scheduler = new Scheduler();
@@ -65,6 +65,7 @@ export default class NetworkManager {
 
     // populate all at once without time delay
     this._connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
+    this._cachePopulated = true;
     Logger.debug(`[InterChat]: Connection cache populated with ${this._connectionCache.size} entries.`);
   }
 
@@ -79,7 +80,7 @@ export default class NetworkManager {
   public async onMessageCreate(message: Message): Promise<void> {
     if (message.author.bot || message.system || message.webhookId) return;
 
-    if (!this.cachePopulated) {
+    if (!this._cachePopulated) {
       Logger.debug('[InterChat]: Cache not populated, retrying in 5 seconds...');
       await wait(5000);
       return this.onMessageCreate(message);
