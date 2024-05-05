@@ -21,12 +21,12 @@
   "type": "module",
   "dependencies": {
     "@prisma/client": "^5.13.0",
-    "@sentry/node": "^7.112.2",
-    "@tensorflow/tfjs-node": "^4.18.0",
+    "@sentry/node": "^7.113.0",
+    "@tensorflow/tfjs-node": "^4.19.0",
     "@top-gg/sdk": "^3.1.6",
     "common-tags": "^1.8.2",
     "discord-hybrid-sharding": "^2.2.0",
-    "discord.js": "^14.14.1",
+    "discord.js": "^14.15.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "google-translate-api-x": "^10.6.8",
@@ -41,15 +41,15 @@
     "winston": "^3.13.0"
   },
   "devDependencies": {
-    "@stylistic/eslint-plugin": "^1.7.2",
+    "@stylistic/eslint-plugin": "^1.8.0",
     "@types/common-tags": "^1.8.4",
     "@types/express": "^4.17.21",
     "@types/js-yaml": "^4.0.9",
-    "@types/lodash": "^4.17.0",
-    "@types/node": "^20.12.7",
+    "@types/lodash": "^4.17.1",
+    "@types/node": "^20.12.8",
     "@types/source-map-support": "^0.5.10",
     "cz-conventional-changelog": "^3.3.0",
-    "eslint": "9.1.1",
+    "eslint": "9.2.0",
     "husky": "^9.0.11",
     "lint-staged": "^15.2.2",
     "prettier": "^3.2.5",
@@ -57,7 +57,7 @@
     "standard-version": "^9.5.0",
     "tsc-watch": "^6.2.0",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^7.7.1"
+    "typescript-eslint": "^7.8.0"
   },
   "config": {
     "commitizen": {
