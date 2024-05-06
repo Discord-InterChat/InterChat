@@ -20,6 +20,8 @@ import {
   Snowflake,
   TextChannel,
   ThreadChannel,
+  WebhookClient,
+  WebhookMessageCreateOptions,
 } from 'discord.js';
 import {
   DeveloperIds,
@@ -414,4 +416,53 @@ export const modifyUserRole = async (
     },
     { guildId, context: { userId, roleId, guildId, action } },
   );
+};
+
+/**
+   * Sends a message to all connections in a hub's network.
+   * @param hubId The ID of the hub to send the message to.
+   * @param message The message to send. Can be a string or a MessageCreateOptions object.
+   * @returns A array of the responses from each connection's webhook.
+   */
+export const sendToHub = async (hubId: string, message: string | WebhookMessageCreateOptions) => {
+  const connections = await db.connectedList.findMany({ where: { hubId } });
+
+  const res = connections
+    .filter((c) => c.connected === true)
+    .map(async (connection) => {
+      const threadId = connection.parentId ? connection.channelId : undefined;
+      const payload =
+          typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
+
+      const webhook = new WebhookClient({ url: connection.webhookURL });
+      return await webhook.send(payload).catch(() => null);
+    });
+
+  return await Promise.all(res);
+};
+
+
+/**
+   * Returns the URL of an attachment in a message, if it exists.
+   * @param message The message to search for an attachment URL.
+   * @returns The URL of the attachment, or null if no attachment is found.
+   */
+export const getAttachmentURL = async (string: string) => {
+  // Tenor Gifs / Image URLs
+  const URLMatch = string.match(REGEX.IMAGE_URL);
+  if (URLMatch) return URLMatch[0];
+
+  const gifMatch = string.match(REGEX.TENOR_LINKS);
+
+  if (gifMatch) {
+    if (!process.env.TENOR_KEY) throw new TypeError('Tenor API key not found in .env file.');
+
+    const n = gifMatch[0].split('-');
+    const id = n.at(-1);
+    const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
+    const gifJSON = await (await fetch(api)).json();
+
+    return gifJSON.results.at(0)?.media.at(0)?.gif.url as string | null;
+  }
+  return null;
 };

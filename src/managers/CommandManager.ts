@@ -1,72 +1,11 @@
-import { t } from '../utils/Locale.js';
-import { emojis } from '../utils/Constants.js';
-import { CustomID } from '../utils/CustomID.js';
 import { join, dirname } from 'path';
-import { Collection, Interaction } from 'discord.js';
-import { simpleEmbed, handleError } from '../utils/Utils.js';
 import { access, constants, readdirSync, statSync } from 'fs';
 import { fileURLToPath } from 'url';
 import BaseCommand, { commandsMap } from '../core/BaseCommand.js';
-import Factory from '../core/Factory.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export default class CommandManager extends Factory {
-  public get commandsMap(): Collection<string, BaseCommand> {
-    return this.client.commands;
-  }
-
-  /** Handle interactions from the `InteractionCreate` event */
-  async onInteractionCreate(interaction: Interaction): Promise<void> {
-    try {
-      interaction.user.locale = await interaction.client.getUserLocale(interaction.user.id);
-
-      if (interaction.isAutocomplete()) {
-        const command = this.commandsMap.get(interaction.commandName);
-        if (command?.autocomplete) await command.autocomplete(interaction);
-      }
-      else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
-        const command = this.commandsMap.get(interaction.commandName);
-        if (!command) return;
-
-        // run the command
-        await command?.execute(interaction);
-      }
-      else {
-        const customId = CustomID.parseCustomId(interaction.customId);
-
-        // for components have own component collector
-        const ignoreList = ['page_', 'onboarding_'];
-        if (ignoreList.includes(customId.prefix)) return;
-
-        // component decorator stuff
-        const interactionHandler = this.client.interactions.get(customId.prefix);
-        const isExpiredInteraction = customId.expiry && customId.expiry < Date.now();
-
-        if (!interactionHandler || isExpiredInteraction) {
-          await interaction.reply({
-            embeds: [
-              simpleEmbed(
-                t(
-                  { phrase: 'errors.notUsable', locale: interaction.user.locale },
-                  { emoji: emojis.no },
-                ),
-              ),
-            ],
-            ephemeral: true,
-          });
-          return;
-        }
-
-        // call function that handles the component
-        await interactionHandler(interaction);
-      }
-    }
-    catch (e) {
-      handleError(e, interaction);
-    }
-  }
-
+export default class CommandManager {
   /**
    * Recursively loads all command files from the given directory and its subdirectories.
    * @param commandDir The directory to load command files from.

@@ -1,5 +1,4 @@
 import { createLogger, format, transports } from 'winston';
-import { isDevBuild } from './Constants.js';
 import 'source-map-support/register.js';
 const custom = format.printf(
   (info) =>
@@ -22,7 +21,7 @@ export default createLogger({
   transports: [
     new transports.Console({
       format: format.combine(format.colorize(), custom),
-      level: isDevBuild || process.env.DEBUG ? 'debug' : 'info',
+      level: process.env.DEBUG ? 'debug' : 'info',
     }),
     new transports.File({ filename: 'logs/error.log', level: 'error' }),
     new transports.File({

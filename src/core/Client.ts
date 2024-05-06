@@ -11,12 +11,11 @@ import {
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './BaseCommand.js';
 import db from '../utils/Db.js';
-import Sentry from '@sentry/node';
+import Sentry, { captureException } from '@sentry/node';
 import Scheduler from '../services/SchedulerService.js';
 import NSFWClient from '../utils/NSFWDetection.js';
 import CommandManager from '../managers/CommandManager.js';
-import NetworkManager from '../managers/NetworkManager.js';
-import ReactionUpdater from '../updater/ReactionUpdater.js';
+import ReactionUpdater from '../utils/ReactionUpdater.js';
 import CooldownService from '../services/CooldownService.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
 import { RemoveMethods } from '../typings/index.js';
@@ -29,29 +28,37 @@ import {
   ReportLogger,
 } from '../services/HubLoggerService.js';
 import 'dotenv/config';
-import { supportedLocaleCodes } from '../utils/Locale.js';
+import { loadLocales, supportedLocaleCodes } from '../utils/Locale.js';
+import EventManager from '../managers/EventManager.js';
+import { connectedList } from '@prisma/client';
+import Logger from '../utils/Logger.js';
 
-export default abstract class SuperClient<R extends boolean = boolean> extends Client<R> {
+export default class SuperClient<R extends boolean = boolean> extends Client<R> {
   // A static instance of the SuperClient class to be used globally.
   public static instance: SuperClient;
 
+  // classes
+  private readonly reactionUpdater = new ReactionUpdater();
+  private readonly eventManager = EventManager;
+
+  private _connectionCache: Collection<string, connectedList> = new Collection();
+  private _cachePopulated: boolean = false;
   private readonly scheduler = new Scheduler();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
   readonly version = process.env.npm_package_version ?? 'Unknown';
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;
-  readonly webhooks = new Collection<string, WebhookClient>();
 
-  readonly commandCooldowns = new CooldownService();
+  readonly webhooks = new Collection<string, WebhookClient>();
   readonly reactionCooldowns = new Collection<string, number>();
-  readonly cluster = new ClusterClient(this);
-  readonly commandManager = new CommandManager(this);
-  readonly networkManager = new NetworkManager();
-  readonly blacklistManager = new BlacklistManager(this.scheduler);
+
   readonly nsfwDetector = new NSFWClient();
+  readonly commandManager = new CommandManager();
+  readonly commandCooldowns = new CooldownService();
   readonly reportLogger = new ReportLogger(this);
-  readonly reactionUpdater = new ReactionUpdater(this);
+  readonly cluster = new ClusterClient(this);
+  readonly blacklistManager = new BlacklistManager(this.scheduler);
   readonly profanityLogger = new ProfanityLogger(this);
   readonly modLogsLogger = new ModLogsLogger(this);
   readonly joinLeaveLogger = new JoinLeaveLogger(this);
@@ -101,9 +108,9 @@ export default abstract class SuperClient<R extends boolean = boolean> extends C
    * Initializes the SuperClient instance.
    * Sets the instance to the current object and initializes Sentry error monitoring and handling if not in development mode.
    */
-  protected boot() {
+  async start() {
+    // initialize the client
     SuperClient.instance = this;
-
     if (!isDevBuild) {
       // error monitoring & handling
       Sentry.init({
@@ -113,6 +120,38 @@ export default abstract class SuperClient<R extends boolean = boolean> extends C
         maxValueLength: 1000,
       });
     }
+
+    // initialize i18n for localization
+    loadLocales('locales/src/locales');
+
+    // load commands
+    await CommandManager.loadCommandFiles();
+
+    await this.populateConnectionCache();
+    this.getScheduler().addRecurringTask('populateConnectionCache', 60_000 * 5, async () => {
+      await this.populateConnectionCache().catch(captureException);
+    });
+
+    await this.login(process.env.TOKEN);
+  }
+
+  protected async populateConnectionCache() {
+    Logger.debug('[InterChat]: Populating connection cache.');
+    const connections = await db.connectedList.findMany({ where: { connected: true } });
+
+    // populate all at once without time delay
+    this._connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
+    this._cachePopulated = true;
+    Logger.debug(
+      `[InterChat]: Connection cache populated with ${this._connectionCache.size} entries.`,
+    );
+  }
+
+  public get connectionCache() {
+    return this._connectionCache;
+  }
+  public get cachePopulated() {
+    return this._cachePopulated;
   }
 
   static resolveEval = <T>(value: T[]) =>

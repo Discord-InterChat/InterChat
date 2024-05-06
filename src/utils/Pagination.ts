@@ -119,6 +119,6 @@ export async function paginate(
   });
 
   col.on('end', async () => {
-    await listMessage.edit({ components: [] });
+    await listMessage.edit({ components: [] }).catch(() => null);
   });
 }

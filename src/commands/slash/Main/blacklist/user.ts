@@ -105,7 +105,7 @@ export default class Server extends BlacklistCommand {
         .setDescription(
           t(
             { phrase: 'blacklist.user.success', locale: interaction.user.locale },
-            { username: user.username },
+            { username: user.username, emoji: emojis.tick },
           ),
         )
         .setColor('Green')
