@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.21.0](https://github.com/Discord-InterChat/InterChat/compare/v3.20.7...v3.21.0) (2024-05-06)
+
+
+### Features
+
+* Add `GatewayEvent` decorator for marking methods as event listeners ([73956fd](https://github.com/Discord-InterChat/InterChat/commit/73956fd3c12dc8a54d8e9015b6835b32a63341ed))
+
 ### [3.20.7](https://github.com/Discord-InterChat/InterChat/compare/v3.20.6...v3.20.7) (2024-05-05)
 
 ### [3.20.6](https://github.com/Discord-InterChat/InterChat/compare/v3.20.5...v3.20.6) (2024-05-05)
