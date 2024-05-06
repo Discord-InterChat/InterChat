@@ -16,7 +16,7 @@ import {
 import db from '../../utils/Db.js';
 import BaseCommand from '../../core/BaseCommand.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
-import { checkIfStaff, replaceLinks, userVotedToday } from '../../utils/Utils.js';
+import { checkIfStaff, getAttachmentURL, replaceLinks, userVotedToday } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
@@ -203,13 +203,12 @@ export default class EditMessage extends BaseCommand {
   }
 
   static async getImageUrls(target: Message, newMessage: string) {
-    const { networkManager } = target.client;
     // get image from embed
     // get image from content
     const oldImageUrl = target.content
-      ? await networkManager.getAttachmentURL(target.content)
+      ? await getAttachmentURL(target.content)
       : target.embeds[0]?.image?.url;
-    const newImageUrl = await networkManager.getAttachmentURL(newMessage);
+    const newImageUrl = await getAttachmentURL(newMessage);
     return { oldImageUrl, newImageUrl };
   }
 

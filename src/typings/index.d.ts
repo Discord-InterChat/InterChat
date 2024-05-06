@@ -2,7 +2,6 @@ import { ClusterClient } from 'discord-hybrid-sharding';
 import { Collection, Snowflake } from 'discord.js';
 import { Scheduler } from '../services/SchedulerService.ts';
 import NSFWClient from '../utils/NSFWDetection.ts';
-import NetworkManager from '../managers/NetworkManager.ts';
 import BlacklistManager from '../managers/BlacklistManager.ts';
 import CommandManager from '../managers/CommandManager.ts';
 import CooldownService from '../services/CooldownService.ts';
@@ -46,7 +45,6 @@ declare module 'discord.js' {
     get cachePopulated(): boolean;
 
     commandManager: CommandManager;
-    networkManager: NetworkManager;
     blacklistManager: BlacklistManager;
     nsfwDetector: NSFWClient;
   }

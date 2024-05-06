@@ -4,7 +4,7 @@ import Hub from './index.js';
 import db from '../../../../utils/Db.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { hubs } from '@prisma/client';
-import { simpleEmbed, getOrCreateWebhook } from '../../../../utils/Utils.js';
+import { simpleEmbed, getOrCreateWebhook, sendToHub } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
@@ -14,7 +14,6 @@ export default class JoinSubCommand extends Hub {
     if (!interaction.inCachedGuild()) return;
 
     const locale = interaction.user.locale;
-    const networkManager = interaction.client.networkManager;
 
     // FIXME: Change later
     const hubName = interaction.options.getString('hub') ?? 'InterChat Central';
@@ -181,7 +180,7 @@ export default class JoinSubCommand extends Hub {
     });
 
     // announce
-    await networkManager.sendToHub(hub.id, {
+    await sendToHub(hub.id, {
       username: `InterChat | ${hub.name}`,
       content: stripIndents`
       A new server has joined the hub! ${emojis.clipart}

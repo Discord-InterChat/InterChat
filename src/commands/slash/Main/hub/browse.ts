@@ -25,6 +25,7 @@ import {
   calculateAverageRating,
   getOrCreateWebhook,
   parseTimestampFromId,
+  sendToHub,
   simpleEmbed,
 } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
@@ -362,7 +363,6 @@ export default class Browse extends Hub {
       const webhook = await getOrCreateWebhook(channel);
       if (!webhook) return;
 
-      const networkManager = interaction.client.networkManager;
       // finally make the connection
       await db.connectedList.create({
         data: {
@@ -391,7 +391,7 @@ export default class Browse extends Hub {
       });
 
       // announce
-      await networkManager.sendToHub(hubDetails.id, {
+      await sendToHub(hubDetails.id, {
         username: `InterChat | ${hubDetails.name}`,
         content: stripIndents`
         A new server has joined the hub! ${emojis.clipart}
