@@ -15,7 +15,7 @@ env:
 # There is a single job in this workflow. It's configured to run on the latest available version of Ubuntu.
 jobs:
   build-and-push-image:
-    runs-on: ubuntu-latest 
+    runs-on: self-hosted 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
       contents: read
@@ -60,13 +60,5 @@ jobs:
         run: |
           docker cp $(docker ps -alq):/src/logs .
           mv logs/ ~/console-logs/interchat-logs-$(date +"%Y-%m-%d_%H-%M-%S")
-      - name: Remove old containers and images
-        run: |
-          docker stop $(docker ps -a -q)
-          docker rm $(docker ps -a -q)
-          docker rmi ghcr.io/discord-interchat/interchat
-          docker rmi $(docker images -q)
-      - name: Pull latest image
-        run: docker pull ghcr.io/discord-interchat/interchat:latest
       - name: Run image
         run: docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
