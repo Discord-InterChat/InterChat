@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.21.1](https://github.com/Discord-InterChat/InterChat/compare/v3.21.0...v3.21.1) (2024-05-06)
+
+
+### Bug Fixes
+
+* remove pieces of code that used `NetworkManager` class ([0c15352](https://github.com/Discord-InterChat/InterChat/commit/0c15352824322ffc7f63608671cc9242408b4106))
+
 ## [3.21.0](https://github.com/Discord-InterChat/InterChat/compare/v3.20.7...v3.21.0) (2024-05-06)
 
 
