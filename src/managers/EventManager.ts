@@ -241,7 +241,7 @@ export default abstract class EventManager {
 
     const { connectionCache, cachePopulated, getUserLocale } = message.client;
 
-    while (cachePopulated !== true) {
+    while (!cachePopulated) {
       Logger.debug('[InterChat]: Cache not populated, retrying in 5 seconds...');
       await wait(5000);
     }
