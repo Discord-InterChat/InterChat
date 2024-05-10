@@ -55,8 +55,7 @@ export const loadLocales = (localesDirectory: string) => {
       localesMap.set(localeKey, parsedContent);
     }
     catch (error) {
-      Logger.error(`Error reading/parsing ${file}: ${error.message}`);
-      process.exit(0);
+      throw new Error(`Error reading/parsing ${file}: ${error.message}`);
     }
   });
 
