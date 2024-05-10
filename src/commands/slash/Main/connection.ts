@@ -18,9 +18,9 @@ import {
   ThreadChannel,
 } from 'discord.js';
 import BaseCommand from '../../../core/BaseCommand.js';
+import buildEmbed from '../../../scripts/network/buildEmbed.js';
 import db from '../../../utils/Db.js';
 import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
-import { buildEmbed } from '../../../scripts/network/buildEmbed.js';
 import { buildConnectionButtons } from '../../../scripts/network/components.js';
 import { emojis } from '../../../utils/Constants.js';
 import { CustomID } from '../../../utils/CustomID.js';

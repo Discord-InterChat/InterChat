@@ -24,7 +24,7 @@ import { simpleEmbed } from '../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
 
 export default class Blacklist extends BaseCommand {
-  data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Blacklist',
     dm_permission: false,

@@ -3,7 +3,7 @@ import { HubSettingsBitField, HubSettingsString } from '../../utils/BitFields.js
 import { emojis, colors } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 
-export function buildSettingsEmbed(name: string, iconURL: string, rawSettings: number) {
+export const buildSettingsEmbed = (name: string, iconURL: string, rawSettings: number) => {
   const settings = new HubSettingsBitField(rawSettings);
   const settingDescriptions = {
     Reactions: '**Reactions** - Allow users to react to messages.',
@@ -27,9 +27,9 @@ export function buildSettingsEmbed(name: string, iconURL: string, rawSettings: n
     .setFooter({ text: 'Use the select menu below to toggle.' })
     .setColor(colors.interchatBlue)
     .setTimestamp();
-}
+};
 
-export function buildSettingsMenu(rawSettings: number, hubId: string, userId: Snowflake) {
+export const buildSettingsMenu = (rawSettings: number, hubId: string, userId: Snowflake) => {
   const hubSettings = new HubSettingsBitField(rawSettings);
   return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
@@ -53,4 +53,4 @@ export function buildSettingsMenu(rawSettings: number, hubId: string, userId: Sn
         }),
       ),
   );
-}
+};

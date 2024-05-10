@@ -22,12 +22,12 @@ const onboardingInProgress = new Collection<string, string>();
  * @param ephemeral - Whether the onboarding message should only be visible to the user who triggered it.
  * @returns A Promise that resolves to `true` if the user accepts the onboarding message, `false` if they cancel it, or `'in-progress'` if onboarding is already in progress for the channel.
  */
-export async function showOnboarding(
+export const showOnboarding = async (
   interaction: ChatInputCommandInteraction | AnySelectMenuInteraction | ButtonInteraction,
   hubName: string,
   channelId: string,
   ephemeral = false,
-): Promise<boolean | 'in-progress'> {
+): Promise<boolean | 'in-progress'> => {
   // Check if server is already attempting to join a hub
   if (onboardingInProgress.has(channelId)) return 'in-progress';
 
@@ -130,4 +130,4 @@ export async function showOnboarding(
 
   onboardingInProgress.delete(channelId);
   return false;
-}
+};

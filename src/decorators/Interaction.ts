@@ -5,7 +5,7 @@ export type InteractionFunction = (
   interaction: MessageComponentInteraction | ModalSubmitInteraction,
 ) => Promise<unknown>;
 
-/** Decorator function to call a specified method when an interaction is created (ie. interactionCreate event) */
+/** Decorator to call a specified method when an interaction is created (ie. interactionCreate event) */
 export function RegisterInteractionHandler(customId: string): MethodDecorator {
   return function(targetClass, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value as InteractionFunction;

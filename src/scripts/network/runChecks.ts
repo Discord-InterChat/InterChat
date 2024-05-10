@@ -8,36 +8,36 @@ import { check as checkProfanity } from '../../utils/Profanity.js';
 import { runAntiSpam } from './antiSpam.js';
 
 // if account is created within the last 7 days
-export function isNewUser(message: Message) {
+export const isNewUser = (message: Message) => {
   const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
   return message.author.createdTimestamp > sevenDaysAgo;
-}
+};
 
-export async function isUserBlacklisted(message: Message, hubId: string) {
+export const isUserBlacklisted = async (message: Message, hubId: string) => {
   const isBlacklisted = await db.userData.findFirst({
     where: { userId: message.author.id, blacklistedFrom: { some: { hubId: { equals: hubId } } } },
   });
 
-  return !!isBlacklisted;
-}
+  return Boolean(isBlacklisted);
+};
 
-export async function replyToMsg(message: Message, content: string) {
+export const replyToMsg = async (message: Message, content: string) => {
   const reply = await message.reply(content).catch(() => null);
   if (!reply) await message.channel.send(`${message.author.toString()} ${content}`).catch(() => null);
-}
-export function containsStickers(message: Message) {
+};
+export const containsStickers = (message: Message) => {
   return message.stickers.size > 0 && !message.content;
-}
+};
 
-export function containsInviteLinks(message: Message, settings: HubSettingsBitField) {
+export const containsInviteLinks = (message: Message, settings: HubSettingsBitField) => {
   const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
 
   // check if message contains invite links from the array
   return (
     settings.has('BlockInvites') && inviteLinks.some((link) => message.content.includes(link))
   );
-}
-export async function isCaughtSpam(message: Message, settings: HubSettingsBitField, hubId: string) {
+};
+export const isCaughtSpam = async (message: Message, settings: HubSettingsBitField, hubId: string) => {
   const antiSpamResult = runAntiSpam(message.author, 3);
   if (!antiSpamResult) return false;
   const { blacklistManager } = message.client;
@@ -64,9 +64,9 @@ export async function isCaughtSpam(message: Message, settings: HubSettingsBitFie
 
   message.react(emojis.timeout).catch(() => null);
   return true;
-}
+};
 
-export async function containsNSFW(message: Message, imgUrl: string | null | undefined) {
+export const containsNSFW = async (message: Message, imgUrl: string | null | undefined) => {
   const { nsfwDetector } = message.client;
   const attachment = message.attachments.first();
 
@@ -80,26 +80,26 @@ export async function containsNSFW(message: Message, imgUrl: string | null | und
     predictions,
     unsafe: (predictions && nsfwDetector.isUnsafeContent(predictions)) === true,
   };
-}
+};
 
-export function containsLinks(message: Message, settings: HubSettingsBitField) {
+export const containsLinks = (message: Message, settings: HubSettingsBitField) => {
   return (
     settings.has('HideLinks') &&
-      !REGEX.IMAGE_URL.test(message.content) &&
-      REGEX.LINKS.test(message.content)
+    !REGEX.IMAGE_URL.test(message.content) &&
+    REGEX.LINKS.test(message.content)
   );
-}
-export function unsupportedAttachment(message: Message) {
+};
+export const unsupportedAttachment = (message: Message) => {
   const attachment = message.attachments.first();
   const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg'];
 
   return (attachment?.contentType && !allowedTypes.includes(attachment.contentType)) === true;
-}
+};
 
-export function attachmentTooLarge(message: Message) {
+export const attachmentTooLarge = (message: Message) => {
   const attachment = message.attachments.first();
   return (attachment && attachment.size > 1024 * 1024 * 8) === true;
-}
+};
 /**
    * Runs various checks on a message to determine if it can be sent in the network.
    * @param message - The message to check.
@@ -108,12 +108,12 @@ export function attachmentTooLarge(message: Message) {
    * @returns A boolean indicating whether the message passed all checks.
    */
 
-export async function runChecks(
+export const runChecks = async (
   message: Message,
   settings: HubSettingsBitField,
   hubId: string,
   opts?: { attachmentURL?: string | null },
-) {
+) => {
   const { locale } = message.author;
   const { profanity, slurs } = checkProfanity(message.content);
 
@@ -200,4 +200,4 @@ export async function runChecks(
   }
 
   return true;
-}
+};

@@ -53,3 +53,4 @@ declare module 'discord.js' {
     locale?: supportedLocaleCodes;
   }
 }
+

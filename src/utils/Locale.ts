@@ -63,7 +63,7 @@ export const loadLocales = (localesDirectory: string) => {
   Logger.info(`${localesMap.size} Locales loaded successfully.`);
 };
 
-// Function to get the translated text with variable replacement
+/** Get the translated text with variable replacement */
 export const t = (
   { phrase, locale = 'en' }: tParams,
   variables?: { [key: string]: string },

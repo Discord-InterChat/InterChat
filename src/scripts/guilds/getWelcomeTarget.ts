@@ -5,7 +5,7 @@ import { AuditLogEvent, ChannelType, Guild, TextChannel } from 'discord.js';
  * @param guild The guild to retrieve the target for.
  * @returns The greeting target, which can be a TextChannel or a User.
  */
-export default async function getWelcomeTargets(guild: Guild) {
+export default async (guild: Guild) => {
   let guildOwner = null;
 
   if (guild.members.me?.permissions.has('ViewAuditLog', true)) {
@@ -20,4 +20,4 @@ export default async function getWelcomeTargets(guild: Guild) {
     .first() as TextChannel | undefined;
 
   return { guildOwner, guildChannel };
-}
+};

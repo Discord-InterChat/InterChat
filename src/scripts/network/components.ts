@@ -11,11 +11,11 @@ type extraOpts = {
 /**
  * @param channelId The channel ID of the connection.
  */
-export function buildConnectionButtons(
+export const buildConnectionButtons = (
   connected: boolean | undefined,
   channelId: string,
   opts: extraOpts = {},
-) {
+) => {
   if (!opts?.disconnectEmoji || !opts.connectEmoji) {
     opts.disconnectEmoji = emojis.disconnect;
     opts.connectEmoji = emojis.connect;
@@ -34,4 +34,4 @@ export function buildConnectionButtons(
       .setStyle(connected ? ButtonStyle.Danger : ButtonStyle.Success)
       .setEmoji(connected ? opts.disconnectEmoji : opts.connectEmoji),
   ]);
-}
+};

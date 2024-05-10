@@ -5,7 +5,7 @@ import { REGEX, profanity, slurs } from './Constants.js';
  * @param string - The string to check.
  * @returns An object with two boolean properties: `profanity` and `slurs`.
  */
-export function check(string: string | undefined) {
+export const check = (string: string | undefined) => {
   if (!string) return { profanity: false, slurs: false };
 
   return {
@@ -16,7 +16,7 @@ export function check(string: string | undefined) {
       string.split(/\b/).some((w) => w.toLowerCase() === word.toLowerCase()),
     ),
   };
-}
+};
 
 /**
  * Replaces profanity and slurs in a string with a specified symbol.
@@ -24,7 +24,7 @@ export function check(string: string | undefined) {
  * @param symbol - The symbol to replace the profanity and slurs with. Defaults to `\*`.
  * @returns The censored string.
  */
-export function censor(string: string, symbol = '\\*'): string {
+export const censor = (string: string, symbol = '\\*'): string => {
   return string
     .split(REGEX.SPLIT_WORDS)
     .map((word) => {
@@ -34,4 +34,4 @@ export function censor(string: string, symbol = '\\*'): string {
         : word;
     })
     .join(string.match(REGEX.SPLIT_WORDS)?.at(0));
-}
+};

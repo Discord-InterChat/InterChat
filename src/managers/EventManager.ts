@@ -55,7 +55,7 @@ export default abstract class EventManager {
 
   @GatewayEvent('messageReactionAdd')
   async onReactionAdd(reaction: MessageReaction, user: User | PartialUser) {
-    Logger.info(`${user.tag} reacted with ${reaction.emoji.name}`);
+    Logger.info(`${user.tag} reacted with ${reaction.emoji.name} in channel ${reaction.message.channelId} and guild ${reaction.message.guildId}.`);
 
     if (user.bot || !reaction.message.inGuild()) return;
 
@@ -504,7 +504,6 @@ export default abstract class EventManager {
           return;
         }
 
-        // call function that handles the component
         await interactionHandler(interaction);
       }
     }

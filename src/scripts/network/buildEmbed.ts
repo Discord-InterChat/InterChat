@@ -4,7 +4,7 @@ import { yesOrNoEmoji } from '../../utils/Utils.js';
 import db from '../../utils/Db.js';
 import { t } from '../../utils/Locale.js';
 
-export async function buildEmbed(interaction: Interaction, channelId: string) {
+export default async (interaction: Interaction, channelId: string) => {
   const networkData = await db.connectedList.findFirst({
     where: { channelId },
     include: { hub: true },
@@ -59,4 +59,4 @@ export async function buildEmbed(interaction: Interaction, channelId: string) {
     .setColor(colors.interchatBlue)
     .setThumbnail(interaction.guild?.iconURL() || interaction.client.user.avatarURL())
     .setFooter({ text: t({ phrase: 'connection.embed.footer', locale }) });
-}
+};

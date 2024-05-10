@@ -4,7 +4,7 @@ import { colors, mascotEmojis } from '../../utils/Constants.js';
 /**
  * @param channelId must be a channel ID in the support server
  */
-export async function logGuildJoin(guild: Guild, channelId: string) {
+export const logGuildJoin = async (guild: Guild, channelId: string) => {
   await guild.client.cluster.broadcastEval(
     async (client, ctx) => {
       const goalChannel = client.channels.cache.get(ctx.goalChannel);
@@ -42,9 +42,9 @@ export async function logGuildJoin(guild: Guild, channelId: string) {
       },
     },
   );
-}
+};
 
-export async function logGuildLeave(guild: Guild, channelId: string) {
+export const logGuildLeave = async (guild: Guild, channelId: string) => {
   const count = (await guild.client.cluster.fetchClientValues('guilds.cache.size')) as number[];
   // fetching owner manually because bot is no longer in the guild
   const guildOwner = await guild.client.users.fetch(guild.ownerId);
@@ -86,4 +86,4 @@ export async function logGuildLeave(guild: Guild, channelId: string) {
       },
     },
   );
-}
+};

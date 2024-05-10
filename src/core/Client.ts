@@ -14,7 +14,6 @@ import db from '../utils/Db.js';
 import Sentry, { captureException } from '@sentry/node';
 import Scheduler from '../services/SchedulerService.js';
 import NSFWClient from '../utils/NSFWDetection.js';
-import CommandManager from '../managers/CommandManager.js';
 import ReactionUpdater from '../utils/ReactionUpdater.js';
 import CooldownService from '../services/CooldownService.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
@@ -32,6 +31,7 @@ import { loadLocales, supportedLocaleCodes } from '../utils/Locale.js';
 import EventManager from '../managers/EventManager.js';
 import { connectedList } from '@prisma/client';
 import Logger from '../utils/Logger.js';
+import loadCommandFiles from '../utils/LoadCommands.js';
 
 export default class SuperClient<R extends boolean = boolean> extends Client<R> {
   // A static instance of the SuperClient class to be used globally.
@@ -54,7 +54,6 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
   readonly reactionCooldowns = new Collection<string, number>();
 
   readonly nsfwDetector = new NSFWClient();
-  readonly commandManager = new CommandManager();
   readonly commandCooldowns = new CooldownService();
   readonly reportLogger = new ReportLogger(this);
   readonly cluster = new ClusterClient(this);
@@ -125,7 +124,7 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
     loadLocales('locales/src/locales');
 
     // load commands
-    await CommandManager.loadCommandFiles();
+    await loadCommandFiles();
 
     await this.populateConnectionCache();
     this.getScheduler().addRecurringTask('populateConnectionCache', 60_000 * 5, async () => {

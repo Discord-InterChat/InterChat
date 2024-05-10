@@ -4,6 +4,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   Client,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import { badgeEmojis, emojis, LINKS } from '../../../utils/Constants.js';
 import { getCredits, simpleEmbed } from '../../../utils/Utils.js';
@@ -11,7 +12,7 @@ import BaseCommand from '../../../core/BaseCommand.js';
 import { stripIndents } from 'common-tags';
 
 export default class Credits extends BaseCommand {
-  readonly data = {
+  readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'credits',
     description: 'Shows the credits for InterChat',
   };

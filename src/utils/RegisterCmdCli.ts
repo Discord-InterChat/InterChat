@@ -1,13 +1,13 @@
 import Logger from './Logger.js';
-import CommandManager from '../managers/CommandManager.js';
+import loadCommandFiles from './LoadCommands.js';
 import { REST, Routes } from 'discord.js';
 import { CLIENT_ID, SUPPORT_SERVER_ID } from './Constants.js';
 import { commandsMap } from '../core/BaseCommand.js';
 import 'dotenv/config';
 
-export default async function registerAllCommands(staffOnly = false) {
+const registerAllCommands = async (staffOnly = false) => {
   // make sure CommandsMap is not empty
-  await CommandManager.loadCommandFiles();
+  await loadCommandFiles();
 
   const rest = new REST().setToken(process.env.TOKEN as string);
 
@@ -31,24 +31,25 @@ export default async function registerAllCommands(staffOnly = false) {
       .put(Routes.applicationCommands(CLIENT_ID), { body: commands })
       .then(() => Logger.info('Registered all public application commands.'));
   }
-}
+};
 
-process.argv.forEach((arg) => {
-  if (arg === '--public') {
-    registerAllCommands()
-      .then(() => process.exit(0))
-      .catch(Logger.error);
+process.argv.forEach(async (arg) => {
+  try {
+    switch (arg) {
+      case '--public':
+        await registerAllCommands();
+        break;
+      case '--private':
+        await registerAllCommands(true);
+        break;
+      case '--help':
+        Logger.info('Usage: node utils/RegisterCmdCli.js [--public|--private|--help]');
+        break;
+    }
   }
-  else if (arg === '--private') {
-    registerAllCommands(true)
-      .then(() => process.exit(0))
-      .catch(Logger.error);
-  }
-  else if (arg === '--help') {
-    Logger.info('Usage: node utils/RegisterCmdCli.js [--public|--private|--help]');
-    process.exit(0);
-  }
-  else {
-    return;
+  catch (error) {
+    Logger.error(error);
   }
 });
+
+export default registerAllCommands;

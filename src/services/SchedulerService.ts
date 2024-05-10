@@ -9,7 +9,7 @@ export default class Scheduler {
    * Adds a recurring task to the scheduler.
    * @param taskName - The name of the task to add.
    * @param interval - The interval at which the task should be executed, in milliseconds or as a Date object.
-   * @param task - The function to execute as the task.
+   * @param task - The callback to execute as the task.
    * @throws An error if a task with the same name already exists.
    */
   addRecurringTask(name: string, ms: number | Date, task: () => void): void {
@@ -28,7 +28,7 @@ export default class Scheduler {
    * Adds a new task to the scheduler.
    * @param name - The name of the task.
    * @param ms - The number of milliseconds after which the task should be executed, or a Date object representing the time at which the task should be executed.
-   * @param callback - The function to be executed when the task is run.
+   * @param callback - The callback to be executed when the task is run.
    * @throws An error if a task with the same name already exists.
    */
   addTask(name: string, ms: number | Date, callback: () => void): void {

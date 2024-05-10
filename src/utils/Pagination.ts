@@ -31,11 +31,11 @@ export interface PaginatorOptions {
  * @param pages - An array of EmbedBuilder objects representing the pages to be displayed.
  * @param options - Optional configuration for the paginator.
  */
-export async function paginate(
+export const paginate = async (
   interaction: CommandInteraction | MessageComponentInteraction,
   pages: EmbedBuilder[],
   options?: PaginatorOptions,
-) {
+) => {
   if (pages.length < 1) {
     interaction.replied || interaction.deferred
       ? await interaction.followUp({
@@ -121,4 +121,4 @@ export async function paginate(
   col.on('end', async () => {
     await listMessage.edit({ components: [] }).catch(() => null);
   });
-}
+};
