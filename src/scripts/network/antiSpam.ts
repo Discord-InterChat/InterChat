@@ -5,18 +5,17 @@ interface AntiSpamUserOpts {
   infractions: number;
 }
 
-export const antiSpamMap = new Collection<string, AntiSpamUserOpts>;
+export const antiSpamMap = new Collection<string, AntiSpamUserOpts>();
 
 const WINDOW_SIZE = 5000;
 const MAX_STORE = 3;
 
-
 /**
-   * Runs the anti-spam mechanism for a given user.
-   * @param author - The user to run the anti-spam mechanism for.
-   * @param maxInfractions - The maximum number of infractions before the user is blacklisted.
-   * @returns The user's anti-spam data if they have reached the maximum number of infractions, otherwise undefined.
-   */
+ * Runs the anti-spam mechanism for a given user.
+ * @param author - The user to run the anti-spam mechanism for.
+ * @param maxInfractions - The maximum number of infractions before the user is blacklisted.
+ * @returns The user's anti-spam data if they have reached the maximum number of infractions, otherwise undefined.
+ */
 export const runAntiSpam = (author: User, maxInfractions = MAX_STORE) => {
   const userInCol = antiSpamMap.get(author.id);
   const currentTimestamp = Date.now();
@@ -58,12 +57,11 @@ export const runAntiSpam = (author: User, maxInfractions = MAX_STORE) => {
   }
 };
 
-
 /**
-   * Sets spam timers for a given user.
-   * @param userId - The ID of the user to set spam timers for.
-   * @returns void
-   */
+ * Sets spam timers for a given user.
+ * @param userId - The ID of the user to set spam timers for.
+ * @returns void
+ */
 export const setSpamTimers = (user: User) => {
   const five_min = 60 * 5000;
   const userInCol = antiSpamMap.get(user.id);

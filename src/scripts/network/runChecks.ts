@@ -23,7 +23,9 @@ export const isUserBlacklisted = async (message: Message, hubId: string) => {
 
 export const replyToMsg = async (message: Message, content: string) => {
   const reply = await message.reply(content).catch(() => null);
-  if (!reply) await message.channel.send(`${message.author.toString()} ${content}`).catch(() => null);
+  if (!reply) {
+    await message.channel.send(`${message.author.toString()} ${content}`).catch(() => null);
+  }
 };
 export const containsStickers = (message: Message) => {
   return message.stickers.size > 0 && !message.content;
@@ -33,11 +35,13 @@ export const containsInviteLinks = (message: Message, settings: HubSettingsBitFi
   const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
 
   // check if message contains invite links from the array
-  return (
-    settings.has('BlockInvites') && inviteLinks.some((link) => message.content.includes(link))
-  );
+  return settings.has('BlockInvites') && inviteLinks.some((link) => message.content.includes(link));
 };
-export const isCaughtSpam = async (message: Message, settings: HubSettingsBitField, hubId: string) => {
+export const isCaughtSpam = async (
+  message: Message,
+  settings: HubSettingsBitField,
+  hubId: string,
+) => {
   const antiSpamResult = runAntiSpam(message.author, 3);
   if (!antiSpamResult) return false;
   const { blacklistManager } = message.client;
@@ -101,12 +105,12 @@ export const attachmentTooLarge = (message: Message) => {
   return (attachment && attachment.size > 1024 * 1024 * 8) === true;
 };
 /**
-   * Runs various checks on a message to determine if it can be sent in the network.
-   * @param message - The message to check.
-   * @param settings - The settings for the network.
-   * @param hubId - The ID of the hub the message is being sent in.
-   * @returns A boolean indicating whether the message passed all checks.
-   */
+ * Runs various checks on a message to determine if it can be sent in the network.
+ * @param message - The message to check.
+ * @param settings - The settings for the network.
+ * @param hubId - The ID of the hub the message is being sent in.
+ * @returns A boolean indicating whether the message passed all checks.
+ */
 
 export const runChecks = async (
   message: Message,
@@ -143,10 +147,7 @@ export const runChecks = async (
   }
 
   if (message.content.length > 1000) {
-    await replyToMsg(
-      message,
-      'Your message is too long! Please keep it under 1000 characters.',
-    );
+    await replyToMsg(message, 'Your message is too long! Please keep it under 1000 characters.');
     return false;
   }
   if (containsStickers(message)) {
@@ -164,10 +165,7 @@ export const runChecks = async (
     return false;
   }
   if (unsupportedAttachment(message)) {
-    await replyToMsg(
-      message,
-      'Only images and gifs are allowed to be sent within the network.',
-    );
+    await replyToMsg(message, 'Only images and gifs are allowed to be sent within the network.');
     return false;
   }
 

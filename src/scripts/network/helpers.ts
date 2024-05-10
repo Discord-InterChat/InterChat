@@ -1,6 +1,15 @@
-import { Message, HexColorString, EmbedBuilder } from 'discord.js';
-import { REGEX } from '../../utils/Constants.js';
+import {
+  Message,
+  HexColorString,
+  EmbedBuilder,
+  ButtonStyle,
+  ButtonBuilder,
+  ActionRowBuilder,
+} from 'discord.js';
+import { REGEX, emojis } from '../../utils/Constants.js';
 import { censor } from '../../utils/Profanity.js';
+import db from '../../utils/Db.js';
+import { broadcastedMessages } from '@prisma/client';
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
@@ -20,6 +29,31 @@ export const getReferredContent = (referredMessage: Message) => {
   }
 
   return referredContent;
+};
+
+export const getReferredMsgData = async (referredMessage: Message | null) => {
+  if (!referredMessage) return { dbReferrence: undefined, referredAuthor: undefined };
+
+  const { client } = referredMessage;
+
+  // check if it was sent in the network
+  const dbReferrence = referredMessage
+    ? (
+      await db.broadcastedMessages.findFirst({
+        where: { messageId: referredMessage?.id },
+        include: { originalMsg: { include: { broadcastMsgs: true } } },
+      })
+    )?.originalMsg
+    : undefined;
+
+  if (!dbReferrence) return { dbReferrence: undefined, referredAuthor: undefined };
+
+  const referredAuthor =
+    referredMessage.author.id === client.user.id
+      ? client.user
+      : await client.users.fetch(dbReferrence.authorId).catch(() => undefined);
+
+  return { dbReferrence, referredAuthor };
 };
 
 /**
@@ -75,4 +109,30 @@ export const buildNetworkEmbed = (
     );
 
   return { embed, censoredEmbed };
+};
+
+export const trimAndCensorBannedWebhookWords = <t extends string>(content: t) =>
+  content?.slice(0, 35).replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
+
+export const generateJumpButton = (
+  replyMsg: broadcastedMessages,
+  referredAuthorUsername: string | undefined,
+  serverId: string,
+) => {
+  // create a jump to reply button
+  return replyMsg && referredAuthorUsername
+    ? new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setStyle(ButtonStyle.Link)
+        .setEmoji(emojis.reply)
+        .setURL(
+          `https://discord.com/channels/${serverId}/${replyMsg.channelId}/${replyMsg.messageId}`,
+        )
+        .setLabel(
+          referredAuthorUsername.length >= 80
+            ? `@${referredAuthorUsername.slice(0, 76)}...`
+            : `@${referredAuthorUsername}`,
+        ),
+    )
+    : null;
 };
