@@ -237,7 +237,7 @@ export default abstract class EventManager {
 
   @GatewayEvent('messageCreate')
   async onMessageCreate(message: Message): Promise<void> {
-    if (message.author?.bot || message.system || message.webhookId) return;
+    if (message.author?.bot || message.system || message.webhookId || !message.inGuild()) return;
 
     const { connectionCache, cachePopulated, getUserLocale } = message.client;
 
@@ -325,7 +325,7 @@ export default abstract class EventManager {
 
     const { dbReferrence, referredAuthor } = await getReferredMsgData(referredMessage);
 
-    const sendResult = await broadcast(message, hub, hubConnections, settings, {
+    const sendResult = broadcast(message, hub, hubConnections, settings, {
       attachmentURL,
       dbReferrence,
       referredAuthor,

@@ -26,15 +26,13 @@ type BroadcastOpts = {
   referredAuthor: User | undefined;
 };
 
-export default async (
-  message: Message,
+export default (
+  message: Message<true>,
   hub: hubs,
   allConnected: Collection<string, connectedList>,
   settings: HubSettingsBitField,
   opts: BroadcastOpts,
 ) => {
-  if (!message.guild) return Promise<[]>;
-
   const censoredContent = censor(message.content);
   const referredContent = opts.referredMessage
     ? getReferredContent(opts.referredMessage)
@@ -42,9 +40,10 @@ export default async (
   const servername = trimAndCensorBannedWebhookWords(message.guild.name);
   const username = trimAndCensorBannedWebhookWords(
     settings.has('UseNicknames')
-      ? message.member?.displayName || message.author.displayName
+      ? message.member?.displayName ?? message.author.displayName
       : message.author.username,
   );
+
   // embeds for the normal mode
   const { embed, censoredEmbed } = buildNetworkEmbed(message, username, censoredContent, {
     attachmentURL: opts.attachmentURL,
@@ -93,11 +92,7 @@ export default async (
           avatarURL: message.author.displayAvatarURL(),
           embeds: replyEmbed ? [replyEmbed] : undefined,
           components: jumpButton ? [jumpButton] : undefined,
-          content:
-            (connection.profFilter ? censoredContent : message.content) +
-            // append the attachment url if there is one
-            `${opts.attachmentURL ? `\n${opts.attachmentURL}` : ''}`,
-          // username is already limited to 50 characters, server name is limited to 40 (char limit is 100)
+          content: `${connection.profFilter ? censoredContent : message.content} ${opts.attachmentURL ? `\n${opts.attachmentURL}` : ''}`,
           threadId: connection.parentId ? connection.channelId : undefined,
           allowedMentions: { parse: [] },
         };
