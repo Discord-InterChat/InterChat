@@ -42,7 +42,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('shardReady')
-  async onShardReady(s: number, u: Set<string>) {
+  onShardReady(s: number, u: Set<string>) {
     if (u) {
       Logger.warn(`Shard ${s} is ready but ${u.size} guilds are unavailable.`);
     }
@@ -241,7 +241,7 @@ export default abstract class EventManager {
 
     const { connectionCache, cachePopulated, getUserLocale } = message.client;
 
-    while (!cachePopulated) {
+    while (cachePopulated !== true) {
       Logger.debug('[InterChat]: Cache not populated, retrying in 5 seconds...');
       await wait(5000);
     }
