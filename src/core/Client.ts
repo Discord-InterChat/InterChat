@@ -42,7 +42,7 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
   private readonly eventManager = EventManager;
 
   private _connectionCache: Collection<string, connectedList> = new Collection();
-  private _cachePopulated: boolean = false;
+  private _cachePopulated = false;
   private readonly scheduler = new Scheduler();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
