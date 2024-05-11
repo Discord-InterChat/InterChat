@@ -11,6 +11,26 @@ const WINDOW_SIZE = 5000;
 const MAX_STORE = 3;
 
 /**
+ * Sets spam timers for a given user.
+ * @param userId - The ID of the user to set spam timers for.
+ * @returns void
+ */
+export const setSpamTimers = (user: User) => {
+  const five_min = 60 * 5000;
+  const userInCol = antiSpamMap.get(user.id);
+  const scheduler = user.client.getScheduler();
+  const lastMsgTimestamp = userInCol?.timestamps[userInCol.timestamps.length - 1];
+
+  if (lastMsgTimestamp && Date.now() - five_min <= lastMsgTimestamp) {
+    scheduler.stopTask(`removeFromCol_${user.id}`);
+  }
+
+  scheduler.addRecurringTask(`removeFromCol_${user.id}`, new Date(Date.now() + five_min), () => {
+    antiSpamMap.delete(user.id);
+  });
+};
+
+/**
  * Runs the anti-spam mechanism for a given user.
  * @param author - The user to run the anti-spam mechanism for.
  * @param maxInfractions - The maximum number of infractions before the user is blacklisted.
@@ -55,24 +75,4 @@ export const runAntiSpam = (author: User, maxInfractions = MAX_STORE) => {
       infractions: userInCol.infractions,
     });
   }
-};
-
-/**
- * Sets spam timers for a given user.
- * @param userId - The ID of the user to set spam timers for.
- * @returns void
- */
-export const setSpamTimers = (user: User) => {
-  const five_min = 60 * 5000;
-  const userInCol = antiSpamMap.get(user.id);
-  const scheduler = user.client.getScheduler();
-  const lastMsgTimestamp = userInCol?.timestamps[userInCol.timestamps.length - 1];
-
-  if (lastMsgTimestamp && Date.now() - five_min <= lastMsgTimestamp) {
-    scheduler.stopTask(`removeFromCol_${user.id}`);
-  }
-
-  scheduler.addRecurringTask(`removeFromCol_${user.id}`, new Date(Date.now() + five_min), () => {
-    antiSpamMap.delete(user.id);
-  });
 };
