@@ -209,7 +209,7 @@ export default class Browse extends Hub {
         const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
 
         await interaction.reply({
-          embeds: [simpleEmbed(t({ phrase, locale }, { hub: hubDetails.name, emoji: emojis.no }))],
+          embeds: [simpleEmbed(t({ phrase, locale }, { emoji: emojis.no }))],
           ephemeral: true,
         });
         return;
