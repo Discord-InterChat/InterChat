@@ -87,13 +87,17 @@ export default (
           }).setColor('Random')
           : undefined;
 
+        // compact mode doesn't need new attachment url for tenor and direct image links
+        // we can just slap them right in there without any problems
+        const attachmentUrlNeeded = message.attachments.size > 0;
+
         // compact format (no embeds, only content)
         messageFormat = {
           username: `@${username} • ${servername}`,
           avatarURL: message.author.displayAvatarURL(),
           embeds: replyEmbed ? [replyEmbed] : undefined,
           components: jumpButton ? [jumpButton] : undefined,
-          content: `${connection.profFilter ? censoredContent : message.content} ${opts.attachmentURL ? `\n${opts.attachmentURL}` : ''}`,
+          content: `${connection.profFilter ? censoredContent : message.content} ${attachmentUrlNeeded ? `\n${opts.attachmentURL}` : ''}`,
           threadId: connection.parentId ? connection.channelId : undefined,
           allowedMentions: { parse: [] },
         };
