@@ -73,14 +73,14 @@ export const sortReactions = (reactions: { [key: string]: string[] }): [string, 
 export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
   if (!process.env.TOPGG_API_KEY) throw new TypeError('Missing TOPGG_API_KEY environment variable');
 
-  const res = await (
+  const res = (await (
     await fetch(`${LINKS.TOPGG_API}/check?userId=${userId}`, {
       method: 'GET',
       headers: {
         Authorization: process.env.TOPGG_API_KEY,
       },
     })
-  ).json() as { voted: boolean };
+  ).json()) as { voted: boolean };
 
   return Boolean(res.voted);
 };
@@ -244,7 +244,7 @@ export const calculateAverageRating = (ratings: number[]): number => {
   return Math.round(average * 10) / 10;
 };
 
-type ImgurResponse = { data: { link: string; nsfw: boolean, cover: string } };
+type ImgurResponse = { data: { link: string; nsfw: boolean; cover: string } };
 
 export const checkAndFetchImgurUrl = async (url: string): Promise<string | false> => {
   const regex = REGEX.IMGUR_LINKS;
@@ -259,7 +259,7 @@ export const checkAndFetchImgurUrl = async (url: string): Promise<string | false
     },
   });
 
-  const data = await response.json().catch(() => null) as ImgurResponse;
+  const data = (await response.json().catch(() => null)) as ImgurResponse;
   if (!data || data?.data?.nsfw) {
     return false;
   }
@@ -419,11 +419,11 @@ export const modifyUserRole = async (
 };
 
 /**
-   * Sends a message to all connections in a hub's network.
-   * @param hubId The ID of the hub to send the message to.
-   * @param message The message to send. Can be a string or a MessageCreateOptions object.
-   * @returns A array of the responses from each connection's webhook.
-   */
+ * Sends a message to all connections in a hub's network.
+ * @param hubId The ID of the hub to send the message to.
+ * @param message The message to send. Can be a string or a MessageCreateOptions object.
+ * @returns A array of the responses from each connection's webhook.
+ */
 export const sendToHub = async (hubId: string, message: string | WebhookMessageCreateOptions) => {
   const connections = await db.connectedList.findMany({ where: { hubId } });
 
@@ -432,7 +432,7 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
     .map(async (connection) => {
       const threadId = connection.parentId ? connection.channelId : undefined;
       const payload =
-          typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
+        typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
 
       const webhook = new WebhookClient({ url: connection.webhookURL });
       return await webhook.send(payload).catch(() => null);
@@ -441,12 +441,11 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
   return await Promise.all(res);
 };
 
-
 /**
-   * Returns the URL of an attachment in a message, if it exists.
-   * @param message The message to search for an attachment URL.
-   * @returns The URL of the attachment, or null if no attachment is found.
-   */
+ * Returns the URL of an attachment in a message, if it exists.
+ * @param message The message to search for an attachment URL.
+ * @returns The URL of the attachment, or null if no attachment is found.
+ */
 export const getAttachmentURL = async (string: string) => {
   // Tenor Gifs / Image URLs
   const URLMatch = string.match(REGEX.IMAGE_URL);

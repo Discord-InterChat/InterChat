@@ -48,16 +48,10 @@ export const loadLocales = (localesDirectory: string) => {
     const filePath = path.join(localesDirectory, file);
     const localeKey = path.basename(file, '.yml');
 
-    try {
-      const content = fs.readFileSync(filePath, 'utf8');
-      const parsedContent = yaml.load(content);
+    const content = fs.readFileSync(filePath, 'utf8');
+    const parsedContent = yaml.load(content);
 
-      localesMap.set(localeKey, parsedContent);
-    }
-    catch (error) {
-      Logger.error(`Error reading/parsing ${file}: ${error.message}`);
-      process.exit(0);
-    }
+    localesMap.set(localeKey, parsedContent);
   });
 
   Logger.info(`${localesMap.size} Locales loaded successfully.`);

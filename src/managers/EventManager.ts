@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -12,7 +11,6 @@ import {
   Message,
   MessageReaction,
   PartialUser,
-  WebhookMessageCreateOptions,
   Interaction,
   Client,
 } from 'discord.js';
@@ -22,20 +20,20 @@ import GatewayEvent from '../decorators/GatewayEvent.js';
 import { stripIndents } from 'common-tags';
 import getWelcomeTargets from '../scripts/guilds/getWelcomeTarget.js';
 import { logGuildJoin, logGuildLeave } from '../scripts/guilds/goals.js';
-import { channels, emojis, colors, LINKS, REGEX } from '../utils/Constants.js';
-import { censor, check } from '../utils/Profanity.js';
+import { channels, emojis, colors, LINKS } from '../utils/Constants.js';
+import { check } from '../utils/Profanity.js';
 import db from '../utils/Db.js';
 import { t } from '../utils/Locale.js';
-import storeMessageData, { NetworkWebhookSendResult } from '../scripts/network/storeMessageData.js';
-import { buildNetworkEmbed, getReferredContent } from '../scripts/network/helpers.js';
-import sendMessage from '../scripts/network/sendMessage.js';
+import storeMessageData from '../scripts/network/storeMessageData.js';
+import { getReferredMsgData, sendWelcomeMsg } from '../scripts/network/helpers.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { getAttachmentURL, handleError, simpleEmbed, wait } from '../utils/Utils.js';
 import { runChecks } from '../scripts/network/runChecks.js';
-import SuperClient from '../core/Client.js';
 import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
+import SuperClient from '../core/Client.js';
+import broadcastMessage from '../scripts/network/broadcastMessage.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
@@ -44,7 +42,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('shardReady')
-  async onShardReady(s: number, u: Set<string>) {
+  onShardReady(s: number, u: Set<string>) {
     if (u) {
       Logger.warn(`Shard ${s} is ready but ${u.size} guilds are unavailable.`);
     }
@@ -55,7 +53,9 @@ export default abstract class EventManager {
 
   @GatewayEvent('messageReactionAdd')
   async onReactionAdd(reaction: MessageReaction, user: User | PartialUser) {
-    Logger.info(`${user.tag} reacted with ${reaction.emoji.name} in channel ${reaction.message.channelId} and guild ${reaction.message.guildId}.`);
+    Logger.info(
+      `${user.tag} reacted with ${reaction.emoji.name} in channel ${reaction.message.channelId} and guild ${reaction.message.guildId}.`,
+    );
 
     if (user.bot || !reaction.message.inGuild()) return;
 
@@ -237,16 +237,16 @@ export default abstract class EventManager {
 
   @GatewayEvent('messageCreate')
   async onMessageCreate(message: Message): Promise<void> {
-    if (message.author?.bot || message.system || message.webhookId) return;
+    if (message.author?.bot || message.system || message.webhookId || !message.inGuild()) return;
 
-    const { connectionCache, cachePopulated } = message.client;
+    const { connectionCache, cachePopulated, getUserLocale } = message.client;
 
     while (!cachePopulated) {
       Logger.debug('[InterChat]: Cache not populated, retrying in 5 seconds...');
       await wait(5000);
     }
 
-    const locale = await message.client.getUserLocale(message.author.id);
+    const locale = await getUserLocale(message.author.id);
     message.author.locale = locale;
 
     // check if the message was sent in a network channel
@@ -267,198 +267,33 @@ export default abstract class EventManager {
       return;
     }
 
-    const censoredContent = censor(message.content);
-
     // fetch the referred message  (message being replied to) from discord
     const referredMessage = message.reference
-      ? await message.fetchReference().catch(() => undefined)
-      : undefined;
+      ? await message.fetchReference().catch(() => null)
+      : null;
 
-    // check if it was sent in the network
-    const referenceInDb = referredMessage
-      ? (
-        await db.broadcastedMessages.findFirst({
-          where: { messageId: referredMessage?.id },
-          include: { originalMsg: { include: { broadcastMsgs: true } } },
-        })
-      )?.originalMsg
-      : undefined;
+    const { dbReferrence, referredAuthor } = await getReferredMsgData(referredMessage);
 
-    let referredContent: string | undefined = undefined;
-    let referredAuthor: User | null = null;
-
-    // only assign to this variable if one of these two conditions are true, not always
-    if (referredMessage) {
-      if (referredMessage?.author.id === message.client.user.id) {
-        referredContent = getReferredContent(referredMessage);
-        referredAuthor = message.client.user;
-      }
-      else if (referenceInDb) {
-        referredContent = getReferredContent(referredMessage);
-        referredAuthor = await message.client.users.fetch(referenceInDb.authorId).catch(() => null);
-      }
-    }
-
-    const username = (
-      settings.has('UseNicknames')
-        ? message.member?.displayName || message.author.displayName
-        : message.author.username
-    )
-      .slice(0, 35)
-      .replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
-
-    const servername = message.guild?.name
-      .slice(0, 35)
-      .replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
-
-    // embeds for the normal mode
-    const { embed, censoredEmbed } = buildNetworkEmbed(message, username, censoredContent, {
+    const sendResult = broadcastMessage(message, hub, hubConnections, settings, {
       attachmentURL,
-      referredContent,
-      embedCol: (connection.embedColor as HexColorString) ?? undefined,
+      dbReferrence,
+      referredAuthor,
+      referredMessage,
+      embedColor: connection.embedColor as HexColorString,
     });
-
-    // ---------- Broadcasting ---------
-    const sendResult = hubConnections.map(async (otherConnection) => {
-      try {
-        const reply = referenceInDb?.broadcastMsgs.find(
-          (msg) => msg.channelId === otherConnection.channelId,
-        );
-        // create a jump to reply button
-        const jumpButton =
-          reply && referredMessage?.author
-            ? new ActionRowBuilder<ButtonBuilder>().addComponents(
-              new ButtonBuilder()
-                .setStyle(ButtonStyle.Link)
-                .setEmoji(emojis.reply)
-                .setURL(
-                  `https://discord.com/channels/${otherConnection.serverId}/${reply.channelId}/${reply.messageId}`,
-                )
-                .setLabel(
-                  referredAuthor?.username && referredAuthor.username.length >= 80
-                    ? `@${referredAuthor.username.slice(0, 76)}...`
-                    : `@${referredAuthor?.username}`,
-                ),
-            )
-            : null;
-
-        // embed format
-        let messageFormat: WebhookMessageCreateOptions = {
-          components: jumpButton ? [jumpButton] : undefined,
-          embeds: [otherConnection.profFilter ? censoredEmbed : embed],
-          username: `${hub.name}`,
-          avatarURL: hub.iconUrl,
-          threadId: otherConnection.parentId ? otherConnection.channelId : undefined,
-          allowedMentions: { parse: [] },
-        };
-
-        if (otherConnection.compact) {
-          const replyContent =
-            otherConnection.profFilter && referredContent
-              ? censor(referredContent)
-              : referredContent;
-
-          // preview embed for the message being replied to
-          const replyEmbed = replyContent
-            ? new EmbedBuilder({
-              description: replyContent,
-              author: {
-                name: `${referredAuthor?.username?.slice(0, 30)}`,
-                icon_url: referredAuthor?.displayAvatarURL(),
-              },
-            }).setColor('Random')
-            : undefined;
-
-          // compact format (no embeds, only content)
-          messageFormat = {
-            username: `@${username} • ${servername}`,
-            avatarURL: message.author.displayAvatarURL(),
-            embeds: replyEmbed ? [replyEmbed] : undefined,
-            components: jumpButton ? [jumpButton] : undefined,
-            content:
-              (otherConnection.profFilter ? censoredContent : message.content) +
-              // append the attachment url if there is one
-              `${attachment ? `\n${attachmentURL}` : ''}`,
-            // username is already limited to 50 characters, server name is limited to 40 (char limit is 100)
-            threadId: otherConnection.parentId ? otherConnection.channelId : undefined,
-            allowedMentions: { parse: [] },
-          };
-        }
-        // send the message
-        const messageOrError = await sendMessage(messageFormat, otherConnection.webhookURL);
-
-        // return the message and webhook URL to store the message in the db
-        return {
-          messageOrError: messageOrError,
-          webhookURL: otherConnection.webhookURL,
-        } as NetworkWebhookSendResult;
-      }
-      catch (e) {
-        // return the error and webhook URL to store the message in the db
-        return {
-          messageOrError: e.message,
-          webhookURL: otherConnection.webhookURL,
-        } as NetworkWebhookSendResult;
-      }
-    });
-
-    const userData = await db.userData.findFirst({
-      where: { userId: message.author.id, viewedNetworkWelcome: true },
-    });
-
-    if (!userData) {
-      await db.userData.upsert({
-        where: { userId: message.author.id },
-        create: {
-          userId: message.author.id,
-          username: message.author.username,
-          viewedNetworkWelcome: true,
-        },
-        update: { viewedNetworkWelcome: true },
-      });
-
-      const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Link)
-          .setEmoji(emojis.add_icon)
-          .setLabel('Invite Me!')
-          .setURL(LINKS.APP_DIRECTORY),
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Link)
-          .setEmoji(emojis.code_icon)
-          .setLabel('Support Server')
-          .setURL(LINKS.SUPPORT_INVITE),
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Link)
-          .setEmoji(emojis.docs_icon)
-          .setLabel('How-To Guide')
-          .setURL(LINKS.DOCS),
-      );
-
-      await message.channel
-        .send({
-          content: t(
-            { phrase: 'network.welcome', locale },
-            {
-              user: message.author.toString(),
-              hub: hub.name,
-              channel: message.channel.toString(),
-              totalServers: hubConnections.size.toString(),
-              emoji: emojis.wave_anim,
-              rules_command: '</rules:924659340898619395>',
-            },
-          ),
-          components: [linkButtons],
-        })
-        .catch(() => null);
-    }
 
     // only delete the message if there is no attachment or if the user has already viewed the welcome message
     // deleting attachments will make the image not show up in the embed (discord removes it from its cdn)
     if (!attachment) message.delete().catch(() => null);
 
+    const userData = await db.userData.findFirst({
+      where: { userId: message.author.id, viewedNetworkWelcome: true },
+    });
+
+    if (!userData) await sendWelcomeMsg(message, hubConnections.size.toString());
+
     // store the message in the db
-    await storeMessageData(message, await Promise.all(sendResult), connection.hubId, referenceInDb);
+    await storeMessageData(message, await Promise.all(sendResult), connection.hubId, dbReferrence);
   }
 
   @GatewayEvent('interactionCreate')

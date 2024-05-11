@@ -3,17 +3,16 @@ import { APIMessage, Message } from 'discord.js';
 import { parseTimestampFromId } from '../../utils/Utils.js';
 import db from '../../utils/Db.js';
 
-
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
   webhookURL: string;
 }
 
 /**
-   * Stores message data in the database and updates the connectedList based on the webhook status.
-   * @param channelAndMessageIds The result of sending the message to multiple channels.
-   * @param hubId The ID of the hub to connect the message data to.
-   */
+ * Stores message data in the database and updates the connectedList based on the webhook status.
+ * @param channelAndMessageIds The result of sending the message to multiple channels.
+ * @param hubId The ID of the hub to connect the message data to.
+ */
 export default async (
   message: Message,
   channelAndMessageIds: NetworkWebhookSendResult[],

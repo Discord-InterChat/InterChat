@@ -46,8 +46,9 @@ export default class ReactionUpdater {
     if (
       !messageInDb?.originalMsg.hub ||
       !new HubSettingsBitField(messageInDb.originalMsg.hub.settings).has('Reactions')
-    ) return;
-
+    ) {
+      return;
+    }
 
     const { userBlacklisted, serverBlacklisted } = await checkBlacklists(
       messageInDb.originalMsg.hub.id,

@@ -24,11 +24,11 @@ clusterManager.on('clusterCreate', async (cluster) => {
     // remove expired blacklists or set new timers for them
     const serverQuery = { where: { hubs: { some: { expires: { isSet: true } } } } };
     const userQuery = { where: { blacklistedFrom: { some: { expires: { isSet: true } } } } };
-    updateBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler)
-      .catch(Logger.error);
+    updateBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler).catch(
+      Logger.error,
+    );
 
-    updateBlacklists(await db.userData.findMany(userQuery), scheduler)
-      .catch(Logger.error);
+    updateBlacklists(await db.userData.findMany(userQuery), scheduler).catch(Logger.error);
 
     // code must be in production to run these tasks
     if (isDevBuild) return;
@@ -57,7 +57,7 @@ voteManager.on('vote', async (vote) => {
 });
 
 // spawn clusters and start the api that handles nsfw filter and votes
-clusterManager.spawn({ timeout: -1 })
+clusterManager
+  .spawn({ timeout: -1 })
   .then(() => startApi({ voteManager }))
   .catch(Logger.error);
-

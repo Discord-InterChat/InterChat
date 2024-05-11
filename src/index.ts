@@ -15,5 +15,4 @@ client.on('debug', (debug) => {
   Logger.debug(debug);
 });
 
-
 client.start();
