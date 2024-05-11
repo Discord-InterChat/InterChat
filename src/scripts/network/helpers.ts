@@ -6,11 +6,11 @@ import {
   ButtonBuilder,
   ActionRowBuilder,
 } from 'discord.js';
+import db from '../../utils/Db.js';
+import hub from '../../commands/slash/Main/hub/index.js';
 import { LINKS, REGEX, emojis } from '../../utils/Constants.js';
 import { censor } from '../../utils/Profanity.js';
-import db from '../../utils/Db.js';
 import { broadcastedMessages } from '@prisma/client';
-import hub from '../../commands/slash/Main/hub/index.js';
 import { t } from '../../utils/Locale.js';
 
 /**
@@ -58,6 +58,12 @@ export const getReferredMsgData = async (referredMessage: Message | null) => {
   return { dbReferrence, referredAuthor };
 };
 
+export const removeImgLinks = (content: string, imgUrl: string) =>
+  content.replace(REGEX.TENOR_LINKS, '').replace(imgUrl, '');
+
+export const trimAndCensorBannedWebhookWords = (content: string) =>
+  content.slice(0, 35).replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
+
 /**
  * Builds an embed for a network message.
  * @param message The network message to build the embed for.
@@ -78,43 +84,37 @@ export const buildNetworkEmbed = (
     referredContent?: string;
   },
 ) => {
-  const formattedReply = opts?.referredContent?.replaceAll('\n', '\n> ');
+  // remove tenor links and image urls from the content
+  let msgContent = message.content;
+
+  if (opts?.attachmentURL) {
+    msgContent = removeImgLinks(msgContent, opts.attachmentURL);
+    censoredContent = removeImgLinks(censoredContent, opts.attachmentURL);
+  }
 
   const embed = new EmbedBuilder()
+    .setImage(opts?.attachmentURL ?? null)
+    .setColor(opts?.embedCol ?? 'Random')
     .setAuthor({
       name: username,
       iconURL: message.author.displayAvatarURL(),
     })
-    .setDescription(
-      // remove tenor links and image urls from the content
-      (opts?.attachmentURL
-        ? message.content.replace(REGEX.TENOR_LINKS, '').replace(opts?.attachmentURL, '')
-        : message.content) || null,
-    )
-    .addFields(formattedReply ? [{ name: 'Replying To:', value: `> ${formattedReply}` }] : [])
+    .setDescription(msgContent || null)
     .setFooter({
       text: `From: ${message.guild?.name}`,
       iconURL: message.guild?.iconURL() ?? undefined,
-    })
-    .setImage(opts?.attachmentURL ?? null)
-    .setColor(opts?.embedCol ?? 'Random');
+    });
 
-  const censoredEmbed = EmbedBuilder.from(embed)
-    .setDescription(
-      // remove tenor links and image urls from the content
-      (opts?.attachmentURL
-        ? censoredContent.replace(REGEX.TENOR_LINKS, '').replace(opts?.attachmentURL, '')
-        : censoredContent) || null,
-    )
-    .setFields(
-      formattedReply ? [{ name: 'Replying To:', value: `> ${censor(formattedReply)}` }] : [],
-    );
+  const censoredEmbed = EmbedBuilder.from(embed).setDescription(censoredContent || null);
+
+  const formattedReply = opts?.referredContent?.replaceAll('\n', '\n> ');
+  if (formattedReply) {
+    embed.setFields({ name: 'Replying To:', value: `> ${formattedReply}` });
+    censoredEmbed.setFields({ name: 'Replying To:', value: `> ${censor(formattedReply)}` });
+  }
 
   return { embed, censoredEmbed };
 };
-
-export const trimAndCensorBannedWebhookWords = (content: string) =>
-  content?.slice(0, 35).replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
 
 export const generateJumpButton = (
   replyMsg: broadcastedMessages,
