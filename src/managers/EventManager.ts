@@ -25,7 +25,7 @@ import { check } from '../utils/Profanity.js';
 import db from '../utils/Db.js';
 import { t } from '../utils/Locale.js';
 import storeMessageData from '../scripts/network/storeMessageData.js';
-import { getReferredMsgData } from '../scripts/network/helpers.js';
+import { getReferredMsgData, sendWelcomeMsg } from '../scripts/network/helpers.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { getAttachmentURL, handleError, simpleEmbed, wait } from '../utils/Utils.js';
 import { runChecks } from '../scripts/network/runChecks.js';
@@ -33,7 +33,7 @@ import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
 import SuperClient from '../core/Client.js';
-import broadcast from '../scripts/network/broadcast.js';
+import broadcastMessage from '../scripts/network/broadcastMessage.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
@@ -267,57 +267,6 @@ export default abstract class EventManager {
       return;
     }
 
-    const userData = await db.userData.findFirst({
-      where: { userId: message.author.id, viewedNetworkWelcome: true },
-    });
-
-    if (!userData) {
-      await db.userData.upsert({
-        where: { userId: message.author.id },
-        create: {
-          userId: message.author.id,
-          username: message.author.username,
-          viewedNetworkWelcome: true,
-        },
-        update: { viewedNetworkWelcome: true },
-      });
-
-      const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Link)
-          .setEmoji(emojis.add_icon)
-          .setLabel('Invite Me!')
-          .setURL(LINKS.APP_DIRECTORY),
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Link)
-          .setEmoji(emojis.code_icon)
-          .setLabel('Support Server')
-          .setURL(LINKS.SUPPORT_INVITE),
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Link)
-          .setEmoji(emojis.docs_icon)
-          .setLabel('How-To Guide')
-          .setURL(LINKS.DOCS),
-      );
-
-      await message.channel
-        .send({
-          content: t(
-            { phrase: 'network.welcome', locale },
-            {
-              user: message.author.toString(),
-              hub: hub.name,
-              channel: message.channel.toString(),
-              totalServers: hubConnections.size.toString(),
-              emoji: emojis.wave_anim,
-              rules_command: '</rules:924659340898619395>',
-            },
-          ),
-          components: [linkButtons],
-        })
-        .catch(() => null);
-    }
-
     // fetch the referred message  (message being replied to) from discord
     const referredMessage = message.reference
       ? await message.fetchReference().catch(() => null)
@@ -325,7 +274,7 @@ export default abstract class EventManager {
 
     const { dbReferrence, referredAuthor } = await getReferredMsgData(referredMessage);
 
-    const sendResult = broadcast(message, hub, hubConnections, settings, {
+    const sendResult = broadcastMessage(message, hub, hubConnections, settings, {
       attachmentURL,
       dbReferrence,
       referredAuthor,
@@ -336,6 +285,12 @@ export default abstract class EventManager {
     // only delete the message if there is no attachment or if the user has already viewed the welcome message
     // deleting attachments will make the image not show up in the embed (discord removes it from its cdn)
     if (!attachment) message.delete().catch(() => null);
+
+    const userData = await db.userData.findFirst({
+      where: { userId: message.author.id, viewedNetworkWelcome: true },
+    });
+
+    if (!userData) await sendWelcomeMsg(message, hubConnections.size.toString());
 
     // store the message in the db
     await storeMessageData(message, await Promise.all(sendResult), connection.hubId, dbReferrence);

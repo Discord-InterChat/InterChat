@@ -37,6 +37,7 @@ export default (
   const referredContent = opts.referredMessage
     ? getReferredContent(opts.referredMessage)
     : undefined;
+
   const servername = trimAndCensorBannedWebhookWords(message.guild.name);
   const username = trimAndCensorBannedWebhookWords(
     settings.has('UseNicknames')

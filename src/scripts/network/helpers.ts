@@ -6,10 +6,12 @@ import {
   ButtonBuilder,
   ActionRowBuilder,
 } from 'discord.js';
-import { REGEX, emojis } from '../../utils/Constants.js';
+import { LINKS, REGEX, emojis } from '../../utils/Constants.js';
 import { censor } from '../../utils/Profanity.js';
 import db from '../../utils/Db.js';
 import { broadcastedMessages } from '@prisma/client';
+import hub from '../../commands/slash/Main/hub/index.js';
+import { t } from '../../utils/Locale.js';
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
@@ -111,7 +113,7 @@ export const buildNetworkEmbed = (
   return { embed, censoredEmbed };
 };
 
-export const trimAndCensorBannedWebhookWords = <t extends string>(content: t) =>
+export const trimAndCensorBannedWebhookWords = (content: string) =>
   content?.slice(0, 35).replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
 
 export const generateJumpButton = (
@@ -135,4 +137,51 @@ export const generateJumpButton = (
         ),
     )
     : null;
+};
+
+export const sendWelcomeMsg = async (message: Message, totalServers: string) => {
+  await db.userData.upsert({
+    where: { userId: message.author.id },
+    create: {
+      userId: message.author.id,
+      username: message.author.username,
+      viewedNetworkWelcome: true,
+    },
+    update: { viewedNetworkWelcome: true },
+  });
+
+  const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Link)
+      .setEmoji(emojis.add_icon)
+      .setLabel('Invite Me!')
+      .setURL(LINKS.APP_DIRECTORY),
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Link)
+      .setEmoji(emojis.code_icon)
+      .setLabel('Support Server')
+      .setURL(LINKS.SUPPORT_INVITE),
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Link)
+      .setEmoji(emojis.docs_icon)
+      .setLabel('How-To Guide')
+      .setURL(LINKS.DOCS),
+  );
+
+  await message.channel
+    .send({
+      content: t(
+        { phrase: 'network.welcome', locale: message.author.locale ?? 'en' },
+        {
+          user: message.author.toString(),
+          hub: hub.name,
+          channel: message.channel.toString(),
+          emoji: emojis.wave_anim,
+          rules_command: '</rules:924659340898619395>',
+          totalServers,
+        },
+      ),
+      components: [linkButtons],
+    })
+    .catch(() => null);
 };
