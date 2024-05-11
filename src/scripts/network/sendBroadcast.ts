@@ -58,8 +58,8 @@ export default (
         (msg) => msg.channelId === connection.channelId,
       );
 
-      const jumpButton = reply
-        ? generateJumpButton(reply, opts.referredAuthor?.username, connection.serverId)
+      const jumpButton = reply && opts.referredAuthor
+        ? generateJumpButton(reply, opts.referredAuthor.username, connection.serverId)
         : undefined;
 
       // embed format
@@ -79,7 +79,7 @@ export default (
         // preview embed for the message being replied to
         const replyEmbed = replyContent
           ? new EmbedBuilder({
-            description: replyContent,
+            description: replyContent ?? 'Unknown User',
             author: {
               name: `${opts.referredAuthor?.username?.slice(0, 30)}`,
               icon_url: opts.referredAuthor?.displayAvatarURL(),

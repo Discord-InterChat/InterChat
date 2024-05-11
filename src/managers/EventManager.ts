@@ -33,7 +33,7 @@ import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
 import SuperClient from '../core/Client.js';
-import broadcastMessage from '../scripts/network/broadcastMessage.js';
+import sendBroadcast from '../scripts/network/sendBroadcast.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
@@ -274,7 +274,7 @@ export default abstract class EventManager {
 
     const { dbReferrence, referredAuthor } = await getReferredMsgData(referredMessage);
 
-    const sendResult = broadcastMessage(message, hub, hubConnections, settings, {
+    const sendResult = sendBroadcast(message, hub, hubConnections, settings, {
       attachmentURL,
       dbReferrence,
       referredAuthor,

@@ -118,7 +118,7 @@ export const trimAndCensorBannedWebhookWords = (content: string) =>
 
 export const generateJumpButton = (
   replyMsg: broadcastedMessages,
-  referredAuthorUsername: string | undefined,
+  referredAuthorUsername: string,
   serverId: string,
 ) => {
   // create a jump to reply button
