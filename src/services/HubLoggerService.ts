@@ -44,7 +44,7 @@ export default class HubLoggerService extends Factory {
       await SuperClient.instance.reportLogger.setChannelId(hubId, channelId);
     }
     else {
-      return await db.hubs.update({
+      await db.hubs.update({
         where: { id: hubId },
         data: {
           logChannels: {

@@ -356,7 +356,7 @@ export default class Manage extends Hub {
         // TODO: implement BlockNSFW, only allow hubs that are explicitly marked as NSFW to have this setting
         // & only allow network channels to be marked as NSFW
         if (selected === 'BlockNSFW') {
-          return interaction.reply({
+          interaction.reply({
             embeds: [
               simpleEmbed(
                 `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
@@ -364,6 +364,7 @@ export default class Manage extends Hub {
             ],
             ephemeral: true,
           });
+          return;
         }
 
         const hubSettings = new HubSettingsBitField(hubInDb.settings);
