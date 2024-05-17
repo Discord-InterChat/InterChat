@@ -97,7 +97,7 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage')
-  async handleComponents(interaction: MessageComponentInteraction) {
+  static override async handleComponents(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const locale = interaction.user.locale;
 

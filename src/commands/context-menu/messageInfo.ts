@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import {
   ActionRow,
   ActionRowBuilder,
@@ -96,7 +97,7 @@ export default class MessageInfo extends BaseCommand {
   }
 
   @RegisterInteractionHandler('msgInfo')
-  async handleComponents(interaction: MessageComponentInteraction) {
+  static override async handleComponents(interaction: MessageComponentInteraction) {
     // create a variable to store the profile card buffer
     const customId = CustomID.parseCustomId(interaction.customId);
     const messageId = customId.args[0];
@@ -109,7 +110,7 @@ export default class MessageInfo extends BaseCommand {
     )?.originalMsg;
 
     if (!originalMsg) {
-      return await interaction.update({
+      await interaction.update({
         content: t(
           { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
           { emoji: emojis.no },
@@ -117,6 +118,7 @@ export default class MessageInfo extends BaseCommand {
         embeds: [],
         components: [],
       });
+      return;
     }
 
     const author = await interaction.client.users.fetch(originalMsg.authorId);
@@ -144,7 +146,7 @@ export default class MessageInfo extends BaseCommand {
         // server info button
         case 'serverInfo': {
           if (!server) {
-            return await interaction.update({
+            await interaction.update({
               content: t(
                 { phrase: 'errors.unknownServer', locale: interaction.user.locale },
                 { emoji: emojis.no },
@@ -152,6 +154,7 @@ export default class MessageInfo extends BaseCommand {
               embeds: [],
               components: [],
             });
+            return;
           }
 
           const owner = await interaction.client.users.fetch(server.ownerId);
@@ -276,7 +279,7 @@ export default class MessageInfo extends BaseCommand {
 
         case 'report': {
           if (!originalMsg.hub?.logChannels?.reports) {
-            return await interaction.reply({
+            await interaction.reply({
               embeds: [
                 simpleEmbed(
                   t(
@@ -287,6 +290,7 @@ export default class MessageInfo extends BaseCommand {
               ],
               ephemeral: true,
             });
+            return;
           }
 
           const modal = new ModalBuilder()
@@ -323,7 +327,7 @@ export default class MessageInfo extends BaseCommand {
     });
 
     if (!messageInDb?.originalMsg.hub?.logChannels?.reports) {
-      return await interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             t(
@@ -334,6 +338,7 @@ export default class MessageInfo extends BaseCommand {
         ],
         ephemeral: true,
       });
+      return;
     }
 
     const { authorId, serverId } = messageInDb.originalMsg;

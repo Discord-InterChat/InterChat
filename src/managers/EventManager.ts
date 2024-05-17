@@ -112,9 +112,10 @@ export default abstract class EventManager {
   async onWebhooksUpdate(channel: GuildChannel) {
     if (!channel.isTextBased()) return;
     try {
-      const connection = await db.connectedList.findFirst({
-        where: { OR: [{ channelId: channel.id }, { parentId: channel.id }], connected: true },
-      });
+      const connection = channel.client.connectionCache.find(
+        (c) => c.connected && (c.channelId === channel.id || c.parentId === channel.id),
+      );
+
       if (!connection) return;
 
       Logger.info(`Webhook for ${channel.id} was updated`);

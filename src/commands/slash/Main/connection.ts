@@ -3,6 +3,7 @@ import {
   ApplicationCommandOptionType,
   AutocompleteInteraction,
   ChannelSelectMenuBuilder,
+  ChannelSelectMenuInteraction,
   ChannelType,
   ChatInputCommandInteraction,
   MessageComponentInteraction,
@@ -11,6 +12,7 @@ import {
   PermissionFlagsBits,
   RESTPostAPIApplicationCommandsJSONBody,
   StringSelectMenuBuilder,
+  StringSelectMenuInteraction,
   StringSelectMenuOptionBuilder,
   TextChannel,
   TextInputBuilder,
@@ -23,7 +25,7 @@ import db from '../../../utils/Db.js';
 import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
 import { buildConnectionButtons } from '../../../scripts/network/components.js';
 import { emojis } from '../../../utils/Constants.js';
-import { CustomID } from '../../../utils/CustomID.js';
+import { CustomID, ParsedCustomId } from '../../../utils/CustomID.js';
 import {
   simpleEmbed,
   getOrCreateWebhook,
@@ -31,6 +33,7 @@ import {
   escapeRegexChars,
 } from '../../../utils/Utils.js';
 import { t } from '../../../utils/Locale.js';
+import { connectedList } from '@prisma/client';
 
 export default class Connection extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -48,12 +51,14 @@ export default class Connection extends BaseCommand {
       },
     ],
   };
-  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
+  override async execute(interaction: ChatInputCommandInteraction) {
+    if (!interaction.deferred && !interaction.replied) await interaction.deferReply();
+
     const channelId = interaction.options.getString('channel', true).replace(/<#|!|>/g, ''); // in case they mention the channel
     const isInDb = await db.connectedList.findFirst({ where: { channelId } });
 
     if (!isInDb) {
-      await interaction.reply({
+      await interaction.editReply({
         embeds: [
           simpleEmbed(
             t(
@@ -62,15 +67,12 @@ export default class Connection extends BaseCommand {
             ),
           ),
         ],
-        ephemeral: true,
       });
       return;
     }
 
     const embed = await buildEmbed(interaction, channelId);
     const buttons = buildConnectionButtons(true, channelId, { userId: interaction.user.id });
-
-    if (!interaction.deferred && !interaction.replied) await interaction.deferReply();
 
     const customizeMenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
       new StringSelectMenuBuilder()
@@ -163,7 +165,7 @@ export default class Connection extends BaseCommand {
   }
 
   @RegisterInteractionHandler('connection')
-  async handleComponents(interaction: MessageComponentInteraction) {
+  static override async handleComponents(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.args[0];
 
@@ -208,159 +210,15 @@ export default class Connection extends BaseCommand {
           buildConnectionButtons(toggleRes?.connected, channelId),
         ],
       });
+      return;
     }
 
-    // String select menu interactions
-    else if (interaction.isStringSelectMenu()) {
-      switch (interaction.values[0]) {
-        case 'compact':
-          await db.connectedList.update({
-            where: { channelId },
-            data: { compact: !isInDb.compact },
-          });
-          break;
-
-        case 'profanity':
-          await db.connectedList.update({
-            where: { channelId },
-            data: { profFilter: !isInDb.profFilter },
-          });
-          break;
-
-        case 'invite': {
-          const modal = new ModalBuilder()
-            .setTitle('Add Invite Link')
-            .setCustomId(
-              new CustomID()
-                .setIdentifier('connectionModal', 'invite')
-                .addArgs(channelId)
-                .toString(),
-            )
-            .addComponents(
-              new ActionRowBuilder<TextInputBuilder>().addComponents(
-                new TextInputBuilder()
-                  .setLabel('Invite Link')
-                  .setValue('https://discord.gg/')
-                  .setCustomId('connInviteField')
-                  .setRequired(false)
-                  .setStyle(TextInputStyle.Short),
-              ),
-            );
-
-          await interaction.showModal(modal);
-          break;
-        }
-        case 'change_channel': {
-          const channelSelect = new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
-            new ChannelSelectMenuBuilder()
-              .setCustomId(
-                new CustomID()
-                  .setIdentifier('connection', 'change_channel')
-                  .addArgs(channelId)
-                  .addArgs(interaction.user.id)
-                  .toString(),
-              )
-              .setChannelTypes(
-                ChannelType.GuildText,
-                ChannelType.PublicThread,
-                ChannelType.PrivateThread,
-              )
-              .setPlaceholder('Select a channel to switch to.'),
-          );
-
-          await interaction.update({
-            content: t(
-              { phrase: 'connection.switchChannel', locale: interaction.user.locale },
-              { emoji: emojis.info },
-            ),
-            embeds: [],
-            components: [channelSelect],
-          });
-          break;
-        }
-
-        case 'embed_color': {
-          const modal = new ModalBuilder()
-            .setTitle('Set Embed Color')
-            .setCustomId(
-              new CustomID()
-                .setIdentifier('connectionModal', 'embed_color')
-                .addArgs(channelId)
-                .toString(),
-            )
-            .addComponents(
-              new ActionRowBuilder<TextInputBuilder>().addComponents(
-                new TextInputBuilder()
-                  .setCustomId('embed_color')
-                  .setStyle(TextInputStyle.Short)
-                  .setLabel('Embed Color')
-                  .setPlaceholder('Provide a hex color code or leave blank to remove.')
-                  .setValue(isInDb.embedColor || '#000000')
-                  .setRequired(false),
-              ),
-            );
-
-          await interaction.showModal(modal);
-          break;
-        }
-
-        default:
-          break;
-      }
-
-      const newEmbeds = await buildEmbed(interaction, channelId);
-      interaction.replied || interaction.deferred
-        ? await interaction.message.edit({ embeds: [newEmbeds] }).catch(() => null)
-        : await interaction.update({ embeds: [newEmbeds] });
-    }
-
-    // channel select menu interactions
-    else if (interaction.isChannelSelectMenu()) {
-      if (customId.suffix !== 'change_channel') return;
-      await interaction.deferUpdate();
-
-      const newChannel = interaction.channels.first();
-
-      const channelInHub = await db.connectedList.findFirst({
-        where: { channelId: newChannel?.id },
-      });
-
-      if (channelInHub) {
-        await interaction.editReply({
-          content: null,
-          embeds: [
-            simpleEmbed(
-              t(
-                { phrase: 'connection.alreadyConnected', locale: interaction.user.locale },
-                { channel: `${newChannel?.toString()}`, emoji: emojis.no },
-              ),
-            ),
-          ],
-        });
-        return;
-      }
-
-      const newWebhook = await getOrCreateWebhook(newChannel as TextChannel | ThreadChannel);
-      await db.connectedList.update({
-        where: { channelId },
-        data: { channelId: newChannel?.id, webhookURL: newWebhook?.url },
-      });
-
-      await interaction.editReply({
-        content: t(
-          { phrase: 'connection.switchSuccess', locale: interaction.user.locale },
-          { channel: `${newChannel?.toString()}`, emoji: emojis.yes },
-        ),
-        // remove error embed, if it occured
-        embeds: [],
-        // remove channel select menu
-        components: [],
-      });
-    }
+    if (interaction.isStringSelectMenu()) {Connection.StringSelectMenuHandler(interaction, channelId, isInDb);}
+    else if (interaction.isChannelSelectMenu()) {Connection.ChannelSelectMenuHandler(interaction, channelId, customId);}
   }
 
   @RegisterInteractionHandler('connectionModal')
-  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
+  static override async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     if (customId.suffix === 'invite') {
       await interaction.deferReply({ ephemeral: true });
@@ -435,5 +293,161 @@ export default class Connection extends BaseCommand {
     await interaction.message
       ?.edit({ embeds: [await buildEmbed(interaction, customId.args[0])] })
       .catch(() => null);
+  }
+  static async StringSelectMenuHandler(
+    interaction: StringSelectMenuInteraction,
+    channelId: string,
+    connection: connectedList,
+  ) {
+    switch (interaction.values[0]) {
+      case 'compact':
+        await db.connectedList.update({
+          where: { channelId },
+          data: { compact: !connection.compact },
+        });
+        break;
+
+      case 'profanity':
+        await db.connectedList.update({
+          where: { channelId },
+          data: { profFilter: !connection.profFilter },
+        });
+        break;
+
+      case 'invite': {
+        const modal = new ModalBuilder()
+          .setTitle('Add Invite Link')
+          .setCustomId(
+            new CustomID().setIdentifier('connectionModal', 'invite').addArgs(channelId).toString(),
+          )
+          .addComponents(
+            new ActionRowBuilder<TextInputBuilder>().addComponents(
+              new TextInputBuilder()
+                .setLabel('Invite Link')
+                .setValue('https://discord.gg/')
+                .setCustomId('connInviteField')
+                .setRequired(false)
+                .setStyle(TextInputStyle.Short),
+            ),
+          );
+
+        await interaction.showModal(modal);
+        break;
+      }
+      case 'change_channel': {
+        const channelSelect = new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
+          new ChannelSelectMenuBuilder()
+            .setCustomId(
+              new CustomID()
+                .setIdentifier('connection', 'change_channel')
+                .addArgs(channelId)
+                .addArgs(interaction.user.id)
+                .toString(),
+            )
+            .setChannelTypes(
+              ChannelType.GuildText,
+              ChannelType.PublicThread,
+              ChannelType.PrivateThread,
+            )
+            .setPlaceholder('Select a channel to switch to.'),
+        );
+
+        await interaction.update({
+          content: t(
+            { phrase: 'connection.switchChannel', locale: interaction.user.locale },
+            { emoji: emojis.info },
+          ),
+          embeds: [],
+          components: [channelSelect],
+        });
+        break;
+      }
+
+      case 'embed_color': {
+        const modal = new ModalBuilder()
+          .setTitle('Set Embed Color')
+          .setCustomId(
+            new CustomID()
+              .setIdentifier('connectionModal', 'embed_color')
+              .addArgs(channelId)
+              .toString(),
+          )
+          .addComponents(
+            new ActionRowBuilder<TextInputBuilder>().addComponents(
+              new TextInputBuilder()
+                .setCustomId('embed_color')
+                .setStyle(TextInputStyle.Short)
+                .setLabel('Embed Color')
+                .setPlaceholder('Provide a hex color code or leave blank to remove.')
+                .setValue(connection.embedColor || '#000000')
+                .setRequired(false),
+            ),
+          );
+
+        await interaction.showModal(modal);
+        break;
+      }
+
+      default:
+        break;
+    }
+
+    const newEmbeds = await buildEmbed(interaction, channelId);
+    interaction.replied || interaction.deferred
+      ? await interaction.message.edit({ embeds: [newEmbeds] }).catch(() => null)
+      : await interaction.update({ embeds: [newEmbeds] });
+  }
+
+  static async ChannelSelectMenuHandler(
+    interaction: ChannelSelectMenuInteraction,
+    channelId: string,
+    customId: ParsedCustomId,
+  ) {
+    if (customId.suffix !== 'change_channel') return;
+
+    await interaction.deferUpdate();
+
+    const { locale } = interaction.user;
+    const newChannel = interaction.channels.first();
+
+    const channelInHub = await db.connectedList.findFirst({
+      where: { channelId: newChannel?.id },
+    });
+
+    if (!newChannel) {
+      await interaction.editReply({
+        content: t({ phrase: 'hub.invalidChannel', locale }, { emoji: emojis.no }),
+      });
+      return;
+    }
+    else if (channelInHub) {
+      await interaction.editReply({
+        content: null,
+        embeds: [
+          simpleEmbed(
+            t(
+              { phrase: 'connection.alreadyConnected', locale },
+              { channel: `${newChannel?.toString()}`, emoji: emojis.no },
+            ),
+          ),
+        ],
+      });
+      return;
+    }
+
+    const newWebhook = await getOrCreateWebhook(newChannel as TextChannel | ThreadChannel);
+    await db.connectedList.update({
+      where: { channelId },
+      data: { channelId: newChannel?.id, webhookURL: newWebhook?.url },
+    });
+
+    await interaction.editReply({
+      content: t(
+        { phrase: 'connection.switchSuccess', locale },
+        { channel: `${newChannel?.toString()}`, emoji: emojis.yes },
+      ),
+      embeds: [], // remove error embed, if it occured
+      components: [], // remove channel select menu
+    });
   }
 }

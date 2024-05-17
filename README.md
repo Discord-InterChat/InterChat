@@ -89,10 +89,10 @@ const customId = CustomID.parseCustomId(interaction.customId);
 
 To handle components (buttons, selects, modals) create a new method called `handleComponents` or `handleModals` for modals in the command/subcommand class. Then create a decorator for the method using the `@InteractionHandler` decorator with the customId prefix of the components/modals. The method will be called when the component is triggered. Example:
 
-```ts
+```typescript
 // you can change the type of `interaction` to ButtonInteraction etc. if you are aware of the type of component
 @InteractionHandler('cool_button_')
-public async handleComponents(interaction: MessageComponentInteraction) {
+static override async handleComponents(interaction: MessageComponentInteraction) {
   const customId = CustomID.parseCustomId(interaction.customId);
   // handle component logic, same as how it is with collectors
 }

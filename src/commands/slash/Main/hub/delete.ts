@@ -67,7 +67,7 @@ export default class Delete extends Hub {
   }
 
   @RegisterInteractionHandler('hub_delete')
-  async handleComponents(interaction: ButtonInteraction) {
+  static override async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const userId = customId.args[0];
     const hubId = customId.args[1];
@@ -98,7 +98,7 @@ export default class Delete extends Hub {
       where: { id: hubId, ownerId: interaction.user.id },
     });
     if (!hubInDb) {
-      return await interaction.editReply({
+      await interaction.editReply({
         embeds: [
           simpleEmbed(
             t(
@@ -108,6 +108,7 @@ export default class Delete extends Hub {
           ),
         ],
       });
+      return;
     }
 
     await deleteHubs([hubInDb.id]);

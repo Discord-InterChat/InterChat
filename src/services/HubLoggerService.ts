@@ -31,7 +31,7 @@ export type LogReportOpts = {
 };
 
 export default class HubLoggerService extends Factory {
-  public async fetchHub(id: string) {
+  public static async fetchHub(id: string) {
     return await db.hubs.findFirst({ where: { id } });
   }
 
@@ -42,20 +42,20 @@ export default class HubLoggerService extends Factory {
   ) {
     if (type === 'reports') {
       await SuperClient.instance.reportLogger.setChannelId(hubId, channelId);
-      return;
     }
-
-    return await db.hubs.update({
-      where: { id: hubId },
-      data: {
-        logChannels: {
-          upsert: {
-            set: { [type]: channelId },
-            update: { [type]: channelId },
+    else {
+      return await db.hubs.update({
+        where: { id: hubId },
+        data: {
+          logChannels: {
+            upsert: {
+              set: { [type]: channelId },
+              update: { [type]: channelId },
+            },
           },
         },
-      },
-    });
+      });
+    }
   }
 
   /**
@@ -95,7 +95,7 @@ export class ModLogsLogger extends HubLoggerService {
   ) {
     const { userOrServer, mod, reason, expires } = opts;
 
-    const hub = await this.fetchHub(hubId);
+    const hub = await HubLoggerService.fetchHub(hubId);
     if (!hub?.logChannels?.modLogs) return;
 
     const name = userOrServer instanceof User ? userOrServer.username : userOrServer.name;
@@ -135,12 +135,12 @@ export class ModLogsLogger extends HubLoggerService {
     mod: User,
     reason?: string,
   ) {
-    const hub = await this.fetchHub(hubId);
+    const hub = await HubLoggerService.fetchHub(hubId);
     if (!hub?.logChannels?.modLogs) return;
 
     let name: string | undefined;
     let blacklisted;
-    let originalReason: string | undefined = undefined;
+    let originalReason: string | undefined;
 
     if (type === 'user') {
       blacklisted = await BlacklistManager.fetchUserBlacklist(hub.id, userOrServerId);
@@ -184,7 +184,7 @@ export class JoinLeaveLogger extends HubLoggerService {
     server: Guild,
     opt?: { totalConnections: number; hubName: string },
   ) {
-    const hub = await this.fetchHub(hubId);
+    const hub = await HubLoggerService.fetchHub(hubId);
     if (!hub?.logChannels?.joinLeaves) return;
 
     const owner = await server.fetchOwner();
@@ -208,13 +208,14 @@ export class JoinLeaveLogger extends HubLoggerService {
   }
 
   async logServerLeave(hubId: string, server: Guild) {
-    const hub = await this.fetchHub(hubId);
+    const hub = await HubLoggerService.fetchHub(hubId);
     if (!hub?.logChannels?.joinLeaves) return;
 
-    const totalConnections = await db.connectedList.count({
-      where: { hubId: hub.id, connected: true },
-    });
     const owner = await server.client.users.fetch(server.ownerId).catch(() => null);
+    const totalConnections = server.client.connectionCache.reduce(
+      (total, c) => total + (c.hubId === hub.id && c.connected ? 1 : 0),
+      0,
+    );
 
     const embed = new EmbedBuilder()
       .setTitle('Server Left')
@@ -243,7 +244,7 @@ export class ProfanityLogger extends HubLoggerService {
    * @param server - The server where the content was posted.
    */
   async log(hubId: string, rawContent: string, author: User, server: Guild) {
-    const hub = await this.fetchHub(hubId);
+    const hub = await HubLoggerService.fetchHub(hubId);
     if (!hub?.logChannels?.profanity) return;
 
     const embed = new EmbedBuilder()
@@ -273,7 +274,7 @@ export class ReportLogger extends HubLoggerService {
    * @param evidence - Optional evidence for the report.
    */
   async log(hubId: string, { userId, serverId, reason, reportedBy, evidence }: LogReportOpts) {
-    const hub = await this.fetchHub(hubId);
+    const hub = await HubLoggerService.fetchHub(hubId);
     if (!hub?.logChannels?.reports?.channelId) return;
 
     const { channelId: reportsChannelId, roleId: reportsRoleId } = hub.logChannels.reports;
@@ -345,29 +346,31 @@ export class ReportLogger extends HubLoggerService {
 
       return networkChannel && reportsServerMsg
         ? messageLink(networkChannel.channelId, reportsServerMsg.messageId, networkChannel.serverId)
-        : undefined;
+        : null;
     }
   }
 
+  // skipcq: JS-0105
+  async updateChannels(
+    hubId: string,
+    logChannels:
+      | Prisma.HubLogChannelsCreateInput
+      | Prisma.HubLogChannelsNullableUpdateEnvelopeInput,
+  ) {
+    await db.hubs.update({ where: { id: hubId }, data: { logChannels } });
+  }
+
   public async removeReports(hubId: string) {
-    await db.hubs.update({
-      where: { id: hubId },
-      data: { logChannels: { upsert: { set: null, update: { reports: null } } } },
-    });
+    await this.updateChannels(hubId, { upsert: { set: null, update: { reports: null } } });
   }
 
   public async setChannelId(hubId: string, channelId: string) {
     const data = { channelId };
 
-    await db.hubs.update({
-      where: { id: hubId },
-      data: {
-        logChannels: {
-          upsert: {
-            set: { reports: data },
-            update: { reports: { upsert: { set: data, update: data } } },
-          },
-        },
+    await this.updateChannels(hubId, {
+      upsert: {
+        set: { reports: data },
+        update: { reports: { upsert: { set: data, update: data } } },
       },
     });
   }
@@ -377,20 +380,14 @@ export class ReportLogger extends HubLoggerService {
       throw new Error('Channel ID not found. Role ID cannot be set.');
     }
 
-    const logChannels = { ...hub.logChannels, reports: { ...hub.logChannels.reports, roleId } };
-
-    await db.hubs.update({
-      where: { id: hub.id },
-      data: { logChannels },
+    await this.updateChannels(hub.id, {
+      ...hub.logChannels,
+      reports: { ...hub.logChannels.reports, roleId },
     });
   }
 
   public async setChannelIdAndRoleId(hubId: string, channelId: string, roleId: string) {
     const data = { reports: { channelId, roleId } };
-
-    await db.hubs.update({
-      where: { id: hubId },
-      data: { logChannels: { upsert: { set: data, update: data } } },
-    });
+    await this.updateChannels(hubId, { upsert: { set: data, update: data } });
   }
 }

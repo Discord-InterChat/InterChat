@@ -106,7 +106,7 @@ export default class Stats extends BaseCommand {
   }
 
   @RegisterInteractionHandler('stats')
-  async handleComponents(interaction: ButtonInteraction) {
+  static override async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
 
     const allCusterData = await interaction.client.cluster.broadcastEval((client) => {

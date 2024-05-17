@@ -59,13 +59,8 @@ export default class DeleteMessage extends BaseCommand {
       );
     }
 
-    // find all the messages through the network
-    const channelSettingsArr = await db.connectedList.findMany({
-      where: { channelId: { in: messageInDb.originalMsg.broadcastMsgs.map((c) => c.channelId) } },
-    });
-
     const results = messageInDb.originalMsg.broadcastMsgs.map(async (element) => {
-      const connection = channelSettingsArr.find((c) => c.channelId === element.channelId);
+      const connection = interaction.client.connectionCache.find((c) => c.channelId === element.channelId);
       if (!connection) return false;
 
       const webhookURL = connection.webhookURL.split('/');
