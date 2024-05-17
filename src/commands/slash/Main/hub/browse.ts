@@ -204,7 +204,7 @@ export default class Browse extends Hub {
       const { fetchUserBlacklist, fetchServerBlacklist } = BlacklistManager;
 
       const userBlacklisted = await fetchUserBlacklist(hubDetails.id, interaction.user.id);
-      const serverBlacklisted = await fetchServerBlacklist(hubDetails.id, interaction.guildId!);
+      const serverBlacklisted = await fetchServerBlacklist(hubDetails.id, interaction.guildId);
 
       if (userBlacklisted || serverBlacklisted) {
         const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';

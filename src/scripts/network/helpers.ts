@@ -27,7 +27,7 @@ export const getReferredContent = (referredMessage: Message) => {
     referredContent = '*Original message contains attachment <:attachment:1102464803647275028>*';
   }
   else if (referredContent.length > 100) {
-    referredContent = referredContent.slice(0, 100) + '...';
+    referredContent = `${referredContent.slice(0, 100)}...`;
   }
 
   return referredContent;

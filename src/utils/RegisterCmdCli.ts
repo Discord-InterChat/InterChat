@@ -45,6 +45,8 @@ process.argv.forEach(async (arg) => {
       case '--help':
         Logger.info('Usage: node utils/RegisterCmdCli.js [--public|--private|--help]');
         break;
+      default:
+        break;
     }
   }
   catch (error) {

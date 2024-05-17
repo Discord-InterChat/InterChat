@@ -109,7 +109,7 @@ export default class BlacklistManager {
     const hub = await db.hubs.findUnique({ where: { id: hubId } });
     const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
     const embed = new EmbedBuilder()
-      .setTitle(emojis.blobFastBan + ' Blacklist Notification')
+      .setTitle(`${emojis.blobFastBan} Blacklist Notification`)
       .setColor(colors.interchatBlue)
       .setFields(
         { name: 'Reason', value: reason, inline: true },

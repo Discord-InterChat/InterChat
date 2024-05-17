@@ -60,7 +60,7 @@ export default abstract class BaseCommand {
   }
 
   getRemainingCooldown(interaction: RepliableInteraction): number {
-    let remainingCooldown: number | undefined = undefined;
+    let remainingCooldown: number | undefined;
 
     if (interaction.isChatInputCommand()) {
       const subcommand = interaction.options.getSubcommand(false);
