@@ -364,7 +364,7 @@ export default class Connection extends BaseCommand {
           embeds: [],
           components: [channelSelect],
         });
-        break;
+        return;
       }
 
       case 'embed_color': {
@@ -428,6 +428,7 @@ export default class Connection extends BaseCommand {
     else if (channelInHub) {
       await interaction.editReply({
         content: null,
+        components: [],
         embeds: [
           simpleEmbed(
             t(

@@ -151,7 +151,9 @@ export default class Browse extends Hub {
   }
 
   @RegisterInteractionHandler('hub_browse')
-  static override async handleComponents(interaction: ButtonInteraction | ChannelSelectMenuInteraction): Promise<void> {
+  static override async handleComponents(
+    interaction: ButtonInteraction | ChannelSelectMenuInteraction,
+  ): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const { locale } = interaction.user;
 
@@ -333,11 +335,14 @@ export default class Browse extends Hub {
 
       if (channelConnected) {
         await interaction.update({
-          content: t(
-            { phrase: 'connection.alreadyConnected', locale },
-            { channel: channel.toString(), emoji: emojis.no },
-          ),
-          embeds: [],
+          embeds: [
+            simpleEmbed(
+              t(
+                { phrase: 'connection.alreadyConnected', locale },
+                { channel: channel.toString(), emoji: emojis.no },
+              ),
+            ),
+          ],
           components: [],
         });
         return;
