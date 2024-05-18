@@ -1,4 +1,5 @@
 import {
+  ApplicationCommandOptionChoiceData,
   ApplicationCommandOptionType,
   AutocompleteInteraction,
   ChatInputCommandInteraction,
@@ -165,105 +166,103 @@ export default class BlacklistCommand extends BaseCommand {
     ],
   };
 
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const subCommandName = interaction.options.getSubcommand();
     const subcommand = BlacklistCommand.subcommands.get(subCommandName);
 
-    return await subcommand?.execute(interaction).catch((e) => handleError(e, interaction));
+    await subcommand?.execute(interaction).catch((e) => handleError(e, interaction));
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const action = interaction.options.getSubcommand() as 'user' | 'server';
-    const focusedHub = interaction.options.get('hub');
+    const hubOpt = interaction.options.get('hub');
 
-    if (typeof focusedHub?.value !== 'string') return;
+    if (typeof hubOpt?.value !== 'string') return;
 
-    if (focusedHub.focused) {
-      const hub = await db.hubs.findMany({
+    let choices: ApplicationCommandOptionChoiceData<string>[] = [];
+
+    if (hubOpt.focused) {
+      choices = await this.findHubsByName(hubOpt.value, interaction.user.id);
+    }
+    else {
+      const hub = await db.hubs.findFirst({
         where: {
-          name: { mode: 'insensitive', contains: escapeRegexChars(focusedHub.value) },
+          name: hubOpt.value,
           OR: [
             { ownerId: interaction.user.id },
             { moderators: { some: { userId: interaction.user.id } } },
           ],
         },
-        take: 25,
       });
 
-      const filtered = hub.map(({ name: hubName }) => ({ name: hubName, value: hubName }));
-      await interaction.respond(filtered);
-      return;
-    }
+      if (!hub) {
+        await interaction.respond([]);
+        return;
+      }
 
-    switch (action) {
-      case 'user': {
-        const userOpt = interaction.options.get('user');
-
-        if (!userOpt?.focused || typeof userOpt.value !== 'string') return;
-        const userHubMod = await db.hubs.findFirst({
-          where: {
-            name: focusedHub.value,
-            OR: [
-              { ownerId: interaction.user.id },
-              { moderators: { some: { userId: interaction.user.id } } },
-            ],
-          },
-        });
-
-        if (!userHubMod) {
-          await interaction.respond([]);
-          return;
+      switch (action) {
+        case 'user': {
+          const userOpt = interaction.options.get('user');
+          if (!userOpt?.focused || typeof userOpt.value !== 'string') return;
+          choices = await this.searchBlacklistedUsers(hub.id, userOpt.value);
+          break;
         }
 
-        const filteredUsers = await db.userData.findMany({
-          where: {
-            blacklistedFrom: { some: { hubId: userHubMod.id } },
-            OR: [
-              { username: { mode: 'insensitive', contains: userOpt.value } },
-              { userId: { mode: 'insensitive', contains: userOpt.value } },
-            ],
-          },
-          take: 25,
-        });
-
-        const choices = filteredUsers.map((user) => {
-          return { name: user.username ?? `Unknown User - ${user.userId}`, value: user.userId };
-        });
-        await interaction.respond(choices);
-        break;
+        case 'server': {
+          const serverOpt = interaction.options.get('server', true);
+          if (!serverOpt.focused || typeof serverOpt.value !== 'string') return;
+          choices = await this.searchBlacklistedServers(hub.id, serverOpt.value);
+          break;
+        }
+        default:
+          break;
       }
-
-      case 'server': {
-        const serverOpt = interaction.options.get('server', true);
-        const serverHubMod = await db.hubs.findFirst({
-          where: {
-            name: focusedHub.value,
-            OR: [
-              { ownerId: interaction.user.id },
-              { moderators: { some: { userId: interaction.user.id } } },
-            ],
-          },
-        });
-        if (!serverOpt.focused || typeof serverOpt.value !== 'string' || !serverHubMod) return;
-
-        const allServers = await db.blacklistedServers.findMany({
-          where: {
-            hubs: { some: { hubId: serverHubMod.id } },
-            OR: [
-              { serverName: { mode: 'insensitive', contains: serverOpt.value } },
-              { serverId: { mode: 'insensitive', contains: serverOpt.value } },
-            ],
-          },
-          take: 25,
-        });
-        const choices = allServers.map(({ serverName, serverId }) => {
-          return { name: serverName, value: serverId };
-        });
-        await interaction.respond(choices);
-        break;
-      }
-      default:
-        break;
     }
+
+    await interaction.respond(choices);
+  }
+
+  private async searchBlacklistedServers(hubId: string, nameOrId: string) {
+    const allServers = await db.blacklistedServers.findMany({
+      where: {
+        hubs: { some: { hubId } },
+        OR: [
+          { serverName: { mode: 'insensitive', contains: nameOrId } },
+          { serverId: { mode: 'insensitive', contains: nameOrId } },
+        ],
+      },
+      take: 25,
+    });
+    return allServers.map(({ serverName, serverId }) => ({ name: serverName, value: serverId }));
+  }
+
+  private async searchBlacklistedUsers(hubId: string, nameOrId: string) {
+    const filteredUsers = await db.userData.findMany({
+      where: {
+        blacklistedFrom: { some: { hubId } },
+        OR: [
+          { username: { mode: 'insensitive', contains: nameOrId } },
+          { userId: { mode: 'insensitive', contains: nameOrId } },
+        ],
+      },
+      take: 25,
+    });
+
+    return filteredUsers.map((user) => ({
+      name: user.username ?? `Unknown User - ${user.userId}`,
+      value: user.userId,
+    }));
+  }
+
+  private async findHubsByName(name: string, ownerId: string) {
+    const hub = await db.hubs.findMany({
+      where: {
+        name: { mode: 'insensitive', contains: escapeRegexChars(name) },
+        OR: [{ ownerId }, { moderators: { some: { userId: ownerId } } }],
+      },
+      take: 25,
+    });
+
+    return hub.map(({ name: hubName }) => ({ name: hubName, value: hubName }));
   }
 }
