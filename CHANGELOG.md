@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.22.0](https://github.com/Discord-InterChat/InterChat/compare/v3.21.5...v3.22.0) (2024-05-18)
+
+
+### Features
+
+* **stats:** memory usage now shows aggregate memory of all shards ([d2767f3](https://github.com/Discord-InterChat/InterChat/commit/d2767f31a41deb2a26e3f33a01edb928fd035aad))
+
+
+### Bug Fixes
+
+* get and post data from and to connection cache wherever possible ([6741e9f](https://github.com/Discord-InterChat/InterChat/commit/6741e9f61e4c82a2898fa27485688a7b2c4a3aed))
+
 ### [3.21.5](https://github.com/Discord-InterChat/InterChat/compare/v3.21.4...v3.21.5) (2024-05-18)
 
 ### [3.21.4](https://github.com/Discord-InterChat/InterChat/compare/v3.21.3...v3.21.4) (2024-05-11)
