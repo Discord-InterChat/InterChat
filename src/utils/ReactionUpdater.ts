@@ -19,7 +19,7 @@ import { t } from './Locale.js';
 import { removeReaction, addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 
-export default class ReactionUpdater {
+export default abstract class ReactionUpdater {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')
   async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction) {

@@ -6,6 +6,7 @@ import { t } from '../../utils/Locale.js';
 import { replaceLinks } from '../../utils/Utils.js';
 import { check as checkProfanity } from '../../utils/Profanity.js';
 import { runAntiSpam } from './antiSpam.js';
+import { analyzeImageForNSFW, isUnsafeImage } from '../../utils/NSFWDetection.js';
 
 // if account is created within the last 7 days
 export const isNewUser = (message: Message) => {
@@ -71,18 +72,17 @@ export const isCaughtSpam = async (
 };
 
 export const containsNSFW = async (message: Message, imgUrl: string | null | undefined) => {
-  const { nsfwDetector } = message.client;
   const attachment = message.attachments.first();
 
-  if (!imgUrl || !attachment) return;
-  else if (!REGEX.STATIC_IMAGE_URL.test(imgUrl)) return;
+  if (!imgUrl || !attachment) return null;
+  else if (!REGEX.STATIC_IMAGE_URL.test(imgUrl)) return null;
 
   // run static images through the nsfw detector
-  const predictions = await nsfwDetector.analyzeImage(attachment ? attachment.url : imgUrl);
+  const predictions = await analyzeImageForNSFW(attachment ? attachment.url : imgUrl);
 
   return {
     predictions,
-    unsafe: (predictions && nsfwDetector.isUnsafeContent(predictions)) === true,
+    unsafe: (predictions && isUnsafeImage(predictions)) === true,
   };
 };
 

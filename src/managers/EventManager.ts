@@ -37,12 +37,12 @@ import broadcastMessage from '../scripts/network/broadcastMessage.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
-  onReady(client: Client) {
+  static onReady(client: Client) {
     Logger.info(`Logged in as ${client.user?.tag}!`);
   }
 
   @GatewayEvent('shardReady')
-  onShardReady(s: number, u: Set<string>) {
+  static onShardReady(s: number, u: Set<string>) {
     if (u) {
       Logger.warn(`Shard ${s} is ready but ${u.size} guilds are unavailable.`);
     }
@@ -52,7 +52,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('messageReactionAdd')
-  async onReactionAdd(reaction: MessageReaction, user: User | PartialUser) {
+  static async onReactionAdd(reaction: MessageReaction, user: User | PartialUser) {
     if (user.bot || !reaction.message.inGuild()) return;
 
     const cooldown = reaction.client.reactionCooldowns.get(user.id);
@@ -109,7 +109,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('webhooksUpdate')
-  async onWebhooksUpdate(channel: GuildChannel) {
+  static async onWebhooksUpdate(channel: GuildChannel) {
     if (!channel.isTextBased()) return;
 
     try {
@@ -151,7 +151,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('guildCreate')
-  async onGuildCreate(guild: Guild) {
+  static async onGuildCreate(guild: Guild) {
     Logger.info(`Joined ${guild.name} (${guild.id})`);
 
     // log that bot joined a guild to goal channel in support server
@@ -216,7 +216,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('guildDelete')
-  async onGuildDelete(guild: Guild) {
+  static async onGuildDelete(guild: Guild) {
     if (!guild.available) return;
 
     Logger.info(`Left ${guild.name} (${guild.id})`);
@@ -235,7 +235,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('messageCreate')
-  async onMessageCreate(message: Message): Promise<void> {
+  static async onMessageCreate(message: Message): Promise<void> {
     if (message.author?.bot || message.system || message.webhookId || !message.inGuild()) return;
 
     const { connectionCache, cachePopulated, getUserLocale } = message.client;
@@ -296,7 +296,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('interactionCreate')
-  async onInteractionCreate(interaction: Interaction): Promise<void> {
+  static async onInteractionCreate(interaction: Interaction): Promise<void> {
     try {
       const { commands, interactions, getUserLocale } = interaction.client;
       interaction.user.locale = await getUserLocale(interaction.user.id);
@@ -330,12 +330,8 @@ export default abstract class EventManager {
       }
 
       const command = commands.get(interaction.commandName);
-      if (!interaction.isAutocomplete()) {
-        await command?.execute(interaction);
-      } // normal slashie/context menu
-      else if (command?.autocomplete) {
-        await command.autocomplete(interaction);
-      } // autocomplete options
+      if (!interaction.isAutocomplete()) await command?.execute(interaction); // normal slashie/context menu
+      else if (command?.autocomplete) await command.autocomplete(interaction); // autocomplete options
     }
     catch (e) {
       handleError(e, interaction);
