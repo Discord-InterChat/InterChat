@@ -13,8 +13,6 @@ import { commandsMap, interactionsMap } from './BaseCommand.js';
 import db from '../utils/Db.js';
 import Sentry, { captureException } from '@sentry/node';
 import Scheduler from '../services/SchedulerService.js';
-import NSFWClient from '../utils/NSFWDetection.js';
-import ReactionUpdater from '../utils/ReactionUpdater.js';
 import CooldownService from '../services/CooldownService.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
 import { RemoveMethods } from '../typings/index.js';
@@ -28,7 +26,6 @@ import {
 } from '../services/HubLoggerService.js';
 import 'dotenv/config';
 import { loadLocales, supportedLocaleCodes } from '../utils/Locale.js';
-import EventManager from '../managers/EventManager.js';
 import { connectedList } from '@prisma/client';
 import Logger from '../utils/Logger.js';
 import loadCommandFiles from '../utils/LoadCommands.js';
@@ -36,10 +33,6 @@ import loadCommandFiles from '../utils/LoadCommands.js';
 export default class SuperClient<R extends boolean = boolean> extends Client<R> {
   // A static instance of the SuperClient class to be used globally.
   public static instance: SuperClient;
-
-  // classes
-  private readonly reactionUpdater = new ReactionUpdater();
-  private readonly eventManager = EventManager;
 
   private _connectionCache: Collection<string, connectedList> = new Collection();
   private _cachePopulated = false;
@@ -53,7 +46,6 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
   readonly webhooks = new Collection<string, WebhookClient>();
   readonly reactionCooldowns = new Collection<string, number>();
 
-  readonly nsfwDetector = new NSFWClient();
   readonly commandCooldowns = new CooldownService();
   readonly reportLogger = new ReportLogger(this);
   readonly cluster = new ClusterClient(this);

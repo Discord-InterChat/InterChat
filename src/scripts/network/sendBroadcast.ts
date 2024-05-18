@@ -15,8 +15,8 @@ import {
 import { censor } from '../../utils/Profanity.js';
 import { broadcastedMessages, connectedList, hubs, originalMessages } from '@prisma/client';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
-import sendMessage from './sendMessage.js';
 import { NetworkWebhookSendResult } from './storeMessageData.js';
+import sendMessage from './sendMessage.js';
 
 type BroadcastOpts = {
   embedColor?: HexColorString | null;
@@ -34,7 +34,7 @@ export default (
   opts: BroadcastOpts,
 ) => {
   const censoredContent = censor(message.content);
-  const referredContent = opts.referredMessage
+  const referredContent = opts.referredMessage && opts.dbReferrence
     ? getReferredContent(opts.referredMessage)
     : undefined;
 
@@ -52,19 +52,21 @@ export default (
     embedCol: opts.embedColor ?? undefined,
   });
 
+  const authorUsername = opts.referredAuthor?.username.slice(0, 30) ?? '@Unknown User';
+
   return allConnected.map(async (connection) => {
     try {
       const reply = opts.dbReferrence?.broadcastMsgs.find(
         (msg) => msg.channelId === connection.channelId,
       );
 
-      const jumpButton = reply && opts.referredAuthor
-        ? generateJumpButton(reply, opts.referredAuthor.username, connection.serverId)
+      const jumpButton = reply
+        ? [generateJumpButton(reply, authorUsername, connection.serverId)]
         : undefined;
 
       // embed format
       let messageFormat: WebhookMessageCreateOptions = {
-        components: jumpButton ? [jumpButton] : undefined,
+        components: jumpButton,
         embeds: [connection.profFilter ? censoredEmbed : embed],
         username: `${hub.name}`,
         avatarURL: hub.iconUrl,
@@ -78,13 +80,15 @@ export default (
 
         // preview embed for the message being replied to
         const replyEmbed = replyContent
-          ? new EmbedBuilder({
-            description: replyContent ?? 'Unknown User',
-            author: {
-              name: `${opts.referredAuthor?.username?.slice(0, 30)}`,
-              icon_url: opts.referredAuthor?.displayAvatarURL(),
-            },
-          }).setColor('Random')
+          ? [
+            new EmbedBuilder()
+              .setDescription(replyContent)
+              .setAuthor({
+                name: `${authorUsername}`,
+                iconURL: opts.referredAuthor?.displayAvatarURL(),
+              })
+              .setColor('Random'),
+          ]
           : undefined;
 
         // compact mode doesn't need new attachment url for tenor and direct image links
@@ -95,8 +99,8 @@ export default (
         messageFormat = {
           username: `@${username} • ${servername}`,
           avatarURL: message.author.displayAvatarURL(),
-          embeds: replyEmbed ? [replyEmbed] : undefined,
-          components: jumpButton ? [jumpButton] : undefined,
+          embeds: replyEmbed,
+          components: jumpButton,
           content: `${connection.profFilter ? censoredContent : message.content} ${attachmentUrlNeeded ? `\n${opts.attachmentURL}` : ''}`,
           threadId: connection.parentId ? connection.channelId : undefined,
           allowedMentions: { parse: [] },

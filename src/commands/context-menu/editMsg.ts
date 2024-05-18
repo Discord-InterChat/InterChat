@@ -142,12 +142,11 @@ export default class EditMessage extends BaseCommand {
         messageInDb.originalMsg.serverId,
       );
 
-    if (
-      hubSettings.has('BlockInvites') &&
-      (newMessage.includes('discord.gg') ||
-        newMessage.includes('discord.com/invite') ||
-        newMessage.includes('dsc.gg'))
-    ) {
+    const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
+    const hasBlockInvites = hubSettings.has('BlockInvites');
+    const hasDiscordInvite = inviteLinks.some((link) => newMessage.includes(link));
+
+    if (hasBlockInvites && hasDiscordInvite) {
       await interaction.editReply(
         t({ phrase: 'errors.inviteLinks', locale: interaction.user.locale }, { emoji: emojis.no }),
       );
@@ -168,7 +167,7 @@ export default class EditMessage extends BaseCommand {
         .fetchWebhook(webhookURL[webhookURL.length - 2])
         ?.catch(() => null);
 
-      if (!webhook || webhook.owner?.id !== interaction.client.user.id) return false;
+      if (webhook?.owner?.id !== interaction.client.user.id) return false;
 
       // finally, edit the message
       return await webhook
@@ -217,49 +216,42 @@ export default class EditMessage extends BaseCommand {
     target: Message,
     newMessage: string,
     serverId: string,
-    oldImageUrl?: string | null,
-    newImageUrl?: string | null,
+    opts?: {
+      oldImageUrl?: string | null;
+      newImageUrl?: string | null;
+    },
   ) {
-    let newEmbed = new EmbedBuilder();
     const embedContent =
-      newMessage.replace(oldImageUrl ?? '', '').replace(newImageUrl ?? '', '') || null;
+      newMessage.replace(opts?.oldImageUrl ?? '', '').replace(opts?.newImageUrl ?? '', '') ?? null;
+    const embedImage = opts?.newImageUrl ?? opts?.oldImageUrl ?? null;
 
-    if (target.content) {
-      const guild = await target.client.fetchGuild(serverId);
-
-      // create a new embed if the message being edited is in compact mode
-      newEmbed
-        .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
-        .setDescription(embedContent)
-        .setColor('Random')
-        .setImage(newImageUrl ?? oldImageUrl ?? null)
-        .addFields(
-          target.embeds.at(0)?.fields.at(0)
-            ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
-            : [],
-        )
-        .setFooter({ text: `Server: ${guild?.name}` });
-    }
-    else {
+    if (!target.content) {
       // utilize the embed directly from the message
-      newEmbed = EmbedBuilder.from(target.embeds[0])
-        .setDescription(embedContent)
-        .setImage(newImageUrl ?? oldImageUrl ?? null);
+      return EmbedBuilder.from(target.embeds[0]).setDescription(embedContent).setImage(embedImage);
     }
 
-    return newEmbed;
+    const guild = await target.client.fetchGuild(serverId);
+
+    // create a new embed if the message being edited is in compact mode
+    return new EmbedBuilder()
+      .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
+      .setDescription(embedContent)
+      .setColor('Random')
+      .setImage(embedImage)
+      .addFields(
+        target.embeds.at(0)?.fields.at(0)
+          ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
+          : [],
+      )
+      .setFooter({ text: `Server: ${guild?.name}` });
   }
 
   static async fabricateNewMsg(user: User, target: Message, newMessage: string, serverId: string) {
     const { oldImageUrl, newImageUrl } = await this.getImageUrls(target, newMessage);
-    const newEmbed = await this.buildNewEmbed(
-      user,
-      target,
-      newMessage,
-      serverId,
+    const newEmbed = await this.buildNewEmbed(user, target, newMessage, serverId, {
       oldImageUrl,
       newImageUrl,
-    );
+    });
 
     // if the message being edited is in compact mode
     // then we create a new embed with the new message and old reply

@@ -1,7 +1,7 @@
 import { ClusterClient } from 'discord-hybrid-sharding';
 import { Collection, Snowflake } from 'discord.js';
 import { Scheduler } from '../services/SchedulerService.ts';
-import NSFWClient from '../utils/NSFWDetection.ts';
+import BaseCommand from '../core/BaseCommand.ts';
 import BlacklistManager from '../managers/BlacklistManager.ts';
 import CommandManager from '../managers/CommandManager.ts';
 import CooldownService from '../services/CooldownService.ts';
@@ -13,7 +13,6 @@ import {
 } from '../services/HubLoggerService.ts';
 import { supportedLocaleCodes } from '../utils/Locale.ts';
 import { connectedList } from '@prisma/client';
-import BaseCommand from '../core/BaseCommand.ts';
 import { InteractionFunction } from '../decorators/Interaction.ts';
 
 type RemoveMethods<T> = {
@@ -46,7 +45,6 @@ declare module 'discord.js' {
 
     commandManager: CommandManager;
     blacklistManager: BlacklistManager;
-    nsfwDetector: NSFWClient;
   }
 
   export interface User {
