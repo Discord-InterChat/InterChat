@@ -258,6 +258,8 @@ export default class BlacklistCommand extends BaseCommand {
         await interaction.respond(choices);
         break;
       }
+      default:
+        break;
     }
   }
 }

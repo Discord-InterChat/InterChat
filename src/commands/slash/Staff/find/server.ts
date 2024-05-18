@@ -62,7 +62,7 @@ export default class Server extends Find {
           name: 'Server Features:',
           value:
             guild.features
-              .map((feat) => '> ' + toTitleCase(feat.replaceAll('_', ' ')) + '\n')
+              .map((feat) => `> ${toTitleCase(feat.replaceAll('_', ' '))}\n`)
               .join('') || `> ${emojis.no} No Features Enabled`,
         },
 

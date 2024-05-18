@@ -28,8 +28,8 @@ export default abstract class BaseCommand {
   abstract execute(interaction: CmdInteraction): Promise<unknown>;
 
   // optional methods
-  async handleComponents?(interaction: MessageComponentInteraction): Promise<unknown>;
-  async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
+  static async handleComponents?(interaction: MessageComponentInteraction): Promise<unknown>;
+  static async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
   async autocomplete?(interaction: AutocompleteInteraction): Promise<unknown>;
 
   async checkAndSetCooldown(interaction: RepliableInteraction): Promise<boolean> {
@@ -60,7 +60,7 @@ export default abstract class BaseCommand {
   }
 
   getRemainingCooldown(interaction: RepliableInteraction): number {
-    let remainingCooldown: number | undefined = undefined;
+    let remainingCooldown: number | undefined;
 
     if (interaction.isChatInputCommand()) {
       const subcommand = interaction.options.getSubcommand(false);

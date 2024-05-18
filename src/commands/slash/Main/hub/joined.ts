@@ -12,6 +12,7 @@ export default class Joined extends Hub {
       where: { serverId: interaction.guild?.id },
       include: { hub: true },
     });
+
     if (connections.length === 0) {
       return await interaction.reply({
         embeds: [

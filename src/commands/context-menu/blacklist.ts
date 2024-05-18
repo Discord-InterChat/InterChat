@@ -93,7 +93,7 @@ export default class Blacklist extends BaseCommand {
   }
 
   @RegisterInteractionHandler('blacklist')
-  async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
+  static override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
 
     if (interaction.user.id !== customId.args[0]) {

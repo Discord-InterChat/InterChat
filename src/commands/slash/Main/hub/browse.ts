@@ -151,7 +151,9 @@ export default class Browse extends Hub {
   }
 
   @RegisterInteractionHandler('hub_browse')
-  async handleComponents(interaction: ButtonInteraction | ChannelSelectMenuInteraction) {
+  static override async handleComponents(
+    interaction: ButtonInteraction | ChannelSelectMenuInteraction,
+  ): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const { locale } = interaction.user;
 
@@ -160,10 +162,11 @@ export default class Browse extends Hub {
       include: { connections: true },
     });
     if (!hubDetails) {
-      return await interaction.reply({
+      await interaction.reply({
         content: t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
+      return;
     }
 
     if (customId.suffix === 'rate') {
@@ -203,7 +206,7 @@ export default class Browse extends Hub {
       const { fetchUserBlacklist, fetchServerBlacklist } = BlacklistManager;
 
       const userBlacklisted = await fetchUserBlacklist(hubDetails.id, interaction.user.id);
-      const serverBlacklisted = await fetchServerBlacklist(hubDetails.id, interaction.guildId!);
+      const serverBlacklisted = await fetchServerBlacklist(hubDetails.id, interaction.guildId);
 
       if (userBlacklisted || serverBlacklisted) {
         const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
@@ -275,10 +278,11 @@ export default class Browse extends Hub {
       if (!interaction.inCachedGuild()) return;
 
       if (!hubDetails) {
-        return await interaction.reply({
+        await interaction.reply({
           content: t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
           ephemeral: true,
         });
+        return;
       }
 
       const channel = interaction.isChannelSelectMenu()
@@ -331,11 +335,14 @@ export default class Browse extends Hub {
 
       if (channelConnected) {
         await interaction.update({
-          content: t(
-            { phrase: 'connection.alreadyConnected', locale },
-            { channel: channel.toString(), emoji: emojis.no },
-          ),
-          embeds: [],
+          embeds: [
+            simpleEmbed(
+              t(
+                { phrase: 'connection.alreadyConnected', locale },
+                { channel: channel.toString(), emoji: emojis.no },
+              ),
+            ),
+          ],
           components: [],
         });
         return;
@@ -350,14 +357,16 @@ export default class Browse extends Hub {
       );
       // if user cancels onboarding or it times out
       if (!onboardingCompleted) {
-        return await interaction.deleteReply().catch(() => null);
+        await interaction.deleteReply().catch(() => null);
+        return;
       }
       else if (onboardingCompleted === 'in-progress') {
-        return await interaction.update({
+        await interaction.update({
           content: t({ phrase: 'onboarding.inProgress', locale }, { channel: `${channel}` }),
           embeds: [],
           components: [],
         });
+        return;
       }
 
       const webhook = await getOrCreateWebhook(channel);

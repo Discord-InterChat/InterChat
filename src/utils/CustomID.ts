@@ -1,6 +1,6 @@
 import lz from 'lz-string';
 
-interface ParsedCustomId {
+export interface ParsedCustomId {
   prefix: string;
   suffix: string;
   expiry?: number;

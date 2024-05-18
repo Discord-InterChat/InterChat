@@ -95,7 +95,7 @@ export default class Report extends Support {
   }
 
   @RegisterInteractionHandler('report')
-  async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
+  static override async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
     if (interaction.isStringSelectMenu()) {
       const modal = new ModalBuilder()
         .setCustomId(
