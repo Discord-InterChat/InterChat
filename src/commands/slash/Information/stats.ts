@@ -26,8 +26,8 @@ export default class Stats extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
-    const { connectedList, originalMessages, hubs } = db;
-    const totalConnections = await connectedList?.count();
+    const { originalMessages, hubs } = db;
+    const totalConnections = interaction.client.connectionCache.size;
     const totalHubs = await hubs?.count();
     const totalNetworkMessages = await originalMessages.count();
 
@@ -39,7 +39,10 @@ export default class Stats extends BaseCommand {
 
     const upSince = new Date(Date.now() - interaction.client.uptime);
     const totalMemory = Math.round(totalmem() / 1024 / 1024 / 1024);
-    const memoryUsed = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
+    const memoryUsedRaw = await interaction.client.cluster.broadcastEval(() =>
+      Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+    );
+    const memoryUsed = memoryUsedRaw.reduce((p, n) => p + (n ?? 0), 0);
 
     const embed = new EmbedBuilder()
       .setColor(colors.interchatBlue)
@@ -52,27 +55,27 @@ export default class Stats extends BaseCommand {
         {
           name: 'Bot Stats',
           value: stripIndents`
-	          - Up Since: ${time(upSince, 'R')}
-            - Servers: ${guildCount}
-	          - Members: ${memberCount}
+	          Up Since: ${time(upSince, 'R')}
+            Servers: ${guildCount}
+	          Members: ${memberCount}
 	  `,
           inline: true,
         },
         {
           name: 'System Stats',
           value: stripIndents`
-            - OS: Linux
-            - CPU Cores: ${cpus().length}
-            - RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
+            OS: Linux
+            CPU Cores: ${cpus().length}
+            RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
 	  `,
           inline: true,
         },
         {
           name: 'Hub Stats',
           value: stripIndents`
-            - Total Hubs: ${totalHubs}
-            - Total Connected: ${totalConnections}
-            - Messages (Today): ${totalNetworkMessages}`,
+            Total Hubs: ${totalHubs}
+            Total Connected: ${totalConnections}
+            Messages (Today): ${totalNetworkMessages}`,
           inline: false,
         },
       ]);

@@ -395,9 +395,10 @@ export default class Browse extends Hub {
         components: [],
       });
 
-      const totalConnections = await db.connectedList.count({
-        where: { hubId: hubDetails.id, connected: true },
-      });
+      const totalConnections = interaction.client.connectionCache.reduce(
+        (total, c) => total + (c.hubId === hubDetails.id && c.connected ? 1 : 0),
+        0,
+      );
 
       // announce
       await sendToHub(hubDetails.id, {
