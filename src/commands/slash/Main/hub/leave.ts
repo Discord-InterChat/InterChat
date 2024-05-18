@@ -14,6 +14,7 @@ import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
+import { logServerLeave } from '../../../../utils/HubLogger/JoinLeave.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -115,7 +116,7 @@ export default class Leave extends Hub {
     // log server leave
     if (interaction.guild) {
       const hubId = customId.args[1];
-      await interaction.client.joinLeaveLogger.logServerLeave(hubId, interaction.guild);
+      await logServerLeave(hubId, interaction.guild);
     }
   }
 }

@@ -8,6 +8,7 @@ import { simpleEmbed, getOrCreateWebhook, sendToHub } from '../../../../utils/Ut
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
+import { logServerJoin } from '../../../../utils/HubLogger/JoinLeave.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
@@ -175,9 +176,10 @@ export default class JoinSubCommand extends Hub {
       components: [],
     });
 
-    const totalConnections = await db.connectedList.count({
-      where: { hubId: hub.id, connected: true },
-    });
+    const totalConnections = interaction.client.connectionCache.reduce(
+      (total, c) => total + (c.hubId === hub.id && c.connected ? 1 : 0),
+      0,
+    );
 
     // announce
     await sendToHub(hub.id, {
@@ -193,7 +195,7 @@ export default class JoinSubCommand extends Hub {
     });
 
     // send log
-    await interaction.client.joinLeaveLogger.logServerJoin(hub.id, interaction.guild, {
+    await logServerJoin(hub.id, interaction.guild, {
       totalConnections,
       hubName,
     });

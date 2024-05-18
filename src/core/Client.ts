@@ -18,12 +18,6 @@ import BlacklistManager from '../managers/BlacklistManager.js';
 import { RemoveMethods } from '../typings/index.js';
 import { isDevBuild } from '../utils/Constants.js';
 import { ActivityType } from 'discord.js';
-import {
-  JoinLeaveLogger,
-  ModLogsLogger,
-  ProfanityLogger,
-  ReportLogger,
-} from '../services/HubLoggerService.js';
 import 'dotenv/config';
 import { loadLocales, supportedLocaleCodes } from '../utils/Locale.js';
 import { connectedList } from '@prisma/client';
@@ -47,12 +41,8 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
   readonly reactionCooldowns = new Collection<string, number>();
 
   readonly commandCooldowns = new CooldownService();
-  readonly reportLogger = new ReportLogger(this);
   readonly cluster = new ClusterClient(this);
   readonly blacklistManager = new BlacklistManager(this.scheduler);
-  readonly profanityLogger = new ProfanityLogger(this);
-  readonly modLogsLogger = new ModLogsLogger(this);
-  readonly joinLeaveLogger = new JoinLeaveLogger(this);
 
   constructor() {
     super({

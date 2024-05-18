@@ -8,6 +8,7 @@ import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
 import Logger from '../../../../utils/Logger.js';
 import { t } from '../../../../utils/Locale.js';
+import { logBlacklist, logUnblacklist } from '../../../../utils/HubLogger/ModLogs.js';
 
 export default class UserBlacklist extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -137,7 +138,7 @@ export default class UserBlacklist extends BlacklistCommand {
       await db.connectedList.deleteMany({ where: { serverId: server.id, hubId: hubInDb.id } });
 
       // send log to hub's log channel
-      await interaction.client.modLogsLogger.logBlacklist(hubInDb.id, {
+      await logBlacklist(hubInDb.id, {
         userOrServer: server,
         mod: interaction.user,
         reason,
@@ -164,12 +165,11 @@ export default class UserBlacklist extends BlacklistCommand {
       );
 
       // send log to hub's log channel
-      await interaction.client.modLogsLogger.logUnblacklist(
-        hubInDb.id,
-        'user',
-        serverOpt,
-        interaction.user,
-      );
+      await logUnblacklist(hubInDb.id, {
+        type: 'user',
+        userOrServerId: serverOpt,
+        mod: interaction.user,
+      });
     }
   }
 }

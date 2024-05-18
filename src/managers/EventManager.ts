@@ -34,6 +34,7 @@ import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
 import SuperClient from '../core/Client.js';
 import sendBroadcast from '../scripts/network/sendBroadcast.js';
+import { logServerLeave } from '../utils/HubLogger/JoinLeave.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
@@ -227,9 +228,7 @@ export default abstract class EventManager {
     await db.connectedList.deleteMany({ where: { serverId: guild.id } });
 
     // send server leave log to hubs
-    connections.forEach((connection) =>
-      guild.client.joinLeaveLogger.logServerLeave(connection.hubId, guild),
-    );
+    connections.forEach((connection) => logServerLeave(connection.hubId, guild));
 
     await logGuildLeave(guild, channels.goal);
   }
@@ -330,8 +329,8 @@ export default abstract class EventManager {
       }
 
       const command = commands.get(interaction.commandName);
-      if (!interaction.isAutocomplete()) await command?.execute(interaction); // normal slashie/context menu
-      else if (command?.autocomplete) await command.autocomplete(interaction); // autocomplete options
+      if (!interaction.isAutocomplete()) {await command?.execute(interaction);} // normal slashie/context menu
+      else if (command?.autocomplete) {await command.autocomplete(interaction);} // autocomplete options
     }
     catch (e) {
       handleError(e, interaction);

@@ -24,6 +24,7 @@ import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 import { simpleEmbed } from '../../utils/Utils.js';
+import { sendReportLog } from '../../utils/HubLogger/Report.js';
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -348,7 +349,7 @@ export default class MessageInfo extends BaseCommand {
     const content = message?.content || message?.embeds[0].description || undefined;
     const attachmentUrl = content?.match(REGEX.IMAGE_URL)?.at(0) ?? message?.embeds[0]?.image?.url;
 
-    await interaction.client.reportLogger.log(messageInDb.originalMsg.hub.id, {
+    await sendReportLog(messageInDb.originalMsg.hub.id, interaction.client, {
       userId: authorId,
       serverId,
       reason,

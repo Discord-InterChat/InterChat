@@ -465,3 +465,7 @@ export const getAttachmentURL = async (string: string) => {
   }
   return null;
 };
+
+export const fetchHub = async (id: string) => {
+  return await db.hubs.findFirst({ where: { id } });
+};

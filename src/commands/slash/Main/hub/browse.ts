@@ -34,6 +34,7 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { t } from '../../../../utils/Locale.js';
+import { logServerJoin } from '../../../../utils/HubLogger/JoinLeave.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -414,7 +415,7 @@ export default class Browse extends Hub {
       });
 
       // log the server join to hub
-      await interaction.client.joinLeaveLogger.logServerJoin(hubDetails.id, interaction.guild, {
+      await logServerJoin(hubDetails.id, interaction.guild, {
         totalConnections,
         hubName: hubDetails.name,
       });

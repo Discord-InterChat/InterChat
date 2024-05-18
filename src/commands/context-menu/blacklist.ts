@@ -22,6 +22,7 @@ import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { simpleEmbed } from '../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
+import { logBlacklist } from '../../utils/HubLogger/ModLogs.js';
 
 export default class Blacklist extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -216,7 +217,7 @@ export default class Blacklist extends BaseCommand {
           .notifyBlacklist('user', originalMsg.authorId, originalMsg.hubId, expires, reason)
           .catch(() => null);
 
-        await interaction.client.modLogsLogger.logBlacklist(originalMsg.hubId, {
+        await logBlacklist(originalMsg.hubId, {
           userOrServer: user,
           mod: interaction.user,
           reason,
@@ -269,14 +270,12 @@ export default class Blacklist extends BaseCommand {
       });
 
       if (server) {
-        await interaction.client.modLogsLogger
-          .logBlacklist(originalMsg.hubId, {
-            userOrServer: server,
-            mod: interaction.user,
-            reason,
-            expires,
-          })
-          .catch(() => null);
+        await logBlacklist(originalMsg.hubId, {
+          userOrServer: server,
+          mod: interaction.user,
+          reason,
+          expires,
+        }).catch(() => null);
       }
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });

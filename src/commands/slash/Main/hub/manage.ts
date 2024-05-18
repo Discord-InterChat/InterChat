@@ -27,7 +27,8 @@ import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFie
 import { checkAndFetchImgurUrl, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { actionsSelect, hubEmbed } from '../../../../scripts/hub/manage.js';
 import { genLogInfoEmbed } from '../../../../scripts/hub/logs.js';
-import HubLoggerService from '../../../../services/HubLoggerService.js';
+import { setLogChannelFor } from '../../../../utils/HubLogger/Default.js';
+import HubReportLogger from '../../../../utils/HubLogger/Report.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -193,7 +194,7 @@ export default class Manage extends Hub {
         const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
 
         if (type === 'reports') {
-          await interaction.client.reportLogger.removeReports(hubInDb.id);
+          await HubReportLogger.removeReports(hubInDb.id);
         }
         else {
           const currentConfig = hubInDb.logChannels;
@@ -504,7 +505,7 @@ export default class Manage extends Hub {
         const channel = interaction.channels.first();
 
         // set the channel in the db
-        await HubLoggerService.setLogChannelFor(hubInDb.id, type, channelId);
+        await setLogChannelFor(hubInDb.id, type, channelId);
 
         // update the old embed with new channel value
         const embed = interaction.message.embeds[0].toJSON();
@@ -544,7 +545,7 @@ export default class Manage extends Hub {
             return;
           }
 
-          await interaction.client.reportLogger.setRoleId(hubInDb, role.id);
+          await HubReportLogger.setRoleId(hubInDb, role.id);
         }
 
         // update the old embed with new role value

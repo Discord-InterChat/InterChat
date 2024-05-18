@@ -1,7 +1,8 @@
+import db from '../../utils/Db.js';
+import logProfanity from '../../utils/HubLogger/Profanity.js';
 import { Message, EmbedBuilder } from 'discord.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
 import { emojis, REGEX } from '../../utils/Constants.js';
-import db from '../../utils/Db.js';
 import { t } from '../../utils/Locale.js';
 import { replaceLinks } from '../../utils/Utils.js';
 import { check as checkProfanity } from '../../utils/Profanity.js';
@@ -129,8 +130,7 @@ export const runChecks = async (
 
   if (profanity || slurs) {
     // send a log to the log channel set by the hub
-    const { profanityLogger } = message.client;
-    await profanityLogger.log(hubId, message.content, message.author, message.guild);
+    logProfanity(hubId, message.content, message.author, message.guild);
   }
 
   if (isNewUser(message)) {

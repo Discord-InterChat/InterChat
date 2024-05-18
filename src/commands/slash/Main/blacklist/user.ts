@@ -8,6 +8,7 @@ import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
 import Logger from '../../../../utils/Logger.js';
 import { captureException } from '@sentry/node';
+import { logBlacklist, logUnblacklist } from '../../../../utils/HubLogger/ModLogs.js';
 
 export default class Server extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -125,7 +126,7 @@ export default class Server extends BlacklistCommand {
       await interaction.followUp({ embeds: [successEmbed] });
 
       // send log to hub's log channel
-      await interaction.client.modLogsLogger.logBlacklist(hubInDb.id, {
+      await logBlacklist(hubInDb.id, {
         userOrServer: user,
         mod: interaction.user,
         reason,
@@ -152,13 +153,12 @@ export default class Server extends BlacklistCommand {
       );
       if (user) {
         // send log to hub's log channel
-        await interaction.client.modLogsLogger.logUnblacklist(
-          hubInDb.id,
-          'user',
-          user.id,
-          interaction.user,
+        await logUnblacklist(hubInDb.id, {
+          type: 'user',
+          userOrServerId: user.id,
+          mod: interaction.user,
           reason,
-        );
+        });
       }
     }
   }
