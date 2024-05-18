@@ -26,7 +26,7 @@ import { t } from '../utils/Locale.js';
 import storeMessageData from '../scripts/network/storeMessageData.js';
 import { getReferredMsgData, sendWelcomeMsg } from '../scripts/network/helpers.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
-import { getAttachmentURL, handleError, simpleEmbed, wait } from '../utils/Utils.js';
+import { getAttachmentURL, getUserLocale, handleError, simpleEmbed, wait } from '../utils/Utils.js';
 import { runChecks } from '../scripts/network/runChecks.js';
 import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
@@ -233,7 +233,7 @@ export default abstract class EventManager {
   static async onMessageCreate(message: Message): Promise<void> {
     if (message.author?.bot || message.system || message.webhookId || !message.inGuild()) return;
 
-    const { connectionCache, cachePopulated, getUserLocale } = message.client;
+    const { connectionCache, cachePopulated } = message.client;
 
     while (!cachePopulated) {
       Logger.debug('[InterChat]: Cache not populated, retrying in 5 seconds...');
@@ -293,7 +293,7 @@ export default abstract class EventManager {
   @GatewayEvent('interactionCreate')
   static async onInteractionCreate(interaction: Interaction): Promise<void> {
     try {
-      const { commands, interactions, getUserLocale } = interaction.client;
+      const { commands, interactions } = interaction.client;
       interaction.user.locale = await getUserLocale(interaction.user.id);
 
       if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
@@ -302,7 +302,8 @@ export default abstract class EventManager {
         if (ignoreList.includes(customId.prefix)) return; // for components have own component collector
 
         // component decorator stuff
-        const interactionHandler = interactions.get(customId.prefix);
+        const customIdSuffix = customId.suffix ? `:${customId.suffix}` : '';
+        const interactionHandler = interactions.get(`${customId.prefix}${customIdSuffix}`) ?? interactions.get(customId.prefix);
         const isExpiredInteraction = customId.expiry && customId.expiry < Date.now();
 
         if (!interactionHandler || isExpiredInteraction) {

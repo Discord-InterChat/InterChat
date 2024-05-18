@@ -477,3 +477,9 @@ export const getAttachmentURL = async (string: string) => {
 export const fetchHub = async (id: string) => {
   return await db.hubs.findFirst({ where: { id } });
 };
+
+export const getUserLocale = async (userId: Snowflake) => {
+  const fetch = await db.userData.findFirst({ where: { userId } });
+
+  return (fetch?.locale as supportedLocaleCodes | undefined) || 'en';
+};

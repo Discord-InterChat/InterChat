@@ -25,12 +25,11 @@ declare module 'discord.js' {
     readonly reactionCooldowns: Collection<string, number>;
     readonly cluster: ClusterClient<Client>;
     readonly webhooks: Collection<string, WebhookClient>;
+    readonly connectionCache: Collection<string, connectedList>;
 
-    getUserLocale(userId: Snowflake): Promise<supportedLocaleCodes>;
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;
 
-    get connectionCache(): Collection<string, connectedList>;
     get cachePopulated(): boolean;
 
     commandManager: CommandManager;

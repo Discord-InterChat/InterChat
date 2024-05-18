@@ -10,21 +10,20 @@ import {
 } from 'discord.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './BaseCommand.js';
-import db from '../utils/Db.js';
 import Scheduler from '../services/SchedulerService.js';
 import CooldownService from '../services/CooldownService.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
 import { RemoveMethods } from '../typings/index.js';
 import { ActivityType } from 'discord.js';
 import 'dotenv/config';
-import { loadLocales, supportedLocaleCodes } from '../utils/Locale.js';
+import { loadLocales } from '../utils/Locale.js';
 import loadCommandFiles from '../utils/LoadCommands.js';
 import {
   connectionCache as _connectionCache,
   syncConnectionCache,
 } from '../utils/ConnectedList.js';
 
-export default class SuperClient<R extends boolean = boolean> extends Client<R> {
+export default class SuperClient extends Client {
   // A static instance of the SuperClient class to be used globally.
   public static instance: SuperClient;
 
@@ -38,6 +37,7 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
 
   readonly webhooks = new Collection<string, WebhookClient>();
   readonly reactionCooldowns = new Collection<string, number>();
+  readonly connectionCache = _connectionCache;
 
   readonly commandCooldowns = new CooldownService();
   readonly cluster = new ClusterClient(this);
@@ -110,9 +110,6 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
     await this.login(process.env.TOKEN);
   }
 
-  public get connectionCache() {
-    return _connectionCache;
-  }
   public get cachePopulated() {
     return this._connectionCachePopulated;
   }
@@ -132,12 +129,6 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
     )) as Guild[];
 
     return fetch ? SuperClient.resolveEval(fetch) : undefined;
-  }
-
-  async getUserLocale(userId: Snowflake) {
-    const fetch = await db.userData.findFirst({ where: { userId } });
-
-    return (fetch?.locale as supportedLocaleCodes | undefined) || 'en';
   }
 
   getScheduler(): Scheduler {

@@ -97,291 +97,354 @@ export default class Manage extends Hub {
     );
   }
 
-  @RegisterInteractionHandler('hub_manage')
-  static override async handleComponents(interaction: MessageComponentInteraction) {
-    const customId = CustomID.parseCustomId(interaction.customId);
-    const locale = interaction.user.locale;
+  @RegisterInteractionHandler('hub_manage', 'settingsSelect')
+  static async handleSettingsSelect(interaction: MessageComponentInteraction) {
+    if (!interaction.isStringSelectMenu()) return;
 
-    if (customId.args[0] !== interaction.user.id) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }))],
+    const initialData = await Manage.componentChecks(interaction);
+    if (!initialData) return;
+
+    const { hubInDb, customId } = initialData;
+
+    // settings menu
+    if (customId.suffix !== 'settingsSelect') return;
+
+    // respond to select menu
+    const selected = interaction.values[0] as HubSettingsString;
+
+    // TODO: implement BlockNSFW, only allow hubs that are explicitly marked as NSFW to have this setting
+    // & only allow network channels to be marked as NSFW
+    if (selected === 'BlockNSFW') {
+      interaction.reply({
+        embeds: [
+          simpleEmbed(
+            `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
+          ),
+        ],
         ephemeral: true,
       });
       return;
     }
 
-    const hubInDb = await db.hubs.findFirst({
-      where: { id: customId.args[1] },
-      include: { connections: true },
+    const hubSettings = new HubSettingsBitField(hubInDb.settings);
+    const updHub = await db.hubs.update({
+      where: { id: hubInDb.id },
+      data: { settings: hubSettings.toggle(selected).bitfield }, // toggle the setting
     });
 
-    if (!hubInDb) {
+    if (!updHub) {
       await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
+        embeds: [
+          simpleEmbed(
+            t({ phrase: 'errors.unknown', locale: interaction.user.locale }, { emoji: emojis.no }),
+          ),
+        ],
         ephemeral: true,
       });
       return;
     }
 
-    // settings button
-    if (interaction.isButton()) {
-      if (customId.suffix === 'settingsBtn') {
-        const { id, name, iconUrl, settings } = hubInDb;
-        const embed = buildSettingsEmbed(name, iconUrl, settings);
-        const selects = buildSettingsMenu(settings, id, customId.args[0]);
+    const { id, name, iconUrl, settings } = updHub;
 
-        await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
-      }
-      else if (customId.suffix === 'logsBtn' || customId.suffix === 'logsBackBtn') {
-        const embed = genLogInfoEmbed(hubInDb, locale);
+    const embed = buildSettingsEmbed(name, iconUrl, settings);
+    const selects = buildSettingsMenu(settings, id, customId.args[0]);
 
-        const selects = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-          new StringSelectMenuBuilder()
-            .setCustomId(
-              new CustomID()
-                .setIdentifier('hub_manage', 'logsSelect')
-                .addArgs(interaction.user.id)
-                .addArgs(hubInDb.id)
-                .toString(),
-            )
-            .setPlaceholder('Choose a log type to set a channel.')
-            .addOptions([
-              {
-                label: t({ phrase: 'hub.manage.logs.reports.label', locale }),
-                value: 'reports',
-                description: t({ phrase: 'hub.manage.logs.reports.description', locale }),
-                emoji: '📢',
-              },
-              {
-                label: t({ phrase: 'hub.manage.logs.modLogs.label', locale }),
-                value: 'modLogs',
-                description: t({ phrase: 'hub.manage.logs.modLogs.description', locale }),
-                emoji: '👮',
-              },
-              {
-                label: t({ phrase: 'hub.manage.logs.profanity.label', locale }),
-                value: 'profanity',
-                description: t({ phrase: 'hub.manage.logs.profanity.description', locale }),
-                emoji: '🤬',
-              },
-              // {
-              //   label: 'Message Edits',
-              //   value: 'msgEdits',
-              //   description: 'Log message edits.',
-              //   emoji: '📝',
-              // },
-              // {
-              //   label: 'Message Deletes',
-              //   value: 'msgDeletes',
-              //   description: 'Log message deletes.',
-              //   emoji: '🗑️',
-              // },
-              {
-                label: t({ phrase: 'hub.manage.logs.joinLeave.label', locale }),
-                value: 'joinLeaves',
-                description: t({ phrase: 'hub.manage.logs.joinLeave.description', locale }),
-                emoji: '👋',
-              },
-            ]),
-        );
+    await interaction.update({
+      embeds: [embed],
+      components: [selects],
+    });
+  }
 
-        const msgToSend = { embeds: [embed], components: [selects], ephemeral: true };
-        customId.suffix === 'logsBtn'
-          ? await interaction.reply(msgToSend)
-          : await interaction.update(msgToSend);
-      }
-      else if (customId.suffix === 'logsDel') {
-        const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
+  @RegisterInteractionHandler('hub_manage', 'logsSelect')
+  static async handleLogsSelect(interaction: MessageComponentInteraction) {
+    if (!interaction.isStringSelectMenu()) return;
 
-        if (type === 'reports') {
-          await HubReportLogger.removeReports(hubInDb.id);
-        }
-        else {
-          const currentConfig = hubInDb.logChannels;
-          if (currentConfig) {
-            // remove the channel key and value from the config
-            delete currentConfig[type];
-          }
+    const initialData = await Manage.componentChecks(interaction);
+    if (!initialData) return;
 
-          await db.hubs.update({
-            where: { id: hubInDb.id },
-            data: { logChannels: currentConfig ? { set: currentConfig } : { unset: true } },
-          });
-        }
+    const { hubInDb, customId, locale } = initialData;
 
-        await interaction.reply({
-          embeds: [
-            simpleEmbed(
-              t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.delete, type }),
-            ),
+    if (customId.suffix !== 'logsSelect') return;
+
+    const type = interaction.values[0] as keyof Prisma.HubLogChannelsCreateInput;
+    const logChannel = hubInDb.logChannels ? hubInDb.logChannels[type] : null;
+
+    const channelSelect = new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
+      new ChannelSelectMenuBuilder()
+        .setCustomId(
+          new CustomID()
+            .setIdentifier('hub_manage', 'logsChSel')
+            .addArgs(interaction.user.id)
+            .addArgs(hubInDb.id)
+            .addArgs(type)
+            .toString(),
+        )
+        .addChannelTypes(ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread)
+        .setPlaceholder(t({ phrase: 'hub.manage.logs.channelSelect', locale })),
+    );
+
+    const roleSelect = new ActionRowBuilder<RoleSelectMenuBuilder>().addComponents(
+      new RoleSelectMenuBuilder()
+        .setCustomId(
+          new CustomID()
+            .setIdentifier('hub_manage', 'logsRoleSel')
+            .addArgs(interaction.user.id)
+            .addArgs(hubInDb.id)
+            .addArgs(type)
+            .toString(),
+        )
+        .setPlaceholder(t({ phrase: 'hub.manage.logs.roleSelect', locale })),
+    );
+
+    const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setEmoji(emojis.back)
+        .setStyle(ButtonStyle.Secondary)
+        .setCustomId(
+          new CustomID()
+            .setIdentifier('hub_manage', 'logsBackBtn')
+            .addArgs(interaction.user.id)
+            .addArgs(hubInDb.id)
+            .addArgs(type)
+            .toString(),
+        ),
+      new ButtonBuilder()
+        .setEmoji(emojis.delete)
+        .setStyle(ButtonStyle.Danger)
+        .setCustomId(
+          new CustomID()
+            .setIdentifier('hub_manage', 'logsDel')
+            .addArgs(interaction.user.id)
+            .addArgs(hubInDb.id)
+            .addArgs(type)
+            .toString(),
+        ),
+    );
+
+    // disable log select menu when trying to change channel
+    const embed = new EmbedBuilder()
+      .setTitle(t({ phrase: 'hub.manage.logs.config.title', locale }, { type }))
+      .setDescription(
+        t({ phrase: 'hub.manage.logs.config.description', locale }, { arrow: emojis.arrow }),
+      )
+      .addFields(
+        typeof logChannel === 'string'
+          ? [
+            {
+              name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
+              value: logChannel ? `<#${logChannel}>` : 'N/A',
+            },
+          ]
+          : [
+            {
+              name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
+              value: logChannel?.channelId ? `<#${logChannel.channelId}>` : 'N/A',
+              inline: true,
+            },
+            {
+              name: t({ phrase: 'hub.manage.logs.config.fields.role', locale }),
+              value: logChannel?.roleId ? `<@&${logChannel.roleId}>` : 'N/A',
+              inline: true,
+            },
           ],
-          ephemeral: true,
-        });
-      }
-    }
+      )
+      .setColor(colors.invisible);
+
+    // reports have both channel and role selects
+    const componentsToSend =
+      type === 'reports' ? [channelSelect, roleSelect, buttons] : [channelSelect, buttons];
+
+    await interaction.update({ embeds: [embed], components: componentsToSend });
+  }
+
+  @RegisterInteractionHandler('hub_manage', 'actions')
+  static async handleActionsSelect(interaction: MessageComponentInteraction) {
+    if (!interaction.isStringSelectMenu()) return;
+
+    const initialData = await Manage.componentChecks(interaction);
+    if (!initialData) return;
+
+    const { hubInDb, customId, locale } = initialData;
 
     // hub manage selects/toggle settings menu
-    else if (interaction.isStringSelectMenu()) {
-      if (customId.suffix === 'actions') {
-        switch (interaction.values[0]) {
-          case 'icon': {
-            const modal = new ModalBuilder()
-              .setCustomId(
-                new CustomID()
-                  .setIdentifier('hub_manage_modal', 'icon')
-                  .addArgs(hubInDb.id)
-                  .toString(),
-              )
-              .setTitle(t({ phrase: 'hub.manage.icon.modal.title', locale }))
-              .addComponents(
-                new ActionRowBuilder<TextInputBuilder>().addComponents(
-                  new TextInputBuilder()
-                    .setLabel(t({ phrase: 'hub.manage.icon.modal.label', locale }))
-                    .setPlaceholder(
-                      t({
-                        phrase: 'hub.manage.enterImgurUrl',
-                        locale,
-                      }),
-                    )
-                    .setStyle(TextInputStyle.Short)
-                    .setCustomId('icon'),
-                ),
-              );
+    if (customId.suffix !== 'actions') return;
 
-            await interaction.showModal(modal);
-            break;
-          }
+    switch (interaction.values[0]) {
+      case 'icon': {
+        const modal = new ModalBuilder()
+          .setCustomId(
+            new CustomID().setIdentifier('hub_manage_modal', 'icon').addArgs(hubInDb.id).toString(),
+          )
+          .setTitle(t({ phrase: 'hub.manage.icon.modal.title', locale }))
+          .addComponents(
+            new ActionRowBuilder<TextInputBuilder>().addComponents(
+              new TextInputBuilder()
+                .setLabel(t({ phrase: 'hub.manage.icon.modal.label', locale }))
+                .setPlaceholder(
+                  t({
+                    phrase: 'hub.manage.enterImgurUrl',
+                    locale,
+                  }),
+                )
+                .setStyle(TextInputStyle.Short)
+                .setCustomId('icon'),
+            ),
+          );
 
-          case 'description': {
-            const modal = new ModalBuilder()
-              .setCustomId(
-                new CustomID()
-                  .setIdentifier('hub_manage_modal', 'description')
-                  .addArgs(hubInDb.id)
-                  .toString(),
-              )
-              .setTitle(
-                t({
-                  phrase: 'hub.manage.description.modal.title',
-                  locale,
-                }),
-              )
-              .addComponents(
-                new ActionRowBuilder<TextInputBuilder>().addComponents(
-                  new TextInputBuilder()
-                    .setLabel(
-                      t({
-                        phrase: 'hub.manage.description.modal.label',
-                        locale,
-                      }),
-                    )
-                    .setPlaceholder(
-                      t({
-                        phrase: 'hub.manage.description.modal.placeholder',
-                        locale,
-                      }),
-                    )
-                    .setMaxLength(1024)
-                    .setStyle(TextInputStyle.Paragraph)
-                    .setCustomId('description'),
-                ),
-              );
-
-            await interaction.showModal(modal);
-            break;
-          }
-
-          case 'banner': {
-            const modal = new ModalBuilder()
-              .setCustomId(
-                new CustomID()
-                  .setIdentifier('hub_manage_modal', 'banner')
-                  .addArgs(hubInDb.id)
-                  .toString(),
-              )
-              .setTitle('Set Hub Banner')
-              .addComponents(
-                new ActionRowBuilder<TextInputBuilder>().addComponents(
-                  new TextInputBuilder()
-                    .setLabel(
-                      t({
-                        phrase: 'hub.manage.banner.modal.label',
-                        locale,
-                      }),
-                    )
-                    .setPlaceholder(t({ phrase: 'hub.manage.enterImgurUrl', locale }))
-                    .setStyle(TextInputStyle.Short)
-                    .setRequired(false)
-                    .setCustomId('banner'),
-                ),
-              );
-
-            await interaction.showModal(modal);
-            break;
-          }
-
-          case 'visibility': {
-            const updatedHub = await db.hubs.update({
-              where: { id: hubInDb?.id },
-              data: { private: !hubInDb?.private },
-              include: { connections: true },
-            });
-
-            await interaction.reply({
-              content: t(
-                { phrase: 'hub.manage.visibility.success', locale },
-                {
-                  emoji: updatedHub.private ? '🔒' : '🔓',
-                  visibility: updatedHub.private ? 'private' : 'public',
-                },
-              ),
-              ephemeral: true,
-            });
-
-            await interaction.message
-              .edit({ embeds: [await hubEmbed(updatedHub)] })
-              .catch(() => null);
-            break;
-          }
-
-          default:
-            break;
-        }
+        await interaction.showModal(modal);
+        break;
       }
 
-      // settings menu
-      else if (customId.suffix === 'settingsSelect') {
-        // respond to select menu
-        const selected = interaction.values[0] as HubSettingsString;
+      case 'description': {
+        const modal = new ModalBuilder()
+          .setCustomId(
+            new CustomID()
+              .setIdentifier('hub_manage_modal', 'description')
+              .addArgs(hubInDb.id)
+              .toString(),
+          )
+          .setTitle(
+            t({
+              phrase: 'hub.manage.description.modal.title',
+              locale,
+            }),
+          )
+          .addComponents(
+            new ActionRowBuilder<TextInputBuilder>().addComponents(
+              new TextInputBuilder()
+                .setLabel(
+                  t({
+                    phrase: 'hub.manage.description.modal.label',
+                    locale,
+                  }),
+                )
+                .setPlaceholder(
+                  t({
+                    phrase: 'hub.manage.description.modal.placeholder',
+                    locale,
+                  }),
+                )
+                .setMaxLength(1024)
+                .setStyle(TextInputStyle.Paragraph)
+                .setCustomId('description'),
+            ),
+          );
 
-        // TODO: implement BlockNSFW, only allow hubs that are explicitly marked as NSFW to have this setting
-        // & only allow network channels to be marked as NSFW
-        if (selected === 'BlockNSFW') {
-          interaction.reply({
-            embeds: [
-              simpleEmbed(
-                `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
-              ),
-            ],
-            ephemeral: true,
-          });
-          return;
-        }
+        await interaction.showModal(modal);
+        break;
+      }
 
-        const hubSettings = new HubSettingsBitField(hubInDb.settings);
-        const updHub = await db.hubs.update({
-          where: { id: hubInDb.id },
-          data: { settings: hubSettings.toggle(selected).bitfield }, // toggle the setting
+      case 'banner': {
+        const modal = new ModalBuilder()
+          .setCustomId(
+            new CustomID()
+              .setIdentifier('hub_manage_modal', 'banner')
+              .addArgs(hubInDb.id)
+              .toString(),
+          )
+          .setTitle('Set Hub Banner')
+          .addComponents(
+            new ActionRowBuilder<TextInputBuilder>().addComponents(
+              new TextInputBuilder()
+                .setLabel(
+                  t({
+                    phrase: 'hub.manage.banner.modal.label',
+                    locale,
+                  }),
+                )
+                .setPlaceholder(t({ phrase: 'hub.manage.enterImgurUrl', locale }))
+                .setStyle(TextInputStyle.Short)
+                .setRequired(false)
+                .setCustomId('banner'),
+            ),
+          );
+
+        await interaction.showModal(modal);
+        break;
+      }
+
+      case 'visibility': {
+        const updatedHub = await db.hubs.update({
+          where: { id: hubInDb?.id },
+          data: { private: !hubInDb?.private },
+          include: { connections: true },
         });
 
-        if (!updHub) {
+        await interaction.reply({
+          content: t(
+            { phrase: 'hub.manage.visibility.success', locale },
+            {
+              emoji: updatedHub.private ? '🔒' : '🔓',
+              visibility: updatedHub.private ? 'private' : 'public',
+            },
+          ),
+          ephemeral: true,
+        });
+
+        await interaction.message.edit({ embeds: [await hubEmbed(updatedHub)] }).catch(() => null);
+        break;
+      }
+
+      default:
+        break;
+    }
+  }
+
+  @RegisterInteractionHandler('hub_manage')
+  static async handleChannelSelects(interaction: MessageComponentInteraction) {
+    const initialData = await Manage.componentChecks(interaction);
+    if (!initialData) return;
+
+    const { hubInDb, customId, locale } = initialData;
+
+    if (!interaction.isChannelSelectMenu()) return;
+    if (customId.suffix === 'logsChSel') {
+      const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
+
+      const channelId = interaction.values[0];
+      const channel = interaction.channels.first();
+
+      // set the channel in the db
+      await setLogChannelFor(hubInDb.id, type, channelId);
+
+      // update the old embed with new channel value
+      const embed = interaction.message.embeds[0].toJSON();
+      if (embed.fields?.at(0)) embed.fields[0].value = `${channel || 'None'}`;
+      await interaction.update({ embeds: [embed] });
+
+      await interaction.followUp({
+        embeds: [
+          simpleEmbed(
+            t(
+              { phrase: 'hub.manage.logs.channelSuccess', locale },
+              { emoji: emojis.yes, type, channel: `${channel}` },
+            ),
+          ),
+        ],
+        ephemeral: true,
+      });
+    }
+  }
+
+  @RegisterInteractionHandler('hub_manage')
+  static async handleRoleSelects(interaction: MessageComponentInteraction) {
+    if (!interaction.isRoleSelectMenu()) return;
+
+    const initialData = await Manage.componentChecks(interaction);
+    if (!initialData) return;
+
+    const { hubInDb, customId, locale } = initialData;
+
+    if (customId.suffix === 'logsRoleSel') {
+      const role = interaction.roles.first();
+      const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
+
+      if (type === 'reports' && role?.id) {
+        if (!hubInDb.logChannels?.reports?.channelId) {
           await interaction.reply({
             embeds: [
               simpleEmbed(
-                t(
-                  { phrase: 'errors.unknown', locale: interaction.user.locale },
-                  { emoji: emojis.no },
-                ),
+                t({ phrase: 'hub.manage.logs.reportChannelFirst', locale }, { emoji: emojis.no }),
               ),
             ],
             ephemeral: true,
@@ -389,182 +452,25 @@ export default class Manage extends Hub {
           return;
         }
 
-        const { id, name, iconUrl, settings } = updHub;
-
-        const embed = buildSettingsEmbed(name, iconUrl, settings);
-        const selects = buildSettingsMenu(settings, id, customId.args[0]);
-
-        await interaction.update({
-          embeds: [embed],
-          components: [selects],
-        });
+        await HubReportLogger.setRoleId(hubInDb, role.id);
       }
-      else if (customId.suffix === 'logsSelect') {
-        const type = interaction.values[0] as keyof Prisma.HubLogChannelsCreateInput;
-        const logChannel = hubInDb.logChannels ? hubInDb.logChannels[type] : null;
 
-        const channelSelect = new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
-          new ChannelSelectMenuBuilder()
-            .setCustomId(
-              new CustomID()
-                .setIdentifier('hub_manage', 'logsChSel')
-                .addArgs(interaction.user.id)
-                .addArgs(hubInDb.id)
-                .addArgs(type)
-                .toString(),
-            )
-            .addChannelTypes(
-              ChannelType.GuildText,
-              ChannelType.PublicThread,
-              ChannelType.PrivateThread,
-            )
-            .setPlaceholder(t({ phrase: 'hub.manage.logs.channelSelect', locale })),
-        );
+      // update the old embed with new role value
+      const embed = interaction.message.embeds[0].toJSON();
+      if (embed.fields?.at(1)) embed.fields[1].value = `${role || 'None'}`;
 
-        const roleSelect = new ActionRowBuilder<RoleSelectMenuBuilder>().addComponents(
-          new RoleSelectMenuBuilder()
-            .setCustomId(
-              new CustomID()
-                .setIdentifier('hub_manage', 'logsRoleSel')
-                .addArgs(interaction.user.id)
-                .addArgs(hubInDb.id)
-                .addArgs(type)
-                .toString(),
-            )
-            .setPlaceholder(t({ phrase: 'hub.manage.logs.roleSelect', locale })),
-        );
-
-        const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-          new ButtonBuilder()
-            .setEmoji(emojis.back)
-            .setStyle(ButtonStyle.Secondary)
-            .setCustomId(
-              new CustomID()
-                .setIdentifier('hub_manage', 'logsBackBtn')
-                .addArgs(interaction.user.id)
-                .addArgs(hubInDb.id)
-                .addArgs(type)
-                .toString(),
+      await interaction.update({ embeds: [embed] });
+      await interaction.followUp({
+        embeds: [
+          simpleEmbed(
+            t(
+              { phrase: 'hub.manage.logs.roleSuccess', locale },
+              { emoji: emojis.yes, type, role: `${role}` },
             ),
-          new ButtonBuilder()
-            .setEmoji(emojis.delete)
-            .setStyle(ButtonStyle.Danger)
-            .setCustomId(
-              new CustomID()
-                .setIdentifier('hub_manage', 'logsDel')
-                .addArgs(interaction.user.id)
-                .addArgs(hubInDb.id)
-                .addArgs(type)
-                .toString(),
-            ),
-        );
-
-        // disable log select menu when trying to change channel
-        const embed = new EmbedBuilder()
-          .setTitle(t({ phrase: 'hub.manage.logs.config.title', locale }, { type }))
-          .setDescription(
-            t({ phrase: 'hub.manage.logs.config.description', locale }, { arrow: emojis.arrow }),
-          )
-          .addFields(
-            typeof logChannel === 'string'
-              ? [
-                {
-                  name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
-                  value: logChannel ? `<#${logChannel}>` : 'N/A',
-                },
-              ]
-              : [
-                {
-                  name: t({ phrase: 'hub.manage.logs.config.fields.channel', locale }),
-                  value: logChannel?.channelId ? `<#${logChannel.channelId}>` : 'N/A',
-                  inline: true,
-                },
-                {
-                  name: t({ phrase: 'hub.manage.logs.config.fields.role', locale }),
-                  value: logChannel?.roleId ? `<@&${logChannel.roleId}>` : 'N/A',
-                  inline: true,
-                },
-              ],
-          )
-          .setColor(colors.invisible);
-
-        // reports have both channel and role selects
-        const componentsToSend =
-          type === 'reports' ? [channelSelect, roleSelect, buttons] : [channelSelect, buttons];
-
-        await interaction.update({ embeds: [embed], components: componentsToSend });
-      }
-    }
-
-    // channel selects
-    else if (interaction.isChannelSelectMenu()) {
-      if (customId.suffix === 'logsChSel') {
-        const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
-
-        const channelId = interaction.values[0];
-        const channel = interaction.channels.first();
-
-        // set the channel in the db
-        await setLogChannelFor(hubInDb.id, type, channelId);
-
-        // update the old embed with new channel value
-        const embed = interaction.message.embeds[0].toJSON();
-        if (embed.fields?.at(0)) embed.fields[0].value = `${channel || 'None'}`;
-        await interaction.update({ embeds: [embed] });
-
-        await interaction.followUp({
-          embeds: [
-            simpleEmbed(
-              t(
-                { phrase: 'hub.manage.logs.channelSuccess', locale },
-                { emoji: emojis.yes, type, channel: `${channel}` },
-              ),
-            ),
-          ],
-          ephemeral: true,
-        });
-      }
-    }
-
-    // role selects
-    else if (interaction.isRoleSelectMenu()) {
-      if (customId.suffix === 'logsRoleSel') {
-        const role = interaction.roles.first();
-        const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
-
-        if (type === 'reports' && role?.id) {
-          if (!hubInDb.logChannels?.reports?.channelId) {
-            await interaction.reply({
-              embeds: [
-                simpleEmbed(
-                  t({ phrase: 'hub.manage.logs.reportChannelFirst', locale }, { emoji: emojis.no }),
-                ),
-              ],
-              ephemeral: true,
-            });
-            return;
-          }
-
-          await HubReportLogger.setRoleId(hubInDb, role.id);
-        }
-
-        // update the old embed with new role value
-        const embed = interaction.message.embeds[0].toJSON();
-        if (embed.fields?.at(1)) embed.fields[1].value = `${role || 'None'}`;
-
-        await interaction.update({ embeds: [embed] });
-        await interaction.followUp({
-          embeds: [
-            simpleEmbed(
-              t(
-                { phrase: 'hub.manage.logs.roleSuccess', locale },
-                { emoji: emojis.yes, type, role: `${role}` },
-              ),
-            ),
-          ],
-          ephemeral: true,
-        });
-      }
+          ),
+        ],
+        ephemeral: true,
+      });
     }
   }
 
@@ -687,5 +593,137 @@ export default class Manage extends Hub {
     if (hubInDb) {
       await interaction.message?.edit({ embeds: [await hubEmbed(hubInDb)] }).catch(() => null);
     }
+  }
+
+  @RegisterInteractionHandler('hub_manage')
+  static async handleButtons(interaction: MessageComponentInteraction) {
+    if (!interaction.isButton()) return;
+
+    const initialData = await Manage.componentChecks(interaction);
+    if (!initialData) return;
+
+    const { hubInDb, customId, locale } = initialData;
+
+    if (customId.suffix === 'settingsBtn') {
+      const { id, name, iconUrl, settings } = hubInDb;
+      const embed = buildSettingsEmbed(name, iconUrl, settings);
+      const selects = buildSettingsMenu(settings, id, customId.args[0]);
+
+      await interaction.reply({ embeds: [embed], components: [selects], ephemeral: true });
+    }
+    else if (customId.suffix === 'logsBtn' || customId.suffix === 'logsBackBtn') {
+      const embed = genLogInfoEmbed(hubInDb, locale);
+
+      const selects = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+        new StringSelectMenuBuilder()
+          .setCustomId(
+            new CustomID()
+              .setIdentifier('hub_manage', 'logsSelect')
+              .addArgs(interaction.user.id)
+              .addArgs(hubInDb.id)
+              .toString(),
+          )
+          .setPlaceholder('Choose a log type to set a channel.')
+          .addOptions([
+            {
+              label: t({ phrase: 'hub.manage.logs.reports.label', locale }),
+              value: 'reports',
+              description: t({ phrase: 'hub.manage.logs.reports.description', locale }),
+              emoji: '📢',
+            },
+            {
+              label: t({ phrase: 'hub.manage.logs.modLogs.label', locale }),
+              value: 'modLogs',
+              description: t({ phrase: 'hub.manage.logs.modLogs.description', locale }),
+              emoji: '👮',
+            },
+            {
+              label: t({ phrase: 'hub.manage.logs.profanity.label', locale }),
+              value: 'profanity',
+              description: t({ phrase: 'hub.manage.logs.profanity.description', locale }),
+              emoji: '🤬',
+            },
+            // {
+            //   label: 'Message Edits',
+            //   value: 'msgEdits',
+            //   description: 'Log message edits.',
+            //   emoji: '📝',
+            // },
+            // {
+            //   label: 'Message Deletes',
+            //   value: 'msgDeletes',
+            //   description: 'Log message deletes.',
+            //   emoji: '🗑️',
+            // },
+            {
+              label: t({ phrase: 'hub.manage.logs.joinLeave.label', locale }),
+              value: 'joinLeaves',
+              description: t({ phrase: 'hub.manage.logs.joinLeave.description', locale }),
+              emoji: '👋',
+            },
+          ]),
+      );
+
+      const msgToSend = { embeds: [embed], components: [selects], ephemeral: true };
+      customId.suffix === 'logsBtn'
+        ? await interaction.reply(msgToSend)
+        : await interaction.update(msgToSend);
+    }
+    else if (customId.suffix === 'logsDel') {
+      const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
+
+      if (type === 'reports') {
+        await HubReportLogger.removeReports(hubInDb.id);
+      }
+      else {
+        const currentConfig = hubInDb.logChannels;
+        if (currentConfig) {
+          // remove the channel key and value from the config
+          delete currentConfig[type];
+        }
+
+        await db.hubs.update({
+          where: { id: hubInDb.id },
+          data: { logChannels: currentConfig ? { set: currentConfig } : { unset: true } },
+        });
+      }
+
+      await interaction.reply({
+        embeds: [
+          simpleEmbed(
+            t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.delete, type }),
+          ),
+        ],
+        ephemeral: true,
+      });
+    }
+  }
+
+  static async componentChecks(interaction: MessageComponentInteraction) {
+    const customId = CustomID.parseCustomId(interaction.customId);
+    const { locale } = interaction.user;
+
+    if (customId.args[0] !== interaction.user.id) {
+      await interaction.reply({
+        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }))],
+        ephemeral: true,
+      });
+      return null;
+    }
+
+    const hubInDb = await db.hubs.findFirst({
+      where: { id: customId.args[1] },
+      include: { connections: true },
+    });
+
+    if (!hubInDb) {
+      await interaction.reply({
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
+        ephemeral: true,
+      });
+      return null;
+    }
+
+    return { hubInDb, customId, locale };
   }
 }
