@@ -118,25 +118,23 @@ export const buildNetworkEmbed = (
 
 export const generateJumpButton = (
   replyMsg: broadcastedMessages,
-  referredAuthorUsername: string | undefined,
+  referredAuthorUsername: string,
   serverId: string,
 ) => {
   // create a jump to reply button
-  return replyMsg && referredAuthorUsername
-    ? new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setStyle(ButtonStyle.Link)
-        .setEmoji(emojis.reply)
-        .setURL(
-          `https://discord.com/channels/${serverId}/${replyMsg.channelId}/${replyMsg.messageId}`,
-        )
-        .setLabel(
-          referredAuthorUsername.length >= 80
-            ? `@${referredAuthorUsername.slice(0, 76)}...`
-            : `@${referredAuthorUsername}`,
-        ),
-    )
-    : null;
+  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Link)
+      .setEmoji(emojis.reply)
+      .setURL(
+        `https://discord.com/channels/${serverId}/${replyMsg.channelId}/${replyMsg.messageId}`,
+      )
+      .setLabel(
+        referredAuthorUsername.length >= 80
+          ? `@${referredAuthorUsername.slice(0, 76)}...`
+          : `@${referredAuthorUsername}`,
+      ),
+  );
 };
 
 export const sendWelcomeMsg = async (message: Message, totalServers: string) => {
