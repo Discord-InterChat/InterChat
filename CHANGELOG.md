@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.21.4](https://github.com/Discord-InterChat/InterChat/compare/v3.21.3...v3.21.4) (2024-05-11)
+
+
+### Bug Fixes
+
+* fix `undefined` username for compact mode replies ([74d879b](https://github.com/Discord-InterChat/InterChat/commit/74d879b75f816eedc4e483d51518ae9497b20b0f))
+
 ### [3.21.3](https://github.com/Discord-InterChat/InterChat/compare/v3.21.2...v3.21.3) (2024-05-11)
 
 ### [3.21.2](https://github.com/Discord-InterChat/InterChat/compare/v3.21.1...v3.21.2) (2024-05-06)
