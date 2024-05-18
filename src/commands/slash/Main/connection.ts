@@ -210,11 +210,14 @@ export default class Connection extends BaseCommand {
           buildConnectionButtons(toggleRes?.connected, channelId),
         ],
       });
-      return;
     }
 
-    if (interaction.isStringSelectMenu()) {Connection.StringSelectMenuHandler(interaction, channelId, isInDb);}
-    else if (interaction.isChannelSelectMenu()) {Connection.ChannelSelectMenuHandler(interaction, channelId, customId);}
+    else if (interaction.isStringSelectMenu()) {
+      Connection.executeStringSelects(interaction, channelId, isInDb);
+    }
+    else if (interaction.isChannelSelectMenu()) {
+      Connection.executeChannelSelects(interaction, channelId, customId);
+    }
   }
 
   @RegisterInteractionHandler('connectionModal')
@@ -294,7 +297,8 @@ export default class Connection extends BaseCommand {
       ?.edit({ embeds: [await buildEmbed(interaction, customId.args[0])] })
       .catch(() => null);
   }
-  static async StringSelectMenuHandler(
+
+  static async executeStringSelects(
     interaction: StringSelectMenuInteraction,
     channelId: string,
     connection: connectedList,
@@ -398,7 +402,8 @@ export default class Connection extends BaseCommand {
       : await interaction.update({ embeds: [newEmbeds] });
   }
 
-  static async ChannelSelectMenuHandler(
+
+  static async executeChannelSelects(
     interaction: ChannelSelectMenuInteraction,
     channelId: string,
     customId: ParsedCustomId,
