@@ -346,7 +346,8 @@ export default class Hub extends BaseCommand {
           };
         });
 
-      return await interaction.respond(await Promise.all(filteredNets));
+      await interaction.respond(await Promise.all(filteredNets));
+      return;
     }
     else if (subcommand === 'delete') {
       hubChoices = await db.hubs.findMany({

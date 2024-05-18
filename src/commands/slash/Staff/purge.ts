@@ -239,6 +239,7 @@ export default class Purge extends BaseCommand {
               await channel.bulkDelete(messageIds);
               return messageIds;
             }
+            return null;
           },
           { context: { channelId: network.channelId, messagesInDb } },
         );

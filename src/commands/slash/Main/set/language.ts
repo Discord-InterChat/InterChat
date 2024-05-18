@@ -5,17 +5,18 @@ import { supportedLocaleCodes, supportedLocales, t } from '../../../../utils/Loc
 import Set from './index.js';
 
 export default class SetLanguage extends Set {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const locale = interaction.options.getString('lang', true) as supportedLocaleCodes;
 
     if (!Object.keys(supportedLocales).includes(locale)) {
-      return await interaction.reply({
+      await interaction.reply({
         content: t(
           { phrase: 'errors.invalidLangCode', locale: interaction.user.locale },
           { emoji: emojis.info },
         ),
         ephemeral: true,
       });
+      return;
     }
 
     const { id: userId, username } = interaction.user;
