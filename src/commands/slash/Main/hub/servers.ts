@@ -88,8 +88,8 @@ export default class Servers extends Hub {
     for (let index = 0; index < hub.connections.length; index += 5) {
       const current = hub.connections?.slice(index, itemsPerPage);
 
-      let j = index;
-      let l = index;
+      let itemCounter = index;
+      let embedFromIndex = index;
       itemsPerPage += 5;
 
       const fields = current.map(async (connection) => {
@@ -103,6 +103,7 @@ export default class Servers extends Hub {
                 .catch(() => null);
               return { serverName: server.name, channelName: channel?.name };
             }
+            return null;
           },
           { context: { connection } },
         );
@@ -121,7 +122,7 @@ export default class Servers extends Hub {
           },
         );
 
-        return { name: `${++j}. ${evalRes?.serverName}`, value };
+        return { name: `${++itemCounter}. ${evalRes?.serverName}`, value };
       });
 
       embeds.push(
@@ -130,8 +131,8 @@ export default class Servers extends Hub {
             t(
               { phrase: 'hub.servers.total', locale },
               {
-                from: `${++l}`,
-                to: `${j}`,
+                from: `${++embedFromIndex}`,
+                to: `${itemCounter}`,
                 total: `${hub.connections.length}`,
               },
             ),

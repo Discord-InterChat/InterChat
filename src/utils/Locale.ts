@@ -58,6 +58,7 @@ export const loadLocales = (localesDirectory: string) => {
 };
 
 /** Get the translated text with variable replacement */
+// skipcq: JS-C1002
 export const t = (
   { phrase, locale = 'en' }: tParams,
   variables?: { [key: string]: string },

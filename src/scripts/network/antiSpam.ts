@@ -75,4 +75,5 @@ export const runAntiSpam = (author: User, maxInfractions = MAX_STORE) => {
       infractions: userInCol.infractions,
     });
   }
+  return null;
 };
