@@ -6,14 +6,14 @@ import 'dotenv/config';
 // NOTE: testing this against top.gg only works in the production server
 // to test locally use postman or something similar to send a POST request to http://localhost:443/dbl
 const TopggWebhook = new Webhook(process.env.TOPGG_AUTH);
+const router = Router();
 
 export default (voteManager: VoteManager) => {
-  Router().post(
+  router.post(
     '/dbl',
-    TopggWebhook.listener((vote) => {
-      // emit the vote event to use in other files
-      voteManager?.emit('vote', vote);
+    TopggWebhook.listener((payload) => {
+      voteManager.emit('vote', payload);
     }),
   );
-  return Router();
+  return router;
 };

@@ -15,6 +15,7 @@ import { emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
 import { logServerLeave } from '../../../../utils/HubLogger/JoinLeave.js';
+import { deleteConnection } from '../../../../utils/ConnectedList.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -103,7 +104,7 @@ export default class Leave extends Hub {
       return;
     }
 
-    await db.connectedList.delete({ where: { channelId } });
+    await deleteConnection({ channelId });
     await interaction.update({
       content: t(
         { phrase: 'hub.leave.success', locale },

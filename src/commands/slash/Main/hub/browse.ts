@@ -35,6 +35,7 @@ import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { t } from '../../../../utils/Locale.js';
 import { logServerJoin } from '../../../../utils/HubLogger/JoinLeave.js';
+import { connectChannel } from '../../../../utils/ConnectedList.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -374,17 +375,15 @@ export default class Browse extends Hub {
       if (!webhook) return;
 
       // finally make the connection
-      await db.connectedList.create({
-        data: {
-          serverId: channel.guildId,
-          channelId: channel.id,
-          parentId: channel.isThread() ? channel.parentId : undefined,
-          webhookURL: webhook.url,
-          hub: { connect: { id: hubDetails.id } },
-          connected: true,
-          compact: false,
-          profFilter: true,
-        },
+      await connectChannel({
+        serverId: channel.guildId,
+        channelId: channel.id,
+        parentId: channel.isThread() ? channel.parentId : undefined,
+        webhookURL: webhook.url,
+        hub: { connect: { id: hubDetails.id } },
+        connected: true,
+        compact: false,
+        profFilter: true,
       });
 
       await interaction.editReply({

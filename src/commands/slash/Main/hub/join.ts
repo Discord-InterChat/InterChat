@@ -9,6 +9,7 @@ import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
 import { logServerJoin } from '../../../../utils/HubLogger/JoinLeave.js';
+import { connectChannel } from '../../../../utils/ConnectedList.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
@@ -157,17 +158,15 @@ export default class JoinSubCommand extends Hub {
     }
 
     // finally make the connection
-    await db.connectedList.create({
-      data: {
-        serverId: channel.guildId,
-        channelId: channel.id,
-        parentId: channel.isThread() ? channel.parentId : undefined,
-        webhookURL: webhook.url,
-        hub: { connect: { id: hub.id } },
-        connected: true,
-        compact: false,
-        profFilter: true,
-      },
+    await connectChannel({
+      serverId: channel.guildId,
+      channelId: channel.id,
+      parentId: channel.isThread() ? channel.parentId : undefined,
+      webhookURL: webhook.url,
+      hub: { connect: { id: hub.id } },
+      connected: true,
+      compact: false,
+      profFilter: true,
     });
 
     await interaction.editReply({

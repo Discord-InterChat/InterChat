@@ -23,6 +23,7 @@ import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { simpleEmbed } from '../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import { logBlacklist } from '../../utils/HubLogger/ModLogs.js';
+import { deleteConnections } from '../../utils/ConnectedList.js';
 
 export default class Blacklist extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -265,8 +266,9 @@ export default class Blacklist extends BaseCommand {
         );
       }
 
-      await db.connectedList.deleteMany({
-        where: { serverId: originalMsg.serverId, hubId: originalMsg.hubId },
+      await deleteConnections({
+        serverId: originalMsg.serverId,
+        hubId: originalMsg.hubId,
       });
 
       if (server) {

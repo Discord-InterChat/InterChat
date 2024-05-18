@@ -9,6 +9,7 @@ import parse from 'parse-duration';
 import Logger from '../../../../utils/Logger.js';
 import { t } from '../../../../utils/Locale.js';
 import { logBlacklist, logUnblacklist } from '../../../../utils/HubLogger/ModLogs.js';
+import { deleteConnections } from '../../../../utils/ConnectedList.js';
 
 export default class UserBlacklist extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -135,7 +136,7 @@ export default class UserBlacklist extends BlacklistCommand {
         .catch(() => null);
 
       // delete all connections from db so they can't reconnect to the hub
-      await db.connectedList.deleteMany({ where: { serverId: server.id, hubId: hubInDb.id } });
+      await deleteConnections({ serverId: server.id, hubId: hubInDb.id });
 
       // send log to hub's log channel
       await logBlacklist(hubInDb.id, {

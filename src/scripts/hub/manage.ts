@@ -63,7 +63,7 @@ export const hubEmbed = async (hub: hubs & { connections: connectedList[] }) => 
     .setDescription(
       stripIndents`
     ${hub.description}
-    - __**Public:**__ ${hub.private ? emojis.no : emojis.yes}
+    __**Public:**__ ${hub.private ? emojis.no : emojis.yes}
   `,
     )
     .setThumbnail(hub.iconUrl)
@@ -72,6 +72,7 @@ export const hubEmbed = async (hub: hubs & { connections: connectedList[] }) => 
       {
         name: 'Blacklists',
         value: stripIndents`
+      - Total: ${hubBlacklistedUsers + hubBlacklistedServers}
       - Users: ${hubBlacklistedUsers}
       - Servers: ${hubBlacklistedServers}
       `,

@@ -35,6 +35,7 @@ import { CustomID } from '../utils/CustomID.js';
 import SuperClient from '../core/Client.js';
 import sendBroadcast from '../scripts/network/sendBroadcast.js';
 import { logServerLeave } from '../utils/HubLogger/JoinLeave.js';
+import { deleteConnections, modifyConnection } from '../utils/ConnectedList.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
@@ -128,10 +129,7 @@ export default abstract class EventManager {
       // only continue if webhook was deleted
       if (!webhook) {
         // disconnect the channel
-        await db.connectedList.update({
-          where: { id: connection.id },
-          data: { connected: false },
-        });
+        await modifyConnection({ id: connection.id }, { connected: false });
 
         const client = SuperClient.instance;
 
@@ -225,7 +223,7 @@ export default abstract class EventManager {
     // find all connections that belong to this guild
     const connections = await db.connectedList.findMany({ where: { serverId: guild.id } });
     // delete them from the database
-    await db.connectedList.deleteMany({ where: { serverId: guild.id } });
+    await deleteConnections({ serverId: guild.id });
 
     // send server leave log to hubs
     connections.forEach((connection) => logServerLeave(connection.hubId, guild));
@@ -329,8 +327,12 @@ export default abstract class EventManager {
       }
 
       const command = commands.get(interaction.commandName);
-      if (!interaction.isAutocomplete()) {await command?.execute(interaction);} // normal slashie/context menu
-      else if (command?.autocomplete) {await command.autocomplete(interaction);} // autocomplete options
+      if (!interaction.isAutocomplete()) {
+        await command?.execute(interaction);
+      } // normal slashie/context menu
+      else if (command?.autocomplete) {
+        await command.autocomplete(interaction);
+      } // autocomplete options
     }
     catch (e) {
       handleError(e, interaction);

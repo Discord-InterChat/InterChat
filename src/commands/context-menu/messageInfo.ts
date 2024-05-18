@@ -76,9 +76,9 @@ export default class MessageInfo extends BaseCommand {
 
     const components = MessageInfo.buildButtons(target.id, interaction.user.locale);
 
-    const guildConnected = await db.connectedList.findFirst({
-      where: { serverId: originalMsg.serverId, hubId: originalMsg.hub?.id },
-    });
+    const guildConnected = interaction.client.connectionCache.find(
+      (c) => c.serverId === originalMsg.serverId && c.hubId === originalMsg.hub?.id,
+    );
 
     if (guildConnected?.invite) {
       components[1].addComponents(
@@ -124,7 +124,9 @@ export default class MessageInfo extends BaseCommand {
 
     const author = await interaction.client.users.fetch(originalMsg.authorId);
     const server = await interaction.client.fetchGuild(originalMsg.serverId);
-    const guildConnected = await db.connectedList.findFirst({ where: { serverId: server?.id } });
+    const guildConnected = interaction.client.connectionCache.find(
+      (c) => c.serverId === server?.id,
+    );
 
     if (interaction.isButton()) {
       // component builders taken from the original message

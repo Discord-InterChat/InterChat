@@ -2,6 +2,7 @@ import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
 import { parseTimestampFromId } from '../../utils/Utils.js';
 import db from '../../utils/Db.js';
+import { modifyConnections } from '../../utils/ConnectedList.js';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
@@ -56,9 +57,6 @@ export default async (
 
   // disconnect network if, webhook does not exist/bot cannot access webhook
   if (invalidWebhookURLs.length > 0) {
-    await db.connectedList.updateMany({
-      where: { webhookURL: { in: invalidWebhookURLs } },
-      data: { connected: false },
-    });
+    await modifyConnections({ webhookURL: { in: invalidWebhookURLs } }, { connected: false });
   }
 };

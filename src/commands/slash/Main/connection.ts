@@ -34,6 +34,7 @@ import {
 } from '../../../utils/Utils.js';
 import { t } from '../../../utils/Locale.js';
 import { connectedList } from '@prisma/client';
+import { modifyConnection } from '../../../utils/ConnectedList.js';
 
 export default class Connection extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -116,10 +117,7 @@ export default class Connection extends BaseCommand {
     const channelExists = await interaction.guild?.channels.fetch(channelId).catch(() => null);
 
     if (!channelExists) {
-      await db.connectedList.update({
-        where: { channelId: channelId },
-        data: { connected: !isInDb.connected },
-      });
+      await modifyConnection({ channelId }, { connected: !isInDb.connected });
       await interaction.followUp({
         content: t(
           { phrase: 'connection.channelNotFound', locale: interaction.user.locale },
@@ -198,10 +196,7 @@ export default class Connection extends BaseCommand {
 
     // button interactions
     if (interaction.isButton() && customId.suffix === 'toggle') {
-      const toggleRes = await db.connectedList.update({
-        where: { channelId },
-        data: { connected: !isInDb.connected },
-      });
+      const toggleRes = await modifyConnection({ channelId }, { connected: !isInDb.connected });
 
       await interaction.update({
         embeds: [await buildEmbed(interaction, channelId)],
@@ -211,7 +206,6 @@ export default class Connection extends BaseCommand {
         ],
       });
     }
-
     else if (interaction.isStringSelectMenu()) {
       Connection.executeStringSelects(interaction, channelId, isInDb);
     }
@@ -230,7 +224,7 @@ export default class Connection extends BaseCommand {
       const channelId = customId.args[0];
 
       if (!invite) {
-        await db.connectedList.update({ where: { channelId }, data: { invite: { unset: true } } });
+        await modifyConnection({ channelId }, { invite: { unset: true } });
         await interaction.followUp({
           content: t(
             { phrase: 'connection.inviteRemoved', locale: interaction.user.locale },
@@ -254,7 +248,7 @@ export default class Connection extends BaseCommand {
         return;
       }
 
-      await db.connectedList.update({ where: { channelId }, data: { invite } });
+      await modifyConnection({ channelId }, { invite });
 
       await interaction.followUp({
         content: t(
@@ -279,10 +273,10 @@ export default class Connection extends BaseCommand {
         return;
       }
 
-      await db.connectedList.update({
-        where: { channelId: customId.args[0] },
-        data: { embedColor: embedColor ? embedColor : { unset: true } },
-      });
+      await modifyConnection(
+        { channelId: customId.args[0] },
+        { embedColor: embedColor ? embedColor : { unset: true } },
+      );
 
       await interaction.reply({
         content: t(
@@ -305,17 +299,11 @@ export default class Connection extends BaseCommand {
   ) {
     switch (interaction.values[0]) {
       case 'compact':
-        await db.connectedList.update({
-          where: { channelId },
-          data: { compact: !connection.compact },
-        });
+        await modifyConnection({ channelId }, { compact: !connection.compact });
         break;
 
       case 'profanity':
-        await db.connectedList.update({
-          where: { channelId },
-          data: { profFilter: !connection.profFilter },
-        });
+        await modifyConnection({ channelId }, { profFilter: !connection.profFilter });
         break;
 
       case 'invite': {
@@ -402,7 +390,6 @@ export default class Connection extends BaseCommand {
       : await interaction.update({ embeds: [newEmbeds] });
   }
 
-
   static async executeChannelSelects(
     interaction: ChannelSelectMenuInteraction,
     channelId: string,
@@ -442,10 +429,10 @@ export default class Connection extends BaseCommand {
     }
 
     const newWebhook = await getOrCreateWebhook(newChannel as TextChannel | ThreadChannel);
-    await db.connectedList.update({
-      where: { channelId },
-      data: { channelId: newChannel?.id, webhookURL: newWebhook?.url },
-    });
+    await modifyConnection(
+      { channelId },
+      { channelId: newChannel?.id, webhookURL: newWebhook?.url },
+    );
 
     await interaction.editReply({
       content: t(

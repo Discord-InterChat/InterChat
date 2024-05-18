@@ -11,7 +11,7 @@ import {
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './BaseCommand.js';
 import db from '../utils/Db.js';
-import Sentry, { captureException } from '@sentry/node';
+import Sentry from '@sentry/node';
 import Scheduler from '../services/SchedulerService.js';
 import CooldownService from '../services/CooldownService.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
@@ -20,16 +20,14 @@ import { isDevBuild } from '../utils/Constants.js';
 import { ActivityType } from 'discord.js';
 import 'dotenv/config';
 import { loadLocales, supportedLocaleCodes } from '../utils/Locale.js';
-import { connectedList } from '@prisma/client';
-import Logger from '../utils/Logger.js';
 import loadCommandFiles from '../utils/LoadCommands.js';
+import { connectionCache as _connectionCache, syncConnectionCache } from '../utils/ConnectedList.js';
 
 export default class SuperClient<R extends boolean = boolean> extends Client<R> {
   // A static instance of the SuperClient class to be used globally.
   public static instance: SuperClient;
 
-  private _connectionCache: Collection<string, connectedList> = new Collection();
-  private _cachePopulated = false;
+  private _connectionCachePopulated = false;
   private readonly scheduler = new Scheduler();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
@@ -108,31 +106,19 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
     // load commands
     await loadCommandFiles();
 
-    await this.populateConnectionCache();
-    this.getScheduler().addRecurringTask('populateConnectionCache', 60_000 * 5, async () => {
-      await this.populateConnectionCache().catch(captureException);
-    });
+    await syncConnectionCache();
+    this._connectionCachePopulated = true;
+
+    this.getScheduler().addRecurringTask('populateConnectionCache', 60_000 * 5, syncConnectionCache);
 
     await this.login(process.env.TOKEN);
   }
 
-  protected async populateConnectionCache() {
-    Logger.debug('[InterChat]: Populating connection cache.');
-    const connections = await db.connectedList.findMany({ where: { connected: true } });
-
-    // populate all at once without time delay
-    this._connectionCache = new Collection(connections.map((c) => [c.channelId, c]));
-    this._cachePopulated = true;
-    Logger.debug(
-      `[InterChat]: Connection cache populated with ${this._connectionCache.size} entries.`,
-    );
-  }
-
   public get connectionCache() {
-    return this._connectionCache;
+    return _connectionCache;
   }
   public get cachePopulated() {
-    return this._cachePopulated;
+    return this._connectionCachePopulated;
   }
 
   static resolveEval = <T>(value: T[]) =>

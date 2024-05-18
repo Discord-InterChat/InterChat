@@ -3,6 +3,7 @@ import Logger from './Logger.js';
 import toLower from 'lodash/toLower.js';
 import Scheduler from '../services/SchedulerService.js';
 import startCase from 'lodash/startCase.js';
+import SuperClient from '../core/Client.js';
 import {
   ActionRow,
   ButtonStyle,
@@ -38,8 +39,8 @@ import { supportedLocaleCodes, t } from './Locale.js';
 import 'dotenv/config';
 import { captureException } from '@sentry/node';
 import { CustomID } from './CustomID.js';
-import SuperClient from '../core/Client.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
+import { deleteConnections } from './ConnectedList.js';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export const msToReadable = (milliseconds: number) => {
@@ -208,7 +209,7 @@ export const deleteMsgsFromDb = async (broadcastMsgs: string[]) => {
 
 export const deleteHubs = async (ids: string[]) => {
   // delete all relations first and then delete the hub
-  await db.connectedList.deleteMany({ where: { hubId: { in: ids } } });
+  await deleteConnections({ hubId: { in: ids } });
   await db.hubInvites.deleteMany({ where: { hubId: { in: ids } } });
   await db.originalMessages
     .findMany({ where: { hubId: { in: ids } }, include: { broadcastMsgs: true } })
@@ -434,8 +435,15 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
       const payload =
         typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
 
-      const webhook = new WebhookClient({ url: connection.webhookURL });
-      return await webhook.send(payload).catch(() => null);
+      try {
+        const webhook = new WebhookClient({ url: connection.webhookURL });
+        return await webhook.send(payload);
+      }
+      catch (e) {
+        e.message = `For Connection: ${connection.channelId} ${e.message}`;
+        Logger.error(e);
+        captureException(e);
+      }
     });
 
   return await Promise.all(res);
