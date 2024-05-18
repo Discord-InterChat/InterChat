@@ -59,4 +59,3 @@ export const logServerLeave = async (hubId: string, server: Guild) => {
 
   await sendLog(server.client, hub.logChannels.joinLeaves, embed);
 };
-

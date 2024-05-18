@@ -34,9 +34,10 @@ export default (
   opts: BroadcastOpts,
 ) => {
   const censoredContent = censor(message.content);
-  const referredContent = opts.referredMessage && opts.dbReferrence
-    ? getReferredContent(opts.referredMessage)
-    : undefined;
+  const referredContent =
+    opts.referredMessage && opts.dbReferrence
+      ? getReferredContent(opts.referredMessage)
+      : undefined;
 
   const servername = trimAndCensorBannedWebhookWords(message.guild.name);
   const username = trimAndCensorBannedWebhookWords(

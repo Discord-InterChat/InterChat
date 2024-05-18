@@ -1,12 +1,18 @@
 import db from '../Db.js';
 import { Prisma, hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { EmbedBuilder, roleMention, GuildTextBasedChannel, messageLink, User, Client } from 'discord.js';
+import {
+  EmbedBuilder,
+  roleMention,
+  GuildTextBasedChannel,
+  messageLink,
+  User,
+  Client,
+} from 'discord.js';
 import SuperClient from '../../core/Client.js';
 import { emojis } from '../Constants.js';
 import { fetchHub } from '../Utils.js';
 import { sendLog } from './Default.js';
-
 
 export type ReportEvidenceOpts = {
   // the message content
@@ -24,13 +30,18 @@ export type LogReportOpts = {
 };
 
 /**
-   * Retrieves the jump link for a specific message in the reports channel of a hub.
-   * @param hubId - The ID of the hub.
-   * @param messageId - The ID of the message. (optional)
-   * @param reportsChannelId - The ID of the reports channel.
-   * @returns The jump link for the specified message, or undefined if the message is not found.
-   */
-const genJumpLink = async (hubId: string, client: Client, messageId: string | undefined, reportsChannelId: string) => {
+ * Retrieves the jump link for a specific message in the reports channel of a hub.
+ * @param hubId - The ID of the hub.
+ * @param messageId - The ID of the message. (optional)
+ * @param reportsChannelId - The ID of the reports channel.
+ * @returns The jump link for the specified message, or undefined if the message is not found.
+ */
+const genJumpLink = async (
+  hubId: string,
+  client: Client,
+  messageId: string | undefined,
+  reportsChannelId: string,
+) => {
   if (!messageId) return;
 
   const messageInDb = await db.broadcastedMessages.findFirst({
@@ -66,14 +77,18 @@ const genJumpLink = async (hubId: string, client: Client, messageId: string | un
 };
 
 /**
-   * Logs a report with the specified details.
-   * @param userId - The ID of the user being reported.
-   * @param serverId - The ID of the server being reported.
-   * @param reason - The reason for the report.
-   * @param reportedBy - The user who reported the incident.
-   * @param evidence - Optional evidence for the report.
-   */
-export const sendReportLog = async (hubId: string, client: Client, { userId, serverId, reason, reportedBy, evidence }: LogReportOpts) => {
+ * Logs a report with the specified details.
+ * @param userId - The ID of the user being reported.
+ * @param serverId - The ID of the server being reported.
+ * @param reason - The reason for the report.
+ * @param reportedBy - The user who reported the incident.
+ * @param evidence - Optional evidence for the report.
+ */
+export const sendReportLog = async (
+  hubId: string,
+  client: Client,
+  { userId, serverId, reason, reportedBy, evidence }: LogReportOpts,
+) => {
   const hub = await fetchHub(hubId);
   if (!hub?.logChannels?.reports?.channelId) return;
 
@@ -111,9 +126,7 @@ export const sendReportLog = async (hubId: string, client: Client, { userId, ser
 // skipcq: JS-0105
 export const updateChannels = async (
   hubId: string,
-  logChannels:
-      | Prisma.HubLogChannelsCreateInput
-      | Prisma.HubLogChannelsNullableUpdateEnvelopeInput,
+  logChannels: Prisma.HubLogChannelsCreateInput | Prisma.HubLogChannelsNullableUpdateEnvelopeInput,
 ) => {
   await db.hubs.update({ where: { id: hubId }, data: { logChannels } });
 };
@@ -149,5 +162,10 @@ export const setReportChannelAndRole = async (hubId: string, channelId: string, 
   await updateChannels(hubId, { upsert: { set: data, update: data } });
 };
 
-export default { log: sendReportLog, setChannelId: setReportLogChannel, setRoleId, setChannelIdAndRoleId: setReportChannelAndRole, removeReports };
-
+export default {
+  sendReportLog,
+  setReportLogChannel,
+  setRoleId,
+  setReportChannelAndRole,
+  removeReports,
+};

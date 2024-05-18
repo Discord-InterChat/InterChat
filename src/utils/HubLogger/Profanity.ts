@@ -5,11 +5,11 @@ import { fetchHub } from '../Utils.js';
 import { sendLog } from './Default.js';
 
 /**
-   * Logs the detected profanity along with relevant details.
-   * @param rawContent - The raw content containing the profanity.
-   * @param author - The user who posted the content.
-   * @param server - The server where the content was posted.
-   */
+ * Logs the detected profanity along with relevant details.
+ * @param rawContent - The raw content containing the profanity.
+ * @param author - The user who posted the content.
+ * @param server - The server where the content was posted.
+ */
 export default async (hubId: string, rawContent: string, author: User, server: Guild) => {
   const hub = await fetchHub(hubId);
   if (!hub?.logChannels?.profanity) return;

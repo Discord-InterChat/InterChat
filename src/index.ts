@@ -1,3 +1,4 @@
+import './instrument.js';
 import Logger from './utils/Logger.js';
 import SuperClient from './core/Client.js';
 import { eventMethods } from './decorators/GatewayEvent.js';

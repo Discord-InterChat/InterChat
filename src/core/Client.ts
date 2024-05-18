@@ -11,17 +11,18 @@ import {
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './BaseCommand.js';
 import db from '../utils/Db.js';
-import Sentry from '@sentry/node';
 import Scheduler from '../services/SchedulerService.js';
 import CooldownService from '../services/CooldownService.js';
 import BlacklistManager from '../managers/BlacklistManager.js';
 import { RemoveMethods } from '../typings/index.js';
-import { isDevBuild } from '../utils/Constants.js';
 import { ActivityType } from 'discord.js';
 import 'dotenv/config';
 import { loadLocales, supportedLocaleCodes } from '../utils/Locale.js';
 import loadCommandFiles from '../utils/LoadCommands.js';
-import { connectionCache as _connectionCache, syncConnectionCache } from '../utils/ConnectedList.js';
+import {
+  connectionCache as _connectionCache,
+  syncConnectionCache,
+} from '../utils/ConnectedList.js';
 
 export default class SuperClient<R extends boolean = boolean> extends Client<R> {
   // A static instance of the SuperClient class to be used globally.
@@ -90,15 +91,6 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
   async start() {
     // initialize the client
     SuperClient.instance = this;
-    if (!isDevBuild) {
-      // error monitoring & handling
-      Sentry.init({
-        dsn: process.env.SENTRY_DSN,
-        release: this.version,
-        tracesSampleRate: 1.0,
-        maxValueLength: 1000,
-      });
-    }
 
     // initialize i18n for localization
     loadLocales('locales/src/locales');
@@ -109,7 +101,11 @@ export default class SuperClient<R extends boolean = boolean> extends Client<R> 
     await syncConnectionCache();
     this._connectionCachePopulated = true;
 
-    this.getScheduler().addRecurringTask('populateConnectionCache', 60_000 * 5, syncConnectionCache);
+    this.getScheduler().addRecurringTask(
+      'populateConnectionCache',
+      60_000 * 5,
+      syncConnectionCache,
+    );
 
     await this.login(process.env.TOKEN);
   }

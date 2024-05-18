@@ -21,7 +21,7 @@
   "type": "module",
   "dependencies": {
     "@prisma/client": "^5.14.0",
-    "@sentry/node": "7",
+    "@sentry/node": "^8.2.1",
     "@tensorflow/tfjs-node": "^4.19.0",
     "@top-gg/sdk": "^3.1.6",
     "common-tags": "^1.8.2",

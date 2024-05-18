@@ -60,7 +60,9 @@ export default class DeleteMessage extends BaseCommand {
     }
 
     const results = messageInDb.originalMsg.broadcastMsgs.map(async (element) => {
-      const connection = interaction.client.connectionCache.find((c) => c.channelId === element.channelId);
+      const connection = interaction.client.connectionCache.find(
+        (c) => c.channelId === element.channelId,
+      );
       if (!connection) return false;
 
       const webhookURL = connection.webhookURL.split('/');

@@ -31,7 +31,12 @@ export const setLogChannelFor = async (
  * @param channelId The ID of the channel to send the log message to.
  * @param embed The embed object containing the log message.
  */
-export const sendLog = async (client: Client, channelId: string, embed: EmbedBuilder, content?: string) => {
+export const sendLog = async (
+  client: Client,
+  channelId: string,
+  embed: EmbedBuilder,
+  content?: string,
+) => {
   await client.cluster.broadcastEval(
     async (shardClient, ctx) => {
       const channel = await shardClient.channels.fetch(ctx.channelId).catch(() => null);

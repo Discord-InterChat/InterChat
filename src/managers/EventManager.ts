@@ -14,7 +14,6 @@ import {
   Interaction,
   Client,
 } from 'discord.js';
-import { captureException } from '@sentry/node';
 import Logger from '../utils/Logger.js';
 import GatewayEvent from '../decorators/GatewayEvent.js';
 import { stripIndents } from 'common-tags';
@@ -144,7 +143,6 @@ export default abstract class EventManager {
       }
     }
     catch (error) {
-      captureException(error);
       Logger.error('WebhooksUpdateError:', error);
     }
   }

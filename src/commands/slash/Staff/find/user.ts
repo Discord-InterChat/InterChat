@@ -30,7 +30,10 @@ export default class Server extends Find {
       where: { ownerId: user.id },
     });
     const numServersOwned = serversOwned.length > 0 ? serversOwned.join(', ') : 'None';
-    const numHubOwned = hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None';
+    const numHubOwned =
+      hubsOwned.length > 0
+        ? hubsOwned.map((hub) => hub.name).join(', ')
+        : 'None';
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
