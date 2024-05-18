@@ -46,7 +46,7 @@ export const runAntiSpam = (author: User, maxInfractions = MAX_STORE) => {
       infractions: 0,
     });
     setSpamTimers(author);
-    return;
+    return null;
   }
 
   // resetting count as it is assumed they will be blacklisted right after

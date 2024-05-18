@@ -18,7 +18,7 @@ export default class DeleteMessage extends BaseCommand {
 
   readonly cooldown = 10_000;
 
-  async execute(interaction: MessageContextMenuCommandInteraction) {
+  async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
     const isOnCooldown = await this.checkAndSetCooldown(interaction);
     if (isOnCooldown) return;
 
@@ -30,7 +30,7 @@ export default class DeleteMessage extends BaseCommand {
     });
 
     if (!messageInDb) {
-      return await interaction.editReply(
+      await interaction.editReply(
         t(
           {
             phrase: 'errors.unknownNetworkMessage',
@@ -39,6 +39,7 @@ export default class DeleteMessage extends BaseCommand {
           { emoji: emojis.no },
         ),
       );
+      return;
     }
 
     const interchatStaff = checkIfStaff(interaction.user.id);
@@ -48,7 +49,7 @@ export default class DeleteMessage extends BaseCommand {
       messageInDb.originalMsg.hub?.ownerId !== interaction.user.id &&
       interaction.user.id !== messageInDb.originalMsg.authorId
     ) {
-      return await interaction.editReply(
+      await interaction.editReply(
         t(
           {
             phrase: 'errors.notMessageAuthor',
@@ -57,6 +58,7 @@ export default class DeleteMessage extends BaseCommand {
           { emoji: emojis.no },
         ),
       );
+      return;
     }
 
     const results = messageInDb.originalMsg.broadcastMsgs.map(async (element) => {

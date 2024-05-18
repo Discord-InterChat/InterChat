@@ -8,7 +8,7 @@ import { t } from '../../../../utils/Locale.js';
 import SuperClient from '../../../../core/Client.js';
 
 export default class Servers extends Hub {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply();
 
     const hubOpt = interaction.options.getString('hub', true);
@@ -48,7 +48,7 @@ export default class Servers extends Hub {
     if (serverOpt) {
       const connection = hub.connections.find((con) => con.serverId === serverOpt);
       if (!connection) {
-        return await interaction.editReply({
+        await interaction.editReply({
           embeds: [
             simpleEmbed(
               t(
@@ -58,6 +58,7 @@ export default class Servers extends Hub {
             ),
           ],
         });
+        return;
       }
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
       const channel = await server?.channels.fetch(connection.channelId).catch(() => null);
@@ -140,6 +141,6 @@ export default class Servers extends Hub {
       );
     }
 
-    return paginate(interaction, embeds);
+    paginate(interaction, embeds);
   }
 }

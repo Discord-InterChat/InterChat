@@ -12,7 +12,7 @@ import { logBlacklist, logUnblacklist } from '../../../../utils/HubLogger/ModLog
 import { deleteConnections } from '../../../../utils/ConnectedList.js';
 
 export default class UserBlacklist extends BlacklistCommand {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     // defer the reply as it may take a while to fetch and stuff
     await interaction.deferReply();
 
@@ -53,7 +53,7 @@ export default class UserBlacklist extends BlacklistCommand {
 
       const serverInBlacklist = await BlacklistManager.fetchServerBlacklist(hubInDb.id, serverOpt);
       if (serverInBlacklist) {
-        return await interaction.followUp({
+        await interaction.followUp({
           embeds: [
             simpleEmbed(
               t(
@@ -66,16 +66,18 @@ export default class UserBlacklist extends BlacklistCommand {
             ),
           ],
         });
+        return;
       }
 
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
       if (!server) {
-        return await interaction.followUp(
+        await interaction.followUp(
           t(
             { phrase: 'errors.unknownServer', locale: interaction.user.locale },
             { emoji: emojis.no },
           ),
         );
+        return;
       }
 
       try {
@@ -149,12 +151,13 @@ export default class UserBlacklist extends BlacklistCommand {
     else if (subCommandGroup === 'remove') {
       const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
       if (!result) {
-        return await interaction.followUp(
+        await interaction.followUp(
           t(
             { phrase: 'errors.serverNotBlacklisted', locale: interaction.user.locale },
             { emoji: emojis.no },
           ),
         );
+        return;
       }
 
       // Using name from DB since the bot can't access server through API.

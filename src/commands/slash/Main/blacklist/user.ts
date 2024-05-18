@@ -11,7 +11,7 @@ import { captureException } from '@sentry/node';
 import { logBlacklist, logUnblacklist } from '../../../../utils/HubLogger/ModLogs.js';
 
 export default class Server extends BlacklistCommand {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply();
 
     const hub = interaction.options.getString('hub', true);
@@ -27,7 +27,7 @@ export default class Server extends BlacklistCommand {
     });
 
     if (!hubInDb) {
-      return await interaction.editReply({
+      await interaction.editReply({
         embeds: [
           simpleEmbed(
             t(
@@ -37,6 +37,7 @@ export default class Server extends BlacklistCommand {
           ),
         ],
       });
+      return;
     }
 
     const subcommandGroup = interaction.options.getSubcommandGroup();
@@ -55,24 +56,26 @@ export default class Server extends BlacklistCommand {
         (await interaction.client.users.fetch(userOpt).catch(() => null));
 
       if (!user) {
-        return interaction.followUp(
+        await interaction.followUp(
           t(
             { phrase: 'errors.userNotFound', locale: interaction.user.locale },
             { emoji: emojis.no },
           ),
         );
+        return;
       }
 
       // if (user.id === interaction.user.id) {
       //   return await interaction.followUp('You cannot blacklist yourself.');
       // }
       else if (user.id === interaction.client.user?.id) {
-        return interaction.followUp(
+        await interaction.followUp(
           t({
             phrase: 'blacklist.easterEggs.blacklistBot',
             locale: interaction.user.locale,
           }),
         );
+        return;
       }
 
       const userInBlacklist = await BlacklistManager.fetchUserBlacklist(hubInDb.id, userOpt);
@@ -137,12 +140,13 @@ export default class Server extends BlacklistCommand {
       // remove the blacklist
       const result = await blacklistManager.removeBlacklist('user', hubInDb.id, userId);
       if (!result) {
-        return await interaction.followUp(
+        await interaction.followUp(
           t(
             { phrase: 'errors.userNotBlacklisted', locale: interaction.user.locale },
             { emoji: emojis.no },
           ),
         );
+        return;
       }
       const user = await interaction.client.users.fetch(userId).catch(() => null);
       await interaction.followUp(

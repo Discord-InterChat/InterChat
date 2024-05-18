@@ -7,13 +7,16 @@ import db from '../../../../utils/Db.js';
 import { GuildPremiumTier } from 'discord.js';
 
 export default class Server extends Find {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hideResponse = interaction.options.getBoolean('hidden') ?? true;
     await interaction.deferReply({ ephemeral: hideResponse });
 
     const serverId = interaction.options.getString('server', true);
     const guild = await interaction.client.guilds.fetch(serverId).catch(() => null);
-    if (!guild) return interaction.editReply('Unknown Server.');
+    if (!guild) {
+      await interaction.editReply('Unknown Server.');
+      return;
+    }
 
     const owner = await guild?.fetchOwner();
 

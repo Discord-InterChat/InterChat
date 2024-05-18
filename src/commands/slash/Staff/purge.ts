@@ -104,7 +104,7 @@ export default class Purge extends BaseCommand {
     ],
   };
 
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const isOnCooldown = await this.checkAndSetCooldown(interaction);
     if (isOnCooldown) return;
 
@@ -126,19 +126,21 @@ export default class Purge extends BaseCommand {
     });
 
     if (!isMod) {
-      return await interaction.editReply({
+      await interaction.editReply({
         embeds: [
           simpleEmbed(
             `${emojis.no} You must be a moderator or owner of this hub to use this command.`,
           ),
         ],
       });
+      return;
     }
 
     if (!channelInHub) {
-      return await interaction.editReply({
+      await interaction.editReply({
         content: 'This channel is not connected to a hub.',
       });
+      return;
     }
 
     let messagesInDb: broadcastedMessages[] = [];
@@ -207,9 +209,10 @@ export default class Purge extends BaseCommand {
     }
 
     if (!messagesInDb || messagesInDb.length < 1) {
-      return await interaction.editReply(
+      await interaction.editReply(
         'Messages to purge not found; messages sent over 24 hours ago have been automatically removed.',
       );
+      return;
     }
 
     const startTime = performance.now();

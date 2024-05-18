@@ -7,7 +7,6 @@ import {
   MessageContextMenuCommandInteraction,
   ApplicationCommandType,
   RESTPostAPIApplicationCommandsJSONBody,
-  CacheType,
   ModalSubmitInteraction,
   userMention,
   Message,
@@ -31,7 +30,7 @@ export default class EditMessage extends BaseCommand {
   };
   readonly cooldown = 10_000;
 
-  async execute(interaction: MessageContextMenuCommandInteraction) {
+  async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
     const isOnCooldown = await this.checkAndSetCooldown(interaction);
     if (isOnCooldown) return;
 
@@ -102,15 +101,16 @@ export default class EditMessage extends BaseCommand {
   }
 
   @RegisterInteractionHandler('editMsg')
-  async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
+  static async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const messageId = customId.args[0];
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
-      return await interaction.reply(
+      await interaction.reply(
         t({ phrase: 'errors.unknownNetworkMessage' }, { emoji: emojis.no }),
       );
+      return;
     }
 
     const messageInDb = await db.broadcastedMessages.findFirst({
@@ -119,12 +119,13 @@ export default class EditMessage extends BaseCommand {
     });
 
     if (!messageInDb?.originalMsg.hub) {
-      return await interaction.reply(
+      await interaction.reply(
         t(
           { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
           { emoji: emojis.no },
         ),
       );
+      return;
     }
 
     // defer it because it takes a while to edit the message

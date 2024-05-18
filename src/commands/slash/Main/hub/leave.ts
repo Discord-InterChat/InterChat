@@ -18,7 +18,7 @@ import { logServerLeave } from '../../../../utils/HubLogger/JoinLeave.js';
 import { deleteConnection } from '../../../../utils/ConnectedList.js';
 
 export default class Leave extends Hub {
-  async execute(interaction: ChatInputCommandInteraction<CacheType>) {
+  async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
     if (!interaction.inCachedGuild()) return;
     await interaction.deferReply({ ephemeral: true });
 
@@ -29,16 +29,17 @@ export default class Leave extends Hub {
     });
 
     if (!isChannelConnected) {
-      return await interaction.editReply({
+      await interaction.editReply({
         embeds: [
           simpleEmbed(
             t({ phrase: 'hub.leave.noHub', locale: interaction.user.locale }, { emoji: emojis.no }),
           ),
         ],
       });
+      return;
     }
     else if (!interaction.member.permissions.has('ManageChannels', true)) {
-      return await interaction.editReply({
+      await interaction.editReply({
         embeds: [
           simpleEmbed(
             t(
@@ -48,6 +49,7 @@ export default class Leave extends Hub {
           ),
         ],
       });
+      return;
     }
 
     const choiceButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -84,7 +86,7 @@ export default class Leave extends Hub {
   }
 
   @RegisterInteractionHandler('hub_leave')
-  static override async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
+  static override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.args[0];
     const { locale } = interaction.user;

@@ -24,7 +24,10 @@ export default class Create extends Hub {
     const { locale } = interaction.user;
 
     const isOnCooldown = this.getRemainingCooldown(interaction);
-    if (isOnCooldown) return this.sendCooldownError(interaction, isOnCooldown);
+    if (isOnCooldown) {
+      await this.sendCooldownError(interaction, isOnCooldown);
+      return;
+    }
 
     const modal = new ModalBuilder()
       .setTitle(t({ phrase: 'hub.create.modal.title', locale }))
@@ -78,7 +81,7 @@ export default class Create extends Hub {
   }
 
   @RegisterInteractionHandler('hub_create_modal')
-  async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
+  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
 
     const name = interaction.fields.getTextInputValue('name');
@@ -88,13 +91,14 @@ export default class Create extends Hub {
 
     // if hubName contains "discord", "clyde" "```" then return
     if (REGEX.BANNED_WEBHOOK_WORDS.test(name)) {
-      return await interaction.followUp({
+      await interaction.followUp({
         content: t(
           { phrase: 'hub.create.invalidName', locale: interaction.user.locale },
           { emoji: emojis.no },
         ),
         ephemeral: true,
       });
+      return;
     }
 
     const hubs = await db.hubs.findMany({
@@ -102,24 +106,26 @@ export default class Create extends Hub {
     });
 
     if (hubs.find((hub) => hub.name === name)) {
-      return await interaction.followUp({
+      await interaction.followUp({
         content: t(
           { phrase: 'hub.create.nameTaken', locale: interaction.user.locale },
           { emoji: emojis.no },
         ),
         ephemeral: true,
       });
+      return;
     }
     else if (
       hubs.reduce((acc, hub) => (hub.ownerId === interaction.user.id ? acc + 1 : acc), 0) >= 3
     ) {
-      return await interaction.followUp({
+      await interaction.followUp({
         content: t(
           { phrase: 'hub.create.maxHubs', locale: interaction.user.locale },
           { emoji: emojis.no },
         ),
         ephemeral: true,
       });
+      return;
     }
 
     const iconUrl = icon ? await checkAndFetchImgurUrl(icon) : undefined;
@@ -127,7 +133,7 @@ export default class Create extends Hub {
 
     // TODO: create a gif showing how to get imgur links
     if (iconUrl === false || bannerUrl === false) {
-      return await interaction.followUp({
+      await interaction.followUp({
         embeds: [
           simpleEmbed(
             t(
@@ -138,6 +144,7 @@ export default class Create extends Hub {
         ],
         ephemeral: true,
       });
+      return;
     }
 
     await db.hubs.create({

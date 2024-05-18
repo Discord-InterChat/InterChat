@@ -30,13 +30,14 @@ export default class Translate extends BaseCommand {
     dm_permission: false,
   };
 
-  async execute(interaction: MessageContextMenuCommandInteraction) {
+  async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
 
     if (!(await userVotedToday(interaction.user.id))) {
-      return await interaction.editReply(
+      await interaction.editReply(
         t({ phrase: 'errors.mustVote', locale: interaction.user.locale }, { emoji: emojis.no }),
       );
+      return;
     }
 
     const target = interaction.targetMessage;
@@ -49,16 +50,20 @@ export default class Translate extends BaseCommand {
     )?.originalMsg;
 
     if (!originalMsg) {
-      return interaction.editReply(
+      await interaction.editReply(
         t(
           { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
           { emoji: emojis.no },
         ),
       );
+      return;
     }
 
     const messageContent = target.content || target.embeds[0]?.description;
-    if (!messageContent) return interaction.editReply('This message is not translatable.');
+    if (!messageContent) {
+      await interaction.editReply('This message is not translatable.');
+      return;
+    }
 
     const translatedMessage = await translate(messageContent, { to: interaction.user.locale });
     const embed = new EmbedBuilder()
@@ -93,7 +98,7 @@ export default class Translate extends BaseCommand {
   }
 
   @RegisterInteractionHandler('translate')
-  static override async handleComponents(interaction: ButtonInteraction) {
+  static override async handleComponents(interaction: ButtonInteraction): Promise<void> {
     const modal = new ModalBuilder()
       .setCustomId(new CustomID('translate_modal').toString())
       .setTitle('Specify Language')
@@ -126,7 +131,10 @@ export default class Translate extends BaseCommand {
 
     // get original content the translate embed
     const messageContent = originalMessage.embeds[0]?.fields[0].value;
-    if (!messageContent) return await interaction.reply('This message is not translatable.');
+    if (!messageContent) {
+      await interaction.reply('This message is not translatable.');
+      return;
+    }
 
     const to = interaction.fields.getTextInputValue('to');
     const from = interaction.fields.getTextInputValue('from');

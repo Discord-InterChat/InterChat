@@ -7,14 +7,14 @@ import { t } from '../../../../utils/Locale.js';
 import { colors, emojis } from '../../../../utils/Constants.js';
 
 export default class Joined extends Hub {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const connections = await db.connectedList.findMany({
       where: { serverId: interaction.guild?.id },
       include: { hub: true },
     });
 
     if (connections.length === 0) {
-      return await interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             t(
@@ -24,6 +24,7 @@ export default class Joined extends Hub {
           ),
         ],
       });
+      return;
     }
 
     const allFields = connections.map((con) => ({

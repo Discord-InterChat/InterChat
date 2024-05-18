@@ -22,7 +22,7 @@ import { checkBlacklists } from '../scripts/reaction/helpers.js';
 export default abstract class ReactionUpdater {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')
-  async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction) {
+  static async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction): Promise<void> {
     await interaction.deferUpdate();
 
     if (!interaction.inCachedGuild()) return;
@@ -150,10 +150,11 @@ export default abstract class ReactionUpdater {
 
       if (cooldown && cooldown > Date.now()) {
         const timeString = time(Math.round(cooldown / 1000), 'R');
-        return await interaction.followUp({
+        await interaction.followUp({
           content: `A little quick there! You can react again ${timeString}!`,
           ephemeral: true,
         });
+        return;
       }
 
       const reactedEmoji = interaction.isStringSelectMenu()
@@ -162,10 +163,11 @@ export default abstract class ReactionUpdater {
       const emojiAlreadyReacted = dbReactions[reactedEmoji];
 
       if (!emojiAlreadyReacted) {
-        return await interaction.followUp({
+        await interaction.followUp({
           content: `${emojis.no} This reaction doesn't exist.`,
           ephemeral: true,
         });
+        return;
       }
 
       emojiAlreadyReacted.includes(interaction.user.id)

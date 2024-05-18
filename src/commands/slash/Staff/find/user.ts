@@ -6,12 +6,12 @@ import db from '../../../../utils/Db.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 
 export default class Server extends Find {
-  async execute(interaction: ChatInputCommandInteraction) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hideResponse = interaction.options.getBoolean('hidden') ?? true;
     const userId = interaction.options.getString('user', true);
     const user = await interaction.client.users.fetch(userId).catch(() => null);
     if (!user) {
-      return interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             `${emojis.no} Unknown user. Try using user\`s ID instead if you used username.`,
@@ -19,6 +19,7 @@ export default class Server extends Find {
         ],
         ephemeral: true,
       });
+      return;
     }
 
     const userInBlacklist = await db.blacklistedUsers?.findFirst({ where: { userId: user.id } });

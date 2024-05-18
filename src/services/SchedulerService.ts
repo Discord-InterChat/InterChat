@@ -51,14 +51,13 @@ export default class Scheduler {
    * @param taskName The name of the task
    * @returns true if task was stopped, undefined if task was not found
    */
-  stopTask(taskName: string): boolean | undefined {
+  stopTask(taskName: string): boolean {
     const taskInfo = this.tasks.get(taskName);
-    if (taskInfo) {
-      clearInterval(taskInfo.timeout);
-      clearTimeout(taskInfo.timeout);
-      return this.tasks.delete(taskName);
-    }
-    return;
+    if (!taskInfo) return false;
+
+    clearInterval(taskInfo.timeout);
+    clearTimeout(taskInfo.timeout);
+    return this.tasks.delete(taskName);
   }
 
   /**

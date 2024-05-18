@@ -23,19 +23,18 @@ export default class BlacklistManager {
     hubId: string,
     serverId: string,
   ): Promise<blacklistedServers>;
-  async removeBlacklist(type: 'user', hubId: string, userId: string): Promise<userData | undefined>;
+  async removeBlacklist(type: 'user', hubId: string, userId: string): Promise<userData | null>;
   async removeBlacklist(
     type: 'server',
     hubId: string,
     userId: string,
-  ): Promise<blacklistedServers | undefined>;
+  ): Promise<blacklistedServers | null>;
   async removeBlacklist(type: 'user' | 'server', hubId: string, userOrServerId: string) {
     this.scheduler.stopTask(`blacklist_${type}-${userOrServerId}`);
     if (type === 'user') {
       const where = { userId: userOrServerId, blacklistedFrom: { some: { hubId } } };
-
       const notInBlacklist = await db.userData.findFirst({ where });
-      if (!notInBlacklist) return;
+      if (!notInBlacklist) return null;
 
       return await db.userData.update({
         where,
@@ -44,9 +43,8 @@ export default class BlacklistManager {
     }
     else {
       const where = { serverId: userOrServerId, hubs: { some: { hubId } } };
-
       const notInBlacklist = await db.blacklistedServers.findFirst({ where });
-      if (!notInBlacklist) return;
+      if (!notInBlacklist) return null;
 
       return await db.blacklistedServers.update({
         where,
@@ -225,7 +223,7 @@ export default class BlacklistManager {
     expires?: Date,
   ) {
     const guild = await SuperClient.instance.fetchGuild(serverId);
-    if (!guild) return;
+    if (!guild) return null;
 
     const dbGuild = await db.blacklistedServers.upsert({
       where: {

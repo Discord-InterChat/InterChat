@@ -274,7 +274,6 @@ export default class Browse extends Hub {
     else if (customId.suffix === 'cancel') {
       await interaction.deferUpdate();
       await interaction.deleteReply().catch(() => null);
-      return;
     }
     else if (customId.suffix === 'channel_select' || customId.suffix === 'confirm') {
       if (!interaction.inCachedGuild()) return;
@@ -422,16 +421,17 @@ export default class Browse extends Hub {
   }
 
   @RegisterInteractionHandler('hub_browse_modal')
-  async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
+  static async handleModals(interaction: ModalSubmitInteraction<CacheType>): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const { locale } = interaction.user;
 
     const rating = parseInt(interaction.fields.getTextInputValue('rating'));
     if (isNaN(rating) || rating < 1 || rating > 5) {
-      return await interaction.reply({
+      await interaction.reply({
         embeds: [simpleEmbed(t({ phrase: 'hub.browse.rating.invalid', locale }))],
         ephemeral: true,
       });
+      return;
     }
 
     const hubId = customId.args[0];
@@ -459,6 +459,8 @@ export default class Browse extends Hub {
       content: t({ phrase: 'hub.browse.rating.success', locale }),
       ephemeral: true,
     });
+
+    return;
   }
 
   // utils

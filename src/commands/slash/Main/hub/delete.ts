@@ -1,6 +1,5 @@
 import {
   ChatInputCommandInteraction,
-  CacheType,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
@@ -16,18 +15,19 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { t } from '../../../../utils/Locale.js';
 
 export default class Delete extends Hub {
-  async execute(interaction: ChatInputCommandInteraction<CacheType>) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
     const hubInDb = await db.hubs.findFirst({ where: { name: hubName } });
 
     if (interaction.user.id !== hubInDb?.ownerId) {
-      return await interaction.reply({
+      await interaction.reply({
         content: t(
           { phrase: 'hub.delete.ownerOnly', locale: interaction.user.locale },
           { emoji: emojis.no },
         ),
         ephemeral: true,
       });
+      return;
     }
 
     const confirmEmbed = new EmbedBuilder()

@@ -282,10 +282,10 @@ export default class Hub extends BaseCommand {
       interaction.options.getSubcommandGroup() || interaction.options.getSubcommand(),
     );
 
-    return await subcommand?.execute(interaction).catch((e: Error) => handleError(e, interaction));
+    await subcommand?.execute(interaction).catch((e: Error) => handleError(e, interaction));
   }
 
-  async autocomplete(interaction: AutocompleteInteraction): Promise<unknown> {
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const managerCmds = ['manage', 'settings', 'invite', 'moderator', 'logging'];
     const modCmds = ['servers'];
 

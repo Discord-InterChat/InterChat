@@ -172,7 +172,7 @@ export default class BlacklistCommand extends BaseCommand {
     return await subcommand?.execute(interaction).catch((e) => handleError(e, interaction));
   }
 
-  async autocomplete(interaction: AutocompleteInteraction) {
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const action = interaction.options.getSubcommand() as 'user' | 'server';
     const focusedHub = interaction.options.get('hub');
 
@@ -191,7 +191,8 @@ export default class BlacklistCommand extends BaseCommand {
       });
 
       const filtered = hub.map(({ name: hubName }) => ({ name: hubName, value: hubName }));
-      return interaction.respond(filtered);
+      await interaction.respond(filtered);
+      return;
     }
 
     switch (action) {
@@ -209,7 +210,10 @@ export default class BlacklistCommand extends BaseCommand {
           },
         });
 
-        if (!userHubMod) return interaction.respond([]);
+        if (!userHubMod) {
+          await interaction.respond([]);
+          return;
+        }
 
         const filteredUsers = await db.userData.findMany({
           where: {
