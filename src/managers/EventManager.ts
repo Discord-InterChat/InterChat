@@ -37,12 +37,12 @@ import sendBroadcast from '../scripts/network/sendBroadcast.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
-  onReady(client: Client) {
+  static onReady(client: Client) {
     Logger.info(`Logged in as ${client.user?.tag}!`);
   }
 
   @GatewayEvent('shardReady')
-  onShardReady(s: number, u: Set<string>) {
+  static onShardReady(s: number, u: Set<string>) {
     if (u) {
       Logger.warn(`Shard ${s} is ready but ${u.size} guilds are unavailable.`);
     }
@@ -52,11 +52,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('messageReactionAdd')
-  async onReactionAdd(reaction: MessageReaction, user: User | PartialUser) {
-    Logger.info(
-      `${user.tag} reacted with ${reaction.emoji.name} in channel ${reaction.message.channelId} and guild ${reaction.message.guildId}.`,
-    );
-
+  static async onReactionAdd(reaction: MessageReaction, user: User | PartialUser) {
     if (user.bot || !reaction.message.inGuild()) return;
 
     const cooldown = reaction.client.reactionCooldowns.get(user.id);
@@ -75,6 +71,10 @@ export default abstract class EventManager {
     if (!originalMsg?.hub || !new HubSettingsBitField(originalMsg.hub.settings).has('Reactions')) {
       return;
     }
+
+    Logger.info(
+      `${reaction.emoji.name} reacted by ${user.tag} guild ${reaction.message.guild?.name} (${reaction.message.guildId}). Hub: ${originalMsg.hub.name}`,
+    );
 
     const { userBlacklisted, serverBlacklisted } = await checkBlacklists(
       originalMsg.hub.id,
@@ -109,12 +109,14 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('webhooksUpdate')
-  async onWebhooksUpdate(channel: GuildChannel) {
+  static async onWebhooksUpdate(channel: GuildChannel) {
     if (!channel.isTextBased()) return;
+
     try {
       const connection = await db.connectedList.findFirst({
         where: { OR: [{ channelId: channel.id }, { parentId: channel.id }], connected: true },
       });
+
       if (!connection) return;
 
       Logger.info(`Webhook for ${channel.id} was updated`);
@@ -122,7 +124,7 @@ export default abstract class EventManager {
       const webhooks = await channel.fetchWebhooks();
       const webhook = webhooks.find((w) => w.url === connection.webhookURL);
 
-      // webhook was deleted
+      // only continue if webhook was deleted
       if (!webhook) {
         // disconnect the channel
         await db.connectedList.update({
@@ -130,12 +132,12 @@ export default abstract class EventManager {
           data: { connected: false },
         });
 
+        const client = SuperClient.instance;
+
         // send an alert to the channel
         const networkChannel = channel.isTextBased()
           ? channel
-          : ((await SuperClient.instance.channels.fetch(
-            connection.channelId,
-          )) as GuildTextBasedChannel);
+          : ((await client.channels.fetch(connection.channelId)) as GuildTextBasedChannel);
 
         await networkChannel.send(
           t({ phrase: 'misc.webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }),
@@ -149,7 +151,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('guildCreate')
-  async onGuildCreate(guild: Guild) {
+  static async onGuildCreate(guild: Guild) {
     Logger.info(`Joined ${guild.name} (${guild.id})`);
 
     // log that bot joined a guild to goal channel in support server
@@ -191,10 +193,10 @@ export default abstract class EventManager {
         .setStyle(ButtonStyle.Link),
     );
 
+    const channelToSend = guildOwner ?? guildChannel;
     const message = { embeds: [embed], components: [buttons] };
-    await (guildOwner ?? guildChannel)
-      ?.send(message)
-      .catch(() => guildChannel?.send(message).catch(() => null));
+
+    channelToSend?.send(message).catch(() => guildChannel?.send(message).catch(() => null));
 
     const { profanity, slurs } = check(guild.name);
     if (!profanity && !slurs) return;
@@ -209,15 +211,12 @@ export default abstract class EventManager {
 
     const leaveMsg = { embeds: [profaneErrorEmbed] };
 
-    (guildOwner ?? guildChannel)
-      ?.send(leaveMsg)
-      .catch(() => guildChannel?.send(leaveMsg).catch(() => null));
-
+    channelToSend?.send(leaveMsg).catch(() => guildChannel?.send(leaveMsg).catch(() => null));
     await guild.leave();
   }
 
   @GatewayEvent('guildDelete')
-  async onGuildDelete(guild: Guild) {
+  static async onGuildDelete(guild: Guild) {
     if (!guild.available) return;
 
     Logger.info(`Left ${guild.name} (${guild.id})`);
@@ -236,7 +235,7 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('messageCreate')
-  async onMessageCreate(message: Message): Promise<void> {
+  static async onMessageCreate(message: Message): Promise<void> {
     if (message.author?.bot || message.system || message.webhookId || !message.inGuild()) return;
 
     const { connectionCache, cachePopulated, getUserLocale } = message.client;
@@ -297,28 +296,15 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('interactionCreate')
-  async onInteractionCreate(interaction: Interaction): Promise<void> {
+  static async onInteractionCreate(interaction: Interaction): Promise<void> {
     try {
       const { commands, interactions, getUserLocale } = interaction.client;
       interaction.user.locale = await getUserLocale(interaction.user.id);
 
-      if (interaction.isAutocomplete()) {
-        const command = commands.get(interaction.commandName);
-        if (command?.autocomplete) await command.autocomplete(interaction);
-      }
-      else if (interaction.isChatInputCommand() || interaction.isContextMenuCommand()) {
-        const command = commands.get(interaction.commandName);
-        if (!command) return;
-
-        // run the command
-        await command?.execute(interaction);
-      }
-      else {
-        const customId = CustomID.parseCustomId(interaction.customId);
-
-        // for components have own component collector
+      if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
         const ignoreList = ['page_', 'onboarding_'];
-        if (ignoreList.includes(customId.prefix)) return;
+        const customId = CustomID.parseCustomId(interaction.customId);
+        if (ignoreList.includes(customId.prefix)) return; // for components have own component collector
 
         // component decorator stuff
         const interactionHandler = interactions.get(customId.prefix);
@@ -340,7 +326,12 @@ export default abstract class EventManager {
         }
 
         await interactionHandler(interaction);
+        return;
       }
+
+      const command = commands.get(interaction.commandName);
+      if (!interaction.isAutocomplete()) await command?.execute(interaction); // normal slashie/context menu
+      else if (command?.autocomplete) await command.autocomplete(interaction); // autocomplete options
     }
     catch (e) {
       handleError(e, interaction);

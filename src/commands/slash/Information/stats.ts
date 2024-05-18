@@ -52,9 +52,9 @@ export default class Stats extends BaseCommand {
         {
           name: 'Bot Stats',
           value: stripIndents`
-	    - Up Since: ${time(upSince, 'R')}
+	          - Up Since: ${time(upSince, 'R')}
             - Servers: ${guildCount}
-	    - Members: ${memberCount}
+	          - Members: ${memberCount}
 	  `,
           inline: true,
         },
@@ -120,37 +120,37 @@ export default class Stats extends BaseCommand {
       }));
     });
 
-    if (customId.suffix === 'shardStats') {
-      const embed = new EmbedBuilder()
-        .setColor(colors.invisible)
-        .setDescription(
-          stripIndents`
+    if (customId.suffix !== 'shardStats') return;
+
+    const embed = new EmbedBuilder()
+      .setColor(colors.invisible)
+      .setDescription(
+        stripIndents`
 					### Shard Stats
 					**Total Shards:** ${interaction.client.cluster.info.TOTAL_SHARDS} 
 					**On Shard:** ${interaction.guild?.shardId}
 					`,
-        )
-        .setFields(
-          allCusterData.flat().map((shard) => {
-            return {
-              name: `Shard #${shard.id} - ${Status[shard.status]}`,
-              value: stripIndents`\`\`\`elm
+      )
+      .setFields(
+        allCusterData.flat().map((shard) => {
+          return {
+            name: `Shard #${shard.id} - ${Status[shard.status]}`,
+            value: stripIndents`\`\`\`elm
               Ping: ${shard.ping}ms
               Uptime: ${shard.uptime ? msToReadable(shard.uptime) : '0 ms'}
               Servers: ${shard.totalGuilds}
               RAM Usage: ${shard.memUsage} MB
               \`\`\`
             `,
-              inline: true,
-            };
-          }),
-        )
-        .setFooter({
-          text: `InterChat v${interaction.client.version}${isDevBuild ? '+dev' : ''}`,
-          iconURL: interaction.client.user.displayAvatarURL(),
-        });
+            inline: true,
+          };
+        }),
+      )
+      .setFooter({
+        text: `InterChat v${interaction.client.version}${isDevBuild ? '+dev' : ''}`,
+        iconURL: interaction.client.user.displayAvatarURL(),
+      });
 
-      await interaction.reply({ embeds: [embed], ephemeral: true });
-    }
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   }
 }

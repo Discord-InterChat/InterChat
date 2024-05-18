@@ -29,6 +29,8 @@ export default class Server extends Find {
     const hubsOwned = await db.hubs.findMany({
       where: { ownerId: user.id },
     });
+    const numServersOwned = serversOwned.length > 0 ? serversOwned.join(', ') : 'None';
+    const numHubOwned = hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None';
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
@@ -43,17 +45,13 @@ export default class Server extends Find {
             > ${emojis.mention} **Username:** ${user.username}
             > ${emojis.members} **Created:** <t:${Math.round(user.createdTimestamp / 1000)}:R>
             > ${emojis.bot} **Bot:** ${user.bot}
-            > ${emojis.owner} **Servers Owned:** ${
-  serversOwned.length > 0 ? serversOwned.join(', ') : 'None'
-}
+            > ${emojis.owner} **Servers Owned:** ${numServersOwned}
             `,
         },
         {
           name: 'Network',
           value: stripIndents`
-            > ${emojis.chat_icon} **Hubs Owned:** ${
-  hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None'
-}
+            > ${emojis.chat_icon} **Hubs Owned:** ${numHubOwned}
             > ${emojis.delete} **Blacklisted:** ${userInBlacklist ? 'Yes' : 'No'}`,
         },
       ]);
