@@ -23,8 +23,8 @@ export const deleteConnections = async (where: Prisma.connectedListWhereInput) =
   await db.connectedList.deleteMany({ where });
 
   syncConnectionCache()
-    .then(void 0)
-    .catch(void 0);
+    .then(() => null)
+    .catch(() => null);
 };
 
 export const connectChannel = async (data: Prisma.connectedListCreateInput) => {
@@ -51,8 +51,8 @@ export const modifyConnections = async (
   const connections = await db.connectedList.updateMany({ where, data });
 
   syncConnectionCache()
-    .then(void 0)
-    .catch(void 0);
+    .then(() => null)
+    .catch(() => null);
 
   return connections;
 };
