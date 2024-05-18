@@ -1,20 +1,20 @@
-import { APIEmbedField, ChatInputCommandInteraction, EmbedBuilder, time } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, time } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
+import { blacklistedServers, userData } from '@prisma/client';
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
-    const hub = interaction.options.getString('hub', true);
-
+    const hubName = interaction.options.getString('hub', true);
     const hubInDb = await db.hubs.findFirst({
       where: {
-        name: hub,
+        name: hubName,
         OR: [
           { ownerId: interaction.user.id },
           { moderators: { some: { userId: interaction.user.id } } },
@@ -36,102 +36,121 @@ export default class ListBlacklists extends BlacklistCommand {
       return;
     }
 
-    const serverOpt = interaction.options.getString('type');
-
-    const embeds: EmbedBuilder[] = [];
-    let fields: APIEmbedField[] = [];
-
+    let embeds: EmbedBuilder[] = [];
     const LIMIT = 5;
+
+    const blacklistType = interaction.options.getString('type') as 'server' | 'user';
+    const options = { LIMIT, iconUrl: hubInDb.iconUrl };
+    const hubId = hubInDb.id;
+
+    if (blacklistType === 'server') {
+      const result = await db.blacklistedServers.findMany({ where: { hubs: { some: { hubId } } } });
+      embeds = await this.buildServersEmbeds(interaction, hubId, result, options);
+    }
+    else if (blacklistType === 'user') {
+      const result = await db.userData.findMany({ where: { blacklistedFrom: { some: { hubId } } } });
+      embeds = await this.buildUserEmbeds(interaction, hubId, result, options);
+    }
+
+    await paginate(interaction, embeds);
+  }
+
+  private async buildServersEmbeds(
+    interaction: ChatInputCommandInteraction,
+    hubId: string,
+    list: blacklistedServers[],
+    opts: { LIMIT: number; iconUrl?: string },
+  ) {
+    const { locale } = interaction.user;
+    const embeds: EmbedBuilder[] = [];
+    let fields = [];
     let counter = 0;
 
-    // loop through all data
-    // after counter hits limit (5) assign fields to an embed and push to to embeds array
-    // reset counter & clear fields array
-    // repeat until you reach the end
+    for (let i = 0; i < list.length; i++) {
+      const data = list[i];
+      const hubData = data.hubs.find((d) => d.hubId === hubId);
+      const moderator = hubData?.moderatorId
+        ? await interaction.client.users.fetch(hubData?.moderatorId).catch(() => null)
+        : null;
 
-    if (serverOpt === 'server') {
-      const result = await db.blacklistedServers.findMany({
-        where: { hubs: { some: { hubId: hubInDb.id } } },
+      fields.push({
+        name: data.serverName,
+        value: t(
+          { phrase: 'blacklist.list.server', locale },
+          {
+            serverId: data.serverId,
+            moderator: moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown',
+            reason: `${hubData?.reason}`,
+            expires: !hubData?.expires
+              ? 'Never.'
+              : `${time(Math.round(hubData.expires.getTime() / 1000), 'R')}`,
+          },
+        ),
       });
 
-      for (let i = 0; i < result.length; i++) {
-        const data = result[i];
-        const hubData = data.hubs.find(({ hubId }) => hubId === hubInDb.id);
-        const moderator = hubData?.moderatorId
-          ? await interaction.client.users.fetch(hubData?.moderatorId).catch(() => null)
-          : null;
+      counter++;
+      if (counter >= opts.LIMIT || i === list.length - 1) {
+        embeds.push(
+          new EmbedBuilder().setFields(fields).setColor('#0099ff').setAuthor({
+            name: 'Blacklisted Servers:',
+            iconURL: opts.iconUrl,
+          }),
+        );
 
-        fields.push({
-          name: data.serverName,
-          value: t(
-            { phrase: 'blacklist.list.server', locale: interaction.user.locale },
-            {
-              serverId: data.serverId,
-              moderator: moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown',
-              reason: `${hubData?.reason}`,
-              expires: !hubData?.expires
-                ? 'Never.'
-                : `${time(Math.round(hubData.expires.getTime() / 1000), 'R')}`,
-            },
-          ),
-        });
-
-        counter++;
-        if (counter >= LIMIT || i === result.length - 1) {
-          embeds.push(
-            new EmbedBuilder().setFields(fields).setColor('#0099ff').setAuthor({
-              name: 'Blacklisted Servers:',
-              iconURL: interaction.client.user?.avatarURL()?.toString(),
-            }),
-          );
-
-          counter = 0;
-          fields = [];
-        }
-      }
-    }
-    else if (serverOpt === 'user') {
-      const result = await db.userData.findMany({
-        where: { blacklistedFrom: { some: { hubId: hubInDb.id } } },
-      });
-
-      for (let i = 0; i < result.length; i++) {
-        const data = result[i];
-        const hubData = data.blacklistedFrom.find(({ hubId }) => hubId === hubInDb.id);
-        const moderator = hubData?.moderatorId
-          ? await interaction.client.users.fetch(hubData?.moderatorId).catch(() => null)
-          : null;
-
-        fields.push({
-          name: `${data.username}`,
-          value: t(
-            { phrase: 'blacklist.list.user', locale: interaction.user.locale },
-            {
-              userId: data.userId,
-              moderator: moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown',
-              reason: `${hubData?.reason}`,
-              expires: !hubData?.expires
-                ? 'Never.'
-                : `${time(Math.round(hubData.expires.getTime() / 1000), 'R')}`,
-            },
-          ),
-        });
-
-        counter++;
-        if (counter >= LIMIT || i === result.length - 1) {
-          embeds.push(
-            new EmbedBuilder().setFields(fields).setColor(colors.interchatBlue).setAuthor({
-              name: 'Blacklisted Users:',
-              iconURL: interaction.client.user?.avatarURL()?.toString(),
-            }),
-          );
-
-          counter = 0;
-          fields = [];
-        }
+        counter = 0;
+        fields = [];
       }
     }
 
-    paginate(interaction, embeds);
+    return embeds;
+  }
+
+  private async buildUserEmbeds(
+    interaction: ChatInputCommandInteraction,
+    hubId: string,
+    list: userData[],
+    opts: { LIMIT: number; iconUrl?: string },
+  ) {
+    const { locale } = interaction.user;
+    const embeds: EmbedBuilder[] = [];
+    let fields = [];
+    let counter = 0;
+
+    for (let i = 0; i < list.length; i++) {
+      const data = list[i];
+      const hubData = data.blacklistedFrom.find((d) => d.hubId === hubId);
+      const moderator = hubData?.moderatorId
+        ? await interaction.client.users.fetch(hubData?.moderatorId).catch(() => null)
+        : null;
+
+      fields.push({
+        name: `${data.username}`,
+        value: t(
+          { phrase: 'blacklist.list.user', locale },
+          {
+            userId: data.userId,
+            moderator: moderator ? `@${moderator.username} (${hubData?.moderatorId})` : 'Unknown',
+            reason: `${hubData?.reason}`,
+            expires: !hubData?.expires
+              ? 'Never.'
+              : `${time(Math.round(hubData.expires.getTime() / 1000), 'R')}`,
+          },
+        ),
+      });
+
+      counter++;
+      if (counter >= opts.LIMIT || i === list.length - 1) {
+        embeds.push(
+          new EmbedBuilder().setFields(fields).setColor(colors.invisible).setAuthor({
+            name: 'Blacklisted Users:',
+            iconURL: opts.iconUrl,
+          }),
+        );
+
+        counter = 0;
+        fields = [];
+      }
+    }
+    return embeds;
   }
 }
