@@ -28,7 +28,7 @@ import { checkAndFetchImgurUrl, simpleEmbed, setComponentExpiry } from '../../..
 import { actionsSelect, hubEmbed } from '../../../../scripts/hub/manage.js';
 import { genLogInfoEmbed } from '../../../../scripts/hub/logs.js';
 import { setLogChannelFor } from '../../../../utils/HubLogger/Default.js';
-import HubReportLogger from '../../../../utils/HubLogger/Report.js';
+import { removeReportsFrom, setReportRole } from '../../../../utils/HubLogger/Report.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -452,7 +452,7 @@ export default class Manage extends Hub {
           return;
         }
 
-        await HubReportLogger.setRoleId(hubInDb, role.id);
+        await setReportRole(hubInDb, role.id);
       }
 
       // update the old embed with new role value
@@ -475,7 +475,7 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage_modal')
-  async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
+  static override async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const hubId = customId.args[0];
     const locale = interaction.user.locale || 'en';
@@ -673,7 +673,7 @@ export default class Manage extends Hub {
       const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
 
       if (type === 'reports') {
-        await HubReportLogger.removeReports(hubInDb.id);
+        await removeReportsFrom(hubInDb.id);
       }
       else {
         const currentConfig = hubInDb.logChannels;

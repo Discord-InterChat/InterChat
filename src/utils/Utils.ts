@@ -193,7 +193,7 @@ export const deleteMsgsFromDb = async (broadcastMsgs: string[]) => {
   const msgsToDelete = await db.broadcastedMessages.findMany({
     where: { messageId: { in: broadcastMsgs } },
   });
-  if (!msgsToDelete) return;
+  if (!msgsToDelete) return null;
 
   const originalMsgIds = msgsToDelete.map(({ originalMsgId }) => originalMsgId);
 
@@ -410,13 +410,17 @@ export const modifyUserRole = async (
     async (client, ctx) => {
       const guild = client.guilds.cache.get(ctx.guildId);
       const role = guild?.roles.cache.find(({ id }) => id === ctx.roleId);
-      const member = await guild?.members.fetch(ctx.userId).catch(() => null);
+
+      if (!guild || !role) return null;
 
       // add or remove role
-      if (guild && role) return await member?.roles[ctx.action](role).catch(() => null);
+      const member = await guild.members.fetch(ctx.userId).catch(() => null);
+      return await member?.roles[ctx.action](role).catch(() => null);
     },
     { guildId, context: { userId, roleId, guildId, action } },
   );
+
+  return;
 };
 
 /**
@@ -443,6 +447,7 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
         e.message = `For Connection: ${connection.channelId} ${e.message}`;
         Logger.error(e);
         captureException(e);
+        return null;
       }
     });
 

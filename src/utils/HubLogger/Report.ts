@@ -42,12 +42,14 @@ const genJumpLink = async (
   messageId: string | undefined,
   reportsChannelId: string,
 ) => {
-  if (!messageId) return;
+  if (!messageId) return null;
 
   const messageInDb = await db.broadcastedMessages.findFirst({
     where: { messageId },
     include: { originalMsg: { include: { broadcastMsgs: true } } },
   });
+  if (!messageInDb) return null;
+
 
   // fetch the reports server ID from the log channel's ID
   const reportsServerId = SuperClient.resolveEval(
@@ -62,18 +64,15 @@ const genJumpLink = async (
     ),
   );
 
-  if (messageInDb) {
-    const networkChannel = await db.connectedList.findFirst({
-      where: { serverId: reportsServerId, hubId },
-    });
-    const reportsServerMsg = messageInDb.originalMsg.broadcastMsgs.find(
-      (msg) => msg.channelId === networkChannel?.channelId,
-    );
+  const networkChannel = await db.connectedList.findFirst({
+    where: { serverId: reportsServerId, hubId },
+  });
+  const reportsServerMsg = messageInDb.originalMsg.broadcastMsgs.find(
+    (msg) => msg.channelId === networkChannel?.channelId,
+  );
 
-    return networkChannel && reportsServerMsg
-      ? messageLink(networkChannel.channelId, reportsServerMsg.messageId, networkChannel.serverId)
-      : null;
-  }
+  if (!networkChannel || !reportsServerMsg) return null;
+  return messageLink(networkChannel.channelId, reportsServerMsg.messageId, networkChannel.serverId);
 };
 
 /**
@@ -84,7 +83,7 @@ const genJumpLink = async (
  * @param reportedBy - The user who reported the incident.
  * @param evidence - Optional evidence for the report.
  */
-export const sendReportLog = async (
+export const sendHubReport = async (
   hubId: string,
   client: Client,
   { userId, serverId, reason, reportedBy, evidence }: LogReportOpts,
@@ -123,22 +122,21 @@ export const sendReportLog = async (
   await sendLog(client, reportsChannelId, embed, mentionRole);
 };
 
-// skipcq: JS-0105
-export const updateChannels = async (
+const updateLogChannels = async (
   hubId: string,
   logChannels: Prisma.HubLogChannelsCreateInput | Prisma.HubLogChannelsNullableUpdateEnvelopeInput,
 ) => {
   await db.hubs.update({ where: { id: hubId }, data: { logChannels } });
 };
 
-export const removeReports = async (hubId: string) => {
-  await updateChannels(hubId, { upsert: { set: null, update: { reports: null } } });
+export const removeReportsFrom = async (hubId: string) => {
+  await updateLogChannels(hubId, { upsert: { set: null, update: { reports: null } } });
 };
 
 export const setReportLogChannel = async (hubId: string, channelId: string) => {
   const data = { channelId };
 
-  await updateChannels(hubId, {
+  await updateLogChannels(hubId, {
     upsert: {
       set: { reports: data },
       update: { reports: { upsert: { set: data, update: data } } },
@@ -146,12 +144,12 @@ export const setReportLogChannel = async (hubId: string, channelId: string) => {
   });
 };
 
-export const setRoleId = async (hub: hubs, roleId: string) => {
+export const setReportRole = async (hub: hubs, roleId: string) => {
   if (!hub?.logChannels?.reports) {
-    throw new Error('Channel ID not found. Role ID cannot be set.');
+    throw new Error('Role ID can only be set if Channel ID is also set.');
   }
 
-  await updateChannels(hub.id, {
+  await updateLogChannels(hub.id, {
     ...hub.logChannels,
     reports: { ...hub.logChannels.reports, roleId },
   });
@@ -159,13 +157,13 @@ export const setRoleId = async (hub: hubs, roleId: string) => {
 
 export const setReportChannelAndRole = async (hubId: string, channelId: string, roleId: string) => {
   const data = { reports: { channelId, roleId } };
-  await updateChannels(hubId, { upsert: { set: data, update: data } });
+  await updateLogChannels(hubId, { upsert: { set: data, update: data } });
 };
 
 export default {
-  sendReportLog,
+  sendHubReport,
   setReportLogChannel,
-  setRoleId,
+  setReportRole,
   setReportChannelAndRole,
-  removeReports,
+  removeReportsFrom,
 };

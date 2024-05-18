@@ -12,7 +12,8 @@ import { logServerJoin } from '../../../../utils/HubLogger/JoinLeave.js';
 import { connectChannel } from '../../../../utils/ConnectedList.js';
 
 export default class JoinSubCommand extends Hub {
-  async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
+  // skipcq: JS-0105
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inCachedGuild()) return;
 
     const locale = interaction.user.locale;
@@ -27,7 +28,7 @@ export default class JoinSubCommand extends Hub {
     ]);
 
     if (!channel.permissionsFor(interaction.member).has('ManageMessages')) {
-      return await interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             t(
@@ -38,12 +39,13 @@ export default class JoinSubCommand extends Hub {
         ],
         ephemeral: true,
       });
+      return;
     }
 
     const channelInHub = await db.connectedList.findFirst({ where: { channelId: channel.id } });
     if (channelInHub) {
       const alrJoinedHub = await db.hubs.findFirst({ where: { id: channelInHub?.hubId } });
-      return await interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             t(
@@ -54,6 +56,7 @@ export default class JoinSubCommand extends Hub {
         ],
         ephemeral: true,
       });
+      return;
     }
 
     let hub: hubs | null = null;
@@ -66,7 +69,7 @@ export default class JoinSubCommand extends Hub {
       });
 
       if (!fetchedInvite) {
-        return await interaction.reply({
+        await interaction.reply({
           embeds: [
             simpleEmbed(
               t({ phrase: 'hub.invite.revoke.invalidCode', locale }, { emoji: emojis.no }),
@@ -74,6 +77,7 @@ export default class JoinSubCommand extends Hub {
           ],
           ephemeral: true,
         });
+        return;
       }
 
       hub = fetchedInvite.hub;
@@ -82,10 +86,11 @@ export default class JoinSubCommand extends Hub {
       hub = await db.hubs.findFirst({ where: { name: hubName, private: false } });
 
       if (!hub) {
-        return await interaction.reply({
+        await interaction.reply({
           embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
           ephemeral: true,
         });
+        return;
       }
     }
 
@@ -98,7 +103,7 @@ export default class JoinSubCommand extends Hub {
     });
 
     if (alreadyInHub) {
-      return await interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             t(
@@ -109,6 +114,7 @@ export default class JoinSubCommand extends Hub {
         ],
         ephemeral: true,
       });
+      return;
     }
 
     const userBlacklisted = await BlacklistManager.fetchUserBlacklist(hub.id, interaction.user.id);
@@ -118,20 +124,22 @@ export default class JoinSubCommand extends Hub {
     );
 
     if (userBlacklisted || serverBlacklisted) {
-      return await interaction.reply({
+      await interaction.reply({
         embeds: [simpleEmbed(t({ phrase: 'errors.blacklisted', locale }, { emoji: emojis.no }))],
         ephemeral: true,
       });
+      return;
     }
 
     // display onboarding message, also prevents user from joining twice
     const onboardingCompleted = await showOnboarding(interaction, hub.name, channel.id);
     // if user cancels onboarding or it times out
     if (!onboardingCompleted) {
-      return await interaction.deleteReply().catch(() => null);
+      await interaction.deleteReply().catch(() => null);
+      return;
     }
     else if (onboardingCompleted === 'in-progress') {
-      return await interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             t({ phrase: 'hub.onboarding.inProgress', locale }, { channel: `${channel}` }),
@@ -139,6 +147,7 @@ export default class JoinSubCommand extends Hub {
         ],
         ephemeral: true,
       });
+      return;
     }
 
     const webhook = await getOrCreateWebhook(channel);

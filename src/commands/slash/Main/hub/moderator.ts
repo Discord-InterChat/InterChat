@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
 import db from '../../../../utils/Db.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
@@ -6,7 +6,7 @@ import { t } from '../../../../utils/Locale.js';
 import { emojis } from '../../../../utils/Constants.js';
 
 export default class Moderator extends Hub {
-  async execute(interaction: ChatInputCommandInteraction<CacheType>) {
+  async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
     const hub = await db.hubs.findFirst({
       where: {
@@ -19,7 +19,7 @@ export default class Moderator extends Hub {
     });
 
     if (!hub) {
-      return await interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             t(
@@ -30,6 +30,7 @@ export default class Moderator extends Hub {
         ],
         ephemeral: true,
       });
+      return;
     }
 
     switch (interaction.options.getSubcommand()) {
@@ -37,7 +38,7 @@ export default class Moderator extends Hub {
         const user = interaction.options.getUser('user', true);
 
         if (hub.moderators.find((mod) => mod.userId === user.id)) {
-          return interaction.reply({
+          await interaction.reply({
             embeds: [
               simpleEmbed(
                 t(
@@ -48,6 +49,7 @@ export default class Moderator extends Hub {
             ],
             ephemeral: true,
           });
+          break;
         }
 
         const position = interaction.options.getString('position') ?? 'network_mod';
@@ -76,7 +78,7 @@ export default class Moderator extends Hub {
             ),
             ephemeral: true,
           });
-          return;
+          break;
         }
 
         const isExecutorOwner = hub.ownerId === interaction.user.id;
@@ -97,7 +99,7 @@ export default class Moderator extends Hub {
             ),
             ephemeral: true,
           });
-          return;
+          break;
         }
 
         await db.hubs.update({
@@ -138,7 +140,7 @@ export default class Moderator extends Hub {
             ],
             ephemeral: true,
           });
-          return;
+          break;
         }
         else if (!isUserMod) {
           await interaction.reply({
@@ -155,7 +157,7 @@ export default class Moderator extends Hub {
             ],
             ephemeral: true,
           });
-          return;
+          break;
         }
         else if (
           (hub.ownerId !== interaction.user.id && user.id === interaction.user.id) ||
@@ -175,7 +177,7 @@ export default class Moderator extends Hub {
             ],
             ephemeral: true,
           });
-          return;
+          break;
         }
 
         await db.hubs.update({
@@ -226,5 +228,7 @@ export default class Moderator extends Hub {
       default:
         break;
     }
+
+    return;
   }
 }
