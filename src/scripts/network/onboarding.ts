@@ -13,6 +13,58 @@ import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 
 const onboardingInProgress = new Collection<string, string>();
 
+const processAcceptButton = async (
+  interaction: ButtonInteraction,
+  channelId: string,
+) => {
+  await interaction?.deferUpdate();
+  onboardingInProgress.delete(channelId); // remove in-progress marker as onboarding has either been cancelled or completed
+  return interaction?.customId === 'onboarding_:accept' ? true : false;
+};
+
+const processNextButton = async (
+  interaction: ButtonInteraction,
+  channelId: string,
+  locale: supportedLocaleCodes = 'en',
+) => {
+  if (interaction?.customId !== 'onboarding_:next') {
+    onboardingInProgress.delete(channelId);
+    return false;
+  }
+
+  const acceptButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId('onboarding_:cancel')
+      .setLabel('Cancel')
+      .setStyle(ButtonStyle.Danger),
+    new ButtonBuilder()
+      .setCustomId('onboarding_:accept')
+      .setLabel('Accept')
+      .setStyle(ButtonStyle.Success),
+  );
+
+  const rulesEmbed = new EmbedBuilder()
+    .setDescription(t({ phrase: 'rules', locale }, { support_invite: LINKS.SUPPORT_INVITE }))
+    .setImage(LINKS.RULES_BANNER)
+    .setColor(colors.interchatBlue);
+
+  // next button
+  const acceptOnboarding = await interaction.update({
+    embeds: [rulesEmbed],
+    components: [acceptButton],
+  });
+
+  const acceptResp = await acceptOnboarding
+    .awaitMessageComponent({
+      time: 60_000,
+      filter: (i) => i.user.id === interaction.user.id,
+      componentType: ComponentType.Button,
+    })
+    .catch(() => null);
+
+  return acceptResp ? await processAcceptButton(acceptResp, channelId) : false;
+};
+
 /**
  * Shows the onboarding message for a hub in the specified channel.
  * @param interaction - The interaction that triggered the onboarding message.
@@ -76,56 +128,4 @@ export const showOnboarding = async (
     .catch(() => null);
 
   return response ? await processNextButton(response, channelId, locale) : false;
-};
-
-export const processNextButton = async (
-  interaction: ButtonInteraction,
-  channelId: string,
-  locale: supportedLocaleCodes = 'en',
-) => {
-  if (interaction?.customId !== 'onboarding_:next') {
-    onboardingInProgress.delete(channelId);
-    return false;
-  }
-
-  const acceptButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId('onboarding_:cancel')
-      .setLabel('Cancel')
-      .setStyle(ButtonStyle.Danger),
-    new ButtonBuilder()
-      .setCustomId('onboarding_:accept')
-      .setLabel('Accept')
-      .setStyle(ButtonStyle.Success),
-  );
-
-  const rulesEmbed = new EmbedBuilder()
-    .setDescription(t({ phrase: 'rules', locale }, { support_invite: LINKS.SUPPORT_INVITE }))
-    .setImage(LINKS.RULES_BANNER)
-    .setColor(colors.interchatBlue);
-
-  // next button
-  const acceptOnboarding = await interaction.update({
-    embeds: [rulesEmbed],
-    components: [acceptButton],
-  });
-
-  const acceptResp = await acceptOnboarding
-    .awaitMessageComponent({
-      time: 60_000,
-      filter: (i) => i.user.id === interaction.user.id,
-      componentType: ComponentType.Button,
-    })
-    .catch(() => null);
-
-  return acceptResp ? await processAcceptButton(acceptResp, channelId) : false;
-};
-
-export const processAcceptButton = async (
-  interaction: ButtonInteraction,
-  channelId: string,
-) => {
-  await interaction?.deferUpdate();
-  onboardingInProgress.delete(channelId); // remove in-progress marker as onboarding has either been cancelled or completed
-  return interaction?.customId === 'onboarding_:accept' ? true : false;
 };
