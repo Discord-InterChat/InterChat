@@ -34,7 +34,7 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { stripIndents } from 'common-tags';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { t } from '../../../../utils/Locale.js';
-import { logServerJoin } from '../../../../utils/HubLogger/JoinLeave.js';
+import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
 import { connectChannel } from '../../../../utils/ConnectedList.js';
 
 export default class Browse extends Hub {
@@ -413,7 +413,7 @@ export default class Browse extends Hub {
       });
 
       // log the server join to hub
-      await logServerJoin(hubDetails.id, interaction.guild, {
+      await logJoinToHub(hubDetails.id, interaction.guild, {
         totalConnections,
         hubName: hubDetails.name,
       });

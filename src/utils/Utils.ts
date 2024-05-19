@@ -304,16 +304,14 @@ export const replyWithError = async (interaction: RepliableInteraction, e: strin
  * @returns The timestamp in milliseconds.
  */
 export const parseTimestampFromId = (id: Snowflake) => {
-  // Convert ID to binary
-  const binaryId = BigInt(id).toString(2);
+  // Convert the snowflake to a BigInt
+  const snowflake = BigInt(id);
 
-  // Extract timestamp bits
-  const timestampBits = binaryId.substring(0, binaryId.length - 22);
+  // Extract the timestamp from the snowflake (first 42 bits)
+  const discordEpoch = 1420070400000n;
+  const timestamp = (snowflake >> 22n) + discordEpoch;
 
-  // Convert timestamp to milliseconds
-  const timestamp = parseInt(timestampBits, 2);
-
-  return timestamp + 1420070400000; // Discord epoch time
+  return Number(timestamp);
 };
 
 export const channelMention = (channelId: Snowflake | null | undefined) => {

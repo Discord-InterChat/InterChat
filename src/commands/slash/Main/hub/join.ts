@@ -8,11 +8,10 @@ import { simpleEmbed, getOrCreateWebhook, sendToHub } from '../../../../utils/Ut
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
-import { logServerJoin } from '../../../../utils/HubLogger/JoinLeave.js';
+import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
 import { connectChannel } from '../../../../utils/ConnectedList.js';
 
 export default class JoinSubCommand extends Hub {
-  // skipcq: JS-0105
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inCachedGuild()) return;
 
@@ -44,7 +43,7 @@ export default class JoinSubCommand extends Hub {
 
     const channelInHub = await db.connectedList.findFirst({ where: { channelId: channel.id } });
     if (channelInHub) {
-      const alrJoinedHub = await db.hubs.findFirst({ where: { id: channelInHub?.hubId } });
+      const alrJoinedHub = await db.hubs.findFirst({ where: { id: channelInHub.hubId } });
       await interaction.reply({
         embeds: [
           simpleEmbed(
@@ -203,7 +202,7 @@ export default class JoinSubCommand extends Hub {
     });
 
     // send log
-    await logServerJoin(hub.id, interaction.guild, {
+    await logJoinToHub(hub.id, interaction.guild, {
       totalConnections,
       hubName,
     });

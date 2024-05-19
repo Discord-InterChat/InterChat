@@ -4,6 +4,8 @@ import SuperClient from '../core/Client.js';
 import { blacklistedServers, userData } from '@prisma/client';
 import { EmbedBuilder, Snowflake } from 'discord.js';
 import { emojis, colors } from '../utils/Constants.js';
+import { logUnblacklist } from '../utils/HubLogger/ModLogs.js';
+
 export default class BlacklistManager {
   private scheduler: Scheduler;
 
@@ -19,20 +21,20 @@ export default class BlacklistManager {
    * @returns The updated blacklist.
    */
   async removeBlacklist(
-    type: 'server',
+    type: 'user' | 'server',
     hubId: string,
-    serverId: string,
-  ): Promise<blacklistedServers>;
-  async removeBlacklist(type: 'user', hubId: string, userId: string): Promise<userData | null>;
+    serverId: Snowflake,
+  ): Promise<blacklistedServers | userData | null>;
   async removeBlacklist(
     type: 'server',
     hubId: string,
-    userId: string,
+    serverId: Snowflake,
   ): Promise<blacklistedServers | null>;
-  async removeBlacklist(type: 'user' | 'server', hubId: string, userOrServerId: string) {
-    this.scheduler.stopTask(`blacklist_${type}-${userOrServerId}`);
+  async removeBlacklist(type: 'user', hubId: string, userId: Snowflake): Promise<userData | null>;
+  async removeBlacklist(type: 'user' | 'server', hubId: string, id: Snowflake) {
+    this.scheduler.stopTask(`blacklist_${type}-${id}`);
     if (type === 'user') {
-      const where = { userId: userOrServerId, blacklistedFrom: { some: { hubId } } };
+      const where = { userId: id, blacklistedFrom: { some: { hubId } } };
       const notInBlacklist = await db.userData.findFirst({ where });
       if (!notInBlacklist) return null;
 
@@ -42,7 +44,7 @@ export default class BlacklistManager {
       });
     }
     else {
-      const where = { serverId: userOrServerId, hubs: { some: { hubId } } };
+      const where = { serverId: id, hubs: { some: { hubId } } };
       const notInBlacklist = await db.blacklistedServers.findFirst({ where });
       if (!notInBlacklist) return null;
 
@@ -56,35 +58,29 @@ export default class BlacklistManager {
   /**
    * Schedule the removal of a user or server from the blacklist.
    * @param type The type of blacklist to remove. (user/server)
-   * @param userOrServerId The user or server ID to remove from the blacklist.
+   * @param id The user or server ID to remove from the blacklist.
    * @param hubId The hub ID to remove the blacklist from.
    * @param expires The date or milliseconds to wait before removing the blacklist.
    */
   scheduleRemoval(
-    type: 'server' | 'user',
-    userOrServerId: string,
+    type: 'user' | 'server',
+    id: Snowflake,
     hubId: string,
     expires: Date | number,
   ): void {
-    let name: string;
-    let execute;
+    const name = `unblacklist_${type}-${id}`;
+    if (this.scheduler.taskNames.includes(name)) this.scheduler.stopTask(name);
 
-    if (type === 'server') {
-      if (this.scheduler.taskNames.includes(`unblacklistServer-${userOrServerId}`)) {
-        this.scheduler.stopTask(`unblacklistServer-${userOrServerId}`);
-      }
-
-      name = `unblacklistServer-${userOrServerId}`;
-      execute = () => this.removeBlacklist('server', hubId, userOrServerId);
-    }
-    else {
-      if (this.scheduler.taskNames.includes(`unblacklistUser-${userOrServerId}`)) {
-        this.scheduler.stopTask(`unblacklistUser-${userOrServerId}`);
-      }
-
-      name = `unblacklistUser-${userOrServerId}`;
-      execute = () => this.removeBlacklist('user', hubId, userOrServerId);
-    }
+    const execute = async () => {
+      await this.removeBlacklist(type, hubId, id);
+      if (!SuperClient.instance.user) return;
+      await logUnblacklist(hubId, {
+        type,
+        userOrServerId: id,
+        mod: SuperClient.instance.user,
+        reason: 'Blacklist duration expired.',
+      });
+    };
 
     this.scheduler.addTask(name, expires, execute);
   }
@@ -92,31 +88,35 @@ export default class BlacklistManager {
   /**
    * Notify a user or server that they have been blacklisted.
    * @param type The type of blacklist to notify. (user/server)
-   * @param userOrServerId The user or server ID to notify.
+   * @param id The user or server ID to notify.
    * @param hubId The hub ID to notify.
    * @param expires The date after which the blacklist expires.
    * @param reason The reason for the blacklist.
    */
   async notifyBlacklist(
     type: 'user' | 'server',
-    userOrServerId: string,
-    hubId: string,
-    expires?: Date,
-    reason = 'No reason provided.',
+    id: Snowflake,
+    opts: {
+      hubId: string,
+      expires?: Date;
+      reason?: string;
+    },
   ): Promise<void> {
-    const hub = await db.hubs.findUnique({ where: { id: hubId } });
-    const expireString = expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never';
+    const hub = await db.hubs.findUnique({ where: { id: opts.hubId } });
+    const expireString = opts.expires
+      ? `<t:${Math.round(opts.expires.getTime() / 1000)}:R>`
+      : 'Never';
     const embed = new EmbedBuilder()
       .setTitle(`${emojis.blobFastBan} Blacklist Notification`)
       .setColor(colors.interchatBlue)
       .setFields(
-        { name: 'Reason', value: reason, inline: true },
+        { name: 'Reason', value: opts.reason ?? 'No reason provided.', inline: true },
         { name: 'Expires', value: expireString, inline: true },
       );
 
     if (type === 'user') {
       embed.setDescription(`You have been blacklisted from talking in hub **${hub?.name}**.`);
-      const user = await SuperClient.instance.users.fetch(userOrServerId);
+      const user = await SuperClient.instance.users.fetch(id);
       await user.send({ embeds: [embed] }).catch(() => null);
     }
     else {
@@ -124,7 +124,7 @@ export default class BlacklistManager {
         `This server has been blacklisted from talking in hub **${hub?.name}**.`,
       );
       const serverConnected = await db.connectedList.findFirst({
-        where: { serverId: userOrServerId, hubId },
+        where: { serverId: id, hubId: opts.hubId },
       });
 
       if (!serverConnected) return;

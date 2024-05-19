@@ -215,7 +215,11 @@ export default class Blacklist extends BaseCommand {
       }
       if (user) {
         blacklistManager
-          .notifyBlacklist('user', originalMsg.authorId, originalMsg.hubId, expires, reason)
+          .notifyBlacklist('user', originalMsg.authorId, {
+            hubId: originalMsg.hubId,
+            expires,
+            reason,
+          })
           .catch(() => null);
 
         await logBlacklist(originalMsg.hubId, {
@@ -249,13 +253,11 @@ export default class Blacklist extends BaseCommand {
       );
 
       // Notify server of blacklist
-      await blacklistManager.notifyBlacklist(
-        'server',
-        originalMsg.serverId,
-        originalMsg.hubId,
+      await blacklistManager.notifyBlacklist('server', originalMsg.serverId, {
+        hubId: originalMsg.hubId,
         expires,
         reason,
-      );
+      });
 
       if (expires) {
         blacklistManager.scheduleRemoval(

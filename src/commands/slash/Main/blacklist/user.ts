@@ -99,7 +99,7 @@ export default class Server extends BlacklistCommand {
       );
       if (expires) blacklistManager.scheduleRemoval('user', user.id, hubInDb.id, expires);
       await blacklistManager
-        .notifyBlacklist('user', user.id, hubInDb.id, expires, reason)
+        .notifyBlacklist('user', user.id, { hubId: hubInDb.id, expires, reason })
         .catch((e) => {
           Logger.error(e);
           captureException(e);

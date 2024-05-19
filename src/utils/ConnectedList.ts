@@ -3,6 +3,7 @@ import db from './Db.js';
 import { Collection } from 'discord.js';
 import Logger from './Logger.js';
 
+/** 📡 Contains all the **connected** channels from all hubs. */
 export const connectionCache = new Collection<string, connectedList>();
 
 export const syncConnectionCache = async () => {

@@ -4,7 +4,7 @@ import { emojis, colors } from '../Constants.js';
 import { sendLog } from './Default.js';
 import { fetchHub } from '../Utils.js';
 
-export const logServerJoin = async (
+export const logJoinToHub = async (
   hubId: string,
   server: Guild,
   opt?: { totalConnections: number; hubName: string },

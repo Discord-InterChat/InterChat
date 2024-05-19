@@ -22,6 +22,7 @@ import {
   connectionCache as _connectionCache,
   syncConnectionCache,
 } from '../utils/ConnectedList.js';
+import { CLIENT_VERSION } from '../utils/Constants.js';
 
 export default class SuperClient extends Client {
   // A static instance of the SuperClient class to be used globally.
@@ -31,7 +32,7 @@ export default class SuperClient extends Client {
   private readonly scheduler = new Scheduler();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
-  readonly version = process.env.npm_package_version ?? 'Unknown';
+  readonly version = CLIENT_VERSION;
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;
 

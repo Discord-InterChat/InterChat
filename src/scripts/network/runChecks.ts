@@ -58,13 +58,11 @@ export const isCaughtSpam = async (
     );
     blacklistManager.scheduleRemoval('user', message.author.id, hubId, 60 * 5000);
     blacklistManager
-      .notifyBlacklist(
-        'user',
-        message.author.id,
+      .notifyBlacklist('user', message.author.id, {
         hubId,
-        new Date(Date.now() + 60 * 5000),
-        'Auto-blacklisted for spamming.',
-      )
+        expires: new Date(Date.now() + 60 * 5000),
+        reason: 'Auto-blacklisted for spamming.',
+      })
       .catch(() => null);
   }
 

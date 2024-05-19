@@ -134,7 +134,7 @@ export default class UserBlacklist extends BlacklistCommand {
 
       // notify the server that they have been blacklisted
       await blacklistManager
-        .notifyBlacklist('server', serverOpt, hubInDb.id, expires, reason)
+        .notifyBlacklist('server', serverOpt, { hubId: hubInDb.id, expires, reason })
         .catch(() => null);
 
       // delete all connections from db so they can't reconnect to the hub
