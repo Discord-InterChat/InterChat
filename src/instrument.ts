@@ -8,6 +8,5 @@ if (!isDevBuild) {
     release: process.env.npm_package_version,
     tracesSampleRate: 1.0,
     maxValueLength: 1000,
-    integrations: [Sentry.prismaIntegration()],
   });
 }

@@ -34,36 +34,36 @@ export default class EditMessage extends BaseCommand {
     const isOnCooldown = await this.checkAndSetCooldown(interaction);
     if (isOnCooldown) return;
 
-    await interaction.deferReply({ ephemeral: true });
-
     const target = interaction.targetMessage;
     const { locale } = interaction.user;
 
     if (!checkIfStaff(interaction.user.id) && !(await userVotedToday(interaction.user.id))) {
-      await interaction.editReply({
+      await interaction.reply({
         content: t({ phrase: 'errors.mustVote', locale }, { emoji: emojis.no }),
       });
       return;
     }
 
-    const messageInDb = await db.originalMessages.findFirst({
-      where: {
-        OR: [
-          { messageId: target.id },
-          { broadcastMsgs: { some: { messageId: interaction.targetId } } },
-        ],
-      },
-      include: { hub: true, broadcastMsgs: true },
-    });
+    const messageInDb =
+      (await db.originalMessages.findFirst({
+        where: { messageId: target.id },
+        include: { hub: true, broadcastMsgs: true },
+      })) ??
+      (
+        await db.broadcastedMessages.findFirst({
+          where: { messageId: target.id },
+          include: { originalMsg: true },
+        })
+      )?.originalMsg;
 
     if (!messageInDb) {
-      await interaction.editReply({
+      await interaction.reply({
         content: t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       });
       return;
     }
     else if (interaction.user.id !== messageInDb.authorId) {
-      await interaction.editReply({
+      await interaction.reply({
         content: t({ phrase: 'errors.notMessageAuthor', locale }, { emoji: emojis.no }),
       });
       return;
@@ -109,13 +109,20 @@ export default class EditMessage extends BaseCommand {
     }
 
     const messageInDb = await db.originalMessages.findFirst({
-      where: {
-        OR: [{ messageId: target.id }, { broadcastMsgs: { some: { messageId: target.id } } }],
-      },
+      where: { messageId: target.id },
       include: { hub: true, broadcastMsgs: true },
     });
 
-    if (!messageInDb?.hub) {
+    const broadcastedMsgs = messageInDb
+      ? null
+      : await db.broadcastedMessages.findFirst({
+        where: { messageId: target.id },
+        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+      });
+
+    const originalMsg = messageInDb ?? broadcastedMsgs?.originalMsg;
+
+    if (!originalMsg?.hub) {
       await interaction.editReply(
         t(
           { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
@@ -127,10 +134,10 @@ export default class EditMessage extends BaseCommand {
 
     // get the new message input by user
     const userInput = interaction.fields.getTextInputValue('newMessage');
-    const hubSettings = new HubSettingsBitField(messageInDb.hub.settings);
+    const hubSettings = new HubSettingsBitField(originalMsg.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
     const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } =
-      await EditMessage.fabricateNewMsg(interaction.user, target, newMessage, messageInDb.serverId);
+      await EditMessage.fabricateNewMsg(interaction.user, target, newMessage, originalMsg.serverId);
 
     const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
     const hasBlockInvites = hubSettings.has('BlockInvites');
@@ -145,10 +152,10 @@ export default class EditMessage extends BaseCommand {
 
     // find all the messages through the network
     const channelSettingsArr = await db.connectedList.findMany({
-      where: { channelId: { in: messageInDb.broadcastMsgs.map((c) => c.channelId) } },
+      where: { channelId: { in: originalMsg.broadcastMsgs.map((c) => c.channelId) } },
     });
 
-    const results = messageInDb.broadcastMsgs.map(async (element) => {
+    const results = originalMsg.broadcastMsgs.map(async (element) => {
       const channelSettings = channelSettingsArr.find((c) => c.channelId === element.channelId);
       if (!channelSettings) return false;
 
@@ -185,7 +192,7 @@ export default class EditMessage extends BaseCommand {
           edited,
           total: resultsArray.length.toString(),
           emoji: emojis.yes,
-          user: userMention(messageInDb.authorId),
+          user: userMention(originalMsg.authorId),
         },
       ),
     );
