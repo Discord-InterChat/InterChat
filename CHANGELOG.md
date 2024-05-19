@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.23.0](https://github.com/Discord-InterChat/InterChat/compare/v3.22.6...v3.23.0) (2024-05-19)
+
+
+### Features
+
+* **sentry:** add prisma error support ([bbbc531](https://github.com/Discord-InterChat/InterChat/commit/bbbc531cdd87b5c308bb1928f408960259cf91d8))
+
 ### [3.22.6](https://github.com/Discord-InterChat/InterChat/compare/v3.22.5...v3.22.6) (2024-05-19)
 
 ### [3.22.5](https://github.com/Discord-InterChat/InterChat/compare/v3.22.4...v3.22.5) (2024-05-19)
