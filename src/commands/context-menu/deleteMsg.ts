@@ -2,7 +2,6 @@ import {
   ApplicationCommandType,
   MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
-  Snowflake,
 } from 'discord.js';
 import BaseCommand from '../../core/BaseCommand.js';
 import { checkIfStaff } from '../../utils/Utils.js';
@@ -50,10 +49,10 @@ export default class DeleteMessage extends BaseCommand {
 
     const { hub, broadcastMsgs } = messageInDb;
 
-    const isHubMod = (userId: Snowflake) =>
-      !hub?.moderators.find((m) => m.userId === userId) && hub?.ownerId !== userId;
-
-    const isStaffOrHubMod = !checkIfStaff(interaction.user.id) || !isHubMod(interaction.user.id);
+    const isHubMod = !hub?.moderators.find(
+      (m) => m.userId === interaction.user.id && hub?.ownerId !== interaction.user.id,
+    );
+    const isStaffOrHubMod = checkIfStaff(interaction.user.id) || isHubMod;
 
     if (!isStaffOrHubMod && interaction.user.id !== messageInDb.authorId) {
       await interaction.editReply(

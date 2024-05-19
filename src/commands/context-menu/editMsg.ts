@@ -47,12 +47,17 @@ export default class EditMessage extends BaseCommand {
       return;
     }
 
-    const messageInDb = await db.broadcastedMessages.findFirst({
-      where: { messageId: target.id },
-      include: { originalMsg: { include: { hub: true } } },
+    const messageInDb = await db.originalMessages.findFirst({
+      where: {
+        OR: [
+          { messageId: target.id },
+          { broadcastMsgs: { some: { messageId: interaction.targetId } } },
+        ],
+      },
+      include: { hub: true, broadcastMsgs: true },
     });
 
-    if (!messageInDb?.originalMsg) {
+    if (!messageInDb) {
       await interaction.reply({
         content: t(
           {
@@ -65,7 +70,7 @@ export default class EditMessage extends BaseCommand {
       });
       return;
     }
-    else if (interaction.user.id !== messageInDb?.originalMsg.authorId) {
+    else if (interaction.user.id !== messageInDb.authorId) {
       await interaction.reply({
         content: t(
           { phrase: 'errors.notMessageAuthor', locale: interaction.user.locale },
@@ -107,18 +112,18 @@ export default class EditMessage extends BaseCommand {
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
-      await interaction.reply(
-        t({ phrase: 'errors.unknownNetworkMessage' }, { emoji: emojis.no }),
-      );
+      await interaction.reply(t({ phrase: 'errors.unknownNetworkMessage' }, { emoji: emojis.no }));
       return;
     }
 
-    const messageInDb = await db.broadcastedMessages.findFirst({
-      where: { messageId: target.id },
-      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+    const messageInDb = await db.originalMessages.findFirst({
+      where: {
+        OR: [{ messageId: target.id }, { broadcastMsgs: { some: { messageId: target.id } } }],
+      },
+      include: { hub: true, broadcastMsgs: true },
     });
 
-    if (!messageInDb?.originalMsg.hub) {
+    if (!messageInDb?.hub) {
       await interaction.reply(
         t(
           { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
@@ -133,15 +138,10 @@ export default class EditMessage extends BaseCommand {
 
     // get the new message input by user
     const userInput = interaction.fields.getTextInputValue('newMessage');
-    const hubSettings = new HubSettingsBitField(messageInDb.originalMsg.hub.settings);
+    const hubSettings = new HubSettingsBitField(messageInDb.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
     const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } =
-      await EditMessage.fabricateNewMsg(
-        interaction.user,
-        target,
-        newMessage,
-        messageInDb.originalMsg.serverId,
-      );
+      await EditMessage.fabricateNewMsg(interaction.user, target, newMessage, messageInDb.serverId);
 
     const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
     const hasBlockInvites = hubSettings.has('BlockInvites');
@@ -156,10 +156,10 @@ export default class EditMessage extends BaseCommand {
 
     // find all the messages through the network
     const channelSettingsArr = await db.connectedList.findMany({
-      where: { channelId: { in: messageInDb.originalMsg.broadcastMsgs.map((c) => c.channelId) } },
+      where: { channelId: { in: messageInDb.broadcastMsgs.map((c) => c.channelId) } },
     });
 
-    const results = messageInDb.originalMsg.broadcastMsgs.map(async (element) => {
+    const results = messageInDb.broadcastMsgs.map(async (element) => {
       const channelSettings = channelSettingsArr.find((c) => c.channelId === element.channelId);
       if (!channelSettings) return false;
 
@@ -196,7 +196,7 @@ export default class EditMessage extends BaseCommand {
           edited,
           total: resultsArray.length.toString(),
           emoji: emojis.yes,
-          user: userMention(messageInDb.originalMsg.authorId),
+          user: userMention(messageInDb.authorId),
         },
       ),
     );
