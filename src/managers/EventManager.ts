@@ -250,8 +250,13 @@ export default abstract class EventManager {
     const hub = await db.hubs.findFirst({ where: { id: connection?.hubId } });
     if (!hub) return;
 
+    message.channel.sendTyping();
+
     const settings = new HubSettingsBitField(hub.settings);
-    const hubConnections = connectionCache.filter((con) => con.hubId === connection.hubId);
+    const hubConnections = connectionCache.filter(
+      (con) =>
+        con.hubId === connection.hubId && con.connected && con.channelId !== message.channel.id,
+    );
 
     const attachment = message.attachments.first();
     const attachmentURL = attachment ? attachment.url : await getAttachmentURL(message.content);
@@ -278,7 +283,7 @@ export default abstract class EventManager {
 
     // only delete the message if there is no attachment or if the user has already viewed the welcome message
     // deleting attachments will make the image not show up in the embed (discord removes it from its cdn)
-    if (!attachment) message.delete().catch(() => null);
+    // if (!attachment) message.delete().catch(() => null);
 
     const userData = await db.userData.findFirst({
       where: { userId: message.author.id, viewedNetworkWelcome: true },
@@ -303,7 +308,9 @@ export default abstract class EventManager {
 
         // component decorator stuff
         const customIdSuffix = customId.suffix ? `:${customId.suffix}` : '';
-        const interactionHandler = interactions.get(`${customId.prefix}${customIdSuffix}`) ?? interactions.get(customId.prefix);
+        const interactionHandler =
+          interactions.get(`${customId.prefix}${customIdSuffix}`) ??
+          interactions.get(customId.prefix);
         const isExpiredInteraction = customId.expiry && customId.expiry < Date.now();
 
         if (!interactionHandler || isExpiredInteraction) {

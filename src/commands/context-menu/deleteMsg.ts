@@ -2,6 +2,7 @@ import {
   ApplicationCommandType,
   MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
+  Snowflake,
 } from 'discord.js';
 import BaseCommand from '../../core/BaseCommand.js';
 import { checkIfStaff } from '../../utils/Utils.js';
@@ -24,9 +25,14 @@ export default class DeleteMessage extends BaseCommand {
 
     await interaction.deferReply({ ephemeral: true });
 
-    const messageInDb = await db?.broadcastedMessages.findFirst({
-      where: { messageId: interaction.targetId },
-      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+    const messageInDb = await db.originalMessages.findFirst({
+      where: {
+        OR: [
+          { messageId: interaction.targetId },
+          { broadcastMsgs: { some: { messageId: interaction.targetId } } },
+        ],
+      },
+      include: { hub: true, broadcastMsgs: true },
     });
 
     if (!messageInDb) {
@@ -42,13 +48,14 @@ export default class DeleteMessage extends BaseCommand {
       return;
     }
 
-    const interchatStaff = checkIfStaff(interaction.user.id);
-    if (
-      !interchatStaff &&
-      !messageInDb.originalMsg.hub?.moderators.find((m) => m.userId === interaction.user.id) &&
-      messageInDb.originalMsg.hub?.ownerId !== interaction.user.id &&
-      interaction.user.id !== messageInDb.originalMsg.authorId
-    ) {
+    const { hub, broadcastMsgs } = messageInDb;
+
+    const isHubMod = (userId: Snowflake) =>
+      !hub?.moderators.find((m) => m.userId === userId) && hub?.ownerId !== userId;
+
+    const isStaffOrHubMod = !checkIfStaff(interaction.user.id) || !isHubMod(interaction.user.id);
+
+    if (!isStaffOrHubMod && interaction.user.id !== messageInDb.authorId) {
       await interaction.editReply(
         t(
           {
@@ -61,7 +68,7 @@ export default class DeleteMessage extends BaseCommand {
       return;
     }
 
-    const results = messageInDb.originalMsg.broadcastMsgs.map(async (element) => {
+    const results = broadcastMsgs.map(async (element) => {
       const connection = interaction.client.connectionCache.find(
         (c) => c.channelId === element.channelId,
       );
@@ -92,7 +99,7 @@ export default class DeleteMessage extends BaseCommand {
           },
           {
             emoji: emojis.yes,
-            user: `<@${messageInDb.originalMsg.authorId}>`,
+            user: `<@${messageInDb.authorId}>`,
             deleted: deleted.toString(),
             total: resultsArray.length.toString(),
           },
