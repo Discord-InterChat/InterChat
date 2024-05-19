@@ -34,15 +34,14 @@ export default class EditMessage extends BaseCommand {
     const isOnCooldown = await this.checkAndSetCooldown(interaction);
     if (isOnCooldown) return;
 
+    await interaction.deferReply({ ephemeral: true });
+
     const target = interaction.targetMessage;
+    const { locale } = interaction.user;
 
     if (!checkIfStaff(interaction.user.id) && !(await userVotedToday(interaction.user.id))) {
-      await interaction.reply({
-        content: t(
-          { phrase: 'errors.mustVote', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
-        ephemeral: true,
+      await interaction.editReply({
+        content: t({ phrase: 'errors.mustVote', locale }, { emoji: emojis.no }),
       });
       return;
     }
@@ -58,25 +57,14 @@ export default class EditMessage extends BaseCommand {
     });
 
     if (!messageInDb) {
-      await interaction.reply({
-        content: t(
-          {
-            phrase: 'errors.unknownNetworkMessage',
-            locale: interaction.user.locale,
-          },
-          { emoji: emojis.no },
-        ),
-        ephemeral: true,
+      await interaction.editReply({
+        content: t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       });
       return;
     }
     else if (interaction.user.id !== messageInDb.authorId) {
-      await interaction.reply({
-        content: t(
-          { phrase: 'errors.notMessageAuthor', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
-        ephemeral: true,
+      await interaction.editReply({
+        content: t({ phrase: 'errors.notMessageAuthor', locale }, { emoji: emojis.no }),
       });
       return;
     }
@@ -107,12 +95,16 @@ export default class EditMessage extends BaseCommand {
 
   @RegisterInteractionHandler('editMsg')
   static async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
+    await interaction.deferReply({ ephemeral: true });
+
     const customId = CustomID.parseCustomId(interaction.customId);
     const messageId = customId.args[0];
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
-      await interaction.reply(t({ phrase: 'errors.unknownNetworkMessage' }, { emoji: emojis.no }));
+      await interaction.editReply(
+        t({ phrase: 'errors.unknownNetworkMessage' }, { emoji: emojis.no }),
+      );
       return;
     }
 
@@ -124,7 +116,7 @@ export default class EditMessage extends BaseCommand {
     });
 
     if (!messageInDb?.hub) {
-      await interaction.reply(
+      await interaction.editReply(
         t(
           { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
           { emoji: emojis.no },
@@ -132,9 +124,6 @@ export default class EditMessage extends BaseCommand {
       );
       return;
     }
-
-    // defer it because it takes a while to edit the message
-    await interaction.deferReply({ ephemeral: true });
 
     // get the new message input by user
     const userInput = interaction.fields.getTextInputValue('newMessage');

@@ -73,7 +73,7 @@ export default class BlacklistManager {
 
     const execute = async () => {
       await this.removeBlacklist(type, hubId, id);
-      if (!SuperClient.instance.user) return;
+      if (!SuperClient.instance?.user) return;
       await logUnblacklist(hubId, {
         type,
         userOrServerId: id,
