@@ -1,6 +1,6 @@
 {
   "name": "interchat",
-  "version": "3.22.2",
+  "version": "3.22.3",
   "description": "A growing Discord bot which provides inter-server chat!",
   "main": "build/cluster.js",
   "license": "GPL-3.0-or-later",
@@ -50,7 +50,7 @@
     "@types/node": "^20.12.12",
     "@types/source-map-support": "^0.5.10",
     "cz-conventional-changelog": "^3.3.0",
-    "eslint": "9.3.0",
+    "eslint": "^8.57.0",
     "lint-staged": "^15.2.2",
     "prettier": "^3.2.5",
     "prisma": "^5.14.0",
