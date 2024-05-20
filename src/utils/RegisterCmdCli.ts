@@ -5,32 +5,29 @@ import { CLIENT_ID, SUPPORT_SERVER_ID } from './Constants.js';
 import { commandsMap } from '../core/BaseCommand.js';
 import 'dotenv/config';
 
+const greyText = (text: unknown) => `'\x1b[38;5;246m${text}\x1b[0m`;
+const greenText = (text: unknown) => `'\x1b[38;5;78m${text}\x1b[0m`;
+
 const registerAllCommands = async (staffOnly = false) => {
   // make sure CommandsMap is not empty
   await loadCommandFiles();
 
   const rest = new REST().setToken(process.env.TOKEN as string);
 
-  if (staffOnly) {
-    const commands = commandsMap
-      .filter((command) => command.staffOnly)
-      .map((command) => command.data);
+  const commands = commandsMap
+    .filter((command) => (staffOnly ? command.staffOnly : !command.staffOnly))
+    .map((command) => command.data);
 
-    // register staff commands to the main guild
-    return await rest
-      .put(Routes.applicationGuildCommands(CLIENT_ID, SUPPORT_SERVER_ID), { body: commands })
-      .then(() => Logger.info('Registered all staff application commands.'));
-  }
-  else {
-    const commands = commandsMap
-      .filter((command) => !command.staffOnly)
-      .map((command) => command.data);
+  const route = staffOnly
+    ? Routes.applicationGuildCommands(CLIENT_ID, SUPPORT_SERVER_ID)
+    : Routes.applicationCommands(CLIENT_ID);
 
-    // register all other commands to the global application;
-    return await rest
-      .put(Routes.applicationCommands(CLIENT_ID), { body: commands })
-      .then(() => Logger.info('Registered all public application commands.'));
-  }
+  // register all other commands to the global application;
+  const registerRes = (await rest.put(route, { body: commands })) as object[];
+
+  const type = staffOnly ? 'private' : 'public';
+  const totalRegistered = registerRes.length === commands.length ? greenText(registerRes.length) : greyText(registerRes.length);
+  Logger.info(`Registered ${totalRegistered}${greyText('/')}${greenText(commands.length)} ${type} application commands.`);
 };
 
 process.argv.forEach(async (arg) => {

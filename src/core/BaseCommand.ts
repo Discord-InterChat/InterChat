@@ -5,9 +5,10 @@ import {
   ContextMenuCommandInteraction,
   MessageComponentInteraction,
   ModalSubmitInteraction,
-  RESTPostAPIApplicationCommandsJSONBody,
   time,
   RepliableInteraction,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from 'discord.js';
 import { InteractionFunction } from '../decorators/Interaction.js';
 import { t } from '../utils/Locale.js';
@@ -19,7 +20,7 @@ export const commandsMap = new Collection<string, BaseCommand>();
 export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
 
 export default abstract class BaseCommand {
-  abstract readonly data: RESTPostAPIApplicationCommandsJSONBody;
+  abstract readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody | RESTPostAPIContextMenuApplicationCommandsJSONBody;
   readonly staffOnly?: boolean;
   readonly cooldown?: number;
   readonly description?: string;

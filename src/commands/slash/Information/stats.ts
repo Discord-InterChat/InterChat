@@ -18,9 +18,11 @@ import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
 import { msToReadable } from '../../../utils/Utils.js';
 
 export default class Stats extends BaseCommand {
-  readonly data = {
+  override readonly data = {
     name: 'stats',
     description: 'View InterChat\'s statistics.',
+    integration_types: [0, 1], // 0 = GUILD_INSTALL, 1 = USER_INSTALL
+    contexts: [0, 1, 2], // 0 = GUILD, 1 = BOT_DM, 2 = PRIVATE_CHANNEL
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
@@ -131,7 +133,7 @@ export default class Stats extends BaseCommand {
         stripIndents`
 					### Shard Stats
 					**Total Shards:** ${interaction.client.cluster.info.TOTAL_SHARDS} 
-					**On Shard:** ${interaction.guild?.shardId}
+					**On Shard:** ${interaction.guild?.shardId ?? 0}
 					`,
       )
       .setFields(
