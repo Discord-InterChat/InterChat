@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.24.0](https://github.com/Discord-InterChat/InterChat/compare/v3.23.1...v3.24.0) (2024-05-20)
+
+
+### Features
+
+* **stats:** support user install ([b8eefc2](https://github.com/Discord-InterChat/InterChat/commit/b8eefc2619d4b0767f29e2509eee6866e991c57a))
+
 ### [3.23.1](https://github.com/Discord-InterChat/InterChat/compare/v3.23.0...v3.23.1) (2024-05-19)
 
 
