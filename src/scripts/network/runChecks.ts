@@ -74,14 +74,14 @@ export const containsNSFW = async (message: Message, imgUrl: string | null | und
   const attachment = message.attachments.first();
 
   if (!imgUrl || !attachment) return null;
-  else if (!REGEX.STATIC_IMAGE_URL.test(imgUrl)) return null;
-
   // run static images through the nsfw detector
   const predictions = await analyzeImageForNSFW(attachment ? attachment.url : imgUrl);
 
+  if (!predictions) return null;
+
   return {
     predictions,
-    unsafe: (predictions && isUnsafeImage(predictions)) === true,
+    unsafe: isUnsafeImage(predictions),
   };
 };
 
@@ -173,7 +173,7 @@ export const runChecks = async (
   }
 
   const isNsfw = await containsNSFW(message, opts?.attachmentURL);
-  if (isNsfw?.predictions) {
+  if (isNsfw?.unsafe) {
     const nsfwEmbed = new EmbedBuilder()
       .setTitle(t({ phrase: 'network.nsfw.title', locale }))
       .setDescription(

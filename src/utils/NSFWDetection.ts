@@ -1,17 +1,20 @@
-import { REGEX } from './Constants.js';
+import { API_PORT } from './Constants.js';
 
 export declare type predictionType = {
   className: 'Drawing' | 'Hentai' | 'Neutral' | 'Porn' | 'Sexy';
   probability: number;
 };
-/*
+/**
  * Analyze an image URL and return the predictions
- * @param url The image URL
- * @returns The predictions
+ * @param imageUrl The image URL
+ * @returns The predictions object
  */
-export const analyzeImageForNSFW = async (url: string): Promise<predictionType[] | null> => {
-  if (!REGEX.STATIC_IMAGE_URL.test(url)) return null;
-  const res = await fetch(`http://localhost:443/nsfw?url=${url}`);
+export const analyzeImageForNSFW = async (imageUrl: string): Promise<predictionType[] | null> => {
+  const res = await fetch(`http://localhost:${API_PORT}/nsfw`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ imageUrl }),
+  });
 
   return res.status === 200 ? await res.json() : null;
 };
@@ -24,7 +27,6 @@ export const analyzeImageForNSFW = async (url: string): Promise<predictionType[]
 export const isUnsafeImage = (predictions: predictionType[]): boolean => {
   const safeCategories = ['Neutral', 'Drawing'];
 
-  return predictions.some(
-    (prediction) => !safeCategories.includes(prediction.className) && prediction.probability > 0.6,
-  );
+  const topPrediction = predictions[0];
+  return !safeCategories.includes(topPrediction.className) && topPrediction.probability > 0.6;
 };

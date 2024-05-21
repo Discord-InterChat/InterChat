@@ -1,46 +1,28 @@
-import { load } from 'nsfwjs';
+import Logger from '../../utils/Logger.js';
 import { Router } from 'express';
 import { captureException } from '@sentry/node';
-import { tensor3d } from '@tensorflow/tfjs-node';
-import Logger from '../../utils/Logger.js';
-import sharp from 'sharp';
-import jpeg from 'jpeg-js';
+import { node } from '@tensorflow/tfjs-node';
+import { REGEX, isDevBuild } from '../../utils/Constants.js';
+import { createRequire } from 'module';
+import { NSFWJS } from 'nsfwjs';
 
-let nsfwModel;
+const require = createRequire(import.meta.url);
+const nsfwjs = require('nsfwjs');
+
+// InceptionV3 is more accurate but slower and takes up a shit ton of memory
+const nsfwModel: NSFWJS = await nsfwjs.load(isDevBuild ? 'MobileNetV2Mid' : 'InceptionV3');
 const router = Router();
 
-const imageToTensor = async (rawImageData: ArrayBuffer) => {
-  const jpegImg = await sharp(rawImageData).jpeg().toBuffer();
-
-  const { width, height, data } = jpeg.decode(jpegImg); // This is key for the prediction to work well
-  const buffer = new Uint8Array(width * height * 3);
-
-  let offset = 0;
-  for (let i = 0; i < buffer.length; i += 3) {
-    buffer[i] = data[offset];
-    buffer[i + 1] = data[offset + 1];
-    buffer[i + 2] = data[offset + 2];
-
-    offset += 4;
-  }
-
-  return tensor3d(buffer, [height, width, 3]);
-};
-
-router.get('/nsfw', async (req, res) => {
-  nsfwModel = await load('http://localhost:443/model/');
-
-  const url = new URL(req.url, `http://${req.headers.host}`);
-  const imageUrl = url.searchParams.get('url');
+router.post('/nsfw', async (req, res) => {
+  const imageUrl = req.body.imageUrl;
 
   if (!imageUrl || typeof imageUrl !== 'string') {
     res.writeHead(400, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Missing url query parameter.' }));
+    res.end(JSON.stringify({ error: 'Missing imageUrl.' }));
     return;
   }
 
-  const regex = /\bhttps?:\/\/\S+?\.(?:png|jpe?g)(?:\?\S+)?\b/;
-  if (!regex.test(imageUrl)) {
+  if (!REGEX.STATIC_IMAGE_URL.test(imageUrl)) {
     res.writeHead(400, { 'Content-Type': 'application/json' });
     res.end(
       JSON.stringify({
@@ -52,11 +34,12 @@ router.get('/nsfw', async (req, res) => {
 
   try {
     const imageBuffer = await (await fetch(imageUrl)).arrayBuffer();
-    const imageTensor = await imageToTensor(imageBuffer);
-    const predictions = await nsfwModel.classify(imageTensor);
+    const image = node.decodeImage(new Uint8Array(imageBuffer), 3);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const predictions = await nsfwModel.classify(image as any);
+    image.dispose();
 
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(predictions));
+    res.status(200).json(predictions);
   }
   catch (error) {
     Logger.error(error);
