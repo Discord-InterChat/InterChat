@@ -5,7 +5,7 @@
   "main": "build/cluster.js",
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "start": "node .",
+    "start": "node --max-old-space-size=4096 .",
     "start:prod": "pm2 start .ecosystem.config.js",
     "build": "tsc --build",
     "dev": "tsc-watch --outDir ./build --onSuccess \"node --trace-warnings .\"",
