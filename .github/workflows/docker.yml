@@ -42,16 +42,12 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build Docker image
-        id: build
-        run: |
-          docker build -t ${{ steps.meta.outputs.tags }} \
-                       --label "org.opencontainers.image.title=${{ steps.meta.outputs.labels.title }}" \
-                       --label "org.opencontainers.image.description=${{ steps.meta.outputs.labels.description }}" \
-                       --label "org.opencontainers.image.url=${{ steps.meta.outputs.labels.url }}" \
-                       --label "org.opencontainers.image.source=${{ steps.meta.outputs.labels.source }}" \
-                       --label "org.opencontainers.image.version=${{ steps.meta.outputs.labels.version }}" \
-                       --label "org.opencontainers.image.revision=${{ steps.meta.outputs.labels.revision }}" \
-                       .
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Backup Container Logs
         run: |
