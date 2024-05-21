@@ -25,16 +25,20 @@ export default class DeleteMessage extends BaseCommand {
     await interaction.deferReply({ ephemeral: true });
 
     const messageInDb = await db.originalMessages.findFirst({
-      where: {
-        OR: [
-          { messageId: interaction.targetId },
-          { broadcastMsgs: { some: { messageId: interaction.targetId } } },
-        ],
-      },
+      where: { messageId: interaction.targetId },
       include: { hub: true, broadcastMsgs: true },
     });
 
-    if (!messageInDb) {
+    const broadcastedMsg = messageInDb
+      ? null
+      : await db.broadcastedMessages.findFirst({
+        where: { messageId: interaction.targetId },
+        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+      });
+
+    const originalMsg = messageInDb ?? broadcastedMsg?.originalMsg;
+
+    if (!originalMsg?.hub) {
       await interaction.editReply(
         t(
           {
@@ -47,14 +51,14 @@ export default class DeleteMessage extends BaseCommand {
       return;
     }
 
-    const { hub, broadcastMsgs } = messageInDb;
+    const { hub } = originalMsg;
 
-    const isHubMod = !hub?.moderators.find(
-      (m) => m.userId === interaction.user.id && hub?.ownerId !== interaction.user.id,
-    );
+    const isHubMod =
+      !hub?.moderators.some((m) => m.userId === interaction.user.id) ||
+      hub.ownerId === interaction.user.id;
     const isStaffOrHubMod = checkIfStaff(interaction.user.id) || isHubMod;
 
-    if (!isStaffOrHubMod && interaction.user.id !== messageInDb.authorId) {
+    if (!isStaffOrHubMod && interaction.user.id !== originalMsg.authorId) {
       await interaction.editReply(
         t(
           {
@@ -67,7 +71,7 @@ export default class DeleteMessage extends BaseCommand {
       return;
     }
 
-    const results = broadcastMsgs.map(async (element) => {
+    const results = originalMsg.broadcastMsgs?.map(async (element) => {
       const connection = interaction.client.connectionCache.find(
         (c) => c.channelId === element.channelId,
       );
@@ -98,7 +102,7 @@ export default class DeleteMessage extends BaseCommand {
           },
           {
             emoji: emojis.yes,
-            user: `<@${messageInDb.authorId}>`,
+            user: `<@${originalMsg.authorId}>`,
             deleted: deleted.toString(),
             total: resultsArray.length.toString(),
           },
