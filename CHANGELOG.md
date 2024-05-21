@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.24.1](https://github.com/Discord-InterChat/InterChat/compare/v3.24.0...v3.24.1) (2024-05-21)
+
+
+### Bug Fixes
+
+* **deleteMsg:** takes too long to delete msgs ([df02b54](https://github.com/Discord-InterChat/InterChat/commit/df02b54d17af1e8170fc8d187c2e525aba194007))
+* Update nsfwjs  to version 4.1.0 and improve nsfw accuracy ([380d87e](https://github.com/Discord-InterChat/InterChat/commit/380d87ea2c62fd4ed369cd74c79cab719db3f0f9))
+
 ## [3.24.0](https://github.com/Discord-InterChat/InterChat/compare/v3.23.1...v3.24.0) (2024-05-20)
 
 
