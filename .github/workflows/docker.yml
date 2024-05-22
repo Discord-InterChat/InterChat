@@ -55,8 +55,10 @@ jobs:
           mv logs/ ~/console-logs/interchat-logs-$(date +"%Y-%m-%d_%H-%M-%S")
 
       - name: Stop and delete old containers (if any)
-        run: docker ps -a | grep 'interchat' | awk '{print $1}' | xargs docker rm
-
+        continue-on-error: true
+        run: |
+          docker stop $(docker ps -aq)
+          docker rm $(docker ps -aq)
       - name: Run image
         run: docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
 

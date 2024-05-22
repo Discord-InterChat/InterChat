@@ -250,7 +250,7 @@ export default abstract class EventManager {
     const hub = await db.hubs.findFirst({ where: { id: connection?.hubId } });
     if (!hub) return;
 
-    message.channel.sendTyping();
+    message.channel.sendTyping().catch(() => null);
 
     const settings = new HubSettingsBitField(hub.settings);
     const hubConnections = connectionCache.filter(
