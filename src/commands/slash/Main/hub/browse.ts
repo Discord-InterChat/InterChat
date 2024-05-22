@@ -39,6 +39,8 @@ import { connectChannel } from '../../../../utils/ConnectedList.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
+    await interaction.deferReply();
+
     const sortBy = interaction.options.getString('sort') as
       | 'servers'
       | 'active'
@@ -104,12 +106,11 @@ export default class Browse extends Hub {
     );
 
     if (!hubList || hubList.length === 0) {
-      await interaction.reply({
+      await interaction.editReply({
         content: t(
           { phrase: 'hub.browse.noHubs', locale: interaction.user.locale },
           { emoji: emojis.no },
         ),
-        ephemeral: true,
       });
       return;
     }
