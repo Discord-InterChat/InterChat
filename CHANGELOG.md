@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.24.6](https://github.com/Discord-InterChat/InterChat/compare/v3.24.5...v3.24.6) (2024-05-22)
+
+
+### Bug Fixes
+
+* defer reply in Browse command execution ([4909bb5](https://github.com/Discord-InterChat/InterChat/commit/4909bb5eef79833be2c21a7a873e746c312045e0))
+
 ### [3.24.5](https://github.com/Discord-InterChat/InterChat/compare/v3.24.4...v3.24.5) (2024-05-22)
 
 
