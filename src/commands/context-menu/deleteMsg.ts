@@ -24,19 +24,19 @@ export default class DeleteMessage extends BaseCommand {
 
     await interaction.deferReply({ ephemeral: true });
 
-    const messageInDb = await db.originalMessages.findFirst({
+    let originalMsg = await db.originalMessages.findFirst({
       where: { messageId: interaction.targetId },
       include: { hub: true, broadcastMsgs: true },
     });
 
-    const broadcastedMsg = messageInDb
-      ? null
-      : await db.broadcastedMessages.findFirst({
+    if (!originalMsg) {
+      const broadcastedMsg = await db.broadcastedMessages.findFirst({
         where: { messageId: interaction.targetId },
         include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
       });
 
-    const originalMsg = messageInDb ?? broadcastedMsg?.originalMsg;
+      originalMsg = broadcastedMsg?.originalMsg ?? null;
+    }
 
     if (!originalMsg?.hub) {
       await interaction.editReply(
@@ -54,8 +54,9 @@ export default class DeleteMessage extends BaseCommand {
     const { hub } = originalMsg;
 
     const isHubMod =
-      !hub?.moderators.some((m) => m.userId === interaction.user.id) ||
+      hub?.moderators.some((mod) => mod.userId === interaction.user.id) ||
       hub.ownerId === interaction.user.id;
+
     const isStaffOrHubMod = checkIfStaff(interaction.user.id) || isHubMod;
 
     if (!isStaffOrHubMod && interaction.user.id !== originalMsg.authorId) {

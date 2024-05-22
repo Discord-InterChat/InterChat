@@ -4,7 +4,7 @@ import { Message, EmbedBuilder } from 'discord.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
 import { emojis, REGEX } from '../../utils/Constants.js';
 import { t } from '../../utils/Locale.js';
-import { replaceLinks } from '../../utils/Utils.js';
+import { containsInviteLinks, replaceLinks } from '../../utils/Utils.js';
 import { check as checkProfanity } from '../../utils/Profanity.js';
 import { runAntiSpam } from './antiSpam.js';
 import { analyzeImageForNSFW, isUnsafeImage } from '../../utils/NSFWDetection.js';
@@ -33,12 +33,6 @@ export const containsStickers = (message: Message) => {
   return message.stickers.size > 0 && !message.content;
 };
 
-export const containsInviteLinks = (message: Message, settings: HubSettingsBitField) => {
-  const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
-
-  // check if message contains invite links from the array
-  return settings.has('BlockInvites') && inviteLinks.some((link) => message.content.includes(link));
-};
 export const isCaughtSpam = async (
   message: Message,
   settings: HubSettingsBitField,
@@ -155,7 +149,7 @@ export const runChecks = async (
     );
     return false;
   }
-  if (containsInviteLinks(message, settings)) {
+  if (settings.has('BlockInvites') && containsInviteLinks(message.content)) {
     await replyToMsg(
       message,
       'Advertising is not allowed. Set an invite in `/connection` instead!',

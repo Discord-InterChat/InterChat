@@ -15,7 +15,7 @@ import {
 import db from '../../utils/Db.js';
 import BaseCommand from '../../core/BaseCommand.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
-import { checkIfStaff, getAttachmentURL, replaceLinks, userVotedToday } from '../../utils/Utils.js';
+import { checkIfStaff, containsInviteLinks, getAttachmentURL, replaceLinks, userVotedToday } from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
@@ -44,17 +44,19 @@ export default class EditMessage extends BaseCommand {
       return;
     }
 
-    const messageInDb =
-      (await db.originalMessages.findFirst({
-        where: { messageId: target.id },
-        include: { hub: true, broadcastMsgs: true },
-      })) ??
-      (
-        await db.broadcastedMessages.findFirst({
-          where: { messageId: target.id },
-          include: { originalMsg: true },
-        })
-      )?.originalMsg;
+    let messageInDb = await db.originalMessages.findFirst({
+      where: { messageId: interaction.targetId },
+      include: { hub: true, broadcastMsgs: true },
+    });
+
+    if (!messageInDb) {
+      const broadcastedMsg = await db.broadcastedMessages.findFirst({
+        where: { messageId: interaction.targetId },
+        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+      });
+
+      messageInDb = broadcastedMsg?.originalMsg ?? null;
+    }
 
     if (!messageInDb) {
       await interaction.reply({
@@ -108,19 +110,21 @@ export default class EditMessage extends BaseCommand {
       return;
     }
 
-    const messageInDb = await db.originalMessages.findFirst({
+    let originalMsg = await db.originalMessages.findFirst({
       where: { messageId: target.id },
       include: { hub: true, broadcastMsgs: true },
     });
 
-    const broadcastedMsgs = messageInDb
-      ? null
-      : await db.broadcastedMessages.findFirst({
+
+    if (!originalMsg) {
+      const broadcastedMsg = await db.broadcastedMessages.findFirst({
         where: { messageId: target.id },
         include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
       });
 
-    const originalMsg = messageInDb ?? broadcastedMsgs?.originalMsg;
+      originalMsg = broadcastedMsg?.originalMsg ?? null;
+    }
+
 
     if (!originalMsg?.hub) {
       await interaction.editReply(
@@ -139,11 +143,7 @@ export default class EditMessage extends BaseCommand {
     const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } =
       await EditMessage.fabricateNewMsg(interaction.user, target, newMessage, originalMsg.serverId);
 
-    const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
-    const hasBlockInvites = hubSettings.has('BlockInvites');
-    const hasDiscordInvite = inviteLinks.some((link) => newMessage.includes(link));
-
-    if (hasBlockInvites && hasDiscordInvite) {
+    if (hubSettings.has('BlockInvites') && containsInviteLinks(newMessage)) {
       await interaction.editReply(
         t({ phrase: 'errors.inviteLinks', locale: interaction.user.locale }, { emoji: emojis.no }),
       );

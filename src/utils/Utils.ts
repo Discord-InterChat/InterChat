@@ -444,7 +444,6 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
       catch (e) {
         e.message = `For Connection: ${connection.channelId} ${e.message}`;
         Logger.error(e);
-        captureException(e);
         return null;
       }
     });
@@ -485,4 +484,9 @@ export const getUserLocale = async (userId: Snowflake) => {
   const fetch = await db.userData.findFirst({ where: { userId } });
 
   return (fetch?.locale as supportedLocaleCodes | undefined) || 'en';
+};
+
+export const containsInviteLinks = (str: string) => {
+  const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
+  return inviteLinks.some((link) => str.includes(link));
 };
