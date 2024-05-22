@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.24.5](https://github.com/Discord-InterChat/InterChat/compare/v3.24.4...v3.24.5) (2024-05-22)
+
+
+### Bug Fixes
+
+* **network:** ignore if .sendTyping fails ([20c40ce](https://github.com/Discord-InterChat/InterChat/commit/20c40ce47c66e70b1616b9d1f8498e64292e55fb))
+
 ### [3.24.4](https://github.com/Discord-InterChat/InterChat/compare/v3.24.3...v3.24.4) (2024-05-22)
 
 
