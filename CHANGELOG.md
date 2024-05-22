@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.24.4](https://github.com/Discord-InterChat/InterChat/compare/v3.24.3...v3.24.4) (2024-05-22)
+
+
+### Bug Fixes
+
+* **deleteMsg:** fix hub mod check ([69d41db](https://github.com/Discord-InterChat/InterChat/commit/69d41db937916c1d4ebb6b8f717ffeb843f2774e))
+
 ### [3.24.3](https://github.com/Discord-InterChat/InterChat/compare/v3.24.2...v3.24.3) (2024-05-21)
 
 ### [3.24.2](https://github.com/Discord-InterChat/InterChat/compare/v3.24.1...v3.24.2) (2024-05-21)
