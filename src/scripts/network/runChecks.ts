@@ -82,13 +82,14 @@ export const containsNSFW = async (message: Message, imgUrl: string | null | und
 export const containsLinks = (message: Message, settings: HubSettingsBitField) => {
   return (
     settings.has('HideLinks') &&
-    !REGEX.IMAGE_URL.test(message.content) &&
+    !REGEX.STATIC_IMAGE_URL.test(message.content) &&
     REGEX.LINKS.test(message.content)
   );
 };
 export const unsupportedAttachment = (message: Message) => {
   const attachment = message.attachments.first();
-  const allowedTypes = ['image/gif', 'image/png', 'image/jpeg', 'image/jpg'];
+  // NOTE: Even 'image/gif' was allowed
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
   return (attachment?.contentType && !allowedTypes.includes(attachment.contentType)) === true;
 };
@@ -157,7 +158,7 @@ export const runChecks = async (
     return false;
   }
   if (unsupportedAttachment(message)) {
-    await replyToMsg(message, 'Only images and gifs are allowed to be sent within the network.');
+    await replyToMsg(message, 'Only images and tenor gifs are allowed to be sent within the network.');
     return false;
   }
 

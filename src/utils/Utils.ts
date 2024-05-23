@@ -40,7 +40,7 @@ import 'dotenv/config';
 import { captureException } from '@sentry/node';
 import { CustomID } from './CustomID.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
-import { deleteConnections } from './ConnectedList.js';
+import { deleteConnection, deleteConnections } from './ConnectedList.js';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export const msToReadable = (milliseconds: number) => {
@@ -322,20 +322,19 @@ export const channelMention = (channelId: Snowflake | null | undefined) => {
 export const handleError = (e: Error, interaction?: Interaction) => {
   // log the error to the system
   Logger.error(e);
-  let extra;
 
-  if (interaction) {
-    extra = {
+  const extra = interaction
+    ? {
       user: { id: interaction.user.id, username: interaction.user.username },
       extra: {
         type: interaction.type,
         identifier:
-          interaction.isCommand() || interaction.isAutocomplete()
-            ? interaction.commandName
-            : CustomID.parseCustomId(interaction.customId),
+            interaction.isCommand() || interaction.isAutocomplete()
+              ? interaction.commandName
+              : CustomID.parseCustomId(interaction.customId),
       },
-    };
-  }
+    }
+    : undefined;
 
   // capture the error to Sentry.io with additional information
   captureException(e, extra);
@@ -432,17 +431,20 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
 
   const res = connections
     .filter((c) => c.connected === true)
-    .map(async (connection) => {
-      const threadId = connection.parentId ? connection.channelId : undefined;
+    .map(async ({ channelId, webhookURL, parentId }) => {
+      const threadId = parentId ? channelId : undefined;
       const payload =
         typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
 
       try {
-        const webhook = new WebhookClient({ url: connection.webhookURL });
+        const webhook = new WebhookClient({ url: webhookURL });
         return await webhook.send(payload);
       }
       catch (e) {
-        e.message = `For Connection: ${connection.channelId} ${e.message}`;
+        // if the webhook is unknown, delete the connection
+        if (e.message.includes('Unknown Webhook')) await deleteConnection({ channelId });
+
+        e.message = `For Connection: ${channelId} ${e.message}`;
         Logger.error(e);
         return null;
       }
@@ -458,7 +460,7 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
  */
 export const getAttachmentURL = async (string: string) => {
   // Tenor Gifs / Image URLs
-  const URLMatch = string.match(REGEX.IMAGE_URL);
+  const URLMatch = string.match(REGEX.STATIC_IMAGE_URL);
   if (URLMatch) return URLMatch[0];
 
   const gifMatch = string.match(REGEX.TENOR_LINKS);
