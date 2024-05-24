@@ -48,7 +48,7 @@ clusterManager.on('clusterCreate', async (cluster) => {
     scheduler.addRecurringTask('pauseIdleConnections', 60 * 60 * 1000, () =>
       pauseIdleConnections(clusterManager),
     );
-    scheduler.addRecurringTask('syncBotlistStats', 6 * 60 * 10_000, () =>
+    scheduler.addRecurringTask('syncBotlistStats', 10 * 60 * 10_000, () =>
       syncBotlistStats(clusterManager),
     );
   }
