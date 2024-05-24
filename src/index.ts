@@ -2,14 +2,14 @@ import './instrument.js';
 import Logger from './utils/Logger.js';
 import SuperClient from './core/Client.js';
 import { eventMethods } from './decorators/GatewayEvent.js';
-import ReactionUpdater from './utils/ReactionUpdater.js';
+import { RandomComponents } from './utils/RandomComponents.js';
 import EventManager from './managers/EventManager.js';
 
 const client = new SuperClient();
 
 // dum classes
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const _reactionUpdater = ReactionUpdater;
+const _randomComponentHandlers = RandomComponents;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const _eventManager = EventManager;
 

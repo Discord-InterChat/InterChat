@@ -1,10 +1,11 @@
-import { Prisma, connectedList } from '@prisma/client';
 import db from './Db.js';
+import { Prisma, connectedList } from '@prisma/client';
 import { Collection } from 'discord.js';
 import Logger from './Logger.js';
 
 /** 📡 Contains all the **connected** channels from all hubs. */
 export const connectionCache = new Collection<string, connectedList>();
+export const messageTimestamps = new Collection<string, Date>();
 
 export const syncConnectionCache = async () => {
   Logger.debug('[InterChat]: Populating connection cache.');
@@ -40,7 +41,6 @@ export const modifyConnection = async (
   data: Prisma.connectedListUpdateInput,
 ) => {
   const connection = await db.connectedList.update({ where, data });
-
   connectionCache.set(connection.channelId, connection);
   return connection;
 };
@@ -56,4 +56,13 @@ export const modifyConnections = async (
     .catch(() => null);
 
   return connections;
+};
+
+export const storeMsgTimestamps = (data: Collection<string, Date>): void => {
+  data.forEach(
+    async (lastActive, channelId) => {
+      Logger.info(`Storing for ${channelId}: ${lastActive.toLocaleString()}`);
+      await modifyConnection({ channelId }, { lastActive });
+    },
+  );
 };

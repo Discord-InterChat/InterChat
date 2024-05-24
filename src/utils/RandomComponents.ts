@@ -18,8 +18,9 @@ import { stripIndents } from 'common-tags';
 import { t } from './Locale.js';
 import { removeReaction, addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
+import { modifyConnection } from './ConnectedList.js';
 
-export default abstract class ReactionUpdater {
+export abstract class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')
   static async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction): Promise<void> {
@@ -195,5 +196,18 @@ export default abstract class ReactionUpdater {
       // reflect the changes in the message's buttons
       await updateReactions(messageInDb.originalMsg.broadcastMsgs, dbReactions);
     }
+  }
+
+  @RegisterInteractionHandler('inactiveConnect', 'toggle')
+  static async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
+    const customId = CustomID.parseCustomId(interaction.customId);
+    const channelId = customId.args[0];
+
+    await modifyConnection({ channelId }, { connected: true });
+
+    await interaction.update({
+      content: `${emojis.tick} You have reconnected successfully!`,
+      components: [],
+    });
   }
 }

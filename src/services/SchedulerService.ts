@@ -67,6 +67,11 @@ export default class Scheduler {
     this.tasks.forEach((_, taskName) => this.stopTask(taskName));
   }
 
+
+  hasTask(taskName: string): boolean {
+    return this.tasks.has(taskName);
+  }
+
   /**
    * Returns an array of currently running task names.
    */

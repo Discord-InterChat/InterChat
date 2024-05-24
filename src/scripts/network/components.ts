@@ -6,6 +6,8 @@ type extraOpts = {
   disconnectEmoji?: string;
   connectEmoji?: string;
   userId?: string;
+  /** set custom prefix for customId and handle it urself, eg: `epik_reconnect`  */
+  customCustomId?: string;
 };
 
 /**
@@ -25,7 +27,7 @@ export const buildConnectionButtons = (
     new ButtonBuilder()
       .setCustomId(
         new CustomID()
-          .setIdentifier('connection', 'toggle')
+          .setIdentifier(opts.customCustomId ?? 'connection', 'toggle')
           .addArgs(channelId)
           .addArgs(opts?.userId ?? '')
           .toString(),
