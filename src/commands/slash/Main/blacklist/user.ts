@@ -129,8 +129,8 @@ export default class Server extends BlacklistCommand {
       await interaction.followUp({ embeds: [successEmbed] });
 
       // send log to hub's log channel
-      await logBlacklist(hubInDb.id, {
-        userOrServer: user,
+      await logBlacklist(hubInDb.id, interaction.client, {
+        target: user,
         mod: interaction.user,
         reason,
         expires,
@@ -159,7 +159,7 @@ export default class Server extends BlacklistCommand {
         // send log to hub's log channel
         await logUnblacklist(hubInDb.id, {
           type: 'user',
-          userOrServerId: user.id,
+          targetId: user.id,
           mod: interaction.user,
           reason,
         });

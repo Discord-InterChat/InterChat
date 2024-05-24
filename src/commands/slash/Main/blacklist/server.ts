@@ -44,14 +44,14 @@ export default class UserBlacklist extends BlacklistCommand {
 
     const blacklistManager = interaction.client.blacklistManager;
     const subCommandGroup = interaction.options.getSubcommandGroup();
-    const serverOpt = interaction.options.getString('server', true);
+    const serverId = interaction.options.getString('server', true);
 
     if (subCommandGroup === 'add') {
       const reason = interaction.options.getString('reason', true);
       const duration = parse(`${interaction.options.getString('duration')}`);
       const expires = duration ? new Date(Date.now() + duration) : undefined;
 
-      const serverInBlacklist = await BlacklistManager.fetchServerBlacklist(hubInDb.id, serverOpt);
+      const serverInBlacklist = await BlacklistManager.fetchServerBlacklist(hubInDb.id, serverId);
       if (serverInBlacklist) {
         await interaction.followUp({
           embeds: [
@@ -69,7 +69,7 @@ export default class UserBlacklist extends BlacklistCommand {
         return;
       }
 
-      const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
+      const server = await interaction.client.fetchGuild(serverId);
       if (!server) {
         await interaction.followUp(
           t(
@@ -82,7 +82,7 @@ export default class UserBlacklist extends BlacklistCommand {
 
       try {
         await blacklistManager.addServerBlacklist(
-          server.id,
+          serverId,
           hubInDb.id,
           reason,
           interaction.user.id,
@@ -134,22 +134,22 @@ export default class UserBlacklist extends BlacklistCommand {
 
       // notify the server that they have been blacklisted
       await blacklistManager
-        .notifyBlacklist('server', serverOpt, { hubId: hubInDb.id, expires, reason })
+        .notifyBlacklist('server', serverId, { hubId: hubInDb.id, expires, reason })
         .catch(() => null);
 
       // delete all connections from db so they can't reconnect to the hub
-      await deleteConnections({ serverId: server.id, hubId: hubInDb.id });
+      await deleteConnections({ serverId, hubId: hubInDb.id });
 
       // send log to hub's log channel
-      await logBlacklist(hubInDb.id, {
-        userOrServer: server,
+      await logBlacklist(hubInDb.id, interaction.client, {
+        target: serverId,
         mod: interaction.user,
         reason,
         expires,
       });
     }
     else if (subCommandGroup === 'remove') {
-      const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverOpt);
+      const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverId);
       if (!result) {
         await interaction.followUp(
           t(
@@ -171,7 +171,7 @@ export default class UserBlacklist extends BlacklistCommand {
       // send log to hub's log channel
       await logUnblacklist(hubInDb.id, {
         type: 'user',
-        userOrServerId: serverOpt,
+        targetId: serverId,
         mod: interaction.user,
       });
     }

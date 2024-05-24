@@ -76,7 +76,7 @@ export default class BlacklistManager {
       if (!SuperClient.instance?.user) return;
       await logUnblacklist(hubId, {
         type,
-        userOrServerId: id,
+        targetId: id,
         mod: SuperClient.instance.user,
         reason: 'Blacklist duration expired.',
       });

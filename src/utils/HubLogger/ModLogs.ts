@@ -1,9 +1,10 @@
 import { stripIndents } from 'common-tags';
-import { User, Guild, EmbedBuilder } from 'discord.js';
+import { User, EmbedBuilder, Snowflake, Client } from 'discord.js';
 import BlacklistManager from '../../managers/BlacklistManager.js';
 import { emojis, colors } from '../Constants.js';
 import { fetchHub, toTitleCase } from '../Utils.js';
 import { sendLog } from './Default.js';
+import SuperClient from '../../core/Client.js';
 
 /**
  * Logs the blacklisting of a user or server.
@@ -14,30 +15,53 @@ import { sendLog } from './Default.js';
  */
 export const logBlacklist = async (
   hubId: string,
+  client: Client,
   opts: {
-    userOrServer: User | Guild;
+    target: User | Snowflake;
     mod: User;
     reason: string;
     expires?: Date;
   },
 ) => {
-  const { userOrServer, mod, reason, expires } = opts;
+  const { target: _target, mod, reason, expires } = opts;
 
   const hub = await fetchHub(hubId);
   if (!hub?.logChannels?.modLogs) return;
 
-  const name = userOrServer instanceof User ? userOrServer.username : userOrServer.name;
-  const iconURL =
-    userOrServer instanceof User
-      ? userOrServer.displayAvatarURL()
-      : userOrServer.iconURL() ?? undefined;
-  const type = userOrServer instanceof User ? 'User' : 'Server';
+  let name;
+  let iconURL;
+  let type;
+  let target;
+
+  if (_target instanceof User) {
+    target = _target;
+    name = target.username;
+    iconURL = target.displayAvatarURL();
+    type = 'User';
+  }
+  else {
+    target = SuperClient.resolveEval(
+      await client.cluster.broadcastEval(
+        (c, guildId) => {
+          const guild = c.guilds.cache.get(guildId);
+          return { name: guild?.name, iconURL: guild?.iconURL() ?? undefined, id: guildId };
+        },
+        { context: _target },
+      ),
+    );
+
+    if (!target) return;
+
+    name = target.name;
+    iconURL = target.iconURL;
+    type = 'Server';
+  }
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: `${type} ${name} blacklisted`, iconURL })
     .setDescription(
       stripIndents`
-				${emojis.dotBlue} **${type}:** ${name} (${userOrServer.id})
+				${emojis.dotBlue} **${type}:** ${name} (${target.id})
 				${emojis.dotBlue} **Moderator:** ${mod.username} (${mod.id})
 				${emojis.dotBlue} **Hub:** ${hub?.name}
 			`,
@@ -60,7 +84,7 @@ export const logUnblacklist = async (
   hubId: string,
   opts: {
     type: 'user' | 'server';
-    userOrServerId: string;
+    targetId: string;
     mod: User;
     reason?: string;
   },
@@ -73,14 +97,13 @@ export const logUnblacklist = async (
   let originalReason: string | undefined;
 
   if (opts.type === 'user') {
-    blacklisted = await BlacklistManager.fetchUserBlacklist(hub.id, opts.userOrServerId);
-    name =
-      (await opts.mod.client.users.fetch(opts.userOrServerId).catch(() => null))?.username ??
-      `${blacklisted?.username}`;
+    blacklisted = await BlacklistManager.fetchUserBlacklist(hub.id, opts.targetId);
+    const user = await opts.mod.client.users.fetch(opts.targetId).catch(() => null);
+    name = user?.username ?? `${blacklisted?.username}`;
     originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === hub.id)?.reason;
   }
   else {
-    blacklisted = await BlacklistManager.fetchServerBlacklist(hub.id, opts.userOrServerId);
+    blacklisted = await BlacklistManager.fetchServerBlacklist(hub.id, opts.targetId);
     name = blacklisted?.serverName;
   }
 
@@ -88,10 +111,10 @@ export const logUnblacklist = async (
     .setAuthor({ name: `${toTitleCase(opts.type)} ${name} unblacklisted` })
     .setDescription(
       stripIndents`
-				${emojis.dotBlue} **User:** ${name} (${opts.userOrServerId})
-				${emojis.dotBlue} **Moderator:** ${opts.mod.username} (${opts.mod.id})
-				${emojis.dotBlue} **Hub:** ${hub?.name}
-			`,
+        ${emojis.dotBlue} **User:** ${name} (${opts.targetId})
+        ${emojis.dotBlue} **Moderator:** ${opts.mod.username} (${opts.mod.id})
+	      ${emojis.dotBlue} **Hub:** ${hub?.name}
+      `,
     )
     .addFields(
       {

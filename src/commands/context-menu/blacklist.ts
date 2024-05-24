@@ -202,6 +202,7 @@ export default class Blacklist extends BaseCommand {
           { username: user?.username ?? 'Unknown User', emoji: emojis.tick },
         ),
       );
+
       await blacklistManager.addUserBlacklist(
         originalMsg.hubId,
         originalMsg.authorId,
@@ -222,8 +223,8 @@ export default class Blacklist extends BaseCommand {
           })
           .catch(() => null);
 
-        await logBlacklist(originalMsg.hubId, {
-          userOrServer: user,
+        await logBlacklist(originalMsg.hubId, interaction.client, {
+          target: user,
           mod: interaction.user,
           reason,
           expires,
@@ -235,7 +236,7 @@ export default class Blacklist extends BaseCommand {
 
     // server blacklist
     else {
-      const server = interaction.client.guilds.cache.get(originalMsg.serverId);
+      const server = await interaction.client.fetchGuild(originalMsg.serverId);
 
       successEmbed.setDescription(
         t(
@@ -274,8 +275,8 @@ export default class Blacklist extends BaseCommand {
       });
 
       if (server) {
-        await logBlacklist(originalMsg.hubId, {
-          userOrServer: server,
+        await logBlacklist(originalMsg.hubId, interaction.client, {
+          target: server.id,
           mod: interaction.user,
           reason,
           expires,
