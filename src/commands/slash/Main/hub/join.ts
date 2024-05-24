@@ -141,7 +141,7 @@ export default class JoinSubCommand extends Hub {
       await interaction.reply({
         embeds: [
           simpleEmbed(
-            t({ phrase: 'hub.onboarding.inProgress', locale }, { channel: `${channel}` }),
+            t({ phrase: 'network.onboarding.inProgress', locale }, { channel: `${channel}`, emoji: emojis.dnd_anim }),
           ),
         ],
         ephemeral: true,

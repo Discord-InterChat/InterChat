@@ -19,7 +19,7 @@ const processAcceptButton = async (
 ) => {
   await interaction?.deferUpdate();
   onboardingInProgress.delete(channelId); // remove in-progress marker as onboarding has either been cancelled or completed
-  return interaction?.customId === 'onboarding_:accept' ? true : false;
+  return interaction?.customId === 'onboarding_:accept';
 };
 
 const processNextButton = async (
@@ -27,10 +27,7 @@ const processNextButton = async (
   channelId: string,
   locale: supportedLocaleCodes = 'en',
 ) => {
-  if (interaction?.customId !== 'onboarding_:next') {
-    onboardingInProgress.delete(channelId);
-    return false;
-  }
+  if (interaction?.customId !== 'onboarding_:next') return false;
 
   const acceptButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
@@ -127,5 +124,10 @@ export const showOnboarding = async (
     })
     .catch(() => null);
 
-  return response ? await processNextButton(response, channelId, locale) : false;
+  const finalResult = response ? await processNextButton(response, channelId, locale) : false;
+
+  // in case user cancels onboarding, remove in-progress marker
+  if (finalResult === false) onboardingInProgress.delete(channelId);
+
+  return finalResult;
 };
