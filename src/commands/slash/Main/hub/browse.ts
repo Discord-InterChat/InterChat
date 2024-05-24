@@ -363,7 +363,7 @@ export default class Browse extends Hub {
       }
       else if (onboardingCompleted === 'in-progress') {
         await interaction.update({
-          content: t({ phrase: 'onboarding.inProgress', locale }, { channel: `${channel}` }),
+          content: t({ phrase: 'hub.onboarding.inProgress', locale }, { channel: `${channel}` }),
           embeds: [],
           components: [],
         });
