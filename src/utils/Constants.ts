@@ -15,7 +15,7 @@ export const {
 
 export const isDevBuild = process.env.NODE_ENV === 'development';
 
-export const CLIENT_VERSION = process.env.npm_package_version ?? 'Unknown';
+export const PROJECT_VERSION = process.env.npm_package_version ?? 'Unknown';
 export const CLIENT_ID = isDevBuild ? '798748015435055134' : '769921109209907241';
 export const API_PORT = isDevBuild ? 3000 : 443;
 export const SUPPORT_SERVER_ID = '770256165300338709';

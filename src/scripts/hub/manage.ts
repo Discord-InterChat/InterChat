@@ -72,9 +72,9 @@ export const hubEmbed = async (hub: hubs & { connections: connectedList[] }) => 
       {
         name: 'Blacklists',
         value: stripIndents`
-      - Total: ${hubBlacklistedUsers + hubBlacklistedServers}
-      - Users: ${hubBlacklistedUsers}
-      - Servers: ${hubBlacklistedServers}
+          Total: ${hubBlacklistedUsers + hubBlacklistedServers}
+          Users: ${hubBlacklistedUsers}
+          Servers: ${hubBlacklistedServers}
       `,
         inline: true,
       },
@@ -82,9 +82,9 @@ export const hubEmbed = async (hub: hubs & { connections: connectedList[] }) => 
       {
         name: 'Hub Stats',
         value: stripIndents`
-      - Moderators: ${hub.moderators.length.toString()}
-      - Connected: ${hub.connections.length}
-      - Owner: <@${hub.ownerId}>
+          Moderators: ${hub.moderators.length.toString()}
+          Connected: ${hub.connections.length}
+          Owner: <@${hub.ownerId}>
       `,
         inline: true,
       },

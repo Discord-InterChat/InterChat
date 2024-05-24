@@ -22,7 +22,7 @@ import {
   connectionCache as _connectionCache,
   syncConnectionCache,
 } from '../utils/ConnectedList.js';
-import { CLIENT_VERSION } from '../utils/Constants.js';
+import { PROJECT_VERSION } from '../utils/Constants.js';
 
 export default class SuperClient extends Client {
   // A static instance of the SuperClient class to be used globally.
@@ -32,7 +32,7 @@ export default class SuperClient extends Client {
   private readonly scheduler = new Scheduler();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
-  readonly version = CLIENT_VERSION;
+  readonly version = PROJECT_VERSION;
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;
 
@@ -40,9 +40,9 @@ export default class SuperClient extends Client {
   readonly reactionCooldowns = new Collection<string, number>();
   readonly connectionCache = _connectionCache;
 
-  readonly commandCooldowns = new CooldownService();
   readonly cluster = new ClusterClient(this);
   readonly blacklistManager = new BlacklistManager(this.scheduler);
+  readonly commandCooldowns = new CooldownService();
 
   constructor() {
     super({
@@ -102,7 +102,7 @@ export default class SuperClient extends Client {
     await syncConnectionCache();
     this._connectionCachePopulated = true;
 
-    this.getScheduler().addRecurringTask(
+    this.scheduler.addRecurringTask(
       'populateConnectionCache',
       60_000 * 5,
       syncConnectionCache,

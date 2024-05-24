@@ -8,7 +8,7 @@ import {
   Collection,
   RepliableInteraction,
 } from 'discord.js';
-import { CLIENT_VERSION, LINKS, colors } from '../../utils/Constants.js';
+import { LINKS, colors } from '../../utils/Constants.js';
 import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 
 const onboardingInProgress = new Collection<string, string>();
@@ -94,7 +94,7 @@ export const showOnboarding = async (
     )
     .setColor(colors.interchatBlue)
     .setFooter({
-      text: t({ phrase: `${embedPhrase}.footer`, locale }, { version: CLIENT_VERSION }),
+      text: t({ phrase: `${embedPhrase}.footer`, locale }, { version: interaction.client.version }),
     });
 
   const nextButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
