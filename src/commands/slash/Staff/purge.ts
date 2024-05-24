@@ -8,11 +8,9 @@ import {
 } from 'discord.js';
 import db from '../../../utils/Db.js';
 import BaseCommand from '../../../core/BaseCommand.js';
-import { captureException } from '@sentry/node';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../utils/Constants.js';
-import { simpleEmbed, msToReadable, deleteMsgsFromDb } from '../../../utils/Utils.js';
-import Logger from '../../../utils/Logger.js';
+import { simpleEmbed, msToReadable, deleteMsgsFromDb, handleError } from '../../../utils/Utils.js';
 import { broadcastedMessages } from '@prisma/client';
 import SuperClient from '../../../core/Client.js';
 
@@ -26,7 +24,7 @@ const limitOpt: APIApplicationCommandBasicOption = {
 
 export default class Purge extends BaseCommand {
   readonly staffOnly = true;
-  readonly cooldown = 10_000;
+  readonly cooldown = 60 * 1000;
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'purge',
     description: 'Mass delete network messages. Staff-only',
@@ -247,8 +245,7 @@ export default class Purge extends BaseCommand {
         return SuperClient.resolveEval(evalRes) || [];
       }
       catch (e) {
-        Logger.error(e);
-        captureException(e);
+        handleError(e, interaction);
       }
 
       return [];
@@ -279,7 +276,7 @@ export default class Purge extends BaseCommand {
       .setTimestamp()
       .setColor('Red');
 
-    await interaction.followUp({ embeds: [resultEmbed] }).catch(captureException);
+    await interaction.followUp({ embeds: [resultEmbed] });
 
     const succeededMessages = results?.filter((i) => i.length > 0).flat();
     await deleteMsgsFromDb(succeededMessages);
