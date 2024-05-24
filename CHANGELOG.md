@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.25.0](https://github.com/Discord-InterChat/InterChat/compare/v3.24.6...v3.25.0) (2024-05-24)
+
+
+### Features
+
+* delete connections after 24h of inactivity ([#70](https://github.com/Discord-InterChat/InterChat/issues/70)) ([43476dc](https://github.com/Discord-InterChat/InterChat/commit/43476dcee0b7f5f929d86441e9b4f1c830c4ed81))
+* enable compact mode by default ([2a6f942](https://github.com/Discord-InterChat/InterChat/commit/2a6f9420d90d2200e1bd5dc939a77232ee50dea9))
+
+
+### Bug Fixes
+
+* **blacklist:** fix server blacklist name not showing up ([0c43fde](https://github.com/Discord-InterChat/InterChat/commit/0c43fde5cc8fd5cd7aa4c608ca8048ce261d09c7))
+* **network:** disallow sending of gifs ([761cde6](https://github.com/Discord-InterChat/InterChat/commit/761cde6b1b29f02aa287c4432035f3f72d0e0ec6))
+
 ### [3.24.6](https://github.com/Discord-InterChat/InterChat/compare/v3.24.5...v3.24.6) (2024-05-22)
 
 
