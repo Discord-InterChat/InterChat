@@ -18,13 +18,13 @@ import {
 } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import Hub from './index.js';
+import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { hubs } from '@prisma/client';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import {
   calculateAverageRating,
   getOrCreateWebhook,
-  parseTimestampFromId,
   sendToHub,
   simpleEmbed,
 } from '../../../../utils/Utils.js';
@@ -32,7 +32,6 @@ import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { stripIndents } from 'common-tags';
-import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { t } from '../../../../utils/Locale.js';
 import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
 import { connectChannel } from '../../../../utils/ConnectedList.js';
@@ -100,7 +99,7 @@ export default class Browse extends Hub {
         return Browse.createHubListingsEmbed(
           hub,
           connections,
-          lastMessage ? new Date(parseTimestampFromId(lastMessage.messageId)) : undefined,
+          lastMessage?.createdAt,
         );
       }),
     );
@@ -382,7 +381,7 @@ export default class Browse extends Hub {
         webhookURL: webhook.url,
         hub: { connect: { id: hubDetails.id } },
         connected: true,
-        compact: false,
+        compact: true,
         profFilter: true,
       });
 

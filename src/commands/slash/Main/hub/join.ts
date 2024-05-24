@@ -173,7 +173,7 @@ export default class JoinSubCommand extends Hub {
       webhookURL: webhook.url,
       hub: { connect: { id: hub.id } },
       connected: true,
-      compact: false,
+      compact: true,
       profFilter: true,
     });
 
