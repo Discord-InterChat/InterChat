@@ -45,7 +45,9 @@ clusterManager.on('clusterCreate', async (cluster) => {
     pauseIdleConnections(clusterManager).catch(Logger.error);
 
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
-    scheduler.addRecurringTask('pauseIdleConnections', 60 * 60 * 1000, () => pauseIdleConnections(clusterManager));
+    scheduler.addRecurringTask('pauseIdleConnections', 60 * 60 * 1000, () =>
+      pauseIdleConnections(clusterManager),
+    );
     scheduler.addRecurringTask('syncBotlistStats', 6 * 60 * 10_000, () =>
       syncBotlistStats(clusterManager),
     );
