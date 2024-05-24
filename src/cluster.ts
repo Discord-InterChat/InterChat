@@ -35,7 +35,7 @@ clusterManager.on('clusterCreate', async (cluster) => {
     updateBlacklists(userQuery, scheduler).catch(Logger.error);
 
     // code must be in production to run these tasks
-    if (!isDevBuild) return;
+    if (isDevBuild) return;
     // give time for shards to connect for these tasks
     await wait(10_000);
 
