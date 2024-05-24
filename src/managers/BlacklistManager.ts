@@ -2,9 +2,10 @@ import db from '../utils/Db.js';
 import Scheduler from '../services/SchedulerService.js';
 import SuperClient from '../core/Client.js';
 import { blacklistedServers, userData } from '@prisma/client';
-import { EmbedBuilder, Snowflake } from 'discord.js';
+import { EmbedBuilder, Guild, Snowflake } from 'discord.js';
 import { emojis, colors } from '../utils/Constants.js';
 import { logUnblacklist } from '../utils/HubLogger/ModLogs.js';
+import { RemoveMethods } from '../typings/index.js';
 
 export default class BlacklistManager {
   private scheduler: Scheduler;
@@ -209,20 +210,20 @@ export default class BlacklistManager {
 
   /**
    * Add a server to the blacklist.
-   * @param serverId The ID of the server to blacklist.
+   * @param server The ID or instance of the server to blacklist.
    * @param hubId The ID of the hub to add the blacklist to.
    * @param reason The reason for the blacklist.
    * @param expires The date after which the blacklist will expire.
    * @returns The created blacklist.
    */
   async addServerBlacklist(
-    serverId: Snowflake,
+    server: RemoveMethods<Guild> | Snowflake,
     hubId: string,
     reason: string,
     moderatorId: Snowflake,
     expires?: Date,
   ) {
-    const guild = await SuperClient.instance.fetchGuild(serverId);
+    const guild = typeof server === 'string' ? await SuperClient.instance.fetchGuild(server) : server;
     if (!guild) return null;
 
     const dbGuild = await db.blacklistedServers.upsert({

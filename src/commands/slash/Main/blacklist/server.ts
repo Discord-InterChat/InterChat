@@ -42,7 +42,7 @@ export default class UserBlacklist extends BlacklistCommand {
       return;
     }
 
-    const blacklistManager = interaction.client.blacklistManager;
+    const { blacklistManager } = interaction.client;
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverId = interaction.options.getString('server', true);
 
@@ -82,7 +82,7 @@ export default class UserBlacklist extends BlacklistCommand {
 
       try {
         await blacklistManager.addServerBlacklist(
-          serverId,
+          server,
           hubInDb.id,
           reason,
           interaction.user.id,
@@ -105,9 +105,7 @@ export default class UserBlacklist extends BlacklistCommand {
         return;
       }
 
-      if (expires && interaction.guildId) {
-        blacklistManager.scheduleRemoval('server', interaction.guildId, hubInDb.id, expires);
-      }
+      if (expires) blacklistManager.scheduleRemoval('server', serverId, hubInDb.id, expires);
 
       const successEmbed = new EmbedBuilder()
         .setDescription(

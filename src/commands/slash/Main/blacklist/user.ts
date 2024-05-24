@@ -7,7 +7,6 @@ import { emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
 import Logger from '../../../../utils/Logger.js';
-import { captureException } from '@sentry/node';
 import { logBlacklist, logUnblacklist } from '../../../../utils/HubLogger/ModLogs.js';
 
 export default class Server extends BlacklistCommand {
@@ -100,10 +99,7 @@ export default class Server extends BlacklistCommand {
       if (expires) blacklistManager.scheduleRemoval('user', user.id, hubInDb.id, expires);
       await blacklistManager
         .notifyBlacklist('user', user.id, { hubId: hubInDb.id, expires, reason })
-        .catch((e) => {
-          Logger.error(e);
-          captureException(e);
-        });
+        .catch(Logger.error);
 
       const successEmbed = new EmbedBuilder()
         .setDescription(

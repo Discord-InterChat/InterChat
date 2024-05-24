@@ -33,29 +33,31 @@ export const logBlacklist = async (
   let type;
   let target;
 
-  if (_target instanceof User) {
-    target = _target;
-    name = target.username;
-    iconURL = target.displayAvatarURL();
-    type = 'User';
-  }
-  else {
+  if (typeof _target === 'string') {
     target = SuperClient.resolveEval(
       await client.cluster.broadcastEval(
         (c, guildId) => {
           const guild = c.guilds.cache.get(guildId);
-          return { name: guild?.name, iconURL: guild?.iconURL() ?? undefined, id: guildId };
+          if (!guild) return null;
+
+          return { name: guild.name, iconURL: guild.iconURL() ?? undefined, id: guildId };
         },
         { context: _target },
       ),
     );
-
     if (!target) return;
 
     name = target.name;
     iconURL = target.iconURL;
     type = 'Server';
   }
+  else {
+    target = _target;
+    name = target.username;
+    iconURL = target.displayAvatarURL();
+    type = 'User';
+  }
+
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: `${type} ${name} blacklisted`, iconURL })
