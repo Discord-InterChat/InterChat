@@ -25,18 +25,21 @@ export default async (manager: ClusterManager) => {
   }[] = [];
 
   // Loop through the data
-  connections.forEach(({ channelId, lastActive }) => {
+  connections.forEach(async ({ channelId, lastActive }) => {
     Logger.debug(
       `[InterChat]: Channel ${channelId} is older than 24 hours: ${lastActive?.toLocaleString()} - ${new Date().toLocaleString()}`,
     );
-    modifyConnection({ channelId }, { lastActive: null, connected: false });
 
+    // Create the button
     reconnectButtonArr.push({
       channelId,
       button: buildConnectionButtons(false, channelId, {
         customCustomId: 'inactiveConnect',
       }).toJSON(),
     });
+
+    // disconnect the channel
+    await modifyConnection({ channelId }, { lastActive: null, connected: false });
   });
 
   const embed = simpleEmbed(
