@@ -20,6 +20,7 @@ import { removeReaction, addReaction, updateReactions } from '../scripts/reactio
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { modifyConnection } from './ConnectedList.js';
 
+// skipcq: JS-0327
 export abstract class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')

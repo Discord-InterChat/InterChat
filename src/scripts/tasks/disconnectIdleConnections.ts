@@ -39,7 +39,7 @@ export default async (manager: ClusterManager) => {
     .setColor(colors.invisible).toJSON();
 
   await manager.broadcastEval(
-    async (client, { _connections, _embed, buttons }) => {
+    (client, { _connections, _embed, buttons }) => {
       _connections.forEach(async (connection) => {
         const channel = await client.channels.fetch(connection.channelId).catch((e) => {
           Logger.error(e);
