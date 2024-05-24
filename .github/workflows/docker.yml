@@ -60,7 +60,7 @@ jobs:
           docker stop $(docker ps -aq)
           docker rm $(docker ps -aq)
       - name: Run image
-        run: docker run -d --env-file ~/important/interchat-env ghcr.io/discord-interchat/interchat
+        run: docker run -p 443:443 -d --env-file ~/important/interchat-env --restart=on-failure ghcr.io/discord-interchat/interchat
 
       - name: Publish Docker image
         run: docker push ${{ steps.meta.outputs.tags }}
