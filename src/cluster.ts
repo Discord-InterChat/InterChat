@@ -4,7 +4,7 @@ import Scheduler from './services/SchedulerService.js';
 import syncBotlistStats from './scripts/tasks/syncBotlistStats.js';
 import updateBlacklists from './scripts/tasks/updateBlacklists.js';
 import deleteExpiredInvites from './scripts/tasks/deleteExpiredInvites.js';
-import deleteInactiveConnections from './scripts/tasks/disconnectIdleConnections.js';
+import pauseIdleConnections from './scripts/tasks/pauseIdleConnections.js';
 import { startApi } from './api/index.js';
 import { isDevBuild } from './utils/Constants.js';
 import { VoteManager } from './managers/VoteManager.js';
@@ -42,10 +42,10 @@ clusterManager.on('clusterCreate', async (cluster) => {
     // perform start up tasks
     syncBotlistStats(clusterManager).catch(Logger.error);
     deleteExpiredInvites().catch(Logger.error);
-    deleteInactiveConnections(clusterManager).catch(Logger.error);
+    pauseIdleConnections(clusterManager).catch(Logger.error);
 
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
-    scheduler.addRecurringTask('disconnectInactiveNetworks', 60 * 60 * 1000, () => deleteInactiveConnections(clusterManager));
+    scheduler.addRecurringTask('pauseIdleConnections', 60 * 60 * 1000, () => pauseIdleConnections(clusterManager));
     scheduler.addRecurringTask('syncBotlistStats', 6 * 60 * 10_000, () =>
       syncBotlistStats(clusterManager),
     );

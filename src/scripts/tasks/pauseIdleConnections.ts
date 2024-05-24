@@ -2,12 +2,12 @@ import db from '../../utils/Db.js';
 import Logger from '../../utils/Logger.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { modifyConnection } from '../../utils/ConnectedList.js';
-import 'dotenv/config';
-import { emojis } from '../../utils/Constants.js';
 import { APIActionRowComponent, APIButtonComponent, Snowflake } from 'discord.js';
 import { buildConnectionButtons } from '../network/components.js';
 import { simpleEmbed } from '../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
+import { emojis } from '../../utils/Constants.js';
+import 'dotenv/config';
 
 export default async (manager: ClusterManager) => {
   const connections = await db.connectedList.findMany({
