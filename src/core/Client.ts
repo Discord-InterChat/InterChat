@@ -110,8 +110,8 @@ export default class SuperClient extends Client {
       syncConnectionCache,
     );
 
-    // store network message timestamps to connectedList every 10 seconds
-    this.scheduler.addRecurringTask('storeMsgTimestamps', 10_000, () => {
+    // store network message timestamps to connectedList every minute
+    this.scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, () => {
       storeMsgTimestamps(messageTimestamps);
       messageTimestamps.clear();
     });

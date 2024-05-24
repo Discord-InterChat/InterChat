@@ -9,7 +9,7 @@ import {
   StringSelectMenuBuilder,
   time,
 } from 'discord.js';
-import { getEmojiId, sortReactions } from './Utils.js';
+import { getEmojiId, simpleEmbed, sortReactions } from './Utils.js';
 import { HubSettingsBitField } from './BitFields.js';
 import { CustomID } from './CustomID.js';
 import { RegisterInteractionHandler } from '../decorators/Interaction.js';
@@ -24,7 +24,9 @@ import { modifyConnection } from './ConnectedList.js';
 export abstract class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')
-  static async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction): Promise<void> {
+  static async listenForReactionButton(
+    interaction: ButtonInteraction | AnySelectMenuInteraction,
+  ): Promise<void> {
     await interaction.deferUpdate();
 
     if (!interaction.inCachedGuild()) return;
@@ -207,7 +209,9 @@ export abstract class RandomComponents {
     await modifyConnection({ channelId }, { connected: true });
 
     await interaction.update({
-      content: `${emojis.tick} You have reconnected successfully!`,
+      embeds: [
+        simpleEmbed(`## ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`),
+      ],
       components: [],
     });
   }

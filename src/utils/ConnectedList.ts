@@ -1,7 +1,8 @@
 import db from './Db.js';
+import Logger from './Logger.js';
 import { Prisma, connectedList } from '@prisma/client';
 import { Collection } from 'discord.js';
-import Logger from './Logger.js';
+import { captureException } from '@sentry/node';
 
 /** 📡 Contains all the **connected** channels from all hubs. */
 export const connectionCache = new Collection<string, connectedList>();
@@ -60,9 +61,7 @@ export const modifyConnections = async (
 
 export const storeMsgTimestamps = (data: Collection<string, Date>): void => {
   data.forEach(
-    async (lastActive, channelId) => {
-      Logger.info(`Storing for ${channelId}: ${lastActive.toLocaleString()}`);
-      await modifyConnection({ channelId }, { lastActive });
-    },
+    async (lastActive, channelId) =>
+      await modifyConnection({ channelId }, { lastActive }).catch(captureException),
   );
 };

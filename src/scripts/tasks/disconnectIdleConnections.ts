@@ -3,9 +3,11 @@ import Logger from '../../utils/Logger.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { modifyConnection } from '../../utils/ConnectedList.js';
 import 'dotenv/config';
-import { colors, emojis } from '../../utils/Constants.js';
-import { APIActionRowComponent, APIButtonComponent, EmbedBuilder, Snowflake } from 'discord.js';
+import { emojis } from '../../utils/Constants.js';
+import { APIActionRowComponent, APIButtonComponent, Snowflake } from 'discord.js';
 import { buildConnectionButtons } from '../network/components.js';
+import { simpleEmbed } from '../../utils/Utils.js';
+import { stripIndents } from 'common-tags';
 
 export default async (manager: ClusterManager) => {
   const connections = await db.connectedList.findMany({
@@ -24,44 +26,40 @@ export default async (manager: ClusterManager) => {
 
   // Loop through the data
   connections.forEach(({ channelId, lastActive }) => {
-    Logger.info(`Channel ${channelId} is older than 1 minute: ${lastActive?.toLocaleString()} - ${new Date().toLocaleString()}`);
+    Logger.debug(
+      `[InterChat]: Channel ${channelId} is older than 24 hours: ${lastActive?.toLocaleString()} - ${new Date().toLocaleString()}`,
+    );
     modifyConnection({ channelId }, { lastActive: null, connected: false });
 
     reconnectButtonArr.push({
       channelId,
-      button: buildConnectionButtons(false, channelId, { customCustomId: 'inactiveConnect' }).toJSON(),
+      button: buildConnectionButtons(false, channelId, {
+        customCustomId: 'inactiveConnect',
+      }).toJSON(),
     });
   });
 
-  const embed = new EmbedBuilder()
-    .setTitle(`${emojis.timeout} Paused Due to Inactivity`)
-    .setDescription('Messages to and from hub have been stopped. **Click the button** below to below to resume chatting (or alternatively, `/connection`).')
-    .setColor(colors.invisible).toJSON();
+  const embed = simpleEmbed(
+    stripIndents`
+    ## ${emojis.timeout} Paused Due to Inactivity
+    Connection to this hub has been stopped. **Click the button** below to resume chatting (or alternatively, \`/connection\`).
+    `,
+  ).toJSON();
 
   await manager.broadcastEval(
     (client, { _connections, _embed, buttons }) => {
       _connections.forEach(async (connection) => {
-        const channel = await client.channels.fetch(connection.channelId).catch((e) => {
-          Logger.error(e);
-          return null;
-        });
-
+        const channel = await client.channels.fetch(connection.channelId).catch(() => null);
         const button = buttons.find((b) => b.channelId === connection.channelId)?.button;
+
         if (!channel?.isTextBased() || !button) return;
 
-        // remove it since we are done
+        // remove it since we are done with it
         _connections.splice(_connections.indexOf(connection), 1);
 
-        await channel
-          .send({
-            embeds: [_embed],
-            components: [button],
-          })
-          .catch(() => null);
+        await channel.send({ embeds: [_embed], components: [button] }).catch(() => null);
       });
     },
-    {
-      context: { _connections: connections, _embed: embed, buttons: reconnectButtonArr },
-    },
+    { context: { _connections: connections, _embed: embed, buttons: reconnectButtonArr } },
   );
 };

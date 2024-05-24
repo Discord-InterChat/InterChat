@@ -58,9 +58,6 @@ export default async (
 
   // store message timestamps to push to db later
   messageTimestamps.set(message.channel.id, message.createdAt);
-  const oldestTimestamp = messageTimestamps.first();
-  console.log(oldestTimestamp, messageTimestamps.size);
-
   // disconnect network if, webhook does not exist/bot cannot access webhook
   if (invalidWebhookURLs.length > 0) {
     await modifyConnections({ webhookURL: { in: invalidWebhookURLs } }, { connected: false });

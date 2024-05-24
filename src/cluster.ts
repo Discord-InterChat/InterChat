@@ -15,8 +15,7 @@ import 'dotenv/config';
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.TOKEN,
   shardsPerClusters: 2,
-  totalShards: 3,
-  totalClusters: 2,
+  totalClusters: 'auto',
 });
 
 clusterManager.on('clusterCreate', async (cluster) => {
@@ -46,8 +45,8 @@ clusterManager.on('clusterCreate', async (cluster) => {
     deleteInactiveConnections(clusterManager).catch(Logger.error);
 
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
-    scheduler.addRecurringTask('disconnectInactiveNetworks', 60 * 60 * 12_000, () => deleteInactiveConnections(clusterManager));
-    scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, () =>
+    scheduler.addRecurringTask('disconnectInactiveNetworks', 60 * 60 * 1000, () => deleteInactiveConnections(clusterManager));
+    scheduler.addRecurringTask('syncBotlistStats', 6 * 60 * 10_000, () =>
       syncBotlistStats(clusterManager),
     );
   }
