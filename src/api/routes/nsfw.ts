@@ -7,10 +7,10 @@ import { createRequire } from 'module';
 import { NSFWJS } from 'nsfwjs';
 
 const require = createRequire(import.meta.url);
-const nsfwjs = require('nsfwjs');
+const { load } = require('nsfwjs');
 
 // InceptionV3 is more accurate but slower and takes up a shit ton of memory
-const nsfwModel: NSFWJS = await nsfwjs.load(isDevBuild ? 'MobileNetV2Mid' : 'InceptionV3');
+const nsfwModel: NSFWJS = await load(isDevBuild ? 'MobileNetV2' : 'InceptionV3');
 const router = Router();
 
 router.post('/nsfw', async (req, res) => {
