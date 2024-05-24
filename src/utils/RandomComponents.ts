@@ -9,7 +9,7 @@ import {
   StringSelectMenuBuilder,
   time,
 } from 'discord.js';
-import { getEmojiId, sortReactions } from './Utils.js';
+import { getEmojiId, simpleEmbed, sortReactions } from './Utils.js';
 import { HubSettingsBitField } from './BitFields.js';
 import { CustomID } from './CustomID.js';
 import { RegisterInteractionHandler } from '../decorators/Interaction.js';
@@ -18,11 +18,15 @@ import { stripIndents } from 'common-tags';
 import { t } from './Locale.js';
 import { removeReaction, addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
+import { modifyConnection } from './ConnectedList.js';
 
-export default abstract class ReactionUpdater {
+// skipcq: JS-0327
+export abstract class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')
-  static async listenForReactionButton(interaction: ButtonInteraction | AnySelectMenuInteraction): Promise<void> {
+  static async listenForReactionButton(
+    interaction: ButtonInteraction | AnySelectMenuInteraction,
+  ): Promise<void> {
     await interaction.deferUpdate();
 
     if (!interaction.inCachedGuild()) return;
@@ -195,5 +199,20 @@ export default abstract class ReactionUpdater {
       // reflect the changes in the message's buttons
       await updateReactions(messageInDb.originalMsg.broadcastMsgs, dbReactions);
     }
+  }
+
+  @RegisterInteractionHandler('inactiveConnect', 'toggle')
+  static async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
+    const customId = CustomID.parseCustomId(interaction.customId);
+    const channelId = customId.args[0];
+
+    await modifyConnection({ channelId }, { connected: true });
+
+    await interaction.update({
+      embeds: [
+        simpleEmbed(`## ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`),
+      ],
+      components: [],
+    });
   }
 }

@@ -75,8 +75,8 @@ model blacklistedServers {
 }
 
 model connectedList {
-  id         String   @id @default(auto()) @map("_id") @db.ObjectId
-  channelId  String   @unique // channel can be thread, or a normal channel
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  channelId  String    @unique // channel can be thread, or a normal channel
   parentId   String? // ID of the parent channel, if it's a thread @map("parentChannelId")
   serverId   String
   connected  Boolean
@@ -85,9 +85,10 @@ model connectedList {
   profFilter Boolean
   embedColor String?
   webhookURL String
-  date       DateTime @default(now())
-  hub        hubs?    @relation(fields: [hubId], references: [id])
-  hubId      String   @db.ObjectId
+  lastActive DateTime? @default(now())
+  date       DateTime  @default(now())
+  hub        hubs?     @relation(fields: [hubId], references: [id])
+  hubId      String    @db.ObjectId
 }
 
 model hubs {
@@ -125,6 +126,7 @@ model originalMessages {
   serverId         String
   authorId         String
   reactions        Json? // eg. {"👎": ["9893820930928", "39283902803982"]} "emoji": userId[] basically
+  createdAt        DateTime
   broadcastMsgs    broadcastedMessages[] // Ids of messages that were broadcasted to other hubs
   messageReference String?               @db.String // id of the original message this message is replying to
   hub              hubs?                 @relation(fields: [hubId], references: [id])
@@ -134,7 +136,7 @@ model originalMessages {
 model broadcastedMessages {
   messageId     String           @id @map("_id")
   channelId     String
-  createdAt     Int
+  createdAt     DateTime
   originalMsg   originalMessages @relation(fields: [originalMsgId], references: [messageId])
   originalMsgId String           @db.String
 }

@@ -14,25 +14,25 @@ import {
   Interaction,
   Client,
 } from 'discord.js';
+import db from '../utils/Db.js';
 import Logger from '../utils/Logger.js';
+import SuperClient from '../core/Client.js';
 import GatewayEvent from '../decorators/GatewayEvent.js';
-import { stripIndents } from 'common-tags';
+import sendBroadcast from '../scripts/network/sendBroadcast.js';
+import storeMessageData from '../scripts/network/storeMessageData.js';
 import getWelcomeTargets from '../scripts/guilds/getWelcomeTarget.js';
+import { t } from '../utils/Locale.js';
+import { check } from '../utils/Profanity.js';
+import { runChecks } from '../scripts/network/runChecks.js';
+import { stripIndents } from 'common-tags';
 import { logGuildJoin, logGuildLeave } from '../scripts/guilds/goals.js';
 import { channels, emojis, colors, LINKS } from '../utils/Constants.js';
-import { check } from '../utils/Profanity.js';
-import db from '../utils/Db.js';
-import { t } from '../utils/Locale.js';
-import storeMessageData from '../scripts/network/storeMessageData.js';
 import { getReferredMsgData, sendWelcomeMsg } from '../scripts/network/helpers.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
 import { getAttachmentURL, getUserLocale, handleError, simpleEmbed, wait } from '../utils/Utils.js';
-import { runChecks } from '../scripts/network/runChecks.js';
 import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
-import SuperClient from '../core/Client.js';
-import sendBroadcast from '../scripts/network/sendBroadcast.js';
 import { logServerLeave } from '../utils/HubLogger/JoinLeave.js';
 import { deleteConnections, modifyConnection } from '../utils/ConnectedList.js';
 
@@ -235,9 +235,12 @@ export default abstract class EventManager {
 
     const { connectionCache, cachePopulated } = message.client;
 
-    while (!cachePopulated) {
-      Logger.debug('[InterChat]: Cache not populated, retrying in 5 seconds...');
+    if (!cachePopulated) {
+      Logger.debug('[InterChat]: Connection cache not populated, 5 secs until retry...');
       await wait(5000);
+
+      EventManager.onMessageCreate(message);
+      return;
     }
 
     const locale = await getUserLocale(message.author.id);

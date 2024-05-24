@@ -229,7 +229,7 @@ export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') =>
 
 export const simpleEmbed = (
   description: string,
-  opts?: { color: ColorResolvable; title?: string },
+  opts?: { color?: ColorResolvable; title?: string },
 ) => {
   return new EmbedBuilder()
     .setTitle(opts?.title ?? null)

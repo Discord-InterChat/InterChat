@@ -1,34 +1,38 @@
 import db from './utils/Db.js';
+import Logger from './utils/Logger.js';
 import Scheduler from './services/SchedulerService.js';
+import syncBotlistStats from './scripts/tasks/syncBotlistStats.js';
+import updateBlacklists from './scripts/tasks/updateBlacklists.js';
+import deleteExpiredInvites from './scripts/tasks/deleteExpiredInvites.js';
+import pauseIdleConnections from './scripts/tasks/pauseIdleConnections.js';
 import { startApi } from './api/index.js';
 import { isDevBuild } from './utils/Constants.js';
 import { VoteManager } from './managers/VoteManager.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
-import syncBotlistStats from './scripts/tasks/syncBotlistStats.js';
-import deleteExpiredInvites from './scripts/tasks/deleteExpiredInvites.js';
-import updateBlacklists from './scripts/tasks/updateBlacklists.js';
-import deleteOldMessages from './scripts/tasks/deleteOldMessages.js';
-import 'dotenv/config';
 import { getUsername, wait } from './utils/Utils.js';
-import Logger from './utils/Logger.js';
+import 'dotenv/config';
 
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.TOKEN,
   shardsPerClusters: 2,
+  totalClusters: 'auto',
 });
 
 clusterManager.on('clusterCreate', async (cluster) => {
   // if it is the last cluster
   if (cluster.id === clusterManager.totalClusters - 1) {
     const scheduler = new Scheduler();
-    // remove expired blacklists or set new timers for them
-    const serverQuery = { where: { hubs: { some: { expires: { isSet: true } } } } };
-    const userQuery = { where: { blacklistedFrom: { some: { expires: { isSet: true } } } } };
-    updateBlacklists(await db.blacklistedServers.findMany(serverQuery), scheduler).catch(
-      Logger.error,
-    );
 
-    updateBlacklists(await db.userData.findMany(userQuery), scheduler).catch(Logger.error);
+    // remove expired blacklists or set new timers for them
+    const serverQuery = await db.blacklistedServers.findMany({
+      where: { hubs: { some: { expires: { isSet: true } } } },
+    });
+    const userQuery = await db.userData.findMany({
+      where: { blacklistedFrom: { some: { expires: { isSet: true } } } },
+    });
+
+    updateBlacklists(serverQuery, scheduler).catch(Logger.error);
+    updateBlacklists(userQuery, scheduler).catch(Logger.error);
 
     // code must be in production to run these tasks
     if (isDevBuild) return;
@@ -37,12 +41,14 @@ clusterManager.on('clusterCreate', async (cluster) => {
 
     // perform start up tasks
     syncBotlistStats(clusterManager).catch(Logger.error);
-    deleteOldMessages().catch(Logger.error);
     deleteExpiredInvites().catch(Logger.error);
+    pauseIdleConnections(clusterManager).catch(Logger.error);
 
-    scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1_000, deleteExpiredInvites);
-    scheduler.addRecurringTask('deleteOldMessages', 60 * 60 * 12_000, deleteOldMessages);
-    scheduler.addRecurringTask('syncBotlistStats', 60 * 10_000, () =>
+    scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
+    scheduler.addRecurringTask('pauseIdleConnections', 60 * 60 * 1000, () =>
+      pauseIdleConnections(clusterManager),
+    );
+    scheduler.addRecurringTask('syncBotlistStats', 10 * 60 * 10_000, () =>
       syncBotlistStats(clusterManager),
     );
   }

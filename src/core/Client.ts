@@ -20,6 +20,8 @@ import { loadLocales } from '../utils/Locale.js';
 import loadCommandFiles from '../utils/LoadCommands.js';
 import {
   connectionCache as _connectionCache,
+  messageTimestamps,
+  storeMsgTimestamps,
   syncConnectionCache,
 } from '../utils/ConnectedList.js';
 import { PROJECT_VERSION } from '../utils/Constants.js';
@@ -107,6 +109,13 @@ export default class SuperClient extends Client {
       60_000 * 5,
       syncConnectionCache,
     );
+
+    // store network message timestamps to connectedList every minute
+    this.scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, () => {
+      storeMsgTimestamps(messageTimestamps);
+      messageTimestamps.clear();
+    });
+
 
     await this.login(process.env.TOKEN);
   }
