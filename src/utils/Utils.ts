@@ -277,27 +277,6 @@ export const toTitleCase = (str: string) => {
   return startCase(toLower(str));
 };
 
-const genCommandErrMsg = (locale: supportedLocaleCodes, error: string) => {
-  return t(
-    { phrase: 'errors.commandError', locale },
-    { error, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
-  );
-};
-
-/**
-    Invoke this method to handle errors that occur during command execution.
-    It will send an error message to the user and log the error to the system.
-  */
-export const replyWithError = async (interaction: RepliableInteraction, e: string) => {
-  const method = interaction.replied || interaction.deferred ? 'followUp' : 'reply';
-
-  // reply with an error message if the command failed
-  return await interaction[method]({
-    embeds: [simpleEmbed(genCommandErrMsg(interaction.user.locale || 'en', e))],
-    ephemeral: true,
-  }).catch(() => null);
-};
-
 /**
  * Parses the timestamp from a Snowflake ID and returns it in milliseconds.
  * @param id The Snowflake ID to parse.
@@ -319,6 +298,27 @@ export const channelMention = (channelId: Snowflake | null | undefined) => {
   return `<#${channelId}>`;
 };
 
+const genCommandErrMsg = (locale: supportedLocaleCodes, errorId: string) => {
+  return t(
+    { phrase: 'errors.commandError', locale },
+    { errorId, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
+  );
+};
+
+/**
+    Invoke this method to handle errors that occur during command execution.
+    It will send an error message to the user and log the error to the system.
+  */
+export const sendErrorEmbed = async (interaction: RepliableInteraction, errorId: string) => {
+  const method = interaction.replied || interaction.deferred ? 'followUp' : 'reply';
+
+  // reply with an error message if the command failed
+  return await interaction[method]({
+    embeds: [simpleEmbed(genCommandErrMsg(interaction.user.locale || 'en', errorId))],
+    ephemeral: true,
+  }).catch(() => null);
+};
+
 export const handleError = (e: Error, interaction?: Interaction) => {
   // log the error to the system
   Logger.error(e);
@@ -337,10 +337,10 @@ export const handleError = (e: Error, interaction?: Interaction) => {
     : undefined;
 
   // capture the error to Sentry.io with additional information
-  captureException(e, extra);
+  const errorId = captureException(e, extra);
 
   // reply with an error message to the user
-  if (interaction?.isRepliable()) replyWithError(interaction, String(e)).catch(Logger.error);
+  if (interaction?.isRepliable()) sendErrorEmbed(interaction, errorId).catch(Logger.error);
 };
 
 export const isDev = (userId: Snowflake) => {
