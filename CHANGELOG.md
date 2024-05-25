@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.25.1](https://github.com/Discord-InterChat/InterChat/compare/v3.25.0...v3.25.1) (2024-05-25)
+
+
+### Bug Fixes
+
+* Fix server ID parameter in addServerBlacklist method ([93a5616](https://github.com/Discord-InterChat/InterChat/commit/93a56162c60b752c49534f6f98b1215f8d734d6a))
+* update onboarding in progress translation message ([49849c3](https://github.com/Discord-InterChat/InterChat/commit/49849c38f20d9e8519e99ef253302b22305a99d1))
+
 ## [3.25.0](https://github.com/Discord-InterChat/InterChat/compare/v3.24.6...v3.25.0) (2024-05-24)
 
 
