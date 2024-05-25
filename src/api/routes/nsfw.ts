@@ -17,18 +17,12 @@ router.post('/nsfw', async (req, res) => {
   const imageUrl = req.body.imageUrl;
 
   if (!imageUrl || typeof imageUrl !== 'string') {
-    res.writeHead(400, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Missing imageUrl.' }));
+    res.status(400).json({ error: 'Missing imageUrl in body.' });
     return;
   }
 
   if (!REGEX.STATIC_IMAGE_URL.test(imageUrl)) {
-    res.writeHead(400, { 'Content-Type': 'application/json' });
-    res.end(
-      JSON.stringify({
-        error: 'Invalid url parameter. Must be a valid PNG, JPG, or JPEG image URL.',
-      }),
-    );
+    res.status(400).json({ error: 'Invalid url parameter. Must be a valid PNG, JPG, or JPEG image URL.' });
     return;
   }
 
@@ -44,8 +38,7 @@ router.post('/nsfw', async (req, res) => {
   catch (error) {
     Logger.error(error);
     captureException(error);
-    res.writeHead(500, { 'Content-Type': 'text/plain' });
-    res.end('500 Internal Server Error');
+    res.status(500).json({ error: '500: Internal Server Error' });
   }
 });
 
