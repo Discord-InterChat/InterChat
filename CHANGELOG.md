@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.25.2](https://github.com/Discord-InterChat/InterChat/compare/v3.25.1...v3.25.2) (2024-05-25)
+
+
+### Bug Fixes
+
+* Handle missing and invalid image URLs in /nsfw route ([52aeffc](https://github.com/Discord-InterChat/InterChat/commit/52aeffc7b348838d2d02ff2b0a42baecec7db169))
+
 ### [3.25.1](https://github.com/Discord-InterChat/InterChat/compare/v3.25.0...v3.25.1) (2024-05-25)
 
 
