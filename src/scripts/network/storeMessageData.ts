@@ -46,7 +46,7 @@ export default async (
       data: {
         messageId: message.id,
         authorId: message.author.id,
-        serverId: message.guild.id,
+        serverId: message.guildId,
         messageReference: dbReference?.messageId,
         createdAt: message.createdAt,
         broadcastMsgs: { createMany: { data: messageDataObj } },

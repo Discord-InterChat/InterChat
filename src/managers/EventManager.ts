@@ -195,8 +195,8 @@ export default abstract class EventManager {
 
     channelToSend?.send(message).catch(() => guildChannel?.send(message).catch(() => null));
 
-    const { profanity, slurs } = check(guild.name);
-    if (!profanity && !slurs) return;
+    const { hasProfanity, hasSlurs } = check(guild.name);
+    if (!hasProfanity && !hasSlurs) return;
 
     const profaneErrorEmbed = new EmbedBuilder()
       .setTitle('Leave Notice 👋')
@@ -265,9 +265,7 @@ export default abstract class EventManager {
     const attachmentURL = attachment ? attachment.url : await getAttachmentURL(message.content);
 
     // run checks on the message to determine if it can be sent in the network
-    if (!(await runChecks(message, settings, connection.hubId, { attachmentURL }))) {
-      return;
-    }
+    if (!(await runChecks(message, settings, connection.hubId, { attachmentURL }))) return;
 
     // fetch the referred message  (message being replied to) from discord
     const referredMessage = message.reference

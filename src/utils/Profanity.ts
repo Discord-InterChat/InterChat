@@ -1,20 +1,19 @@
-import { REGEX, profanity, slurs } from './Constants.js';
-
+import { REGEX } from './Constants.js';
 /**
  * Checks if a string contains profanity or slurs.
  * @param string - The string to check.
  * @returns An object with two boolean properties: `profanity` and `slurs`.
  */
 export const check = (string: string | undefined) => {
-  if (!string) return { profanity: false, slurs: false };
+  if (!string) return { hasProfanity: false, hasSlurs: false };
+  // NOTE: Since the regex is created using RegExp, the regex keeps internally the state of the search
+  // and may give unexpected results if used multiple times. https://dev.to/dvddpl/why-is-my-regex-working-intermittently-4f4g
+  const profanity = string.match(REGEX.PROFANITY);
+  const slurs = string.match(REGEX.SLURS);
 
   return {
-    profanity: profanity.some((word) =>
-      string.split(/\b/).some((w) => w.toLowerCase() === word.toLowerCase()),
-    ),
-    slurs: slurs.some((word) =>
-      string.split(/\b/).some((w) => w.toLowerCase() === word.toLowerCase()),
-    ),
+    hasProfanity: profanity ? profanity.length > 0 : false,
+    hasSlurs: slurs ? slurs.length > 0 : false,
   };
 };
 
@@ -25,13 +24,6 @@ export const check = (string: string | undefined) => {
  * @returns The censored string.
  */
 export const censor = (string: string, symbol = '\\*'): string => {
-  return string
-    .split(REGEX.SPLIT_WORDS)
-    .map((word) => {
-      const res = check(word);
-      return res.profanity ?? res.slurs
-        ? word.replace(REGEX.SPECIAL_CHARACTERS, '').replace(REGEX.MATCH_WORD, symbol)
-        : word;
-    })
-    .join(string.match(REGEX.SPLIT_WORDS)?.at(0));
+  const replaceFunc = (match: string) => symbol.repeat(match.length);
+  return string.replace(REGEX.PROFANITY, replaceFunc).replace(REGEX.SLURS, replaceFunc);
 };

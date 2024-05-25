@@ -111,19 +111,18 @@ export const runChecks = async (
   settings: HubSettingsBitField,
   hubId: string,
   opts?: { attachmentURL?: string | null },
-) => {
+): Promise<boolean> => {
   const { locale } = message.author;
-  const { profanity, slurs } = checkProfanity(message.content);
+  const { hasProfanity, hasSlurs } = checkProfanity(message.content);
 
   if (!message.inGuild()) return false;
   if (await isUserBlacklisted(message, hubId)) return false;
   if (await isCaughtSpam(message, settings, hubId)) return false;
   if (containsLinks(message, settings)) message.content = replaceLinks(message.content);
-  if (slurs) return false;
-
-  if (profanity || slurs) {
-    // send a log to the log channel set by the hub
+  // send a log to the log channel set by the hub
+  if (hasProfanity || hasSlurs) {
     logProfanity(hubId, message.content, message.author, message.guild);
+    if (hasSlurs) return false;
   }
 
   if (isNewUser(message)) {
@@ -158,7 +157,10 @@ export const runChecks = async (
     return false;
   }
   if (unsupportedAttachment(message)) {
-    await replyToMsg(message, 'Only images and tenor gifs are allowed to be sent within the network.');
+    await replyToMsg(
+      message,
+      'Only images and tenor gifs are allowed to be sent within the network.',
+    );
     return false;
   }
 
