@@ -1,10 +1,4 @@
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ChatInputCommandInteraction,
-  OAuth2Scopes,
-} from 'discord.js';
+import { ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '../../../core/BaseCommand.js';
 import { LINKS, emojis } from '../../../utils/Constants.js';
 import { t } from '../../../utils/Locale.js';
@@ -15,26 +9,11 @@ export default class Invite extends BaseCommand {
     description: 'Invite me to your server!',
   };
   async execute(interaction: ChatInputCommandInteraction) {
-    const inviteLink = interaction.client.generateInvite({
-      scopes: [OAuth2Scopes.Bot, OAuth2Scopes.ApplicationsCommands],
-      // NOTE: Update the permissions every time you update invite
-      permissions: 292662144192n,
-    });
-
-    const InviteButton = new ActionRowBuilder<ButtonBuilder>().addComponents([
-      new ButtonBuilder()
-        .setLabel('Invite Me!')
-        .setURL(inviteLink)
-        .setStyle(ButtonStyle.Link)
-        .setEmoji(emojis.invite)
-        .setDisabled(false),
-    ]);
     await interaction.reply({
       content: t(
         { phrase: 'invite', locale: interaction.user.locale },
-        { support: LINKS.SUPPORT_INVITE },
+        { support: LINKS.SUPPORT_INVITE, invite: LINKS.APP_DIRECTORY, invite_emoji: emojis.add_icon, support_emoji: emojis.code_icon },
       ),
-      components: [InviteButton],
     });
   }
 }
