@@ -44,7 +44,7 @@ export default async (manager: ClusterManager) => {
 
   const embed = simpleEmbed(
     stripIndents`
-    ## ${emojis.timeout} Paused Due to Inactivity
+    ### ${emojis.timeout} Paused Due to Inactivity
     Connection to this hub has been stopped. **Click the button** below to resume chatting (or alternatively, \`/connection\`).
     `,
   ).toJSON();

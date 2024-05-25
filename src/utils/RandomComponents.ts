@@ -210,7 +210,7 @@ export abstract class RandomComponents {
 
     await interaction.update({
       embeds: [
-        simpleEmbed(`## ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`),
+        simpleEmbed(`### ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`),
       ],
       components: [],
     });
