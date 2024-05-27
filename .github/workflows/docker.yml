@@ -49,6 +49,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
       - name: Backup Container Logs
+        continue-on-error: true
         run: |
           docker cp $(docker ps -alq):/src/logs .
           mv logs/ ~/console-logs/interchat-logs-$(date +"%Y-%m-%d_%H-%M-%S")
