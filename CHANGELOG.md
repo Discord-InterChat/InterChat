@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.25.5](https://github.com/Discord-InterChat/InterChat/compare/v3.25.4...v3.25.5) (2024-05-27)
+
+
+### Bug Fixes
+
+* fix vote timestamp not getting set properly ([343b568](https://github.com/Discord-InterChat/InterChat/commit/343b56839afd5b2e166b2a5adcc140fef7ffbc09))
+* fix welcome message hub name ([24f46cc](https://github.com/Discord-InterChat/InterChat/commit/24f46cc50b45ac5e1fefc80d28ab0bcbdd6642d6))
+
 ### [3.25.4](https://github.com/Discord-InterChat/InterChat/compare/v3.25.3...v3.25.4) (2024-05-27)
 
 ### [3.25.3](https://github.com/Discord-InterChat/InterChat/compare/v3.25.2...v3.25.3) (2024-05-25)
