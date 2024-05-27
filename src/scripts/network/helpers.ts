@@ -7,7 +7,6 @@ import {
   ActionRowBuilder,
 } from 'discord.js';
 import db from '../../utils/Db.js';
-import hub from '../../commands/slash/Main/hub/index.js';
 import { LINKS, REGEX, emojis } from '../../utils/Constants.js';
 import { censor } from '../../utils/Profanity.js';
 import { broadcastedMessages } from '@prisma/client';
@@ -137,7 +136,7 @@ export const generateJumpButton = (
   );
 };
 
-export const sendWelcomeMsg = async (message: Message, totalServers: string) => {
+export const sendWelcomeMsg = async (message: Message, totalServers: string, hub: string) => {
   await db.userData.upsert({
     where: { userId: message.author.id },
     create: {
@@ -172,10 +171,10 @@ export const sendWelcomeMsg = async (message: Message, totalServers: string) => 
         { phrase: 'network.welcome', locale: message.author.locale ?? 'en' },
         {
           user: message.author.toString(),
-          hub: hub.name,
           channel: message.channel.toString(),
           emoji: emojis.wave_anim,
           rules_command: '</rules:924659340898619395>',
+          hub,
           totalServers,
         },
       ),

@@ -290,7 +290,7 @@ export default abstract class EventManager {
       where: { userId: message.author.id, viewedNetworkWelcome: true },
     });
 
-    if (!userData) await sendWelcomeMsg(message, hubConnections.size.toString());
+    if (!userData) await sendWelcomeMsg(message, hubConnections.size.toString(), hub.name);
 
     // store the message in the db
     await storeMessageData(message, await Promise.all(sendResult), connection.hubId, dbReferrence);
