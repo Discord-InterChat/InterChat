@@ -22,9 +22,7 @@ export class VoteManager extends EventEmitter {
     this.cluster = cluster;
     this.scheduler = scheduler;
     this.scheduler.addRecurringTask('removeVoterRole', 60 * 60 * 1_000, async () => {
-      const expiredVotes = await db.userData.findMany({
-        where: { lastVoted: { lt: new Date().getTime() } },
-      });
+      const expiredVotes = await db.userData.findMany({ where: { lastVoted: { lt: new Date() } } });
       for (const vote of expiredVotes) {
         this.emit('voteExpired', vote.userId);
         await this.removeVoterRole(vote.userId);
@@ -50,7 +48,7 @@ export class VoteManager extends EventEmitter {
   }
 
   async incrementUserVote(userId: string, username?: string) {
-    const lastVoted = new Date().getTime();
+    const lastVoted = new Date();
     return await db.userData.upsert({
       where: { userId },
       create: {
@@ -88,7 +86,7 @@ export class VoteManager extends EventEmitter {
             `,
           )
           .setFooter({ text: `This is your ${voteCount}${ordinalSuffix} time voting!` })
-          .setColor('Orange'),
+          .setColor('Green'),
       ],
     });
   }

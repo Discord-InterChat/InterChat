@@ -159,7 +159,7 @@ model userData {
   // username is only guarenteed to be set and/or used for blacklisted users
   username             String?
   locale               String?
-  lastVoted            Int?
+  lastVoted            DateTime?
   voteCount            Int            @default(0)
   blacklistedFrom      hubBlacklist[]
   // if user has seen the welcome message when they first use the network

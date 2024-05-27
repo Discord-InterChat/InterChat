@@ -87,10 +87,14 @@ export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
 };
 
 export const userVotedToday = async (userId: Snowflake): Promise<boolean> => {
-  const res = await db.userData.findFirst({ where: { userId } });
+  const res = await db.userData.findFirst({
+    where: {
+      userId,
+      lastVoted: { gte: new Date(Date.now() - 60 * 60 * 24 * 1000) },
+    },
+  });
 
-  const oneDay = Date.now() - 60 * 60 * 24 * 1000;
-  return (res?.lastVoted && res.lastVoted > oneDay) === true;
+  return Boolean(res?.lastVoted);
 };
 
 export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) => {
