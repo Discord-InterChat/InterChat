@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.25.8](https://github.com/Discord-InterChat/InterChat/compare/v3.25.7...v3.25.8) (2024-05-28)
+
+
+### Bug Fixes
+
+* fix stats member count ([3245f24](https://github.com/Discord-InterChat/InterChat/commit/3245f2472cce1db8ead06afb3ac4ca8f1e69e99f))
+
 ### [3.25.7](https://github.com/Discord-InterChat/InterChat/compare/v3.25.6...v3.25.7) (2024-05-28)
 
 
