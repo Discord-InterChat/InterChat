@@ -28,5 +28,5 @@ export const isUnsafeImage = (predictions: predictionType[]): boolean => {
   const safeCategories = ['Neutral', 'Drawing'];
 
   const topPrediction = predictions[0];
-  return !safeCategories.includes(topPrediction.className) && topPrediction.probability > 0.6;
+  return !safeCategories.includes(topPrediction.className) && topPrediction.probability > 0.7;
 };
