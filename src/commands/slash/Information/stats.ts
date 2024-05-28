@@ -33,9 +33,9 @@ export default class Stats extends BaseCommand {
     const totalHubs = await hubs?.count();
     const totalNetworkMessages = await originalMessages.count();
 
-    const count: number[] = await interaction.client.cluster.fetchClientValues('guilds.cache.size');
-    const guildCount = count.reduce((p, n) => p + n, 0);
-    const memberCount = await interaction.client.cluster.fetchClientValues(
+    const guildCount: number[] =
+      await interaction.client.cluster.fetchClientValues('guilds.cache.size');
+    const memberCount: number[] = await interaction.client.cluster.fetchClientValues(
       'guilds.cache.reduce((p, n) => p + n.memberCount, 0)',
     );
 
@@ -59,8 +59,7 @@ export default class Stats extends BaseCommand {
           value: stripIndents`
 	          Up Since: ${time(upSince, 'R')}
             Servers: ${guildCount}
-	          Members: ${memberCount}
-	  `,
+	          Members: ${memberCount.reduce((p, n) => p + n, 0)}`,
           inline: true,
         },
         {
@@ -68,8 +67,7 @@ export default class Stats extends BaseCommand {
           value: stripIndents`
             OS: Linux
             CPU Cores: ${cpus().length}
-            RAM Usage: ${memoryUsed} MB / ${totalMemory} GB
-	  `,
+            RAM Usage: ${memoryUsed} MB / ${totalMemory} GB`,
           inline: true,
         },
         {
