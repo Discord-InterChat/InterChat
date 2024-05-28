@@ -463,23 +463,27 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
  * @returns The URL of the attachment, or null if no attachment is found.
  */
 export const getAttachmentURL = async (string: string) => {
-  // Tenor Gifs / Image URLs
+  if (!process.env.TENOR_KEY) throw new TypeError('Tenor API key not found in .env file.');
+
+  // Image URLs
   const URLMatch = string.match(REGEX.STATIC_IMAGE_URL);
   if (URLMatch) return URLMatch[0];
 
+  // Tenor Gifs
   const gifMatch = string.match(REGEX.TENOR_LINKS);
+  if (!gifMatch) return null;
 
-  if (gifMatch) {
-    if (!process.env.TENOR_KEY) throw new TypeError('Tenor API key not found in .env file.');
-
-    const n = gifMatch[0].split('-');
-    const id = n.at(-1);
-    const api = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
-    const gifJSON = await (await fetch(api)).json();
+  try {
+    const id = gifMatch[0].split('-').at(-1);
+    const url = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
+    const gifJSON = await (await fetch(url)).json();
 
     return gifJSON.results.at(0)?.media.at(0)?.gif.url as string | null;
   }
-  return null;
+  catch (e) {
+    Logger.error(e);
+    return null;
+  }
 };
 
 export const fetchHub = async (id: string) => {
