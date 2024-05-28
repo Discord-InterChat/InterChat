@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.25.7](https://github.com/Discord-InterChat/InterChat/compare/v3.25.6...v3.25.7) (2024-05-28)
+
+
+### Bug Fixes
+
+* **utils:** fix type errors caused by fetch in `getAttachmentURL()` ([3f8c724](https://github.com/Discord-InterChat/InterChat/commit/3f8c724bd6b380b24f6c6dbe2893868a924b8213))
+
 ### [3.25.6](https://github.com/Discord-InterChat/InterChat/compare/v3.25.5...v3.25.6) (2024-05-27)
 
 ### [3.25.5](https://github.com/Discord-InterChat/InterChat/compare/v3.25.4...v3.25.5) (2024-05-27)
