@@ -165,3 +165,10 @@ model userData {
   // if user has seen the welcome message when they first use the network
   viewedNetworkWelcome Boolean        @default(false)
 }
+
+model UserPhone {
+  channelId    String   @id @map("_id")
+  userId       String
+  occupiedWith String?  @db.ObjectId
+  waitingSince DateTime @default(now())
+}
