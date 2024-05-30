@@ -101,6 +101,7 @@ export const logUnblacklist = async (
   if (opts.type === 'user') {
     blacklisted = await BlacklistManager.fetchUserBlacklist(hub.id, opts.targetId);
     const user = await opts.mod.client.users.fetch(opts.targetId).catch(() => null);
+
     name = user?.username ?? `${blacklisted?.username}`;
     originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === hub.id)?.reason;
   }

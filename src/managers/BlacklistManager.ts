@@ -73,14 +73,16 @@ export default class BlacklistManager {
     if (this.scheduler.taskNames.includes(name)) this.scheduler.stopTask(name);
 
     const execute = async () => {
+      if (SuperClient.instance?.user) {
+        await logUnblacklist(hubId, {
+          type,
+          targetId: id,
+          mod: SuperClient.instance.user,
+          reason: 'Blacklist duration expired.',
+        }).catch(() => null);
+      }
+
       await this.removeBlacklist(type, hubId, id);
-      if (!SuperClient.instance?.user) return;
-      await logUnblacklist(hubId, {
-        type,
-        targetId: id,
-        mod: SuperClient.instance.user,
-        reason: 'Blacklist duration expired.',
-      });
     };
 
     this.scheduler.addTask(name, expires, execute);
@@ -98,7 +100,7 @@ export default class BlacklistManager {
     type: 'user' | 'server',
     id: Snowflake,
     opts: {
-      hubId: string,
+      hubId: string;
       expires?: Date;
       reason?: string;
     },
@@ -223,7 +225,8 @@ export default class BlacklistManager {
     moderatorId: Snowflake,
     expires?: Date,
   ) {
-    const guild = typeof server === 'string' ? await SuperClient.instance.fetchGuild(server) : server;
+    const guild =
+      typeof server === 'string' ? await SuperClient.instance.fetchGuild(server) : server;
     if (!guild) return null;
 
     const dbGuild = await db.blacklistedServers.upsert({

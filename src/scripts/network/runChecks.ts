@@ -8,6 +8,7 @@ import { containsInviteLinks, replaceLinks } from '../../utils/Utils.js';
 import { check as checkProfanity } from '../../utils/Profanity.js';
 import { runAntiSpam } from './antiSpam.js';
 import { analyzeImageForNSFW, isUnsafeImage } from '../../utils/NSFWDetection.js';
+import { logBlacklist } from '../../utils/HubLogger/ModLogs.js';
 
 // if account is created within the last 7 days
 export const isNewUser = (message: Message) => {
@@ -40,27 +41,21 @@ export const isCaughtSpam = async (
 ) => {
   const antiSpamResult = runAntiSpam(message.author, 3);
   if (!antiSpamResult) return false;
-  const { blacklistManager } = message.client;
+  const { addUserBlacklist, notifyBlacklist, scheduleRemoval } = message.client.blacklistManager;
 
   if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
-    await blacklistManager.addUserBlacklist(
-      hubId,
-      message.author.id,
-      'Auto-blacklisted for spamming.',
-      message.client.user.id,
-      60 * 5000,
-    );
-    blacklistManager.scheduleRemoval('user', message.author.id, hubId, 60 * 5000);
-    blacklistManager
-      .notifyBlacklist('user', message.author.id, {
-        hubId,
-        expires: new Date(Date.now() + 60 * 5000),
-        reason: 'Auto-blacklisted for spamming.',
-      })
-      .catch(() => null);
+    const expires = new Date(Date.now() + 60 * 5000);
+    const reason = 'Auto-blacklisted for spamming.';
+    const target = message.author;
+    const mod = message.client.user;
+
+    await addUserBlacklist(hubId, target.id, reason, mod.id, 60 * 5000);
+    scheduleRemoval('user', target.id, hubId, 60 * 5000);
+    await notifyBlacklist('user', target.id, { hubId, expires, reason }).catch(() => null);
+    await logBlacklist(hubId, message.client, { target, mod, reason, expires }).catch(() => null);
   }
 
-  message.react(emojis.timeout).catch(() => null);
+  await message.react(emojis.timeout).catch(() => null);
   return true;
 };
 

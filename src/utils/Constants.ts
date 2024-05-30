@@ -32,9 +32,9 @@ export const REGEX = {
   IMGUR_LINKS:
     /(?:https?:\/\/)?(?:www\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?/i,
   /** matches profanity words */
-  PROFANITY: new RegExp(profanity.map((word) => `\\b${word}\\b|${word}`).join('|'), 'gi'),
+  PROFANITY: new RegExp(profanity.map((word) => `\\b${word}\\b`).join('|'), 'gi'),
   /** matches slurs */
-  SLURS: new RegExp(slurs.map((word) => `\\b${word}\\b|${word}`).join('|'), 'gi'),
+  SLURS: new RegExp(slurs.map((word) => `\\b${word}\\b`).join('|'), 'gi'),
   TENOR_LINKS: /https:\/\/tenor\.com\/view\/.*-(\d+)/,
   EMOJI: /<(a)?:([a-zA-Z0-9_]+):(\d+)>/,
   BANNED_WEBHOOK_WORDS: /discord|clyde|```/gi,
