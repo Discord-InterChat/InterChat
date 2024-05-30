@@ -42,7 +42,7 @@ export default class Purge extends BaseCommand {
             description: 'The ID of the server.',
             required: true,
           },
-          { ...limitOpt },
+          limitOpt,
         ],
       },
       {
@@ -56,7 +56,7 @@ export default class Purge extends BaseCommand {
             description: 'The ID of the user.',
             required: true,
           },
-          { ...limitOpt },
+          limitOpt,
         ],
       },
       {
@@ -70,14 +70,14 @@ export default class Purge extends BaseCommand {
             description: 'Provide the message ID to delete its replies.',
             required: true,
           },
-          { ...limitOpt },
+          limitOpt,
         ],
       },
       {
         type: ApplicationCommandOptionType.Subcommand,
         name: 'any',
         description: 'Purge messages from the network. Staff-only',
-        options: [{ ...limitOpt }],
+        options: [limitOpt],
       },
       {
         type: ApplicationCommandOptionType.Subcommand,
@@ -146,37 +146,41 @@ export default class Purge extends BaseCommand {
     switch (subcommand) {
       case 'server': {
         const serverId = interaction.options.getString('server', true);
-        messagesInDb = await db.broadcastedMessages.findMany({
-          where: { originalMsg: { serverId, hubId: channelInHub.hubId } },
-          orderBy: { messageId: 'desc' },
+        const serverRes = await db.originalMessages.findMany({
+          where: { serverId, hubId: channelInHub.hubId },
+          select: { broadcastMsgs: true },
+          orderBy: { createdAt: 'desc' },
           take: limit,
         });
+
+        messagesInDb = serverRes.flatMap((i) => i.broadcastMsgs);
         break;
       }
 
       case 'user': {
         const authorId = interaction.options.getString('user', true);
-        messagesInDb = (
-          await db.originalMessages.findMany({
-            where: { authorId, hubId: channelInHub.hubId },
-            orderBy: { messageId: 'desc' },
-            take: limit,
-            select: { broadcastMsgs: true },
-          })
-        ).flatMap((i) => i.broadcastMsgs);
+        const userRes = await db.originalMessages.findMany({
+          where: { authorId, hubId: channelInHub.hubId },
+          select: { broadcastMsgs: true },
+          orderBy: { messageId: 'desc' },
+          take: limit,
+        });
+
+        messagesInDb = userRes.flatMap((i) => i.broadcastMsgs);
         break;
       }
       case 'after': {
         const messageId = interaction.options.getString('message', true);
         const fetchedMsg = await interaction.channel?.messages.fetch(messageId).catch(() => null);
+
         if (fetchedMsg) {
-          messagesInDb = await db.broadcastedMessages.findMany({
+          const messagesRes = await db.originalMessages.findMany({
+            where: { hubId: channelInHub.hubId, createdAt: { gte: fetchedMsg.createdAt } },
             take: limit,
-            where: {
-              originalMsg: { hubId: channelInHub.hubId },
-              messageId: { gt: fetchedMsg.id },
-            },
+            select: { broadcastMsgs: true },
           });
+
+          messagesInDb = messagesRes.flatMap((m) => m.broadcastMsgs);
         }
         break;
       }
@@ -245,7 +249,7 @@ export default class Purge extends BaseCommand {
         return SuperClient.resolveEval(evalRes) || [];
       }
       catch (e) {
-        handleError(e, interaction);
+        handleError(e);
       }
 
       return [];
