@@ -20,7 +20,9 @@ export const commandsMap = new Collection<string, BaseCommand>();
 export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
 
 export default abstract class BaseCommand {
-  readonly abstract data: RESTPostAPIChatInputApplicationCommandsJSONBody | RESTPostAPIContextMenuApplicationCommandsJSONBody;
+  abstract readonly data:
+    | RESTPostAPIChatInputApplicationCommandsJSONBody
+    | RESTPostAPIContextMenuApplicationCommandsJSONBody;
   readonly staffOnly?: boolean;
   readonly cooldown?: number;
   readonly description?: string;

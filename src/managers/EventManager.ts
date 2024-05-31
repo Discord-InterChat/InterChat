@@ -253,8 +253,6 @@ export default abstract class EventManager {
     const hub = await db.hubs.findFirst({ where: { id: connection?.hubId } });
     if (!hub) return;
 
-    message.channel.sendTyping().catch(() => null);
-
     const settings = new HubSettingsBitField(hub.settings);
     const hubConnections = connectionCache.filter(
       (con) =>
@@ -266,6 +264,8 @@ export default abstract class EventManager {
 
     // run checks on the message to determine if it can be sent in the network
     if (!(await runChecks(message, settings, connection.hubId, { attachmentURL }))) return;
+
+    message.channel.sendTyping().catch(() => null);
 
     // fetch the referred message  (message being replied to) from discord
     const referredMessage = message.reference
