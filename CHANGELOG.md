@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.25.9](https://github.com/Discord-InterChat/InterChat/compare/v3.25.8...v3.25.9) (2024-05-31)
+
+
+### Bug Fixes
+
+* fix purge command errors ([#74](https://github.com/Discord-InterChat/InterChat/issues/74)) ([e5f936c](https://github.com/Discord-InterChat/InterChat/commit/e5f936c537dcb4e829aeb76c6bf35242a416e7c3))
+
 ### [3.25.8](https://github.com/Discord-InterChat/InterChat/compare/v3.25.7...v3.25.8) (2024-05-28)
 
 
