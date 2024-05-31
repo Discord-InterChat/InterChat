@@ -6,12 +6,17 @@ import startCase from 'lodash/startCase.js';
 import SuperClient from '../core/Client.js';
 import {
   ActionRow,
+  ApplicationCommand,
+  ApplicationCommandOptionType,
   ButtonStyle,
   ChannelType,
+  Client,
+  Collection,
   ColorResolvable,
   ComponentType,
   EmbedBuilder,
   ForumChannel,
+  GuildResolvable,
   Interaction,
   MediaChannel,
   Message,
@@ -499,4 +504,33 @@ export const getUserLocale = async (userId: Snowflake) => {
 export const containsInviteLinks = (str: string) => {
   const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
   return inviteLinks.some((link) => str.includes(link));
+};
+
+export const fetchCommands = async (client: Client) => {
+  return await client.application?.commands.fetch();
+};
+
+export const findCommand = (name: string, commands: Collection<
+  string,
+  ApplicationCommand<{
+    guild: GuildResolvable;
+  }>
+> | undefined) => {
+  return commands?.find(command => command.name === name);
+};
+
+export const findSubcommand = (
+  cmdName: string,
+  subName: string,
+  commands: Collection<
+    string,
+    ApplicationCommand<{
+      guild: GuildResolvable;
+    }>
+  >,
+) => {
+  const command = commands.find(({ name }) => name === cmdName);
+  return command?.options.find(
+    ({ type, name }) => type === ApplicationCommandOptionType.Subcommand && name === subName,
+  );
 };

@@ -160,16 +160,14 @@ export default class Blacklist extends BaseCommand {
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferUpdate();
 
+    const { locale } = interaction.user;
     const customId = CustomID.parseCustomId(interaction.customId);
     const messageId = customId.args[0];
     const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });
 
     if (!originalMsg?.hubId) {
       await interaction.editReply(
-        t(
-          { phrase: 'errors.networkMessageExpired', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        t({ phrase: 'errors.networkMessageExpired', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -181,7 +179,7 @@ export default class Blacklist extends BaseCommand {
     const successEmbed = new EmbedBuilder().setColor('Green').addFields(
       {
         name: 'Reason',
-        value: reason ? reason : t({ phrase: 'misc.noReason', locale: interaction.user.locale }),
+        value: reason ? reason : t({ phrase: 'misc.noReason', locale }),
         inline: true,
       },
       {
@@ -198,7 +196,7 @@ export default class Blacklist extends BaseCommand {
       const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
       successEmbed.setDescription(
         t(
-          { phrase: 'blacklist.user.success', locale: interaction.user.locale },
+          { phrase: 'blacklist.user.success', locale },
           { username: user?.username ?? 'Unknown User', emoji: emojis.tick },
         ),
       );
@@ -240,7 +238,7 @@ export default class Blacklist extends BaseCommand {
 
       successEmbed.setDescription(
         t(
-          { phrase: 'blacklist.server.success', locale: interaction.user.locale },
+          { phrase: 'blacklist.server.success', locale },
           { server: server?.name ?? 'Unknown Server', emoji: emojis.tick },
         ),
       );
