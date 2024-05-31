@@ -1,8 +1,10 @@
 import { APIMessage, WebhookMessageCreateOptions } from 'discord.js';
 
-export default async (message: WebhookMessageCreateOptions, webhookUrl: string) => {
-  const res = await fetch('https://interchat-networkwebhook.vercel.app/api/send', {
-    method: 'PUT',
+type DiscordErrorFormat = { message: string; code: number };
+
+export default async (webhookUrl: string, message: WebhookMessageCreateOptions) => {
+  const res = await fetch('https://api.interchat.fun/send', {
+    method: 'POST',
     body: JSON.stringify(message),
     headers: {
       authorization: `${process.env.NETWORK_API_KEY}`,
@@ -11,7 +13,6 @@ export default async (message: WebhookMessageCreateOptions, webhookUrl: string) 
     },
   });
 
-  const resBody = await res.json();
-
-  return res.status === 200 ? (resBody.result as APIMessage) : String(resBody.error);
+  const resBody: APIMessage | DiscordErrorFormat = await res.json();
+  return 'code' in resBody ? resBody.message : resBody;
 };
