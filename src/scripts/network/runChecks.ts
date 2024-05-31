@@ -21,7 +21,7 @@ export const isUserBlacklisted = async (message: Message, hubId: string) => {
     where: { userId: message.author.id, blacklistedFrom: { some: { hubId: { equals: hubId } } } },
   });
 
-  return Boolean(isBlacklisted);
+  return isBlacklisted ? true : false;
 };
 
 export const replyToMsg = async (message: Message, content: string) => {
