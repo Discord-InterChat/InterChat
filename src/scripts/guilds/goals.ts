@@ -1,5 +1,5 @@
 import { APIEmbed, Guild, resolveColor } from 'discord.js';
-import { colors, mascotEmojis } from '../../utils/Constants.js';
+import { channels, colors, mascotEmojis } from '../../utils/Constants.js';
 
 /**
  * @param channelId must be a channel ID in the support server
@@ -7,26 +7,43 @@ import { colors, mascotEmojis } from '../../utils/Constants.js';
 export const logGuildJoin = async (guild: Guild, channelId: string) => {
   await guild.client.cluster.broadcastEval(
     async (client, ctx) => {
+      const { stripIndents } = require('common-tags');
+
       const goalChannel = client.channels.cache.get(ctx.goalChannel);
+      const inviteLogChannel = client.channels.cache.get(ctx.inviteLogs);
 
-      if (goalChannel?.isTextBased()) {
-        const count = (await client.cluster.fetchClientValues('guilds.cache.size')) as number[];
-        const guildCount = count.reduce((p, n) => p + n, 0);
+      if (!goalChannel?.isTextBased() || !inviteLogChannel?.isTextBased()) return;
 
-        const goalEmbed: APIEmbed = {
-          color: ctx.color,
-          author: {
-            name: `${ctx.guild.name} • ${ctx.guild.memberCount} members • ${ctx.guild.id}`,
-            icon_url: ctx.guild.iconURL,
-          },
-        };
+      const count = (await client.cluster.fetchClientValues('guilds.cache.size')) as number[];
+      const guildCount = count.reduce((p, n) => p + n, 0);
 
-        // send message to support server notifying of new guild
-        await goalChannel.send({
-          content: `${ctx.flushedEmoji} I've just joined ${ctx.guild.name}, now in a total of **${guildCount}** servers! 🎉`,
-          embeds: [goalEmbed],
-        });
-      }
+      const logsEmbed: APIEmbed = {
+        color: ctx.color,
+        thumbnail: ctx.guild.iconURL ? { url: ctx.guild.iconURL } : undefined,
+        title: '✨ Invited to New Server',
+        description: stripIndents`
+            - Name: ${ctx.guild.name}
+            - ID: ${ctx.guild.id}
+            - Owner: ${ctx.guild.owner.username} (${ctx.guild.owner.id})
+            - Member Count: ${ctx.guild.memberCount}
+          `,
+      };
+
+      const goalEmbed: APIEmbed = {
+        color: ctx.color,
+        author: {
+          name: `${ctx.guild.name}`,
+          icon_url: ctx.guild.iconURL,
+        },
+      };
+
+      await inviteLogChannel.send({ embeds: [logsEmbed] });
+
+      // send message to support server notifying of new guild
+      await goalChannel.send({
+        content: `${ctx.flushedEmoji} ${ctx.guild.name} added me, I'm now in **${guildCount}** servers! 🎉`,
+        embeds: [goalEmbed],
+      });
     },
     {
       context: {
@@ -35,9 +52,14 @@ export const logGuildJoin = async (guild: Guild, channelId: string) => {
           name: guild.name,
           memberCount: guild.memberCount,
           iconURL: guild.iconURL() || undefined,
+          owner: {
+            username: (await guild.fetchOwner()).id,
+            id: guild.ownerId,
+          },
         },
         color: resolveColor(colors.interchatBlue),
         goalChannel: channelId,
+        inviteLogs: channels.inviteLogs,
         flushedEmoji: mascotEmojis.flushed,
       },
     },
@@ -53,22 +75,38 @@ export const logGuildLeave = async (guild: Guild, channelId: string) => {
   // we cant access any variables/functions or anything inside the broadcastEval callback so we pass it in as context
   await guild.client.cluster.broadcastEval(
     async (client, ctx) => {
+      const { stripIndents } = require('common-tags');
+
       const goalChannel = await client.channels.fetch(ctx.goalChannel).catch(() => null);
+      const inviteLogChannel = client.channels.cache.get(ctx.inviteLogs);
 
-      if (goalChannel?.isTextBased()) {
-        const goalEmbed: APIEmbed = {
-          color: ctx.color,
-          author: {
-            name: `${ctx.guild.name} • Owner @${ctx.guild.ownerName} • ${ctx.guild.memberCount} • ${ctx.guild.id}`,
-            icon_url: ctx.guild.iconURL,
-          },
-        };
+      if (!goalChannel?.isTextBased() || !inviteLogChannel?.isTextBased()) return;
 
-        await goalChannel.send({
-          content: `👢 ${ctx.guild.name} kicked me. I'm back to **${ctx.guildCount}** servers ${ctx.cryEmoji}`,
-          embeds: [goalEmbed],
-        });
-      }
+      const logsEmbed: APIEmbed = {
+        color: ctx.color,
+        thumbnail: ctx.guild.iconURL ? { url: ctx.guild.iconURL } : undefined,
+        title: '👢 Kicked from server',
+        description: stripIndents`
+            - Name: ${ctx.guild.name}
+            - ID: ${ctx.guild.id}
+            - Owner: ${ctx.guild.ownerName} (${ctx.guild.ownerId})
+            - Member Count: ${ctx.guild.memberCount}
+          `,
+      };
+
+      const goalEmbed: APIEmbed = {
+        color: ctx.color,
+        author: {
+          name: `${ctx.guild.name}`,
+          icon_url: ctx.guild.iconURL,
+        },
+      };
+
+      await inviteLogChannel.send({ embeds: [logsEmbed] });
+      await goalChannel.send({
+        content: `👢 ${ctx.guild.name} kicked me. I'm back to **${ctx.guildCount}** servers ${ctx.cryEmoji}`,
+        embeds: [goalEmbed],
+      });
     },
     {
       context: {
@@ -78,9 +116,11 @@ export const logGuildLeave = async (guild: Guild, channelId: string) => {
           name: guild.name,
           iconURL: guild.iconURL() || undefined,
           ownerName: guildOwner?.username,
+          ownerId: guild.ownerId,
           memberCount: guild.memberCount,
         },
         color: resolveColor('Red'),
+        inviteLogs: channels.inviteLogs,
         goalChannel: channelId,
         cryEmoji: mascotEmojis.cry,
       },

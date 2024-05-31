@@ -64,6 +64,7 @@ export const channels = {
   reports: '1158773603551162398',
   goal: '906460473065615403',
   suggestions: '1021256657528954900',
+  inviteLogs: '1246117516099457146',
 } as const;
 
 export const colors = {
