@@ -58,7 +58,7 @@ export default class Stats extends BaseCommand {
           name: 'Bot Stats',
           value: stripIndents`
 	          Up Since: ${time(upSince, 'R')}
-            Servers: ${guildCount}
+            Servers: ${guildCount.reduce((p, n) => p + n, 0)}
 	          Members: ${memberCount.reduce((p, n) => p + n, 0)}`,
           inline: true,
         },
