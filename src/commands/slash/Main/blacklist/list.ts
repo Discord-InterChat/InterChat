@@ -9,7 +9,7 @@ import { Prisma, blacklistedServers, userData } from '@prisma/client';
 
 // Type guard functions
 function isServerType(list: blacklistedServers | userData): list is blacklistedServers {
-  return 'serverId' in list;
+  return list && 'serverId' in list;
 }
 
 export default class ListBlacklists extends BlacklistCommand {

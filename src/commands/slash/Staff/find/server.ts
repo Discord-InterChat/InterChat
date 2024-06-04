@@ -1,10 +1,9 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Find from './index.js';
+import db from '../../../../utils/Db.js';
+import { ChatInputCommandInteraction, EmbedBuilder, GuildPremiumTier } from 'discord.js';
+import { toTitleCase } from '../../../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import { colors, emojis } from '../../../../utils/Constants.js';
-import { toTitleCase } from '../../../../utils/Utils.js';
-import db from '../../../../utils/Db.js';
-import { GuildPremiumTier } from 'discord.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -26,16 +25,7 @@ export default class Server extends Find {
     });
 
     const guildBlacklisted = await db.blacklistedServers.count({ where: { serverId: guild.id } });
-    const guildBoostLevel =
-      guild.premiumTier === GuildPremiumTier.None
-        ? 'None'
-        : guild.premiumTier === GuildPremiumTier.Tier1
-          ? 'Level 1'
-          : guild.premiumTier === GuildPremiumTier.Tier2
-            ? 'Level 2'
-            : guild.premiumTier === GuildPremiumTier.Tier3
-              ? 'Level 3'
-              : 'Unknown';
+    const guildBoostLevel = GuildPremiumTier[guild.premiumTier];
 
     const guildHubs =
       guildInDb.length > 0 ? guildInDb.map(({ hub }) => hub?.name).join(', ') : 'None';
@@ -52,7 +42,7 @@ export default class Server extends Find {
           name: 'Server Info',
           value: stripIndents`
           > **Server ID:** ${guild.id}
-          > **Owner:** @${owner?.user.username} (${owner?.id})
+          > **Owner:** @${owner.user.username} (${owner.id})
           > **Created:** <t:${Math.round(guild.createdTimestamp / 1000)}:R>
           > **Language:** ${guild.preferredLocale}
           > **Boost Level:** ${guildBoostLevel}

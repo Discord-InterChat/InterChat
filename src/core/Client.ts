@@ -1,3 +1,5 @@
+import Scheduler from '../services/SchedulerService.js';
+import loadCommandFiles from '../utils/LoadCommands.js';
 import {
   Client as Client,
   IntentsBitField,
@@ -7,24 +9,22 @@ import {
   Snowflake,
   Guild,
   WebhookClient,
+  ActivityType,
 } from 'discord.js';
-import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
-import { commandsMap, interactionsMap } from './BaseCommand.js';
-import Scheduler from '../services/SchedulerService.js';
-import CooldownService from '../services/CooldownService.js';
-import BlacklistManager from '../managers/BlacklistManager.js';
-import { RemoveMethods } from '../typings/index.js';
-import { ActivityType } from 'discord.js';
-import 'dotenv/config';
-import { loadLocales } from '../utils/Locale.js';
-import loadCommandFiles from '../utils/LoadCommands.js';
 import {
   connectionCache as _connectionCache,
   messageTimestamps,
   storeMsgTimestamps,
   syncConnectionCache,
 } from '../utils/ConnectedList.js';
+import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
+import { commandsMap, interactionsMap } from './BaseCommand.js';
+import CooldownService from '../services/CooldownService.js';
+import BlacklistManager from '../managers/BlacklistManager.js';
+import { RemoveMethods } from '../typings/index.js';
+import { loadLocales } from '../utils/Locale.js';
 import { PROJECT_VERSION } from '../utils/Constants.js';
+import 'dotenv/config';
 
 export default class SuperClient extends Client {
   // A static instance of the SuperClient class to be used globally.
