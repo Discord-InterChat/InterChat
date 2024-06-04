@@ -32,7 +32,7 @@ export const logJoinToHub = async (
   await sendLog(server.client, hub?.logChannels?.joinLeaves, embed);
 };
 
-export const logServerLeave = async (hubId: string, server: Guild) => {
+export const logGuildLeaveToHub = async (hubId: string, server: Guild) => {
   const hub = await fetchHub(hubId);
   if (!hub?.logChannels?.joinLeaves) return;
 

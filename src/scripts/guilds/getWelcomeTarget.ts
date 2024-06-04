@@ -9,8 +9,11 @@ export default async (guild: Guild) => {
   let guildOwner = null;
 
   if (guild.members.me?.permissions.has('ViewAuditLog', true)) {
-    const auditLog = await guild.fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 });
-    guildOwner = auditLog.entries.first()?.executor;
+    const auditLog = await guild
+      .fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
+      .catch(() => null);
+
+    guildOwner = auditLog?.entries.first()?.executor;
   }
 
   const guildChannel = guild.channels.cache

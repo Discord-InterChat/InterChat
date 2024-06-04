@@ -14,7 +14,7 @@ import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
 import { simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
-import { logServerLeave } from '../../../../utils/HubLogger/JoinLeave.js';
+import { logGuildLeaveToHub } from '../../../../utils/HubLogger/JoinLeave.js';
 import { deleteConnection } from '../../../../utils/ConnectedList.js';
 
 export default class Leave extends Hub {
@@ -119,7 +119,7 @@ export default class Leave extends Hub {
     // log server leave
     if (interaction.guild) {
       const hubId = customId.args[1];
-      await logServerLeave(hubId, interaction.guild);
+      await logGuildLeaveToHub(hubId, interaction.guild);
     }
   }
 }
