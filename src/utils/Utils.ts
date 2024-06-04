@@ -46,6 +46,7 @@ import { captureException } from '@sentry/node';
 import { CustomID } from './CustomID.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { deleteConnection, deleteConnections } from './ConnectedList.js';
+import { userData } from '@prisma/client';
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export const msToReadable = (milliseconds: number) => {
@@ -495,10 +496,8 @@ export const fetchHub = async (id: string) => {
   return await db.hubs.findFirst({ where: { id } });
 };
 
-export const getUserLocale = async (userId: Snowflake) => {
-  const fetch = await db.userData.findFirst({ where: { userId } });
-
-  return (fetch?.locale as supportedLocaleCodes | undefined) || 'en';
+export const getUserLocale = (user: userData | undefined | null) => {
+  return (user?.locale as supportedLocaleCodes | null | undefined) || 'en';
 };
 
 export const containsInviteLinks = (str: string) => {

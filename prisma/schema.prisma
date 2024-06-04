@@ -156,11 +156,12 @@ model blacklistedUsers {
 model userData {
   id                   String         @id @default(auto()) @map("_id") @db.ObjectId
   userId               String         @unique
+  voteCount            Int            @default(0)
   // username is only guarenteed to be set and/or used for blacklisted users
   username             String?
   locale               String?
   lastVoted            DateTime?
-  voteCount            Int            @default(0)
+  banned               Boolean?       @default(false)
   blacklistedFrom      hubBlacklist[]
   // if user has seen the welcome message when they first use the network
   viewedNetworkWelcome Boolean        @default(false)

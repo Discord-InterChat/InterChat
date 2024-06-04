@@ -33,7 +33,7 @@ export const getReferredContent = (referredMessage: Message) => {
 };
 
 export const getReferredMsgData = async (referredMessage: Message | null) => {
-  if (!referredMessage) return { dbReferrence: undefined, referredAuthor: undefined };
+  if (!referredMessage) return { dbReferrence: null, referredAuthor: null };
 
   const { client } = referredMessage;
 
@@ -41,18 +41,18 @@ export const getReferredMsgData = async (referredMessage: Message | null) => {
   const dbReferrence = referredMessage
     ? (
       await db.broadcastedMessages.findFirst({
-        where: { messageId: referredMessage?.id },
+        where: { messageId: referredMessage.id },
         include: { originalMsg: { include: { broadcastMsgs: true } } },
       })
     )?.originalMsg
-    : undefined;
+    : null;
 
-  if (!dbReferrence) return { dbReferrence: undefined, referredAuthor: undefined };
+  if (!dbReferrence) return { dbReferrence: null, referredAuthor: null };
 
   const referredAuthor =
     referredMessage.author.id === client.user.id
       ? client.user
-      : await client.users.fetch(dbReferrence.authorId).catch(() => undefined);
+      : await client.users.fetch(dbReferrence.authorId).catch(() => null); // fetch the acttual user ("referredMessage" is a webhook message)
 
   return { dbReferrence, referredAuthor };
 };
@@ -137,16 +137,6 @@ export const generateJumpButton = (
 };
 
 export const sendWelcomeMsg = async (message: Message, totalServers: string, hub: string) => {
-  await db.userData.upsert({
-    where: { userId: message.author.id },
-    create: {
-      userId: message.author.id,
-      username: message.author.username,
-      viewedNetworkWelcome: true,
-    },
-    update: { viewedNetworkWelcome: true },
-  });
-
   const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setStyle(ButtonStyle.Link)

@@ -1,4 +1,3 @@
-import db from '../../utils/Db.js';
 import logProfanity from '../../utils/HubLogger/Profanity.js';
 import { Message, EmbedBuilder } from 'discord.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
@@ -9,19 +8,12 @@ import { check as checkProfanity } from '../../utils/Profanity.js';
 import { runAntiSpam } from './antiSpam.js';
 import { analyzeImageForNSFW, isUnsafeImage } from '../../utils/NSFWDetection.js';
 import { logBlacklist } from '../../utils/HubLogger/ModLogs.js';
+import { userData as userDataCol } from '@prisma/client';
 
 // if account is created within the last 7 days
 export const isNewUser = (message: Message) => {
   const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
   return message.author.createdTimestamp > sevenDaysAgo;
-};
-
-export const isUserBlacklisted = async (message: Message, hubId: string) => {
-  const isBlacklisted = await db.userData.findFirst({
-    where: { userId: message.author.id, blacklistedFrom: { some: { hubId: { equals: hubId } } } },
-  });
-
-  return Boolean(isBlacklisted);
 };
 
 export const replyToMsg = async (message: Message, content: string) => {
@@ -41,7 +33,9 @@ export const isCaughtSpam = async (
 ) => {
   const antiSpamResult = runAntiSpam(message.author, 3);
   if (!antiSpamResult) return false;
-  const { addUserBlacklist, notifyBlacklist, scheduleRemoval } = message.client.blacklistManager;
+  /* FIXME: Don't use { addUserBlacklist, notifyBlacklist } it makes the methods lose their "this" property
+    better to not have a class like this at all tbh */
+  const blacklistManager = message.client.blacklistManager;
 
   if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
     const expires = new Date(Date.now() + 60 * 5000);
@@ -49,9 +43,13 @@ export const isCaughtSpam = async (
     const target = message.author;
     const mod = message.client.user;
 
-    await addUserBlacklist(hubId, target.id, reason, mod.id, 60 * 5000);
-    scheduleRemoval('user', target.id, hubId, 60 * 5000);
-    await notifyBlacklist('user', target.id, { hubId, expires, reason }).catch(() => null);
+    await blacklistManager.addUserBlacklist(hubId, target.id, reason, mod.id, 60 * 5000);
+    blacklistManager.scheduleRemoval('user', target.id, hubId, 60 * 5000);
+
+    await blacklistManager
+      .notifyBlacklist('user', target.id, { hubId, expires, reason })
+      .catch(() => null);
+
     await logBlacklist(hubId, message.client, { target, mod, reason, expires }).catch(() => null);
   }
 
@@ -83,7 +81,7 @@ export const containsLinks = (message: Message, settings: HubSettingsBitField) =
 };
 export const unsupportedAttachment = (message: Message) => {
   const attachment = message.attachments.first();
-  // NOTE: Even 'image/gif' was allowed
+  // NOTE: Even 'image/gif' was allowed before
   const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
   return (attachment?.contentType && !allowedTypes.includes(attachment.contentType)) === true;
@@ -102,18 +100,22 @@ export const attachmentTooLarge = (message: Message) => {
  */
 
 export const runChecks = async (
-  message: Message,
-  settings: HubSettingsBitField,
+  message: Message<true>,
   hubId: string,
-  opts?: { attachmentURL?: string | null },
+  opts: { settings: HubSettingsBitField; userData: userDataCol; attachmentURL?: string | null },
 ): Promise<boolean> => {
   const { locale } = message.author;
   const { hasProfanity, hasSlurs } = checkProfanity(message.content);
+  const { settings, userData, attachmentURL } = opts;
 
-  if (!message.inGuild()) return false;
-  if (await isUserBlacklisted(message, hubId)) return false;
   if (await isCaughtSpam(message, settings, hubId)) return false;
   if (containsLinks(message, settings)) message.content = replaceLinks(message.content);
+
+  // banned / blacklisted
+  if (userData.banned || userData.blacklistedFrom.some((b) => b.hubId === hubId)) {
+    return false;
+  }
+
   // send a log to the log channel set by the hub
   if (hasProfanity || hasSlurs) {
     logProfanity(hubId, message.content, message.author, message.guild);
@@ -164,7 +166,7 @@ export const runChecks = async (
     return false;
   }
 
-  const isNsfw = await containsNSFW(message, opts?.attachmentURL);
+  const isNsfw = await containsNSFW(message, attachmentURL);
   if (isNsfw?.unsafe) {
     const nsfwEmbed = new EmbedBuilder()
       .setTitle(t({ phrase: 'network.nsfw.title', locale }))

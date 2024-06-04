@@ -22,8 +22,8 @@ type BroadcastOpts = {
   embedColor?: HexColorString | null;
   attachmentURL?: string | null;
   referredMessage: Message | null;
-  dbReferrence: (originalMessages & { broadcastMsgs: broadcastedMessages[] }) | undefined;
-  referredAuthor: User | undefined;
+  dbReferrence: (originalMessages & { broadcastMsgs: broadcastedMessages[] }) | null;
+  referredAuthor: User | null;
 };
 
 export default (

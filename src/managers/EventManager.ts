@@ -33,7 +33,7 @@ import { getAttachmentURL, getUserLocale, handleError, simpleEmbed, wait } from 
 import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
-import { logServerLeave } from '../utils/HubLogger/JoinLeave.js';
+import { logGuildLeaveToHub } from '../utils/HubLogger/JoinLeave.js';
 import { deleteConnections, modifyConnection } from '../utils/ConnectedList.js';
 
 export default abstract class EventManager {
@@ -218,20 +218,17 @@ export default abstract class EventManager {
 
     Logger.info(`Left ${guild.name} (${guild.id})`);
 
-    // find all connections that belong to this guild
     const connections = await db.connectedList.findMany({ where: { serverId: guild.id } });
-    // delete them from the database
     await deleteConnections({ serverId: guild.id });
 
-    // send server leave log to hubs
-    connections.forEach((connection) => logServerLeave(connection.hubId, guild));
+    connections.forEach(async (connection) => await logGuildLeaveToHub(connection.hubId, guild));
 
     await logGuildLeave(guild, channels.goal);
   }
 
   @GatewayEvent('messageCreate')
   static async onMessageCreate(message: Message): Promise<void> {
-    if (message.author?.bot || message.system || message.webhookId || !message.inGuild()) return;
+    if (message.author.bot || message.system || message.webhookId || !message.inGuild()) return;
 
     const { connectionCache, cachePopulated } = message.client;
 
@@ -243,14 +240,11 @@ export default abstract class EventManager {
       return;
     }
 
-    const locale = await getUserLocale(message.author.id);
-    message.author.locale = locale;
-
     // check if the message was sent in a network channel
     const connection = connectionCache.get(message.channel.id);
     if (!connection?.connected) return;
 
-    const hub = await db.hubs.findFirst({ where: { id: connection?.hubId } });
+    const hub = await db.hubs.findFirst({ where: { id: connection.hubId } });
     if (!hub) return;
 
     const settings = new HubSettingsBitField(hub.settings);
@@ -259,11 +253,35 @@ export default abstract class EventManager {
         con.hubId === connection.hubId && con.connected && con.channelId !== message.channel.id,
     );
 
-    const attachment = message.attachments.first();
-    const attachmentURL = attachment ? attachment.url : await getAttachmentURL(message.content);
+    let userData = await db.userData.findFirst({ where: { userId: message.author.id } });
+    if (!userData?.viewedNetworkWelcome) {
+      userData = await db.userData.upsert({
+        where: { userId: message.author.id },
+        create: {
+          userId: message.author.id,
+          username: message.author.username,
+          viewedNetworkWelcome: true,
+        },
+        update: { viewedNetworkWelcome: true },
+      });
+
+      await sendWelcomeMsg(message, hubConnections.size.toString(), hub.name);
+    }
+
+    // set locale for the user
+    message.author.locale = getUserLocale(userData);
+
+    const attachmentURL =
+      message.attachments.first()?.url ?? (await getAttachmentURL(message.content));
 
     // run checks on the message to determine if it can be sent in the network
-    if (!(await runChecks(message, settings, connection.hubId, { attachmentURL }))) return;
+    const passingChecks = await runChecks(message, connection.hubId, {
+      settings,
+      userData,
+      attachmentURL,
+    });
+
+    if (passingChecks === false) return;
 
     message.channel.sendTyping().catch(() => null);
 
@@ -273,7 +291,6 @@ export default abstract class EventManager {
       : null;
 
     const { dbReferrence, referredAuthor } = await getReferredMsgData(referredMessage);
-
     const sendResult = sendBroadcast(message, hub, hubConnections, settings, {
       attachmentURL,
       dbReferrence,
@@ -286,12 +303,6 @@ export default abstract class EventManager {
     // deleting attachments will make the image not show up in the embed (discord removes it from its cdn)
     // if (!attachment) message.delete().catch(() => null);
 
-    const userData = await db.userData.findFirst({
-      where: { userId: message.author.id, viewedNetworkWelcome: true },
-    });
-
-    if (!userData) await sendWelcomeMsg(message, hubConnections.size.toString(), hub.name);
-
     // store the message in the db
     await storeMessageData(message, await Promise.all(sendResult), connection.hubId, dbReferrence);
   }
@@ -300,7 +311,8 @@ export default abstract class EventManager {
   static async onInteractionCreate(interaction: Interaction): Promise<void> {
     try {
       const { commands, interactions } = interaction.client;
-      interaction.user.locale = await getUserLocale(interaction.user.id);
+      const userData = await db.userData.findFirst({ where: { userId: interaction.user.id } });
+      interaction.user.locale = getUserLocale(userData);
 
       if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
         const ignoreList = ['page_', 'onboarding_'];
@@ -334,12 +346,8 @@ export default abstract class EventManager {
       }
 
       const command = commands.get(interaction.commandName);
-      if (!interaction.isAutocomplete()) {
-        await command?.execute(interaction);
-      } // normal slashie/context menu
-      else if (command?.autocomplete) {
-        await command.autocomplete(interaction);
-      } // autocomplete options
+      if (!interaction.isAutocomplete()) await command?.execute(interaction); // slash commands
+      else if (command?.autocomplete) await command.autocomplete(interaction); // autocomplete
     }
     catch (e) {
       handleError(e, interaction);
