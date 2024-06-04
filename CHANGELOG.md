@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.26.0](https://github.com/Discord-InterChat/InterChat/compare/v3.25.8...v3.26.0) (2024-06-04)
+
+
+### Features
+
+* global ban/unban command ([0b0e02b](https://github.com/Discord-InterChat/InterChat/commit/0b0e02b854fc878ce1f8c3d80a9f79053aa1a14d))
+
+
+### Bug Fixes
+
+* **blacklist:** fix bug with `/blacklist list` ([04c803d](https://github.com/Discord-InterChat/InterChat/commit/04c803d7f5e3f54355ceff52a1ece94e8b5d13ac))
+* fix purge command errors ([#74](https://github.com/Discord-InterChat/InterChat/issues/74)) ([e5f936c](https://github.com/Discord-InterChat/InterChat/commit/e5f936c537dcb4e829aeb76c6bf35242a416e7c3))
+* fix stats command server count ([ba67f4b](https://github.com/Discord-InterChat/InterChat/commit/ba67f4bc6fb392505f1bfb7bec28addfe29b1cf0))
+
 ### [3.25.9](https://github.com/Discord-InterChat/InterChat/compare/v3.25.8...v3.25.9) (2024-05-31)
 
 
