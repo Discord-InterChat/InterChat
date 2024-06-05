@@ -18,7 +18,7 @@ import { t } from '../../../../utils/Locale.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 
 export default class Create extends Hub {
-  readonly cooldown = 60 * 60 * 1000; // 1 hour
+  readonly cooldown = 10 * 60 * 1000; // 10 mins
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const { locale } = interaction.user;
