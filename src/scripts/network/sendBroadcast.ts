@@ -108,7 +108,7 @@ export default (
         };
       }
 
-      const messageOrError = await sendMessage(messageFormat, connection.webhookURL);
+      const messageOrError = await sendMessage(connection.webhookURL, messageFormat);
 
       // return the message and webhook URL to store the message in the db
       return {
