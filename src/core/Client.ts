@@ -1,7 +1,7 @@
 import Scheduler from '../services/SchedulerService.js';
 import loadCommandFiles from '../utils/LoadCommands.js';
 import {
-  Client as Client,
+  Client,
   IntentsBitField,
   Partials,
   Options,
