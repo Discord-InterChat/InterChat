@@ -52,7 +52,7 @@ export default class Unban extends BaseCommand {
     await interaction.reply({
       embeds: [
         simpleEmbed(
-          `${emojis.tick} Successfully banned **${user.username}**. They can no longer use the bot.`,
+          `${emojis.tick} Successfully unbanned \`${user.username}\`. They can use the bot again.`,
         ),
       ],
     });

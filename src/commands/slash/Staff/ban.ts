@@ -61,7 +61,7 @@ export default class Ban extends BaseCommand {
 
     await interaction.reply({
       embeds: [
-        simpleEmbed(`${emojis.tick} Successfully banned **${user.username}**. They can no longer use the bot.`),
+        simpleEmbed(`${emojis.tick} Successfully banned \`${user.username}\`. They can no longer use the bot.`),
       ],
     });
   }
