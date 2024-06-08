@@ -3,11 +3,13 @@ import {
   MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
+import db from '../../utils/Db.js';
 import BaseCommand from '../../core/BaseCommand.js';
 import { checkIfStaff } from '../../utils/Utils.js';
 import { emojis } from '../../utils/Constants.js';
 import { t } from '../../utils/Locale.js';
-import db from '../../utils/Db.js';
+import { logMsgDelete } from '../../utils/HubLogger/ModLogs.js';
+import { captureException } from '@sentry/node';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -20,7 +22,7 @@ export default class DeleteMessage extends BaseCommand {
 
   async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
     const isOnCooldown = await this.checkAndSetCooldown(interaction);
-    if (isOnCooldown) return;
+    if (isOnCooldown || !interaction.inCachedGuild()) return;
 
     await interaction.deferReply({ ephemeral: true });
 
@@ -72,30 +74,35 @@ export default class DeleteMessage extends BaseCommand {
       return;
     }
 
-    const results = originalMsg.broadcastMsgs?.map(async (element) => {
+    const waitReply = await interaction.editReply(
+      `${emojis.loading} Your request has been queued. Messages will be deleted shortly...`,
+    );
+
+    let passed = 0;
+
+    for await (const dbMsg of originalMsg.broadcastMsgs) {
       const connection = interaction.client.connectionCache.find(
-        (c) => c.channelId === element.channelId,
+        (c) => c.channelId === dbMsg.channelId,
       );
-      if (!connection) return false;
+
+      if (!connection) break;
 
       const webhookURL = connection.webhookURL.split('/');
       const webhook = await interaction.client
         .fetchWebhook(webhookURL[webhookURL.length - 2])
         ?.catch(() => null);
 
-      if (webhook?.owner?.id !== interaction.client.user?.id) return false;
+      if (webhook?.owner?.id !== interaction.client.user?.id) break;
 
       // finally, delete the message
-      return await webhook
-        ?.deleteMessage(element.messageId, connection.parentId ? connection.channelId : undefined)
-        .then(() => true)
-        .catch(() => false);
-    });
+      await webhook
+        ?.deleteMessage(dbMsg.messageId, connection.parentId ? connection.channelId : undefined)
+        .then(() => passed++)
+        .catch(() => null);
+    }
 
-    const resultsArray = await Promise.all(results);
-    const deleted = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0);
-    await interaction
-      .editReply(
+    await waitReply
+      .edit(
         t(
           {
             phrase: 'network.deleteSuccess',
@@ -104,14 +111,23 @@ export default class DeleteMessage extends BaseCommand {
           {
             emoji: emojis.yes,
             user: `<@${originalMsg.authorId}>`,
-            deleted: deleted.toString(),
-            total: resultsArray.length.toString(),
+            deleted: passed.toString(),
+            total: originalMsg.broadcastMsgs.length.toString(),
           },
         ),
       )
       .catch(() => null);
 
-    // log the deleted message for moderation purposes TODO
-    // if (interaction.inCachedGuild()) networkMessageDelete(interaction.member, interaction.targetMessage);
+    const messageContent =
+      interaction.targetMessage.cleanContent ??
+      interaction.targetMessage.embeds.at(0)?.description?.replaceAll('`', '`');
+
+    if (isStaffOrHubMod && messageContent) {
+      await logMsgDelete(interaction.client, messageContent, hub, {
+        userId: originalMsg.authorId,
+        serverId: originalMsg.serverId,
+        modName: interaction.user.username,
+      }).catch(captureException);
+    }
   }
 }

@@ -1,10 +1,11 @@
 import { stripIndents } from 'common-tags';
-import { User, EmbedBuilder, Snowflake, Client } from 'discord.js';
+import { User, EmbedBuilder, Snowflake, Client, codeBlock } from 'discord.js';
 import BlacklistManager from '../../managers/BlacklistManager.js';
 import { emojis, colors } from '../Constants.js';
 import { fetchHub, toTitleCase } from '../Utils.js';
 import { sendLog } from './Default.js';
 import SuperClient from '../../core/Client.js';
+import { hubs } from '@prisma/client';
 
 /**
  * Logs the blacklisting of a user or server.
@@ -57,7 +58,6 @@ export const logBlacklist = async (
     iconURL = target.displayAvatarURL();
     type = 'User';
   }
-
 
   const embed = new EmbedBuilder()
     .setAuthor({ name: `${type} ${name} blacklisted`, iconURL })
@@ -134,4 +134,36 @@ export const logUnblacklist = async (
     });
 
   await sendLog(opts.mod.client, hub.logChannels.modLogs, embed);
+};
+
+export const logMsgDelete = async (
+  client: Client,
+  content: string,
+  hub: hubs,
+  opts: { userId: string; serverId: string; modName: string },
+) => {
+  if (!hub.logChannels?.modLogs) return;
+
+  const { userId, serverId } = opts;
+  const user = await client.users.fetch(userId).catch(() => null);
+  const server = await client.fetchGuild(serverId).catch(() => null);
+
+  const embed = new EmbedBuilder()
+    .setDescription(
+      stripIndents`
+      ### ${emojis.deleteDanger_icon} Message Deleted
+      **Content:**
+      ${codeBlock(content)}
+    `,
+    )
+    .setColor(colors.invisible)
+
+    .addFields([
+      { name: `${emojis.connect_icon} User`, value: `${user?.username} (\`${userId}\`)` },
+      { name: `${emojis.rules_icon} Server`, value: `${server?.name} (\`${serverId}\`)` },
+      { name: `${emojis.globe_icon} Hub`, value: hub.name },
+    ])
+    .setFooter({ text: `Deleted by: ${opts.modName}` });
+
+  await sendLog(client, hub.logChannels.modLogs, embed);
 };
