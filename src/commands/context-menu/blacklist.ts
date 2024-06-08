@@ -20,10 +20,11 @@ import { t } from '../../utils/Locale.js';
 import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { simpleEmbed } from '../../utils/Utils.js';
+import { checkIfStaff, simpleEmbed } from '../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import { logBlacklist } from '../../utils/HubLogger/ModLogs.js';
 import { deleteConnections } from '../../utils/ConnectedList.js';
+import Logger from '../../utils/Logger.js';
 
 export default class Blacklist extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -40,11 +41,13 @@ export default class Blacklist extends BaseCommand {
       include: { originalMsg: { include: { hub: true } } },
     });
 
-    if (
-      !messageInDb ||
-      (messageInDb.originalMsg?.hub?.ownerId !== interaction.user.id &&
-        !messageInDb.originalMsg?.hub?.moderators.find((mod) => mod.userId === interaction.user.id))
-    ) {
+    const isHubMod =
+      messageInDb?.originalMsg?.hub?.ownerId === interaction.user.id ||
+      messageInDb?.originalMsg?.hub?.moderators.find((mod) => mod.userId === interaction.user.id);
+
+    const isStaffOrHubMod = checkIfStaff(interaction.user.id) || isHubMod;
+
+    if (!messageInDb || (!isStaffOrHubMod && !checkIfStaff(interaction.user.id))) {
       await interaction.reply({
         embeds: [
           simpleEmbed(
@@ -91,7 +94,7 @@ export default class Blacklist extends BaseCommand {
         .setEmoji('🏠'),
     );
 
-    await interaction.reply({ embeds: [embed], components: [buttons] });
+    await interaction.reply({ embeds: [embed], components: [buttons], ephemeral: true });
   }
 
   @RegisterInteractionHandler('blacklist')
@@ -228,6 +231,10 @@ export default class Blacklist extends BaseCommand {
           expires,
         });
       }
+
+      Logger.info(
+        `User ${user?.username} blacklisted by ${interaction.user.username} in ${originalMsg.hubId}`,
+      );
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });
     }

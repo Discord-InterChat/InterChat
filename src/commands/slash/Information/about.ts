@@ -42,15 +42,17 @@ export default class About extends BaseCommand {
 
       ${creditsDivider}
       ✨ **Design:** 
-      ${emojis.dotBlue} @${usernames[4]} (Mascot)
+      ${emojis.dotBlue} @${usernames[6]} (Mascot)
 
       ${badgeEmojis.Developer} **Developers:**
+      ${emojis.dotBlue} @${usernames[0]}
       ${emojis.dotBlue} @${usernames[1]}
       ${emojis.dotBlue} @${usernames[2]}
-      ${emojis.dotBlue} @${usernames[0]}
 
       ${badgeEmojis.Staff} **Staff: ([Recruiting!](https://forms.gle/8zu7cxx4XPbEmMXJ9))**
       ${emojis.dotBlue} @${usernames[3]}
+      ${emojis.dotBlue} @${usernames[4]}
+      ${emojis.dotBlue} @${usernames[5]}
 
       ${linksDivider}
       [Guide](${LINKS.DOCS}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${LINKS.DOCS}/legal/privacy) • [Terms](${LINKS.DOCS}/legal/terms) 
