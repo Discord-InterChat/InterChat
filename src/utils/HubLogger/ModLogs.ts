@@ -140,7 +140,7 @@ export const logMsgDelete = async (
   client: Client,
   content: string,
   hub: hubs,
-  opts: { userId: string; serverId: string; modName: string },
+  opts: { userId: string; serverId: string; modName: string; imageUrl?: string },
 ) => {
   if (!hub.logChannels?.modLogs) return;
 
@@ -157,7 +157,7 @@ export const logMsgDelete = async (
     `,
     )
     .setColor(colors.invisible)
-
+    .setImage(opts.imageUrl ?? null)
     .addFields([
       { name: `${emojis.connect_icon} User`, value: `${user?.username} (\`${userId}\`)` },
       { name: `${emojis.rules_icon} Server`, value: `${server?.name} (\`${serverId}\`)` },
