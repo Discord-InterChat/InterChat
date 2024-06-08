@@ -107,12 +107,13 @@ export const runChecks = async (
   const { locale } = message.author;
   const { hasProfanity, hasSlurs } = checkProfanity(message.content);
   const { settings, userData, attachmentURL } = opts;
+  const isUserBlacklisted = userData.blacklistedFrom.some((b) => b.hubId === hubId);
 
   if (await isCaughtSpam(message, settings, hubId)) return false;
   if (containsLinks(message, settings)) message.content = replaceLinks(message.content);
 
   // banned / blacklisted
-  if (userData.banned || userData.blacklistedFrom.some((b) => b.hubId === hubId)) {
+  if (userData.banMeta?.reason || isUserBlacklisted) {
     return false;
   }
 

@@ -6,7 +6,7 @@ import {
 import BaseCommand from '../../../core/BaseCommand.js';
 import db from '../../../utils/Db.js';
 import { simpleEmbed } from '../../../utils/Utils.js';
-import { emojis } from '../../../utils/Constants.js';
+import { DeveloperIds, emojis } from '../../../utils/Constants.js';
 
 export default class Ban extends BaseCommand {
   readonly staffOnly = true;
@@ -23,9 +23,19 @@ export default class Ban extends BaseCommand {
     ],
   };
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
+    if (!DeveloperIds.includes(interaction.user.id)) return;
+
     const user = interaction.options.getUser('user', true);
+
+    if (user.id === interaction.user.id) {
+      await interaction.reply({
+        content: `Let's not go there. ${emojis.bruhcat}`,
+        ephemeral: true,
+      });
+    }
+
     const alreadyBanned = await db.userData.findFirst({
-      where: { userId: user.id, banned: true },
+      where: { userId: user.id, banMeta: { isSet: true } },
     });
 
     if (alreadyBanned) {
@@ -42,10 +52,10 @@ export default class Ban extends BaseCommand {
         username: user.username,
         viewedNetworkWelcome: false,
         voteCount: 0,
-        banned: true,
+        banMeta: { reason: 'Banned for being bad' }, // FIXME: Attach reason
       },
       update: {
-        banned: true,
+        banMeta: { reason: 'Banned for being bad' }, // FIXME: Attach reason
       },
     });
 

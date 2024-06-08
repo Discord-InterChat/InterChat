@@ -60,6 +60,10 @@ type hubLogReports {
   roleId    String?
 }
 
+type userBan {
+  reason String
+}
+
 type hubBlacklist {
   reason      String
   expires     DateTime?
@@ -161,7 +165,7 @@ model userData {
   username             String?
   locale               String?
   lastVoted            DateTime?
-  banned               Boolean?       @default(false)
+  banMeta              userBan?
   blacklistedFrom      hubBlacklist[]
   // if user has seen the welcome message when they first use the network
   viewedNetworkWelcome Boolean        @default(false)
