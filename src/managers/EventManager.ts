@@ -319,7 +319,7 @@ export default abstract class EventManager {
           // FIXME: Use localized message
           await interaction.reply({
             content: stripIndents`
-            ${emojis.no} You have been banned from using InterChat.
+            ${emojis.no} You have been banned from using InterChat for **${userData.banMeta.reason}**.
             To know more or to appeal, join the [support server]( ${LINKS.SUPPORT_INVITE} ).
             `,
             ephemeral: true,
