@@ -14,6 +14,14 @@ import {
   Interaction,
   Client,
 } from 'discord.js';
+import {
+  checkIfStaff,
+  getAttachmentURL,
+  getUserLocale,
+  handleError,
+  simpleEmbed,
+  wait,
+} from '../utils/Utils.js';
 import db from '../utils/Db.js';
 import Logger from '../utils/Logger.js';
 import SuperClient from '../core/Client.js';
@@ -29,7 +37,6 @@ import { logGuildJoin, logGuildLeave } from '../scripts/guilds/goals.js';
 import { channels, emojis, colors, LINKS } from '../utils/Constants.js';
 import { getReferredMsgData, sendWelcomeMsg } from '../scripts/network/helpers.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
-import { getAttachmentURL, getUserLocale, handleError, simpleEmbed, wait } from '../utils/Utils.js';
 import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
@@ -314,6 +321,23 @@ export default abstract class EventManager {
       const userData = await db.userData.findFirst({ where: { userId: interaction.user.id } });
       interaction.user.locale = getUserLocale(userData);
 
+      if (userData?.banMeta?.reason) {
+        if (interaction.isRepliable()) {
+          await interaction.reply({
+            content: t(
+              { phrase: 'errors.banned', locale: interaction.user.locale },
+              {
+                emoji: emojis.no,
+                reason: userData.banMeta.reason,
+                support_invite: LINKS.SUPPORT_INVITE,
+              },
+            ),
+            ephemeral: true,
+          });
+        }
+        return;
+      }
+
       if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
         const ignoreList = ['page_', 'onboarding_'];
         const customId = CustomID.parseCustomId(interaction.customId);
@@ -346,8 +370,13 @@ export default abstract class EventManager {
       }
 
       const command = commands.get(interaction.commandName);
-      if (!interaction.isAutocomplete()) await command?.execute(interaction); // slash commands
-      else if (command?.autocomplete) await command.autocomplete(interaction); // autocomplete
+
+      if (command?.staffOnly && !checkIfStaff(interaction.user.id)) return;
+
+      // slash commands
+      if (!interaction.isAutocomplete()) await command?.execute(interaction);
+      // autocompletes
+      else if (command?.autocomplete) await command.autocomplete(interaction);
     }
     catch (e) {
       handleError(e, interaction);

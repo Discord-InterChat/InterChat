@@ -18,7 +18,10 @@ export default class Respawn extends BaseCommand {
       return;
     }
 
-    await interaction.reply(`${emojis.tick} Request to respawn shards received. I'll be back!`);
+    await interaction.reply({
+      content: `${emojis.tick} Request to respawn shards received. I'll be back!`,
+      ephemeral: true,
+    });
 
     interaction.client.cluster.respawnAll();
   }

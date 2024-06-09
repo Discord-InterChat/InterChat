@@ -25,7 +25,7 @@ export default class Unban extends BaseCommand {
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
     const user = interaction.options.getUser('user', true);
     const alreadyBanned = await db.userData.findFirst({
-      where: { userId: user.id, banned: true },
+      where: { userId: user.id, banMeta: { isSet: true } },
     });
 
     if (!alreadyBanned) {
@@ -42,16 +42,18 @@ export default class Unban extends BaseCommand {
         username: user.username,
         viewedNetworkWelcome: false,
         voteCount: 0,
-        banned: false,
+        banMeta: { set: null },
       },
       update: {
-        banned: false,
+        banMeta: { set: null },
       },
     });
 
     await interaction.reply({
       embeds: [
-        simpleEmbed(`${emojis.tick} Successfully banned **${user.username}**. They can no longer use the bot.`),
+        simpleEmbed(
+          `${emojis.tick} Successfully unbanned \`${user.username}\`. They can use the bot again.`,
+        ),
       ],
     });
   }
