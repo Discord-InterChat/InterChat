@@ -4,7 +4,7 @@ import BlacklistCommand from './index.js';
 import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
 import { emojis } from '../../../../utils/Constants.js';
-import { simpleEmbed } from '../../../../utils/Utils.js';
+import { checkIfStaff, simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
 import Logger from '../../../../utils/Logger.js';
 import { logBlacklist, logUnblacklist } from '../../../../utils/HubLogger/ModLogs.js';
@@ -14,18 +14,15 @@ export default class Server extends BlacklistCommand {
     await interaction.deferReply();
 
     const hub = interaction.options.getString('hub', true);
+    const hubInDb = await db.hubs.findFirst({ where: { name: hub } });
 
-    const hubInDb = await db.hubs.findFirst({
-      where: {
-        name: hub,
-        OR: [
-          { ownerId: interaction.user.id },
-          { moderators: { some: { userId: interaction.user.id } } },
-        ],
-      },
-    });
+    const isStaffOrHubMod =
+      hubInDb?.ownerId === interaction.user.id ||
+      hubInDb?.moderators.find((mod) => mod.userId === interaction.user.id) ||
+      checkIfStaff(interaction.user.id);
+    console.log(isStaffOrHubMod);
 
-    if (!hubInDb) {
+    if (!hubInDb || !isStaffOrHubMod) {
       await interaction.editReply({
         embeds: [
           simpleEmbed(

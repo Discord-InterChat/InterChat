@@ -1,6 +1,6 @@
 import { captureException } from '@sentry/node';
 import { ChatInputCommandInteraction, EmbedBuilder, time } from 'discord.js';
-import { simpleEmbed } from '../../../../utils/Utils.js';
+import { checkIfStaff, simpleEmbed } from '../../../../utils/Utils.js';
 import { emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
@@ -17,18 +17,14 @@ export default class UserBlacklist extends BlacklistCommand {
     await interaction.deferReply();
 
     const hub = interaction.options.getString('hub', true);
+    const hubInDb = await db.hubs.findFirst({ where: { name: hub } });
 
-    const hubInDb = await db.hubs.findFirst({
-      where: {
-        name: hub,
-        OR: [
-          { ownerId: interaction.user.id },
-          { moderators: { some: { userId: interaction.user.id } } },
-        ],
-      },
-    });
+    const isStaffOrHubMod =
+      hubInDb?.ownerId === interaction.user.id ||
+      hubInDb?.moderators.find((mod) => mod.userId === interaction.user.id) ||
+      checkIfStaff(interaction.user.id);
 
-    if (!hubInDb) {
+    if (!hubInDb || !isStaffOrHubMod) {
       await interaction.editReply({
         embeds: [
           simpleEmbed(

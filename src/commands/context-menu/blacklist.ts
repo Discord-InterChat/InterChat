@@ -47,7 +47,7 @@ export default class Blacklist extends BaseCommand {
 
     const isStaffOrHubMod = checkIfStaff(interaction.user.id) || isHubMod;
 
-    if (!messageInDb || (!isStaffOrHubMod && !checkIfStaff(interaction.user.id))) {
+    if (!messageInDb || !isStaffOrHubMod) {
       await interaction.reply({
         embeds: [
           simpleEmbed(
