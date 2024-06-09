@@ -390,40 +390,38 @@ export default class Manage extends Hub {
     }
   }
 
-  @RegisterInteractionHandler('hub_manage')
+  @RegisterInteractionHandler('hub_manage', 'logsChSel')
   static async handleChannelSelects(interaction: MessageComponentInteraction) {
+    if (!interaction.isChannelSelectMenu()) return;
+
     const initialData = await Manage.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
 
-    if (!interaction.isChannelSelectMenu()) return;
-    if (customId.suffix === 'logsChSel') {
-      const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
+    const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
+    const channelId = interaction.values[0];
+    const channel = interaction.channels.first();
 
-      const channelId = interaction.values[0];
-      const channel = interaction.channels.first();
+    // set the channel in the db
+    await setLogChannelFor(hubInDb.id, type, channelId);
 
-      // set the channel in the db
-      await setLogChannelFor(hubInDb.id, type, channelId);
+    // update the old embed with new channel value
+    const embed = interaction.message.embeds[0].toJSON();
+    if (embed.fields?.at(0)) embed.fields[0].value = `${channel || 'None'}`;
+    await interaction.update({ embeds: [embed] });
 
-      // update the old embed with new channel value
-      const embed = interaction.message.embeds[0].toJSON();
-      if (embed.fields?.at(0)) embed.fields[0].value = `${channel || 'None'}`;
-      await interaction.update({ embeds: [embed] });
-
-      await interaction.followUp({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'hub.manage.logs.channelSuccess', locale },
-              { emoji: emojis.yes, type, channel: `${channel}` },
-            ),
+    await interaction.followUp({
+      embeds: [
+        simpleEmbed(
+          t(
+            { phrase: 'hub.manage.logs.channelSuccess', locale },
+            { emoji: emojis.yes, type, channel: `${channel}` },
           ),
-        ],
-        ephemeral: true,
-      });
-    }
+        ),
+      ],
+      ephemeral: true,
+    });
   }
 
   @RegisterInteractionHandler('hub_manage')
@@ -691,7 +689,7 @@ export default class Manage extends Hub {
       await interaction.reply({
         embeds: [
           simpleEmbed(
-            t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.delete, type }),
+            t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.deleteDanger_icon, type }),
           ),
         ],
         ephemeral: true,
