@@ -14,6 +14,14 @@ import {
   Interaction,
   Client,
 } from 'discord.js';
+import {
+  checkIfStaff,
+  getAttachmentURL,
+  getUserLocale,
+  handleError,
+  simpleEmbed,
+  wait,
+} from '../utils/Utils.js';
 import db from '../utils/Db.js';
 import Logger from '../utils/Logger.js';
 import SuperClient from '../core/Client.js';
@@ -29,7 +37,6 @@ import { logGuildJoin, logGuildLeave } from '../scripts/guilds/goals.js';
 import { channels, emojis, colors, LINKS } from '../utils/Constants.js';
 import { getReferredMsgData, sendWelcomeMsg } from '../scripts/network/helpers.js';
 import { HubSettingsBitField } from '../utils/BitFields.js';
-import { checkIfStaff, getAttachmentURL, getUserLocale, handleError, simpleEmbed, wait } from '../utils/Utils.js';
 import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
@@ -316,12 +323,15 @@ export default abstract class EventManager {
 
       if (userData?.banMeta?.reason) {
         if (interaction.isRepliable()) {
-          // FIXME: Use localized message
           await interaction.reply({
-            content: stripIndents`
-            ${emojis.no} You have been banned from using InterChat for **${userData.banMeta.reason}**.
-            To know more or to appeal, join the [support server]( ${LINKS.SUPPORT_INVITE} ).
-            `,
+            content: t(
+              { phrase: 'errors.banned', locale: interaction.user.locale },
+              {
+                emoji: emojis.no,
+                reason: userData.banMeta.reason,
+                support_invite: LINKS.SUPPORT_INVITE,
+              },
+            ),
             ephemeral: true,
           });
         }

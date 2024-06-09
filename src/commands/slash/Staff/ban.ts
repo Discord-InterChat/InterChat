@@ -20,22 +20,30 @@ export default class Ban extends BaseCommand {
         description: '🔨 The user to ban.',
         required: true,
       },
+      {
+        type: ApplicationCommandOptionType.String,
+        name: 'reason',
+        description: 'Reson for the ban',
+        required: true,
+      },
     ],
   };
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
     if (!DeveloperIds.includes(interaction.user.id)) return;
 
     const user = interaction.options.getUser('user', true);
+    const reason = interaction.options.getString('reason', true);
 
     if (user.id === interaction.user.id) {
       await interaction.reply({
         content: `Let's not go there. ${emojis.bruhcat}`,
         ephemeral: true,
       });
+      return;
     }
 
     const alreadyBanned = await db.userData.findFirst({
-      where: { userId: user.id, banMeta: { isSet: true } },
+      where: { userId: user.id, banMeta: { isNot: null } },
     });
 
     if (alreadyBanned) {
@@ -52,16 +60,18 @@ export default class Ban extends BaseCommand {
         username: user.username,
         viewedNetworkWelcome: false,
         voteCount: 0,
-        banMeta: { reason: 'Banned for being bad' }, // FIXME: Attach reason
+        banMeta: { reason },
       },
       update: {
-        banMeta: { reason: 'Banned for being bad' }, // FIXME: Attach reason
+        banMeta: { reason },
       },
     });
 
     await interaction.reply({
       embeds: [
-        simpleEmbed(`${emojis.tick} Successfully banned \`${user.username}\`. They can no longer use the bot.`),
+        simpleEmbed(
+          `${emojis.tick} Successfully banned \`${user.username}\`. They can no longer use the bot.`,
+        ),
       ],
     });
   }
