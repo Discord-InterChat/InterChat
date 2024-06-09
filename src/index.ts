@@ -1,9 +1,9 @@
 import './instrument.js';
 import Logger from './utils/Logger.js';
 import SuperClient from './core/Client.js';
+import EventManager from './managers/EventManager.js';
 import { eventMethods } from './decorators/GatewayEvent.js';
 import { RandomComponents } from './utils/RandomComponents.js';
-import EventManager from './managers/EventManager.js';
 
 const client = new SuperClient();
 
@@ -15,7 +15,7 @@ const _eventManager = EventManager;
 
 // decorator events
 eventMethods.forEach((methods, eventName) => {
-  methods.forEach((method) => client.on(eventName, method.bind(this)));
+  methods.forEach((method) => client.on(eventName, method));
 });
 
 client.rest.on('rateLimited', (data) => Logger.warn('Rate limited: %O', data));
@@ -25,3 +25,5 @@ client.on('debug', (debug) => {
 });
 
 client.start();
+
+process.on('uncaughtException', (error) => Logger.error(error));

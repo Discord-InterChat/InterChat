@@ -16,12 +16,20 @@ export const isNewUser = (message: Message) => {
   return message.author.createdTimestamp > sevenDaysAgo;
 };
 
-export const replyToMsg = async (message: Message, content: string) => {
-  const reply = await message.reply(content).catch(() => null);
+export const replyToMsg = async (
+  message: Message,
+  opts: { content?: string; embed?: EmbedBuilder },
+) => {
+  const embeds = opts.embed ? [opts.embed] : [];
+
+  const reply = await message.reply({ content: opts.content, embeds }).catch(() => null);
   if (!reply) {
-    await message.channel.send(`${message.author.toString()} ${content}`).catch(() => null);
+    await message.channel
+      .send({ content: `${message.author.toString()} ${opts.content ?? ''}`, embeds })
+      .catch(() => null);
   }
 };
+
 export const containsStickers = (message: Message) => {
   return message.stickers.size > 0 && !message.content;
 };
@@ -136,33 +144,32 @@ export const runChecks = async (
   }
 
   if (message.content.length > 1000) {
-    await replyToMsg(message, 'Your message is too long! Please keep it under 1000 characters.');
+    await replyToMsg(message, {
+      content: 'Your message is too long! Please keep it under 1000 characters.',
+    });
     return false;
   }
   if (containsStickers(message)) {
-    await replyToMsg(
-      message,
-      'Sending stickers in the network is not possible due to discord\'s limitations.',
-    );
+    await replyToMsg(message, {
+      content: 'Sending stickers in the network is not possible due to discord\'s limitations.',
+    });
     return false;
   }
   if (settings.has('BlockInvites') && containsInviteLinks(message.content)) {
-    await replyToMsg(
-      message,
-      'Advertising is not allowed. Set an invite in `/connection` instead!',
-    );
+    await replyToMsg(message, {
+      content: 'Advertising is not allowed. Set an invite in `/connection` instead!',
+    });
     return false;
   }
   if (unsupportedAttachment(message)) {
-    await replyToMsg(
-      message,
-      'Only images and tenor gifs are allowed to be sent within the network.',
-    );
+    await replyToMsg(message, {
+      content: 'Only images and tenor gifs are allowed to be sent within the network.',
+    });
     return false;
   }
 
   if (attachmentTooLarge(message)) {
-    await replyToMsg(message, 'Please keep your attachments under 8MB.');
+    await replyToMsg(message, { content: 'Please keep your attachments under 8MB.' });
     return false;
   }
 
@@ -185,7 +192,7 @@ export const runChecks = async (
       })
       .setColor('Red');
 
-    await message.channel.send({ content: `${message.author}`, embeds: [nsfwEmbed] });
+    await replyToMsg(message, { content: `${message.author}`, embed: nsfwEmbed });
     return false;
   }
 

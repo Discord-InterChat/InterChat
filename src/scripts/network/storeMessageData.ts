@@ -25,16 +25,16 @@ export default async (
   const validErrors = ['Invalid Webhook Token', 'Unknown Webhook', 'Missing Permissions'];
 
   // loop through all results and extract message data and invalid webhook urls
-  channelAndMessageIds.forEach((result) => {
-    if (typeof result.messageOrError !== 'string') {
+  channelAndMessageIds.forEach(({ messageOrError, webhookURL }) => {
+    if (messageOrError && typeof messageOrError !== 'string') {
       messageDataObj.push({
-        channelId: result.messageOrError.channel_id,
-        messageId: result.messageOrError.id,
-        createdAt: new Date(parseTimestampFromId(result.messageOrError.id)),
+        channelId: messageOrError.channel_id,
+        messageId: messageOrError.id,
+        createdAt: new Date(parseTimestampFromId(messageOrError.id)),
       });
     }
-    else if (validErrors.some((e) => (result.messageOrError as string).includes(e))) {
-      invalidWebhookURLs.push(result.webhookURL);
+    else if (validErrors.some((e) => (messageOrError as string).includes(e))) {
+      invalidWebhookURLs.push(webhookURL);
     }
   });
 

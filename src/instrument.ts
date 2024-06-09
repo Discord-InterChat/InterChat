@@ -8,5 +8,9 @@ if (!isDevBuild) {
     release: `interchat@${PROJECT_VERSION}`,
     tracesSampleRate: 1.0,
     maxValueLength: 1000,
+    integrations: [
+      Sentry.onUncaughtExceptionIntegration({ exitEvenIfOtherHandlersAreRegistered: false }),
+      Sentry.prismaIntegration(),
+    ],
   });
 }
