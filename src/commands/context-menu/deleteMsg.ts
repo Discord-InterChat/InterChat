@@ -74,8 +74,8 @@ export default class DeleteMessage extends BaseCommand {
       return;
     }
 
-    const waitReply = await interaction.editReply(
-      `${emojis.loading} Your request has been queued. Messages will be deleted shortly...`,
+    await interaction.editReply(
+      `${emojis.yes} Your request has been queued. Messages will be deleted shortly...`,
     );
 
     let passed = 0;
@@ -101,8 +101,8 @@ export default class DeleteMessage extends BaseCommand {
         .catch(() => null);
     }
 
-    await waitReply
-      .edit(
+    await interaction
+      .editReply(
         t(
           {
             phrase: 'network.deleteSuccess',
@@ -121,10 +121,10 @@ export default class DeleteMessage extends BaseCommand {
     const { targetMessage } = interaction;
 
     const messageContent =
-      targetMessage.cleanContent ??
-      targetMessage.embeds.at(0)?.description?.replaceAll('`', '`');
+      targetMessage.cleanContent ?? targetMessage.embeds.at(0)?.description?.replaceAll('`', '`');
 
-    const imageUrl = targetMessage.embeds.at(0)?.image?.url ?? targetMessage.content.match(REGEX.IMAGE_URL)?.at(0);
+    const imageUrl =
+      targetMessage.embeds.at(0)?.image?.url ?? targetMessage.content.match(REGEX.IMAGE_URL)?.at(0);
 
     if (isStaffOrHubMod && messageContent) {
       await logMsgDelete(interaction.client, messageContent, hub, {
