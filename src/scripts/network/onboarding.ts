@@ -112,7 +112,7 @@ export const showOnboarding = async (
     ephemeral,
   };
 
-  const reply = interaction.deferred
+  const reply = interaction.deferred || interaction.replied
     ? await interaction.editReply(replyMsg)
     : await interaction.reply(replyMsg);
 
