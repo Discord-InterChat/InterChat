@@ -124,7 +124,7 @@ export default class DeleteMessage extends BaseCommand {
       targetMessage.cleanContent ??
       targetMessage.embeds.at(0)?.description?.replaceAll('`', '`');
 
-    const imageUrl = targetMessage.embeds.at(0)?.description ?? targetMessage.content.match(REGEX.IMAGE_URL)?.at(0);
+    const imageUrl = targetMessage.embeds.at(0)?.image?.url ?? targetMessage.content.match(REGEX.IMAGE_URL)?.at(0);
 
     if (isStaffOrHubMod && messageContent) {
       await logMsgDelete(interaction.client, messageContent, hub, {
