@@ -66,7 +66,7 @@ export default class SuperClient extends Client {
           filter: () => () => true, // Remove all reactions...
         },
       },
-      partials: [Partials.Message],
+      partials: [Partials.Message, Partials.Channel],
       intents: [
         IntentsBitField.Flags.MessageContent,
         IntentsBitField.Flags.Guilds,

@@ -14,7 +14,7 @@ import 'dotenv/config';
 
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.TOKEN,
-  shardsPerClusters: 2,
+  shardsPerClusters: 5,
   totalClusters: 'auto',
 });
 

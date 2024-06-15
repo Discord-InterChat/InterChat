@@ -39,7 +39,7 @@ import {
   emojis,
   SUPPORT_SERVER_ID,
 } from './Constants.js';
-import { randomBytes } from 'crypto';
+import { createCipheriv, randomBytes } from 'crypto';
 import { supportedLocaleCodes, t } from './Locale.js';
 import 'dotenv/config';
 import { captureException } from '@sentry/node';
@@ -509,13 +509,18 @@ export const fetchCommands = async (client: Client) => {
   return await client.application?.commands.fetch();
 };
 
-export const findCommand = (name: string, commands: Collection<
-  string,
-  ApplicationCommand<{
-    guild: GuildResolvable;
-  }>
-> | undefined) => {
-  return commands?.find(command => command.name === name);
+export const findCommand = (
+  name: string,
+  commands:
+    | Collection<
+      string,
+      ApplicationCommand<{
+        guild: GuildResolvable;
+      }>
+    >
+    | undefined,
+) => {
+  return commands?.find((command) => command.name === name);
 };
 
 export const findSubcommand = (
@@ -532,4 +537,12 @@ export const findSubcommand = (
   return command?.options.find(
     ({ type, name }) => type === ApplicationCommandOptionType.Subcommand && name === subName,
   );
+};
+
+export const encryptMessage = (string: string, key: Buffer) => {
+  const iv: Buffer = randomBytes(16); // Initialization vector
+  const cipher = createCipheriv('aes-256-cbc', key, iv);
+  let encrypted = cipher.update(string, 'utf8', 'hex');
+  encrypted += cipher.final('hex');
+  return iv.toString('hex') + ':' + encrypted;
 };

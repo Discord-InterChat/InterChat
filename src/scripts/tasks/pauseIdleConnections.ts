@@ -39,7 +39,7 @@ export default async (manager: ClusterManager) => {
     });
 
     // disconnect the channel
-    await modifyConnection({ channelId }, { lastActive: null, connected: false });
+    await modifyConnection({ channelId }, { connected: false });
   });
 
   const embed = simpleEmbed(
