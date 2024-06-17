@@ -96,7 +96,7 @@ export default class SuperClient extends Client {
     SuperClient.instance = this;
 
     // initialize i18n for localization
-    loadLocales('locales/src/locales');
+    await loadLocales('locales/src/locales');
 
     // load commands
     await loadCommandFiles();

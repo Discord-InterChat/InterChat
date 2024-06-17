@@ -1,6 +1,7 @@
-import { APIEmbed, APIMessage, WebhookMessageCreateOptions } from 'discord.js';
+import { APIEmbed, APIMessage, WebhookMessageCreateOptions, isJSONEncodable } from 'discord.js';
 // import { isDevBuild } from '../../utils/Constants.js';
 import { encryptMessage } from '../../utils/Utils.js';
+import { isNetworkApiError } from './helpers.js';
 
 const { INTERCHAT_API_URL1, INTERCHAT_API_URL2 } = process.env;
 let primaryUrl = INTERCHAT_API_URL1 ?? INTERCHAT_API_URL2;
@@ -29,17 +30,23 @@ const sendMessage = async (
     throw new Error('NETWORK_API_KEY or INTERCHAT_API_URL(s) env variables missing.');
   }
 
-  const embed = message.embeds?.at(0) as APIEmbed;
+  const firstEmbed = message.embeds?.at(0);
+  const embed = isJSONEncodable(firstEmbed) ? firstEmbed.toJSON() : firstEmbed;
+
   const content = message.content;
-  if (encrypt && content) message.content = encryptMessage(content, encryptKey);
-  if (encrypt && embed.description) {
-    (message.embeds as APIEmbed[])![0].description = encryptMessage(embed.description, encryptKey);
+  if (encrypt) {
+    if (content) message.content = encryptMessage(content, encryptKey);
+    if (embed?.description) {
+      // FIXME: message.embeds[0] might not work if its json encodable, check!
+      (message.embeds as APIEmbed[])![0].description = encryptMessage(
+        embed.description,
+        encryptKey,
+      );
+    }
   }
 
-  console.log(primaryUrl);
-
   const res = await fetch(primaryUrl, {
-    method: 'PUT',
+    method: 'POST',
     body: JSON.stringify({ webhookUrl, data: message }),
     headers: {
       authorization: networkKey,
@@ -47,19 +54,15 @@ const sendMessage = async (
       'Content-Type': 'application/json',
     },
   });
-  console.log(res);
 
-  const data = await res.json();
-  console.log(data);
-  if (res.status !== 200) {
-    if (tries <= 2) {
-      primaryUrl = switchUrl(primaryUrl);
-      return await sendMessage(webhookUrl, message, tries++, !encrypt);
-    }
-    return String(data.error);
+  const data = (await res.json()) as string | APIMessage | undefined;
+
+  if (isNetworkApiError(data) && tries <= 2) {
+    primaryUrl = switchUrl(primaryUrl);
+    return await sendMessage(webhookUrl, message, tries++, !encrypt);
   }
 
-  return data.result as APIMessage;
+  return data;
 };
 
 export default sendMessage;

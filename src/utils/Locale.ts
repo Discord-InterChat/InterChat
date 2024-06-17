@@ -1,5 +1,5 @@
 import Logger from './Logger.js';
-import fs from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 import yaml from 'js-yaml';
 
@@ -41,20 +41,20 @@ export interface tParams {
   locale?: supportedLocaleCodes;
 }
 
-export const loadLocales = (localesDirectory: string) => {
-  const files = fs.readdirSync(localesDirectory);
+export const loadLocales = async (localesDirectory: string) => {
+  const files = await fs.readdir(localesDirectory);
 
-  files.forEach((file: string) => {
+  files.forEach(async (file: string, index) => {
     const filePath = path.join(localesDirectory, file);
     const localeKey = path.basename(file, '.yml');
 
-    const content = fs.readFileSync(filePath, 'utf8');
+    const content = await fs.readFile(filePath, 'utf8');
     const parsedContent = yaml.load(content);
 
     localesMap.set(localeKey, parsedContent);
-  });
 
-  Logger.info(`${localesMap.size} Locales loaded successfully.`);
+    if (index + 1 === files.length) Logger.info(`${localesMap.size} Locales loaded successfully.`);
+  });
 };
 
 /** Get the translated text with variable replacement */

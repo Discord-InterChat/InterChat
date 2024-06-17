@@ -5,6 +5,7 @@ import {
   ButtonStyle,
   ButtonBuilder,
   ActionRowBuilder,
+  APIMessage,
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import { LINKS, REGEX, emojis } from '../../utils/Constants.js';
@@ -172,3 +173,8 @@ export const sendWelcomeMsg = async (message: Message, totalServers: string, hub
     })
     .catch(() => null);
 };
+
+
+export function isNetworkApiError(res: string | APIMessage | undefined): res is string {
+  return (res && typeof res === 'string') === true;
+}

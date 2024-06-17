@@ -2,7 +2,7 @@ import db from '../../utils/Db.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
 import { messageTimestamps, modifyConnections } from '../../utils/ConnectedList.js';
-import { handleError, parseTimestampFromId } from '../../utils/Utils.js';
+import { isNetworkApiError } from './helpers.js';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | string;
@@ -20,20 +20,21 @@ export default async (
   hubId: string,
   dbReference?: originalMessages | null,
 ) => {
-  const messageDataObj: { channelId: string; messageId: string, createdAt: Date }[] = [];
+  const messageDataObj: { channelId: string; messageId: string; createdAt: Date }[] = [];
   const invalidWebhookURLs: string[] = [];
   const validErrors = ['Invalid Webhook Token', 'Unknown Webhook', 'Missing Permissions'];
 
   // loop through all results and extract message data and invalid webhook urls
   channelAndMessageIds.forEach(({ messageOrError, webhookURL }) => {
-    if (messageOrError && typeof messageOrError !== 'string') {
+    if (!isNetworkApiError(messageOrError)) {
       messageDataObj.push({
         channelId: messageOrError.channel_id,
         messageId: messageOrError.id,
-        createdAt: new Date(parseTimestampFromId(messageOrError.id)),
+        createdAt: new Date(messageOrError.timestamp),
       });
     }
-    else if (validErrors.some((e) => (messageOrError as string).includes(e))) {
+    else if (validErrors.some((e) => messageOrError?.includes(e))) {
+      console.log(messageOrError);
       invalidWebhookURLs.push(webhookURL);
     }
   });
@@ -42,18 +43,19 @@ export default async (
     if (!message.inGuild()) return;
 
     // store message data in db
-    await db.originalMessages.create({
-      data: {
-        messageId: message.id,
-        authorId: message.author.id,
-        serverId: message.guildId,
-        messageReference: dbReference?.messageId,
-        createdAt: message.createdAt,
-        broadcastMsgs: { createMany: { data: messageDataObj } },
-        hub: { connect: { id: hubId } },
-        reactions: {},
-      },
-    }).catch(handleError);
+    await db.originalMessages
+      .create({
+        data: {
+          messageId: message.id,
+          authorId: message.author.id,
+          serverId: message.guildId,
+          messageReference: dbReference?.messageId,
+          createdAt: message.createdAt,
+          broadcastMsgs: { createMany: { data: messageDataObj } },
+          hub: { connect: { id: hubId } },
+          reactions: {},
+        },
+      });
   }
 
   // store message timestamps to push to db later

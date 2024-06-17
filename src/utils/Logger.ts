@@ -1,14 +1,15 @@
 import { createLogger, format, transports } from 'winston';
 import 'source-map-support/register.js';
+
 const custom = format.printf(
   (info) =>
-    `${info.level}: ${info.message} | ${info.timestamp} ${info.stack ? `\n${info.stack}` : ''}`,
+    `${info.timestamp} ${info.level}: ${info.message} ${info.stack ? `\n${info.stack}` : ''}`,
 );
 
 const combinedFormat = format.combine(
   format.errors({ stack: true }),
   format.splat(),
-  format.timestamp({ format: '[on] DD MMMM, YYYY [at] hh:mm:ss.SSS' }),
+  format.timestamp({ format: 'DD/MM/YY-HH:mm:ss' }),
   format((info) => {
     info.level = info.level.toUpperCase();
     return info;

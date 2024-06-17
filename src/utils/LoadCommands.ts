@@ -1,5 +1,5 @@
 import { join, dirname } from 'path';
-import { access, constants, readdirSync, statSync } from 'fs';
+import { access, constants, readdir, stat } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import BaseCommand, { commandsMap } from '../core/BaseCommand.js';
 
@@ -11,17 +11,17 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  */
 const loadCommandFiles = async (commandDir = join(__dirname, '..', 'commands')) => {
   const importPrefix = process.platform === 'win32' ? 'file://' : '';
-  const files = readdirSync(commandDir);
+  const files = await readdir(commandDir);
 
   for (const file of files) {
     const filePath = join(commandDir, file);
-    const stats = statSync(filePath);
+    const stats = await stat(filePath);
 
     // If the item is a directory, recursively read its files
     if (stats.isDirectory()) {
       await loadCommandFiles(filePath);
     }
-    else if (file.endsWith('.js') && file !== 'BaseCommand.js') {
+    else if (file.endsWith('.js')) {
       const imported = await import(importPrefix + filePath);
       const command: BaseCommand = new imported.default();
 
@@ -33,9 +33,9 @@ const loadCommandFiles = async (commandDir = join(__dirname, '..', 'commands')) 
       // if the command has subcommands, add them to the parent command's subcommands map
       else {
         const subcommandFile = join(commandDir, '.', 'index.js');
-        if (!statSync(subcommandFile).isFile()) return;
+        if (!(await stat(subcommandFile)).isFile()) return;
 
-        access(subcommandFile, constants.F_OK, (err) => {
+        await access(subcommandFile, constants.F_OK).catch((err) => {
           if (err || file === 'index.js') return;
 
           // get the parent command class from the subcommand
