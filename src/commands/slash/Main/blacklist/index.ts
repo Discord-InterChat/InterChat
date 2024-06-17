@@ -6,9 +6,10 @@ import {
   Collection,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import { escapeRegexChars, handleError } from '../../../../utils/Utils.js';
-import BaseCommand from '../../../../core/BaseCommand.js';
 import db from '../../../../utils/Db.js';
+import BaseCommand from '../../../../core/BaseCommand.js';
+import { checkIfStaff, escapeRegexChars, handleError } from '../../../../utils/Utils.js';
+import { hubs as hubsT } from '@prisma/client';
 
 export default class BlacklistCommand extends BaseCommand {
   // TODO: Put this in readme
@@ -185,17 +186,9 @@ export default class BlacklistCommand extends BaseCommand {
       choices = await this.findHubsByName(hubOpt.value, interaction.user.id);
     }
     else {
-      const hub = await db.hubs.findFirst({
-        where: {
-          name: hubOpt.value,
-          OR: [
-            { ownerId: interaction.user.id },
-            { moderators: { some: { userId: interaction.user.id } } },
-          ],
-        },
-      });
+      const hub = await db.hubs.findFirst({ where: { name: hubOpt.value } });
 
-      if (!hub) {
+      if (!this.isStaffOrHubMod(interaction.user.id, hub)) {
         await interaction.respond([]);
         return;
       }
@@ -220,6 +213,14 @@ export default class BlacklistCommand extends BaseCommand {
     }
 
     await interaction.respond(choices);
+  }
+
+  private isStaffOrHubMod(userId: string, hub: hubsT | null): hub is hubsT {
+    const isHubMod =
+      hub?.ownerId === userId || hub?.moderators.find((mod) => mod.userId === userId);
+    const isStaff = checkIfStaff(userId);
+
+    return Boolean(!hub?.private ? isHubMod || isStaff : isHubMod);
   }
 
   private async searchBlacklistedServers(hubId: string, nameOrId: string) {
@@ -255,14 +256,13 @@ export default class BlacklistCommand extends BaseCommand {
   }
 
   private async findHubsByName(name: string, ownerId: string) {
-    const hub = await db.hubs.findMany({
-      where: {
-        name: { mode: 'insensitive', contains: escapeRegexChars(name) },
-        OR: [{ ownerId }, { moderators: { some: { userId: ownerId } } }],
-      },
+    const hubs = await db.hubs.findMany({
+      where: { name: { mode: 'insensitive', contains: escapeRegexChars(name) } },
       take: 25,
     });
 
-    return hub.map(({ name: hubName }) => ({ name: hubName, value: hubName }));
+    return hubs
+      .filter((hub) => this.isStaffOrHubMod(ownerId, hub))
+      .map(({ name: hubName }) => ({ name: hubName, value: hubName }));
   }
 }

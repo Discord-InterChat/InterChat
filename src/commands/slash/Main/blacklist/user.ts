@@ -20,7 +20,6 @@ export default class Server extends BlacklistCommand {
       hubInDb?.ownerId === interaction.user.id ||
       hubInDb?.moderators.find((mod) => mod.userId === interaction.user.id) ||
       checkIfStaff(interaction.user.id);
-    console.log(isStaffOrHubMod);
 
     if (!hubInDb || !isStaffOrHubMod) {
       await interaction.editReply({
