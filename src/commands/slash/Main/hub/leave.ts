@@ -92,7 +92,8 @@ export default class Leave extends Hub {
     const { locale } = interaction.user;
 
     if (customId.suffix === 'no') {
-      await interaction.message.delete();
+      await interaction.deferUpdate();
+      await interaction.deleteReply();
       return;
     }
 
