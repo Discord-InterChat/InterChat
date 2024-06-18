@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.27.0](https://github.com/dev-737/InterChat/compare/v3.26.0...v3.27.0) (2024-06-18)
+
+
+### Features
+
+* global ban command (beta) ([#79](https://github.com/dev-737/InterChat/issues/79)) ([6be9db8](https://github.com/dev-737/InterChat/commit/6be9db8e48123d003b6566c572cefc22f8b08665))
+* **hub:** delete message log ([b24be24](https://github.com/dev-737/InterChat/commit/b24be24b8ff83b4e58be54b85072ace3711c3184))
+* use cloudflare workers instead of vercel ([1ebb02f](https://github.com/dev-737/InterChat/commit/1ebb02f9dd1366e067cb32273ac95c5ee4ee6903))
+
+
+### Bug Fixes
+
+* **blacklist:** allow interchat mods to blacklist people from other hubs ([6c1dc76](https://github.com/dev-737/InterChat/commit/6c1dc766053ee88e38723a100a6ed41e70f0516a))
+* **blacklist:** display all options to interchat staff ([78b258f](https://github.com/dev-737/InterChat/commit/78b258f178a44bf11dbd8ef4826f02c971cfd14a))
+* **blacklist:** interchat mods can now unblacklist other hubs ([8b6689d](https://github.com/dev-737/InterChat/commit/8b6689dd0dd5424cf461c1ce1cb8cd1be524ad5d))
+* **deletemsg:** log image url for embeds properly ([c36b379](https://github.com/dev-737/InterChat/commit/c36b3796fe8ee62d76b70c5dd1bd437f09f9f81d))
+* **hub:** fix 'no' button in leave command ([cc037c6](https://github.com/dev-737/InterChat/commit/cc037c6c210fb26c025b7ac61e6180f529c21619))
+* **hub:** selecting new log channels ([ac7b91b](https://github.com/dev-737/InterChat/commit/ac7b91b166021921c843dbd6739f29a4f2e4bd54))
+* **onboarding:** fix reply/defer check ([c21e6c6](https://github.com/dev-737/InterChat/commit/c21e6c6ee5eae1909bd522267078ac9f7d0fbdbb))
+* support img url for deleteMsg ([f2922ae](https://github.com/dev-737/InterChat/commit/f2922ae74832ac13f5dec9b9210dd96a65162c4f))
+* sync cache immediately when deleting multiple connections ([11d7c29](https://github.com/dev-737/InterChat/commit/11d7c2944cd91c184ddcb52c5d8bc0a384ec2cf3))
+
 ## [3.26.0](https://github.com/Discord-InterChat/InterChat/compare/v3.25.8...v3.26.0) (2024-06-04)
 
 
