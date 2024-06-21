@@ -65,7 +65,7 @@ const sendMessage = async (
 
   const resJson = (await res.json()) as NetworkAPIError | APIMessage | undefined;
 
-  if (isNetworkApiError(resJson) && tries <= 2) {
+  if (isNetworkApiError(resJson) && tries <= 5) {
     console.log('here', tries);
     await wait(3000);
     primaryUrl = switchUrl(primaryUrl);
