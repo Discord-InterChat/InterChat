@@ -1,7 +1,8 @@
 import { APIEmbed, APIMessage, WebhookMessageCreateOptions, isJSONEncodable } from 'discord.js';
 // import { isDevBuild } from '../../utils/Constants.js';
-import { encryptMessage } from '../../utils/Utils.js';
-import { isNetworkApiError } from './helpers.js';
+// import { encryptMessage } from '../../utils/Utils.js';
+import { NetworkAPIError, isNetworkApiError } from './helpers.js';
+import { encryptMessage, wait } from '../../utils/Utils.js';
 
 const { INTERCHAT_API_URL1, INTERCHAT_API_URL2 } = process.env;
 let primaryUrl = INTERCHAT_API_URL1 ?? INTERCHAT_API_URL2;
@@ -12,57 +13,66 @@ const switchUrl = (currentUrl: string) => {
 
 const sendMessage = async (
   webhookUrl: string,
-  message: WebhookMessageCreateOptions,
+  data: WebhookMessageCreateOptions,
   tries = 0,
-  encrypt = true,
-): Promise<string | APIMessage | undefined> => {
-  // No need for external apis in development mode FIXME
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  encrypt?: boolean,
+): Promise<NetworkAPIError | APIMessage | undefined> => {
+  encrypt = false; // FIXME since im using cf workers its disabeld
+  //  No need for external apis in development mode
+  // FIXME: uncomment dis
   // if (isDevBuild) {
   //   const webhook = new WebhookClient({ url: webhookUrl });
   //   return await webhook.send(message);
   // }
 
-  if (!process.env.NETWORK_ENCRYPT_KEY) throw new Error('Missing encryption key for network.');
-
-  const encryptKey = Buffer.from(process.env.NETWORK_ENCRYPT_KEY, 'base64');
   const networkKey = process.env.NETWORK_API_KEY;
   if (!networkKey || !primaryUrl) {
     throw new Error('NETWORK_API_KEY or INTERCHAT_API_URL(s) env variables missing.');
   }
 
-  const firstEmbed = message.embeds?.at(0);
-  const embed = isJSONEncodable(firstEmbed) ? firstEmbed.toJSON() : firstEmbed;
-
-  const content = message.content;
+  // TODO: Encryption stuff, doesn't work in cf workers :(
+  let embed: APIEmbed = {};
   if (encrypt) {
-    if (content) message.content = encryptMessage(content, encryptKey);
-    if (embed?.description) {
-      // FIXME: message.embeds[0] might not work if its json encodable, check!
-      (message.embeds as APIEmbed[])![0].description = encryptMessage(
-        embed.description,
-        encryptKey,
-      );
+    if (!process.env.NETWORK_ENCRYPT_KEY) throw new Error('Missing encryption key for network.');
+
+    const firstEmbed = data.embeds?.at(0);
+
+    const encryptKey = Buffer.from(process.env.NETWORK_ENCRYPT_KEY, 'base64');
+    const content = data.content;
+    if (encrypt) {
+      if (content) {
+        data.content = encryptMessage(content, encryptKey);
+      }
+      else if (firstEmbed) {
+        embed = isJSONEncodable(firstEmbed) ? firstEmbed.toJSON() : firstEmbed;
+        if (embed.description) {
+          embed.description = encryptMessage(embed.description, encryptKey);
+        }
+      }
     }
   }
 
+  // console.log(data);
   const res = await fetch(primaryUrl, {
     method: 'POST',
-    body: JSON.stringify({ webhookUrl, data: message }),
+    body: JSON.stringify({ webhookUrl, data: { ...data, ...embed } }),
     headers: {
       authorization: networkKey,
-      'x-webhook-url': webhookUrl,
       'Content-Type': 'application/json',
     },
   });
 
-  const data = (await res.json()) as string | APIMessage | undefined;
+  const resJson = (await res.json()) as NetworkAPIError | APIMessage | undefined;
 
-  if (isNetworkApiError(data) && tries <= 2) {
+  if (isNetworkApiError(resJson) && tries <= 2) {
+    console.log('here', tries);
+    await wait(3000);
     primaryUrl = switchUrl(primaryUrl);
-    return await sendMessage(webhookUrl, message, tries++, !encrypt);
+    return await sendMessage(webhookUrl, data, tries + 1, false);
   }
 
-  return data;
+  return resJson;
 };
 
 export default sendMessage;

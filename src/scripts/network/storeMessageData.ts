@@ -2,10 +2,11 @@ import db from '../../utils/Db.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
 import { messageTimestamps, modifyConnections } from '../../utils/ConnectedList.js';
-import { isNetworkApiError } from './helpers.js';
+import { NetworkAPIError, isNetworkApiError } from './helpers.js';
+import Logger from '../../utils/Logger.js';
 
 export interface NetworkWebhookSendResult {
-  messageOrError: APIMessage | string;
+  messageOrError: APIMessage | NetworkAPIError;
   webhookURL: string;
 }
 
@@ -33,8 +34,8 @@ export default async (
         createdAt: new Date(messageOrError.timestamp),
       });
     }
-    else if (validErrors.some((e) => messageOrError?.includes(e))) {
-      console.log(messageOrError);
+    else if (validErrors.some((e) => messageOrError.error?.includes(e))) {
+      Logger.info('%O', messageOrError); // TODO Remove dis
       invalidWebhookURLs.push(webhookURL);
     }
   });

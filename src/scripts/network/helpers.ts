@@ -13,6 +13,9 @@ import { censor } from '../../utils/Profanity.js';
 import { broadcastedMessages } from '@prisma/client';
 import { t } from '../../utils/Locale.js';
 
+export type NetworkAPIError = { error: string };
+
+
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
  * If the referred message has no content, returns a default message indicating that the original message contains an attachment.
@@ -175,6 +178,6 @@ export const sendWelcomeMsg = async (message: Message, totalServers: string, hub
 };
 
 
-export function isNetworkApiError(res: string | APIMessage | undefined): res is string {
-  return (res && typeof res === 'string') === true;
+export function isNetworkApiError(res: NetworkAPIError | APIMessage | undefined): res is NetworkAPIError {
+  return (res && Object.hasOwn(res, 'error')) === true;
 }
