@@ -1,8 +1,9 @@
-import { APIEmbed, APIMessage, WebhookMessageCreateOptions, isJSONEncodable } from 'discord.js';
+import { APIEmbed, APIMessage, WebhookClient, WebhookMessageCreateOptions, isJSONEncodable } from 'discord.js';
 // import { isDevBuild } from '../../utils/Constants.js';
 // import { encryptMessage } from '../../utils/Utils.js';
 import { NetworkAPIError, isNetworkApiError } from './helpers.js';
 import { encryptMessage, wait } from '../../utils/Utils.js';
+import { isDevBuild } from '../../utils/Constants.js';
 
 const { INTERCHAT_API_URL1, INTERCHAT_API_URL2 } = process.env;
 let primaryUrl = INTERCHAT_API_URL1 ?? INTERCHAT_API_URL2;
@@ -16,15 +17,13 @@ const sendMessage = async (
   data: WebhookMessageCreateOptions,
   tries = 0,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  encrypt?: boolean,
+  encrypt = true,
 ): Promise<NetworkAPIError | APIMessage | undefined> => {
-  encrypt = false; // FIXME since im using cf workers its disabeld
   //  No need for external apis in development mode
-  // FIXME: uncomment dis
-  // if (isDevBuild) {
-  //   const webhook = new WebhookClient({ url: webhookUrl });
-  //   return await webhook.send(message);
-  // }
+  if (isDevBuild) {
+    const webhook = new WebhookClient({ url: webhookUrl });
+    return await webhook.send(data);
+  }
 
   const networkKey = process.env.NETWORK_API_KEY;
   if (!networkKey || !primaryUrl) {
