@@ -1,30 +1,33 @@
-import { APIEmbed, APIMessage, WebhookClient, WebhookMessageCreateOptions, isJSONEncodable } from 'discord.js';
-// import { isDevBuild } from '../../utils/Constants.js';
-// import { encryptMessage } from '../../utils/Utils.js';
+import {
+  APIEmbed,
+  APIMessage,
+  WebhookClient,
+  WebhookMessageCreateOptions,
+  isJSONEncodable,
+} from 'discord.js';
 import { NetworkAPIError, isNetworkApiError } from './helpers.js';
 import { encryptMessage, wait } from '../../utils/Utils.js';
-import { isDevBuild } from '../../utils/Constants.js';
 
-const { INTERCHAT_API_URL1, INTERCHAT_API_URL2 } = process.env;
-let primaryUrl = INTERCHAT_API_URL1 ?? INTERCHAT_API_URL2;
-
-const switchUrl = (currentUrl: string) => {
-  return currentUrl === INTERCHAT_API_URL1 ? INTERCHAT_API_URL2 : INTERCHAT_API_URL1;
+export default async (webhookUrl: string, data: WebhookMessageCreateOptions) => {
+  const webhook = new WebhookClient({ url: webhookUrl });
+  return await webhook.send(data);
 };
 
-const sendMessage = async (
+const { INTERCHAT_API_URL1, INTERCHAT_API_URL2 } = process.env;
+const urls = [INTERCHAT_API_URL1, INTERCHAT_API_URL2];
+let primaryUrl = urls[0];
+
+const switchUrl = (currentUrl: string) => {
+  if (currentUrl === urls[urls.length - 1]) return urls[0] ?? currentUrl;
+  else return urls[urls.indexOf(currentUrl) + 1] ?? currentUrl;
+};
+export const specialSendMessage = async (
   webhookUrl: string,
   data: WebhookMessageCreateOptions,
   tries = 0,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   encrypt = true,
 ): Promise<NetworkAPIError | APIMessage | undefined> => {
-  //  No need for external apis in development mode
-  if (isDevBuild) {
-    const webhook = new WebhookClient({ url: webhookUrl });
-    return await webhook.send(data);
-  }
-
   const networkKey = process.env.NETWORK_API_KEY;
   if (!networkKey || !primaryUrl) {
     throw new Error('NETWORK_API_KEY or INTERCHAT_API_URL(s) env variables missing.');
@@ -65,13 +68,10 @@ const sendMessage = async (
   const resJson = (await res.json()) as NetworkAPIError | APIMessage | undefined;
 
   if (isNetworkApiError(resJson) && tries <= 5) {
-    console.log('here', tries);
     await wait(3000);
     primaryUrl = switchUrl(primaryUrl);
-    return await sendMessage(webhookUrl, data, tries + 1, false);
+    return await specialSendMessage(webhookUrl, data, tries + 1, false);
   }
 
   return resJson;
 };
-
-export default sendMessage;
