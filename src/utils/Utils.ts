@@ -416,18 +416,17 @@ export const modifyUserRole = async (
   await cluster.broadcastEval(
     async (client, ctx) => {
       const guild = client.guilds.cache.get(ctx.guildId);
-      const role = guild?.roles.cache.find(({ id }) => id === ctx.roleId);
+      if (!guild) return;
 
-      if (!guild || !role) return null;
+      const role = await guild.roles.fetch(ctx.roleId);
+      if (!role) return;
 
       // add or remove role
-      const member = await guild.members.fetch(ctx.userId).catch(() => null);
-      return await member?.roles[ctx.action](role).catch(() => null);
+      const member = await guild.members.fetch(ctx.userId);
+      await member?.roles[ctx.action](role);
     },
-    { guildId, context: { userId, roleId, guildId, action } },
+    { context: { userId, roleId, guildId, action } },
   );
-
-  return;
 };
 
 /**

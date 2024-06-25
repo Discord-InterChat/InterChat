@@ -1,5 +1,3 @@
-import { API_PORT } from './Constants.js';
-
 export declare type predictionType = {
   className: 'Drawing' | 'Hentai' | 'Neutral' | 'Porn' | 'Sexy';
   probability: number;
@@ -10,7 +8,7 @@ export declare type predictionType = {
  * @returns The predictions object
  */
 export const analyzeImageForNSFW = async (imageUrl: string): Promise<predictionType[] | null> => {
-  const res = await fetch(`http://localhost:${API_PORT}/nsfw`, {
+  const res = await fetch(`http://localhost:${process.env.PORT}/nsfw`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ imageUrl }),

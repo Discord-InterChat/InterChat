@@ -96,7 +96,7 @@ export default class SuperClient extends Client {
     SuperClient.instance = this;
 
     // initialize i18n for localization
-    await loadLocales('locales/src/locales');
+    loadLocales('locales/src/locales');
 
     // load commands
     await loadCommandFiles();
@@ -104,18 +104,12 @@ export default class SuperClient extends Client {
     await syncConnectionCache();
     this._connectionCachePopulated = true;
 
-    this.scheduler.addRecurringTask(
-      'populateConnectionCache',
-      60_000 * 5,
-      syncConnectionCache,
-    );
-
-    // store network message timestamps to connectedList every minute
+    this.scheduler.addRecurringTask('populateConnectionCache', 60_000 * 5, syncConnectionCache);
     this.scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, () => {
+      // store network message timestamps to connectedList every minute
       storeMsgTimestamps(messageTimestamps);
       messageTimestamps.clear();
     });
-
 
     await this.login(process.env.TOKEN);
   }
@@ -135,7 +129,7 @@ export default class SuperClient extends Client {
   async fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined> {
     const fetch = (await this.cluster.broadcastEval(
       (client, guildID) => client.guilds.cache.get(guildID),
-      { context: guildId },
+      { guildId, context: guildId },
     )) as Guild[];
 
     return fetch ? SuperClient.resolveEval(fetch) : undefined;

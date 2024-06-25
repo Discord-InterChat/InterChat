@@ -44,19 +44,18 @@ export default async (
     if (!message.inGuild()) return;
 
     // store message data in db
-    await db.originalMessages
-      .create({
-        data: {
-          messageId: message.id,
-          authorId: message.author.id,
-          serverId: message.guildId,
-          messageReference: dbReference?.messageId,
-          createdAt: message.createdAt,
-          broadcastMsgs: { createMany: { data: messageDataObj } },
-          hub: { connect: { id: hubId } },
-          reactions: {},
-        },
-      });
+    await db.originalMessages.create({
+      data: {
+        messageId: message.id,
+        authorId: message.author.id,
+        serverId: message.guildId,
+        messageReference: dbReference?.messageId,
+        createdAt: message.createdAt,
+        broadcastMsgs: { createMany: { data: messageDataObj } },
+        hub: { connect: { id: hubId } },
+        reactions: {},
+      },
+    });
   }
 
   // store message timestamps to push to db later
