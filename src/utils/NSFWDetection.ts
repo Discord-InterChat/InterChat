@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 export declare type predictionType = {
   className: 'Drawing' | 'Hentai' | 'Neutral' | 'Porn' | 'Sexy';
   probability: number;
