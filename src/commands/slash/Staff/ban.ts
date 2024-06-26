@@ -3,10 +3,10 @@ import {
   ChatInputCommandInteraction,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
-import BaseCommand from '../../../core/BaseCommand.js';
 import db from '../../../utils/Db.js';
-import { simpleEmbed } from '../../../utils/Utils.js';
-import { DeveloperIds, emojis } from '../../../utils/Constants.js';
+import BaseCommand from '../../../core/BaseCommand.js';
+import { isDev, simpleEmbed } from '../../../utils/Utils.js';
+import { emojis } from '../../../utils/Constants.js';
 
 export default class Ban extends BaseCommand {
   readonly staffOnly = true;
@@ -23,13 +23,13 @@ export default class Ban extends BaseCommand {
       {
         type: ApplicationCommandOptionType.String,
         name: 'reason',
-        description: 'Reson for the ban',
+        description: 'Reason for the ban',
         required: true,
       },
     ],
   };
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
-    if (!DeveloperIds.includes(interaction.user.id)) return;
+    if (!isDev(interaction.user.id)) return;
 
     const user = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason', true);
