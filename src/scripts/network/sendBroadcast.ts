@@ -119,7 +119,7 @@ export default (
     catch (e) {
       // return the error and webhook URL to store the message in the db
       return {
-        messageOrError: e.message,
+        messageOrError: { error: e.message },
         webhookURL: connection.webhookURL,
       } as NetworkWebhookSendResult;
     }
