@@ -543,5 +543,5 @@ export const encryptMessage = (string: string, key: Buffer) => {
   const cipher = createCipheriv('aes-256-cbc', key, iv);
   let encrypted = cipher.update(string, 'utf8', 'hex');
   encrypted += cipher.final('hex');
-  return iv.toString('hex') + ':' + encrypted;
+  return `${iv.toString('hex')}:${encrypted}`;
 };
