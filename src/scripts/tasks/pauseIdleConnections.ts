@@ -17,7 +17,7 @@ export default async (manager: ClusterManager) => {
     },
   });
 
-  if (!connections) return;
+  if (connections?.length === 0) return;
 
   const reconnectButtonArr: {
     channelId: Snowflake;
@@ -39,13 +39,13 @@ export default async (manager: ClusterManager) => {
     });
 
     // disconnect the channel
-    await modifyConnection({ channelId }, { lastActive: null, connected: false });
+    await modifyConnection({ channelId }, { connected: false });
   });
 
   const embed = simpleEmbed(
     stripIndents`
     ### ${emojis.timeout} Paused Due to Inactivity
-    Connection to this hub has been stopped. **Click the button** below to resume chatting (or alternatively, \`/connection\`).
+    Connection to this hub has been stopped because no messages were sent for past day. **Click the button** below to resume chatting (or alternatively, \`/connection\`).
     `,
   ).toJSON();
 

@@ -50,17 +50,16 @@ const genJumpLink = async (
   });
   if (!messageInDb) return null;
 
-
   // fetch the reports server ID from the log channel's ID
   const reportsServerId = SuperClient.resolveEval(
     await client.cluster.broadcastEval(
-      async (cl, ctx) => {
+      async (cl, channelId) => {
         const channel = (await cl.channels
-          .fetch(ctx.reportsChannelId)
+          .fetch(channelId)
           .catch(() => null)) as GuildTextBasedChannel | null;
         return channel?.guild.id;
       },
-      { context: { reportsChannelId } },
+      { context: reportsChannelId },
     ),
   );
 

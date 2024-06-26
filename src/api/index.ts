@@ -3,7 +3,6 @@ import Logger from '../utils/Logger.js';
 import express from 'express';
 import dblRoute from './routes/dbl.js';
 import nsfwRouter from './routes/nsfw.js';
-import { API_PORT } from '../utils/Constants.js';
 
 // to start the server
 export const startApi = (data: { voteManager: VoteManager }) => {
@@ -14,5 +13,6 @@ export const startApi = (data: { voteManager: VoteManager }) => {
   app.use(nsfwRouter);
   if (data.voteManager) app.use(dblRoute(data.voteManager));
 
-  app.listen(API_PORT, () => Logger.info(`API listening on port http://localhost:${API_PORT}.`));
+  const port = process.env.PORT;
+  app.listen(port, () => Logger.info(`API listening on port http://localhost:${port}.`));
 };

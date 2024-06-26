@@ -2,10 +2,11 @@ import db from '../../utils/Db.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
 import { messageTimestamps, modifyConnections } from '../../utils/ConnectedList.js';
-import { handleError, parseTimestampFromId } from '../../utils/Utils.js';
+import { NetworkAPIError, isNetworkApiError } from './helpers.js';
+import Logger from '../../utils/Logger.js';
 
 export interface NetworkWebhookSendResult {
-  messageOrError: APIMessage | string;
+  messageOrError: APIMessage | NetworkAPIError;
   webhookURL: string;
 }
 
@@ -20,20 +21,21 @@ export default async (
   hubId: string,
   dbReference?: originalMessages | null,
 ) => {
-  const messageDataObj: { channelId: string; messageId: string, createdAt: Date }[] = [];
+  const messageDataObj: { channelId: string; messageId: string; createdAt: Date }[] = [];
   const invalidWebhookURLs: string[] = [];
   const validErrors = ['Invalid Webhook Token', 'Unknown Webhook', 'Missing Permissions'];
 
   // loop through all results and extract message data and invalid webhook urls
   channelAndMessageIds.forEach(({ messageOrError, webhookURL }) => {
-    if (messageOrError && typeof messageOrError !== 'string') {
+    if (!isNetworkApiError(messageOrError)) {
       messageDataObj.push({
         channelId: messageOrError.channel_id,
         messageId: messageOrError.id,
-        createdAt: new Date(parseTimestampFromId(messageOrError.id)),
+        createdAt: new Date(messageOrError.timestamp),
       });
     }
-    else if (validErrors.some((e) => (messageOrError as string).includes(e))) {
+    else if (validErrors.some((e) => messageOrError.error?.includes(e))) {
+      Logger.info('%O', messageOrError); // TODO Remove dis
       invalidWebhookURLs.push(webhookURL);
     }
   });
@@ -53,7 +55,7 @@ export default async (
         hub: { connect: { id: hubId } },
         reactions: {},
       },
-    }).catch(handleError);
+    });
   }
 
   // store message timestamps to push to db later

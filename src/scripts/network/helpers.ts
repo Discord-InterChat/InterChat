@@ -5,12 +5,16 @@ import {
   ButtonStyle,
   ButtonBuilder,
   ActionRowBuilder,
+  APIMessage,
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import { LINKS, REGEX, emojis } from '../../utils/Constants.js';
 import { censor } from '../../utils/Profanity.js';
 import { broadcastedMessages } from '@prisma/client';
 import { t } from '../../utils/Locale.js';
+
+export type NetworkAPIError = { error: string };
+
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
@@ -172,3 +176,8 @@ export const sendWelcomeMsg = async (message: Message, totalServers: string, hub
     })
     .catch(() => null);
 };
+
+
+export function isNetworkApiError(res: NetworkAPIError | APIMessage | undefined): res is NetworkAPIError {
+  return (res && Object.hasOwn(res, 'error')) === true;
+}
