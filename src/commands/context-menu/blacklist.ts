@@ -59,13 +59,13 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
-    // FIXME: if (interaction.user.id === messageInDb.originalMsg.authorId) {
-    //   await interaction.reply({
-    //     content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
-    //     ephemeral: true,
-    //   });
-    //   return;
-    // }
+    if (interaction.user.id === messageInDb.originalMsg.authorId) {
+      await interaction.reply({
+        content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
+        ephemeral: true,
+      });
+      return;
+    }
 
     const server = await interaction.client.fetchGuild(messageInDb.originalMsg.serverId);
     const user = await interaction.client.users.fetch(messageInDb.originalMsg.authorId);

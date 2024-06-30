@@ -72,7 +72,7 @@ export default class Server extends BlacklistCommand {
         return;
       }
       else if (user.id === interaction.user.id) {
-        await interaction.reply({
+        await interaction.followUp({
           content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
           ephemeral: true,
         });
