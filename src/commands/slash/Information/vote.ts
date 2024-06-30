@@ -17,7 +17,7 @@ export default class Vote extends BaseCommand {
   };
   async execute(interaction: ChatInputCommandInteraction) {
     const { locale } = interaction.user;
-    const userData = await db.userData.findFirst({ where: { userId: interaction.user.id } });
+    const userData = await db.userData.findFirst({ where: { id: interaction.user.id } });
     const voteCount = String(userData?.voteCount ?? 0);
 
     const embed = new EmbedBuilder()

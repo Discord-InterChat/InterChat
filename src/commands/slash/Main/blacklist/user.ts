@@ -91,7 +91,11 @@ export default class Server extends BlacklistCommand {
       }
 
       const expires = duration ? new Date(Date.now() + duration) : undefined;
-      await userBlacklists.addBlacklist(hubInDb.id, user, reason, interaction.user.id, expires);
+      await userBlacklists.addBlacklist({ id: user.id, name: user.username }, hubInDb.id, {
+        reason,
+        moderatorId: interaction.user.id,
+        expires,
+      });
       await userBlacklists
         .notifyUser(user, { hubId: hubInDb.id, expires, reason })
         .catch(Logger.error);

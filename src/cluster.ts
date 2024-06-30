@@ -25,7 +25,7 @@ clusterManager.on('clusterCreate', async (cluster) => {
 
     // remove expired blacklists or set new timers for them
     const serverQuery = await db.blacklistedServers.findMany({
-      where: { hubs: { some: { expires: { isSet: true } } } },
+      where: { blacklistedFrom: { some: { expires: { isSet: true } } } },
     });
     const userQuery = await db.userData.findMany({
       where: { blacklistedFrom: { some: { expires: { isSet: true } } } },

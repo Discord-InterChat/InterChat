@@ -92,12 +92,9 @@ export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
   return Boolean(res.voted);
 };
 
-export const userVotedToday = async (userId: Snowflake): Promise<boolean> => {
+export const userVotedToday = async (id: Snowflake): Promise<boolean> => {
   const res = await db.userData.findFirst({
-    where: {
-      userId,
-      lastVoted: { gte: new Date(Date.now() - 60 * 60 * 24 * 1000) },
-    },
+    where: { id, lastVoted: { gte: new Date(Date.now() - 60 * 60 * 24 * 1000) } },
   });
 
   return Boolean(res?.lastVoted);
@@ -384,8 +381,8 @@ export const getOrdinalSuffix = (num: number) => {
   return 'th';
 };
 
-export const getDbUser = async (userId: Snowflake) => {
-  return await db.userData.findFirst({ where: { userId } });
+export const getDbUser = async (id: Snowflake) => {
+  return await db.userData.findFirst({ where: { id } });
 };
 
 export const getUsername = async (client: ClusterManager, userId: Snowflake) => {

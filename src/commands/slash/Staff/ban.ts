@@ -43,7 +43,7 @@ export default class Ban extends BaseCommand {
     }
 
     const alreadyBanned = await db.userData.findFirst({
-      where: { userId: user.id, banMeta: { isNot: null } },
+      where: { id: user.id, banMeta: { isNot: null } },
     });
 
     if (alreadyBanned) {
@@ -54,17 +54,15 @@ export default class Ban extends BaseCommand {
     }
 
     await db.userData.upsert({
-      where: { userId: user.id },
+      where: { id: user.id },
       create: {
-        userId: user.id,
+        id: user.id,
         username: user.username,
         viewedNetworkWelcome: false,
         voteCount: 0,
         banMeta: { reason },
       },
-      update: {
-        banMeta: { reason },
-      },
+      update: { banMeta: { reason } },
     });
 
     await interaction.reply({

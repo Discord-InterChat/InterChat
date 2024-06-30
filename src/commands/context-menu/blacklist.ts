@@ -59,13 +59,13 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
-    if (interaction.user.id === messageInDb.originalMsg.authorId) {
-      await interaction.reply({
-        content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
-        ephemeral: true,
-      });
-      return;
-    }
+    // FIXME: if (interaction.user.id === messageInDb.originalMsg.authorId) {
+    //   await interaction.reply({
+    //     content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
+    //     ephemeral: true,
+    //   });
+    //   return;
+    // }
 
     const server = await interaction.client.fetchGuild(messageInDb.originalMsg.serverId);
     const user = await interaction.client.users.fetch(messageInDb.originalMsg.authorId);
@@ -225,13 +225,11 @@ export default class Blacklist extends BaseCommand {
         ),
       );
 
-      await userBlacklists.addBlacklist(
-        originalMsg.hubId,
-        user,
+      await userBlacklists.addBlacklist({ id: user.id, name: user.username }, originalMsg.hubId, {
         reason,
-        interaction.user.id,
+        moderatorId: interaction.user.id,
         expires,
-      );
+      });
 
       if (user) {
         userBlacklists

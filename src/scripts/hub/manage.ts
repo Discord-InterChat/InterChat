@@ -54,7 +54,7 @@ export const hubEmbed = async (hub: hubs & { connections: connectedList[] }) => 
     where: { blacklistedFrom: { some: { hubId: hub.id } } },
   });
   const hubBlacklistedServers = await db.blacklistedServers.count({
-    where: { hubs: { some: { hubId: hub.id } } },
+    where: { blacklistedFrom: { some: { hubId: hub.id } } },
   });
 
   return new EmbedBuilder()

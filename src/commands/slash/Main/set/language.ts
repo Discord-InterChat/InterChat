@@ -19,10 +19,10 @@ export default class SetLanguage extends Set {
       return;
     }
 
-    const { id: userId, username } = interaction.user;
+    const { id, username } = interaction.user;
     await db.userData.upsert({
-      where: { userId: interaction.user.id },
-      create: { userId, locale, username },
+      where: { id },
+      create: { id, locale, username },
       update: { locale },
     });
 

@@ -261,12 +261,12 @@ export default abstract class EventManager {
         con.hubId === connection.hubId && con.connected && con.channelId !== message.channel.id,
     );
 
-    let userData = await db.userData.findFirst({ where: { userId: message.author.id } });
+    let userData = await db.userData.findFirst({ where: { id: message.author.id } });
     if (!userData?.viewedNetworkWelcome) {
       userData = await db.userData.upsert({
-        where: { userId: message.author.id },
+        where: { id: message.author.id },
         create: {
-          userId: message.author.id,
+          id: message.author.id,
           username: message.author.username,
           viewedNetworkWelcome: true,
         },
@@ -319,7 +319,7 @@ export default abstract class EventManager {
   static async onInteractionCreate(interaction: Interaction): Promise<void> {
     try {
       const { commands, interactions } = interaction.client;
-      const userData = await db.userData.findFirst({ where: { userId: interaction.user.id } });
+      const userData = await db.userData.findFirst({ where: { id: interaction.user.id } });
       interaction.user.locale = getUserLocale(userData);
 
       if (userData?.banMeta?.reason) {

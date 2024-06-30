@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["tracing"]
 }
 
@@ -68,10 +68,9 @@ type hubBlacklist {
 }
 
 model blacklistedServers {
-  id         String         @id @default(auto()) @map("_id") @db.ObjectId
-  serverId   String         @unique
-  serverName String
-  hubs       hubBlacklist[]
+  id              String         @id @map("_id") @db.String
+  serverName      String
+  blacklistedFrom hubBlacklist[]
 }
 
 model connectedList {
@@ -147,8 +146,7 @@ model userBadges {
 }
 
 model userData {
-  id                   String         @id @default(auto()) @map("_id") @db.ObjectId
-  userId               String         @unique
+  id                   String         @id @map("_id") @db.String
   voteCount            Int            @default(0)
   // username is only guarenteed to be set and/or used for blacklisted users
   username             String?

@@ -90,7 +90,7 @@ export const logServerUnblacklist = async (
 
   const hub = await fetchHub(hubId);
   const blacklisted = await serverBlacklists.fetchBlacklist(hubId, opts.serverId);
-  const blacklistData = blacklisted?.hubs.find((data) => data.hubId === hubId);
+  const blacklistData = blacklisted?.blacklistedFrom.find((data) => data.hubId === hubId);
 
   if (!blacklisted || !blacklistData || !hub?.logChannels?.modLogs) return;
 
@@ -98,7 +98,7 @@ export const logServerUnblacklist = async (
     .setAuthor({ name: `Server ${blacklisted.serverName} unblacklisted` })
     .setDescription(
       stripIndents`
-      ${emojis.dotBlue} **Server:** ${blacklisted.serverName} (${blacklisted.serverId})
+      ${emojis.dotBlue} **Server:** ${blacklisted.serverName} (${blacklisted.id})
       ${emojis.dotBlue} **Moderator:** ${opts.mod.username} (${opts.mod.id})
       ${emojis.dotBlue} **Hub:** ${hub?.name}
     `,

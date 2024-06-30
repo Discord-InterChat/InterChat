@@ -8,8 +8,8 @@ import { supportedLocaleCodes, t } from '../../../../utils/Locale.js';
 import { Prisma, blacklistedServers, userData } from '@prisma/client';
 
 // Type guard functions
-function isServerType(list: blacklistedServers | userData): list is blacklistedServers {
-  return list && 'serverId' in list;
+function isUserType(list: blacklistedServers | userData): list is userData {
+  return list && 'username' in list;
 }
 
 export default class ListBlacklists extends BlacklistCommand {
@@ -45,7 +45,7 @@ export default class ListBlacklists extends BlacklistCommand {
     const hubId = hubInDb.id;
     const list =
       blacklistType === 'server'
-        ? await db.blacklistedServers.findMany({ where: { hubs: { some: { hubId } } } })
+        ? await db.blacklistedServers.findMany({ where: { blacklistedFrom: { some: { hubId } } } })
         : await db.userData.findMany({ where: { blacklistedFrom: { some: { hubId } } } });
     const options = { LIMIT: 5, iconUrl: hubInDb.iconUrl };
     const embeds = await this.buildEmbeds(interaction, list, hubId, options);
@@ -62,13 +62,10 @@ export default class ListBlacklists extends BlacklistCommand {
     const embeds: EmbedBuilder[] = [];
     const fields = [];
     let counter = 0;
-    const type = isServerType(list[0]) ? 'server' : 'user';
+    const type = isUserType(list[0]) ? 'user' : 'server';
 
     for (const data of list) {
-      const hubData = isServerType(data)
-        ? data.hubs.find((d) => d.hubId === hubId)
-        : data.blacklistedFrom.find((d) => d.hubId === hubId);
-
+      const hubData = data.blacklistedFrom.find((d) => d.hubId === hubId);
       const moderator = hubData?.moderatorId
         ? await interaction.client.users.fetch(hubData.moderatorId).catch(() => null)
         : null;
@@ -110,11 +107,11 @@ export default class ListBlacklists extends BlacklistCommand {
     },
   ) {
     return {
-      name: isServerType(data) ? data.serverName : data.username ?? 'Unknown User.',
+      name: (isUserType(data) ? data.username : data.serverName) ?? 'Unknown User.',
       value: t(
         { phrase: `blacklist.list.${type}`, locale },
         {
-          id: isServerType(data) ? data.serverId : data.userId,
+          id: data.id,
           moderator: moderator ? `@${moderator.username} (${moderator.id})` : 'Unknown',
           reason: `${hubData?.reason}`,
           expires: !hubData?.expires
