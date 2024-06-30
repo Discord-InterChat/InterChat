@@ -43,7 +43,7 @@ export const isCaughtSpam = async (
   if (!antiSpamResult) return false;
   /* FIXME: Don't use { addUserBlacklist, notifyBlacklist } it makes the methods lose their "this" property
     better to not have a class like this at all tbh */
-  const blacklistManager = message.client.blacklistManager;
+  const { userBlacklists } = message.client;
 
   if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
     const expires = new Date(Date.now() + 60 * 5000);
@@ -51,13 +51,8 @@ export const isCaughtSpam = async (
     const target = message.author;
     const mod = message.client.user;
 
-    await blacklistManager.addUserBlacklist(hubId, target.id, reason, mod.id, 60 * 5000);
-    blacklistManager.scheduleRemoval('user', target.id, hubId, 60 * 5000);
-
-    await blacklistManager
-      .notifyBlacklist('user', target.id, { hubId, expires, reason })
-      .catch(() => null);
-
+    await userBlacklists.addBlacklist(hubId, target, reason, mod.id, 60 * 5000);
+    await userBlacklists.notifyUser(target, { hubId, expires, reason }).catch(() => null);
     await logBlacklist(hubId, message.client, { target, mod, reason, expires }).catch(() => null);
   }
 

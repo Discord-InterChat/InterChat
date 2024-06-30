@@ -85,6 +85,7 @@ export default abstract class EventManager {
     );
 
     const { userBlacklisted, serverBlacklisted } = await checkBlacklists(
+      user.client,
       originalMsg.hub.id,
       reaction.message.guildId,
       user.id,

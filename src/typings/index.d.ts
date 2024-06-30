@@ -2,12 +2,12 @@ import { ClusterClient } from 'discord-hybrid-sharding';
 import { Collection, Snowflake } from 'discord.js';
 import Scheduler from '../services/SchedulerService.ts';
 import BaseCommand from '../core/BaseCommand.ts';
-import BlacklistManager from '../managers/BlacklistManager.ts';
-import CommandManager from '../managers/CommandManager.ts';
 import CooldownService from '../services/CooldownService.ts';
 import { supportedLocaleCodes } from '../utils/Locale.ts';
 import { InteractionFunction } from '../decorators/Interaction.ts';
 import { connectionCache } from '../utils/ConnectedList.ts';
+import UserBlacklistManager from '../managers/UserBlacklistManager.ts';
+import ServerBlacklisManager from '../managers/ServerBlacklistManager.ts';
 
 type RemoveMethods<T> = {
   [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? never : RemoveMethods<T[K]>;
@@ -32,8 +32,8 @@ declare module 'discord.js' {
 
     get cachePopulated(): boolean;
 
-    commandManager: CommandManager;
-    blacklistManager: BlacklistManager;
+    readonly userBlacklists: UserBlacklistManager;
+    readonly serverBlacklists: ServerBlacklisManager;
   }
 
   export interface User {

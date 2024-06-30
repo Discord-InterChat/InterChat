@@ -1,5 +1,7 @@
 import Scheduler from '../services/SchedulerService.js';
 import loadCommandFiles from '../utils/LoadCommands.js';
+import UserBlacklistManager from '../managers/UserBlacklistManager.js';
+import ServerBlacklistManager from '../managers/ServerBlacklistManager.js';
 import {
   Client,
   IntentsBitField,
@@ -20,12 +22,10 @@ import {
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './BaseCommand.js';
 import CooldownService from '../services/CooldownService.js';
-import BlacklistManager from '../managers/BlacklistManager.js';
 import { RemoveMethods } from '../typings/index.js';
 import { loadLocales } from '../utils/Locale.js';
 import { PROJECT_VERSION } from '../utils/Constants.js';
 import 'dotenv/config';
-
 export default class SuperClient extends Client {
   // A static instance of the SuperClient class to be used globally.
   public static instance: SuperClient;
@@ -43,7 +43,8 @@ export default class SuperClient extends Client {
   readonly connectionCache = _connectionCache;
 
   readonly cluster = new ClusterClient(this);
-  readonly blacklistManager = new BlacklistManager(this.scheduler);
+  readonly userBlacklists = new UserBlacklistManager();
+  readonly serverBlacklists = new ServerBlacklistManager();
   readonly commandCooldowns = new CooldownService();
 
   constructor() {

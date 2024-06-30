@@ -31,8 +31,9 @@ clusterManager.on('clusterCreate', async (cluster) => {
       where: { blacklistedFrom: { some: { expires: { isSet: true } } } },
     });
 
-    updateBlacklists(serverQuery, scheduler).catch(Logger.error);
-    updateBlacklists(userQuery, scheduler).catch(Logger.error);
+    updateBlacklists(serverQuery).catch(Logger.error);
+    updateBlacklists(userQuery).catch(Logger.error);
+    deleteExpiredInvites().catch(Logger.error);
 
     // code must be in production to run these tasks
     if (isDevBuild) return;
@@ -40,16 +41,20 @@ clusterManager.on('clusterCreate', async (cluster) => {
     await wait(10_000);
 
     // perform start up tasks
-    syncBotlistStats(clusterManager).catch(Logger.error);
-    deleteExpiredInvites().catch(Logger.error);
+    const serverCount = (await clusterManager.fetchClientValues('guilds.cache.size')).reduce(
+      (p: number, n: number) => p + n,
+      0,
+    );
+
+    syncBotlistStats({ serverCount, shardCount: clusterManager.totalShards }).catch(Logger.error);
     pauseIdleConnections(clusterManager).catch(Logger.error);
 
+    scheduler.addRecurringTask('syncBotlistStats', 10 * 60 * 10_000, () =>
+      syncBotlistStats({ serverCount, shardCount: clusterManager.totalShards }),
+    );
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
     scheduler.addRecurringTask('pauseIdleConnections', 60 * 60 * 1000, () =>
       pauseIdleConnections(clusterManager),
-    );
-    scheduler.addRecurringTask('syncBotlistStats', 10 * 60 * 10_000, () =>
-      syncBotlistStats(clusterManager),
     );
   }
 });

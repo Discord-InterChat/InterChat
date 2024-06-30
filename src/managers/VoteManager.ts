@@ -6,7 +6,7 @@ import { ClusterManager } from 'discord-hybrid-sharding';
 import { WebhookClient, userMention, EmbedBuilder } from 'discord.js';
 import { badgeEmojis, LINKS, SUPPORT_SERVER_ID, VOTER_ROLE_ID } from '../utils/Constants.js';
 import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
-import { EventEmitter } from 'events';
+import EventEmitter from 'events';
 
 export type TopggEvents = {
   vote: WebhookPayload;

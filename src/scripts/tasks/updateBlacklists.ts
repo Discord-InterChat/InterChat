@@ -1,32 +1,27 @@
+import UserBlacklistManager from '../../managers/UserBlacklistManager.js';
+import ServerBlacklisManager from '../../managers/ServerBlacklistManager.js';
 import { blacklistedServers, userData } from '@prisma/client';
-import BlacklistManager from '../../managers/BlacklistManager.js';
-import Scheduler from '../../services/SchedulerService.js';
 
-export default async (blacklists: (blacklistedServers | userData)[], scheduler: Scheduler) => {
+function isUserBlacklist(blacklist: blacklistedServers | userData): blacklist is userData {
+  return 'userId' in blacklist;
+}
+
+export default async (blacklists: (blacklistedServers | userData)[]) => {
   if (blacklists.length === 0) return;
 
-  const blacklistManager = new BlacklistManager(scheduler);
+  const userBlacklists = new UserBlacklistManager();
+  const serverBlacklists = new ServerBlacklisManager();
+
   for (const blacklist of blacklists) {
-    const blacklistedFrom = 'hubs' in blacklist ? blacklist.hubs : blacklist.blacklistedFrom;
+    const blacklistedFrom = isUserBlacklist(blacklist) ? blacklist.blacklistedFrom : blacklist.hubs;
+    const manager = isUserBlacklist(blacklist) ? userBlacklists : serverBlacklists;
+    const id = isUserBlacklist(blacklist) ? blacklist.userId : blacklist.serverId;
+
     for (const { hubId, expires } of blacklistedFrom) {
-      if (!expires) continue;
-
-      if (expires < new Date()) {
-        if ('serverId' in blacklist) {
-          await blacklistManager.removeBlacklist('server', hubId, blacklist.serverId);
-        }
-        else {
-          await blacklistManager.removeBlacklist('user', hubId, blacklist.userId);
-        }
-        continue;
+      if (expires && expires < new Date()) {
+        await manager.removeBlacklist(hubId, id);
       }
-
-      blacklistManager.scheduleRemoval(
-        'serverId' in blacklist ? 'server' : 'user',
-        'serverId' in blacklist ? blacklist.serverId : blacklist.userId,
-        hubId,
-        expires,
-      );
+      continue;
     }
   }
 };

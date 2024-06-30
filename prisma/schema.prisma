@@ -8,11 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-type MessageDataChannelAndMessageIds {
-  channelId String
-  messageId String
-}
-
 type MessageDataReference {
   channelId String
   guildId   String?
@@ -149,13 +144,6 @@ model broadcastedMessages {
 model userBadges {
   userId String   @id @map("_id")
   badges String[]
-}
-
-model blacklistedUsers {
-  id       String         @id @default(auto()) @map("_id") @db.ObjectId
-  userId   String         @unique
-  username String
-  hubs     hubBlacklist[]
 }
 
 model userData {

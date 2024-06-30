@@ -1,8 +1,7 @@
+import db from '../../../../utils/Db.js';
+import Hub from './index.js';
 import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
 import { emojis } from '../../../../utils/Constants.js';
-import Hub from './index.js';
-import db from '../../../../utils/Db.js';
-import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { hubs } from '@prisma/client';
 import { simpleEmbed, getOrCreateWebhook, sendToHub } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
@@ -116,11 +115,9 @@ export default class JoinSubCommand extends Hub {
       return;
     }
 
-    const userBlacklisted = await BlacklistManager.fetchUserBlacklist(hub.id, interaction.user.id);
-    const serverBlacklisted = await BlacklistManager.fetchServerBlacklist(
-      hub.id,
-      interaction.guildId,
-    );
+    const { userBlacklists, serverBlacklists } = interaction.client;
+    const userBlacklisted = await userBlacklists.fetchBlacklist(hub.id, interaction.user.id);
+    const serverBlacklisted = await serverBlacklists.fetchBlacklist(hub.id, interaction.guildId);
 
     if (userBlacklisted || serverBlacklisted) {
       await interaction.reply({
@@ -141,7 +138,10 @@ export default class JoinSubCommand extends Hub {
       await interaction.reply({
         embeds: [
           simpleEmbed(
-            t({ phrase: 'network.onboarding.inProgress', locale }, { channel: `${channel}`, emoji: emojis.dnd_anim }),
+            t(
+              { phrase: 'network.onboarding.inProgress', locale },
+              { channel: `${channel}`, emoji: emojis.dnd_anim },
+            ),
           ),
         ],
         ephemeral: true,

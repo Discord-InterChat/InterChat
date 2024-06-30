@@ -59,6 +59,14 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
+    if (interaction.user.id === messageInDb.originalMsg.authorId) {
+      await interaction.reply({
+        content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
+        ephemeral: true,
+      });
+      return;
+    }
+
     const server = await interaction.client.fetchGuild(messageInDb.originalMsg.serverId);
     const user = await interaction.client.users.fetch(messageInDb.originalMsg.authorId);
 
@@ -192,11 +200,24 @@ export default class Blacklist extends BaseCommand {
       },
     );
 
-    const blacklistManager = interaction.client.blacklistManager;
+    const { userBlacklists } = interaction.client;
 
     // user blacklist
     if (customId.suffix === 'user') {
       const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
+
+      if (!user) {
+        await interaction.reply({
+          embeds: [
+            simpleEmbed(
+              `${emojis.neutral} Unable to fetch user. They may have delete their account?`,
+            ),
+          ],
+          ephemeral: true,
+        });
+        return;
+      }
+
       successEmbed.setDescription(
         t(
           { phrase: 'blacklist.user.success', locale },
@@ -204,24 +225,17 @@ export default class Blacklist extends BaseCommand {
         ),
       );
 
-      await blacklistManager.addUserBlacklist(
+      await userBlacklists.addBlacklist(
         originalMsg.hubId,
-        originalMsg.authorId,
+        user,
         reason,
         interaction.user.id,
         expires,
       );
 
-      if (expires) {
-        blacklistManager.scheduleRemoval('user', originalMsg.authorId, originalMsg.hubId, expires);
-      }
       if (user) {
-        blacklistManager
-          .notifyBlacklist('user', originalMsg.authorId, {
-            hubId: originalMsg.hubId,
-            expires,
-            reason,
-          })
+        userBlacklists
+          .notifyUser(user, { hubId: originalMsg.hubId, expires, reason })
           .catch(() => null);
 
         await logBlacklist(originalMsg.hubId, interaction.client, {
@@ -241,6 +255,7 @@ export default class Blacklist extends BaseCommand {
 
     // server blacklist
     else {
+      const { serverBlacklists } = interaction.client;
       const server = await interaction.client.fetchGuild(originalMsg.serverId);
 
       successEmbed.setDescription(
@@ -250,34 +265,24 @@ export default class Blacklist extends BaseCommand {
         ),
       );
 
-      await blacklistManager.addServerBlacklist(
-        originalMsg.serverId,
+      await serverBlacklists.addBlacklist(
+        { name: server?.name ?? 'Unknown Server', id: originalMsg.serverId },
         originalMsg.hubId,
-        reason,
-        interaction.user.id,
-        expires,
+        {
+          reason,
+          moderatorId: interaction.user.id,
+          expires,
+        },
       );
 
       // Notify server of blacklist
-      await blacklistManager.notifyBlacklist('server', originalMsg.serverId, {
+      await serverBlacklists.notifyServer(interaction.client, originalMsg.serverId, {
         hubId: originalMsg.hubId,
         expires,
         reason,
       });
 
-      if (expires) {
-        blacklistManager.scheduleRemoval(
-          'server',
-          originalMsg.serverId,
-          originalMsg.hubId,
-          expires,
-        );
-      }
-
-      await deleteConnections({
-        serverId: originalMsg.serverId,
-        hubId: originalMsg.hubId,
-      });
+      await deleteConnections({ serverId: originalMsg.serverId, hubId: originalMsg.hubId });
 
       if (server) {
         await logBlacklist(originalMsg.hubId, interaction.client, {

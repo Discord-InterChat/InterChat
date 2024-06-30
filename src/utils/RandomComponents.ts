@@ -55,6 +55,7 @@ export abstract class RandomComponents {
     }
 
     const { userBlacklisted, serverBlacklisted } = await checkBlacklists(
+      interaction.client,
       messageInDb.originalMsg.hub.id,
       interaction.guildId,
       interaction.user.id,
@@ -210,7 +211,9 @@ export abstract class RandomComponents {
 
     await interaction.update({
       embeds: [
-        simpleEmbed(`### ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`),
+        simpleEmbed(
+          `### ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`,
+        ),
       ],
       components: [],
     });
