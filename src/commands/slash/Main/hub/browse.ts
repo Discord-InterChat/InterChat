@@ -202,9 +202,7 @@ export default class Browse extends Hub {
       }
 
       const { userManager, serverBlacklists } = interaction.client;
-
       const userBlacklisted = await userManager.fetchBlacklist(hubDetails.id, interaction.user.id);
-
       const serverBlacklisted = await serverBlacklists.fetchBlacklist(
         hubDetails.id,
         interaction.guildId,
