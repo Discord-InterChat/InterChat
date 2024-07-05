@@ -1,12 +1,13 @@
 import Logger from './Logger.js';
 import loadCommandFiles from './LoadCommands.js';
 import { REST, Routes } from 'discord.js';
-import { CLIENT_ID, SUPPORT_SERVER_ID } from './Constants.js';
+import { SUPPORT_SERVER_ID } from './Constants.js';
 import { commandsMap } from '../core/BaseCommand.js';
 import 'dotenv/config';
 
 const greyText = (text: unknown) => `\x1b[38;5;246m${text}\x1b[0m`;
 const greenText = (text: unknown) => `\x1b[38;5;78m${text}\x1b[0m`;
+const CLIENT_ID = process.env.CLIENT_ID as string;
 
 const registerAllCommands = async (staffOnly = false) => {
   // make sure CommandsMap is not empty
@@ -26,8 +27,13 @@ const registerAllCommands = async (staffOnly = false) => {
   const registerRes = (await rest.put(route, { body: commands })) as object[];
 
   const type = staffOnly ? 'private' : 'public';
-  const totalRegistered = registerRes.length === commands.length ? greenText(registerRes.length) : greyText(registerRes.length);
-  Logger.info(`Registered ${totalRegistered}${greyText('/')}${greenText(commands.length)} ${type} application commands.`);
+  const totalRegistered =
+    registerRes.length === commands.length
+      ? greenText(registerRes.length)
+      : greyText(registerRes.length);
+  Logger.info(
+    `Registered ${totalRegistered}${greyText('/')}${greenText(commands.length)} ${type} application commands.`,
+  );
 };
 
 process.argv.forEach(async (arg) => {

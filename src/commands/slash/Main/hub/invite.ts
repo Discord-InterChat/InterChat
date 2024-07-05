@@ -46,6 +46,15 @@ export default class Invite extends Hub {
           });
           return;
         }
+
+        if (!Date.parse(expires.toString())) {
+          await interaction.reply({
+            embeds: [simpleEmbed(`${emojis.no} Invalid Expiry Duration provided!`)],
+            ephemeral: true,
+          });
+          return;
+        }
+
         const createdInvite = await db.hubInvites.create({
           data: {
             hub: { connect: { name: hubName } },

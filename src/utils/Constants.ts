@@ -16,7 +16,6 @@ export const {
 export const isDevBuild = process.env.NODE_ENV === 'development';
 
 export const PROJECT_VERSION = require('../../package.json').version ?? 'Unknown';
-export const CLIENT_ID = isDevBuild ? '798748015435055134' : '769921109209907241';
 export const SUPPORT_SERVER_ID = '770256165300338709';
 export const VOTER_ROLE_ID = '985153241727770655';
 
