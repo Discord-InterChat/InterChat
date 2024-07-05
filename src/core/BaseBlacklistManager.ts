@@ -39,12 +39,9 @@ export default abstract class BaseBlacklistManager<T extends BlacklistEntity> ex
     }: { reason: string; moderatorId: Snowflake; expires: Date | null },
   ): Promise<T>;
 
-  // FIXME: only 150 documents will be retrieved --- this is bad! To get all documents,
-  // finish the first scan iteration, then use the cursor that it returns to start the second interation
-  // by specifying the remaining documents mentioned in the cursor
   public async getAllBlacklists() {
     return serializeCache<T>(await getAllDocuments(`${this.modelName}:*`));
-  };
+  }
 
   public async fetchBlacklist(hubId: string, entityId: string) {
     const cache = serializeCache<T>(await db.cache.get(`${this.modelName}:entityId`));

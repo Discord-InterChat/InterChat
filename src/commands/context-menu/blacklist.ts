@@ -210,7 +210,7 @@ export default class Blacklist extends BaseCommand {
         await interaction.reply({
           embeds: [
             simpleEmbed(
-              `${emojis.neutral} Unable to fetch user. They may have delete their account?`,
+              `${emojis.neutral} Unable to fetch user. They may have deleted their account?`,
             ),
           ],
           ephemeral: true,
