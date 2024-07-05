@@ -29,7 +29,6 @@ export default class Stats extends BaseCommand {
     await interaction.deferReply();
 
     const { originalMessages, hubs } = db;
-    const totalConnections = interaction.client.connectionCache.size;
     const totalHubs = await hubs?.count();
     const totalNetworkMessages = await originalMessages.count();
 
@@ -74,7 +73,6 @@ export default class Stats extends BaseCommand {
           name: 'Hub Stats',
           value: stripIndents`
             Total Hubs: ${totalHubs}
-            Total Connected: ${totalConnections}
             Messages (Today): ${totalNetworkMessages}`,
           inline: false,
         },
