@@ -1,9 +1,9 @@
 import db from '../utils/Db.js';
 import BaseBlacklistManager from '../core/BaseBlacklistManager.js';
-import { blacklistedServers, connectedList, hubBlacklist, Prisma } from '@prisma/client';
+import { blacklistedServers, hubBlacklist, Prisma } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
 import { logServerUnblacklist } from '../utils/HubLogger/ModLogs.js';
-import { getAllDocuments, serializeCache } from '../utils/db/cacheUtils.js';
+import { getAllConnections } from '../utils/ConnectedList.js';
 
 export default class ServerBlacklisManager extends BaseBlacklistManager<blacklistedServers> {
   protected modelName: Prisma.ModelName = 'blacklistedServers';
@@ -79,7 +79,7 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
     );
 
     const serverConnected =
-      serializeCache<connectedList>(await getAllDocuments('connectedList:*'))?.find(
+      (await getAllConnections())?.find(
         (con) => con.serverId === opts.target.id && con.hubId === opts.hubId,
       ) ??
       (await db.connectedList.findFirst({

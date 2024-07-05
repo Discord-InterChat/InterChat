@@ -25,8 +25,7 @@ import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 import { simpleEmbed } from '../../utils/Utils.js';
 import { sendHubReport } from '../../utils/HubLogger/Report.js';
-import { connectedList } from '@prisma/client';
-import { serializeCache, getAllDocuments } from '../../utils/db/cacheUtils.js';
+import { getAllConnections } from '../../utils/ConnectedList.js';
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -78,9 +77,9 @@ export default class MessageInfo extends BaseCommand {
 
     const components = MessageInfo.buildButtons(target.id, interaction.user.locale);
 
-    const guildConnected = serializeCache<connectedList>(
-      await getAllDocuments('connectedList:*'),
-    )?.find((c) => c.serverId === originalMsg.serverId && c.hubId === originalMsg.hub?.id);
+    const guildConnected = (await getAllConnections())?.find(
+      (c) => c.serverId === originalMsg.serverId && c.hubId === originalMsg.hub?.id,
+    );
 
     if (guildConnected?.invite) {
       components[1].addComponents(
@@ -126,9 +125,7 @@ export default class MessageInfo extends BaseCommand {
 
     const author = await interaction.client.users.fetch(originalMsg.authorId);
     const server = await interaction.client.fetchGuild(originalMsg.serverId);
-    const guildConnected = serializeCache<connectedList>(
-      await getAllDocuments('connectedList:*'),
-    )?.find((c) => c.serverId === server?.id);
+    const guildConnected = (await getAllConnections())?.find((c) => c.serverId === server?.id);
 
     if (interaction.isButton()) {
       // component builders taken from the original message
