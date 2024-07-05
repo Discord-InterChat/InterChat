@@ -1,13 +1,12 @@
 import db from '../utils/Db.js';
-import { emojis, colors } from '../utils/Constants.js';
-import { logUserUnblacklist } from '../utils/HubLogger/ModLogs.js';
-import { userData } from '@prisma/client';
-import { Snowflake, EmbedBuilder, User } from 'discord.js';
-import SuperClient from '../core/Client.js';
-import { handleError } from '../utils/Utils.js';
 import BaseBlacklistManager from '../core/BaseBlacklistManager.js';
+import { Prisma, userData } from '@prisma/client';
+import { Snowflake, User } from 'discord.js';
+import { logUserUnblacklist } from '../utils/HubLogger/ModLogs.js';
 
-export default class UserBlacklistManager extends BaseBlacklistManager<userData> {
+export default class UserDbManager extends BaseBlacklistManager<userData> {
+  protected modelName: Prisma.ModelName = 'userData';
+
   protected override async fetchEntityFromDb(hubId: string, id: string) {
     return await db.userData.findFirst({ where: { id, blacklistedFrom: { some: { hubId } } } });
   }
@@ -17,19 +16,17 @@ export default class UserBlacklistManager extends BaseBlacklistManager<userData>
 
     return await db.userData.findMany({
       where: {
-        blacklistedFrom: { some: { expires: { gte: currentTime, lte: twelveHoursLater } } },
+        blacklistedFrom: { some: { expires: { lte: twelveHoursLater } } },
       },
     });
   }
 
-  protected override async logUnblacklist(client: SuperClient, hubId: string, userId: string) {
-    if (!client?.user) return;
-
-    await logUserUnblacklist(client, hubId, {
-      userId,
-      mod: client.user,
-      reason: 'Blacklist duration expired.',
-    }).catch(handleError);
+  public override async logUnblacklist(
+    hubId: string,
+    userId: string,
+    { mod, reason }: { mod: User; reason?: string },
+  ) {
+    await logUserUnblacklist(this.client, hubId, { userId, mod, reason });
   }
 
   /**
@@ -43,7 +40,11 @@ export default class UserBlacklistManager extends BaseBlacklistManager<userData>
   async addBlacklist(
     user: { id: Snowflake; name: string },
     hubId: string,
-    { reason, moderatorId, expires }: { reason: string; moderatorId: Snowflake; expires?: Date },
+    {
+      reason,
+      moderatorId,
+      expires,
+    }: { reason: string; moderatorId: Snowflake; expires: Date | null },
   ) {
     if (typeof expires === 'number') expires = new Date(Date.now() + expires);
 
@@ -57,9 +58,6 @@ export default class UserBlacklistManager extends BaseBlacklistManager<userData>
       update: { username: user.name, blacklistedFrom: { set: hubs } },
       create: { id: user.id, username: user.name, blacklistedFrom: hubs },
     });
-
-    this.cache.set(updatedUser.id, updatedUser);
-
     return updatedUser;
   }
 
@@ -79,8 +77,6 @@ export default class UserBlacklistManager extends BaseBlacklistManager<userData>
       data: { blacklistedFrom: { deleteMany: { where: { hubId } } } },
     });
 
-    this.cache.delete(deletedRes.id);
-
     return deletedRes;
   }
 
@@ -92,28 +88,18 @@ export default class UserBlacklistManager extends BaseBlacklistManager<userData>
    * @param expires The date after which the blacklist expires.
    * @param reason The reason for the blacklist.
    */
-  async notifyUser(
-    user: User,
-    opts: {
-      hubId: string;
-      expires?: Date;
-      reason?: string;
-    },
-  ): Promise<void> {
+  async sendNotification(opts: {
+    target: User;
+    hubId: string;
+    expires: Date | null;
+    reason?: string;
+  }): Promise<void> {
     const hub = await db.hubs.findUnique({ where: { id: opts.hubId } });
-    const expireString = opts.expires
-      ? `<t:${Math.round(opts.expires.getTime() / 1000)}:R>`
-      : 'Never';
+    const embed = this.buildNotifEmbed(
+      `You have been blacklisted from talking in hub **${hub?.name}**`,
+      { expires: opts.expires, reason: opts.reason },
+    );
 
-    const embed = new EmbedBuilder()
-      .setTitle(`${emojis.blobFastBan} Blacklist Notification`)
-      .setDescription(`You have been blacklisted from talking in hub **${hub?.name}**.`)
-      .setColor(colors.interchatBlue)
-      .setFields(
-        { name: 'Reason', value: opts.reason ?? 'No reason provided.', inline: true },
-        { name: 'Expires', value: expireString, inline: true },
-      );
-
-    await user.send({ embeds: [embed] }).catch(() => null);
+    await opts.target.send({ embeds: [embed] }).catch(() => null);
   }
 }

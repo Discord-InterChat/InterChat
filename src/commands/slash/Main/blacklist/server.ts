@@ -44,7 +44,7 @@ export default class UserBlacklist extends BlacklistCommand {
     if (subCommandGroup === 'add') {
       const reason = interaction.options.getString('reason', true);
       const duration = parse(`${interaction.options.getString('duration')}`);
-      const expires = duration ? new Date(Date.now() + duration) : undefined;
+      const expires = duration ? new Date(Date.now() + duration) : null;
 
       const serverInBlacklist = await serverBlacklists.fetchBlacklist(hubInDb.id, serverId);
       if (serverInBlacklist) {
@@ -123,7 +123,7 @@ export default class UserBlacklist extends BlacklistCommand {
 
       // notify the server that they have been blacklisted
       await serverBlacklists
-        .notifyServer(interaction.client, serverId, { hubId: hubInDb.id, expires, reason })
+        .sendNotification({ target: { id: serverId }, hubId: hubInDb.id, expires, reason })
         .catch(() => null);
 
       // delete all connections from db so they can't reconnect to the hub

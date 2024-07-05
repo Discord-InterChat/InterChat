@@ -1,5 +1,5 @@
 import { Api } from '@top-gg/sdk';
-import Logger from '../../utils/Logger.js';
+import Logger from '../utils/Logger.js';
 import 'dotenv/config';
 
 export const topgg = new Api(process.env.TOPGG_API_KEY as string);

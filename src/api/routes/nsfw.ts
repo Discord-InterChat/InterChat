@@ -2,7 +2,7 @@ import Logger from '../../utils/Logger.js';
 import { Router } from 'express';
 import { captureException } from '@sentry/node';
 import { node } from '@tensorflow/tfjs-node';
-import { REGEX, isDevBuild } from '../../utils/Constants.js';
+import { REGEX } from '../../utils/Constants.js';
 import { createRequire } from 'module';
 import { NSFWJS } from 'nsfwjs';
 
@@ -10,7 +10,7 @@ const require = createRequire(import.meta.url);
 const { load } = require('nsfwjs');
 
 // InceptionV3 is more accurate but slower and takes up a shit ton of memory
-const nsfwModel: NSFWJS = await load(isDevBuild ? 'MobileNetV2' : 'InceptionV3');
+const nsfwModel: NSFWJS = await load(process.env.NSFW_AI_MODEL);
 const router = Router();
 
 router.post('/nsfw', async (req, res) => {

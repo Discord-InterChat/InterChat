@@ -1,9 +1,8 @@
 import { stripIndents } from 'common-tags';
 import { User, EmbedBuilder, Snowflake, Client, codeBlock } from 'discord.js';
 import { emojis, colors } from '../Constants.js';
-import { fetchHub } from '../Utils.js';
+import { fetchHub, resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
-import SuperClient from '../../core/Client.js';
 import { hubs } from '@prisma/client';
 
 /**
@@ -20,7 +19,7 @@ export const logBlacklist = async (
     target: User | Snowflake;
     mod: User;
     reason: string;
-    expires?: Date;
+    expires: Date | null;
   },
 ) => {
   const { target: _target, mod, reason, expires } = opts;
@@ -34,7 +33,7 @@ export const logBlacklist = async (
   let target;
 
   if (typeof _target === 'string') {
-    target = SuperClient.resolveEval(
+    target = resolveEval(
       await client.cluster.broadcastEval(
         (c, guildId) => {
           const guild = c.guilds.cache.get(guildId);
@@ -86,10 +85,8 @@ export const logServerUnblacklist = async (
   hubId: string,
   opts: { serverId: string; mod: User | { id: Snowflake; username: string }; reason?: string },
 ) => {
-  const { serverBlacklists } = client;
-
   const hub = await fetchHub(hubId);
-  const blacklisted = await serverBlacklists.fetchBlacklist(hubId, opts.serverId);
+  const blacklisted = await client.serverBlacklists.fetchBlacklist(hubId, opts.serverId);
   const blacklistData = blacklisted?.blacklistedFrom.find((data) => data.hubId === hubId);
 
   if (!blacklisted || !blacklistData || !hub?.logChannels?.modLogs) return;
@@ -125,10 +122,8 @@ export const logUserUnblacklist = async (
   hubId: string,
   opts: { userId: string; mod: User | { id: Snowflake; username: string }; reason?: string },
 ) => {
-  const { userBlacklists } = client;
-
   const hub = await fetchHub(hubId);
-  const blacklisted = await userBlacklists.fetchBlacklist(hubId, opts.userId);
+  const blacklisted = await client.userManager.fetchBlacklist(hubId, opts.userId);
   if (!blacklisted || !hub?.logChannels?.modLogs) return;
 
   const user = await client.users.fetch(opts.userId).catch(() => null);

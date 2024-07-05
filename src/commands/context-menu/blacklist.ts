@@ -59,7 +59,7 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
-    if (interaction.user.id === messageInDb.originalMsg.authorId) {
+    if (messageInDb.originalMsg.authorId === interaction.user.id) {
       await interaction.reply({
         content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
         ephemeral: true,
@@ -185,7 +185,7 @@ export default class Blacklist extends BaseCommand {
 
     const reason = interaction.fields.getTextInputValue('reason');
     const duration = parse(interaction.fields.getTextInputValue('duration'));
-    const expires = duration ? new Date(Date.now() + duration) : undefined;
+    const expires = duration ? new Date(Date.now() + duration) : null;
 
     const successEmbed = new EmbedBuilder().setColor('Green').addFields(
       {
@@ -200,7 +200,7 @@ export default class Blacklist extends BaseCommand {
       },
     );
 
-    const { userBlacklists } = interaction.client;
+    const { userManager } = interaction.client;
 
     // user blacklist
     if (customId.suffix === 'user') {
@@ -225,15 +225,15 @@ export default class Blacklist extends BaseCommand {
         ),
       );
 
-      await userBlacklists.addBlacklist({ id: user.id, name: user.username }, originalMsg.hubId, {
+      await userManager.addBlacklist({ id: user.id, name: user.username }, originalMsg.hubId, {
         reason,
         moderatorId: interaction.user.id,
         expires,
       });
 
       if (user) {
-        userBlacklists
-          .notifyUser(user, { hubId: originalMsg.hubId, expires, reason })
+        userManager
+          .sendNotification({ target: user, hubId: originalMsg.hubId, expires, reason })
           .catch(() => null);
 
         await logBlacklist(originalMsg.hubId, interaction.client, {
@@ -274,7 +274,8 @@ export default class Blacklist extends BaseCommand {
       );
 
       // Notify server of blacklist
-      await serverBlacklists.notifyServer(interaction.client, originalMsg.serverId, {
+      await serverBlacklists.sendNotification({
+        target: { id: originalMsg.serverId },
         hubId: originalMsg.hubId,
         expires,
         reason,

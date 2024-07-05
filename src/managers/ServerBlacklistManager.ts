@@ -1,27 +1,24 @@
 import db from '../utils/Db.js';
-import { emojis, colors } from '../utils/Constants.js';
-import { connectionCache } from '../utils/ConnectedList.js';
-import { blacklistedServers } from '@prisma/client';
 import BaseBlacklistManager from '../core/BaseBlacklistManager.js';
-import { Client, EmbedBuilder, Snowflake } from 'discord.js';
-import SuperClient from '../core/Client.js';
+import { blacklistedServers, connectedList, hubBlacklist, Prisma } from '@prisma/client';
+import { Snowflake, User } from 'discord.js';
 import { logServerUnblacklist } from '../utils/HubLogger/ModLogs.js';
-import { handleError } from '../utils/Utils.js';
+import { getAllDocuments, serializeCache } from '../utils/db/cacheUtils.js';
 
 export default class ServerBlacklisManager extends BaseBlacklistManager<blacklistedServers> {
+  protected modelName: Prisma.ModelName = 'blacklistedServers';
+
   protected override async fetchEntityFromDb(hubId: string, entityId: string) {
     return await db.blacklistedServers.findFirst({
       where: { id: entityId, blacklistedFrom: { some: { hubId } } },
     });
   }
-  protected override async logUnblacklist(client: SuperClient, hubId: string, serverId: string) {
-    if (!client?.user) return;
-
-    await logServerUnblacklist(client, hubId, {
-      serverId,
-      mod: client.user,
-      reason: 'Blacklist duration expired.',
-    }).catch(handleError);
+  public override async logUnblacklist(
+    hubId: string,
+    serverId: string,
+    { mod, reason }: { mod: User; reason?: string },
+  ) {
+    await logServerUnblacklist(this.client, hubId, { serverId, mod, reason });
   }
 
   protected override async fetchExpiringEntities() {
@@ -30,11 +27,10 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
 
     return await db.blacklistedServers.findMany({
       where: {
-        blacklistedFrom: { some: { expires: { gte: currentTime, lte: twelveHoursLater } } },
+        blacklistedFrom: { some: { expires: { lte: twelveHoursLater } } },
       },
     });
   }
-
 
   /**
    * Add a server to the blacklist.
@@ -47,21 +43,23 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
   public override async addBlacklist(
     server: { id: Snowflake; name: string },
     hubId: string,
-    { reason, moderatorId, expires }: { reason: string; moderatorId: Snowflake; expires?: Date },
+    {
+      reason,
+      moderatorId,
+      expires,
+    }: { reason: string; moderatorId: Snowflake; expires: Date | null },
   ) {
-    const blacklistedFrom = { hubId, expires, reason, moderatorId };
+    const blacklistedFrom: hubBlacklist = { hubId, expires, reason, moderatorId };
     const createdRes = await db.blacklistedServers.upsert({
       where: { id: server.id },
       update: { serverName: server.name, blacklistedFrom: { push: blacklistedFrom } },
       create: { id: server.id, serverName: server.name, blacklistedFrom: [blacklistedFrom] },
     });
-
-    this.cache.set(createdRes.id, createdRes);
     return createdRes;
   }
 
   public override async removeBlacklist(hubId: string, id: Snowflake) {
-    const where = { id, hubs: { some: { hubId } } };
+    const where = { id, blacklistedFrom: { some: { hubId } } };
     const notInBlacklist = await db.blacklistedServers.findFirst({ where });
     if (!notInBlacklist) return null;
 
@@ -69,8 +67,6 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
       where,
       data: { blacklistedFrom: { deleteMany: { where: { hubId } } } },
     });
-
-    this.cache.delete(notInBlacklist.id);
     return res;
   }
   /**
@@ -81,38 +77,29 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
    * @param expires The date after which the blacklist expires.
    * @param reason The reason for the blacklist.
    */
-  async notifyServer(
-    client: Client,
-    id: Snowflake,
-    opts: {
-      hubId: string;
-      expires?: Date;
-      reason?: string;
-    },
-  ): Promise<void> {
+  async sendNotification(opts: {
+    target: { id: Snowflake };
+    hubId: string;
+    expires: Date | null;
+    reason?: string;
+  }): Promise<void> {
     const hub = await db.hubs.findUnique({ where: { id: opts.hubId } });
-    const expireString = opts.expires
-      ? `<t:${Math.round(opts.expires.getTime() / 1000)}:R>`
-      : 'Never';
-
-    const embed = new EmbedBuilder()
-      .setTitle(`${emojis.blobFastBan} Blacklist Notification`)
-      .setDescription(`This server has been blacklisted from talking in hub **${hub?.name}**.`)
-      .setColor(colors.interchatBlue)
-      .setFields(
-        { name: 'Reason', value: opts.reason ?? 'No reason provided.', inline: true },
-        { name: 'Expires', value: expireString, inline: true },
-      );
+    const embed = this.buildNotifEmbed(
+      `This server has been blacklisted from talking in hub **${hub?.name}**.`,
+      { expires: opts.expires, reason: opts.reason },
+    );
 
     const serverConnected =
-      connectionCache.find(({ serverId, hubId }) => serverId === id && hubId === opts.hubId) ??
+      serializeCache<connectedList>(await getAllDocuments('connectedList:*'))?.find(
+        (con) => con.serverId === opts.target.id && con.hubId === opts.hubId,
+      ) ??
       (await db.connectedList.findFirst({
-        where: { serverId: id, hubId: opts.hubId },
+        where: { serverId: opts.target.id, hubId: opts.hubId },
       }));
 
     if (!serverConnected) return;
 
-    await client.cluster.broadcastEval(
+    await this.client.cluster.broadcastEval(
       async (_client, ctx) => {
         const channel = await _client.channels.fetch(ctx.channelId).catch(() => null);
         if (!channel?.isTextBased()) return;

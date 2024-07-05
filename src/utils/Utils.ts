@@ -3,7 +3,6 @@ import Logger from './Logger.js';
 import toLower from 'lodash/toLower.js';
 import Scheduler from '../services/SchedulerService.js';
 import startCase from 'lodash/startCase.js';
-import SuperClient from '../core/Client.js';
 import {
   ActionRow,
   ApplicationCommand,
@@ -47,6 +46,10 @@ import { CustomID } from './CustomID.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { deleteConnection, deleteConnections } from './ConnectedList.js';
 import { userData } from '@prisma/client';
+import { RemoveMethods } from '../typings/index.js';
+
+export const resolveEval = <T>(value: T[]) =>
+  value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
 
 /** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
 export const msToReadable = (milliseconds: number) => {
@@ -387,7 +390,7 @@ export const getDbUser = async (id: Snowflake) => {
 
 export const getUsername = async (client: ClusterManager, userId: Snowflake) => {
   if (client) {
-    const username = SuperClient.resolveEval(
+    const username = resolveEval(
       await client.broadcastEval(
         async (c, ctx) => {
           const user = await c.users.fetch(ctx.userId).catch(() => null);
@@ -406,9 +409,11 @@ export const getUsername = async (client: ClusterManager, userId: Snowflake) => 
 export const modifyUserRole = async (
   cluster: ClusterManager,
   action: 'add' | 'remove',
-  userId: Snowflake,
-  roleId: Snowflake,
-  guildId: Snowflake = SUPPORT_SERVER_ID,
+  {
+    userId,
+    roleId,
+    guildId = SUPPORT_SERVER_ID,
+  }: { userId: Snowflake; roleId: Snowflake; guildId?: Snowflake },
 ) => {
   await cluster.broadcastEval(
     async (client, ctx) => {
@@ -541,4 +546,8 @@ export const encryptMessage = (string: string, key: Buffer) => {
   let encrypted = cipher.update(string, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   return `${iv.toString('hex')}:${encrypted}`;
+};
+
+export const getTagOrUsername = (username: string, discrim: string) => {
+  return discrim !== '0' ? `${username}#${discrim}` : username;
 };

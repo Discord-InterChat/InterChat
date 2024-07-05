@@ -1,6 +1,7 @@
 import Scheduler from '../services/SchedulerService.js';
+import UserDbManager from '../managers/UserDbManager.js';
+import CooldownService from '../services/CooldownService.js';
 import loadCommandFiles from '../utils/LoadCommands.js';
-import UserBlacklistManager from '../managers/UserBlacklistManager.js';
 import ServerBlacklistManager from '../managers/ServerBlacklistManager.js';
 import {
   Client,
@@ -13,24 +14,19 @@ import {
   WebhookClient,
   ActivityType,
 } from 'discord.js';
-import {
-  connectionCache as _connectionCache,
-  messageTimestamps,
-  storeMsgTimestamps,
-  syncConnectionCache,
-} from '../utils/ConnectedList.js';
+import { getAllConnections } from '../utils/ConnectedList.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import { commandsMap, interactionsMap } from './BaseCommand.js';
-import CooldownService from '../services/CooldownService.js';
 import { RemoveMethods } from '../typings/index.js';
 import { loadLocales } from '../utils/Locale.js';
 import { PROJECT_VERSION } from '../utils/Constants.js';
+import { resolveEval } from '../utils/Utils.js';
 import 'dotenv/config';
+
 export default class SuperClient extends Client {
   // A static instance of the SuperClient class to be used globally.
   public static instance: SuperClient;
 
-  private _connectionCachePopulated = false;
   private readonly scheduler = new Scheduler();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
@@ -40,11 +36,10 @@ export default class SuperClient extends Client {
 
   readonly webhooks = new Collection<string, WebhookClient>();
   readonly reactionCooldowns = new Collection<string, number>();
-  readonly connectionCache = _connectionCache;
 
   readonly cluster = new ClusterClient(this);
-  readonly userBlacklists = new UserBlacklistManager();
-  readonly serverBlacklists = new ServerBlacklistManager();
+  readonly userManager = new UserDbManager(this);
+  readonly serverBlacklists = new ServerBlacklistManager(this);
   readonly commandCooldowns = new CooldownService();
 
   constructor() {
@@ -77,6 +72,7 @@ export default class SuperClient extends Client {
         IntentsBitField.Flags.GuildWebhooks,
       ],
       presence: {
+        status: 'invisible',
         activities: [
           {
             state: '🔗 Watching over 700+ cross-server chats',
@@ -102,25 +98,10 @@ export default class SuperClient extends Client {
     // load commands
     await loadCommandFiles();
 
-    await syncConnectionCache();
-    this._connectionCachePopulated = true;
-
-    this.scheduler.addRecurringTask('populateConnectionCache', 60_000 * 5, syncConnectionCache);
-    this.scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, () => {
-      // store network message timestamps to connectedList every minute
-      storeMsgTimestamps(messageTimestamps);
-      messageTimestamps.clear();
-    });
+    await getAllConnections({ connected: true });
 
     await this.login(process.env.TOKEN);
   }
-
-  public get cachePopulated() {
-    return this._connectionCachePopulated;
-  }
-
-  static resolveEval = <T>(value: T[]) =>
-    value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
 
   /**
    * Fetches a guild by its ID from the cache.
@@ -133,7 +114,7 @@ export default class SuperClient extends Client {
       { guildId, context: guildId },
     )) as Guild[];
 
-    return fetch ? SuperClient.resolveEval(fetch) : undefined;
+    return fetch ? resolveEval(fetch) : undefined;
   }
 
   getScheduler(): Scheduler {
