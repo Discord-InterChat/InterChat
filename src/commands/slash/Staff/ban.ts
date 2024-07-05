@@ -6,7 +6,8 @@ import {
 import BaseCommand from '../../../core/BaseCommand.js';
 import db from '../../../utils/Db.js';
 import { simpleEmbed } from '../../../utils/Utils.js';
-import { DeveloperIds, emojis } from '../../../utils/Constants.js';
+import { emojis } from '../../../utils/Constants.js';
+import Logger from '../../../utils/Logger.js';
 
 export default class Ban extends BaseCommand {
   readonly staffOnly = true;
@@ -29,8 +30,6 @@ export default class Ban extends BaseCommand {
     ],
   };
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
-    if (!DeveloperIds.includes(interaction.user.id)) return;
-
     const user = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason', true);
 
@@ -64,6 +63,8 @@ export default class Ban extends BaseCommand {
       },
       update: { banMeta: { reason } },
     });
+
+    Logger.info(`User ${user.username} (${user.id}) banned by ${interaction.user.username}.`);
 
     await interaction.reply({
       embeds: [
