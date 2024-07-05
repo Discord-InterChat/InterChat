@@ -140,11 +140,6 @@ model broadcastedMessages {
   originalMsgId String           @db.String
 }
 
-model userBadges {
-  userId String   @id @map("_id")
-  badges String[]
-}
-
 model userData {
   id                   String         @id @map("_id") @db.String
   voteCount            Int            @default(0)
