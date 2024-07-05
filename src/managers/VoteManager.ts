@@ -4,7 +4,7 @@ import { WebhookPayload } from '@top-gg/sdk';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { WebhookClient, userMention, EmbedBuilder } from 'discord.js';
-import { badgeEmojis, LINKS, SUPPORT_SERVER_ID, VOTER_ROLE_ID } from '../utils/Constants.js';
+import { badgeEmojis, LINKS, VOTER_ROLE_ID } from '../utils/Constants.js';
 import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
 import EventEmitter from 'events';
 
@@ -84,9 +84,9 @@ export class VoteManager extends EventEmitter {
   }
 
   async addVoterRole(userId: string) {
-    await modifyUserRole(this.cluster, 'add', userId, SUPPORT_SERVER_ID, VOTER_ROLE_ID);
+    await modifyUserRole(this.cluster, 'add', { userId, roleId: VOTER_ROLE_ID });
   }
   async removeVoterRole(userId: string) {
-    await modifyUserRole(this.cluster, 'remove', userId, SUPPORT_SERVER_ID, VOTER_ROLE_ID);
+    await modifyUserRole(this.cluster, 'remove', { userId, roleId: VOTER_ROLE_ID });
   }
 }
