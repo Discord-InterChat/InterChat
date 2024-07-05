@@ -24,7 +24,7 @@ export default class Ban extends BaseCommand {
       {
         type: ApplicationCommandOptionType.String,
         name: 'reason',
-        description: 'Reson for the ban',
+        description: 'Reason for the ban',
         required: true,
       },
     ],
