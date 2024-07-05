@@ -18,7 +18,6 @@ import {
 } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import Hub from './index.js';
-import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { hubs } from '@prisma/client';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
@@ -34,7 +33,7 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
 import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
-import { connectChannel } from '../../../../utils/ConnectedList.js';
+import { connectChannel, getAllConnections } from '../../../../utils/ConnectedList.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -96,11 +95,7 @@ export default class Browse extends Hub {
           orderBy: { messageId: 'desc' },
         });
 
-        return Browse.createHubListingsEmbed(
-          hub,
-          connections,
-          lastMessage?.createdAt,
-        );
+        return Browse.createHubListingsEmbed(hub, connections, lastMessage?.createdAt);
       }),
     );
 
@@ -205,10 +200,13 @@ export default class Browse extends Hub {
         });
         return;
       }
-      const { fetchUserBlacklist, fetchServerBlacklist } = BlacklistManager;
 
-      const userBlacklisted = await fetchUserBlacklist(hubDetails.id, interaction.user.id);
-      const serverBlacklisted = await fetchServerBlacklist(hubDetails.id, interaction.guildId);
+      const { userManager, serverBlacklists } = interaction.client;
+      const userBlacklisted = await userManager.fetchBlacklist(hubDetails.id, interaction.user.id);
+      const serverBlacklisted = await serverBlacklists.fetchBlacklist(
+        hubDetails.id,
+        interaction.guildId,
+      );
 
       if (userBlacklisted || serverBlacklisted) {
         const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
@@ -363,7 +361,10 @@ export default class Browse extends Hub {
       }
       else if (onboardingCompleted === 'in-progress') {
         await interaction.update({
-          content: t({ phrase: 'network.onboarding.inProgress', locale }, { channel: `${channel}`, emoji: emojis.dnd_anim }),
+          content: t(
+            { phrase: 'network.onboarding.inProgress', locale },
+            { channel: `${channel}`, emoji: emojis.dnd_anim },
+          ),
           embeds: [],
           components: [],
         });
@@ -394,10 +395,11 @@ export default class Browse extends Hub {
         components: [],
       });
 
-      const totalConnections = interaction.client.connectionCache.reduce(
-        (total, c) => total + (c.hubId === hubDetails.id && c.connected ? 1 : 0),
-        0,
-      );
+      const totalConnections =
+        (await getAllConnections())?.reduce(
+          (total, c) => total + (c.hubId === hubDetails.id && c.connected ? 1 : 0),
+          0,
+        ) ?? 0;
 
       // announce
       await sendToHub(hubDetails.id, {

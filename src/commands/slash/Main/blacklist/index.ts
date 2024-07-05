@@ -226,15 +226,15 @@ export default class BlacklistCommand extends BaseCommand {
   private async searchBlacklistedServers(hubId: string, nameOrId: string) {
     const allServers = await db.blacklistedServers.findMany({
       where: {
-        hubs: { some: { hubId } },
+        blacklistedFrom: { some: { hubId } },
         OR: [
           { serverName: { mode: 'insensitive', contains: nameOrId } },
-          { serverId: { mode: 'insensitive', contains: nameOrId } },
+          { id: { mode: 'insensitive', contains: nameOrId } },
         ],
       },
       take: 25,
     });
-    return allServers.map(({ serverName, serverId }) => ({ name: serverName, value: serverId }));
+    return allServers.map(({ serverName, id }) => ({ name: serverName, value: id }));
   }
 
   private async searchBlacklistedUsers(hubId: string, nameOrId: string) {
@@ -243,15 +243,15 @@ export default class BlacklistCommand extends BaseCommand {
         blacklistedFrom: { some: { hubId } },
         OR: [
           { username: { mode: 'insensitive', contains: nameOrId } },
-          { userId: { mode: 'insensitive', contains: nameOrId } },
+          { id: { mode: 'insensitive', contains: nameOrId } },
         ],
       },
       take: 25,
     });
 
     return filteredUsers.map((user) => ({
-      name: user.username ?? `Unknown User - ${user.userId}`,
-      value: user.userId,
+      name: user.username ?? `Unknown User - ${user.id}`,
+      value: user.id,
     }));
   }
 

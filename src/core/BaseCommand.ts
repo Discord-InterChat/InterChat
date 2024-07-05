@@ -36,14 +36,14 @@ export default abstract class BaseCommand {
   async autocomplete?(interaction: AutocompleteInteraction): Promise<unknown>;
 
   async checkAndSetCooldown(interaction: RepliableInteraction): Promise<boolean> {
-    const remainingCooldown = this.getRemainingCooldown(interaction);
+    const remainingCooldown = await this.getRemainingCooldown(interaction);
 
     if (remainingCooldown) {
       await this.sendCooldownError(interaction, remainingCooldown);
       return true;
     }
 
-    this.setUserCooldown(interaction);
+    await this.setUserCooldown(interaction);
     return false;
   }
 
@@ -62,21 +62,22 @@ export default abstract class BaseCommand {
     });
   }
 
-  getRemainingCooldown(interaction: RepliableInteraction): number {
+  async getRemainingCooldown(interaction: RepliableInteraction): Promise<number> {
     let remainingCooldown: number | undefined;
+    const { commandCooldowns } = interaction.client;
 
     if (interaction.isChatInputCommand()) {
       const subcommand = interaction.options.getSubcommand(false);
       const subcommandGroup = interaction.options.getSubcommandGroup(false);
 
-      remainingCooldown = interaction.client.commandCooldowns?.getRemainingCooldown(
+      remainingCooldown = await commandCooldowns.getRemainingCooldown(
         `${interaction.user.id}-${interaction.commandName}${
           subcommandGroup ? `-${subcommandGroup}` : ''
         }${subcommand ? `-${subcommand}` : ''}`,
       );
     }
     else if (interaction.isContextMenuCommand()) {
-      remainingCooldown = interaction.client.commandCooldowns?.getRemainingCooldown(
+      remainingCooldown = await commandCooldowns.getRemainingCooldown(
         `${interaction.user.id}-${interaction.commandName}`,
       );
     }
@@ -84,22 +85,22 @@ export default abstract class BaseCommand {
     return remainingCooldown || 0;
   }
 
-  setUserCooldown(interaction: RepliableInteraction): void {
+  async setUserCooldown(interaction: RepliableInteraction): Promise<void> {
     if (!this.cooldown) return;
+    const { commandCooldowns } = interaction.client;
+
 
     if (interaction.isChatInputCommand()) {
       const subcommand = interaction.options.getSubcommand(false);
       const subcommandGroup = interaction.options.getSubcommandGroup(false);
+      const id = `${interaction.user.id}-${interaction.commandName}${
+        subcommandGroup ? `-${subcommandGroup}` : ''
+      }${subcommand ? `-${subcommand}` : ''}`;
 
-      interaction.client.commandCooldowns?.setCooldown(
-        `${interaction.user.id}-${interaction.commandName}${
-          subcommandGroup ? `-${subcommandGroup}` : ''
-        }${subcommand ? `-${subcommand}` : ''}`,
-        this.cooldown,
-      );
+      await commandCooldowns.setCooldown(id, this.cooldown);
     }
     else if (interaction.isContextMenuCommand()) {
-      interaction.client.commandCooldowns?.setCooldown(
+      await commandCooldowns.setCooldown(
         `${interaction.user.id}-${interaction.commandName}`,
         this.cooldown,
       );

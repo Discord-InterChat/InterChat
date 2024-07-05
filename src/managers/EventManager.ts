@@ -5,14 +5,17 @@ import {
   EmbedBuilder,
   Guild,
   User,
-  GuildChannel,
-  GuildTextBasedChannel,
   HexColorString,
   Message,
   MessageReaction,
   PartialUser,
   Interaction,
   Client,
+  ForumChannel,
+  MediaChannel,
+  NewsChannel,
+  TextChannel,
+  VoiceChannel,
 } from 'discord.js';
 import {
   checkIfStaff,
@@ -20,11 +23,9 @@ import {
   getUserLocale,
   handleError,
   simpleEmbed,
-  wait,
 } from '../utils/Utils.js';
 import db from '../utils/Db.js';
 import Logger from '../utils/Logger.js';
-import SuperClient from '../core/Client.js';
 import GatewayEvent from '../decorators/GatewayEvent.js';
 import sendBroadcast from '../scripts/network/sendBroadcast.js';
 import storeMessageData from '../scripts/network/storeMessageData.js';
@@ -41,7 +42,11 @@ import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
 import { logGuildLeaveToHub } from '../utils/HubLogger/JoinLeave.js';
-import { deleteConnections, modifyConnection } from '../utils/ConnectedList.js';
+import {
+  deleteConnections,
+  getAllConnections,
+  modifyConnection,
+} from '../utils/ConnectedList.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
@@ -85,6 +90,7 @@ export default abstract class EventManager {
     );
 
     const { userBlacklisted, serverBlacklisted } = await checkBlacklists(
+      user.client,
       originalMsg.hub.id,
       reaction.message.guildId,
       user.id,
@@ -117,11 +123,11 @@ export default abstract class EventManager {
   }
 
   @GatewayEvent('webhooksUpdate')
-  static async onWebhooksUpdate(channel: GuildChannel) {
-    if (!channel.isTextBased()) return;
-
+  static async onWebhooksUpdate(
+    channel: NewsChannel | TextChannel | VoiceChannel | ForumChannel | MediaChannel,
+  ) {
     try {
-      const connection = channel.client.connectionCache.find(
+      const connection = (await getAllConnections())?.find(
         (c) => c.connected && (c.channelId === channel.id || c.parentId === channel.id),
       );
 
@@ -137,16 +143,16 @@ export default abstract class EventManager {
         // disconnect the channel
         await modifyConnection({ id: connection.id }, { connected: false });
 
-        const client = SuperClient.instance;
-
         // send an alert to the channel
-        const networkChannel = channel.isTextBased()
-          ? channel
-          : ((await client.channels.fetch(connection.channelId)) as GuildTextBasedChannel);
+        const networkChannel = connection.parentId
+          ? await channel.client.channels.fetch(connection.channelId)
+          : channel;
 
-        await networkChannel.send(
-          t({ phrase: 'misc.webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }),
-        );
+        if (networkChannel?.isTextBased()) {
+          await networkChannel.send(
+            t({ phrase: 'misc.webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }),
+          );
+        }
       }
     }
     catch (error) {
@@ -237,42 +243,43 @@ export default abstract class EventManager {
   static async onMessageCreate(message: Message): Promise<void> {
     if (message.author.bot || message.system || message.webhookId || !message.inGuild()) return;
 
-    const { connectionCache, cachePopulated } = message.client;
+    // const { cachePopulated } = message.client;
 
-    if (!cachePopulated) {
-      Logger.debug('[InterChat]: Connection cache not populated, 5 secs until retry...');
-      await wait(5000);
+    // if (!cachePopulated) {
+    //   Logger.debug('[InterChat]: Connection cache not populated, 5 secs until retry...');
+    //   await wait(5000);
 
-      EventManager.onMessageCreate(message);
-      return;
-    }
+    //   EventManager.onMessageCreate(message);
+    //   return;
+    // }
 
     // check if the message was sent in a network channel
-    const connection = connectionCache.get(message.channel.id);
-    if (!connection?.connected) return;
+    const allConnections = await getAllConnections();
+    const connection = allConnections?.find((c) => c.channelId === message.channel.id && c.connected);
+    if (!allConnections || !connection) return;
 
     const hub = await db.hubs.findFirst({ where: { id: connection.hubId } });
     if (!hub) return;
 
     const settings = new HubSettingsBitField(hub.settings);
-    const hubConnections = connectionCache.filter(
+    const hubConnections = allConnections.filter(
       (con) =>
         con.hubId === connection.hubId && con.connected && con.channelId !== message.channel.id,
     );
 
-    let userData = await db.userData.findFirst({ where: { userId: message.author.id } });
+    let userData = await db.userData.findFirst({ where: { id: message.author.id } });
     if (!userData?.viewedNetworkWelcome) {
       userData = await db.userData.upsert({
-        where: { userId: message.author.id },
+        where: { id: message.author.id },
         create: {
-          userId: message.author.id,
+          id: message.author.id,
           username: message.author.username,
           viewedNetworkWelcome: true,
         },
         update: { viewedNetworkWelcome: true },
       });
 
-      await sendWelcomeMsg(message, hubConnections.size.toString(), hub.name);
+      await sendWelcomeMsg(message, hubConnections.length.toString(), hub.name);
     }
 
     // set locale for the user
@@ -318,7 +325,7 @@ export default abstract class EventManager {
   static async onInteractionCreate(interaction: Interaction): Promise<void> {
     try {
       const { commands, interactions } = interaction.client;
-      const userData = await db.userData.findFirst({ where: { userId: interaction.user.id } });
+      const userData = await db.userData.findFirst({ where: { id: interaction.user.id } });
       interaction.user.locale = getUserLocale(userData);
 
       if (userData?.banMeta?.reason) {

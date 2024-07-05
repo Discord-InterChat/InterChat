@@ -14,5 +14,5 @@ export const startApi = (data: { voteManager: VoteManager }) => {
   if (data.voteManager) app.use(dblRoute(data.voteManager));
 
   const port = process.env.PORT;
-  app.listen(port, () => Logger.info(`API listening on port http://localhost:${port}.`));
+  app.listen(port, () => Logger.info(`API listening on http://localhost:${port}.`));
 };

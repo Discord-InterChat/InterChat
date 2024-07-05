@@ -6,7 +6,8 @@ import {
 import BaseCommand from '../../../core/BaseCommand.js';
 import db from '../../../utils/Db.js';
 import { simpleEmbed } from '../../../utils/Utils.js';
-import { DeveloperIds, emojis } from '../../../utils/Constants.js';
+import { emojis } from '../../../utils/Constants.js';
+import Logger from '../../../utils/Logger.js';
 
 export default class Ban extends BaseCommand {
   readonly staffOnly = true;
@@ -29,8 +30,6 @@ export default class Ban extends BaseCommand {
     ],
   };
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
-    if (!DeveloperIds.includes(interaction.user.id)) return;
-
     const user = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason', true);
 
@@ -43,7 +42,7 @@ export default class Ban extends BaseCommand {
     }
 
     const alreadyBanned = await db.userData.findFirst({
-      where: { userId: user.id, banMeta: { isNot: null } },
+      where: { id: user.id, banMeta: { isNot: null } },
     });
 
     if (alreadyBanned) {
@@ -54,18 +53,18 @@ export default class Ban extends BaseCommand {
     }
 
     await db.userData.upsert({
-      where: { userId: user.id },
+      where: { id: user.id },
       create: {
-        userId: user.id,
+        id: user.id,
         username: user.username,
         viewedNetworkWelcome: false,
         voteCount: 0,
         banMeta: { reason },
       },
-      update: {
-        banMeta: { reason },
-      },
+      update: { banMeta: { reason } },
     });
+
+    Logger.info(`User ${user.username} (${user.id}) banned by ${interaction.user.username}.`);
 
     await interaction.reply({
       embeds: [

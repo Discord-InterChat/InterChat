@@ -10,6 +10,7 @@ import { REGEX, emojis } from '../../utils/Constants.js';
 import { t } from '../../utils/Locale.js';
 import { logMsgDelete } from '../../utils/HubLogger/ModLogs.js';
 import { captureException } from '@sentry/node';
+import { getAllConnections } from '../../utils/ConnectedList.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -80,10 +81,10 @@ export default class DeleteMessage extends BaseCommand {
 
     let passed = 0;
 
+    const allConnections = await getAllConnections();
+
     for await (const dbMsg of originalMsg.broadcastMsgs) {
-      const connection = interaction.client.connectionCache.find(
-        (c) => c.channelId === dbMsg.channelId,
-      );
+      const connection = allConnections?.find((c) => c.channelId === dbMsg.channelId);
 
       if (!connection) break;
 

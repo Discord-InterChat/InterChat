@@ -1,63 +1,47 @@
 import db from './Db.js';
-import Logger from './Logger.js';
-import { Prisma, connectedList } from '@prisma/client';
-import { Collection } from 'discord.js';
-import { captureException } from '@sentry/node';
+import { connectedList, Prisma } from '@prisma/client';
+import { getAllDocuments, serializeCache } from './db/cacheUtils.js';
 
-/** 📡 Contains all the **connected** channels from all hubs. */
-export const connectionCache = new Collection<string, connectedList>();
-export const messageTimestamps = new Collection<string, Date>();
+export const fetchConnection = async (where: Prisma.connectedListWhereUniqueInput) => {
+  await db.connectedList.findFirst({ where });
+};
+export const getConnection = async (channelId: string) => {
+  const cache = serializeCache<connectedList>(await db.cache.get(`connectedList:${channelId}`));
 
-export const syncConnectionCache = async (
-  where: Prisma.connectedListWhereInput = { connected: true },
-) => {
-  const start = performance.now();
-  Logger.debug('[InterChat]: Started populating connection cache.');
+  return cache ? cache : await fetchConnection({ channelId });
+};
 
-  const connections = await db.connectedList.findMany({ where });
-
-  if (connectionCache.size > 0) {
-    connectionCache.forEach((c) => {
-      if (!connections.some(({ channelId }) => channelId === c.channelId)) {
-        connectionCache.delete(c.channelId);
-      }
-    });
-  }
-
-  // populate all at once without time delay
-  connections.forEach((c) => connectionCache.set(c.channelId, c));
-
-  const end = performance.now();
-  Logger.debug(
-    `[InterChat]: Connection cache populated with ${connectionCache.size} entries. Took ${end - start}ms.`,
-  );
+/**
+ *
+ * @param where Specify filter to force fetch from the db
+ */
+export const getAllConnections = async (where?: Prisma.connectedListWhereInput) => {
+  if (where) return await db.connectedList.findMany({ where });
+  return serializeCache<connectedList>(await getAllDocuments('connectedList:*'));
 };
 
 export const deleteConnection = async (where: Prisma.connectedListWhereUniqueInput) => {
-  const del = await db.connectedList.delete({ where });
-  connectionCache.delete(del.channelId);
+  await db.connectedList.delete({ where });
 };
 
 export const deleteConnections = async (where: Prisma.connectedListWhereInput) => {
-  await db.connectedList.deleteMany({ where });
-  await syncConnectionCache().catch(captureException);
+  const items = await db.connectedList.findMany({ where });
+  if (items.length === 0) return null;
+  else if (items.length === 1) return await deleteConnection({ id: items[0].id });
+
+  await db.connectedList.deleteMany({ where: { id: { in: items.map((i) => i.id) } } });
+  await getAllConnections({ connected: true });
 };
 
 export const connectChannel = async (data: Prisma.connectedListCreateInput) => {
-  const connection = await db.connectedList.create({ data });
-
-  connectionCache.set(connection.channelId, connection);
-  return connection;
+  return await db.connectedList.create({ data });
 };
 
 export const modifyConnection = async (
   where: Prisma.connectedListWhereUniqueInput,
   data: Prisma.connectedListUpdateInput,
 ) => {
-  const connection = await db.connectedList.update({ where, data }).catch(() => null);
-  if (connection) connectionCache.set(connection.channelId, connection);
-
-  return connection;
+  return await db.connectedList.update({ where, data }).catch(() => null);
 };
 
 export const modifyConnections = async (
@@ -65,12 +49,5 @@ export const modifyConnections = async (
   data: Prisma.connectedListUpdateInput,
 ) => {
   await db.connectedList.updateMany({ where, data });
-  await syncConnectionCache(where).catch(captureException);
-};
-
-export const storeMsgTimestamps = (data: Collection<string, Date>): void => {
-  data.forEach(
-    async (lastActive, channelId) =>
-      await modifyConnection({ channelId }, { lastActive }),
-  );
+  await getAllConnections(where);
 };

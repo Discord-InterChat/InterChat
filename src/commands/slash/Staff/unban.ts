@@ -25,7 +25,7 @@ export default class Unban extends BaseCommand {
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
     const user = interaction.options.getUser('user', true);
     const alreadyBanned = await db.userData.findFirst({
-      where: { userId: user.id, banMeta: { isSet: true } },
+      where: { id: user.id, banMeta: { isSet: true } },
     });
 
     if (!alreadyBanned) {
@@ -36,17 +36,15 @@ export default class Unban extends BaseCommand {
     }
 
     await db.userData.upsert({
-      where: { userId: user.id },
+      where: { id: user.id },
       create: {
-        userId: user.id,
+        id: user.id,
         username: user.username,
         viewedNetworkWelcome: false,
         voteCount: 0,
         banMeta: { set: null },
       },
-      update: {
-        banMeta: { set: null },
-      },
+      update: { banMeta: { set: null } },
     });
 
     await interaction.reply({

@@ -25,6 +25,7 @@ import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 import { simpleEmbed } from '../../utils/Utils.js';
 import { sendHubReport } from '../../utils/HubLogger/Report.js';
+import { getAllConnections } from '../../utils/ConnectedList.js';
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -76,7 +77,7 @@ export default class MessageInfo extends BaseCommand {
 
     const components = MessageInfo.buildButtons(target.id, interaction.user.locale);
 
-    const guildConnected = interaction.client.connectionCache.find(
+    const guildConnected = (await getAllConnections())?.find(
       (c) => c.serverId === originalMsg.serverId && c.hubId === originalMsg.hub?.id,
     );
 
@@ -124,9 +125,7 @@ export default class MessageInfo extends BaseCommand {
 
     const author = await interaction.client.users.fetch(originalMsg.authorId);
     const server = await interaction.client.fetchGuild(originalMsg.serverId);
-    const guildConnected = interaction.client.connectionCache.find(
-      (c) => c.serverId === server?.id,
-    );
+    const guildConnected = (await getAllConnections())?.find((c) => c.serverId === server?.id);
 
     if (interaction.isButton()) {
       // component builders taken from the original message
@@ -349,7 +348,8 @@ export default class MessageInfo extends BaseCommand {
     const reason = interaction.fields.getTextInputValue('reason');
     const message = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     const content = message?.content || message?.embeds[0].description || undefined;
-    const attachmentUrl = content?.match(REGEX.STATIC_IMAGE_URL)?.at(0) ?? message?.embeds[0]?.image?.url;
+    const attachmentUrl =
+      content?.match(REGEX.STATIC_IMAGE_URL)?.at(0) ?? message?.embeds[0]?.image?.url;
 
     await sendHubReport(messageInDb.originalMsg.hub.id, interaction.client, {
       userId: authorId,

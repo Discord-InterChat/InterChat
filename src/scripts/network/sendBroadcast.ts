@@ -1,5 +1,4 @@
 import {
-  Collection,
   EmbedBuilder,
   HexColorString,
   Message,
@@ -29,7 +28,7 @@ type BroadcastOpts = {
 export default (
   message: Message<true>,
   hub: hubs,
-  allConnected: Collection<string, connectedList>,
+  allConnected: connectedList[],
   settings: HubSettingsBitField,
   opts: BroadcastOpts,
 ) => {

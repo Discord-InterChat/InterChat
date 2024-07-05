@@ -1,15 +1,14 @@
+import db from '../../../../utils/Db.js';
+import Hub from './index.js';
 import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
 import { emojis } from '../../../../utils/Constants.js';
-import Hub from './index.js';
-import db from '../../../../utils/Db.js';
-import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import { hubs } from '@prisma/client';
 import { simpleEmbed, getOrCreateWebhook, sendToHub } from '../../../../utils/Utils.js';
 import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
 import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
-import { connectChannel } from '../../../../utils/ConnectedList.js';
+import { connectChannel, getAllConnections } from '../../../../utils/ConnectedList.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -17,7 +16,7 @@ export default class JoinSubCommand extends Hub {
 
     const locale = interaction.user.locale;
 
-    // FIXME: Change later
+    // NOTE: Change later
     const hubName = interaction.options.getString('hub') ?? 'InterChat Central';
     const invite = interaction.options.getString('invite');
     const channel = interaction.options.getChannel('channel', true, [
@@ -83,14 +82,14 @@ export default class JoinSubCommand extends Hub {
     }
     else {
       hub = await db.hubs.findFirst({ where: { name: hubName, private: false } });
+    }
 
-      if (!hub) {
-        await interaction.reply({
-          embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
-          ephemeral: true,
-        });
-        return;
-      }
+    if (!hub) {
+      await interaction.reply({
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
+        ephemeral: true,
+      });
+      return;
     }
 
     // actual code starts here
@@ -116,11 +115,9 @@ export default class JoinSubCommand extends Hub {
       return;
     }
 
-    const userBlacklisted = await BlacklistManager.fetchUserBlacklist(hub.id, interaction.user.id);
-    const serverBlacklisted = await BlacklistManager.fetchServerBlacklist(
-      hub.id,
-      interaction.guildId,
-    );
+    const { userManager, serverBlacklists } = interaction.client;
+    const userBlacklisted = await userManager.fetchBlacklist(hub.id, interaction.user.id);
+    const serverBlacklisted = await serverBlacklists.fetchBlacklist(hub.id, interaction.guildId);
 
     if (userBlacklisted || serverBlacklisted) {
       await interaction.reply({
@@ -141,7 +138,10 @@ export default class JoinSubCommand extends Hub {
       await interaction.reply({
         embeds: [
           simpleEmbed(
-            t({ phrase: 'network.onboarding.inProgress', locale }, { channel: `${channel}`, emoji: emojis.dnd_anim }),
+            t(
+              { phrase: 'network.onboarding.inProgress', locale },
+              { channel: `${channel}`, emoji: emojis.dnd_anim },
+            ),
           ),
         ],
         ephemeral: true,
@@ -183,10 +183,11 @@ export default class JoinSubCommand extends Hub {
       components: [],
     });
 
-    const totalConnections = interaction.client.connectionCache.reduce(
-      (total, c) => total + (c.hubId === hub.id && c.connected ? 1 : 0),
-      0,
-    );
+    const totalConnections =
+      (await getAllConnections())?.reduce(
+        (total, c) => total + (c.hubId === hub.id && c.connected ? 1 : 0),
+        0,
+      ) ?? 0;
 
     // announce
     await sendToHub(hub.id, {

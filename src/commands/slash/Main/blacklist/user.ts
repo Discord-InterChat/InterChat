@@ -1,13 +1,12 @@
 import { ChatInputCommandInteraction, EmbedBuilder, time } from 'discord.js';
 import db from '../../../../utils/Db.js';
 import BlacklistCommand from './index.js';
-import BlacklistManager from '../../../../managers/BlacklistManager.js';
 import parse from 'parse-duration';
 import { emojis } from '../../../../utils/Constants.js';
 import { checkIfStaff, simpleEmbed } from '../../../../utils/Utils.js';
+import { logBlacklist } from '../../../../utils/HubLogger/ModLogs.js';
 import { t } from '../../../../utils/Locale.js';
 import Logger from '../../../../utils/Logger.js';
-import { logBlacklist, logUnblacklist } from '../../../../utils/HubLogger/ModLogs.js';
 
 export default class Server extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -40,7 +39,7 @@ export default class Server extends BlacklistCommand {
     const reason = interaction.options.getString('reason') ?? 'No reason provided.';
     const duration = parse(`${interaction.options.getString('duration')}`);
 
-    const blacklistManager = interaction.client.blacklistManager;
+    const { userManager } = interaction.client;
 
     if (subcommandGroup === 'add') {
       // get ID if user inputted a @ mention
@@ -72,8 +71,15 @@ export default class Server extends BlacklistCommand {
         );
         return;
       }
+      else if (user.id === interaction.user.id) {
+        await interaction.followUp({
+          content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
+          ephemeral: true,
+        });
+        return;
+      }
 
-      const userInBlacklist = await BlacklistManager.fetchUserBlacklist(hubInDb.id, userOpt);
+      const userInBlacklist = await userManager.fetchBlacklist(hubInDb.id, userOpt);
       if (userInBlacklist) {
         await interaction.followUp(
           t(
@@ -84,17 +90,14 @@ export default class Server extends BlacklistCommand {
         return;
       }
 
-      const expires = duration ? new Date(Date.now() + duration) : undefined;
-      await blacklistManager.addUserBlacklist(
-        hubInDb.id,
-        user.id,
+      const expires = duration ? new Date(Date.now() + duration) : null;
+      await userManager.addBlacklist({ id: user.id, name: user.username }, hubInDb.id, {
         reason,
-        interaction.user.id,
+        moderatorId: interaction.user.id,
         expires,
-      );
-      if (expires) blacklistManager.scheduleRemoval('user', user.id, hubInDb.id, expires);
-      await blacklistManager
-        .notifyBlacklist('user', user.id, { hubId: hubInDb.id, expires, reason })
+      });
+      await userManager
+        .sendNotification({ target: user, hubId: hubInDb.id, expires, reason })
         .catch(Logger.error);
 
       const successEmbed = new EmbedBuilder()
@@ -130,7 +133,8 @@ export default class Server extends BlacklistCommand {
     }
     else if (subcommandGroup === 'remove') {
       // remove the blacklist
-      const result = await blacklistManager.removeBlacklist('user', hubInDb.id, userId);
+      const result = await userManager.removeBlacklist(hubInDb.id, userId);
+
       if (!result) {
         await interaction.followUp(
           t(
@@ -148,13 +152,7 @@ export default class Server extends BlacklistCommand {
         ),
       );
       if (user) {
-        // send log to hub's log channel
-        await logUnblacklist(hubInDb.id, {
-          type: 'user',
-          targetId: user.id,
-          mod: interaction.user,
-          reason,
-        });
+        await userManager.logUnblacklist(hubInDb.id, user.id, { mod: interaction.user, reason });
       }
     }
   }

@@ -4,9 +4,9 @@ import { WebhookPayload } from '@top-gg/sdk';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { WebhookClient, userMention, EmbedBuilder } from 'discord.js';
-import { badgeEmojis, LINKS, SUPPORT_SERVER_ID, VOTER_ROLE_ID } from '../utils/Constants.js';
+import { badgeEmojis, LINKS, VOTER_ROLE_ID } from '../utils/Constants.js';
 import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
-import { EventEmitter } from 'events';
+import EventEmitter from 'events';
 
 export type TopggEvents = {
   vote: WebhookPayload;
@@ -24,8 +24,8 @@ export class VoteManager extends EventEmitter {
     this.scheduler.addRecurringTask('removeVoterRole', 60 * 60 * 1_000, async () => {
       const expiredVotes = await db.userData.findMany({ where: { lastVoted: { lt: new Date() } } });
       for (const vote of expiredVotes) {
-        this.emit('voteExpired', vote.userId);
-        await this.removeVoterRole(vote.userId);
+        this.emit('voteExpired', vote.id);
+        await this.removeVoterRole(vote.id);
       }
     });
   }
@@ -42,25 +42,17 @@ export class VoteManager extends EventEmitter {
     return super.once(event, listener);
   }
 
-  async getUserVoteCount(userId: string) {
-    const user = await db.userData.findUnique({ where: { userId } });
+  async getUserVoteCount(id: string) {
+    const user = await db.userData.findUnique({ where: { id } });
     return user?.voteCount ?? 0;
   }
 
   async incrementUserVote(userId: string, username?: string) {
     const lastVoted = new Date();
     return await db.userData.upsert({
-      where: { userId },
-      create: {
-        userId,
-        username,
-        lastVoted,
-        voteCount: 1,
-      },
-      update: {
-        lastVoted,
-        voteCount: { increment: 1 },
-      },
+      where: { id: userId },
+      create: { id: userId, username, lastVoted, voteCount: 1 },
+      update: { lastVoted, voteCount: { increment: 1 } },
     });
   }
 
@@ -92,9 +84,9 @@ export class VoteManager extends EventEmitter {
   }
 
   async addVoterRole(userId: string) {
-    await modifyUserRole(this.cluster, 'add', userId, SUPPORT_SERVER_ID, VOTER_ROLE_ID);
+    await modifyUserRole(this.cluster, 'add', { userId, roleId: VOTER_ROLE_ID });
   }
   async removeVoterRole(userId: string) {
-    await modifyUserRole(this.cluster, 'remove', userId, SUPPORT_SERVER_ID, VOTER_ROLE_ID);
+    await modifyUserRole(this.cluster, 'remove', { userId, roleId: VOTER_ROLE_ID });
   }
 }

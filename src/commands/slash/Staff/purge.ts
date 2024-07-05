@@ -10,9 +10,8 @@ import db from '../../../utils/Db.js';
 import BaseCommand from '../../../core/BaseCommand.js';
 import { stripIndents } from 'common-tags';
 import { emojis } from '../../../utils/Constants.js';
-import { simpleEmbed, msToReadable, deleteMsgsFromDb, handleError } from '../../../utils/Utils.js';
+import { simpleEmbed, msToReadable, deleteMsgsFromDb, handleError, resolveEval } from '../../../utils/Utils.js';
 import { broadcastedMessages } from '@prisma/client';
-import SuperClient from '../../../core/Client.js';
 
 const limitOpt: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.Integer,
@@ -246,7 +245,7 @@ export default class Purge extends BaseCommand {
           { context: { channelId: network.channelId, messagesInDb } },
         );
 
-        return SuperClient.resolveEval(evalRes) || [];
+        return resolveEval(evalRes) || [];
       }
       catch (e) {
         handleError(e);

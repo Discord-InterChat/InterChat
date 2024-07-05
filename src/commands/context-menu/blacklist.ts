@@ -59,6 +59,14 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
+    if (messageInDb.originalMsg.authorId === interaction.user.id) {
+      await interaction.reply({
+        content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
+        ephemeral: true,
+      });
+      return;
+    }
+
     const server = await interaction.client.fetchGuild(messageInDb.originalMsg.serverId);
     const user = await interaction.client.users.fetch(messageInDb.originalMsg.authorId);
 
@@ -177,7 +185,7 @@ export default class Blacklist extends BaseCommand {
 
     const reason = interaction.fields.getTextInputValue('reason');
     const duration = parse(interaction.fields.getTextInputValue('duration'));
-    const expires = duration ? new Date(Date.now() + duration) : undefined;
+    const expires = duration ? new Date(Date.now() + duration) : null;
 
     const successEmbed = new EmbedBuilder().setColor('Green').addFields(
       {
@@ -192,11 +200,24 @@ export default class Blacklist extends BaseCommand {
       },
     );
 
-    const blacklistManager = interaction.client.blacklistManager;
+    const { userManager } = interaction.client;
 
     // user blacklist
     if (customId.suffix === 'user') {
       const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
+
+      if (!user) {
+        await interaction.reply({
+          embeds: [
+            simpleEmbed(
+              `${emojis.neutral} Unable to fetch user. They may have deleted their account?`,
+            ),
+          ],
+          ephemeral: true,
+        });
+        return;
+      }
+
       successEmbed.setDescription(
         t(
           { phrase: 'blacklist.user.success', locale },
@@ -204,24 +225,15 @@ export default class Blacklist extends BaseCommand {
         ),
       );
 
-      await blacklistManager.addUserBlacklist(
-        originalMsg.hubId,
-        originalMsg.authorId,
+      await userManager.addBlacklist({ id: user.id, name: user.username }, originalMsg.hubId, {
         reason,
-        interaction.user.id,
+        moderatorId: interaction.user.id,
         expires,
-      );
+      });
 
-      if (expires) {
-        blacklistManager.scheduleRemoval('user', originalMsg.authorId, originalMsg.hubId, expires);
-      }
       if (user) {
-        blacklistManager
-          .notifyBlacklist('user', originalMsg.authorId, {
-            hubId: originalMsg.hubId,
-            expires,
-            reason,
-          })
+        userManager
+          .sendNotification({ target: user, hubId: originalMsg.hubId, expires, reason })
           .catch(() => null);
 
         await logBlacklist(originalMsg.hubId, interaction.client, {
@@ -241,6 +253,7 @@ export default class Blacklist extends BaseCommand {
 
     // server blacklist
     else {
+      const { serverBlacklists } = interaction.client;
       const server = await interaction.client.fetchGuild(originalMsg.serverId);
 
       successEmbed.setDescription(
@@ -250,34 +263,25 @@ export default class Blacklist extends BaseCommand {
         ),
       );
 
-      await blacklistManager.addServerBlacklist(
-        originalMsg.serverId,
+      await serverBlacklists.addBlacklist(
+        { name: server?.name ?? 'Unknown Server', id: originalMsg.serverId },
         originalMsg.hubId,
-        reason,
-        interaction.user.id,
-        expires,
+        {
+          reason,
+          moderatorId: interaction.user.id,
+          expires,
+        },
       );
 
       // Notify server of blacklist
-      await blacklistManager.notifyBlacklist('server', originalMsg.serverId, {
+      await serverBlacklists.sendNotification({
+        target: { id: originalMsg.serverId },
         hubId: originalMsg.hubId,
         expires,
         reason,
       });
 
-      if (expires) {
-        blacklistManager.scheduleRemoval(
-          'server',
-          originalMsg.serverId,
-          originalMsg.hubId,
-          expires,
-        );
-      }
-
-      await deleteConnections({
-        serverId: originalMsg.serverId,
-        hubId: originalMsg.hubId,
-      });
+      await deleteConnections({ serverId: originalMsg.serverId, hubId: originalMsg.hubId });
 
       if (server) {
         await logBlacklist(originalMsg.hubId, interaction.client, {

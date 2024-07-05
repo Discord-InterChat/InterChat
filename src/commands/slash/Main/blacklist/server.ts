@@ -1,14 +1,13 @@
+import db from '../../../../utils/Db.js';
+import BlacklistCommand from './index.js';
+import parse from 'parse-duration';
+import Logger from '../../../../utils/Logger.js';
 import { captureException } from '@sentry/node';
 import { ChatInputCommandInteraction, EmbedBuilder, time } from 'discord.js';
 import { checkIfStaff, simpleEmbed } from '../../../../utils/Utils.js';
 import { emojis } from '../../../../utils/Constants.js';
-import db from '../../../../utils/Db.js';
-import BlacklistCommand from './index.js';
-import BlacklistManager from '../../../../managers/BlacklistManager.js';
-import parse from 'parse-duration';
-import Logger from '../../../../utils/Logger.js';
 import { t } from '../../../../utils/Locale.js';
-import { logBlacklist, logUnblacklist } from '../../../../utils/HubLogger/ModLogs.js';
+import { logBlacklist, logServerUnblacklist } from '../../../../utils/HubLogger/ModLogs.js';
 import { deleteConnections } from '../../../../utils/ConnectedList.js';
 
 export default class UserBlacklist extends BlacklistCommand {
@@ -38,16 +37,16 @@ export default class UserBlacklist extends BlacklistCommand {
       return;
     }
 
-    const { blacklistManager } = interaction.client;
+    const { serverBlacklists } = interaction.client;
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverId = interaction.options.getString('server', true);
 
     if (subCommandGroup === 'add') {
       const reason = interaction.options.getString('reason', true);
       const duration = parse(`${interaction.options.getString('duration')}`);
-      const expires = duration ? new Date(Date.now() + duration) : undefined;
+      const expires = duration ? new Date(Date.now() + duration) : null;
 
-      const serverInBlacklist = await BlacklistManager.fetchServerBlacklist(hubInDb.id, serverId);
+      const serverInBlacklist = await serverBlacklists.fetchBlacklist(hubInDb.id, serverId);
       if (serverInBlacklist) {
         await interaction.followUp({
           embeds: [
@@ -77,13 +76,11 @@ export default class UserBlacklist extends BlacklistCommand {
       }
 
       try {
-        await blacklistManager.addServerBlacklist(
-          server,
-          hubInDb.id,
+        await serverBlacklists.addBlacklist(server, hubInDb.id, {
           reason,
-          interaction.user.id,
           expires,
-        );
+          moderatorId: interaction.user.id,
+        });
       }
       catch (err) {
         Logger.error(err);
@@ -100,8 +97,6 @@ export default class UserBlacklist extends BlacklistCommand {
         });
         return;
       }
-
-      if (expires) blacklistManager.scheduleRemoval('server', serverId, hubInDb.id, expires);
 
       const successEmbed = new EmbedBuilder()
         .setDescription(
@@ -127,8 +122,8 @@ export default class UserBlacklist extends BlacklistCommand {
       await interaction.followUp({ embeds: [successEmbed] });
 
       // notify the server that they have been blacklisted
-      await blacklistManager
-        .notifyBlacklist('server', serverId, { hubId: hubInDb.id, expires, reason })
+      await serverBlacklists
+        .sendNotification({ target: { id: serverId }, hubId: hubInDb.id, expires, reason })
         .catch(() => null);
 
       // delete all connections from db so they can't reconnect to the hub
@@ -143,7 +138,7 @@ export default class UserBlacklist extends BlacklistCommand {
       });
     }
     else if (subCommandGroup === 'remove') {
-      const result = await blacklistManager.removeBlacklist('server', hubInDb.id, serverId);
+      const result = await serverBlacklists.removeBlacklist(hubInDb.id, serverId);
       if (!result) {
         await interaction.followUp(
           t(
@@ -163,9 +158,8 @@ export default class UserBlacklist extends BlacklistCommand {
       );
 
       // send log to hub's log channel
-      await logUnblacklist(hubInDb.id, {
-        type: 'user',
-        targetId: serverId,
+      await logServerUnblacklist(interaction.client, hubInDb.id, {
+        serverId,
         mod: interaction.user,
       });
     }

@@ -1,12 +1,12 @@
-import db from '../../utils/Db.js';
-import Logger from '../../utils/Logger.js';
+import db from '../utils/Db.js';
+import Logger from '../utils/Logger.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
-import { modifyConnection } from '../../utils/ConnectedList.js';
+import { modifyConnection } from '../utils/ConnectedList.js';
 import { APIActionRowComponent, APIButtonComponent, Snowflake } from 'discord.js';
-import { buildConnectionButtons } from '../network/components.js';
-import { simpleEmbed } from '../../utils/Utils.js';
+import { buildConnectionButtons } from '../scripts/network/components.js';
+import { simpleEmbed } from '../utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import { emojis } from '../../utils/Constants.js';
+import { emojis } from '../utils/Constants.js';
 import 'dotenv/config';
 
 export default async (manager: ClusterManager) => {

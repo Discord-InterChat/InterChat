@@ -22,7 +22,12 @@ export default class Server extends Find {
       return;
     }
 
-    const userInBlacklist = await db.blacklistedUsers?.findFirst({ where: { userId: user.id } });
+    const userData = await db.userData?.findFirst({ where: { id: user.id } });
+    const blacklistedFrom = userData?.blacklistedFrom.map(
+      async (bl) => (await db.hubs.findFirst({ where: { id: bl.hubId } }))?.name,
+    );
+    const blacklistedFromStr =
+      blacklistedFrom && blacklistedFrom.length > 0 ? blacklistedFrom.join(', ') : 'None/';
 
     const serversOwned = user.client.guilds.cache
       .filter((guild) => guild.ownerId === user.id)
@@ -31,10 +36,7 @@ export default class Server extends Find {
       where: { ownerId: user.id },
     });
     const numServersOwned = serversOwned.length > 0 ? serversOwned.join(', ') : 'None';
-    const numHubOwned =
-      hubsOwned.length > 0
-        ? hubsOwned.map((hub) => hub.name).join(', ')
-        : 'None';
+    const numHubOwned = hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None';
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
@@ -56,7 +58,9 @@ export default class Server extends Find {
           name: 'Network',
           value: stripIndents`
             > ${emojis.chat_icon} **Hubs Owned:** ${numHubOwned}
-            > ${emojis.delete} **Blacklisted:** ${userInBlacklist ? 'Yes' : 'No'}`,
+            > ${emojis.delete} **Blacklisted From:** ${blacklistedFromStr}
+            > ${emojis.deleteDanger_icon} **Banned:** ${userData?.banMeta?.reason ? 'Yes' : 'No'}
+             `,
         },
       ]);
 

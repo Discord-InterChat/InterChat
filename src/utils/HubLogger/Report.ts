@@ -9,9 +9,8 @@ import {
   User,
   Client,
 } from 'discord.js';
-import SuperClient from '../../core/Client.js';
 import { emojis } from '../Constants.js';
-import { fetchHub } from '../Utils.js';
+import { fetchHub, resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
 
 export type ReportEvidenceOpts = {
@@ -51,7 +50,7 @@ const genJumpLink = async (
   if (!messageInDb) return null;
 
   // fetch the reports server ID from the log channel's ID
-  const reportsServerId = SuperClient.resolveEval(
+  const reportsServerId = resolveEval(
     await client.cluster.broadcastEval(
       async (cl, channelId) => {
         const channel = (await cl.channels
