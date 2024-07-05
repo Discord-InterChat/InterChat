@@ -9,7 +9,7 @@ export default async (manager: ClusterManager) => {
       const allUsers = await client.userManager.getAllBlacklists();
       const allServers = await client.serverBlacklists.getAllBlacklists();
 
-      const unblacklistUsers = (entities: (userData | blacklistedServers)[] | null) => {
+      const checkAndUnblacklist = (entities: (userData | blacklistedServers)[] | null) => {
         entities?.forEach((entity) => {
           entity?.blacklistedFrom.forEach(async (bl) => {
             if (bl.expires && new Date(String(bl.expires)) <= new Date()) {
@@ -29,9 +29,10 @@ export default async (manager: ClusterManager) => {
         });
       };
 
-      unblacklistUsers(allServers);
-      unblacklistUsers(allUsers);
+      checkAndUnblacklist(allServers);
+      checkAndUnblacklist(allUsers);
     },
     { shard: 0 },
   );
 };
+

@@ -61,7 +61,7 @@ clusterManager
     scheduler.addRecurringTask('populateConnectionCache', 5 * 60 * 1000, () =>
       getAllConnections({ connected: true }),
     );
-    scheduler.addRecurringTask('deleteExpiredBlacklists', 30 * 1000, () =>
+    scheduler.addRecurringTask('deleteExpiredBlacklists', 10 * 1000, () =>
       updateBlacklists(clusterManager),
     );
     scheduler.addRecurringTask('syncBotlistStats', 10 * 60 * 10_000, () =>

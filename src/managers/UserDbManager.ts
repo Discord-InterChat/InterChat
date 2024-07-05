@@ -10,16 +10,6 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
   protected override async fetchEntityFromDb(hubId: string, id: string) {
     return await db.userData.findFirst({ where: { id, blacklistedFrom: { some: { hubId } } } });
   }
-  protected override async fetchExpiringEntities() {
-    const currentTime = new Date();
-    const twelveHoursLater = new Date(currentTime.getTime() + 12 * 60 * 60 * 1000);
-
-    return await db.userData.findMany({
-      where: {
-        blacklistedFrom: { some: { expires: { lte: twelveHoursLater } } },
-      },
-    });
-  }
 
   public override async logUnblacklist(
     hubId: string,
@@ -95,6 +85,7 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
     reason?: string;
   }): Promise<void> {
     const hub = await db.hubs.findUnique({ where: { id: opts.hubId } });
+    // TODO: Make this method also handle misc notifications, not only blacklists
     const embed = this.buildNotifEmbed(
       `You have been blacklisted from talking in hub **${hub?.name}**`,
       { expires: opts.expires, reason: opts.reason },

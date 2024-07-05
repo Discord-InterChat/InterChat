@@ -21,17 +21,6 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
     await logServerUnblacklist(this.client, hubId, { serverId, mod, reason });
   }
 
-  protected override async fetchExpiringEntities() {
-    const currentTime = new Date();
-    const twelveHoursLater = new Date(currentTime.getTime() + 12 * 60 * 60 * 1000);
-
-    return await db.blacklistedServers.findMany({
-      where: {
-        blacklistedFrom: { some: { expires: { lte: twelveHoursLater } } },
-      },
-    });
-  }
-
   /**
    * Add a server to the blacklist.
    * @param server The ID or instance of the server to blacklist.
