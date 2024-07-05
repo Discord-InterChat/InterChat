@@ -1,42 +1,34 @@
-import { Collection } from 'discord.js';
+import db from '../utils/Db.js';
 
 /** Manage and store individual cooldowns */
 export default class CooldownService {
-  private readonly cooldowns: Collection<string, number>;
+  readonly prefix = 'cooldown';
 
-  constructor() {
-    this.cooldowns = new Collection<string, number>();
-
-    setInterval(() => {
-      this.cooldowns.forEach((expires, key) => {
-        if (expires < Date.now()) this.cooldowns.delete(key);
-      });
-    }, 1000);
+  private getKey(id: string) {
+    return `${this.prefix}:${id}`;
   }
-
   /**
    * Set a cooldown
    * @param id A unique id for the cooldown
    * @param ms The duration of the cooldown in milliseconds
    */
-  public setCooldown(id: string, ms: number): void {
-    this.cooldowns.set(id, Date.now() + ms);
+  public async setCooldown(id: string, ms: number) {
+    await db.cache.set(this.getKey(id), Date.now() + ms, 'PX', ms);
   }
 
   /** Get a cooldown */
-  public getCooldown(id: string) {
-    return this.cooldowns.get(id);
+  public async getCooldown(id: string) {
+    return parseInt(await db.cache.get(this.getKey(id)) || '0');
   }
 
   /** Delete a cooldown */
-  public deleteCooldown(id: string): void {
-    this.cooldowns.delete(id);
+  public async deleteCooldown(id: string) {
+    await db.cache.del(this.getKey(id));
   }
 
   /** Get the remaining cooldown in milliseconds */
-  public getRemainingCooldown(id: string): number {
-    const cooldown = this.getCooldown(id);
-    if (!cooldown) return 0;
-    return cooldown - Date.now();
+  public async getRemainingCooldown(id: string) {
+    const cooldown = await this.getCooldown(id);
+    return cooldown ? cooldown - Date.now() : 0;
   }
 }

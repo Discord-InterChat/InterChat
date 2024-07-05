@@ -8,7 +8,7 @@ import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
 import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
-import { connectChannel } from '../../../../utils/ConnectedList.js';
+import { connectChannel, getAllConnections } from '../../../../utils/ConnectedList.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -82,14 +82,14 @@ export default class JoinSubCommand extends Hub {
     }
     else {
       hub = await db.hubs.findFirst({ where: { name: hubName, private: false } });
+    }
 
-      if (!hub) {
-        await interaction.reply({
-          embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
-          ephemeral: true,
-        });
-        return;
-      }
+    if (!hub) {
+      await interaction.reply({
+        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
+        ephemeral: true,
+      });
+      return;
     }
 
     // actual code starts here
@@ -115,8 +115,8 @@ export default class JoinSubCommand extends Hub {
       return;
     }
 
-    const { userBlacklists, serverBlacklists } = interaction.client;
-    const userBlacklisted = await userBlacklists.fetchBlacklist(hub.id, interaction.user.id);
+    const { userManager, serverBlacklists } = interaction.client;
+    const userBlacklisted = await userManager.fetchBlacklist(hub.id, interaction.user.id);
     const serverBlacklisted = await serverBlacklists.fetchBlacklist(hub.id, interaction.guildId);
 
     if (userBlacklisted || serverBlacklisted) {
@@ -183,10 +183,11 @@ export default class JoinSubCommand extends Hub {
       components: [],
     });
 
-    const totalConnections = interaction.client.connectionCache.reduce(
-      (total, c) => total + (c.hubId === hub.id && c.connected ? 1 : 0),
-      0,
-    );
+    const totalConnections =
+      (await getAllConnections())?.reduce(
+        (total, c) => total + (c.hubId === hub.id && c.connected ? 1 : 0),
+        0,
+      ) ?? 0;
 
     // announce
     await sendToHub(hub.id, {

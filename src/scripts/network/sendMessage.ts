@@ -55,7 +55,6 @@ export const specialSendMessage = async (
     }
   }
 
-  // console.log(data);
   const res = await fetch(primaryUrl, {
     method: 'POST',
     body: JSON.stringify({ webhookUrl, data: { ...data, ...embed } }),

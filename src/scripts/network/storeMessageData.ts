@@ -1,7 +1,7 @@
 import db from '../../utils/Db.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
-import { messageTimestamps, modifyConnections } from '../../utils/ConnectedList.js';
+import { modifyConnections } from '../../utils/ConnectedList.js';
 import { NetworkAPIError, isNetworkApiError } from './helpers.js';
 import Logger from '../../utils/Logger.js';
 
@@ -59,7 +59,8 @@ export default async (
   }
 
   // store message timestamps to push to db later
-  messageTimestamps.set(message.channel.id, message.createdAt);
+  await db.cache.set(`msgTimestamp:${message.channelId}`, message.createdAt.toString());
+
   // disconnect network if, webhook does not exist/bot cannot access webhook
   if (invalidWebhookURLs.length > 0) {
     await modifyConnections({ webhookURL: { in: invalidWebhookURLs } }, { connected: false });

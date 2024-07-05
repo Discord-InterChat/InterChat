@@ -3,9 +3,8 @@ import Hub from './index.js';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import db from '../../../../utils/Db.js';
-import { simpleEmbed } from '../../../../utils/Utils.js';
+import { resolveEval, simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
-import SuperClient from '../../../../core/Client.js';
 
 export default class Servers extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -108,7 +107,7 @@ export default class Servers extends Hub {
           { context: { connection } },
         );
 
-        const evalRes = SuperClient.resolveEval(evalArr);
+        const evalRes = resolveEval(evalArr);
 
         const value = t(
           { phrase: 'hub.servers.connectionInfo', locale },

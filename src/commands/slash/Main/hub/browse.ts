@@ -33,7 +33,7 @@ import { RegisterInteractionHandler } from '../../../../decorators/Interaction.j
 import { stripIndents } from 'common-tags';
 import { t } from '../../../../utils/Locale.js';
 import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
-import { connectChannel } from '../../../../utils/ConnectedList.js';
+import { connectChannel, getAllConnections } from '../../../../utils/ConnectedList.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -201,12 +201,9 @@ export default class Browse extends Hub {
         return;
       }
 
-      const { userBlacklists, serverBlacklists } = interaction.client;
+      const { userManager, serverBlacklists } = interaction.client;
 
-      const userBlacklisted = await userBlacklists.fetchBlacklist(
-        hubDetails.id,
-        interaction.user.id,
-      );
+      const userBlacklisted = await userManager.fetchBlacklist(hubDetails.id, interaction.user.id);
 
       const serverBlacklisted = await serverBlacklists.fetchBlacklist(
         hubDetails.id,
@@ -400,10 +397,11 @@ export default class Browse extends Hub {
         components: [],
       });
 
-      const totalConnections = interaction.client.connectionCache.reduce(
-        (total, c) => total + (c.hubId === hubDetails.id && c.connected ? 1 : 0),
-        0,
-      );
+      const totalConnections =
+        (await getAllConnections())?.reduce(
+          (total, c) => total + (c.hubId === hubDetails.id && c.connected ? 1 : 0),
+          0,
+        ) ?? 0;
 
       // announce
       await sendToHub(hubDetails.id, {

@@ -23,7 +23,7 @@ export default class Create extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const { locale } = interaction.user;
 
-    const isOnCooldown = this.getRemainingCooldown(interaction);
+    const isOnCooldown = await this.getRemainingCooldown(interaction);
     if (isOnCooldown) {
       await this.sendCooldownError(interaction, isOnCooldown);
       return;
