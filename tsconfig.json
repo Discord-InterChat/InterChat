@@ -8,6 +8,7 @@
     "resolveJsonModule": true,
     "allowJs": false,
     "declaration": true,
+    "baseUrl": ".",
     "rootDir": "src",
     "outDir": "build",
     "esModuleInterop": true,
@@ -20,7 +21,11 @@
     "allowSyntheticDefaultImports": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
+    "paths": {
+      "#main/*": ["src/*"],
+      "#commands/*": ["./src/commands/*"]  
+    }
   },
-  "include": ["src/**/*", "src/**/*.json"],
+  "include": ["src/**/*.ts", "src/**/*.json"],
   "exclude": ["node_modules", "build", ".yarn"]
 }

@@ -16,7 +16,7 @@
     "postinstall": "husky install"
   },
   "engines": {
-    "node": ">=20.11.0"
+    "node": ">=v20.15.0"
   },
   "type": "module",
   "dependencies": {
@@ -66,5 +66,9 @@
   "lint-staged": {
     "*.ts": "eslint --cache --fix"
   },
-  "packageManager": "yarn@4.2.2"
+  "packageManager": "yarn@4.2.2",
+  "imports": {
+    "#main/*.js": "./build/*.js",
+    "#commands/*.js": "./build/commands/*.js"
+  }
 }
