@@ -5,7 +5,7 @@ import {
 } from 'discord.js';
 import BaseCommand from '../../../core/BaseCommand.js';
 import db from '../../../utils/Db.js';
-import { simpleEmbed } from '../../../utils/Utils.js';
+import { getDbUser, simpleEmbed } from '../../../utils/Utils.js';
 import { emojis } from '../../../utils/Constants.js';
 import Logger from '../../../utils/Logger.js';
 
@@ -41,11 +41,8 @@ export default class Ban extends BaseCommand {
       return;
     }
 
-    const alreadyBanned = await db.userData.findFirst({
-      where: { id: user.id, banMeta: { isNot: null } },
-    });
-
-    if (alreadyBanned) {
+    const dbUser = await getDbUser(user.id);
+    if (dbUser?.banMeta) {
       await interaction.reply({
         embeds: [simpleEmbed(`${emojis.slash} User **${user.username}** is already banned.`)],
       });

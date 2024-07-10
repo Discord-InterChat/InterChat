@@ -33,16 +33,13 @@ export const deleteConnections = async (where: Prisma.connectedListWhereInput) =
   await getAllConnections({ connected: true });
 };
 
-export const connectChannel = async (data: Prisma.connectedListCreateInput) => {
-  return await db.connectedList.create({ data });
-};
+export const connectChannel = async (data: Prisma.connectedListCreateInput) =>
+  await db.connectedList.create({ data });
 
 export const modifyConnection = async (
   where: Prisma.connectedListWhereUniqueInput,
   data: Prisma.connectedListUpdateInput,
-) => {
-  return await db.connectedList.update({ where, data }).catch(() => null);
-};
+) => await db.connectedList.update({ where, data }).catch(() => null);
 
 export const modifyConnections = async (
   where: Prisma.connectedListWhereInput,

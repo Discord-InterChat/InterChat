@@ -87,7 +87,7 @@ export default class Customize extends Connection {
       await interaction.deferReply({ ephemeral: true });
 
       const invite = interaction.fields.getTextInputValue('connInviteField');
-      const channelId = customId.args[0];
+      const [channelId] = customId.args;
 
       if (!invite) {
         await modifyConnection({ channelId }, { invite: { unset: true } });

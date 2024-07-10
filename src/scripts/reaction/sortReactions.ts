@@ -10,6 +10,5 @@
  * [ [ '👎', ['1020193019332334'] ], [ '👍', ['1020193019332334'] ] ]
  * ```
  */
-export default (reactions: { [key: string]: string[] }) => {
-  return Object.entries(reactions).sort((a, b) => b[1].length - a[1].length);
-};
+export default (reactions: { [key: string]: string[] }) =>
+  Object.entries(reactions).sort((a, b) => b[1].length - a[1].length);

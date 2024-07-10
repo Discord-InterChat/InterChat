@@ -15,7 +15,6 @@ import { t } from '../../utils/Locale.js';
 
 export type NetworkAPIError = { error: string };
 
-
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
  * If the referred message has no content, returns a default message indicating that the original message contains an attachment.
@@ -80,7 +79,7 @@ export const trimAndCensorBannedWebhookWords = (content: string) =>
 export const buildNetworkEmbed = (
   message: Message,
   username: string,
-  censoredContent: string,
+  _censoredContent: string,
   opts?: {
     attachmentURL?: string | null;
     embedCol?: HexColorString;
@@ -89,10 +88,11 @@ export const buildNetworkEmbed = (
 ) => {
   // remove tenor links and image urls from the content
   let msgContent = message.content;
+  let censoredMsg;
 
   if (opts?.attachmentURL) {
     msgContent = removeImgLinks(msgContent, opts.attachmentURL);
-    censoredContent = removeImgLinks(censoredContent, opts.attachmentURL);
+    censoredMsg = removeImgLinks(_censoredContent, opts.attachmentURL);
   }
 
   const embed = new EmbedBuilder()
@@ -108,7 +108,7 @@ export const buildNetworkEmbed = (
       iconURL: message.guild?.iconURL() ?? undefined,
     });
 
-  const censoredEmbed = EmbedBuilder.from(embed).setDescription(censoredContent || null);
+  const censoredEmbed = EmbedBuilder.from(embed).setDescription(censoredMsg || null);
 
   const formattedReply = opts?.referredContent?.replaceAll('\n', '\n> ');
   if (formattedReply) {
@@ -123,9 +123,9 @@ export const generateJumpButton = (
   replyMsg: broadcastedMessages,
   referredAuthorUsername: string,
   serverId: string,
-) => {
+) =>
   // create a jump to reply button
-  return new ActionRowBuilder<ButtonBuilder>().addComponents(
+  new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setStyle(ButtonStyle.Link)
       .setEmoji(emojis.reply)
@@ -138,7 +138,6 @@ export const generateJumpButton = (
           : `@${referredAuthorUsername}`,
       ),
   );
-};
 
 export const sendWelcomeMsg = async (message: Message, totalServers: string, hub: string) => {
   const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -177,7 +176,5 @@ export const sendWelcomeMsg = async (message: Message, totalServers: string, hub
     .catch(() => null);
 };
 
-
-export function isNetworkApiError(res: NetworkAPIError | APIMessage | undefined): res is NetworkAPIError {
-  return (res && Object.hasOwn(res, 'error')) === true;
-}
+export const isNetworkApiError = (res: NetworkAPIError | APIMessage | undefined) =>
+  (res && 'error' in res) === true;

@@ -12,7 +12,12 @@ export default class Invite extends BaseCommand {
     await interaction.reply({
       content: t(
         { phrase: 'invite', locale: interaction.user.locale },
-        { support: LINKS.SUPPORT_INVITE, invite: LINKS.APP_DIRECTORY, invite_emoji: emojis.add_icon, support_emoji: emojis.code_icon },
+        {
+          support: LINKS.SUPPORT_INVITE,
+          invite: LINKS.APP_DIRECTORY,
+          invite_emoji: emojis.add_icon,
+          support_emoji: emojis.code_icon,
+        },
       ),
     });
   }

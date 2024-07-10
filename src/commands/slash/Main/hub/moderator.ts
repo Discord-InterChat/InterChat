@@ -148,7 +148,7 @@ export default class Moderator extends Hub {
               simpleEmbed(
                 t(
                   {
-                    phrase: 'hub.moderator.update.nodModerator',
+                    phrase: 'hub.moderator.update.notModerator',
                     locale: interaction.user.locale,
                   },
                   { user: user.toString() },

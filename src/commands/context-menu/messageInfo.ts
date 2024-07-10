@@ -102,7 +102,7 @@ export default class MessageInfo extends BaseCommand {
   static override async handleComponents(interaction: MessageComponentInteraction) {
     // create a variable to store the profile card buffer
     const customId = CustomID.parseCustomId(interaction.customId);
-    const messageId = customId.args[0];
+    const [messageId] = customId.args;
 
     const originalMsg = (
       await db.broadcastedMessages.findFirst({
@@ -243,7 +243,7 @@ export default class MessageInfo extends BaseCommand {
           if (!message) {
             await interaction.update({
               content: t(
-                { phrase: 'errors.unknownMessage', locale: interaction.user.locale },
+                { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
                 { emoji: emojis.no },
               ),
               embeds: [],
@@ -322,7 +322,7 @@ export default class MessageInfo extends BaseCommand {
   @RegisterInteractionHandler('msgInfoModal')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const messageId = customId.args[0];
+    const [messageId] = customId.args;
     const messageInDb = await db.broadcastedMessages.findFirst({
       where: { messageId },
       include: { originalMsg: { include: { hub: true } } },

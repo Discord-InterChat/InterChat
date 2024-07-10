@@ -7,7 +7,7 @@ import globals from 'globals';
 export default tseslint.config({
   // @ts-ignore
   files: ['src/**/*.ts'],
-  ignores: ['build', 'locales/', '**/node_modules/', '**/.*'],
+  ignores: ['build/**/*', 'locales/**', '**/node_modules/', '**/.*'],
 
   extends: [...tseslint.configs.recommended],
   plugins: { '@stylistic': stylistic, '@typescript-eslint': tseslint.plugin },
@@ -42,6 +42,42 @@ export default tseslint.config({
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/no-shadow': ['error', { 'allow': ['err', 'resolve', 'reject'] }],
 
+    // 'class-methods-use-this': 'warn', // TODO: Turn this into error soon
+    'no-nested-ternary': 'error',
+    
+    'object-shorthand': 'error',
+    'no-array-constructor': 'error',
+    'array-callback-return': 'error',
+    'prefer-template': 'error',
+    'no-eval': 'error',
+    'no-loop-func': 'error',
+    'no-param-reassign': 'error',
+    'prefer-rest-params': 'error',
+    'prefer-spread': 'error',
+    'no-useless-constructor': 'error',
+    'no-duplicate-imports': 'error',
+    'one-var': ['error', 'never'],
+    'no-multi-assign': 'error',
+    'eqeqeq': 'error',
+    'no-new-wrappers': 'error',
+
+    'prefer-arrow-callback': ['error', { 'allowNamedFunctions': true }],
+    'arrow-body-style': ['error', 'as-needed'],
+
+    '@stylistic/max-len': ['error', {
+      'code': 100,
+      'ignoreComments': true,
+      'ignoreTrailingComments': true,
+      'ignoreStrings': true,
+      'ignoreTemplateLiterals': true,
+      'ignoreRegExpLiterals': true
+    }],
+    '@stylistic/eol-last': ['error', 'always'],
+    '@stylistic/nonblock-statement-body-position': ['error', 'beside'],
+    '@stylistic/no-mixed-operators': 'error',
+    '@stylistic/object-curly-newline': 'error',
+    '@stylistic/template-curly-spacing': ['error', 'never'],
+    '@stylistic/arrow-parens': ['error', 'always'],
     '@stylistic/comma-style': 'error',
     '@stylistic/arrow-spacing': 'error',
     '@stylistic/comma-spacing': 'error',
@@ -59,6 +95,7 @@ export default tseslint.config({
     '@stylistic/no-trailing-spaces': ['error'],
     '@stylistic/dot-location': ['error', 'property'],
     '@stylistic/object-curly-spacing': ['error', 'always'],
+    '@stylistic/array-bracket-spacing': ['error', 'never'],
     '@stylistic/comma-dangle': ['error', 'always-multiline'],
     '@stylistic/max-statements-per-line': ['error', { 'max': 2 }],
     '@stylistic/brace-style': ['error', 'stroustrup', { 'allowSingleLine': true }],

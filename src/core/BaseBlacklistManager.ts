@@ -42,7 +42,7 @@ export default abstract class BaseBlacklistManager<T extends BlacklistEntity> ex
   }
 
   public async fetchBlacklist(hubId: string, entityId: string) {
-    const cache = serializeCache<T>(await db.cache.get(`${this.modelName}:entityId`));
+    const cache = serializeCache<T>(await db.cache.get(`${this.modelName}:${entityId}`));
 
     const data = cache?.blacklistedFrom.find((h) => h.hubId === hubId)
       ? cache

@@ -3,7 +3,7 @@ import Find from './index.js';
 import { stripIndents } from 'common-tags';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import db from '../../../../utils/Db.js';
-import { simpleEmbed } from '../../../../utils/Utils.js';
+import { getDbUser, simpleEmbed } from '../../../../utils/Utils.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -22,7 +22,7 @@ export default class Server extends Find {
       return;
     }
 
-    const userData = await db.userData?.findFirst({ where: { id: user.id } });
+    const userData = await getDbUser(user.id);
     const blacklistedFrom = userData?.blacklistedFrom.map(
       async (bl) => (await db.hubs.findFirst({ where: { id: bl.hubId } }))?.name,
     );

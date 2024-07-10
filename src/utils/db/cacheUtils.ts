@@ -2,9 +2,7 @@ import { Prisma } from '@prisma/client';
 import db from '../Db.js';
 import Logger from '../Logger.js';
 
-export const getCacheKey = (prefix: string, id: string) => {
-  return `${prefix}:${id}`;
-};
+export const getCacheKey = (prefix: string, id: string) => `${prefix}:${id}`;
 
 export const cacheData = async (key: string, value: string, model: Prisma.ModelName) => {
   // expires after 1 hour
@@ -52,13 +50,11 @@ export const traverseCursor = async (
   return result;
 };
 
-export const getAllDocuments = async (match: string) => {
-  const start = performance.now();
+export async function getAllDocuments(match: string) {
   const firstIter = await db.cache.scan(0, 'MATCH', match, 'COUNT', 100);
   const keys = (await traverseCursor(firstIter, match, 100))[1];
   const result = (await Promise.all(keys.map(async (key) => await db.cache.get(key)))).filter(
     Boolean,
   ) as string[];
-  Logger.info(`Took ${performance.now() - start}ms for ${result.length} keys.`);
   return result;
 };

@@ -1,7 +1,7 @@
 import Scheduler from '../services/SchedulerService.js';
 import UserDbManager from '../managers/UserDbManager.js';
 import CooldownService from '../services/CooldownService.js';
-import loadCommandFiles from '../utils/LoadCommands.js';
+import loadCommandFiles, { commandsMap, interactionsMap } from '../utils/LoadCommands.js';
 import ServerBlacklistManager from '../managers/ServerBlacklistManager.js';
 import {
   Client,
@@ -16,7 +16,6 @@ import {
 } from 'discord.js';
 import { getAllConnections } from '../utils/ConnectedList.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
-import { commandsMap, interactionsMap } from './BaseCommand.js';
 import { RemoveMethods } from '../typings/index.js';
 import { loadLocales } from '../utils/Locale.js';
 import { PROJECT_VERSION } from '../utils/Constants.js';

@@ -88,7 +88,7 @@ export default class Leave extends Hub {
   @RegisterInteractionHandler('hub_leave')
   static override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const channelId = customId.args[0];
+    const [channelId] = customId.args;
     const { locale } = interaction.user;
 
     if (customId.suffix === 'no') {

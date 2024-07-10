@@ -1,8 +1,8 @@
-import Logger from '../../utils/Logger.js';
-import { Router } from 'express';
+import Logger from '#main/utils/Logger.js';
+import { REGEX } from '#main/utils/Constants.js';
 import { captureException } from '@sentry/node';
 import { node } from '@tensorflow/tfjs-node';
-import { REGEX } from '../../utils/Constants.js';
+import { Router } from 'express';
 import { createRequire } from 'module';
 import { NSFWJS } from 'nsfwjs';
 
@@ -14,7 +14,7 @@ const nsfwModel: NSFWJS = await load(process.env.NSFW_AI_MODEL);
 const router = Router();
 
 router.post('/nsfw', async (req, res) => {
-  const imageUrl = req.body.imageUrl;
+  const { imageUrl } = req.body;
 
   if (!imageUrl || typeof imageUrl !== 'string') {
     res.status(400).json({ error: 'Missing imageUrl in body.' });

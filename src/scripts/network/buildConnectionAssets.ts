@@ -73,8 +73,8 @@ export const buildCustomizeSelect = (
   channelId: Snowflake,
   userIdFilter: Snowflake,
   locale: supportedLocaleCodes = 'en',
-) => {
-  return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
+) =>
+  new ActionRowBuilder<StringSelectMenuBuilder>().addComponents([
     new StringSelectMenuBuilder()
       .setCustomId(
         new CustomID()
@@ -107,10 +107,9 @@ export const buildCustomizeSelect = (
           .setValue('embed_color'),
       ),
   ]);
-};
 
-export const buildChannelSelect = (channelId: Snowflake, userIdFilter: Snowflake) => {
-  return new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
+export const buildChannelSelect = (channelId: Snowflake, userIdFilter: Snowflake) =>
+  new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
     new ChannelSelectMenuBuilder()
       .setCustomId(
         new CustomID()
@@ -122,4 +121,3 @@ export const buildChannelSelect = (channelId: Snowflake, userIdFilter: Snowflake
       .setChannelTypes(ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread)
       .setPlaceholder('💬 Want to change channels? Click me!'),
   );
-};

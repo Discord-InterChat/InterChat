@@ -1,18 +1,20 @@
 import {
-  AutocompleteInteraction,
-  ChatInputCommandInteraction,
+  type AutocompleteInteraction,
+  type ChatInputCommandInteraction,
+  type MessageComponentInteraction,
+  type ModalSubmitInteraction,
+  type ContextMenuCommandInteraction,
+  type RepliableInteraction,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
+  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  type ColorResolvable,
   Collection,
-  ContextMenuCommandInteraction,
-  MessageComponentInteraction,
-  ModalSubmitInteraction,
   time,
-  RepliableInteraction,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
-  RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from 'discord.js';
 import { InteractionFunction } from '../decorators/Interaction.js';
 import { t } from '../utils/Locale.js';
 import { emojis } from '../utils/Constants.js';
+import { getReplyMethod, simpleEmbed } from '#main/utils/Utils.js';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
 
@@ -89,7 +91,6 @@ export default abstract class BaseCommand {
     if (!this.cooldown) return;
     const { commandCooldowns } = interaction.client;
 
-
     if (interaction.isChatInputCommand()) {
       const subcommand = interaction.options.getSubcommand(false);
       const subcommandGroup = interaction.options.getSubcommandGroup(false);
@@ -105,5 +106,17 @@ export default abstract class BaseCommand {
         this.cooldown,
       );
     }
+  }
+
+  async replyEmbed(
+    interaction: RepliableInteraction,
+    desc: string,
+    opts?: { title?: string; color?: ColorResolvable; ephemeral?: boolean; edit?: boolean },
+  ) {
+    const message = { embeds: [simpleEmbed(desc, opts)] };
+    if (opts?.edit) return await interaction.editReply(message);
+
+    const methodName = getReplyMethod(interaction);
+    await interaction[methodName]({ ...message, ephemeral: opts?.ephemeral });
   }
 }

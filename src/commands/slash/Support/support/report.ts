@@ -146,7 +146,7 @@ export default class Report extends Support {
   @RegisterInteractionHandler('report_modal')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const affected = customId.args[0];
+    const [affected] = customId.args;
     const reportType = customId.suffix;
     const reportDescription = interaction.fields.getTextInputValue('description');
 

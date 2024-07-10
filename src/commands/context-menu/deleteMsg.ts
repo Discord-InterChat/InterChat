@@ -98,8 +98,8 @@ export default class DeleteMessage extends BaseCommand {
       // finally, delete the message
       await webhook
         ?.deleteMessage(dbMsg.messageId, connection.parentId ? connection.channelId : undefined)
-        .then(() => passed++)
         .catch(() => null);
+      passed++;
     }
 
     await interaction

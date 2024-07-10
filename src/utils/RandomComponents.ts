@@ -205,7 +205,7 @@ export abstract class RandomComponents {
   @RegisterInteractionHandler('inactiveConnect', 'toggle')
   static async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const channelId = customId.args[0];
+    const [channelId] = customId.args;
 
     await modifyConnection({ channelId }, { connected: true });
 

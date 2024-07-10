@@ -1,8 +1,7 @@
 import Logger from './Logger.js';
-import loadCommandFiles from './LoadCommands.js';
+import loadCommandFiles, { commandsMap } from './LoadCommands.js';
 import { REST, Routes } from 'discord.js';
 import { SUPPORT_SERVER_ID } from './Constants.js';
-import { commandsMap } from '../core/BaseCommand.js';
 import 'dotenv/config';
 
 const greyText = (text: unknown) => `\x1b[38;5;246m${text}\x1b[0m`;

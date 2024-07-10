@@ -5,7 +5,7 @@ import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { WebhookClient, userMention, EmbedBuilder } from 'discord.js';
 import { badgeEmojis, LINKS, VOTER_ROLE_ID } from '../utils/Constants.js';
-import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
+import { getDbUser, getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
 import EventEmitter from 'events';
 
 export type TopggEvents = {
@@ -43,7 +43,7 @@ export class VoteManager extends EventEmitter {
   }
 
   async getUserVoteCount(id: string) {
-    const user = await db.userData.findUnique({ where: { id } });
+    const user = await getDbUser(id);
     return user?.voteCount ?? 0;
   }
 

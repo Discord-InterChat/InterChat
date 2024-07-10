@@ -15,7 +15,7 @@ export default async (webhookUrl: string, data: WebhookMessageCreateOptions) => 
 
 const { INTERCHAT_API_URL1, INTERCHAT_API_URL2 } = process.env;
 const urls = [INTERCHAT_API_URL1, INTERCHAT_API_URL2];
-let primaryUrl = urls[0];
+let [primaryUrl] = urls;
 
 const switchUrl = (currentUrl: string) => {
   if (currentUrl === urls[urls.length - 1]) return urls[0] ?? currentUrl;
@@ -41,7 +41,7 @@ export const specialSendMessage = async (
     const firstEmbed = data.embeds?.at(0);
 
     const encryptKey = Buffer.from(process.env.NETWORK_ENCRYPT_KEY, 'base64');
-    const content = data.content;
+    const { content } = data;
     if (encrypt) {
       if (content) {
         data.content = encryptMessage(content, encryptKey);

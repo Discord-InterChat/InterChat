@@ -110,16 +110,16 @@ export default class Stats extends BaseCommand {
   static override async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
 
-    const allCusterData = await interaction.client.cluster.broadcastEval((client) => {
-      return client.ws.shards.map((shard) => ({
+    const allCusterData = await interaction.client.cluster.broadcastEval((client) =>
+      client.ws.shards.map((shard) => ({
         id: shard.id,
         status: shard.status,
         ping: shard.ping,
         uptime: shard.manager.client.uptime,
         totalGuilds: shard.manager.client.guilds.cache.size,
         memUsage: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-      }));
-    });
+      })),
+    );
 
     if (customId.suffix !== 'shardStats') return;
 
@@ -133,19 +133,17 @@ export default class Stats extends BaseCommand {
 					`,
       )
       .setFields(
-        allCusterData.flat().map((shard) => {
-          return {
-            name: `Shard #${shard.id} - ${Status[shard.status]}`,
-            value: stripIndents`\`\`\`elm
+        allCusterData.flat().map((shard) => ({
+          name: `Shard #${shard.id} - ${Status[shard.status]}`,
+          value: stripIndents`\`\`\`elm
               Ping: ${shard.ping}ms
               Uptime: ${shard.uptime ? msToReadable(shard.uptime) : '0 ms'}
               Servers: ${shard.totalGuilds}
               RAM Usage: ${shard.memUsage} MB
               \`\`\`
             `,
-            inline: true,
-          };
-        }),
+          inline: true,
+        })),
       )
       .setFooter({
         text: `InterChat v${interaction.client.version}${isDevBuild ? '+dev' : ''}`,

@@ -59,7 +59,13 @@ export default async (
   }
 
   // store message timestamps to push to db later
-  await db.cache.set(`msgTimestamp:${message.channelId}`, message.createdAt.toString());
+  await db.cache.set(
+    `msgTimestamp:${message.channelId}`,
+    JSON.stringify({
+      channelId: message.channelId,
+      timestamp: message.createdTimestamp,
+    }),
+  );
 
   // disconnect network if, webhook does not exist/bot cannot access webhook
   if (invalidWebhookURLs.length > 0) {

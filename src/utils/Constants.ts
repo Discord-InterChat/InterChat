@@ -3,6 +3,7 @@ import { createRequire } from 'module';
 import jsonEmotes from './JSON/emojis.json';
 import badwordsType from './JSON/profanity.json';
 import 'dotenv/config';
+
 // create a require a ESM doesn't support importing JSON
 const require = createRequire(import.meta.url);
 

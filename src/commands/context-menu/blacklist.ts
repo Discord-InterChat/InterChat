@@ -34,7 +34,7 @@ export default class Blacklist extends BaseCommand {
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
-    const locale = interaction.user.locale;
+    const { locale } = interaction.user;
 
     const messageInDb = await db.broadcastedMessages.findFirst({
       where: { messageId: interaction.targetId },
@@ -173,12 +173,12 @@ export default class Blacklist extends BaseCommand {
 
     const { locale } = interaction.user;
     const customId = CustomID.parseCustomId(interaction.customId);
-    const messageId = customId.args[0];
+    const [messageId] = customId.args;
     const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });
 
     if (!originalMsg?.hubId) {
       await interaction.editReply(
-        t({ phrase: 'errors.networkMessageExpired', locale }, { emoji: emojis.no }),
+        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       );
       return;
     }

@@ -15,10 +15,10 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
   }
   public override async logUnblacklist(
     hubId: string,
-    serverId: string,
+    id: string,
     { mod, reason }: { mod: User; reason?: string },
   ) {
-    await logServerUnblacklist(this.client, hubId, { serverId, mod, reason });
+    await logServerUnblacklist(this.client, hubId, { id, mod, reason });
   }
 
   /**

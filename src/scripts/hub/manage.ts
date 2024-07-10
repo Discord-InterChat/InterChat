@@ -6,12 +6,8 @@ import { CustomID } from '../../utils/CustomID.js';
 import db from '../../utils/Db.js';
 import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 
-export const actionsSelect = (
-  hubId: string,
-  userId: string,
-  locale: supportedLocaleCodes = 'en',
-) => {
-  return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+export const actionsSelect = (hubId: string, userId: string, locale: supportedLocaleCodes = 'en') =>
+  new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId(
         new CustomID()
@@ -47,7 +43,6 @@ export const actionsSelect = (
         },
       ]),
   );
-};
 
 export const hubEmbed = async (hub: hubs & { connections: connectedList[] }) => {
   const hubBlacklistedUsers = await db.userData.count({

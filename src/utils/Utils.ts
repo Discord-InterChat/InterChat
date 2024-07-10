@@ -1,8 +1,7 @@
-import db from './Db.js';
-import Logger from './Logger.js';
-import toLower from 'lodash/toLower.js';
-import Scheduler from '../services/SchedulerService.js';
-import startCase from 'lodash/startCase.js';
+import { hubs, userData } from '@prisma/client';
+import { captureException } from '@sentry/node';
+import { createCipheriv, randomBytes } from 'crypto';
+import { ClusterManager } from 'discord-hybrid-sharding';
 import {
   ActionRow,
   ApplicationCommand,
@@ -12,6 +11,7 @@ import {
   Client,
   Collection,
   ColorResolvable,
+  CommandInteraction,
   ComponentType,
   EmbedBuilder,
   ForumChannel,
@@ -28,25 +28,27 @@ import {
   WebhookClient,
   WebhookMessageCreateOptions,
 } from 'discord.js';
+import 'dotenv/config';
+import startCase from 'lodash/startCase.js';
+import toLower from 'lodash/toLower.js';
+import Scheduler from '../services/SchedulerService.js';
+import { RemoveMethods } from '../typings/index.js';
+import { deleteConnection, deleteConnections } from './ConnectedList.js';
 import {
+  colors,
   DeveloperIds,
+  emojis,
+  LINKS,
   REGEX,
   StaffIds,
-  SupporterIds,
-  LINKS,
-  colors,
-  emojis,
   SUPPORT_SERVER_ID,
+  SupporterIds,
 } from './Constants.js';
-import { createCipheriv, randomBytes } from 'crypto';
-import { supportedLocaleCodes, t } from './Locale.js';
-import 'dotenv/config';
-import { captureException } from '@sentry/node';
 import { CustomID } from './CustomID.js';
-import { ClusterManager } from 'discord-hybrid-sharding';
-import { deleteConnection, deleteConnections } from './ConnectedList.js';
-import { userData } from '@prisma/client';
-import { RemoveMethods } from '../typings/index.js';
+import db from './Db.js';
+import { supportedLocaleCodes, t } from './Locale.js';
+import Logger from './Logger.js';
+import { serializeCache } from '#main/utils/db/cacheUtils.js';
 
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
@@ -70,15 +72,22 @@ export const msToReadable = (milliseconds: number) => {
   return readable;
 };
 
-export const wait = (ms: number) => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
+export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** Sort the array based on the reaction counts */
-export const sortReactions = (reactions: { [key: string]: string[] }): [string, string[]][] => {
-  // before: { '👍': ['10201930193'], '👎': ['10201930193'] }
-  return Object.entries(reactions).sort((a, b) => b[1].length - a[1].length); // => [ [ '👎', ['10201930193'] ], [ '👍', ['10201930193'] ] ]
-};
+/**
+ * Sort the array based on the reaction counts.
+ * ### Eg:
+ * **Before:**
+ * ```ts
+ *  { '👍': ['10201930193'], '👎': ['10201930193', '10201930194'] }
+ * ```
+ * **After:**
+ * ```ts
+ * [ [ '👎', ['10201930193', '10201930194'] ], [ '👍', ['10201930193'] ] ]
+ * ```
+ * */
+export const sortReactions = (reactions: { [key: string]: string[] }): [string, string[]][] =>
+  Object.entries(reactions).sort((a, b) => b[1].length - a[1].length);
 
 export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
   if (!process.env.TOPGG_API_KEY) throw new TypeError('Missing TOPGG_API_KEY environment variable');
@@ -95,37 +104,36 @@ export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
   return Boolean(res.voted);
 };
 
+export const getDbUser = async (id: Snowflake) => {
+  const cached = serializeCache<userData>(await db.cache.get(`userData:${id}`));
+  return cached ?? (await db.userData.findFirst({ where: { id } }));
+};
+
 export const userVotedToday = async (id: Snowflake): Promise<boolean> => {
-  const res = await db.userData.findFirst({
-    where: { id, lastVoted: { gte: new Date(Date.now() - 60 * 60 * 24 * 1000) } },
-  });
-
-  return Boolean(res?.lastVoted);
+  const user = await getDbUser(id);
+  return Boolean(user?.lastVoted && user.lastVoted >= new Date(Date.now() - (60 * 60 * 24 * 1000)));
 };
 
-export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) => {
-  return option ? yesEmoji : noEmoji;
-};
+export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) =>
+  option ? yesEmoji : noEmoji;
 
-export const disableComponents = (message: Message) => {
-  return message.components.flatMap((row) => {
+export const disableComponents = (message: Message) =>
+  message.components.flatMap((row) => {
     const jsonRow = row.toJSON();
     jsonRow.components.forEach((component) => (component.disabled = true));
     return jsonRow;
   });
-};
 
 const createWebhook = async (
   channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
   avatar: string,
-) => {
-  return await channel
+) =>
+  await channel
     ?.createWebhook({
       name: 'InterChat Network',
       avatar,
     })
     .catch(() => undefined);
-};
 
 const findExistingWebhook = async (
   channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
@@ -149,9 +157,7 @@ export const getOrCreateWebhook = async (
   return existingWebhook || (await createWebhook(channelOrParent, avatar));
 };
 
-export const getCredits = () => {
-  return [...DeveloperIds, ...StaffIds, ...SupporterIds];
-};
+export const getCredits = () => [...DeveloperIds, ...StaffIds, ...SupporterIds];
 
 export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
   const staffMembers = [...DeveloperIds, ...(onlyCheckForDev ? [] : StaffIds)];
@@ -161,8 +167,8 @@ export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
 export const disableAllComponents = (
   components: ActionRow<MessageActionRowComponent>[],
   disableLinks = false,
-) => {
-  return components.map((row) => {
+) =>
+  components.map((row) => {
     const jsonRow = row.toJSON();
     jsonRow.components.forEach((component) => {
       !disableLinks &&
@@ -173,7 +179,6 @@ export const disableAllComponents = (
     });
     return jsonRow;
   });
-};
 
 /**
  *
@@ -233,19 +238,17 @@ export const deleteHubs = async (ids: string[]) => {
   await db.hubs.deleteMany({ where: { id: { in: ids } } });
 };
 
-export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') => {
-  return string.replaceAll(REGEX.LINKS, replaceText);
-};
+export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') =>
+  string.replaceAll(REGEX.LINKS, replaceText);
 
 export const simpleEmbed = (
   description: string,
   opts?: { color?: ColorResolvable; title?: string },
-) => {
-  return new EmbedBuilder()
+) =>
+  new EmbedBuilder()
     .setTitle(opts?.title ?? null)
     .setColor(opts?.color ?? colors.invisible)
     .setDescription(description.toString());
-};
 
 export const calculateAverageRating = (ratings: number[]): number => {
   if (ratings.length === 0) return 0;
@@ -283,9 +286,7 @@ export const checkAndFetchImgurUrl = async (url: string): Promise<string | false
   return data.data.link;
 };
 
-export const toTitleCase = (str: string) => {
-  return startCase(toLower(str));
-};
+export const toTitleCase = (str: string) => startCase(toLower(str));
 
 /**
  * Parses the timestamp from a Snowflake ID and returns it in milliseconds.
@@ -308,19 +309,21 @@ export const channelMention = (channelId: Snowflake | null | undefined) => {
   return `<#${channelId}>`;
 };
 
-const genCommandErrMsg = (locale: supportedLocaleCodes, errorId: string) => {
-  return t(
+const genCommandErrMsg = (locale: supportedLocaleCodes, errorId: string) =>
+  t(
     { phrase: 'errors.commandError', locale },
     { errorId, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
   );
-};
+
+export const getReplyMethod = (interaction: RepliableInteraction | CommandInteraction) =>
+  interaction.replied || interaction.deferred ? 'followUp' : 'reply';
 
 /**
     Invoke this method to handle errors that occur during command execution.
     It will send an error message to the user and log the error to the system.
   */
 export const sendErrorEmbed = async (interaction: RepliableInteraction, errorId: string) => {
-  const method = interaction.replied || interaction.deferred ? 'followUp' : 'reply';
+  const method = getReplyMethod(interaction);
 
   // reply with an error message if the command failed
   return await interaction[method]({
@@ -353,13 +356,10 @@ export const handleError = (e: Error, interaction?: Interaction) => {
   if (interaction?.isRepliable()) sendErrorEmbed(interaction, errorId).catch(Logger.error);
 };
 
-export const isDev = (userId: Snowflake) => {
-  return DeveloperIds.includes(userId);
-};
+export const isDev = (userId: Snowflake) => DeveloperIds.includes(userId);
 
-export const escapeRegexChars = (input: string): string => {
-  return input.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-};
+export const escapeRegexChars = (input: string): string =>
+  input.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 
 export const parseEmoji = (emoji: string) => {
   const match = emoji.match(REGEX.EMOJI);
@@ -382,10 +382,6 @@ export const getOrdinalSuffix = (num: number) => {
   else if (j === 2 && k !== 12) return 'nd';
   else if (j === 3 && k !== 13) return 'rd';
   return 'th';
-};
-
-export const getDbUser = async (id: Snowflake) => {
-  return await db.userData.findFirst({ where: { id } });
 };
 
 export const getUsername = async (client: ClusterManager, userId: Snowflake) => {
@@ -493,22 +489,17 @@ export const getAttachmentURL = async (string: string) => {
   }
 };
 
-export const fetchHub = async (id: string) => {
-  return await db.hubs.findFirst({ where: { id } });
-};
+export const fetchHub = async (id: string) => await db.hubs.findFirst({ where: { id } });
 
-export const getUserLocale = (user: userData | undefined | null) => {
-  return (user?.locale as supportedLocaleCodes | null | undefined) || 'en';
-};
+export const getUserLocale = (user: userData | undefined | null) =>
+  (user?.locale as supportedLocaleCodes | null | undefined) || 'en';
 
 export const containsInviteLinks = (str: string) => {
   const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
   return inviteLinks.some((link) => str.includes(link));
 };
 
-export const fetchCommands = async (client: Client) => {
-  return await client.application?.commands.fetch();
-};
+export const fetchCommands = async (client: Client) => await client.application?.commands.fetch();
 
 export const findCommand = (
   name: string,
@@ -520,9 +511,7 @@ export const findCommand = (
       }>
     >
     | undefined,
-) => {
-  return commands?.find((command) => command.name === name);
-};
+) => commands?.find((command) => command.name === name);
 
 export const findSubcommand = (
   cmdName: string,
@@ -548,6 +537,11 @@ export const encryptMessage = (string: string, key: Buffer) => {
   return `${iv.toString('hex')}:${encrypted}`;
 };
 
-export const getTagOrUsername = (username: string, discrim: string) => {
-  return discrim !== '0' ? `${username}#${discrim}` : username;
-};
+export const getTagOrUsername = (username: string, discrim: string) =>
+  discrim !== '0' ? `${username}#${discrim}` : username;
+
+export const isHubMod = (userId: string, hub: hubs) =>
+  Boolean(hub.ownerId === userId || hub.moderators.find((mod) => mod.userId === userId));
+
+export const isStaffOrHubMod = (userId: string, hub: hubs) =>
+  checkIfStaff(userId) || isHubMod(userId, hub);

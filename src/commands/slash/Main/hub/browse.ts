@@ -436,7 +436,7 @@ export default class Browse extends Hub {
       return;
     }
 
-    const hubId = customId.args[0];
+    const [hubId] = customId.args;
     const hub = await db.hubs.findFirst({ where: { id: hubId } });
     if (!hub) {
       await interaction.reply({

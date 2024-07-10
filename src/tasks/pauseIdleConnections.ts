@@ -1,7 +1,6 @@
-import db from '../utils/Db.js';
 import Logger from '../utils/Logger.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
-import { modifyConnection } from '../utils/ConnectedList.js';
+import { getAllConnections, modifyConnection } from '../utils/ConnectedList.js';
 import { APIActionRowComponent, APIButtonComponent, Snowflake } from 'discord.js';
 import { buildConnectionButtons } from '../scripts/network/components.js';
 import { simpleEmbed } from '../utils/Utils.js';
@@ -10,14 +9,12 @@ import { emojis } from '../utils/Constants.js';
 import 'dotenv/config';
 
 export default async (manager: ClusterManager) => {
-  const connections = await db.connectedList.findMany({
-    where: {
-      connected: true,
-      lastActive: { not: null, lte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-    },
-  });
+  const idk = (await getAllConnections());
+  const connections = idk?.filter(
+    ({ lastActive }) => lastActive && lastActive <= new Date(Date.now() - (24 * 60 * 60 * 1000)),
+  );
 
-  if (connections?.length === 0) return;
+  if (!connections || connections.length === 0) return;
 
   const reconnectButtonArr: {
     channelId: Snowflake;
@@ -26,7 +23,7 @@ export default async (manager: ClusterManager) => {
 
   // Loop through the data
   connections.forEach(async ({ channelId, lastActive }) => {
-    Logger.debug(
+    Logger.info(
       `[InterChat]: Channel ${channelId} is older than 24 hours: ${lastActive?.toLocaleString()} - ${new Date().toLocaleString()}`,
     );
 

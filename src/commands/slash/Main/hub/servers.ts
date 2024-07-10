@@ -12,7 +12,7 @@ export default class Servers extends Hub {
 
     const hubOpt = interaction.options.getString('hub', true);
     const serverOpt = interaction.options.getString('server');
-    const locale = interaction.user.locale;
+    const { locale } = interaction.user;
 
     const hub = await db.hubs.findUnique({
       where: { name: hubOpt },

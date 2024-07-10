@@ -14,7 +14,7 @@ export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inCachedGuild()) return;
 
-    const locale = interaction.user.locale;
+    const { locale } = interaction.user;
 
     // NOTE: Change later
     const hubName = interaction.options.getString('hub') ?? 'InterChat Central';

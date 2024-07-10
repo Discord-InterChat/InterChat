@@ -3,6 +3,7 @@ import BaseBlacklistManager from '../core/BaseBlacklistManager.js';
 import { Prisma, userData } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
 import { logUserUnblacklist } from '../utils/HubLogger/ModLogs.js';
+import { getDbUser } from '#main/utils/Utils.js';
 
 export default class UserDbManager extends BaseBlacklistManager<userData> {
   protected modelName: Prisma.ModelName = 'userData';
@@ -13,10 +14,10 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
 
   public override async logUnblacklist(
     hubId: string,
-    userId: string,
+    id: string,
     { mod, reason }: { mod: User; reason?: string },
   ) {
-    await logUserUnblacklist(this.client, hubId, { userId, mod, reason });
+    await logUserUnblacklist(this.client, hubId, { id, mod, reason });
   }
 
   /**
@@ -33,15 +34,14 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
     {
       reason,
       moderatorId,
-      expires,
+      expires: _expires,
     }: { reason: string; moderatorId: Snowflake; expires: Date | null },
   ) {
-    if (typeof expires === 'number') expires = new Date(Date.now() + expires);
-
-    const dbUser = await db.userData.findFirst({ where: { id: user.id } });
+    const expires = typeof _expires === 'number' ? new Date(Date.now() + _expires) : _expires;
+    const dbUser = await getDbUser(user.id);
 
     const hubs = dbUser?.blacklistedFrom.filter((i) => i.hubId !== hubId) || [];
-    hubs?.push({ expires: expires ?? null, reason, hubId, moderatorId });
+    hubs?.push({ expires, reason, hubId, moderatorId });
 
     const updatedUser = await db.userData.upsert({
       where: { id: user.id },

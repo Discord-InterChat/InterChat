@@ -400,7 +400,7 @@ export default class Manage extends Hub {
     const { hubInDb, customId, locale } = initialData;
 
     const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
-    const channelId = interaction.values[0];
+    const [channelId] = interaction.values;
     const channel = interaction.channels.first();
 
     // set the channel in the db
@@ -475,7 +475,7 @@ export default class Manage extends Hub {
   @RegisterInteractionHandler('hub_manage_modal')
   static override async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const hubId = customId.args[0];
+    const [hubId] = customId.args;
     const locale = interaction.user.locale || 'en';
 
     let hubInDb = await db.hubs.findFirst({

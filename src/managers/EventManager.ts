@@ -42,11 +42,7 @@ import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
 import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { CustomID } from '../utils/CustomID.js';
 import { logGuildLeaveToHub } from '../utils/HubLogger/JoinLeave.js';
-import {
-  deleteConnections,
-  getAllConnections,
-  modifyConnection,
-} from '../utils/ConnectedList.js';
+import { deleteConnections, getAllConnections, modifyConnection } from '../utils/ConnectedList.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
@@ -243,19 +239,12 @@ export default abstract class EventManager {
   static async onMessageCreate(message: Message): Promise<void> {
     if (message.author.bot || message.system || message.webhookId || !message.inGuild()) return;
 
-    // const { cachePopulated } = message.client;
-
-    // if (!cachePopulated) {
-    //   Logger.debug('[InterChat]: Connection cache not populated, 5 secs until retry...');
-    //   await wait(5000);
-
-    //   EventManager.onMessageCreate(message);
-    //   return;
-    // }
-
     // check if the message was sent in a network channel
     const allConnections = await getAllConnections();
-    const connection = allConnections?.find((c) => c.channelId === message.channel.id && c.connected);
+    const connection = allConnections?.find(
+      (c) => c.channelId === message.channel.id && c.connected,
+    );
+
     if (!allConnections || !connection) return;
 
     const hub = await db.hubs.findFirst({ where: { id: connection.hubId } });

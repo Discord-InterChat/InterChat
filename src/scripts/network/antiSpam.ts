@@ -59,7 +59,7 @@ export const runAntiSpam = (author: User, maxInfractions = MAX_STORE) => {
 
   // Check if all the timestamps are within the window
   if (timestamps.length === MAX_STORE) {
-    const oldestTimestamp = timestamps[0];
+    const [oldestTimestamp] = timestamps;
     const isWithinWindow = currentTimestamp - oldestTimestamp <= WINDOW_SIZE;
 
     antiSpamMap.set(author.id, {

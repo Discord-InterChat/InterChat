@@ -15,7 +15,13 @@ import {
 import db from '../../utils/Db.js';
 import BaseCommand from '../../core/BaseCommand.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
-import { checkIfStaff, containsInviteLinks, getAttachmentURL, replaceLinks, userVotedToday } from '../../utils/Utils.js';
+import {
+  checkIfStaff,
+  containsInviteLinks,
+  getAttachmentURL,
+  replaceLinks,
+  userVotedToday,
+} from '../../utils/Utils.js';
 import { censor } from '../../utils/Profanity.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
@@ -100,7 +106,7 @@ export default class EditMessage extends BaseCommand {
     await interaction.deferReply({ ephemeral: true });
 
     const customId = CustomID.parseCustomId(interaction.customId);
-    const messageId = customId.args[0];
+    const [messageId] = customId.args;
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
@@ -115,7 +121,6 @@ export default class EditMessage extends BaseCommand {
       include: { hub: true, broadcastMsgs: true },
     });
 
-
     if (!originalMsg) {
       const broadcastedMsg = await db.broadcastedMessages.findFirst({
         where: { messageId: target.id },
@@ -124,7 +129,6 @@ export default class EditMessage extends BaseCommand {
 
       originalMsg = broadcastedMsg?.originalMsg ?? null;
     }
-
 
     if (!originalMsg?.hub) {
       await interaction.editReply(
@@ -156,28 +160,28 @@ export default class EditMessage extends BaseCommand {
     });
 
     const results = originalMsg.broadcastMsgs.map(async (element) => {
-      const channelSettings = channelSettingsArr.find((c) => c.channelId === element.channelId);
-      if (!channelSettings) return false;
+      const settings = channelSettingsArr.find((c) => c.channelId === element.channelId);
+      if (!settings) return false;
 
-      const webhookURL = channelSettings.webhookURL.split('/');
+      const webhookURL = settings.webhookURL.split('/');
       const webhook = await interaction.client
         .fetchWebhook(webhookURL[webhookURL.length - 2])
         ?.catch(() => null);
 
       if (webhook?.owner?.id !== interaction.client.user.id) return false;
 
+      let content;
+      let embeds;
+
+      if (!settings.compact) embeds = settings.profFilter ? [censoredEmbed] : [newEmbed];
+      else content = settings.profFilter ? censoredCmpctMsg : compactMsg;
+
       // finally, edit the message
       return await webhook
         .editMessage(element.messageId, {
-          content: channelSettings.compact
-            ? channelSettings.profFilter
-              ? censoredCmpctMsg
-              : compactMsg
-            : undefined,
-          threadId: channelSettings.parentId ? channelSettings.channelId : undefined,
-          embeds: !channelSettings.compact
-            ? [channelSettings.profFilter ? censoredEmbed : newEmbed]
-            : undefined,
+          content,
+          embeds,
+          threadId: settings.parentId ? settings.channelId : undefined,
         })
         .then(() => true)
         .catch(() => false);

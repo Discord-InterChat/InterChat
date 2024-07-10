@@ -1,16 +1,14 @@
+import { blacklistedServers, userData, hubBlacklist } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, User, time } from 'discord.js';
-import db from '../../../../utils/Db.js';
-import BlacklistCommand from './index.js';
-import { paginate } from '../../../../utils/Pagination.js';
 import { colors, emojis } from '../../../../utils/Constants.js';
-import { simpleEmbed, toTitleCase } from '../../../../utils/Utils.js';
+import db from '../../../../utils/Db.js';
 import { supportedLocaleCodes, t } from '../../../../utils/Locale.js';
-import { Prisma, blacklistedServers, userData } from '@prisma/client';
+import { paginate } from '../../../../utils/Pagination.js';
+import { simpleEmbed, toTitleCase } from '../../../../utils/Utils.js';
+import BlacklistCommand from './index.js';
 
-// Type guard functions
-function isUserType(list: blacklistedServers | userData): list is userData {
-  return list && 'username' in list;
-}
+// Type guard
+const isUserType = (list: blacklistedServers | userData) => list && 'username' in list;
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -95,7 +93,7 @@ export default class ListBlacklists extends BlacklistCommand {
   }
   private createFieldData(
     data: blacklistedServers | userData,
-    type: string,
+    type: 'user' | 'server',
     {
       moderator,
       locale,
@@ -103,7 +101,7 @@ export default class ListBlacklists extends BlacklistCommand {
     }: {
       moderator: User | null;
       locale?: supportedLocaleCodes;
-      hubData?: Prisma.$hubBlacklistPayload['scalars'];
+      hubData?: hubBlacklist;
     },
   ) {
     return {

@@ -12,7 +12,7 @@ import { userData as userDataCol } from '@prisma/client';
 
 // if account is created within the last 7 days
 export const isNewUser = (message: Message) => {
-  const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
+  const sevenDaysAgo = Date.now() - (1000 * 60 * 60 * 24 * 7);
   return message.author.createdTimestamp > sevenDaysAgo;
 };
 
@@ -30,9 +30,7 @@ export const replyToMsg = async (
   }
 };
 
-export const containsStickers = (message: Message) => {
-  return message.stickers.size > 0 && !message.content;
-};
+export const containsStickers = (message: Message) => message.stickers.size > 0 && !message.content;
 
 export const isCaughtSpam = async (
   message: Message,
@@ -46,7 +44,7 @@ export const isCaughtSpam = async (
   const { userManager } = message.client;
 
   if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
-    const expires = new Date(Date.now() + 60 * 5000);
+    const expires = new Date(Date.now() + (60 * 5000));
     const reason = 'Auto-blacklisted for spamming.';
     const target = message.author;
     const mod = message.client.user;
@@ -79,13 +77,12 @@ export const containsNSFW = async (message: Message, imgUrl: string | null | und
   };
 };
 
-export const containsLinks = (message: Message, settings: HubSettingsBitField) => {
-  return (
-    settings.has('HideLinks') &&
-    !REGEX.STATIC_IMAGE_URL.test(message.content) &&
-    REGEX.LINKS.test(message.content)
-  );
-};
+export const containsLinks = (message: Message, settings: HubSettingsBitField) =>
+  settings.has('HideLinks') &&
+  !REGEX.STATIC_IMAGE_URL.test(message.content) &&
+  REGEX.LINKS.test(message.content);
+
+
 export const unsupportedAttachment = (message: Message) => {
   const attachment = message.attachments.first();
   // NOTE: Even 'image/gif' was allowed before

@@ -69,8 +69,7 @@ export default class Delete extends Hub {
   @RegisterInteractionHandler('hub_delete')
   static override async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const userId = customId.args[0];
-    const hubId = customId.args[1];
+    const [userId, hubId] = customId.args;
     const { locale } = interaction.user;
 
     if (interaction.user.id !== userId) {
