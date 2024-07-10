@@ -2,6 +2,7 @@ import Logger from './Logger.js';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
+import type { TranslationKey } from '#main/typings/en.js';
 
 const localesMap = new Map();
 
@@ -37,7 +38,7 @@ export const supportedLocales = {
 } as const;
 
 export interface tParams {
-  phrase: string;
+  phrase: TranslationKey;
   locale?: supportedLocaleCodes;
 }
 

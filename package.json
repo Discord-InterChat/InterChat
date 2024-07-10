@@ -13,7 +13,7 @@
     "release": "release-it",
     "lint": "eslint --cache --fix .",
     "prepare": "husky",
-    "postinstall": "husky install"
+    "postinstall": "husky install && node genLocaleTypes.js"
   },
   "engines": {
     "node": ">=v20.15.0"
