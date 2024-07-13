@@ -1,16 +1,31 @@
 import db from '../Db.js';
 import { Prisma } from '@prisma/client';
 import { cacheData, getCacheKey, invalidateCacheForModel } from './cacheUtils.js';
+import { DynamicQueryExtensionCb, InternalArgs, DefaultArgs } from '@prisma/client/runtime/library';
 
-type CacheKeyT = {
-  model: Prisma.ModelName;
-  operation: Prisma.PrismaAction | 'aggregateRaw';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  args: any;
-  query: (args: unknown) => Promise<unknown>;
-};
+type ActionT =
+  | 'findUnique'
+  | 'findUniqueOrThrow'
+  | 'findMany'
+  | 'findFirst'
+  | 'findFirstOrThrow'
+  | 'create'
+  | 'createMany'
+  | 'update'
+  | 'updateMany'
+  | 'upsert'
+  | 'delete'
+  | 'deleteMany'
+  | 'aggregate'
+  | 'count'
+  | 'groupBy';
 
-export default async ({ model, operation, args, query }: CacheKeyT) => {
+const middleware: DynamicQueryExtensionCb<
+  Prisma.TypeMap<InternalArgs & DefaultArgs>,
+  'model',
+  Prisma.ModelName,
+  ActionT
+> = async ({ model, operation, args, query }) => {
   const isReadWriteOperation = [
     'create',
     'createMany',
@@ -19,7 +34,6 @@ export default async ({ model, operation, args, query }: CacheKeyT) => {
     'findUnique',
     'findMany',
     'findFirst',
-    'count',
   ].includes(operation);
 
   // Execute the query
@@ -38,7 +52,6 @@ export default async ({ model, operation, args, query }: CacheKeyT) => {
       cacheData(result.id, JSON.stringify(result), model);
     }
   }
-
   else if (operation === 'delete') {
     await db.cache.del(getCacheKey(model, result.id));
   }
@@ -48,9 +61,12 @@ export default async ({ model, operation, args, query }: CacheKeyT) => {
   }
   else if (operation === 'updateMany') {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (db[model] as any).findMany({ where: args.where }).then(() => null);
+    // FIXME: remove lol
+    (db[model] as any).findMany({ where: args.where }).then(console.log);
   }
 
   // always return the result regardless of which operation it was
   return result;
 };
+
+export default middleware;

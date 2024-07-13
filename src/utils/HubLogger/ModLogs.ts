@@ -80,64 +80,25 @@ export const logBlacklist = async (
   await sendLog(opts.mod.client, hub.logChannels.modLogs, embed);
 };
 
-export const logServerUnblacklist = async (
-  client: Client,
-  hubId: string,
-  opts: { serverId: string; mod: User | { id: Snowflake; username: string }; reason?: string },
-) => {
-  const hub = await fetchHub(hubId);
-  const blacklisted = await client.serverBlacklists.fetchBlacklist(hubId, opts.serverId);
-  const blacklistData = blacklisted?.blacklistedFrom.find((data) => data.hubId === hubId);
-
-  if (!blacklisted || !blacklistData || !hub?.logChannels?.modLogs) return;
-
-  const embed = new EmbedBuilder()
-    .setAuthor({ name: `Server ${blacklisted.serverName} unblacklisted` })
+const getUnblacklistEmbed = (
+  type: 'User' | 'Server',
+  opts: {
+    name: string;
+    id: Snowflake;
+    mod: User | { id: Snowflake; username: string };
+    hubName: string;
+    reason?: string;
+    originalReason?: string;
+  },
+) =>
+  new EmbedBuilder()
+    .setAuthor({ name: `${type} ${opts.name} unblacklisted` })
     .setDescription(
       stripIndents`
-      ${emojis.dotBlue} **Server:** ${blacklisted.serverName} (${blacklisted.id})
+      ${emojis.dotBlue} **${type}:** ${opts.name} (${opts.id})
       ${emojis.dotBlue} **Moderator:** ${opts.mod.username} (${opts.mod.id})
-      ${emojis.dotBlue} **Hub:** ${hub?.name}
+      ${emojis.dotBlue} **Hub:** ${opts.hubName}
     `,
-    )
-    .addFields(
-      {
-        name: 'Unblacklist Reason',
-        value: opts.reason ?? 'No reason provided.',
-        inline: true,
-      },
-      { name: 'Blacklisted For', value: blacklistData.reason ?? 'Unknown', inline: true },
-    )
-    .setColor(colors.interchatBlue)
-    .setFooter({
-      text: `Unblacklisted by: ${opts.mod.username}`,
-      iconURL: opts.mod instanceof User ? opts.mod.displayAvatarURL() : undefined,
-    });
-
-  await sendLog(client, hub.logChannels.modLogs, embed);
-};
-
-export const logUserUnblacklist = async (
-  client: Client,
-  hubId: string,
-  opts: { userId: string; mod: User | { id: Snowflake; username: string }; reason?: string },
-) => {
-  const hub = await fetchHub(hubId);
-  const blacklisted = await client.userManager.fetchBlacklist(hubId, opts.userId);
-  if (!blacklisted || !hub?.logChannels?.modLogs) return;
-
-  const user = await client.users.fetch(opts.userId).catch(() => null);
-  const name = user?.username ?? `${blacklisted?.username}`;
-  const originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === hub.id)?.reason;
-
-  const embed = new EmbedBuilder()
-    .setAuthor({ name: `User ${name} unblacklisted` })
-    .setDescription(
-      stripIndents`
-        ${emojis.dotBlue} **User:** ${name} (${opts.userId})
-        ${emojis.dotBlue} **Moderator:** ${opts.mod.username} (${opts.mod.id})
-	      ${emojis.dotBlue} **Hub:** ${hub?.name}
-      `,
     )
     .addFields(
       {
@@ -145,13 +106,60 @@ export const logUserUnblacklist = async (
         value: opts.reason ?? 'No reason provided.',
         inline: true,
       },
-      { name: 'Blacklisted For', value: originalReason ?? 'Unknown', inline: true },
+      { name: 'Blacklisted For', value: opts.originalReason ?? 'Unknown', inline: true },
     )
     .setColor(colors.interchatBlue)
     .setFooter({
       text: `Unblacklisted by: ${opts.mod.username}`,
       iconURL: opts.mod instanceof User ? opts.mod.displayAvatarURL() : undefined,
     });
+
+type UnblacklistOpts = {
+  id: string;
+  mod: User | { id: Snowflake; username: string };
+  reason?: string;
+};
+
+export const logServerUnblacklist = async (
+  client: Client,
+  hubId: string,
+  opts: UnblacklistOpts,
+) => {
+  const hub = await fetchHub(hubId);
+  const blacklisted = await client.serverBlacklists.fetchBlacklist(hubId, opts.id);
+  const blacklistData = blacklisted?.blacklistedFrom.find((data) => data.hubId === hubId);
+
+  if (!blacklisted || !blacklistData || !hub?.logChannels?.modLogs) return;
+
+  const embed = getUnblacklistEmbed('Server', {
+    name: blacklisted.serverName,
+    id: opts.id,
+    mod: opts.mod,
+    reason: opts.reason,
+    hubName: hub.name,
+    originalReason: blacklistData.reason,
+  });
+
+  await sendLog(client, hub.logChannels.modLogs, embed);
+};
+
+export const logUserUnblacklist = async (client: Client, hubId: string, opts: UnblacklistOpts) => {
+  const hub = await fetchHub(hubId);
+  const blacklisted = await client.userManager.fetchBlacklist(hubId, opts.id);
+  if (!blacklisted || !hub?.logChannels?.modLogs) return;
+
+  const user = await client.users.fetch(opts.id).catch(() => null);
+  const name = user?.username ?? `${blacklisted?.username}`;
+  const originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === hub.id)?.reason;
+
+  const embed = getUnblacklistEmbed('User', {
+    name,
+    id: opts.id,
+    mod: opts.mod,
+    reason: opts.reason,
+    hubName: hub.name,
+    originalReason,
+  });
 
   await sendLog(client, hub.logChannels.modLogs, embed);
 };
