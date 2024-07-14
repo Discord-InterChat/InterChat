@@ -1,8 +1,7 @@
 // @ts-check
 
 import tseslint from 'typescript-eslint';
-import stylistic from '@stylistic/eslint-plugin'
-import globals from 'globals';
+import stylistic from '@stylistic/eslint-plugin';
 
 export default tseslint.config({
   // @ts-ignore
@@ -16,12 +15,9 @@ export default tseslint.config({
     parser: tseslint.parser,
     parserOptions: { sourceType: 'module' },
     ecmaVersion: 2022,
-    globals: {
-      ...globals.node,
-    }
   },
 
-  rules: {
+  'rules': {
     'yoda': 'error',
     'no-var': 'error',
     'no-console': 'warn',
@@ -34,7 +30,7 @@ export default tseslint.config({
     'handle-callback-err': 'error',
     'no-useless-computed-key': 'error',
     'no-constant-binary-expression': 'error',
-    'max-nested-callbacks': ['error', { 'max': 4 }],
+    'max-nested-callbacks': ['error', { max: 4 }],
     'curly': ['error', 'multi-line', 'consistent'],
 
     '@typescript-eslint/no-unused-vars': 'error',
@@ -44,7 +40,7 @@ export default tseslint.config({
 
     // 'class-methods-use-this': 'warn', // TODO: Turn this into error soon
     'no-nested-ternary': 'error',
-    
+
     'object-shorthand': 'error',
     'no-array-constructor': 'error',
     'array-callback-return': 'error',
@@ -64,14 +60,18 @@ export default tseslint.config({
     'prefer-arrow-callback': ['error', { 'allowNamedFunctions': true }],
     'arrow-body-style': ['error', 'as-needed'],
 
-    '@stylistic/max-len': ['error', {
-      'code': 100,
-      'ignoreComments': true,
-      'ignoreTrailingComments': true,
-      'ignoreStrings': true,
-      'ignoreTemplateLiterals': true,
-      'ignoreRegExpLiterals': true
-    }],
+    '@stylistic/max-len': [
+      'error',
+      {
+        'code': 100,
+        'tabWidth': 2,
+        'ignoreStrings': true,
+        'ignoreComments': true,
+        'ignoreTrailingComments': true,
+        'ignoreTemplateLiterals': true,
+        'ignoreRegExpLiterals': true,
+      },
+    ],
     '@stylistic/eol-last': ['error', 'always'],
     '@stylistic/nonblock-statement-body-position': ['error', 'beside'],
     '@stylistic/no-mixed-operators': 'error',
@@ -100,6 +100,9 @@ export default tseslint.config({
     '@stylistic/max-statements-per-line': ['error', { 'max': 2 }],
     '@stylistic/brace-style': ['error', 'stroustrup', { 'allowSingleLine': true }],
     '@stylistic/no-multiple-empty-lines': ['error', { 'max': 2, 'maxEOF': 1, 'maxBOF': 0 }],
-    '@stylistic/space-before-function-paren': ['error', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],
+    '@stylistic/space-before-function-paren': [
+      'error',
+      { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' },
+    ],
   },
 });
