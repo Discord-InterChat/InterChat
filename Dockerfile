@@ -13,15 +13,12 @@ COPY locales ./locales
 COPY prisma ./prisma
 COPY tsconfig.json .
 COPY package.json .
-COPY .yarn ./.yarn
 COPY .yarnrc.yml .
 
-RUN yarn
-RUN yarn prisma generate
+RUN pnpm install
 RUN npm rebuild @tensorflow/tfjs-node --build-from-source
 
-RUN yarn build
-RUN yarn workspaces focus --production
+RUN pnpm run build
 
 EXPOSE 443
-CMD ["yarn", "start"]
+CMD ["pnpm", "run", "start"]
