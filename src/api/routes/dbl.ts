@@ -1,6 +1,6 @@
 import { Webhook } from '@top-gg/sdk';
 import { Router } from 'express';
-import { VoteManager } from '../../managers/VoteManager.js';
+import { VoteManager } from '#main/managers/VoteManager.js';
 import 'dotenv/config';
 
 // NOTE: testing this against top.gg only works in the production server
@@ -8,7 +8,7 @@ import 'dotenv/config';
 const TopggWebhook = new Webhook(process.env.TOPGG_AUTH);
 const router = Router();
 
-export default (voteManager: VoteManager) => {
+const dblRoute = (voteManager: VoteManager): Router => {
   router.post(
     '/dbl',
     TopggWebhook.listener((payload) => {
@@ -17,3 +17,5 @@ export default (voteManager: VoteManager) => {
   );
   return router;
 };
+
+export default dblRoute;

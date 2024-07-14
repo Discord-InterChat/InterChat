@@ -11,7 +11,7 @@ const { load } = require('nsfwjs');
 
 // InceptionV3 is more accurate but slower and takes up a shit ton of memory
 const nsfwModel: NSFWJS = await load(process.env.NSFW_AI_MODEL);
-const router = Router();
+const router: Router = Router();
 
 router.post('/nsfw', async (req, res) => {
   const { imageUrl } = req.body;
@@ -22,7 +22,9 @@ router.post('/nsfw', async (req, res) => {
   }
 
   if (!REGEX.STATIC_IMAGE_URL.test(imageUrl)) {
-    res.status(400).json({ error: 'Invalid url parameter. Must be a valid PNG, JPG, or JPEG image URL.' });
+    res
+      .status(400)
+      .json({ error: 'Invalid url parameter. Must be a valid PNG, JPG, or JPEG image URL.' });
     return;
   }
 
