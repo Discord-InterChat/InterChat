@@ -1,9 +1,9 @@
-import db from '../utils/Db.js';
-import Factory from './Factory.js';
-import { colors, emojis } from '../utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import { getAllDocuments, serializeCache } from '#main/utils/db/cacheUtils.js';
 import { hubBlacklist, Prisma } from '@prisma/client';
 import { EmbedBuilder, Snowflake, User } from 'discord.js';
-import { getAllDocuments, serializeCache } from '../utils/db/cacheUtils.js';
+import Factory from './Factory.js';
 
 interface BlacklistEntity {
   id: string;

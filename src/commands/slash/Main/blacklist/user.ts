@@ -44,8 +44,8 @@ export default class extends BlacklistCommand {
       });
     }
     else if (subcommandGroup === 'remove') {
-      const userId = interaction.options.getString('user', true);
       const { userManager } = interaction.client;
+      const userId = interaction.options.getString('user', true);
       const result = await userManager.removeBlacklist(hub.id, userId);
 
       if (!result) {
@@ -79,10 +79,12 @@ export default class extends BlacklistCommand {
       moderatorId: interaction.user.id,
       expires,
     });
+
     await userManager
       .sendNotification({ target: user, hubId, expires, reason })
       .catch(Logger.error);
   }
+
   private async runUserAddChecks(
     interaction: ChatInputCommandInteraction,
     hubId: string,
@@ -102,7 +104,7 @@ export default class extends BlacklistCommand {
     else if (userId === interaction.user.id) {
       await this.replyEmbed(
         interaction,
-        '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
+        '<a:nuhuh:1256859727158050838> Nuh uh! You are stuck with us.',
         hiddenOpt,
       );
       return false;
