@@ -8,12 +8,14 @@ import {
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
   type ColorResolvable,
+  type InteractionResponse,
+  type Message,
   Collection,
   time,
 } from 'discord.js';
-import { InteractionFunction } from '../decorators/Interaction.js';
-import { t } from '../utils/Locale.js';
-import { emojis } from '../utils/Constants.js';
+import { InteractionFunction } from '#main/decorators/Interaction.js';
+import { t } from '#main/utils/Locale.js';
+import { emojis } from '#main/utils/Constants.js';
 import { getReplyMethod, simpleEmbed } from '#main/utils/Utils.js';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
@@ -112,11 +114,11 @@ export default abstract class BaseCommand {
     interaction: RepliableInteraction,
     desc: string,
     opts?: { title?: string; color?: ColorResolvable; ephemeral?: boolean; edit?: boolean },
-  ) {
+  ): Promise<InteractionResponse | Message> {
     const message = { embeds: [simpleEmbed(desc, opts)] };
     if (opts?.edit) return await interaction.editReply(message);
 
     const methodName = getReplyMethod(interaction);
-    await interaction[methodName]({ ...message, ephemeral: opts?.ephemeral });
+    return await interaction[methodName]({ ...message, ephemeral: opts?.ephemeral });
   }
 }

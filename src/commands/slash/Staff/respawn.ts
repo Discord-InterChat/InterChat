@@ -12,14 +12,14 @@ export default class Respawn extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     if (!isDev(interaction.user.id)) {
       await interaction.reply({
-        content: `${emojis.dnd_anim} You are not authorized to use this command.`,
+        content: 'No u',
         ephemeral: true,
       });
       return;
     }
 
     await interaction.reply({
-      content: `${emojis.tick} Request to respawn shards received. I'll be back!`,
+      content: `${emojis.tick} Respawning all shards. I'll be back!`,
       ephemeral: true,
     });
 
