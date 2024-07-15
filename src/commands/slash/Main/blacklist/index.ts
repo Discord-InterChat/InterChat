@@ -1,19 +1,42 @@
+import { emojis } from '#main/utils/Constants.js';
+import { t } from '#main/utils/Locale.js';
+import { hubs as hubsT } from '@prisma/client';
 import {
+  type AutocompleteInteraction,
+  type ChatInputCommandInteraction,
+  type RESTPostAPIApplicationCommandsJSONBody,
+  type Snowflake,
+  type APIApplicationCommandBasicOption,
   ApplicationCommandOptionChoiceData,
   ApplicationCommandOptionType,
-  AutocompleteInteraction,
-  ChatInputCommandInteraction,
   Collection,
-  RESTPostAPIApplicationCommandsJSONBody,
+  EmbedBuilder,
+  time,
 } from 'discord.js';
-import db from '../../../../utils/Db.js';
-import BaseCommand from '../../../../core/BaseCommand.js';
-import { checkIfStaff, escapeRegexChars, handleError } from '../../../../utils/Utils.js';
-import { hubs as hubsT } from '@prisma/client';
+import BaseCommand from '#main/core/BaseCommand.js';
+import db from '#main/utils/Db.js';
+import { checkIfStaff, escapeRegexChars, getReplyMethod, handleError } from '#main/utils/Utils.js';
 
 export default class BlacklistCommand extends BaseCommand {
   // TODO: Put this in readme
   static readonly subcommands = new Collection<string, BaseCommand>();
+  private readonly hubOpt: APIApplicationCommandBasicOption = {
+    type: ApplicationCommandOptionType.String,
+    name: 'hub',
+    description: 'The name of the hub to blacklist/unblacklist the target from.',
+    required: false,
+    autocomplete: true,
+  };
+
+  private readonly optionalOpts: APIApplicationCommandBasicOption[] = [
+    { ...this.hubOpt },
+    {
+      type: ApplicationCommandOptionType.String,
+      name: 'duration',
+      description: 'The duration of the blacklist. Eg. 1d, 1w, 1m, 1y',
+      required: false,
+    },
+  ];
 
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'blacklist',
@@ -30,17 +53,9 @@ export default class BlacklistCommand extends BaseCommand {
             description: 'Blacklist a user from using your hub.',
             options: [
               {
-                type: ApplicationCommandOptionType.String,
-                name: 'hub',
-                description: 'The name of the hub to blacklist the user from.',
-                required: true,
-                autocomplete: true,
-              },
-              {
-                type: ApplicationCommandOptionType.String,
+                type: ApplicationCommandOptionType.User,
                 name: 'user',
-                description:
-                  'The user ID to blacklist. User tag also works if they are already cached.',
+                description: 'The user ID to blacklist.',
                 required: true,
               },
               {
@@ -49,12 +64,7 @@ export default class BlacklistCommand extends BaseCommand {
                 description: 'The reason for blacklisting the user.',
                 required: true,
               },
-              {
-                type: ApplicationCommandOptionType.String,
-                name: 'duration',
-                description: 'The duration of the blacklist. Eg. 1d, 1w, 1m, 1y',
-                required: false,
-              },
+              ...this.optionalOpts,
             ],
           },
           {
@@ -62,13 +72,6 @@ export default class BlacklistCommand extends BaseCommand {
             name: 'server',
             description: 'Blacklist a server from using your hub.',
             options: [
-              {
-                type: ApplicationCommandOptionType.String,
-                name: 'hub',
-                description: 'The name of the hub to blacklist the server from.',
-                required: true,
-                autocomplete: true,
-              },
               {
                 type: ApplicationCommandOptionType.String,
                 name: 'server',
@@ -81,12 +84,7 @@ export default class BlacklistCommand extends BaseCommand {
                 description: 'The reason for blacklisting the server.',
                 required: true,
               },
-              {
-                type: ApplicationCommandOptionType.String,
-                name: 'duration',
-                description: 'The duration of the blacklist. Eg. 1d, 1w, 1m, 1y',
-                required: false,
-              },
+              ...this.optionalOpts,
             ],
           },
         ],
@@ -101,13 +99,7 @@ export default class BlacklistCommand extends BaseCommand {
             name: 'user',
             description: 'Remove a user from the blacklist.',
             options: [
-              {
-                type: ApplicationCommandOptionType.String,
-                name: 'hub',
-                description: 'The name of the hub to blacklist the user from.',
-                required: true,
-                autocomplete: true,
-              },
+              { ...this.hubOpt, required: true },
               {
                 type: ApplicationCommandOptionType.String,
                 name: 'user',
@@ -122,13 +114,7 @@ export default class BlacklistCommand extends BaseCommand {
             name: 'server',
             description: 'Remove a server from the blacklist.',
             options: [
-              {
-                type: ApplicationCommandOptionType.String,
-                name: 'hub',
-                description: 'The name of the hub to blacklist the user from.',
-                required: true,
-                autocomplete: true,
-              },
+              { ...this.hubOpt, required: true },
               {
                 type: ApplicationCommandOptionType.String,
                 name: 'server',
@@ -178,18 +164,29 @@ export default class BlacklistCommand extends BaseCommand {
     const action = interaction.options.getSubcommand() as 'user' | 'server';
     const hubOpt = interaction.options.get('hub');
 
-    if (typeof hubOpt?.value !== 'string') return;
-
     let choices: ApplicationCommandOptionChoiceData<string>[] = [];
 
-    if (hubOpt.focused) {
-      choices = await this.findHubsByName(hubOpt.value, interaction.user.id);
+    if (hubOpt?.focused && typeof hubOpt.value === 'string') {
+      choices = (await this.findHubsByName(hubOpt?.value, interaction.user.id))?.map(
+        ({ name }) => ({
+          name,
+          value: name,
+        }),
+      );
     }
     else {
-      const hub = await db.hubs.findFirst({ where: { name: hubOpt.value } });
+      const hub =
+        typeof hubOpt?.value === 'string'
+          ? await this.findHubsByName(hubOpt.value, interaction.user.id, 1)
+          : await this.getHub({ name: null, userId: interaction.user.id });
 
-      if (!this.isStaffOrHubMod(interaction.user.id, hub)) {
-        await interaction.respond([]);
+      if (!hub || hub === 'exceeds max length') {
+        await interaction.respond([
+          {
+            name: 'Please specify the "hub" option first.',
+            value: ' ',
+          },
+        ]);
         return;
       }
 
@@ -215,7 +212,65 @@ export default class BlacklistCommand extends BaseCommand {
     await interaction.respond(choices);
   }
 
-  private isStaffOrHubMod(userId: string, hub: hubsT | null): hub is hubsT {
+  protected async getHub({ name, userId }: { name: string | null; userId: Snowflake }) {
+    if (name) {
+      return await db.hubs.findFirst({ where: { name } });
+    }
+    else {
+      const allHubs = await db.hubs.findMany({
+        where: { OR: [{ ownerId: userId }, { moderators: { some: { userId } } }] },
+      });
+      if (allHubs.length > 1) return 'exceeds max length';
+      // assign first value of the hub query
+      return allHubs[0];
+    }
+  }
+
+  protected async sendSuccessResponse(
+    interaction: ChatInputCommandInteraction,
+    desc: string,
+    opts: { reason: string; expires: Date | null },
+  ) {
+    const successEmbed = new EmbedBuilder()
+      .setDescription(desc)
+      .setColor('Green')
+      .addFields(
+        { name: 'Reason', value: opts.reason, inline: true },
+        {
+          name: 'Expires',
+          value: opts.expires
+            ? `${time(Math.round(opts.expires.getTime() / 1000), 'R')}`
+            : 'Never.',
+          inline: true,
+        },
+      );
+
+    const method = getReplyMethod(interaction);
+    await interaction[method]({ embeds: [successEmbed] });
+  }
+
+  protected isValidHub(
+    interaction: ChatInputCommandInteraction,
+    hub: hubsT | string | null,
+  ): hub is hubsT {
+    const { locale } = interaction.user;
+    const hiddenOpt = { ephemeral: true };
+    if (!hub) {
+      this.replyEmbed(interaction, t({ phrase: 'hub.notFound_mod', locale }), hiddenOpt);
+      return false;
+    }
+    else if (hub === 'exceeds max length') {
+      this.replyEmbed(
+        interaction,
+        `${emojis.no} Specify the \`hub\` option of the slash command as you own/moderate more than one hub.`,
+        hiddenOpt,
+      );
+      return false;
+    }
+    return true;
+  }
+
+  protected isStaffOrHubMod(userId: string, hub: hubsT | null): hub is hubsT {
     const isHubMod =
       hub?.ownerId === userId || hub?.moderators.find((mod) => mod.userId === userId);
     const isStaff = checkIfStaff(userId);
@@ -255,14 +310,15 @@ export default class BlacklistCommand extends BaseCommand {
     }));
   }
 
-  private async findHubsByName(name: string, ownerId: string) {
+  private async findHubsByName(name: string, ownerId: string, limit?: number): Promise<hubsT[]>;
+  private async findHubsByName(name: string, ownerId: string, limit: 1): Promise<hubsT>;
+  private async findHubsByName(name: string, ownerId: string, limit?: number) {
     const hubs = await db.hubs.findMany({
       where: { name: { mode: 'insensitive', contains: escapeRegexChars(name) } },
-      take: 25,
+      take: limit ?? 25,
     });
 
-    return hubs
-      .filter((hub) => this.isStaffOrHubMod(ownerId, hub))
-      .map(({ name: hubName }) => ({ name: hubName, value: hubName }));
+    if (limit === 1 && hubs.length > 0) return hubs[0];
+    return hubs.filter((hub) => this.isStaffOrHubMod(ownerId, hub));
   }
 }

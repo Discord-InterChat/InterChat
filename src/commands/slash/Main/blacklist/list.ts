@@ -1,11 +1,11 @@
-import { blacklistedServers, userData, hubBlacklist } from '@prisma/client';
-import { ChatInputCommandInteraction, EmbedBuilder, User, time } from 'discord.js';
-import { colors, emojis } from '../../../../utils/Constants.js';
-import db from '../../../../utils/Db.js';
-import { supportedLocaleCodes, t } from '../../../../utils/Locale.js';
-import { paginate } from '../../../../utils/Pagination.js';
-import { simpleEmbed, toTitleCase } from '../../../../utils/Utils.js';
+import db from '#main/utils/Db.js';
 import BlacklistCommand from './index.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { paginate } from '#main/utils/Pagination.js';
+import { toTitleCase } from '#main/utils/Utils.js';
+import { blacklistedServers, hubBlacklist, userData } from '@prisma/client';
+import { ChatInputCommandInteraction, EmbedBuilder, User, time } from 'discord.js';
 
 // Type guard
 const isUserType = (list: blacklistedServers | userData) => list && 'username' in list;
@@ -24,18 +24,11 @@ export default class ListBlacklists extends BlacklistCommand {
         ],
       },
     });
-
+    const { locale } = interaction.user;
     if (!hubInDb) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'hub.notFound_mod', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
-        ],
-      });
+      await this.replyEmbed(interaction, t(
+        { phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
+      );
       return;
     }
 

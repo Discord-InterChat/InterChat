@@ -44,7 +44,4 @@ export const modifyConnection = async (
 export const modifyConnections = async (
   where: Prisma.connectedListWhereInput,
   data: Prisma.connectedListUpdateInput,
-) => {
-  await db.connectedList.updateMany({ where, data });
-  await getAllConnections(where);
-};
+) => await db.connectedList.updateMany({ where, data });

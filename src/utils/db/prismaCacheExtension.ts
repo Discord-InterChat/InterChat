@@ -6,6 +6,7 @@ import {
 } from '@prisma/client/runtime/library';
 import db from '../Db.js';
 import { cacheData, getCacheKey, invalidateCacheForModel } from './cacheUtils.js';
+import { DynamicQueryExtensionCb, InternalArgs, DefaultArgs } from '@prisma/client/runtime/library';
 
 type ActionT =
   | 'findUnique'
