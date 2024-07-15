@@ -1,5 +1,16 @@
-import db from '../../../../utils/Db.js';
-import Hub from './index.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { genLogInfoEmbed } from '#main/scripts/hub/logs.js';
+import { actionsSelect, hubEmbed } from '#main/scripts/hub/manage.js';
+import { buildSettingsEmbed, buildSettingsMenu } from '#main/scripts/hub/settings.js';
+import { HubSettingsBitField, HubSettingsString } from '#main/utils/BitFields.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
+import { removeReportsFrom, setReportRole } from '#main/utils/HubLogger/Report.js';
+import { t } from '#main/utils/Locale.js';
+import { checkAndFetchImgurUrl, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
+import { Prisma } from '@prisma/client';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -17,18 +28,7 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { t } from '../../../../utils/Locale.js';
-import { CustomID } from '../../../../utils/CustomID.js';
-import { colors, emojis } from '../../../../utils/Constants.js';
-import { Prisma } from '@prisma/client';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { buildSettingsEmbed, buildSettingsMenu } from '../../../../scripts/hub/settings.js';
-import { HubSettingsBitField, HubSettingsString } from '../../../../utils/BitFields.js';
-import { checkAndFetchImgurUrl, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
-import { actionsSelect, hubEmbed } from '../../../../scripts/hub/manage.js';
-import { genLogInfoEmbed } from '../../../../scripts/hub/logs.js';
-import { setLogChannelFor } from '../../../../utils/HubLogger/Default.js';
-import { removeReportsFrom, setReportRole } from '../../../../utils/HubLogger/Report.js';
+import Hub from './index.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -46,16 +46,10 @@ export default class Manage extends Hub {
     });
 
     if (!hubInDb) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'hub.notFound_mod', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
-        ],
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }, { emoji: emojis.no }),
+      );
       return;
     }
 
@@ -115,7 +109,7 @@ export default class Manage extends Hub {
     // TODO: implement BlockNSFW, only allow hubs that are explicitly marked as NSFW to have this setting
     // & only allow network channels to be marked as NSFW
     if (selected === 'BlockNSFW') {
-      interaction.reply({
+      await interaction.reply({
         embeds: [
           simpleEmbed(
             `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
@@ -689,7 +683,10 @@ export default class Manage extends Hub {
       await interaction.reply({
         embeds: [
           simpleEmbed(
-            t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.deleteDanger_icon, type }),
+            t(
+              { phrase: 'hub.manage.logs.reset', locale },
+              { emoji: emojis.deleteDanger_icon, type },
+            ),
           ),
         ],
         ephemeral: true,

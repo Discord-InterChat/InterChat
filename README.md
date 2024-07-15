@@ -2,7 +2,7 @@
 
 <p align="center"><strong>InterChat</strong></p>
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/b13854f1a4e321cbdea5/maintainability)](https://codeclimate.com/repos/65e14df13087a11dde64b238/maintainability) 
+[![Maintainability](https://api.codeclimate.com/v1/badges/b13854f1a4e321cbdea5/maintainability)](https://codeclimate.com/repos/65e14df13087a11dde64b238/maintainability)
 [![Discord Bots](https://top.gg/api/widget/servers/769921109209907241.svg/)](https://top.gg/bot/769921109209907241)
 
 
@@ -15,7 +15,7 @@ This repo contains the source code for the InterChat Discord bot. InterChat is a
 1. [Node.js](https://nodejs.org/)
 2. [Git](https://git-scm.com/downloads)
 3. [MongoDB](https://www.mongodb.com/try/download/community)
-4. [NPM](https://www.npmjs.com/get-npm) or [Yarn](https://yarnpkg.com/getting-started/install) (we are using yarn in this guide)
+4. A Node Package Manager ([NPM](https://www.npmjs.com/get-npm)/[Yarn](https://yarnpkg.com/getting-started/install)/PNPM)
 5. [An Imgur API Key](https://api.imgur.com/oauth2/addclient) (optional, for setting hub icon and banner)
 6. [Python 3.9.13](https://www.python.org/downloads/release/python-3913/) & [Visual Studio Build Tools (Windows Only)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019) (for Tensorflow)
 

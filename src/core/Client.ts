@@ -1,8 +1,8 @@
-import Scheduler from '../services/SchedulerService.js';
-import UserDbManager from '../managers/UserDbManager.js';
-import CooldownService from '../services/CooldownService.js';
-import loadCommandFiles, { commandsMap, interactionsMap } from '../utils/LoadCommands.js';
-import ServerBlacklistManager from '../managers/ServerBlacklistManager.js';
+import Scheduler from '#main/services/SchedulerService.js';
+import UserDbManager from '#main/managers/UserDbManager.js';
+import CooldownService from '#main/services/CooldownService.js';
+import loadCommandFiles, { commandsMap, interactionsMap } from '#main/utils/LoadCommands.js';
+import ServerBlacklistManager from '#main/managers/ServerBlacklistManager.js';
 import {
   Client,
   IntentsBitField,
@@ -99,7 +99,8 @@ export default class SuperClient extends Client {
 
     await getAllConnections({ connected: true });
 
-    await this.login(process.env.TOKEN);
+    // Discord.js automatically takes DISCORD_TOKEN env variable
+    await this.login();
   }
 
   /**

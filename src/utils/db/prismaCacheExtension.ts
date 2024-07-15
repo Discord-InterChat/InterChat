@@ -1,5 +1,10 @@
+import { type Prisma } from '@prisma/client';
+import {
+  type DefaultArgs,
+  type DynamicQueryExtensionCb,
+  type InternalArgs,
+} from '@prisma/client/runtime/library';
 import db from '../Db.js';
-import { Prisma } from '@prisma/client';
 import { cacheData, getCacheKey, invalidateCacheForModel } from './cacheUtils.js';
 import { DynamicQueryExtensionCb, InternalArgs, DefaultArgs } from '@prisma/client/runtime/library';
 
@@ -61,7 +66,7 @@ const middleware: DynamicQueryExtensionCb<
   }
   else if (operation === 'updateMany') {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    // FIXME: remove lol
+    // FIXME: remove console log lol
     (db[model] as any).findMany({ where: args.where }).then(console.log);
   }
 

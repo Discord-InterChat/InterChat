@@ -1,13 +1,13 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import Logger from '#main/utils/Logger.js';
+import { getDbUser } from '#main/utils/Utils.js';
 import {
+  type ChatInputCommandInteraction,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
   ApplicationCommandOptionType,
-  ChatInputCommandInteraction,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
-import BaseCommand from '../../../core/BaseCommand.js';
-import db from '../../../utils/Db.js';
-import { getDbUser, simpleEmbed } from '../../../utils/Utils.js';
-import { emojis } from '../../../utils/Constants.js';
-import Logger from '../../../utils/Logger.js';
 
 export default class Ban extends BaseCommand {
   readonly staffOnly = true;
@@ -29,13 +29,12 @@ export default class Ban extends BaseCommand {
       },
     ],
   };
-  override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
+  override async execute(interaction: ChatInputCommandInteraction) {
     const user = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason', true);
 
     if (user.id === interaction.user.id) {
-      await interaction.reply({
-        content: `Let's not go there. ${emojis.bruhcat}`,
+      await this.replyEmbed(interaction, `Let's not go there. ${emojis.bruhcat}`, {
         ephemeral: true,
       });
       return;
@@ -43,9 +42,10 @@ export default class Ban extends BaseCommand {
 
     const dbUser = await getDbUser(user.id);
     if (dbUser?.banMeta) {
-      await interaction.reply({
-        embeds: [simpleEmbed(`${emojis.slash} User **${user.username}** is already banned.`)],
-      });
+      await this.replyEmbed(
+        interaction,
+        `${emojis.slash} User **${user.username}** is already banned.`,
+      );
       return;
     }
 
@@ -63,12 +63,9 @@ export default class Ban extends BaseCommand {
 
     Logger.info(`User ${user.username} (${user.id}) banned by ${interaction.user.username}.`);
 
-    await interaction.reply({
-      embeds: [
-        simpleEmbed(
-          `${emojis.tick} Successfully banned \`${user.username}\`. They can no longer use the bot.`,
-        ),
-      ],
-    });
+    await this.replyEmbed(
+      interaction,
+      `${emojis.tick} Successfully banned \`${user.username}\`. They can no longer use the bot.`,
+    );
   }
 }

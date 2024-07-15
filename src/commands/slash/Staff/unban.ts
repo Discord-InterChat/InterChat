@@ -1,34 +1,32 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { getDbUser, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ApplicationCommandOptionType,
   ChatInputCommandInteraction,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
-import BaseCommand from '../../../core/BaseCommand.js';
-import db from '../../../utils/Db.js';
-import { simpleEmbed } from '../../../utils/Utils.js';
-import { emojis } from '../../../utils/Constants.js';
 
 export default class Unban extends BaseCommand {
   readonly staffOnly = true;
   data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'unban',
-    description: '🔨 Unban a user from using the bot. (Dev Only)',
+    description: '🔨 Unban a user from using the bot (Staff Only)',
     options: [
       {
         type: ApplicationCommandOptionType.User,
         name: 'user',
-        description: '🔨 The user to unban.',
+        description: '👤 The user to unban',
         required: true,
       },
     ],
   };
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
     const user = interaction.options.getUser('user', true);
-    const alreadyBanned = await db.userData.findFirst({
-      where: { id: user.id, banMeta: { isSet: true } },
-    });
+    const alreadyBanned = await getDbUser(user.id);
 
-    if (!alreadyBanned) {
+    if (!alreadyBanned?.banMeta?.reason) {
       await interaction.reply({
         embeds: [simpleEmbed(`${emojis.slash} User **${user.username}** is not banned.`)],
       });

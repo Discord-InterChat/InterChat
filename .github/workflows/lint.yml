@@ -12,11 +12,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
-          cache-dependency-path: yarn.lock
+          cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
-        run: yarn add eslint
+        run: pnpm add eslint
 
       - name: Lint files
-        run: yarn lint
+        run: pnpm lint

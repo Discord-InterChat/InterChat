@@ -288,22 +288,6 @@ export const checkAndFetchImgurUrl = async (url: string): Promise<string | false
 
 export const toTitleCase = (str: string) => startCase(toLower(str));
 
-/**
- * Parses the timestamp from a Snowflake ID and returns it in milliseconds.
- * @param id The Snowflake ID to parse.
- * @returns The timestamp in milliseconds.
- */
-export const parseTimestampFromId = (id: Snowflake) => {
-  // Convert the snowflake to a BigInt
-  const snowflake = BigInt(id);
-
-  // Extract the timestamp from the snowflake (first 42 bits)
-  const discordEpoch = 1420070400000n;
-  const timestamp = (snowflake >> 22n) + discordEpoch;
-
-  return Number(timestamp);
-};
-
 export const channelMention = (channelId: Snowflake | null | undefined) => {
   if (!channelId) return emojis.no;
   return `<#${channelId}>`;
