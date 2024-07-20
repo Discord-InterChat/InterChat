@@ -12,7 +12,7 @@ import Hub from './index.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
-import { simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
+import { setComponentExpiry, getUserLocale } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
 import { logGuildLeaveToHub } from '../../../../utils/HubLogger/JoinLeave.js';
 import { deleteConnection } from '../../../../utils/ConnectedList.js';
@@ -28,27 +28,22 @@ export default class Leave extends Hub {
       include: { hub: true },
     });
 
+    const locale = await getUserLocale(interaction.user.id);
     if (!isChannelConnected) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(
-            t({ phrase: 'hub.leave.noHub', locale: interaction.user.locale }, { emoji: emojis.no }),
-          ),
-        ],
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.leave.noHub', locale }, { emoji: emojis.no }),
+      );
       return;
     }
     else if (!interaction.member.permissions.has('ManageChannels', true)) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
-              { permissions: 'Manage Channels', emoji: emojis.no },
-            ),
-          ),
-        ],
-      });
+      await this.replyEmbed(
+        interaction,
+        t(
+          { phrase: 'errors.missingPermissions', locale },
+          { permissions: 'Manage Channels', emoji: emojis.no },
+        ),
+      );
       return;
     }
 
@@ -68,13 +63,13 @@ export default class Leave extends Hub {
     const resetConfirmEmbed = new EmbedBuilder()
       .setDescription(
         t(
-          { phrase: 'hub.leave.confirm', locale: interaction.user.locale },
+          { phrase: 'hub.leave.confirm', locale },
           { channel: `<#${channelId}>`, hub: `${isChannelConnected.hub?.name}` },
         ),
       )
       .setColor('Red')
       .setFooter({
-        text: t({ phrase: 'hub.leave.confirmFooter', locale: interaction.user.locale }),
+        text: t({ phrase: 'hub.leave.confirmFooter', locale }),
       });
 
     const reply = await interaction.editReply({
@@ -89,7 +84,6 @@ export default class Leave extends Hub {
   static override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [channelId] = customId.args;
-    const { locale } = interaction.user;
 
     if (customId.suffix === 'no') {
       await interaction.deferUpdate();
@@ -97,6 +91,7 @@ export default class Leave extends Hub {
       return;
     }
 
+    const locale = await getUserLocale(interaction.user.id);
     const validConnection = await db.connectedList.findFirst({ where: { channelId } });
     if (!validConnection) {
       await interaction.update({

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { interactionsMap } from '#main/utils/LoadCommands.js';
 import { MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
 
@@ -10,6 +11,7 @@ export function RegisterInteractionHandler(prefix: string, suffix = ''): MethodD
   return function(targetClass, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value as InteractionFunction;
     const realSuffix = suffix ? `:${suffix}` : '';
+    // console.log(new targetClass.constructor(), targetClass);
 
     // NOTE: It is not possible to access other class properties for decorator methods
     // so don't try to access `this.<property>` in any decorator method body

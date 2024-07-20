@@ -308,10 +308,10 @@ export const getReplyMethod = (interaction: RepliableInteraction | CommandIntera
   */
 export const sendErrorEmbed = async (interaction: RepliableInteraction, errorId: string) => {
   const method = getReplyMethod(interaction);
-
+  const locale = await getUserLocale(interaction.user.id);
   // reply with an error message if the command failed
   return await interaction[method]({
-    embeds: [simpleEmbed(genCommandErrMsg(interaction.user.locale || 'en', errorId))],
+    embeds: [simpleEmbed(genCommandErrMsg(locale, errorId))],
     ephemeral: true,
   }).catch(() => null);
 };
@@ -475,8 +475,17 @@ export const getAttachmentURL = async (string: string) => {
 
 export const fetchHub = async (id: string) => await db.hubs.findFirst({ where: { id } });
 
-export const getUserLocale = (user: userData | undefined | null) =>
-  (user?.locale as supportedLocaleCodes | null | undefined) || 'en';
+export const getUserLocale = async (userOrId: string | userData | null | undefined) => {
+  let dbUser: userData | null | undefined;
+  if (typeof userOrId === 'string') {
+    dbUser = await getDbUser(userOrId);
+  }
+  else {
+    dbUser = userOrId;
+  }
+
+  return (dbUser?.locale as supportedLocaleCodes | null | undefined) ?? 'en';
+};
 
 export const containsInviteLinks = (str: string) => {
   const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];

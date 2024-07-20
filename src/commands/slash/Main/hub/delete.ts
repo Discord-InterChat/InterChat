@@ -9,7 +9,12 @@ import {
 import db from '../../../../utils/Db.js';
 import Hub from './index.js';
 import { LINKS, emojis } from '../../../../utils/Constants.js';
-import { deleteHubs, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
+import {
+  deleteHubs,
+  simpleEmbed,
+  setComponentExpiry,
+  getUserLocale,
+} from '../../../../utils/Utils.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { t } from '../../../../utils/Locale.js';
@@ -18,22 +23,18 @@ export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
     const hubInDb = await db.hubs.findFirst({ where: { name: hubName } });
+    const locale = await getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== hubInDb?.ownerId) {
       await interaction.reply({
-        content: t(
-          { phrase: 'hub.delete.ownerOnly', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'hub.delete.ownerOnly', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
     }
 
     const confirmEmbed = new EmbedBuilder()
-      .setDescription(
-        t({ phrase: 'hub.delete.confirm', locale: interaction.user.locale }, { hub: hubInDb.name }),
-      )
+      .setDescription(t({ phrase: 'hub.delete.confirm', locale }, { hub: hubInDb.name }))
       .setColor('Red');
     const confirmButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
@@ -70,7 +71,7 @@ export default class Delete extends Hub {
   static override async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [userId, hubId] = customId.args;
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== userId) {
       await interaction.reply({

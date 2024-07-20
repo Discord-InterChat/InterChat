@@ -1,11 +1,10 @@
-import Scheduler from '../services/SchedulerService.ts';
-import BaseCommand from '../core/BaseCommand.ts';
-import CooldownService from '../services/CooldownService.ts';
-import UserDbManager from '../managers/UserDbManager.ts';
-import ServerBlacklisManager from '../managers/ServerBlacklistManager.ts';
+import Scheduler from '#main/services/SchedulerService.ts';
+import BaseCommand from '#main/core/BaseCommand.ts';
+import CooldownService from '#main/services/CooldownService.ts';
+import UserDbManager from '#main/managers/UserDbManager.ts';
+import ServerBlacklisManager from '#main/managers/ServerBlacklistManager.ts';
 import { ClusterClient } from 'discord-hybrid-sharding';
-import { InteractionFunction } from '../decorators/Interaction.ts';
-import { supportedLocaleCodes } from '../utils/Locale.ts';
+import { InteractionFunction } from '#main/decorators/Interaction.ts';
 import { Collection, Snowflake } from 'discord.js';
 
 type RemoveMethods<T> = {
@@ -28,9 +27,5 @@ declare module 'discord.js' {
 
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;
-  }
-
-  export interface User {
-    locale?: supportedLocaleCodes;
   }
 }

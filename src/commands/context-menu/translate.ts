@@ -15,7 +15,7 @@ import {
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../../core/BaseCommand.js';
-import { userVotedToday } from '../../utils/Utils.js';
+import { getUserLocale, userVotedToday } from '../../utils/Utils.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { t } from '../../utils/Locale.js';
@@ -32,11 +32,10 @@ export default class Translate extends BaseCommand {
 
   async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
+    const locale = await getUserLocale(interaction.user.id);
 
     if (!(await userVotedToday(interaction.user.id))) {
-      await interaction.editReply(
-        t({ phrase: 'errors.mustVote', locale: interaction.user.locale }, { emoji: emojis.no }),
-      );
+      await interaction.editReply(t({ phrase: 'errors.mustVote', locale }, { emoji: emojis.no }));
       return;
     }
 
@@ -51,10 +50,7 @@ export default class Translate extends BaseCommand {
 
     if (!originalMsg) {
       await interaction.editReply(
-        t(
-          { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -65,7 +61,7 @@ export default class Translate extends BaseCommand {
       return;
     }
 
-    const translatedMessage = await translate(messageContent, { to: interaction.user.locale });
+    const translatedMessage = await translate(messageContent, { to: locale });
     const embed = new EmbedBuilder()
       .setDescription('### Translation Results')
       .setColor('Green')
@@ -136,14 +132,12 @@ export default class Translate extends BaseCommand {
       return;
     }
 
+    const locale = await getUserLocale(interaction.user.id);
     const to = interaction.fields.getTextInputValue('to');
     const from = interaction.fields.getTextInputValue('from');
     if (!isSupported(from) || !isSupported(to)) {
       await interaction.reply({
-        content: t(
-          { phrase: 'errors.invalidLangCode', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'errors.invalidLangCode', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;

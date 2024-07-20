@@ -3,7 +3,7 @@ import BlacklistCommand from './index.js';
 import { colors, emojis } from '#main/utils/Constants.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { paginate } from '#main/utils/Pagination.js';
-import { toTitleCase } from '#main/utils/Utils.js';
+import { getUserLocale, toTitleCase } from '#main/utils/Utils.js';
 import { blacklistedServers, hubBlacklist, userData } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, User, time } from 'discord.js';
 
@@ -24,10 +24,11 @@ export default class ListBlacklists extends BlacklistCommand {
         ],
       },
     });
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
     if (!hubInDb) {
-      await this.replyEmbed(interaction, t(
-        { phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -54,6 +55,7 @@ export default class ListBlacklists extends BlacklistCommand {
     const fields = [];
     let counter = 0;
     const type = isUserType(list[0]) ? 'user' : 'server';
+    const locale = await getUserLocale(interaction.user.id);
 
     for (const data of list) {
       const hubData = data.blacklistedFrom.find((d) => d.hubId === hubId);
@@ -61,9 +63,7 @@ export default class ListBlacklists extends BlacklistCommand {
         ? await interaction.client.users.fetch(hubData.moderatorId).catch(() => null)
         : null;
 
-      fields.push(
-        this.createFieldData(data, type, { hubData, moderator, locale: interaction.user.locale }),
-      );
+      fields.push(this.createFieldData(data, type, { hubData, moderator, locale }));
 
       counter++;
       if (counter >= opts.LIMIT || fields.length === list.length) {

@@ -14,19 +14,20 @@ import {
   time,
 } from 'discord.js';
 import { InteractionFunction } from '#main/decorators/Interaction.js';
-import { t } from '#main/utils/Locale.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { emojis } from '#main/utils/Constants.js';
-import { getReplyMethod, simpleEmbed } from '#main/utils/Utils.js';
+import { getReplyMethod, getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
+export type CommandBody =
+  | RESTPostAPIChatInputApplicationCommandsJSONBody
+  | RESTPostAPIContextMenuApplicationCommandsJSONBody;
 
 export const commandsMap = new Collection<string, BaseCommand>();
 export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
 
 export default abstract class BaseCommand {
-  abstract readonly data:
-    | RESTPostAPIChatInputApplicationCommandsJSONBody
-    | RESTPostAPIContextMenuApplicationCommandsJSONBody;
+  abstract readonly data: CommandBody;
   readonly staffOnly?: boolean;
   readonly cooldown?: number;
   readonly description?: string;
@@ -43,7 +44,8 @@ export default abstract class BaseCommand {
     const remainingCooldown = await this.getRemainingCooldown(interaction);
 
     if (remainingCooldown) {
-      await this.sendCooldownError(interaction, remainingCooldown);
+      const locale = await getUserLocale(interaction.user.id);
+      await this.sendCooldownError(interaction, remainingCooldown, locale);
       return true;
     }
 
@@ -54,12 +56,13 @@ export default abstract class BaseCommand {
   async sendCooldownError(
     interaction: RepliableInteraction,
     remainingCooldown: number,
+    locale: supportedLocaleCodes,
   ): Promise<void> {
     const waitUntil = Math.round((Date.now() + remainingCooldown) / 1000);
 
     await interaction.reply({
       content: t(
-        { phrase: 'errors.cooldown', locale: interaction.user.locale },
+        { phrase: 'errors.cooldown', locale },
         { time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`, emoji: emojis.no },
       ),
       ephemeral: true,

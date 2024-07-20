@@ -1,10 +1,10 @@
-import Hub from './index.js';
-import db from '../../../../utils/Db.js';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { paginate } from '../../../../utils/Pagination.js';
-import { simpleEmbed } from '../../../../utils/Utils.js';
-import { t } from '../../../../utils/Locale.js';
-import { colors, emojis } from '../../../../utils/Constants.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { paginate } from '#main/utils/Pagination.js';
+import { getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
+import Hub from './index.js';
 
 export default class Joined extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -13,15 +13,11 @@ export default class Joined extends Hub {
       include: { hub: true },
     });
 
+    const locale = await getUserLocale(interaction.user.id);
     if (connections.length === 0) {
       await interaction.reply({
         embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'hub.joined.noJoinedHubs', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
+          simpleEmbed(t({ phrase: 'hub.joined.noJoinedHubs', locale }, { emoji: emojis.no })),
         ],
       });
       return;
@@ -43,10 +39,7 @@ export default class Joined extends Hub {
           // Start a new embed
           currentEmbed = new EmbedBuilder()
             .setDescription(
-              t(
-                { phrase: 'hub.joined.joinedHubs', locale: interaction.user.locale },
-                { total: `${allFields.length}` },
-              ),
+              t({ phrase: 'hub.joined.joinedHubs', locale }, { total: `${allFields.length}` }),
             )
             .setColor(colors.interchatBlue);
 
@@ -65,10 +58,7 @@ export default class Joined extends Hub {
 
     const embed = new EmbedBuilder()
       .setDescription(
-        t(
-          { phrase: 'hub.joined.joinedHubs', locale: interaction.user.locale },
-          { total: `${allFields.length}` },
-        ),
+        t({ phrase: 'hub.joined.joinedHubs', locale }, { total: `${allFields.length}` }),
       )
       .setFields(allFields)
       .setColor(colors.interchatBlue);

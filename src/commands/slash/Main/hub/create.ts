@@ -12,7 +12,7 @@ import Hub from './index.js';
 import db from '../../../../utils/Db.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { HubSettingsBits } from '../../../../utils/BitFields.js';
-import { checkAndFetchImgurUrl, simpleEmbed } from '../../../../utils/Utils.js';
+import { checkAndFetchImgurUrl, getUserLocale, simpleEmbed } from '../../../../utils/Utils.js';
 import { LINKS, REGEX, emojis } from '../../../../utils/Constants.js';
 import { t } from '../../../../utils/Locale.js';
 import { CustomID } from '../../../../utils/CustomID.js';
@@ -21,11 +21,11 @@ export default class Create extends Hub {
   readonly cooldown = 10 * 60 * 1000; // 10 mins
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     const isOnCooldown = await this.getRemainingCooldown(interaction);
     if (isOnCooldown) {
-      await this.sendCooldownError(interaction, isOnCooldown);
+      await this.sendCooldownError(interaction, isOnCooldown, locale);
       return;
     }
 
@@ -88,14 +88,12 @@ export default class Create extends Hub {
     const description = interaction.fields.getTextInputValue('description');
     const icon = interaction.fields.getTextInputValue('icon');
     const banner = interaction.fields.getTextInputValue('banner');
+    const locale = await getUserLocale(interaction.user.id);
 
     // if hubName contains "discord", "clyde" "```" then return
     if (REGEX.BANNED_WEBHOOK_WORDS.test(name)) {
       await interaction.followUp({
-        content: t(
-          { phrase: 'hub.create.invalidName', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'hub.create.invalidName', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -107,10 +105,7 @@ export default class Create extends Hub {
 
     if (hubs.find((hub) => hub.name === name)) {
       await interaction.followUp({
-        content: t(
-          { phrase: 'hub.create.nameTaken', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'hub.create.nameTaken', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -119,10 +114,7 @@ export default class Create extends Hub {
       hubs.reduce((acc, hub) => (hub.ownerId === interaction.user.id ? acc + 1 : acc), 0) >= 3
     ) {
       await interaction.followUp({
-        content: t(
-          { phrase: 'hub.create.maxHubs', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'hub.create.maxHubs', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -134,14 +126,7 @@ export default class Create extends Hub {
     // TODO: create a gif showing how to get imgur links
     if (iconUrl === false || bannerUrl === false) {
       await interaction.followUp({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'hub.invalidImgurUrl', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
-        ],
+        embeds: [simpleEmbed(t({ phrase: 'hub.invalidImgurUrl', locale }, { emoji: emojis.no }))],
         ephemeral: true,
       });
       return;
@@ -170,7 +155,7 @@ export default class Create extends Hub {
       .setColor('Green')
       .setDescription(
         t(
-          { phrase: 'hub.create.success', locale: interaction.user.locale },
+          { phrase: 'hub.create.success', locale },
           { name, support_invite: LINKS.SUPPORT_INVITE, docs_link: LINKS.DOCS },
         ),
       )

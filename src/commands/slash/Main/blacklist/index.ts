@@ -1,5 +1,5 @@
 import { emojis } from '#main/utils/Constants.js';
-import { t } from '#main/utils/Locale.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { hubs as hubsT } from '@prisma/client';
 import {
   type AutocompleteInteraction,
@@ -213,17 +213,17 @@ export default class BlacklistCommand extends BaseCommand {
   }
 
   protected async getHub({ name, userId }: { name: string | null; userId: Snowflake }) {
-    if (name) {
-      return await db.hubs.findFirst({ where: { name } });
-    }
-    else {
-      const allHubs = await db.hubs.findMany({
-        where: { OR: [{ ownerId: userId }, { moderators: { some: { userId } } }] },
-      });
-      if (allHubs.length > 1) return 'exceeds max length';
-      // assign first value of the hub query
-      return allHubs[0];
-    }
+    const allHubs = await db.hubs.findMany({
+      where: {
+        name: name ?? undefined,
+        OR: [{ ownerId: userId }, { moderators: { some: { userId } } }],
+      },
+    });
+
+    if (allHubs.length > 1) return 'exceeds max length';
+
+    // assign first value of the hub query
+    return allHubs[0];
   }
 
   protected async sendSuccessResponse(
@@ -252,8 +252,8 @@ export default class BlacklistCommand extends BaseCommand {
   protected isValidHub(
     interaction: ChatInputCommandInteraction,
     hub: hubsT | string | null,
+    locale: supportedLocaleCodes = 'en',
   ): hub is hubsT {
-    const { locale } = interaction.user;
     const hiddenOpt = { ephemeral: true };
     if (!hub) {
       this.replyEmbed(interaction, t({ phrase: 'hub.notFound_mod', locale }), hiddenOpt);
@@ -267,6 +267,7 @@ export default class BlacklistCommand extends BaseCommand {
       );
       return false;
     }
+
     return true;
   }
 

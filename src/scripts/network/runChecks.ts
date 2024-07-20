@@ -3,7 +3,7 @@ import { Message, EmbedBuilder } from 'discord.js';
 import { HubSettingsBitField } from '../../utils/BitFields.js';
 import { emojis, REGEX } from '../../utils/Constants.js';
 import { t } from '../../utils/Locale.js';
-import { containsInviteLinks, replaceLinks } from '../../utils/Utils.js';
+import { containsInviteLinks, getUserLocale, replaceLinks } from '../../utils/Utils.js';
 import { check as checkProfanity } from '../../utils/Profanity.js';
 import { runAntiSpam } from './antiSpam.js';
 import { analyzeImageForNSFW, isUnsafeImage } from '../../utils/NSFWDetection.js';
@@ -82,7 +82,6 @@ export const containsLinks = (message: Message, settings: HubSettingsBitField) =
   !REGEX.STATIC_IMAGE_URL.test(message.content) &&
   REGEX.LINKS.test(message.content);
 
-
 export const unsupportedAttachment = (message: Message) => {
   const attachment = message.attachments.first();
   // NOTE: Even 'image/gif' was allowed before
@@ -108,9 +107,9 @@ export const runChecks = async (
   hubId: string,
   opts: { settings: HubSettingsBitField; userData: userDataCol; attachmentURL?: string | null },
 ): Promise<boolean> => {
-  const { locale } = message.author;
   const { hasProfanity, hasSlurs } = checkProfanity(message.content);
   const { settings, userData, attachmentURL } = opts;
+  const locale = await getUserLocale(userData);
   const isUserBlacklisted = userData.blacklistedFrom.some((b) => b.hubId === hubId);
 
   // banned / blacklisted
@@ -128,7 +127,7 @@ export const runChecks = async (
     await message.channel
       .send(
         t(
-          { phrase: 'network.accountTooNew', locale: message.author.locale },
+          { phrase: 'network.accountTooNew', locale },
           { user: message.author.toString(), emoji: emojis.no },
         ),
       )

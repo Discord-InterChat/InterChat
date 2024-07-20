@@ -20,7 +20,7 @@ import { t } from '../../utils/Locale.js';
 import { colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { checkIfStaff, simpleEmbed } from '../../utils/Utils.js';
+import { checkIfStaff, getUserLocale, simpleEmbed } from '../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import { logBlacklist } from '../../utils/HubLogger/ModLogs.js';
 import { deleteConnections } from '../../utils/ConnectedList.js';
@@ -34,7 +34,7 @@ export default class Blacklist extends BaseCommand {
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     const messageInDb = await db.broadcastedMessages.findFirst({
       where: { messageId: interaction.targetId },
@@ -108,17 +108,11 @@ export default class Blacklist extends BaseCommand {
   @RegisterInteractionHandler('blacklist')
   static override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
+    const locale = await getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== customId.args[0]) {
       await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'errors.notYourAction', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
-        ],
+        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }))],
         ephemeral: true,
       });
       return;
@@ -137,27 +131,16 @@ export default class Blacklist extends BaseCommand {
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
             .setCustomId('reason')
-            .setLabel(
-              t({ phrase: 'blacklist.modal.reason.label', locale: interaction.user.locale }),
-            )
-            .setPlaceholder(
-              t({ phrase: 'blacklist.modal.reason.placeholder', locale: interaction.user.locale }),
-            )
+            .setLabel(t({ phrase: 'blacklist.modal.reason.label', locale }))
+            .setPlaceholder(t({ phrase: 'blacklist.modal.reason.placeholder', locale }))
             .setStyle(TextInputStyle.Paragraph)
             .setMaxLength(500),
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
             .setCustomId('duration')
-            .setLabel(
-              t({ phrase: 'blacklist.modal.duration.label', locale: interaction.user.locale }),
-            )
-            .setPlaceholder(
-              t({
-                phrase: 'blacklist.modal.duration.placeholder',
-                locale: interaction.user.locale,
-              }),
-            )
+            .setLabel(t({ phrase: 'blacklist.modal.duration.label', locale }))
+            .setPlaceholder(t({ phrase: 'blacklist.modal.duration.placeholder', locale }))
             .setStyle(TextInputStyle.Short)
             .setMinLength(2)
             .setRequired(false),
@@ -171,7 +154,7 @@ export default class Blacklist extends BaseCommand {
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferUpdate();
 
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
     const customId = CustomID.parseCustomId(interaction.customId);
     const [messageId] = customId.args;
     const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });

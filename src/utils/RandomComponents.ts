@@ -1,5 +1,8 @@
 /* eslint-disable complexity */
-import db from './Db.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { addReaction, removeReaction, updateReactions } from '#main/scripts/reaction/actions.js';
+import { checkBlacklists } from '#main/scripts/reaction/helpers.js';
+import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   AnySelectMenuInteraction,
@@ -9,16 +12,13 @@ import {
   StringSelectMenuBuilder,
   time,
 } from 'discord.js';
-import { getEmojiId, simpleEmbed, sortReactions } from './Utils.js';
 import { HubSettingsBitField } from './BitFields.js';
-import { CustomID } from './CustomID.js';
-import { RegisterInteractionHandler } from '../decorators/Interaction.js';
-import { emojis } from './Constants.js';
-import { stripIndents } from 'common-tags';
-import { t } from './Locale.js';
-import { removeReaction, addReaction, updateReactions } from '../scripts/reaction/actions.js';
-import { checkBlacklists } from '../scripts/reaction/helpers.js';
 import { modifyConnection } from './ConnectedList.js';
+import { emojis } from './Constants.js';
+import { CustomID } from './CustomID.js';
+import db from './Db.js';
+import { t } from './Locale.js';
+import { getEmojiId, getUserLocale, simpleEmbed, sortReactions } from './Utils.js';
 
 // skipcq: JS-0327
 export abstract class RandomComponents {
@@ -116,9 +116,9 @@ export abstract class RandomComponents {
         .setDescription(
           stripIndents`
           ## ${emojis.clipart} Reactions
-    
+
           ${reactionString || 'No reactions yet!'}
-    
+
           **Total Reactions:**
           __${totalReactions}__
       `,
@@ -132,22 +132,18 @@ export abstract class RandomComponents {
       });
     }
     else {
+      const locale = await getUserLocale(interaction.user.id);
+
       if (userBlacklisted) {
         await interaction.followUp({
-          content: t(
-            { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
-            { emoji: emojis.no },
-          ),
+          content: t({ phrase: 'errors.userBlacklisted', locale }, { emoji: emojis.no }),
           ephemeral: true,
         });
         return;
       }
       else if (serverBlacklisted) {
         await interaction.followUp({
-          content: t(
-            { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
-            { emoji: emojis.no },
-          ),
+          content: t({ phrase: 'errors.userBlacklisted', locale }, { emoji: emojis.no }),
           ephemeral: true,
         });
         return;
@@ -176,10 +172,8 @@ export abstract class RandomComponents {
       }
 
       emojiAlreadyReacted.includes(interaction.user.id)
-        ? // If the user already reacted, remove the reaction
-        removeReaction(dbReactions, interaction.user.id, reactedEmoji)
-        : // or else add the user to the array
-        addReaction(dbReactions, interaction.user.id, reactedEmoji);
+        ? removeReaction(dbReactions, interaction.user.id, reactedEmoji) // If the user already reacted, remove the reaction
+        : addReaction(dbReactions, interaction.user.id, reactedEmoji); // or else add the user to the array
 
       await db.originalMessages.update({
         where: { messageId: messageInDb.originalMsgId },
@@ -187,7 +181,7 @@ export abstract class RandomComponents {
       });
 
       if (interaction.isStringSelectMenu()) {
-        // FIXME seems like emojiAlreadyReacted is getting mutated somewhere
+        /** FIXME: seems like `emojiAlreadyReacted` is getting mutated somewhere */
         const action = emojiAlreadyReacted.includes(interaction.user.id) ? 'reacted' : 'unreacted';
         interaction
           .followUp({

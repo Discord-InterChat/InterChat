@@ -1,20 +1,20 @@
+import { modifyConnection } from '#main/utils/ConnectedList.js';
+import { emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { fetchCommands, findCommand, getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ChatInputCommandInteraction,
   channelMention,
   chatInputApplicationCommandMention as slashCmdMention,
 } from 'discord.js';
 import Connection from './index.js';
-import { fetchCommands, findCommand, simpleEmbed } from '../../../../utils/Utils.js';
-import { emojis } from '../../../../utils/Constants.js';
-import { t } from '../../../../utils/Locale.js';
-import { modifyConnection } from '../../../../utils/ConnectedList.js';
-import db from '../../../../utils/Db.js';
 
 export default class Pause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const channelId = interaction.options.getString('channel', true);
     const connected = await db.connectedList.findFirst({ where: { channelId } });
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     if (!connected) {
       await interaction.reply({

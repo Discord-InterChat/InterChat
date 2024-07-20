@@ -1,48 +1,53 @@
+import GatewayEvent from '#main/decorators/GatewayEvent.js';
+import getWelcomeTargets from '#main/scripts/guilds/getWelcomeTarget.js';
+import { logGuildJoin, logGuildLeave } from '#main/scripts/guilds/goals.js';
+import { getReferredMsgData, sendWelcomeMsg } from '#main/scripts/network/helpers.js';
+import { runChecks } from '#main/scripts/network/runChecks.js';
+import sendBroadcast from '#main/scripts/network/sendBroadcast.js';
+import storeMessageData from '#main/scripts/network/storeMessageData.js';
+import { addReaction, updateReactions } from '#main/scripts/reaction/actions.js';
+import { checkBlacklists } from '#main/scripts/reaction/helpers.js';
+import { HubSettingsBitField } from '#main/utils/BitFields.js';
+import {
+  deleteConnections,
+  getAllConnections,
+  modifyConnection,
+} from '#main/utils/ConnectedList.js';
+import { channels, colors, emojis, LINKS } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { logGuildLeaveToHub } from '#main/utils/HubLogger/JoinLeave.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import Logger from '#main/utils/Logger.js';
+import { check } from '#main/utils/Profanity.js';
+import {
+  checkIfStaff,
+  getAttachmentURL,
+  getDbUser,
+  getUserLocale,
+  handleError,
+  simpleEmbed,
+} from '#main/utils/Utils.js';
+import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  Client,
   EmbedBuilder,
+  ForumChannel,
   Guild,
-  User,
   HexColorString,
+  Interaction,
+  MediaChannel,
   Message,
   MessageReaction,
-  PartialUser,
-  Interaction,
-  Client,
-  ForumChannel,
-  MediaChannel,
   NewsChannel,
+  PartialUser,
   TextChannel,
+  User,
   VoiceChannel,
 } from 'discord.js';
-import {
-  checkIfStaff,
-  getAttachmentURL,
-  getUserLocale,
-  handleError,
-  simpleEmbed,
-} from '../utils/Utils.js';
-import db from '../utils/Db.js';
-import Logger from '../utils/Logger.js';
-import GatewayEvent from '../decorators/GatewayEvent.js';
-import sendBroadcast from '../scripts/network/sendBroadcast.js';
-import storeMessageData from '../scripts/network/storeMessageData.js';
-import getWelcomeTargets from '../scripts/guilds/getWelcomeTarget.js';
-import { t } from '../utils/Locale.js';
-import { check } from '../utils/Profanity.js';
-import { runChecks } from '../scripts/network/runChecks.js';
-import { stripIndents } from 'common-tags';
-import { logGuildJoin, logGuildLeave } from '../scripts/guilds/goals.js';
-import { channels, emojis, colors, LINKS } from '../utils/Constants.js';
-import { getReferredMsgData, sendWelcomeMsg } from '../scripts/network/helpers.js';
-import { HubSettingsBitField } from '../utils/BitFields.js';
-import { addReaction, updateReactions } from '../scripts/reaction/actions.js';
-import { checkBlacklists } from '../scripts/reaction/helpers.js';
-import { CustomID } from '../utils/CustomID.js';
-import { logGuildLeaveToHub } from '../utils/HubLogger/JoinLeave.js';
-import { deleteConnections, getAllConnections, modifyConnection } from '../utils/ConnectedList.js';
 
 export default abstract class EventManager {
   @GatewayEvent('ready')
@@ -104,10 +109,8 @@ export default abstract class EventManager {
     // if there already are reactions by others
     // and the user hasn't reacted yet
     !emojiAlreadyReacted?.includes(user.id)
-      ? // add user to the array
-      addReaction(dbReactions, user.id, reactedEmoji)
-      : // or update the data with a new arr containing userId
-      (dbReactions[reactedEmoji] = emojiAlreadyReacted);
+      ? addReaction(dbReactions, user.id, reactedEmoji) // add user to the array
+      : (dbReactions[reactedEmoji] = emojiAlreadyReacted); // or update the data with a new arr containing userI
 
     await db.originalMessages.update({
       where: { messageId: originalMsg.messageId },
@@ -169,7 +172,7 @@ export default abstract class EventManager {
     const embed = new EmbedBuilder()
       .setTitle('👋 Thanks for adding me to your server!')
       .setDescription(
-        stripIndents`              
+        stripIndents`
             Take your first step into the world of cross-server chatting with InterChat! 🚀 Explore public hubs, connect with multiple servers, and add a splash of excitement to your server experience. ${emojis.clipart}
             ### Getting Started
             - Simply run </help:924659340898619398> to see an easy to follow setup guide.
@@ -256,7 +259,7 @@ export default abstract class EventManager {
         con.hubId === connection.hubId && con.connected && con.channelId !== message.channel.id,
     );
 
-    let userData = await db.userData.findFirst({ where: { id: message.author.id } });
+    let userData = await getDbUser(message.author.id);
     if (!userData?.viewedNetworkWelcome) {
       userData = await db.userData.upsert({
         where: { id: message.author.id },
@@ -268,11 +271,11 @@ export default abstract class EventManager {
         update: { viewedNetworkWelcome: true },
       });
 
-      await sendWelcomeMsg(message, hubConnections.length.toString(), hub.name);
+      await sendWelcomeMsg(message, (userData.locale as supportedLocaleCodes | null) ?? 'en', {
+        hub: hub.name,
+        totalServers: hubConnections.length.toString(),
+      });
     }
-
-    // set locale for the user
-    message.author.locale = getUserLocale(userData);
 
     const attachmentURL =
       message.attachments.first()?.url ?? (await getAttachmentURL(message.content));
@@ -315,13 +318,13 @@ export default abstract class EventManager {
     try {
       const { commands, interactions } = interaction.client;
       const userData = await db.userData.findFirst({ where: { id: interaction.user.id } });
-      interaction.user.locale = getUserLocale(userData);
 
       if (userData?.banMeta?.reason) {
         if (interaction.isRepliable()) {
+          const locale = await getUserLocale(userData);
           await interaction.reply({
             content: t(
-              { phrase: 'errors.banned', locale: interaction.user.locale },
+              { phrase: 'errors.banned', locale },
               {
                 emoji: emojis.no,
                 reason: userData.banMeta.reason,
@@ -347,15 +350,9 @@ export default abstract class EventManager {
         const isExpiredInteraction = customId.expiry && customId.expiry < Date.now();
 
         if (!interactionHandler || isExpiredInteraction) {
+          const locale = await getUserLocale(userData);
           await interaction.reply({
-            embeds: [
-              simpleEmbed(
-                t(
-                  { phrase: 'errors.notUsable', locale: interaction.user.locale },
-                  { emoji: emojis.no },
-                ),
-              ),
-            ],
+            embeds: [simpleEmbed(t({ phrase: 'errors.notUsable', locale }, { emoji: emojis.no }))],
             ephemeral: true,
           });
           return;

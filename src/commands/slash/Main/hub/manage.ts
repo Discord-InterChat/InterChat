@@ -9,7 +9,12 @@ import db from '#main/utils/Db.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
 import { removeReportsFrom, setReportRole } from '#main/utils/HubLogger/Report.js';
 import { t } from '#main/utils/Locale.js';
-import { checkAndFetchImgurUrl, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
+import {
+  checkAndFetchImgurUrl,
+  getUserLocale,
+  setComponentExpiry,
+  simpleEmbed,
+} from '#main/utils/Utils.js';
 import { Prisma } from '@prisma/client';
 import {
   ActionRowBuilder,
@@ -32,7 +37,7 @@ import Hub from './index.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
-    // the chosen one heh
+    const locale = await getUserLocale(interaction.user.id);
     const chosenHub = interaction.options.getString('hub', true);
     const hubInDb = await db.hubs.findFirst({
       where: {
@@ -48,7 +53,7 @@ export default class Manage extends Hub {
     if (!hubInDb) {
       await this.replyEmbed(
         interaction,
-        t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }, { emoji: emojis.no }),
+        t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -80,7 +85,7 @@ export default class Manage extends Hub {
 
     await interaction.reply({
       embeds: [await hubEmbed(hubInDb)],
-      components: [actionsSelect(hubInDb.id, interaction.user.id, interaction.user.locale), button],
+      components: [actionsSelect(hubInDb.id, interaction.user.id, locale), button],
     });
 
     // disable components after 5 minutes
@@ -126,13 +131,10 @@ export default class Manage extends Hub {
       data: { settings: hubSettings.toggle(selected).bitfield }, // toggle the setting
     });
 
+    const locale = await getUserLocale(interaction.user.id);
     if (!updHub) {
       await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t({ phrase: 'errors.unknown', locale: interaction.user.locale }, { emoji: emojis.no }),
-          ),
-        ],
+        embeds: [simpleEmbed(t({ phrase: 'errors.unknown', locale }, { emoji: emojis.no }))],
         ephemeral: true,
       });
       return;
@@ -470,7 +472,7 @@ export default class Manage extends Hub {
   static override async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId] = customId.args;
-    const locale = interaction.user.locale || 'en';
+    const locale = await getUserLocale(interaction.user.id);
 
     let hubInDb = await db.hubs.findFirst({
       where: {
@@ -696,7 +698,7 @@ export default class Manage extends Hub {
 
   static async componentChecks(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     if (customId.args[0] !== interaction.user.id) {
       await interaction.reply({
