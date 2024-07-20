@@ -114,6 +114,15 @@ export const userVotedToday = async (id: Snowflake): Promise<boolean> => {
   return Boolean(user?.lastVoted && user.lastVoted >= new Date(Date.now() - (60 * 60 * 24 * 1000)));
 };
 
+export const getUserLocale = async (userOrId: string | userData | null | undefined) => {
+  let dbUser: userData | null | undefined;
+
+  if (typeof userOrId === 'string') dbUser = await getDbUser(userOrId);
+  else dbUser = userOrId;
+
+  return (dbUser?.locale as supportedLocaleCodes | null | undefined) ?? 'en';
+};
+
 export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) =>
   option ? yesEmoji : noEmoji;
 
@@ -309,6 +318,7 @@ export const getReplyMethod = (interaction: RepliableInteraction | CommandIntera
 export const sendErrorEmbed = async (interaction: RepliableInteraction, errorId: string) => {
   const method = getReplyMethod(interaction);
   const locale = await getUserLocale(interaction.user.id);
+
   // reply with an error message if the command failed
   return await interaction[method]({
     embeds: [simpleEmbed(genCommandErrMsg(locale, errorId))],
@@ -474,18 +484,6 @@ export const getAttachmentURL = async (string: string) => {
 };
 
 export const fetchHub = async (id: string) => await db.hubs.findFirst({ where: { id } });
-
-export const getUserLocale = async (userOrId: string | userData | null | undefined) => {
-  let dbUser: userData | null | undefined;
-  if (typeof userOrId === 'string') {
-    dbUser = await getDbUser(userOrId);
-  }
-  else {
-    dbUser = userOrId;
-  }
-
-  return (dbUser?.locale as supportedLocaleCodes | null | undefined) ?? 'en';
-};
 
 export const containsInviteLinks = (str: string) => {
   const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
