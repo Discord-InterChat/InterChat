@@ -23,7 +23,7 @@ import { REGEX, colors, emojis } from '../../utils/Constants.js';
 import { CustomID } from '../../utils/CustomID.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
 import { supportedLocaleCodes, t } from '../../utils/Locale.js';
-import { simpleEmbed } from '../../utils/Utils.js';
+import { getUserLocale, simpleEmbed } from '../../utils/Utils.js';
 import { sendHubReport } from '../../utils/HubLogger/Report.js';
 import { getAllConnections } from '../../utils/ConnectedList.js';
 
@@ -38,6 +38,7 @@ export default class MessageInfo extends BaseCommand {
     await interaction.deferReply({ ephemeral: true });
 
     const target = interaction.targetMessage;
+    const locale = await getUserLocale(interaction.user.id);
     const originalMsg = (
       await db.broadcastedMessages.findFirst({
         where: { messageId: target.id },
@@ -47,10 +48,7 @@ export default class MessageInfo extends BaseCommand {
 
     if (!originalMsg) {
       await interaction.followUp({
-        content: t(
-          { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -61,7 +59,7 @@ export default class MessageInfo extends BaseCommand {
     const embed = new EmbedBuilder()
       .setDescription(
         t(
-          { phrase: 'msgInfo.message.description', locale: interaction.user.locale },
+          { phrase: 'msgInfo.message.description', locale },
           {
             emoji: emojis.clipart,
             author: author.discriminator !== '0' ? author.tag : author.username,
@@ -75,7 +73,7 @@ export default class MessageInfo extends BaseCommand {
       .setThumbnail(`https://cdn.discordapp.com/icons/${server?.id}/${server?.icon}.png`)
       .setColor('Random');
 
-    const components = MessageInfo.buildButtons(target.id, interaction.user.locale);
+    const components = MessageInfo.buildButtons(target.id, locale);
 
     const guildConnected = (await getAllConnections())?.find(
       (c) => c.serverId === originalMsg.serverId && c.hubId === originalMsg.hub?.id,
@@ -111,12 +109,11 @@ export default class MessageInfo extends BaseCommand {
       })
     )?.originalMsg;
 
+    const locale = await getUserLocale(interaction.user.id);
+
     if (!originalMsg) {
       await interaction.update({
-        content: t(
-          { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
         embeds: [],
         components: [],
       });
@@ -149,10 +146,7 @@ export default class MessageInfo extends BaseCommand {
         case 'serverInfo': {
           if (!server) {
             await interaction.update({
-              content: t(
-                { phrase: 'errors.unknownServer', locale: interaction.user.locale },
-                { emoji: emojis.no },
-              ),
+              content: t({ phrase: 'errors.unknownServer', locale }, { emoji: emojis.no }),
               embeds: [],
               components: [],
             });
@@ -176,12 +170,10 @@ export default class MessageInfo extends BaseCommand {
             .setImage(bannerUrL)
             .setDescription(
               t(
-                { phrase: 'msgInfo.server.description', locale: interaction.user.locale },
+                { phrase: 'msgInfo.server.description', locale },
                 {
                   server: server.name,
-                  description:
-                    server.description ||
-                    t({ phrase: 'misc.noDesc', locale: interaction.user.locale }),
+                  description: server.description || t({ phrase: 'misc.noDesc', locale }),
                   owner: `${owner.username}#${
                     owner.discriminator !== '0' ? `#${owner.discriminator}` : ''
                   }`,
@@ -212,7 +204,7 @@ export default class MessageInfo extends BaseCommand {
             .setImage(author.bannerURL() ?? null)
             .setDescription(
               t(
-                { phrase: 'msgInfo.user.description', locale: interaction.user.locale },
+                { phrase: 'msgInfo.user.description', locale },
                 {
                   username: author.discriminator !== '0' ? author.tag : author.username,
                   id: author.id,
@@ -242,10 +234,7 @@ export default class MessageInfo extends BaseCommand {
 
           if (!message) {
             await interaction.update({
-              content: t(
-                { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
-                { emoji: emojis.no },
-              ),
+              content: t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
               embeds: [],
               components: [],
             });
@@ -255,7 +244,7 @@ export default class MessageInfo extends BaseCommand {
           const embed = new EmbedBuilder()
             .setDescription(
               t(
-                { phrase: 'msgInfo.message.description', locale: interaction.user.locale },
+                { phrase: 'msgInfo.message.description', locale },
                 {
                   emoji: emojis.clipart,
                   author: author.discriminator !== '0' ? author.tag : author.username,
@@ -284,10 +273,7 @@ export default class MessageInfo extends BaseCommand {
             await interaction.reply({
               embeds: [
                 simpleEmbed(
-                  t(
-                    { phrase: 'msgInfo.report.notEnabled', locale: interaction.user.locale },
-                    { emoji: emojis.no },
-                  ),
+                  t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no }),
                 ),
               ],
               ephemeral: true,
@@ -327,16 +313,12 @@ export default class MessageInfo extends BaseCommand {
       where: { messageId },
       include: { originalMsg: { include: { hub: true } } },
     });
+    const locale = await getUserLocale(interaction.user.id);
 
     if (!messageInDb?.originalMsg.hub?.logChannels?.reports) {
       await interaction.reply({
         embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'msgInfo.report.notEnabled', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
+          simpleEmbed(t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no })),
         ],
         ephemeral: true,
       });
@@ -364,14 +346,7 @@ export default class MessageInfo extends BaseCommand {
     });
 
     await interaction.reply({
-      embeds: [
-        simpleEmbed(
-          t(
-            { phrase: 'msgInfo.report.success', locale: interaction.user.locale },
-            { emoji: emojis.yes },
-          ),
-        ),
-      ],
+      embeds: [simpleEmbed(t({ phrase: 'msgInfo.report.success', locale }, { emoji: emojis.yes }))],
       ephemeral: true,
     });
   }

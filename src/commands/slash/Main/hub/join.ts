@@ -1,20 +1,20 @@
-import db from '../../../../utils/Db.js';
-import Hub from './index.js';
-import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
-import { emojis } from '../../../../utils/Constants.js';
+import { showOnboarding } from '#main/scripts/network/onboarding.js';
+import { connectChannel, getAllConnections } from '#main/utils/ConnectedList.js';
+import { emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
+import { t } from '#main/utils/Locale.js';
+import { getOrCreateWebhook, getUserLocale, sendToHub, simpleEmbed } from '#main/utils/Utils.js';
 import { hubs } from '@prisma/client';
-import { simpleEmbed, getOrCreateWebhook, sendToHub } from '../../../../utils/Utils.js';
-import { showOnboarding } from '../../../../scripts/network/onboarding.js';
 import { stripIndents } from 'common-tags';
-import { t } from '../../../../utils/Locale.js';
-import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
-import { connectChannel, getAllConnections } from '../../../../utils/ConnectedList.js';
+import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
+import Hub from './index.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inCachedGuild()) return;
 
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     // NOTE: Change later
     const hubName = interaction.options.getString('hub') ?? 'InterChat Central';

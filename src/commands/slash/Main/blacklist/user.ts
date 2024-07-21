@@ -5,15 +5,18 @@ import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
 import BlacklistCommand from './index.js';
+import { getUserLocale } from '#main/utils/Utils.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
-    const { locale, id: moderatorId } = interaction.user;
+    const { id: moderatorId } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
+
     const hubName = interaction.options.getString('hub');
     const hub = await this.getHub({ name: hubName, userId: moderatorId });
-    if (!this.isValidHub(interaction, hub)) return;
+    if (!this.isValidHub(interaction, hub, locale)) return;
 
     const reason = interaction.options.getString('reason') ?? 'No reason provided.';
     const duration = parse(`${interaction.options.getString('duration')}`);
@@ -22,7 +25,9 @@ export default class extends BlacklistCommand {
 
     if (subcommandGroup === 'add') {
       const user = interaction.options.getUser('user', true);
-      const passedChecks = await this.runUserAddChecks(interaction, hub.id, user.id, { duration });
+      const passedChecks = await this.runUserAddChecks(interaction, hub.id, user.id, {
+        duration,
+      });
       if (!passedChecks) return;
 
       await this.addUserBlacklist(interaction, user, { expires, hubId: hub.id, reason });
@@ -91,7 +96,7 @@ export default class extends BlacklistCommand {
     userId: string,
     opts?: { duration?: number },
   ) {
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
     const hiddenOpt = { ephemeral: true };
     if (userId === interaction.client.user?.id) {
       await this.replyEmbed(

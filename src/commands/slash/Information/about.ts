@@ -4,30 +4,17 @@ import {
   ButtonBuilder,
   ButtonStyle,
   Client,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import { badgeEmojis, emojis, LINKS } from '../../../utils/Constants.js';
 import { getCredits, simpleEmbed } from '../../../utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import BaseCommand from '../../../core/BaseCommand.js';
+import BaseCommand, { CommandBody } from '../../../core/BaseCommand.js';
 
 export default class About extends BaseCommand {
-  readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
+  public readonly data: CommandBody = {
     name: 'about',
     description: 'Learn more about the InterChat team and project.',
   };
-
-  private async getUsernames(client: Client): Promise<string[]> {
-    const members: string[] = [];
-
-    for (const credit of getCredits()) {
-      const member = await client.users.fetch(credit);
-      members.push(member.username.replaceAll('_', '\\_'));
-    }
-
-    return members;
-  }
-
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
@@ -38,10 +25,10 @@ export default class About extends BaseCommand {
     const creditsEmbed = simpleEmbed(
       stripIndents`
       ## ${emojis.wand} The Team
-      InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${LINKS.SUPPORT_INVITE}). 
+      InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${LINKS.SUPPORT_INVITE}).
 
       ${creditsDivider}
-      ✨ **Design:** 
+      ✨ **Design:**
       ${emojis.dotBlue} @${usernames[6]} (Mascot)
 
       ${badgeEmojis.Developer} **Developers:**
@@ -55,7 +42,7 @@ export default class About extends BaseCommand {
       ${emojis.dotBlue} @${usernames[5]}
 
       ${linksDivider}
-      [Guide](${LINKS.DOCS}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${LINKS.DOCS}/legal/privacy) • [Terms](${LINKS.DOCS}/legal/terms) 
+      [Guide](${LINKS.DOCS}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${LINKS.DOCS}/legal/privacy) • [Terms](${LINKS.DOCS}/legal/terms)
     `,
     );
 
@@ -84,5 +71,15 @@ export default class About extends BaseCommand {
     );
 
     await interaction.editReply({ embeds: [creditsEmbed], components: [linkButtons] });
+  }
+  private async getUsernames(client: Client): Promise<string[]> {
+    const members: string[] = [];
+
+    for (const credit of getCredits()) {
+      const member = await client.users.fetch(credit);
+      members.push(member.username.replaceAll('_', '\\_'));
+    }
+
+    return members;
   }
 }

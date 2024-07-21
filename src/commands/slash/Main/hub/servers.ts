@@ -3,7 +3,7 @@ import Hub from './index.js';
 import { colors, emojis } from '../../../../utils/Constants.js';
 import { paginate } from '../../../../utils/Pagination.js';
 import db from '../../../../utils/Db.js';
-import { resolveEval, simpleEmbed } from '../../../../utils/Utils.js';
+import { getUserLocale, resolveEval, simpleEmbed } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
 
 export default class Servers extends Hub {
@@ -12,7 +12,7 @@ export default class Servers extends Hub {
 
     const hubOpt = interaction.options.getString('hub', true);
     const serverOpt = interaction.options.getString('server');
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     const hub = await db.hubs.findUnique({
       where: { name: hubOpt },

@@ -1,39 +1,40 @@
 /* eslint-disable complexity */
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { showOnboarding } from '#main/scripts/network/onboarding.js';
+import { connectChannel, getAllConnections } from '#main/utils/ConnectedList.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
+import { t } from '#main/utils/Locale.js';
+import { paginate } from '#main/utils/Pagination.js';
 import {
-  ChatInputCommandInteraction,
-  CacheType,
+  calculateAverageRating,
+  getOrCreateWebhook,
+  getUserLocale,
+  sendToHub,
+  simpleEmbed,
+} from '#main/utils/Utils.js';
+import { hubs } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
+  CacheType,
   ChannelSelectMenuBuilder,
+  ChannelSelectMenuInteraction,
   ChannelType,
+  ChatInputCommandInteraction,
   EmbedBuilder,
   ModalBuilder,
+  ModalSubmitInteraction,
   TextInputBuilder,
   TextInputStyle,
-  ModalSubmitInteraction,
-  ChannelSelectMenuInteraction,
   time,
 } from 'discord.js';
-import db from '../../../../utils/Db.js';
 import Hub from './index.js';
-import { hubs } from '@prisma/client';
-import { colors, emojis } from '../../../../utils/Constants.js';
-import { paginate } from '../../../../utils/Pagination.js';
-import {
-  calculateAverageRating,
-  getOrCreateWebhook,
-  sendToHub,
-  simpleEmbed,
-} from '../../../../utils/Utils.js';
-import { showOnboarding } from '../../../../scripts/network/onboarding.js';
-import { CustomID } from '../../../../utils/CustomID.js';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { stripIndents } from 'common-tags';
-import { t } from '../../../../utils/Locale.js';
-import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
-import { connectChannel, getAllConnections } from '../../../../utils/ConnectedList.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -99,12 +100,11 @@ export default class Browse extends Hub {
       }),
     );
 
+    const locale = await getUserLocale(interaction.user.id);
+
     if (!hubList || hubList.length === 0) {
       await interaction.editReply({
-        content: t(
-          { phrase: 'hub.browse.noHubs', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'hub.browse.noHubs', locale }, { emoji: emojis.no }),
       });
       return;
     }
@@ -152,7 +152,7 @@ export default class Browse extends Hub {
     interaction: ButtonInteraction | ChannelSelectMenuInteraction,
   ): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     const hubDetails = await db.hubs.findFirst({
       where: { id: customId.args[0] },
@@ -425,7 +425,7 @@ export default class Browse extends Hub {
   @RegisterInteractionHandler('hub_browse_modal')
   static async handleModals(interaction: ModalSubmitInteraction<CacheType>): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     const rating = parseInt(interaction.fields.getTextInputValue('rating'));
     if (isNaN(rating) || rating < 1 || rating > 5) {

@@ -19,6 +19,7 @@ import {
   checkIfStaff,
   containsInviteLinks,
   getAttachmentURL,
+  getUserLocale,
   replaceLinks,
   userVotedToday,
 } from '../../utils/Utils.js';
@@ -41,7 +42,7 @@ export default class EditMessage extends BaseCommand {
     if (isOnCooldown) return;
 
     const target = interaction.targetMessage;
-    const { locale } = interaction.user;
+    const locale = await getUserLocale(interaction.user.id);
 
     if (!checkIfStaff(interaction.user.id) && !(await userVotedToday(interaction.user.id))) {
       await interaction.reply({
@@ -107,11 +108,12 @@ export default class EditMessage extends BaseCommand {
 
     const customId = CustomID.parseCustomId(interaction.customId);
     const [messageId] = customId.args;
+    const locale = await getUserLocale(interaction.user.id);
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
       await interaction.editReply(
-        t({ phrase: 'errors.unknownNetworkMessage' }, { emoji: emojis.no }),
+        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -132,10 +134,7 @@ export default class EditMessage extends BaseCommand {
 
     if (!originalMsg?.hub) {
       await interaction.editReply(
-        t(
-          { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -149,7 +148,7 @@ export default class EditMessage extends BaseCommand {
 
     if (hubSettings.has('BlockInvites') && containsInviteLinks(newMessage)) {
       await interaction.editReply(
-        t({ phrase: 'errors.inviteLinks', locale: interaction.user.locale }, { emoji: emojis.no }),
+        t({ phrase: 'errors.inviteLinks', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -191,7 +190,7 @@ export default class EditMessage extends BaseCommand {
     const edited = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0).toString();
     await interaction.editReply(
       t(
-        { phrase: 'network.editSuccess', locale: interaction.user.locale },
+        { phrase: 'network.editSuccess', locale },
         {
           edited,
           total: resultsArray.length.toString(),

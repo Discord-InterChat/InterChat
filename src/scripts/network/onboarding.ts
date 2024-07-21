@@ -1,22 +1,20 @@
+import { LINKS, colors } from '#main/utils/Constants.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { getReplyMethod, getUserLocale } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
-  ButtonStyle,
-  EmbedBuilder,
   ButtonBuilder,
-  ComponentType,
   ButtonInteraction,
+  ButtonStyle,
   Collection,
+  ComponentType,
+  EmbedBuilder,
   RepliableInteraction,
 } from 'discord.js';
-import { LINKS, colors } from '../../utils/Constants.js';
-import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 
 const onboardingInProgress = new Collection<string, string>();
 
-const processAcceptButton = async (
-  interaction: ButtonInteraction,
-  channelId: string,
-) => {
+const processAcceptButton = async (interaction: ButtonInteraction, channelId: string) => {
   await interaction?.deferUpdate();
   onboardingInProgress.delete(channelId); // remove in-progress marker as onboarding has either been cancelled or completed
   return interaction?.customId === 'onboarding_:accept';
@@ -81,7 +79,7 @@ export const showOnboarding = async (
   // Mark this as in-progress so server can't join twice
   onboardingInProgress.set(channelId, channelId);
 
-  const { locale } = interaction.user;
+  const locale = await getUserLocale(interaction.user.id);
   const embedPhrase = 'network.onboarding.embed';
 
   const embed = new EmbedBuilder()
@@ -112,10 +110,7 @@ export const showOnboarding = async (
     ephemeral,
   };
 
-  const reply = interaction.deferred || interaction.replied
-    ? await interaction.editReply(replyMsg)
-    : await interaction.reply(replyMsg);
-
+  const reply = await interaction[getReplyMethod(interaction)](replyMsg);
   const response = await reply
     .awaitMessageComponent({
       time: 60_000 * 2,

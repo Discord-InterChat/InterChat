@@ -5,7 +5,7 @@ import {
 } from 'discord.js';
 import db from '../../utils/Db.js';
 import BaseCommand from '../../core/BaseCommand.js';
-import { checkIfStaff } from '../../utils/Utils.js';
+import { checkIfStaff, getUserLocale } from '../../utils/Utils.js';
 import { REGEX, emojis } from '../../utils/Constants.js';
 import { t } from '../../utils/Locale.js';
 import { logMsgDelete } from '../../utils/HubLogger/ModLogs.js';
@@ -41,15 +41,10 @@ export default class DeleteMessage extends BaseCommand {
       originalMsg = broadcastedMsg?.originalMsg ?? null;
     }
 
+    const locale = await getUserLocale(interaction.user.id);
     if (!originalMsg?.hub) {
       await interaction.editReply(
-        t(
-          {
-            phrase: 'errors.unknownNetworkMessage',
-            locale: interaction.user.locale,
-          },
-          { emoji: emojis.no },
-        ),
+        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -64,13 +59,7 @@ export default class DeleteMessage extends BaseCommand {
 
     if (!isStaffOrHubMod && interaction.user.id !== originalMsg.authorId) {
       await interaction.editReply(
-        t(
-          {
-            phrase: 'errors.notMessageAuthor',
-            locale: interaction.user.locale,
-          },
-          { emoji: emojis.no },
-        ),
+        t({ phrase: 'errors.notMessageAuthor', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -105,10 +94,7 @@ export default class DeleteMessage extends BaseCommand {
     await interaction
       .editReply(
         t(
-          {
-            phrase: 'network.deleteSuccess',
-            locale: interaction.user.locale,
-          },
+          { phrase: 'network.deleteSuccess', locale },
           {
             emoji: emojis.yes,
             user: `<@${originalMsg.authorId}>`,

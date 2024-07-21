@@ -11,7 +11,7 @@ import db from '../../utils/Db.js';
 import { LINKS, REGEX, emojis } from '../../utils/Constants.js';
 import { censor } from '../../utils/Profanity.js';
 import { broadcastedMessages } from '@prisma/client';
-import { t } from '../../utils/Locale.js';
+import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 
 export type NetworkAPIError = { error: string };
 
@@ -139,7 +139,11 @@ export const generateJumpButton = (
       ),
   );
 
-export const sendWelcomeMsg = async (message: Message, totalServers: string, hub: string) => {
+export const sendWelcomeMsg = async (
+  message: Message,
+  locale: supportedLocaleCodes,
+  opts: { totalServers: string; hub: string },
+) => {
   const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setStyle(ButtonStyle.Link)
@@ -161,14 +165,14 @@ export const sendWelcomeMsg = async (message: Message, totalServers: string, hub
   await message.channel
     .send({
       content: t(
-        { phrase: 'network.welcome', locale: message.author.locale ?? 'en' },
+        { phrase: 'network.welcome', locale },
         {
           user: message.author.toString(),
           channel: message.channel.toString(),
           emoji: emojis.wave_anim,
           rules_command: '</rules:924659340898619395>',
-          hub,
-          totalServers,
+          hub: opts.hub,
+          totalServers: opts.totalServers,
         },
       ),
       components: [linkButtons],
