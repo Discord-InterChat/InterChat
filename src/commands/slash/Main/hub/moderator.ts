@@ -125,7 +125,10 @@ export default class Moderator extends Hub {
         else if (!isUserMod) {
           await this.replyEmbed(
             interaction,
-            t({ phrase: 'hub.moderator.update.notModerator', locale }, { user: user.toString() }),
+            t(
+              { phrase: 'hub.moderator.update.notModerator', locale },
+              { user: user.toString(), emoji: emojis.no },
+            ),
             { ephemeral: true },
           );
           break;

@@ -60,16 +60,13 @@ export default class Unpause extends Connection {
 
     const webhook = await getOrCreateWebhook(channel).catch(() => null);
     if (!webhook) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'errors.botMissingPermissions', locale },
-              { emoji: emojis.no, permissions: 'Manage Webhooks' },
-            ),
-          ),
-        ],
-      });
+      await this.replyEmbed(
+        interaction,
+        t(
+          { phrase: 'errors.botMissingPermissions', locale },
+          { emoji: emojis.no, permissions: 'Manage Webhooks' },
+        ),
+      );
       return;
     }
 
@@ -86,18 +83,12 @@ export default class Unpause extends Connection {
     }
 
     await interaction.editReply({
-      content: t(
-        { phrase: 'connection.unpaused.tips', locale },
-        { emoji: emojis.dotBlue, pause_cmd, customize_cmd },
-      ),
+      content: t({ phrase: 'connection.unpaused.tips', locale }, { pause_cmd, customize_cmd }),
       embeds: [
         simpleEmbed(
           t(
             { phrase: 'connection.unpaused.desc', locale },
-            {
-              tick_emoji: emojis.tick,
-              channel: channelMention(channelId),
-            },
+            { tick_emoji: emojis.tick, channel: channelMention(channelId) },
           ),
         ),
       ],

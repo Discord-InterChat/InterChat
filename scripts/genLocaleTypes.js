@@ -8,18 +8,29 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Function to recursively generate type definitions from the translation keys
+/** Recursively generate type definitions from the translation data
+    @param obj {{ [key: string]: string }} the object with all translation data
+    @returns {string[]}
+*/
 function generateTypes(obj, path = '') {
   const keys = Object.keys(obj);
-  return keys
-    .map((key) => {
-      const fullPath = path ? `${path}.${key}` : key;
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
-        return generateTypes(obj[key], fullPath);
-      }
-      return `'${fullPath}'`;
-    })
-    .flat();
+  /** @type {string[]} */
+  const allTypeDefs = [];
+  keys.forEach((key) => {
+    const fullPath = path ? `${path}.${key}` : key;
+    if (typeof obj[key] === 'object' && obj[key] !== null) {
+      const idk = generateTypes(obj[key], fullPath);
+      return allTypeDefs.push(...idk);
+    }
+
+    const regex = /\{([^\}]+)\}/g;
+    const variables = [...obj[key].matchAll(regex)].map((match) => `'${match[1]}'`);
+    const variablesStr = variables.length !== 0 ? variables.join(' | ') : 'never';
+
+    allTypeDefs.push(`'${fullPath}': ${variablesStr}`);
+  });
+
+  return allTypeDefs;
 }
 
 // Read the YAML file
@@ -27,13 +38,15 @@ const filePath = resolve(__dirname, '..', 'locales/src/locales/en.yml');
 const file = readFileSync(filePath, 'utf8');
 
 // Parse the YAML content
+/** @type {{ [key: string]: string }} */
+// @ts-expect-error
 const data = yaml.load(file);
 
 // Generate type definitions
 const typeDefinitions = generateTypes(data);
 
 // Create the .d.ts content
-const dtsContent = `export type TranslationKey = ${typeDefinitions.join(' | ')};\n`;
+const dtsContent = `export type TranslationKeys = {\n  ${typeDefinitions.join(';\n  ')};\n};\n`;
 
 // Write the .d.ts file
 const outputFilePath = resolve(__dirname, '..', 'src/typings/en.d.ts');

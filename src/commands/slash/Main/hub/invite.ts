@@ -1,12 +1,12 @@
-import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js';
-import Hub from './index.js';
+import { LINKS, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import Logger from '#main/utils/Logger.js';
+import { getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
 import { captureException } from '@sentry/node';
-import { LINKS, emojis } from '../../../../utils/Constants.js';
-import db from '../../../../utils/Db.js';
-import Logger from '../../../../utils/Logger.js';
-import { getUserLocale, simpleEmbed } from '../../../../utils/Utils.js';
-import { t } from '../../../../utils/Locale.js';
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import parse from 'parse-duration';
+import Hub from './index.js';
 
 export default class Invite extends Hub {
   readonly cooldown = 3000; // 3 seconds
@@ -116,7 +116,10 @@ export default class Invite extends Hub {
           captureException(e);
           await this.replyEmbed(
             interaction,
-            t({ phrase: 'errors.unknown', locale }, { emoji: emojis.no }),
+            t(
+              { phrase: 'errors.unknown', locale },
+              { emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
+            ),
             {
               ephemeral: true,
             },

@@ -49,10 +49,7 @@ export default class Pause extends Connection {
     const leave_cmd = hubCmd ? slashCmdMention('hub', 'leave', hubCmd.id) : '`/hub leave`';
 
     await interaction.reply({
-      content: t(
-        { phrase: 'connection.paused.tips', locale },
-        { emoji: emojis.dotBlue, unpause_cmd, leave_cmd },
-      ),
+      content: t({ phrase: 'connection.paused.tips', locale }, { unpause_cmd, leave_cmd }),
       embeds: [
         simpleEmbed(
           t(

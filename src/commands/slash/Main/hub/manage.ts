@@ -3,7 +3,7 @@ import { genLogInfoEmbed } from '#main/scripts/hub/logs.js';
 import { actionsSelect, hubEmbed } from '#main/scripts/hub/manage.js';
 import { buildSettingsEmbed, buildSettingsMenu } from '#main/scripts/hub/settings.js';
 import { HubSettingsBitField, HubSettingsString } from '#main/utils/BitFields.js';
-import { colors, emojis } from '#main/utils/Constants.js';
+import { colors, emojis, LINKS } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
@@ -114,14 +114,11 @@ export default class Manage extends Hub {
     // TODO: implement BlockNSFW, only allow hubs that are explicitly marked as NSFW to have this setting
     // & only allow network channels to be marked as NSFW
     if (selected === 'BlockNSFW') {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
-          ),
-        ],
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
+        { ephemeral: true },
+      );
       return;
     }
 
@@ -133,10 +130,14 @@ export default class Manage extends Hub {
 
     const locale = await getUserLocale(interaction.user.id);
     if (!updHub) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.unknown', locale }, { emoji: emojis.no }))],
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        t(
+          { phrase: 'errors.unknown', locale },
+          { emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
+        ),
+        { ephemeral: true },
+      );
       return;
     }
 
@@ -682,17 +683,11 @@ export default class Manage extends Hub {
         });
       }
 
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'hub.manage.logs.reset', locale },
-              { emoji: emojis.deleteDanger_icon, type },
-            ),
-          ),
-        ],
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.deleteDanger_icon, type }),
+        { ephemeral: true },
+      );
     }
   }
 
