@@ -23,7 +23,7 @@
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "#main/*": ["src/*"],
-      "#commands/*": ["./src/commands/*"]  
+      "#commands/*": ["./src/commands/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.json"],

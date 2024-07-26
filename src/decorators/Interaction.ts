@@ -1,20 +1,35 @@
 import 'reflect-metadata';
+import BaseCommand from '#main/core/BaseCommand.js';
 import { interactionsMap } from '#main/utils/LoadCommands.js';
-import { MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
+import type { Awaitable, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
+
+const getProto = (object: object) => Object.getPrototypeOf(object);
+const extendsBase = (proto: unknown) => proto === BaseCommand;
 
 export type InteractionFunction = (
   interaction: MessageComponentInteraction | ModalSubmitInteraction,
-) => Promise<unknown>;
+) => Awaitable<unknown>;
 
 /** Decorator to call a specified method when an interaction is created (ie. interactionCreate event) */
 export function RegisterInteractionHandler(prefix: string, suffix = ''): MethodDecorator {
   return function(targetClass, propertyKey: string | symbol, descriptor: PropertyDescriptor) {
-    const originalMethod = descriptor.value as InteractionFunction;
     const realSuffix = suffix ? `:${suffix}` : '';
-    // console.log(new targetClass.constructor(), targetClass);
+    const customId = `${prefix}${realSuffix}`;
+
+    if (
+      extendsBase(getProto(targetClass.constructor)) ||
+      extendsBase(getProto(getProto(targetClass.constructor)))
+    ) {
+      const existing = Reflect.getMetadata('command:interactions', targetClass.constructor);
+      const newMeta = [{ customId, methodName: propertyKey }];
+      const metadata = existing ? [...existing, ...newMeta] : newMeta;
+      Reflect.defineMetadata('command:interactions', metadata, targetClass.constructor);
+      return;
+    }
 
     // NOTE: It is not possible to access other class properties for decorator methods
     // so don't try to access `this.<property>` in any decorator method body
-    interactionsMap.set(`${prefix}${realSuffix}`, originalMethod);
+    const originalMethod = descriptor.value as InteractionFunction;
+    interactionsMap.set(customId, originalMethod);
   };
 }

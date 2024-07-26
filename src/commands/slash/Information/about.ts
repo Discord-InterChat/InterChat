@@ -5,13 +5,13 @@ import {
   ButtonStyle,
   Client,
 } from 'discord.js';
-import { badgeEmojis, emojis, LINKS } from '../../../utils/Constants.js';
-import { getCredits, simpleEmbed } from '../../../utils/Utils.js';
+import { badgeEmojis, emojis, LINKS } from '#main/utils/Constants.js';
+import { getCredits, simpleEmbed } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import BaseCommand, { CommandBody } from '../../../core/BaseCommand.js';
+import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
 
 export default class About extends BaseCommand {
-  public readonly data: CommandBody = {
+  public readonly data: CmdData = {
     name: 'about',
     description: 'Learn more about the InterChat team and project.',
   };

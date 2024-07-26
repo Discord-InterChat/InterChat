@@ -97,10 +97,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage', 'settingsSelect')
-  static async handleSettingsSelect(interaction: MessageComponentInteraction) {
+  async handleSettingsSelect(interaction: MessageComponentInteraction) {
     if (!interaction.isStringSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId } = initialData;
@@ -152,10 +152,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage', 'logsSelect')
-  static async handleLogsSelect(interaction: MessageComponentInteraction) {
+  async handleLogsSelect(interaction: MessageComponentInteraction) {
     if (!interaction.isStringSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -254,10 +254,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage', 'actions')
-  static async handleActionsSelect(interaction: MessageComponentInteraction) {
+  async handleActionsSelect(interaction: MessageComponentInteraction) {
     if (!interaction.isStringSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -387,10 +387,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage', 'logsChSel')
-  static async handleChannelSelects(interaction: MessageComponentInteraction) {
+  async handleChannelSelects(interaction: MessageComponentInteraction) {
     if (!interaction.isChannelSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -421,10 +421,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage')
-  static async handleRoleSelects(interaction: MessageComponentInteraction) {
+  async handleRoleSelects(interaction: MessageComponentInteraction) {
     if (!interaction.isRoleSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -469,7 +469,7 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage_modal')
-  static override async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
+  async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId] = customId.args;
     const locale = await getUserLocale(interaction.user.id);
@@ -590,10 +590,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage')
-  static async handleButtons(interaction: MessageComponentInteraction) {
+  async handleButtons(interaction: MessageComponentInteraction) {
     if (!interaction.isButton()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -696,7 +696,7 @@ export default class Manage extends Hub {
     }
   }
 
-  static async componentChecks(interaction: MessageComponentInteraction) {
+  private async componentChecks(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const locale = await getUserLocale(interaction.user.id);
 

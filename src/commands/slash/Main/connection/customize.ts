@@ -75,7 +75,7 @@ export default class Customize extends Connection {
   }
 
   @RegisterInteractionHandler('connectionModal')
-  static override async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
+  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const locale = await getUserLocale(interaction.user.id);
     if (customId.suffix === 'invite') {
@@ -150,7 +150,7 @@ export default class Customize extends Connection {
   }
 
   @RegisterInteractionHandler('connection')
-  static async handleStringSelects(interaction: StringSelectMenuInteraction) {
+  async handleStringSelects(interaction: StringSelectMenuInteraction) {
     if (!interaction.isStringSelectMenu()) return;
 
     const customId = CustomID.parseCustomId(interaction.customId);
@@ -244,7 +244,7 @@ export default class Customize extends Connection {
   }
 
   @RegisterInteractionHandler('connection', 'change_channel')
-  static async handleChannelSelects(interaction: ChannelSelectMenuInteraction) {
+  async handleChannelSelects(interaction: ChannelSelectMenuInteraction) {
     if (!interaction.isChannelSelectMenu()) return;
     await interaction.deferUpdate();
 

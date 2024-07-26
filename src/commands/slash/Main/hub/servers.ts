@@ -1,10 +1,10 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { paginate } from '#main/utils/Pagination.js';
+import { getUserLocale, resolveEval, simpleEmbed } from '#main/utils/Utils.js';
+import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
-import { colors, emojis } from '../../../../utils/Constants.js';
-import { paginate } from '../../../../utils/Pagination.js';
-import db from '../../../../utils/Db.js';
-import { getUserLocale, resolveEval, simpleEmbed } from '../../../../utils/Utils.js';
-import { t } from '../../../../utils/Locale.js';
 
 export default class Servers extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -112,7 +112,6 @@ export default class Servers extends Hub {
         const value = t(
           { phrase: 'hub.servers.connectionInfo', locale },
           {
-            total: `${hub.connections.length}`,
             channelName: `${evalRes?.channelName}`,
             channelId: connection.channelId,
             joinedAt: `<t:${Math.round(connection.date.getTime() / 1000)}:d>`,

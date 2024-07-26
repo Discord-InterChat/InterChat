@@ -94,7 +94,7 @@ export default class Translate extends BaseCommand {
   }
 
   @RegisterInteractionHandler('translate')
-  static override async handleComponents(interaction: ButtonInteraction): Promise<void> {
+  override async handleComponents(interaction: ButtonInteraction): Promise<void> {
     const modal = new ModalBuilder()
       .setCustomId(new CustomID('translate_modal').toString())
       .setTitle('Specify Language')

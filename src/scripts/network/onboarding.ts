@@ -1,15 +1,15 @@
 import { LINKS, colors } from '#main/utils/Constants.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { getReplyMethod, getUserLocale } from '#main/utils/Utils.js';
 import {
+  type ButtonInteraction,
+  type RepliableInteraction,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
   ButtonStyle,
   Collection,
   ComponentType,
   EmbedBuilder,
-  RepliableInteraction,
 } from 'discord.js';
 
 const onboardingInProgress = new Collection<string, string>();
@@ -84,9 +84,7 @@ export const showOnboarding = async (
 
   const embed = new EmbedBuilder()
     .setTitle(t({ phrase: `${embedPhrase}.title`, locale }, { hubName }))
-    .setDescription(
-      t({ phrase: `${embedPhrase}.description`, locale }, { hubName, docs_link: LINKS.DOCS }),
-    )
+    .setDescription(t({ phrase: `${embedPhrase}.description`, locale }, { docs_link: LINKS.DOCS }))
     .setColor(colors.interchatBlue)
     .setFooter({
       text: t({ phrase: `${embedPhrase}.footer`, locale }, { version: interaction.client.version }),

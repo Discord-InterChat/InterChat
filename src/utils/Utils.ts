@@ -20,6 +20,7 @@ import {
   MediaChannel,
   Message,
   MessageActionRowComponent,
+  MessageComponentInteraction,
   NewsChannel,
   RepliableInteraction,
   Snowflake,
@@ -308,8 +309,9 @@ const genCommandErrMsg = (locale: supportedLocaleCodes, errorId: string) =>
     { errorId, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
   );
 
-export const getReplyMethod = (interaction: RepliableInteraction | CommandInteraction) =>
-  interaction.replied || interaction.deferred ? 'followUp' : 'reply';
+export const getReplyMethod = (
+  interaction: RepliableInteraction | CommandInteraction | MessageComponentInteraction,
+) => (interaction.replied || interaction.deferred ? 'followUp' : 'reply');
 
 /**
     Invoke this method to handle errors that occur during command execution.

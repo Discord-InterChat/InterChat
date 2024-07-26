@@ -1,16 +1,15 @@
-import BaseCommand from '#main/core/BaseCommand.js';
+import BaseCommand, { type CmdData } from '#main/core/BaseCommand.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { getDbUser, simpleEmbed } from '#main/utils/Utils.js';
 import {
+  type ChatInputCommandInteraction,
   ApplicationCommandOptionType,
-  ChatInputCommandInteraction,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 
 export default class Unban extends BaseCommand {
   readonly staffOnly = true;
-  data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
+  data: CmdData = {
     name: 'unban',
     description: '🔨 Unban a user from using the bot (Staff Only)',
     options: [

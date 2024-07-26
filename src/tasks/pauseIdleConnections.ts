@@ -9,7 +9,7 @@ import { emojis } from '../utils/Constants.js';
 import 'dotenv/config';
 
 export default async (manager: ClusterManager) => {
-  const idk = (await getAllConnections());
+  const idk = await getAllConnections();
   const connections = idk?.filter(
     ({ lastActive }) => lastActive && lastActive <= new Date(Date.now() - (24 * 60 * 60 * 1000)),
   );
@@ -42,7 +42,7 @@ export default async (manager: ClusterManager) => {
   const embed = simpleEmbed(
     stripIndents`
     ### ${emojis.timeout} Paused Due to Inactivity
-    Connection to this hub has been stopped because no messages were sent for past day. **Click the button** below to resume chatting (or alternatively, \`/connection\`).
+    Connection to this hub has been stopped to save resources because no messages were sent for past day. **Click the button** below to resume chatting (or alternatively, \`/connection\`).
     `,
   ).toJSON();
 

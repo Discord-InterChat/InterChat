@@ -1,4 +1,3 @@
-/* eslint-disable complexity */
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { showOnboarding } from '#main/scripts/network/onboarding.js';
 import { connectChannel, getAllConnections } from '#main/utils/ConnectedList.js';
@@ -148,7 +147,7 @@ export default class Browse extends Hub {
   }
 
   @RegisterInteractionHandler('hub_browse')
-  static override async handleComponents(
+  override async handleComponents(
     interaction: ButtonInteraction | ChannelSelectMenuInteraction,
   ): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
@@ -423,7 +422,7 @@ export default class Browse extends Hub {
   }
 
   @RegisterInteractionHandler('hub_browse_modal')
-  static async handleModals(interaction: ModalSubmitInteraction<CacheType>): Promise<void> {
+  async handleModals(interaction: ModalSubmitInteraction<CacheType>): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const locale = await getUserLocale(interaction.user.id);
 

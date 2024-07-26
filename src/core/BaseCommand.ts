@@ -1,33 +1,38 @@
+import { InteractionFunction } from '#main/decorators/Interaction.js';
+import { emojis } from '#main/utils/Constants.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { getReplyMethod, getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
 import {
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
+  type ColorResolvable,
+  type ContextMenuCommandInteraction,
+  type InteractionResponse,
+  type Message,
   type MessageComponentInteraction,
   type ModalSubmitInteraction,
-  type ContextMenuCommandInteraction,
   type RepliableInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
-  type ColorResolvable,
-  type InteractionResponse,
-  type Message,
+  type APIApplicationCommandSubcommandGroupOption,
+  type APIApplicationCommandSubcommandOption,
   Collection,
   time,
 } from 'discord.js';
-import { InteractionFunction } from '#main/decorators/Interaction.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { emojis } from '#main/utils/Constants.js';
-import { getReplyMethod, getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
-export type CommandBody =
+export type CmdData =
   | RESTPostAPIChatInputApplicationCommandsJSONBody
-  | RESTPostAPIContextMenuApplicationCommandsJSONBody;
+  | RESTPostAPIContextMenuApplicationCommandsJSONBody
+  | APIApplicationCommandSubcommandGroupOption
+  | APIApplicationCommandSubcommandOption;
+
 
 export const commandsMap = new Collection<string, BaseCommand>();
 export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
 
 export default abstract class BaseCommand {
-  abstract readonly data: CommandBody;
+  abstract readonly data: CmdData;
   readonly staffOnly?: boolean;
   readonly cooldown?: number;
   readonly description?: string;
@@ -36,9 +41,9 @@ export default abstract class BaseCommand {
   abstract execute(interaction: CmdInteraction): Promise<unknown>;
 
   // optional methods
-  static async handleComponents?(interaction: MessageComponentInteraction): Promise<unknown>;
-  static async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
   async autocomplete?(interaction: AutocompleteInteraction): Promise<unknown>;
+  async handleComponents?(interaction: MessageComponentInteraction): Promise<unknown>;
+  async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
 
   async checkAndSetCooldown(interaction: RepliableInteraction): Promise<boolean> {
     const remainingCooldown = await this.getRemainingCooldown(interaction);
@@ -114,7 +119,7 @@ export default abstract class BaseCommand {
   }
 
   async replyEmbed(
-    interaction: RepliableInteraction,
+    interaction: RepliableInteraction | MessageComponentInteraction,
     desc: string,
     opts?: { title?: string; color?: ColorResolvable; ephemeral?: boolean; edit?: boolean },
   ): Promise<InteractionResponse | Message> {

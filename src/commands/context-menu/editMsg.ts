@@ -103,7 +103,7 @@ export default class EditMessage extends BaseCommand {
   }
 
   @RegisterInteractionHandler('editMsg')
-  static async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
+  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
 
     const customId = CustomID.parseCustomId(interaction.customId);
@@ -144,7 +144,7 @@ export default class EditMessage extends BaseCommand {
     const hubSettings = new HubSettingsBitField(originalMsg.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
     const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } =
-      await EditMessage.fabricateNewMsg(interaction.user, target, newMessage, originalMsg.serverId);
+      await this.fabricateNewMsg(interaction.user, target, newMessage, originalMsg.serverId);
 
     if (hubSettings.has('BlockInvites') && containsInviteLinks(newMessage)) {
       await interaction.editReply(
@@ -201,7 +201,7 @@ export default class EditMessage extends BaseCommand {
     );
   }
 
-  static async getImageUrls(target: Message, newMessage: string) {
+  private async getImageUrls(target: Message, newMessage: string) {
     // get image from embed
     // get image from content
     const oldImageUrl = target.content
@@ -211,7 +211,7 @@ export default class EditMessage extends BaseCommand {
     return { oldImageUrl, newImageUrl };
   }
 
-  static async buildNewEmbed(
+  private async buildNewEmbed(
     user: User,
     target: Message,
     newMessage: string,
@@ -246,7 +246,7 @@ export default class EditMessage extends BaseCommand {
       .setFooter({ text: `Server: ${guild?.name}` });
   }
 
-  static async fabricateNewMsg(user: User, target: Message, newMessage: string, serverId: string) {
+  private async fabricateNewMsg(user: User, target: Message, newMessage: string, serverId: string) {
     const { oldImageUrl, newImageUrl } = await this.getImageUrls(target, newMessage);
     const newEmbed = await this.buildNewEmbed(user, target, newMessage, serverId, {
       oldImageUrl,

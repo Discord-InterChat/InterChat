@@ -1,32 +1,36 @@
-import Scheduler from '#main/services/SchedulerService.js';
+import 'dotenv/config';
+import EventManager from '#main/managers/EventManager.js';
+import ServerBlacklistManager from '#main/managers/ServerBlacklistManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import CooldownService from '#main/services/CooldownService.js';
+import Scheduler from '#main/services/SchedulerService.js';
 import loadCommandFiles, { commandsMap, interactionsMap } from '#main/utils/LoadCommands.js';
-import ServerBlacklistManager from '#main/managers/ServerBlacklistManager.js';
-import {
-  Client,
-  IntentsBitField,
-  Partials,
-  Options,
-  Collection,
-  Snowflake,
-  Guild,
-  WebhookClient,
-  ActivityType,
-} from 'discord.js';
-import { getAllConnections } from '../utils/ConnectedList.js';
+import { RandomComponents } from '#main/utils/RandomComponents.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
+import {
+  ActivityType,
+  Client,
+  Collection,
+  type Guild,
+  IntentsBitField,
+  Options,
+  Partials,
+  type Snowflake,
+  type WebhookClient,
+} from 'discord.js';
 import { RemoveMethods } from '../typings/index.js';
-import { loadLocales } from '../utils/Locale.js';
+import { getAllConnections } from '../utils/ConnectedList.js';
 import { PROJECT_VERSION } from '../utils/Constants.js';
+import { loadLocales } from '../utils/Locale.js';
 import { resolveEval } from '../utils/Utils.js';
-import 'dotenv/config';
 
 export default class SuperClient extends Client {
   // A static instance of the SuperClient class to be used globally.
   public static instance: SuperClient;
 
   private readonly scheduler = new Scheduler();
+  readonly _eventManager = new EventManager();
+  readonly _componentListeners = new RandomComponents();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
   readonly version = PROJECT_VERSION;

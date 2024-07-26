@@ -92,7 +92,7 @@ export default class Report extends Support {
   }
 
   @RegisterInteractionHandler('report')
-  static override async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
+  override async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
     const locale = await getUserLocale(interaction.user.id);
 
     if (interaction.isStringSelectMenu()) {

@@ -73,8 +73,7 @@ export default class MessageInfo extends BaseCommand {
       .setThumbnail(`https://cdn.discordapp.com/icons/${server?.id}/${server?.icon}.png`)
       .setColor('Random');
 
-    const components = MessageInfo.buildButtons(target.id, locale);
-
+    const components = this.buildButtons(target.id, locale);
     const guildConnected = (await getAllConnections())?.find(
       (c) => c.serverId === originalMsg.serverId && c.hubId === originalMsg.hub?.id,
     );
@@ -97,7 +96,7 @@ export default class MessageInfo extends BaseCommand {
   }
 
   @RegisterInteractionHandler('msgInfo')
-  static override async handleComponents(interaction: MessageComponentInteraction) {
+  override async handleComponents(interaction: MessageComponentInteraction) {
     // create a variable to store the profile card buffer
     const customId = CustomID.parseCustomId(interaction.customId);
     const [messageId] = customId.args;
@@ -187,7 +186,7 @@ export default class MessageInfo extends BaseCommand {
             .setFooter({ text: `ID: ${server.id}` });
 
           // disable the server info button
-          MessageInfo.greyOutButton(components[0], 1);
+          this.greyOutButton(components[0], 1);
 
           await interaction.update({ embeds: [serverEmbed], components, files: [] });
           break;
@@ -218,7 +217,7 @@ export default class MessageInfo extends BaseCommand {
             .setTimestamp();
 
           // disable the user info button
-          MessageInfo.greyOutButton(components[0], 2);
+          this.greyOutButton(components[0], 2);
 
           await interaction.editReply({
             // attach the profile card to the message
@@ -262,7 +261,7 @@ export default class MessageInfo extends BaseCommand {
             )
             .setColor('Random');
 
-          MessageInfo.greyOutButton(components[0], 0);
+          this.greyOutButton(components[0], 0);
 
           await interaction.update({ embeds: [embed], components, files: [] });
           break;
@@ -352,12 +351,12 @@ export default class MessageInfo extends BaseCommand {
   }
 
   // utility methods
-  static greyOutButton(buttons: ActionRowBuilder<ButtonBuilder>, disableElement: number) {
+  private greyOutButton(buttons: ActionRowBuilder<ButtonBuilder>, disableElement: number) {
     buttons.components.forEach((c) => c.setDisabled(false));
     buttons.components[disableElement].setDisabled(true);
   }
 
-  static buildButtons(messageId: string, locale: supportedLocaleCodes = 'en') {
+  private buildButtons(messageId: string, locale: supportedLocaleCodes = 'en') {
     return [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()

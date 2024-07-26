@@ -49,7 +49,7 @@ import {
   VoiceChannel,
 } from 'discord.js';
 
-export default abstract class EventManager {
+export default class EventManager {
   @GatewayEvent('ready')
   static onReady(client: Client) {
     Logger.info(`Logged in as ${client.user?.tag}!`);

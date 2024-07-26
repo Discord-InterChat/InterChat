@@ -21,10 +21,10 @@ import { t } from './Locale.js';
 import { getEmojiId, getUserLocale, simpleEmbed, sortReactions } from './Utils.js';
 
 // skipcq: JS-0327
-export abstract class RandomComponents {
+export class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')
-  static async listenForReactionButton(
+  async listenForReactionButton(
     interaction: ButtonInteraction | AnySelectMenuInteraction,
   ): Promise<void> {
     await interaction.deferUpdate();
@@ -197,7 +197,7 @@ export abstract class RandomComponents {
   }
 
   @RegisterInteractionHandler('inactiveConnect', 'toggle')
-  static async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
+  async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [channelId] = customId.args;
 
