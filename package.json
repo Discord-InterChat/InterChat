@@ -73,5 +73,5 @@
     "#main/*.js": "./build/*.js",
     "#commands/*.js": "./build/commands/*.js"
   },
-  "packageManager": "pnpm@9.5.0"
+  "packageManager": "pnpm@9.6.0"
 }
