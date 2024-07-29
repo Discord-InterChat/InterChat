@@ -103,7 +103,7 @@ export default class EditMessage extends BaseCommand {
   }
 
   @RegisterInteractionHandler('editMsg')
-  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
+  override async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
 
     const customId = CustomID.parseCustomId(interaction.customId);

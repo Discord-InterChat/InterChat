@@ -10,14 +10,10 @@ const SUPPORT_SERVER_ID = '770256165300338709';
 
 if (!TOKEN || !CLIENT_ID || !SUPPORT_SERVER_ID) throw new Error('Missing TOKEN, CLIENT_ID or SUPPORT_SERVER_ID.')
 
-let loadCommandFiles;
-try {
-  loadCommandFiles = (await import('../build/utils/LoadCommands.js')).default;
-}
-catch {
+let { loadCommandFiles } = await import('../build/utils/LoadCommands.js').catch(() => {
   console.error(`${redText('✘')} Code is not build yet. Use \`pnpm build\` first.`)
   process.exit(0)
-}
+});
 
 const registerAllCommands = async (staffOnly = false) => {
   // make sure CommandsMap is not empty
@@ -68,7 +64,7 @@ if (process.argv) {
       Logger.error(error);
     }
   }
-  
+
   process.exit(0);
 }
 

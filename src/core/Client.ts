@@ -4,19 +4,19 @@ import ServerBlacklistManager from '#main/managers/ServerBlacklistManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import CooldownService from '#main/services/CooldownService.js';
 import Scheduler from '#main/services/SchedulerService.js';
-import loadCommandFiles, { commandsMap, interactionsMap } from '#main/utils/LoadCommands.js';
+import { loadCommandFiles, commandsMap, interactionsMap } from '#main/utils/LoadCommands.js';
 import { RandomComponents } from '#main/utils/RandomComponents.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {
+  type Guild,
+  type Snowflake,
+  type WebhookClient,
   ActivityType,
   Client,
   Collection,
-  type Guild,
-  IntentsBitField,
+  GatewayIntentBits,
   Options,
   Partials,
-  type Snowflake,
-  type WebhookClient,
 } from 'discord.js';
 import { RemoveMethods } from '../typings/index.js';
 import { getAllConnections } from '../utils/ConnectedList.js';
@@ -25,7 +25,6 @@ import { loadLocales } from '../utils/Locale.js';
 import { resolveEval } from '../utils/Utils.js';
 
 export default class SuperClient extends Client {
-  // A static instance of the SuperClient class to be used globally.
   public static instance: SuperClient;
 
   private readonly scheduler = new Scheduler();
@@ -67,12 +66,12 @@ export default class SuperClient extends Client {
       },
       partials: [Partials.Message, Partials.Channel],
       intents: [
-        IntentsBitField.Flags.MessageContent,
-        IntentsBitField.Flags.Guilds,
-        IntentsBitField.Flags.GuildMembers,
-        IntentsBitField.Flags.GuildMessages,
-        IntentsBitField.Flags.GuildMessageReactions,
-        IntentsBitField.Flags.GuildWebhooks,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildWebhooks,
       ],
       presence: {
         status: 'invisible',
@@ -99,11 +98,12 @@ export default class SuperClient extends Client {
     loadLocales('locales/src/locales');
 
     // load commands
-    await loadCommandFiles();
+    await loadCommandFiles({ loadInteractions: true });
 
+    // cache connections
     await getAllConnections({ connected: true });
 
-    // Discord.js automatically takes DISCORD_TOKEN env variable
+    // Discord.js automatically uses DISCORD_TOKEN env variable
     await this.login();
   }
 

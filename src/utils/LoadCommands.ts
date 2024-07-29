@@ -10,10 +10,6 @@ import {
 import { readdirSync, statSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
-
-export const commandsMap = new Collection<string, BaseCommand>();
-export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -29,7 +25,7 @@ const loadCommandInteractions = (command: BaseCommand) => {
     Logger.debug(`Adding interaction: ${customId} with method ${methodName}`);
 
     // @ts-expect-error The names of child class properties can be custom
-    const method = command[methodName];
+    const method: InteractionFunction = command[methodName];
     // console.log(method, methodName, customId);
 
     interactionsMap.set(customId, method.bind(command));
@@ -39,7 +35,6 @@ const loadCommandInteractions = (command: BaseCommand) => {
 };
 
 const loadCommand = (command: BaseCommand) => {
-  // If the command extends BaseCommand (i.e., is not a subcommand), add it to the commands map
   Logger.debug(`Adding command: ${command.data.name}`);
   commandsMap.set(command.data.name, command);
 };
@@ -48,11 +43,20 @@ const loadSubCommand = (command: BaseCommand, opts: { fileName: string }) => {
   const parentCommand = Object.getPrototypeOf(command.constructor);
   parentCommand.subcommands.set(opts.fileName.replace('.js', ''), command);
 };
+
+export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
+
+export const commandsMap = new Collection<string, BaseCommand>();
+export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
+
 /**
  * Recursively loads all command files from the given directory and its subdirectories.
  * @param commandDir The directory to load command files from.
  */
-const loadCommandFiles = async (opts?: { commandDir?: string; loadInteractions?: boolean }) => {
+export const loadCommandFiles = async (opts?: {
+  commandDir?: string;
+  loadInteractions?: boolean;
+}) => {
   const commandDir = opts?.commandDir ?? join(__dirname, '..', 'commands');
   const loadInteractions = Boolean(opts?.loadInteractions);
 
@@ -60,25 +64,27 @@ const loadCommandFiles = async (opts?: { commandDir?: string; loadInteractions?:
   const importPrefix = process.platform === 'win32' ? 'file://' : '';
 
   try {
-    const files = readdirSync(commandDir);
-    for (const file of files) {
-      const filePath = join(commandDir, file);
+    const filesInDir = readdirSync(commandDir);
+    for (const fileName of filesInDir) {
+      const filePath = join(commandDir, fileName);
       const stats = statSync(filePath);
 
       // If the item is a directory, recursively read its files
       if (stats.isDirectory()) {
         Logger.debug(`Entering directory: ${filePath}`);
-        await loadCommandFiles({ commandDir: filePath });
+        await loadCommandFiles({ commandDir: filePath, loadInteractions });
       }
-      else if (file.endsWith('.js')) {
+      else if (fileName.endsWith('.js')) {
         Logger.debug(`Importing command file: ${filePath}`);
         const imported = await import(importPrefix + filePath);
         const command: BaseCommand = new imported.default();
+
+        // load the commands
+        if (Object.getPrototypeOf(command.constructor) === BaseCommand) loadCommand(command);
+        else loadSubCommand(command, { fileName });
+
         // load related button/select/modal etc. interaction listeners
         if (loadInteractions) loadCommandInteractions(command);
-
-        if (Object.getPrototypeOf(command.constructor) === BaseCommand) loadCommand(command);
-        else loadSubCommand(command, { fileName: file });
       }
     }
     Logger.debug(`Finished loading commands from: ${commandDir}`);
@@ -86,6 +92,6 @@ const loadCommandFiles = async (opts?: { commandDir?: string; loadInteractions?:
   catch (error) {
     Logger.error(`Error loading command files from ${commandDir}:`, error);
   }
-};
 
-export default loadCommandFiles;
+  return commandsMap;
+};

@@ -34,7 +34,7 @@ function generateTypes(obj, path = '') {
 }
 
 // Read the YAML file
-const filePath = resolve(__dirname, '..', 'locales/src/locales/en.yml');
+const filePath = resolve(__dirname, '..', 'locales/locales/en.yml');
 const file = readFileSync(filePath, 'utf8');
 
 // Parse the YAML content
