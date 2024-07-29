@@ -1,27 +1,28 @@
 import {
-  ChatInputCommandInteraction,
-  CacheType,
   ActionRowBuilder,
+  CacheType,
+  ChatInputCommandInteraction,
   EmbedBuilder,
   ModalBuilder,
+  ModalSubmitInteraction,
   TextInputBuilder,
   TextInputStyle,
-  ModalSubmitInteraction,
 } from 'discord.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { HubSettingsBits } from '#main/utils/BitFields.js';
+import { LINKS, REGEX, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { checkAndFetchImgurUrl, simpleEmbed } from '#main/utils/Utils.js';
 import Hub from './index.js';
-import db from '../../../../utils/Db.js';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { HubSettingsBits } from '../../../../utils/BitFields.js';
-import { checkAndFetchImgurUrl, getUserLocale, simpleEmbed } from '../../../../utils/Utils.js';
-import { LINKS, REGEX, emojis } from '../../../../utils/Constants.js';
-import { t } from '../../../../utils/Locale.js';
-import { CustomID } from '../../../../utils/CustomID.js';
 
 export default class Create extends Hub {
   readonly cooldown = 10 * 60 * 1000; // 10 mins
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const isOnCooldown = await this.getRemainingCooldown(interaction);
     if (isOnCooldown) {
@@ -88,7 +89,8 @@ export default class Create extends Hub {
     const description = interaction.fields.getTextInputValue('description');
     const icon = interaction.fields.getTextInputValue('icon');
     const banner = interaction.fields.getTextInputValue('banner');
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     // if hubName contains "discord", "clyde" "```" then return
     if (REGEX.BANNED_WEBHOOK_WORDS.test(name)) {

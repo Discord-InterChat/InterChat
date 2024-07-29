@@ -1,29 +1,29 @@
 import {
-  ChatInputCommandInteraction,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
   ButtonInteraction,
+  ButtonStyle,
+  ChatInputCommandInteraction,
+  EmbedBuilder,
 } from 'discord.js';
-import db from '../../../../utils/Db.js';
-import Hub from './index.js';
-import { LINKS, emojis } from '../../../../utils/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { LINKS, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
 import {
   deleteHubs,
-  simpleEmbed,
   setComponentExpiry,
-  getUserLocale,
-} from '../../../../utils/Utils.js';
-import { CustomID } from '../../../../utils/CustomID.js';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { t } from '../../../../utils/Locale.js';
+  simpleEmbed,
+} from '#main/utils/Utils.js';
+import Hub from './index.js';
 
 export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
     const hubInDb = await db.hubs.findFirst({ where: { name: hubName } });
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== hubInDb?.ownerId) {
       await interaction.reply({
@@ -71,7 +71,8 @@ export default class Delete extends Hub {
   override async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [userId, hubId] = customId.args;
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== userId) {
       await interaction.reply({

@@ -1,15 +1,35 @@
-import db from '../utils/Db.js';
-import BaseBlacklistManager from '../core/BaseBlacklistManager.js';
+import db from '#main/utils/Db.js';
+import BaseBlacklistManager from '#main/core/BaseBlacklistManager.js';
+import { getCachedData } from '#main/utils/db/cacheUtils.js';
+import { logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
+import { supportedLocaleCodes } from '#main/utils/Locale.js';
 import { Prisma, userData } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
-import { logUserUnblacklist } from '../utils/HubLogger/ModLogs.js';
-import { getDbUser } from '#main/utils/Utils.js';
 
 export default class UserDbManager extends BaseBlacklistManager<userData> {
   protected modelName: Prisma.ModelName = 'userData';
 
-  protected override async fetchEntityFromDb(hubId: string, id: string) {
-    return await db.userData.findFirst({ where: { id, blacklistedFrom: { some: { hubId } } } });
+  async getUser(id: Snowflake) {
+    return await getCachedData(
+      `userData:${id}`,
+      async () => await db.userData.findFirst({ where: { id } }),
+    );
+  }
+
+  async getUserLocale(userOrId: string | userData | null | undefined) {
+    const dbUser = typeof userOrId === 'string' ? await this.getUser(userOrId) : userOrId;
+    return (dbUser?.locale as supportedLocaleCodes | null | undefined) ?? 'en';
+  }
+
+  async userVotedToday(id: Snowflake): Promise<boolean> {
+    const user = await this.getUser(id);
+    const twenty4HoursAgo = new Date(Date.now() - (60 * 60 * 24 * 1000));
+    return Boolean(user?.lastVoted && user.lastVoted >= twenty4HoursAgo);
+  }
+
+  public override async fetchBlacklist(hubId: string, id: string) {
+    const blacklist = await getCachedData(`${this.modelName}:${id}`, async () => this.getUser(id));
+    return blacklist?.blacklistedFrom.find((h) => h.hubId === hubId) ? blacklist : null;
   }
 
   public override async logUnblacklist(
@@ -38,7 +58,7 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
     }: { reason: string; moderatorId: Snowflake; expires: Date | null },
   ) {
     const expires = typeof _expires === 'number' ? new Date(Date.now() + _expires) : _expires;
-    const dbUser = await getDbUser(user.id);
+    const dbUser = await this.getUser(user.id);
 
     const hubs = dbUser?.blacklistedFrom.filter((i) => i.hubId !== hubId) || [];
     hubs?.push({ expires, reason, hubId, moderatorId });

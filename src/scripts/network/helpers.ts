@@ -1,17 +1,19 @@
+import { HubSettingsBitField } from '#main/utils/BitFields.js';
+import { getAllConnections } from '#main/utils/ConnectedList.js';
+import { broadcastedMessages } from '@prisma/client';
 import {
-  Message,
-  HexColorString,
-  EmbedBuilder,
-  ButtonStyle,
-  ButtonBuilder,
+  type HexColorString,
   ActionRowBuilder,
   APIMessage,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  Message,
 } from 'discord.js';
+import { emojis, LINKS, REGEX } from '../../utils/Constants.js';
 import db from '../../utils/Db.js';
-import { LINKS, REGEX, emojis } from '../../utils/Constants.js';
-import { censor } from '../../utils/Profanity.js';
-import { broadcastedMessages } from '@prisma/client';
 import { supportedLocaleCodes, t } from '../../utils/Locale.js';
+import { censor } from '../../utils/Profanity.js';
 
 export type NetworkAPIError = { error: string };
 
@@ -182,3 +184,24 @@ export const sendWelcomeMsg = async (
 
 export const isNetworkApiError = (res: NetworkAPIError | APIMessage | undefined) =>
   (res && 'error' in res) === true;
+
+export const fetchConnectionAndHub = async (message: Message) => {
+  const allConnections = await getAllConnections();
+  const connection = allConnections?.find(
+    ({ channelId, connected }) => channelId === message.channel.id && connected,
+  );
+
+  if (!allConnections || !connection) return {};
+
+  const hub = await db.hubs.findFirst({ where: { id: connection.hubId } });
+  if (!hub) return {};
+
+  const settings = new HubSettingsBitField(hub.settings);
+  const hubConnections = allConnections.filter(
+    (con) =>
+      con.hubId === connection.hubId && con.connected && con.channelId !== message.channel.id,
+  );
+
+  return { connection, hub, hubConnections, settings };
+};
+

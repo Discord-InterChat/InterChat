@@ -1,3 +1,13 @@
+import { modifyConnection } from '#main/utils/ConnectedList.js';
+import { emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import {
+  fetchCommands,
+  findCommand,
+  getOrCreateWebhook,
+  simpleEmbed,
+} from '#main/utils/Utils.js';
 import {
   ChannelType,
   ChatInputCommandInteraction,
@@ -5,23 +15,13 @@ import {
   chatInputApplicationCommandMention as slashCmdMention,
 } from 'discord.js';
 import Connection from './index.js';
-import {
-  fetchCommands,
-  findCommand,
-  getOrCreateWebhook,
-  getUserLocale,
-  simpleEmbed,
-} from '#main/utils/Utils.js';
-import { emojis } from '#main/utils/Constants.js';
-import { t } from '#main/utils/Locale.js';
-import { modifyConnection } from '#main/utils/ConnectedList.js';
-import db from '#main/utils/Db.js';
 
 export default class Unpause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const channelId = interaction.options.getString('channel', true);
     const connected = await db.connectedList.findFirst({ where: { channelId } });
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!connected) {
       await interaction.reply({

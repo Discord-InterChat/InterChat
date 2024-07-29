@@ -1,7 +1,6 @@
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { getUserLocale } from '#main/utils/Utils.js';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
 
@@ -18,7 +17,8 @@ export default class Moderator extends Hub {
       },
     });
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (!hub) {
       await this.replyEmbed(
         interaction,

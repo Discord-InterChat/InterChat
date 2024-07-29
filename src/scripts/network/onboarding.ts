@@ -1,6 +1,6 @@
 import { LINKS, colors } from '#main/utils/Constants.js';
 import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { getReplyMethod, getUserLocale } from '#main/utils/Utils.js';
+import { getReplyMethod } from '#main/utils/Utils.js';
 import {
   type ButtonInteraction,
   type RepliableInteraction,
@@ -79,7 +79,8 @@ export const showOnboarding = async (
   // Mark this as in-progress so server can't join twice
   onboardingInProgress.set(channelId, channelId);
 
-  const locale = await getUserLocale(interaction.user.id);
+  const { userManager } = interaction.client;
+  const locale = await userManager.getUserLocale(interaction.user.id);
   const embedPhrase = 'network.onboarding.embed';
 
   const embed = new EmbedBuilder()

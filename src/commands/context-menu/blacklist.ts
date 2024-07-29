@@ -1,3 +1,13 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { deleteConnections } from '#main/utils/ConnectedList.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
+import { t } from '#main/utils/Locale.js';
+import Logger from '#main/utils/Logger.js';
+import { checkIfStaff } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   type ModalSubmitInteraction,
@@ -15,16 +25,6 @@ import {
   time,
 } from 'discord.js';
 import parse from 'parse-duration';
-import BaseCommand from '../../core/BaseCommand.js';
-import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { deleteConnections } from '../../utils/ConnectedList.js';
-import { colors, emojis } from '../../utils/Constants.js';
-import { CustomID } from '../../utils/CustomID.js';
-import db from '../../utils/Db.js';
-import { logBlacklist } from '../../utils/HubLogger/ModLogs.js';
-import { t } from '../../utils/Locale.js';
-import Logger from '../../utils/Logger.js';
-import { checkIfStaff, getUserLocale } from '../../utils/Utils.js';
 
 export default class Blacklist extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -34,7 +34,8 @@ export default class Blacklist extends BaseCommand {
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const messageInDb = await db.broadcastedMessages.findFirst({
       where: { messageId: interaction.targetId },
@@ -105,7 +106,8 @@ export default class Blacklist extends BaseCommand {
   @RegisterInteractionHandler('blacklist')
   override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== customId.args[0]) {
       await this.replyEmbed(
@@ -152,7 +154,8 @@ export default class Blacklist extends BaseCommand {
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferUpdate();
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const customId = CustomID.parseCustomId(interaction.customId);
     const [messageId] = customId.args;
     const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });
@@ -180,8 +183,6 @@ export default class Blacklist extends BaseCommand {
         inline: true,
       },
     );
-
-    const { userManager } = interaction.client;
 
     // user blacklist
     if (customId.suffix === 'user') {

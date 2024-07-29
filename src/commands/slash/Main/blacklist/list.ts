@@ -1,11 +1,11 @@
-import db from '#main/utils/Db.js';
-import BlacklistCommand from './index.js';
 import { colors, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { paginate } from '#main/utils/Pagination.js';
-import { getUserLocale, toTitleCase } from '#main/utils/Utils.js';
+import { toTitleCase } from '#main/utils/Utils.js';
 import { blacklistedServers, hubBlacklist, userData } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, User, time } from 'discord.js';
+import BlacklistCommand from './index.js';
 
 // Type guard
 const isUserType = (list: blacklistedServers | userData) => list && 'username' in list;
@@ -24,7 +24,8 @@ export default class ListBlacklists extends BlacklistCommand {
         ],
       },
     });
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (!hubInDb) {
       await this.replyEmbed(
         interaction,
@@ -55,7 +56,8 @@ export default class ListBlacklists extends BlacklistCommand {
     const fields = [];
     let counter = 0;
     const type = isUserType(list[0]) ? 'user' : 'server';
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     for (const data of list) {
       const hubData = data.blacklistedFrom.find((d) => d.hubId === hubId);

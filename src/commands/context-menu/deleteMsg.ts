@@ -1,16 +1,16 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { getAllConnections } from '#main/utils/ConnectedList.js';
+import { REGEX, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
+import { t } from '#main/utils/Locale.js';
+import { checkIfStaff } from '#main/utils/Utils.js';
+import { captureException } from '@sentry/node';
 import {
   ApplicationCommandType,
   MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import db from '../../utils/Db.js';
-import BaseCommand from '../../core/BaseCommand.js';
-import { checkIfStaff, getUserLocale } from '../../utils/Utils.js';
-import { REGEX, emojis } from '../../utils/Constants.js';
-import { t } from '../../utils/Locale.js';
-import { logMsgDelete } from '../../utils/HubLogger/ModLogs.js';
-import { captureException } from '@sentry/node';
-import { getAllConnections } from '../../utils/ConnectedList.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -41,7 +41,8 @@ export default class DeleteMessage extends BaseCommand {
       originalMsg = broadcastedMsg?.originalMsg ?? null;
     }
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (!originalMsg?.hub) {
       await interaction.editReply(
         t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),

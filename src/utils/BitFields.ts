@@ -7,7 +7,7 @@ export const HubSettingsBits = {
   BlockInvites: 1 << 3,
   UseNicknames: 1 << 4,
   BlockNSFW: 1 << 5,
-};
+} as const;
 
 export type HubSettingsString = keyof typeof HubSettingsBits;
 

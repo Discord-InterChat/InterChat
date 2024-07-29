@@ -1,33 +1,31 @@
-import {
-  ModalBuilder,
-  ActionRowBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  EmbedBuilder,
-  MessageContextMenuCommandInteraction,
-  ApplicationCommandType,
-  RESTPostAPIApplicationCommandsJSONBody,
-  ModalSubmitInteraction,
-  userMention,
-  Message,
-  User,
-} from 'discord.js';
-import db from '../../utils/Db.js';
-import BaseCommand from '../../core/BaseCommand.js';
-import { HubSettingsBitField } from '../../utils/BitFields.js';
+import { HubSettingsBitField } from '#main/utils/BitFields.js';
+import { emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { censor } from '#main/utils/Profanity.js';
 import {
   checkIfStaff,
   containsInviteLinks,
   getAttachmentURL,
-  getUserLocale,
   replaceLinks,
-  userVotedToday,
-} from '../../utils/Utils.js';
-import { censor } from '../../utils/Profanity.js';
+} from '#main/utils/Utils.js';
+import {
+  ActionRowBuilder,
+  ApplicationCommandType,
+  EmbedBuilder,
+  Message,
+  MessageContextMenuCommandInteraction,
+  ModalBuilder,
+  ModalSubmitInteraction,
+  RESTPostAPIApplicationCommandsJSONBody,
+  TextInputBuilder,
+  TextInputStyle,
+  User,
+  userMention,
+} from 'discord.js';
+import BaseCommand from '../../core/BaseCommand.js';
 import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { CustomID } from '../../utils/CustomID.js';
-import { t } from '../../utils/Locale.js';
-import { emojis } from '../../utils/Constants.js';
 
 export default class EditMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -41,10 +39,14 @@ export default class EditMessage extends BaseCommand {
     const isOnCooldown = await this.checkAndSetCooldown(interaction);
     if (isOnCooldown) return;
 
+    const { userManager } = interaction.client;
     const target = interaction.targetMessage;
-    const locale = await getUserLocale(interaction.user.id);
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
-    if (!checkIfStaff(interaction.user.id) && !(await userVotedToday(interaction.user.id))) {
+    if (
+      !checkIfStaff(interaction.user.id) &&
+      !(await userManager.userVotedToday(interaction.user.id))
+    ) {
       await interaction.reply({
         content: t({ phrase: 'errors.mustVote', locale }, { emoji: emojis.no }),
       });
@@ -108,7 +110,8 @@ export default class EditMessage extends BaseCommand {
 
     const customId = CustomID.parseCustomId(interaction.customId);
     const [messageId] = customId.args;
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
@@ -143,8 +146,12 @@ export default class EditMessage extends BaseCommand {
     const userInput = interaction.fields.getTextInputValue('newMessage');
     const hubSettings = new HubSettingsBitField(originalMsg.hub.settings);
     const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
-    const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } =
-      await this.fabricateNewMsg(interaction.user, target, newMessage, originalMsg.serverId);
+    const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } = await this.fabricateNewMsg(
+      interaction.user,
+      target,
+      newMessage,
+      originalMsg.serverId,
+    );
 
     if (hubSettings.has('BlockInvites') && containsInviteLinks(newMessage)) {
       await interaction.editReply(

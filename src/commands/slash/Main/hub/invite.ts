@@ -2,7 +2,7 @@ import { LINKS, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
-import { getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import { captureException } from '@sentry/node';
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import parse from 'parse-duration';
@@ -13,7 +13,8 @@ export default class Invite extends Hub {
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const subcommand = interaction.options.getSubcommand();
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     switch (subcommand) {
       case 'create': {

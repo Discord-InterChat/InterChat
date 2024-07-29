@@ -1,4 +1,4 @@
-import { hubs, userData } from '@prisma/client';
+import { hubs } from '@prisma/client';
 import { captureException } from '@sentry/node';
 import { createCipheriv, randomBytes } from 'crypto';
 import { ClusterManager } from 'discord-hybrid-sharding';
@@ -49,7 +49,6 @@ import { CustomID } from './CustomID.js';
 import db from './Db.js';
 import { supportedLocaleCodes, t } from './Locale.js';
 import Logger from './Logger.js';
-import { serializeCache } from '#main/utils/db/cacheUtils.js';
 
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
@@ -103,25 +102,6 @@ export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
   ).json()) as { voted: boolean };
 
   return Boolean(res.voted);
-};
-
-export const getDbUser = async (id: Snowflake) => {
-  const cached = serializeCache<userData>(await db.cache.get(`userData:${id}`));
-  return cached ?? (await db.userData.findFirst({ where: { id } }));
-};
-
-export const userVotedToday = async (id: Snowflake): Promise<boolean> => {
-  const user = await getDbUser(id);
-  return Boolean(user?.lastVoted && user.lastVoted >= new Date(Date.now() - (60 * 60 * 24 * 1000)));
-};
-
-export const getUserLocale = async (userOrId: string | userData | null | undefined) => {
-  let dbUser: userData | null | undefined;
-
-  if (typeof userOrId === 'string') dbUser = await getDbUser(userOrId);
-  else dbUser = userOrId;
-
-  return (dbUser?.locale as supportedLocaleCodes | null | undefined) ?? 'en';
 };
 
 export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) =>
@@ -319,7 +299,8 @@ export const getReplyMethod = (
   */
 export const sendErrorEmbed = async (interaction: RepliableInteraction, errorId: string) => {
   const method = getReplyMethod(interaction);
-  const locale = await getUserLocale(interaction.user.id);
+  const { userManager } = interaction.client;
+  const locale = await userManager.getUserLocale(interaction.user.id);
 
   // reply with an error message if the command failed
   return await interaction[method]({
@@ -381,21 +362,19 @@ export const getOrdinalSuffix = (num: number) => {
 };
 
 export const getUsername = async (client: ClusterManager, userId: Snowflake) => {
-  if (client) {
-    const username = resolveEval(
-      await client.broadcastEval(
-        async (c, ctx) => {
-          const user = await c.users.fetch(ctx.userId).catch(() => null);
-          return user?.username;
-        },
-        { context: { userId } },
-      ),
-    );
+  if (!client) return null;
 
-    return username ?? (await getDbUser(userId))?.username ?? null;
-  }
+  const username = resolveEval(
+    await client.broadcastEval(
+      async (c, ctx) => {
+        const user = await c.users.fetch(ctx.userId).catch(() => null);
+        return user?.username;
+      },
+      { context: { userId } },
+    ),
+  );
 
-  return (await getDbUser(userId))?.username ?? null;
+  return username;
 };
 
 export const modifyUserRole = async (
@@ -538,3 +517,6 @@ export const isHubMod = (userId: string, hub: hubs) =>
 
 export const isStaffOrHubMod = (userId: string, hub: hubs) =>
   checkIfStaff(userId) || isHubMod(userId, hub);
+
+export const isHumanMessage = (message: Message) =>
+  !message.author.bot && !message.system && !message.webhookId;

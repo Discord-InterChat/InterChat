@@ -1,18 +1,18 @@
-import type { ChatInputCommandInteraction, User } from 'discord.js';
-import parse from 'parse-duration';
 import { emojis } from '#main/utils/Constants.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
+import type { ChatInputCommandInteraction, User } from 'discord.js';
+import parse from 'parse-duration';
 import BlacklistCommand from './index.js';
-import { getUserLocale } from '#main/utils/Utils.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
     const { id: moderatorId } = interaction.user;
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const hubName = interaction.options.getString('hub');
     const hub = await this.getHub({ name: hubName, userId: moderatorId });
@@ -28,6 +28,7 @@ export default class extends BlacklistCommand {
       const passedChecks = await this.runUserAddChecks(interaction, hub.id, user.id, {
         duration,
       });
+
       if (!passedChecks) return;
 
       await this.addUserBlacklist(interaction, user, { expires, hubId: hub.id, reason });
@@ -49,7 +50,6 @@ export default class extends BlacklistCommand {
       });
     }
     else if (subcommandGroup === 'remove') {
-      const { userManager } = interaction.client;
       const userId = interaction.options.getString('user', true);
       const result = await userManager.removeBlacklist(hub.id, userId);
 
@@ -96,7 +96,8 @@ export default class extends BlacklistCommand {
     userId: string,
     opts?: { duration?: number },
   ) {
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const hiddenOpt = { ephemeral: true };
     if (userId === interaction.client.user?.id) {
       await this.replyEmbed(

@@ -2,7 +2,7 @@ import { colors, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import { paginate } from '#main/utils/Pagination.js';
-import { getUserLocale, resolveEval, simpleEmbed } from '#main/utils/Utils.js';
+import { resolveEval, simpleEmbed } from '#main/utils/Utils.js';
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
 
@@ -12,7 +12,8 @@ export default class Servers extends Hub {
 
     const hubOpt = interaction.options.getString('hub', true);
     const serverOpt = interaction.options.getString('server');
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const hub = await db.hubs.findUnique({
       where: { name: hubOpt },

@@ -2,7 +2,7 @@ import { modifyConnection } from '#main/utils/ConnectedList.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { fetchCommands, findCommand, getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
+import { fetchCommands, findCommand, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ChatInputCommandInteraction,
   channelMention,
@@ -14,7 +14,8 @@ export default class Pause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const channelId = interaction.options.getString('channel', true);
     const connected = await db.connectedList.findFirst({ where: { channelId } });
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!connected) {
       await interaction.reply({

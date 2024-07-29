@@ -1,18 +1,16 @@
 import db from './Db.js';
 import { connectedList, Prisma } from '@prisma/client';
-import { getAllDocuments, serializeCache } from './db/cacheUtils.js';
+import { getAllDocuments, getCachedData, serializeCache } from './db/cacheUtils.js';
 
-export const fetchConnection = async (where: Prisma.connectedListWhereUniqueInput) => {
+export const fetchConnection = async (where: Prisma.connectedListWhereUniqueInput) =>
   await db.connectedList.findFirst({ where });
-};
-export const getConnection = async (channelId: string) => {
-  const cache = serializeCache<connectedList>(await db.cache.get(`connectedList:${channelId}`));
 
-  return cache ? cache : await fetchConnection({ channelId });
-};
+export const getConnection = async (channelId: string) => await getCachedData(
+  `connectedList:${channelId}`,
+  async () => await fetchConnection({ channelId }),
+);
 
 /**
- *
  * @param where Specify filter to force fetch from the db
  */
 export const getAllConnections = async (where?: Prisma.connectedListWhereInput) => {

@@ -4,7 +4,7 @@ import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
 import { t } from '#main/utils/Locale.js';
-import { getOrCreateWebhook, getUserLocale, sendToHub, simpleEmbed } from '#main/utils/Utils.js';
+import { getOrCreateWebhook, sendToHub, simpleEmbed } from '#main/utils/Utils.js';
 import { hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
@@ -14,7 +14,8 @@ export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     if (!interaction.inCachedGuild()) return;
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager, serverBlacklists } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     // NOTE: Change later
     const hubName = interaction.options.getString('hub') ?? 'InterChat Central';
@@ -115,7 +116,6 @@ export default class JoinSubCommand extends Hub {
       return;
     }
 
-    const { userManager, serverBlacklists } = interaction.client;
     const userBlacklisted = await userManager.fetchBlacklist(hub.id, interaction.user.id);
     const serverBlacklisted = await serverBlacklists.fetchBlacklist(hub.id, interaction.guildId);
 

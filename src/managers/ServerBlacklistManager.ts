@@ -4,14 +4,18 @@ import { blacklistedServers, hubBlacklist, Prisma } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
 import { logServerUnblacklist } from '../utils/HubLogger/ModLogs.js';
 import { getAllConnections } from '../utils/ConnectedList.js';
+import { getCachedData } from '#main/utils/db/cacheUtils.js';
 
 export default class ServerBlacklisManager extends BaseBlacklistManager<blacklistedServers> {
   protected modelName: Prisma.ModelName = 'blacklistedServers';
 
-  protected override async fetchEntityFromDb(hubId: string, entityId: string) {
-    return await db.blacklistedServers.findFirst({
-      where: { id: entityId, blacklistedFrom: { some: { hubId } } },
-    });
+  public override async fetchBlacklist(hubId: string, id: string) {
+    const blacklist = await getCachedData(
+      `${this.modelName}:${id}`,
+      async () => await db.blacklistedServers.findFirst({ where: { id } }),
+    );
+
+    return blacklist?.blacklistedFrom.find((h) => h.hubId === hubId) ? blacklist : null;
   }
   public override async logUnblacklist(
     hubId: string,

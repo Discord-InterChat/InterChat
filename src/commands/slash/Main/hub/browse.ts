@@ -10,7 +10,6 @@ import { paginate } from '#main/utils/Pagination.js';
 import {
   calculateAverageRating,
   getOrCreateWebhook,
-  getUserLocale,
   sendToHub,
   simpleEmbed,
 } from '#main/utils/Utils.js';
@@ -99,7 +98,8 @@ export default class Browse extends Hub {
       }),
     );
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!hubList || hubList.length === 0) {
       await interaction.editReply({
@@ -151,7 +151,9 @@ export default class Browse extends Hub {
     interaction: ButtonInteraction | ChannelSelectMenuInteraction,
   ): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const locale = await getUserLocale(interaction.user.id);
+
+    const { userManager, serverBlacklists } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const hubDetails = await db.hubs.findFirst({
       where: { id: customId.args[0] },
@@ -200,7 +202,6 @@ export default class Browse extends Hub {
         return;
       }
 
-      const { userManager, serverBlacklists } = interaction.client;
       const userBlacklisted = await userManager.fetchBlacklist(hubDetails.id, interaction.user.id);
       const serverBlacklisted = await serverBlacklists.fetchBlacklist(
         hubDetails.id,
@@ -424,7 +425,8 @@ export default class Browse extends Hub {
   @RegisterInteractionHandler('hub_browse_modal')
   async handleModals(interaction: ModalSubmitInteraction<CacheType>): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const rating = parseInt(interaction.fields.getTextInputValue('rating'));
     if (isNaN(rating) || rating < 1 || rating > 5) {

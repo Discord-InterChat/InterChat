@@ -1,9 +1,9 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { colors, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import { paginate } from '#main/utils/Pagination.js';
-import { getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
 
 export default class Joined extends Hub {
@@ -13,7 +13,8 @@ export default class Joined extends Hub {
       include: { hub: true },
     });
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (connections.length === 0) {
       await interaction.reply({
         embeds: [

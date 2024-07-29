@@ -1,4 +1,12 @@
-/* eslint-disable complexity */
+import BaseCommand from '#main/core/BaseCommand.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { getAllConnections } from '#main/utils/ConnectedList.js';
+import { REGEX, colors, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { sendHubReport } from '#main/utils/HubLogger/Report.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRow,
   ActionRowBuilder,
@@ -17,15 +25,6 @@ import {
   TextInputStyle,
   time,
 } from 'discord.js';
-import db from '../../utils/Db.js';
-import BaseCommand from '../../core/BaseCommand.js';
-import { REGEX, colors, emojis } from '../../utils/Constants.js';
-import { CustomID } from '../../utils/CustomID.js';
-import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { supportedLocaleCodes, t } from '../../utils/Locale.js';
-import { getUserLocale, simpleEmbed } from '../../utils/Utils.js';
-import { sendHubReport } from '../../utils/HubLogger/Report.js';
-import { getAllConnections } from '../../utils/ConnectedList.js';
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -38,7 +37,8 @@ export default class MessageInfo extends BaseCommand {
     await interaction.deferReply({ ephemeral: true });
 
     const target = interaction.targetMessage;
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const originalMsg = (
       await db.broadcastedMessages.findFirst({
         where: { messageId: target.id },
@@ -108,7 +108,8 @@ export default class MessageInfo extends BaseCommand {
       })
     )?.originalMsg;
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!originalMsg) {
       await interaction.update({
@@ -312,7 +313,8 @@ export default class MessageInfo extends BaseCommand {
       where: { messageId },
       include: { originalMsg: { include: { hub: true } } },
     });
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!messageInDb?.originalMsg.hub?.logChannels?.reports) {
       await interaction.reply({

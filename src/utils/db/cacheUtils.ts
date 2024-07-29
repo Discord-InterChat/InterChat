@@ -13,7 +13,7 @@ export const cacheData = async (key: string, value: string, model: Prisma.ModelN
 
 export const parseKey = (key: string) => {
   const [id, model] = key.split(':');
-  return { id, model };
+  return { id, model } as { id: string; model: Prisma.ModelName };
 };
 
 export const invalidateCacheForModel = async (model: string) => {
@@ -57,4 +57,23 @@ export async function getAllDocuments(match: string) {
     Boolean,
   ) as string[];
   return result;
+}
+
+export const getCachedData = async <T extends object>(
+  key: string,
+  fetchFunction: () => Promise<T | null>,
+) => {
+  // Check cache first
+  const cachedData = serializeCache<T>(await db.cache.get(key));
+  if (cachedData) return cachedData;
+
+  const parsedKey = parseKey(key);
+
+  // If not in cache, fetch from source (e.g., MongoDB)
+  const data = await fetchFunction();
+
+  // Store in cache with TTL
+  await cacheData(key, JSON.stringify(data), parsedKey.model);
+
+  return data;
 };

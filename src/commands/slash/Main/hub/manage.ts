@@ -11,7 +11,6 @@ import { removeReportsFrom, setReportRole } from '#main/utils/HubLogger/Report.j
 import { t } from '#main/utils/Locale.js';
 import {
   checkAndFetchImgurUrl,
-  getUserLocale,
   setComponentExpiry,
   simpleEmbed,
 } from '#main/utils/Utils.js';
@@ -37,7 +36,8 @@ import Hub from './index.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const chosenHub = interaction.options.getString('hub', true);
     const hubInDb = await db.hubs.findFirst({
       where: {
@@ -128,7 +128,8 @@ export default class Manage extends Hub {
       data: { settings: hubSettings.toggle(selected).bitfield }, // toggle the setting
     });
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (!updHub) {
       await this.replyEmbed(
         interaction,
@@ -473,7 +474,8 @@ export default class Manage extends Hub {
   async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId] = customId.args;
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     let hubInDb = await db.hubs.findFirst({
       where: {
@@ -693,7 +695,8 @@ export default class Manage extends Hub {
 
   private async componentChecks(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (customId.args[0] !== interaction.user.id) {
       await interaction.reply({

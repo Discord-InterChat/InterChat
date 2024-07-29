@@ -1,3 +1,8 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
 import {
   ActionRowBuilder,
   ApplicationCommandType,
@@ -13,15 +18,9 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import db from '../../utils/Db.js';
-import BaseCommand from '../../core/BaseCommand.js';
-import { getUserLocale, userVotedToday } from '../../utils/Utils.js';
-import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { CustomID } from '../../utils/CustomID.js';
-import { t } from '../../utils/Locale.js';
+import { emojis } from '#main/utils/Constants.js';
 // @ts-expect-error no types provided for this package
-import { translate, isSupported } from 'google-translate-api-x';
-import { emojis } from '../../utils/Constants.js';
+import { isSupported, translate } from 'google-translate-api-x';
 
 export default class Translate extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -32,9 +31,11 @@ export default class Translate extends BaseCommand {
 
   async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
-    const locale = await getUserLocale(interaction.user.id);
 
-    if (!(await userVotedToday(interaction.user.id))) {
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
+
+    if (!(await userManager.userVotedToday(interaction.user.id))) {
       await interaction.editReply(t({ phrase: 'errors.mustVote', locale }, { emoji: emojis.no }));
       return;
     }
@@ -132,7 +133,8 @@ export default class Translate extends BaseCommand {
       return;
     }
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const to = interaction.fields.getTextInputValue('to');
     const from = interaction.fields.getTextInputValue('from');
     if (!isSupported(from) || !isSupported(to)) {

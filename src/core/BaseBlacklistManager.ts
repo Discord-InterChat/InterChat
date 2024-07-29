@@ -1,4 +1,3 @@
-import db from '#main/utils/Db.js';
 import { colors, emojis } from '#main/utils/Constants.js';
 import { getAllDocuments, serializeCache } from '#main/utils/db/cacheUtils.js';
 import { hubBlacklist, Prisma } from '@prisma/client';
@@ -13,7 +12,7 @@ interface BlacklistEntity {
 export default abstract class BaseBlacklistManager<T extends BlacklistEntity> extends Factory {
   protected abstract modelName: Prisma.ModelName;
 
-  protected abstract fetchEntityFromDb(hubId: string, entityId: string): Promise<T | null>;
+  public abstract fetchBlacklist(hubId: string, entityId: string): Promise<T | null>;
   public abstract logUnblacklist(
     hubId: string,
     id: string,
@@ -39,16 +38,6 @@ export default abstract class BaseBlacklistManager<T extends BlacklistEntity> ex
 
   public async getAllBlacklists() {
     return serializeCache<T>(await getAllDocuments(`${this.modelName}:*`));
-  }
-
-  public async fetchBlacklist(hubId: string, entityId: string) {
-    const cache = serializeCache<T>(await db.cache.get(`${this.modelName}:${entityId}`));
-
-    const data = cache?.blacklistedFrom.find((h) => h.hubId === hubId)
-      ? cache
-      : await this.fetchEntityFromDb(hubId, entityId);
-
-    return data;
   }
 
   protected buildNotifEmbed(description: string, opts: { expires: Date | null; reason?: string }) {

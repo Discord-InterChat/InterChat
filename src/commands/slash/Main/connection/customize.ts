@@ -11,7 +11,6 @@ import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import {
   getOrCreateWebhook,
-  getUserLocale,
   setComponentExpiry,
   simpleEmbed,
 } from '#main/utils/Utils.js';
@@ -35,7 +34,8 @@ export default class Customize extends Connection {
 
     const channelId = interaction.options.getString('channel', true).replace(/<#|!|>/g, ''); // in case they mention the channel
     const isInDb = await db.connectedList.findFirst({ where: { channelId } });
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!isInDb) {
       await interaction.editReply({
@@ -77,7 +77,8 @@ export default class Customize extends Connection {
   @RegisterInteractionHandler('connectionModal')
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (customId.suffix === 'invite') {
       await interaction.deferReply({ ephemeral: true });
 
@@ -156,7 +157,8 @@ export default class Customize extends Connection {
     const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.args.at(0);
     const userIdFilter = customId.args.at(1);
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (userIdFilter !== interaction.user.id) {
       await interaction.reply({
@@ -248,7 +250,8 @@ export default class Customize extends Connection {
     if (!interaction.isChannelSelectMenu()) return;
     await interaction.deferUpdate();
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const emoji = emojis.no;
     const customId = CustomID.parseCustomId(interaction.customId);

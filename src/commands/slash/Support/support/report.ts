@@ -1,4 +1,7 @@
-import Support from './index.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { LINKS, channels, colors, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import { t } from '#main/utils/Locale.js';
 import {
   APIEmbed,
   ActionRowBuilder,
@@ -14,11 +17,7 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { LINKS, channels, colors, emojis } from '../../../../utils/Constants.js';
-import { CustomID } from '../../../../utils/CustomID.js';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { t } from '../../../../utils/Locale.js';
-import { getUserLocale } from '#main/utils/Utils.js';
+import Support from './index.js';
 
 export default class Report extends Support {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -28,7 +27,8 @@ export default class Report extends Support {
       | 'bug'
       | 'other';
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (reportType === 'bug') {
       const bugSelect = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -93,7 +93,8 @@ export default class Report extends Support {
 
   @RegisterInteractionHandler('report')
   override async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (interaction.isStringSelectMenu()) {
       const modal = new ModalBuilder()
@@ -189,7 +190,8 @@ export default class Report extends Support {
       }
     }
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     await interaction.reply({
       content: t(
         { phrase: 'report.submitted', locale },

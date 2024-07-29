@@ -12,7 +12,7 @@ import Hub from './index.js';
 import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
 import { CustomID } from '../../../../utils/CustomID.js';
 import { emojis } from '../../../../utils/Constants.js';
-import { setComponentExpiry, getUserLocale } from '../../../../utils/Utils.js';
+import { setComponentExpiry } from '../../../../utils/Utils.js';
 import { t } from '../../../../utils/Locale.js';
 import { logGuildLeaveToHub } from '../../../../utils/HubLogger/JoinLeave.js';
 import { deleteConnection } from '../../../../utils/ConnectedList.js';
@@ -28,7 +28,8 @@ export default class Leave extends Hub {
       include: { hub: true },
     });
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (!isChannelConnected) {
       await this.replyEmbed(
         interaction,
@@ -91,7 +92,8 @@ export default class Leave extends Hub {
       return;
     }
 
-    const locale = await getUserLocale(interaction.user.id);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const validConnection = await db.connectedList.findFirst({ where: { channelId } });
     if (!validConnection) {
       await interaction.update({
