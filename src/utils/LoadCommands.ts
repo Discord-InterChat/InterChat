@@ -11,6 +11,11 @@ import { readdirSync, statSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 
+export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
+
+export const commandsMap = new Collection<string, BaseCommand>();
+export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const loadCommandInteractions = (command: BaseCommand) => {
@@ -43,11 +48,6 @@ const loadSubCommand = (command: BaseCommand, opts: { fileName: string }) => {
   const parentCommand = Object.getPrototypeOf(command.constructor);
   parentCommand.subcommands.set(opts.fileName.replace('.js', ''), command);
 };
-
-export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
-
-export const commandsMap = new Collection<string, BaseCommand>();
-export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
 
 /**
  * Recursively loads all command files from the given directory and its subdirectories.

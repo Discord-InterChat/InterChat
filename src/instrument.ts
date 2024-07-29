@@ -10,7 +10,6 @@ if (!isDevBuild) {
     maxValueLength: 1000,
     integrations: [
       Sentry.onUncaughtExceptionIntegration({ exitEvenIfOtherHandlersAreRegistered: false }),
-      Sentry.prismaIntegration(),
     ],
   });
 }

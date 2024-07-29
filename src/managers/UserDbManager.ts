@@ -28,7 +28,11 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
   }
 
   public override async fetchBlacklist(hubId: string, id: string) {
-    const blacklist = await getCachedData(`${this.modelName}:${id}`, async () => this.getUser(id));
+    const blacklist = await getCachedData(
+      `${this.modelName}:${id}`,
+      async () => await this.getUser(id),
+    );
+
     return blacklist?.blacklistedFrom.find((h) => h.hubId === hubId) ? blacklist : null;
   }
 

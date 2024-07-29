@@ -1,3 +1,4 @@
+// @ts-check
 import { REST, Routes } from 'discord.js';
 import 'dotenv/config';
 
@@ -10,9 +11,9 @@ const SUPPORT_SERVER_ID = '770256165300338709';
 
 if (!TOKEN || !CLIENT_ID || !SUPPORT_SERVER_ID) throw new Error('Missing TOKEN, CLIENT_ID or SUPPORT_SERVER_ID.')
 
-let { loadCommandFiles } = await import('../build/utils/LoadCommands.js').catch(() => {
+const { loadCommandFiles } = await import('../build/utils/LoadCommands.js').catch(() => {
   console.error(`${redText('✘')} Code is not build yet. Use \`pnpm build\` first.`)
-  process.exit(0)
+  process.exit()
 });
 
 const registerAllCommands = async (staffOnly = false) => {
@@ -30,6 +31,7 @@ const registerAllCommands = async (staffOnly = false) => {
     : Routes.applicationCommands(CLIENT_ID);
 
   // register all other commands to the global application;
+  /** @type {any} */
   const registerRes = (await rest.put(route, { body: commands }));
 
   const type = staffOnly ? 'private' : 'public';
@@ -43,30 +45,33 @@ const registerAllCommands = async (staffOnly = false) => {
   );
 };
 
-if (process.argv) {
-  for (const arg of process.argv) {
-    try {
-      switch (arg) {
-        case '--public':
-          await registerAllCommands();
-          break;
-        case '--private':
-          await registerAllCommands(true);
-          break;
-        case '--help':
-          console.log('Usage: node utils/RegisterCmdCli.js [--public|--private|--help]');
-          break;
-        default:
-          break;
-      }
-    }
-    catch (error) {
-      Logger.error(error);
-    }
-  }
+const logHelp = () => console.log(`${greenText('Usage')}: node scripts/deploy-commands.js {--public|--private|--help}`)
+/** 
+ * @param {string[]} args 
+ */
+const parseAndRun = async (args) => {
+  for (const arg of process.argv.slice(2)) {
+    if (!args.includes(arg)) continue
 
-  process.exit(0);
+    if (arg === '--help') {
+      logHelp()
+      break;
+    }
+
+    await registerAllCommands(arg === '--private').catch((e) => {
+      console.error(`${redText('✘ Error: ')}`, e);
+    });
+    continue;
+  }
 }
 
 
-export default registerAllCommands;
+if (process.argv) {
+  const allArgs = ['--help', '--public', '--private']
+  const slicedArgs = process.argv.slice(2);
+
+  if (slicedArgs.length === 0) logHelp()
+  else parseAndRun(allArgs)
+
+  process.exit();
+}
