@@ -11,9 +11,9 @@ import {
   getReferredContent,
   trimAndCensorBannedWebhookWords,
 } from './helpers.js';
-import { censor } from '../../utils/Profanity.js';
+import { censor } from '#main/utils/Profanity.js';
 import { broadcastedMessages, connectedList, hubs, originalMessages } from '@prisma/client';
-import { HubSettingsBitField } from '../../utils/BitFields.js';
+import { HubSettingsBitField } from '#main/utils/BitFields.js';
 import { NetworkWebhookSendResult } from './storeMessageData.js';
 import sendMessage from './sendMessage.js';
 

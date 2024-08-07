@@ -1,8 +1,8 @@
 import { EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
-import BaseCommand from '../../../core/BaseCommand.js';
-import { paginate } from '../../../utils/Pagination.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import { paginate } from '#main/utils/Pagination.js';
 import { stripIndents } from 'common-tags';
-import { LINKS, colors, emojis } from '../../../utils/Constants.js';
+import { LINKS, colors, emojis } from '#main/utils/Constants.js';
 
 export default class Help extends BaseCommand {
   readonly data = {

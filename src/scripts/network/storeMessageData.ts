@@ -1,9 +1,9 @@
-import db from '../../utils/Db.js';
+import db from '#main/utils/Db.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
-import { modifyConnections } from '../../utils/ConnectedList.js';
+import { modifyConnections } from '#main/utils/ConnectedList.js';
 import { NetworkAPIError, isNetworkApiError } from './helpers.js';
-import Logger from '../../utils/Logger.js';
+import Logger from '#main/utils/Logger.js';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | NetworkAPIError;

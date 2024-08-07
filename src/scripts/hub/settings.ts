@@ -1,7 +1,7 @@
 import { ActionRowBuilder, EmbedBuilder, Snowflake, StringSelectMenuBuilder } from 'discord.js';
-import { HubSettingsBitField, HubSettingsString } from '../../utils/BitFields.js';
-import { emojis, colors } from '../../utils/Constants.js';
-import { CustomID } from '../../utils/CustomID.js';
+import { HubSettingsBitField, HubSettingsString } from '#main/utils/BitFields.js';
+import { emojis, colors } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
 
 export const buildSettingsEmbed = (name: string, iconURL: string, rawSettings: number) => {
   const settings = new HubSettingsBitField(rawSettings);

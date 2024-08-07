@@ -5,8 +5,8 @@ import {
   Collection,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import { handleError } from '../../../../utils/Utils.js';
-import BaseCommand from '../../../../core/BaseCommand.js';
+import { handleError } from '#main/utils/Utils.js';
+import BaseCommand from '#main/core/BaseCommand.js';
 
 export default class Support extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {

@@ -1,9 +1,9 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Find from './index.js';
 import { stripIndents } from 'common-tags';
-import { colors, emojis } from '../../../../utils/Constants.js';
-import db from '../../../../utils/Db.js';
-import { simpleEmbed } from '../../../../utils/Utils.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {

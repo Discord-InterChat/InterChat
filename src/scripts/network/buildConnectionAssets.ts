@@ -1,4 +1,4 @@
-import db from '../../utils/Db.js';
+import db from '#main/utils/Db.js';
 import {
   EmbedBuilder,
   codeBlock,
@@ -9,11 +9,11 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
-import { colors, emojis } from '../../utils/Constants.js';
-import { yesOrNoEmoji } from '../../utils/Utils.js';
-import { supportedLocaleCodes, t } from '../../utils/Locale.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import { yesOrNoEmoji } from '#main/utils/Utils.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { stripIndents } from 'common-tags';
-import { CustomID } from '../../utils/CustomID.js';
+import { CustomID } from '#main/utils/CustomID.js';
 
 export const buildEmbed = async (
   channelId: string,

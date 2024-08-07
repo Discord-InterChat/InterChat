@@ -6,7 +6,7 @@ import {
   isJSONEncodable,
 } from 'discord.js';
 import { NetworkAPIError, isNetworkApiError } from './helpers.js';
-import { encryptMessage, wait } from '../../utils/Utils.js';
+import { encryptMessage, wait } from '#main/utils/Utils.js';
 
 export default async (webhookUrl: string, data: WebhookMessageCreateOptions) => {
   const webhook = new WebhookClient({ url: webhookUrl });

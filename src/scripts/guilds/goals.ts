@@ -1,5 +1,5 @@
 import { APIEmbed, Guild, resolveColor } from 'discord.js';
-import { channels, colors, mascotEmojis } from '../../utils/Constants.js';
+import { channels, colors, mascotEmojis } from '#main/utils/Constants.js';
 
 /**
  * @param channelId must be a channel ID in the support server

@@ -10,10 +10,10 @@ import {
   EmbedBuilder,
   Message,
 } from 'discord.js';
-import { emojis, LINKS, REGEX } from '../../utils/Constants.js';
-import db from '../../utils/Db.js';
-import { supportedLocaleCodes, t } from '../../utils/Locale.js';
-import { censor } from '../../utils/Profanity.js';
+import { emojis, LINKS, REGEX } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { censor } from '#main/utils/Profanity.js';
 
 export type NetworkAPIError = { error: string };
 

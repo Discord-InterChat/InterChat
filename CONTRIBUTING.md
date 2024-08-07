@@ -17,7 +17,6 @@ We welcome contributions to InterChat! Whether you're fixing bugs, adding new fe
 - **Follow Coding Standards:** Adhere to the project's coding conventions and style guides. If you're unsure, refer to existing code or ask for guidance.
 - **Include Tests:** If you're adding new features or fixing bugs, include tests to ensure your changes work as expected and don't break existing functionality.
 - **Documentation:** Update the README.md and other relevant documentation if your changes affect how the bot is used or deployed.
-
 - **Write Clear, Concise Commits:** Each commit should have a clear and concise message explaining what changes were made and why. Use semantic commit messages in your commit messages as it will make auto-releases and changelog updates easier.
 
   [Examples](https://gist.github.com/joshbuchea/6f47e86d2510bce28f8e7f42ae84c716):

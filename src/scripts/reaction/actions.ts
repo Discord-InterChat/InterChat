@@ -7,9 +7,9 @@ import {
   ComponentType,
   Snowflake,
 } from 'discord.js';
-import { CustomID } from '../../utils/CustomID.js';
-import db from '../../utils/Db.js';
-import { getEmojiId } from '../../utils/Utils.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { getEmojiId } from '#main/utils/Utils.js';
 import sortReactions from './sortReactions.js';
 
 /**

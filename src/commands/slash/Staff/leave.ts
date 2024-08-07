@@ -4,10 +4,10 @@ import {
   Guild,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
-import BaseCommand from '../../../core/BaseCommand.js';
-import { isDev, resolveEval } from '../../../utils/Utils.js';
-import { emojis } from '../../../utils/Constants.js';
-import { RemoveMethods } from '../../../typings/index.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import { isDev, resolveEval } from '#main/utils/Utils.js';
+import { emojis } from '#main/utils/Constants.js';
+import { RemoveMethods } from '#main/typings/index.js';
 
 export default class Respawn extends BaseCommand {
   readonly staffOnly = true;

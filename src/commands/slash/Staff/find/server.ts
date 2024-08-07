@@ -1,9 +1,9 @@
 import Find from './index.js';
-import db from '../../../../utils/Db.js';
+import db from '#main/utils/Db.js';
 import { ChatInputCommandInteraction, EmbedBuilder, GuildPremiumTier } from 'discord.js';
-import { toTitleCase } from '../../../../utils/Utils.js';
+import { toTitleCase } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import { colors, emojis } from '../../../../utils/Constants.js';
+import { colors, emojis } from '#main/utils/Constants.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {

@@ -24,8 +24,8 @@ import {
   User,
   userMention,
 } from 'discord.js';
-import BaseCommand from '../../core/BaseCommand.js';
-import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 
 export default class EditMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
