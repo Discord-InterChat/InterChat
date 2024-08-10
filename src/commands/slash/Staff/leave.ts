@@ -37,9 +37,7 @@ export default class Respawn extends BaseCommand {
       await interaction.client.cluster.broadcastEval(
         async (client, _serverId) => {
           const guild = client.guilds.cache.get(_serverId);
-          if (!guild) return;
-
-          return await guild.leave();
+          if (guild) return await guild.leave();
         },
         { guildId, context: guildId },
       ),

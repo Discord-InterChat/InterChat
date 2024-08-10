@@ -9,11 +9,7 @@ import { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import {
-  getOrCreateWebhook,
-  setComponentExpiry,
-  simpleEmbed,
-} from '#main/utils/Utils.js';
+import { getOrCreateWebhook, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   ChannelSelectMenuInteraction,
@@ -240,9 +236,10 @@ export default class Customize extends Connection {
       interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
       locale,
     );
-    interaction.replied || interaction.deferred
-      ? await interaction.message.edit({ embeds: [newEmbeds] })
-      : await interaction.update({ embeds: [newEmbeds] });
+    const msgBody = { embeds: [newEmbeds] };
+
+    if (interaction.replied || interaction.deferred) await interaction.message.edit(msgBody);
+    else await interaction.update(msgBody);
   }
 
   @RegisterInteractionHandler('connection', 'change_channel')

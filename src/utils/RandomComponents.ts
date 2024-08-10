@@ -172,9 +172,12 @@ export class RandomComponents {
         return;
       }
 
-      emojiAlreadyReacted.includes(interaction.user.id)
-        ? removeReaction(dbReactions, interaction.user.id, reactedEmoji) // If the user already reacted, remove the reaction
-        : addReaction(dbReactions, interaction.user.id, reactedEmoji); // or else add the user to the array
+      if (emojiAlreadyReacted.includes(interaction.user.id)) {
+        removeReaction(dbReactions, interaction.user.id, reactedEmoji);
+      }
+      else {
+        addReaction(dbReactions, interaction.user.id, reactedEmoji);
+      }
 
       await db.originalMessages.update({
         where: { messageId: messageInDb.originalMsgId },

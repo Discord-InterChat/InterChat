@@ -12,13 +12,10 @@ export default class Scheduler {
    * @param task - The callback to execute as the task.
    * @throws An error if a task with the same name already exists.
    */
-  addRecurringTask(name: string, _ms: number | Date, task: () => void): void {
+  addRecurringTask(name: string, ms: number, task: () => void): void {
     if (this.tasks.has(name)) {
       throw new Error(`Task with name ${name} already exists.`);
     }
-
-    // if interval is instance of Date, convert it to milliseconds
-    const ms = _ms instanceof Date ? _ms.getTime() - Date.now() : _ms;
 
     const intervalId = setInterval(task, ms);
     this.tasks.set(name, { task, ms, timeout: intervalId });

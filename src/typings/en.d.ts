@@ -1,5 +1,5 @@
 export type TranslationKeys = {
-  'rules': 'support_invite';
+  rules: 'support_invite';
   'vote.description': never;
   'vote.footer': never;
   'network.accountTooNew': 'emoji' | 'user';
@@ -7,7 +7,7 @@ export type TranslationKeys = {
   'network.editSuccess': 'emoji' | 'user' | 'edited' | 'total';
   'network.welcome': 'emoji' | 'user' | 'hub' | 'totalServers' | 'channel' | 'rules_command';
   'network.nsfw.title': never;
-  'network.nsfw.description': 'predictions' | 'rules_command';
+  'network.nsfw.description': 'rules_command';
   'network.nsfw.footer': never;
   'network.onboarding.embed.title': 'hubName';
   'network.onboarding.embed.description': 'docs_link';
@@ -37,11 +37,24 @@ export type TranslationKeys = {
   'msgInfo.buttons.user': never;
   'msgInfo.buttons.report': never;
   'msgInfo.message.description': 'emoji' | 'author' | 'server' | 'messageId' | 'hub' | 'createdAt';
-  'msgInfo.server.description': 'server' | 'description' | 'owner' | 'createdAtFull' | 'createdAt' | 'memberCount' | 'invite';
-  'msgInfo.user.description': 'username' | 'id' | 'createdAtFull' | 'createdAt' | 'globalName' | 'hubsOwned';
+  'msgInfo.server.description':
+    | 'server'
+    | 'description'
+    | 'owner'
+    | 'createdAtFull'
+    | 'createdAt'
+    | 'memberCount'
+    | 'invite';
+  'msgInfo.user.description':
+    | 'username'
+    | 'id'
+    | 'createdAtFull'
+    | 'createdAt'
+    | 'globalName'
+    | 'hubsOwned';
   'msgInfo.report.notEnabled': 'emoji';
   'msgInfo.report.success': 'emoji';
-  'invite': 'invite_emoji' | 'invite' | 'support_emoji' | 'support';
+  invite: 'invite_emoji' | 'invite' | 'support_emoji' | 'support';
   'connection.notFound': 'emoji';
   'connection.channelNotFound': 'emoji';
   'connection.alreadyConnected': 'emoji' | 'channel';

@@ -42,13 +42,18 @@ export default class Blacklist extends BaseCommand {
       include: { originalMsg: { include: { hub: true } } },
     });
 
+    if (!messageInDb?.originalMsg?.hub) {
+      await this.replyEmbed(interaction, t({ phrase: 'hub.notFound_mod', locale }), {
+        ephemeral: true,
+      });
+      return;
+    }
+
     const isHubMod =
-      messageInDb?.originalMsg?.hub?.ownerId === interaction.user.id ||
-      messageInDb?.originalMsg?.hub?.moderators.find((mod) => mod.userId === interaction.user.id);
+      messageInDb.originalMsg.hub.ownerId === interaction.user.id ||
+      messageInDb.originalMsg.hub.moderators.find((mod) => mod.userId === interaction.user.id);
 
-    const isStaffOrHubMod = checkIfStaff(interaction.user.id) || isHubMod;
-
-    if (!messageInDb || !isStaffOrHubMod) {
+    if (checkIfStaff(interaction.user.id) || isHubMod) {
       await this.replyEmbed(
         interaction,
         t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),

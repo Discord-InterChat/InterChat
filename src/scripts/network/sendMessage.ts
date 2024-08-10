@@ -25,7 +25,7 @@ export const specialSendMessage = async (
   webhookUrl: string,
   data: WebhookMessageCreateOptions,
   tries = 0,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
   encrypt = true,
 ): Promise<NetworkAPIError | APIMessage | undefined> => {
   const networkKey = process.env.NETWORK_API_KEY;
