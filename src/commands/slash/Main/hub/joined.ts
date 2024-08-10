@@ -1,7 +1,7 @@
 import { colors, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { paginate } from '#main/utils/Pagination.js';
+import { Pagination } from '#main/utils/Pagination.js';
 import { simpleEmbed } from '#main/utils/Utils.js';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
@@ -30,30 +30,30 @@ export default class Joined extends Hub {
       inline: true,
     }));
 
-    if (allFields.length > 25) {
-      const paginateEmbeds: EmbedBuilder[] = [];
-      let currentEmbed: EmbedBuilder | undefined;
+    const paginator = new Pagination();
 
+    if (allFields.length > 25) {
       // Split the fields into multiple embeds
       allFields.forEach((field, index) => {
+        let embed;
+        // Start a new embed
         if (index % 25 === 0) {
-          // Start a new embed
-          currentEmbed = new EmbedBuilder()
+          embed = new EmbedBuilder()
             .setDescription(
               t({ phrase: 'hub.joined.joinedHubs', locale }, { total: `${allFields.length}` }),
             )
             .setColor(colors.interchatBlue);
-
-          paginateEmbeds.push(currentEmbed);
         }
 
         // Add the field to the current embed
-        if (currentEmbed) {
-          currentEmbed.addFields(field);
+        if (embed) {
+          embed.addFields(field);
+          paginator.addPage({ embeds: [embed] });
         }
+
       });
 
-      await paginate(interaction, paginateEmbeds);
+      await paginator.run(interaction);
       return;
     }
 

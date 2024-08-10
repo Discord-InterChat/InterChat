@@ -1,8 +1,8 @@
 import { colors, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { paginate } from '#main/utils/Pagination.js';
-import { resolveEval, simpleEmbed } from '#main/utils/Utils.js';
+import { Pagination } from '#main/utils/Pagination.js';
+import { resolveEval } from '#main/utils/Utils.js';
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
 
@@ -21,43 +21,38 @@ export default class Servers extends Hub {
     });
 
     if (!hub) {
-      await interaction.editReply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
+      );
       return;
     }
     else if (
       hub.ownerId !== interaction.user.id &&
       !hub.moderators.some((mod) => mod.userId === interaction.user.id)
     ) {
-      await interaction.editReply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }))],
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
+      );
       return;
     }
 
     if (hub.connections.length === 0) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(t({ phrase: 'hub.servers.noConnections', locale }, { emoji: emojis.no })),
-        ],
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.servers.noConnections', locale }, { emoji: emojis.no }),
+      );
       return;
     }
 
     if (serverOpt) {
       const connection = hub.connections.find((con) => con.serverId === serverOpt);
       if (!connection) {
-        await interaction.editReply({
-          embeds: [
-            simpleEmbed(
-              t(
-                { phrase: 'hub.servers.notConnected', locale },
-                { hub: hub.name, emoji: emojis.no },
-              ),
-            ),
-          ],
-        });
+        await this.replyEmbed(
+          interaction,
+          t({ phrase: 'hub.servers.notConnected', locale }, { hub: hub.name, emoji: emojis.no }),
+        );
         return;
       }
       const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
@@ -82,7 +77,7 @@ export default class Servers extends Hub {
       return;
     }
 
-    const embeds: EmbedBuilder[] = [];
+    const paginator = new Pagination();
     let itemsPerPage = 5;
 
     for (let index = 0; index < hub.connections.length; index += 5) {
@@ -124,23 +119,25 @@ export default class Servers extends Hub {
         return { name: `${++itemCounter}. ${evalRes?.serverName}`, value };
       });
 
-      embeds.push(
-        new EmbedBuilder()
-          .setDescription(
-            t(
-              { phrase: 'hub.servers.total', locale },
-              {
-                from: `${++embedFromIndex}`,
-                to: `${itemCounter}`,
-                total: `${hub.connections.length}`,
-              },
-            ),
-          )
-          .setColor(0x2f3136)
-          .setFields(await Promise.all(fields)),
-      );
+      paginator.addPage({
+        embeds: [
+          new EmbedBuilder()
+            .setDescription(
+              t(
+                { phrase: 'hub.servers.total', locale },
+                {
+                  from: `${++embedFromIndex}`,
+                  to: `${itemCounter}`,
+                  total: `${hub.connections.length}`,
+                },
+              ),
+            )
+            .setColor(0x2f3136)
+            .setFields(await Promise.all(fields)),
+        ],
+      });
     }
 
-    paginate(interaction, embeds);
+    await paginator.run(interaction);
   }
 }

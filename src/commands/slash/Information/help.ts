@@ -1,6 +1,6 @@
 import { EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import { paginate } from '#main/utils/Pagination.js';
+import { Pagination } from '#main/utils/Pagination.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, colors, emojis } from '#main/utils/Constants.js';
 
@@ -74,6 +74,13 @@ export default class Help extends BaseCommand {
     For any questions, suggestions or feedback, join the [support server](${LINKS.SUPPORT_INVITE}) or [vote for InterChat](https://top.gg/bot/769921109209907241/vote).
     `);
 
-    await paginate(interaction, [page1, page2, page3, page4]);
+    const paginator = new Pagination().addPages([
+      { embeds: [page1] },
+      { embeds: [page2] },
+      { embeds: [page3] },
+      { embeds: [page4] },
+    ]);
+
+    await paginator.run(interaction);
   }
 }

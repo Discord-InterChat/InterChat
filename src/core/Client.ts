@@ -1,10 +1,9 @@
-import 'dotenv/config';
 import EventManager from '#main/managers/EventManager.js';
 import ServerBlacklistManager from '#main/managers/ServerBlacklistManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import CooldownService from '#main/services/CooldownService.js';
 import Scheduler from '#main/services/SchedulerService.js';
-import { loadCommandFiles, commandsMap, interactionsMap } from '#main/utils/LoadCommands.js';
+import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/LoadCommands.js';
 import { RandomComponents } from '#main/utils/RandomComponents.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {
@@ -16,8 +15,8 @@ import {
   Collection,
   GatewayIntentBits,
   Options,
-  Partials,
 } from 'discord.js';
+import 'dotenv/config';
 import { RemoveMethods } from '../typings/index.js';
 import { getAllConnections } from '../utils/ConnectedList.js';
 import { PROJECT_VERSION } from '../utils/Constants.js';
@@ -64,7 +63,6 @@ export default class SuperClient extends Client {
           filter: () => () => true, // Remove all reactions...
         },
       },
-      partials: [Partials.Message, Partials.Channel],
       intents: [
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.Guilds,

@@ -6,7 +6,7 @@ import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
 import { t } from '#main/utils/Locale.js';
-import { paginate } from '#main/utils/Pagination.js';
+import { Pagination } from '#main/utils/Pagination.js';
 import {
   calculateAverageRating,
   getOrCreateWebhook,
@@ -94,7 +94,10 @@ export default class Browse extends Hub {
           orderBy: { messageId: 'desc' },
         });
 
-        return Browse.createHubListingsEmbed(hub, connections, lastMessage?.createdAt);
+        return {
+          embeds: [this.createHubListingsEmbed(hub, connections, lastMessage?.createdAt)],
+          components: [this.createCustomButtons(hub.id)],
+        };
       }),
     );
 
@@ -108,42 +111,32 @@ export default class Browse extends Hub {
       return;
     }
 
-    const paginateBtns = new ActionRowBuilder<ButtonBuilder>().addComponents(
+
+    const paginator = new Pagination().addPages(hubList);
+    await paginator.run(interaction);
+  }
+
+  private createCustomButtons(hubId: string) {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(
-          new CustomID().setIdentifier('hub_browse', 'rate').addArgs(sortedHubs[0].id).toString(),
+          new CustomID()
+            .setIdentifier('hub_browse', 'rate')
+            .addArgs(hubId)
+            .toString(),
         )
         .setLabel('Rate')
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
         .setCustomId(
-          new CustomID().setIdentifier('hub_browse', 'join').addArgs(sortedHubs[0].id).toString(),
+          new CustomID()
+            .setIdentifier('hub_browse', 'join')
+            .addArgs(hubId)
+            .toString(),
         )
         .setLabel('Join')
         .setStyle(ButtonStyle.Success),
     );
-
-    await paginate(interaction, hubList, {
-      extraComponents: {
-        actionRow: [paginateBtns],
-        updateComponents(pageNumber) {
-          paginateBtns.components[0].setCustomId(
-            new CustomID()
-              .setIdentifier('hub_browse', 'rate')
-              .addArgs(sortedHubs[pageNumber].id)
-              .toString(),
-          );
-          paginateBtns.components[1].setCustomId(
-            new CustomID()
-              .setIdentifier('hub_browse', 'join')
-              .addArgs(sortedHubs[pageNumber].id)
-              .toString(),
-          );
-
-          return paginateBtns;
-        },
-      },
-    });
   }
 
   @RegisterInteractionHandler('hub_browse')
@@ -467,7 +460,7 @@ export default class Browse extends Hub {
   }
 
   // utils
-  static createHubListingsEmbed(hub: hubs, connections?: number, lastMessage?: Date) {
+  createHubListingsEmbed(hub: hubs, connections?: number, lastMessage?: Date) {
     const rating = calculateAverageRating(hub.rating.map((hr) => hr.rating));
     const stars =
       rating < 5

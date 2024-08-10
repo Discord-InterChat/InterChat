@@ -9,11 +9,7 @@ import db from '#main/utils/Db.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
 import { removeReportsFrom, setReportRole } from '#main/utils/HubLogger/Report.js';
 import { t } from '#main/utils/Locale.js';
-import {
-  checkAndFetchImgurUrl,
-  setComponentExpiry,
-  simpleEmbed,
-} from '#main/utils/Utils.js';
+import { checkAndFetchImgurUrl, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
 import { Prisma } from '@prisma/client';
 import {
   ActionRowBuilder,
@@ -662,9 +658,8 @@ export default class Manage extends Hub {
       );
 
       const msgToSend = { embeds: [embed], components: [selects], ephemeral: true };
-      customId.suffix === 'logsBtn'
-        ? await interaction.reply(msgToSend)
-        : await interaction.update(msgToSend);
+      if (customId.suffix === 'logsBtn') await interaction.reply(msgToSend);
+      else await interaction.update(msgToSend);
     }
     else if (customId.suffix === 'logsDel') {
       const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;

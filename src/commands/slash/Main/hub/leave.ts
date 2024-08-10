@@ -1,21 +1,21 @@
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { deleteConnection } from '#main/utils/ConnectedList.js';
+import { emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { logGuildLeaveToHub } from '#main/utils/HubLogger/JoinLeave.js';
+import { t } from '#main/utils/Locale.js';
+import { setComponentExpiry } from '#main/utils/Utils.js';
 import {
-  ChatInputCommandInteraction,
-  CacheType,
-  MessageComponentInteraction,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  CacheType,
+  ChatInputCommandInteraction,
   EmbedBuilder,
+  MessageComponentInteraction,
 } from 'discord.js';
-import db from '#main/utils/Db.js';
 import Hub from './index.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { emojis } from '#main/utils/Constants.js';
-import { setComponentExpiry } from '#main/utils/Utils.js';
-import { t } from '#main/utils/Locale.js';
-import { logGuildLeaveToHub } from '#main/utils/HubLogger/JoinLeave.js';
-import { deleteConnection } from '#main/utils/ConnectedList.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
