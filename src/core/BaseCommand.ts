@@ -1,10 +1,13 @@
 import { InteractionFunction } from '#main/decorators/Interaction.js';
 import { emojis } from '#main/utils/Constants.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { getReplyMethod, getUserLocale, simpleEmbed } from '#main/utils/Utils.js';
+import { getReplyMethod, simpleEmbed } from '#main/utils/Utils.js';
 import {
+  type APIApplicationCommandSubcommandGroupOption,
+  type APIApplicationCommandSubcommandOption,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
+  Collection,
   type ColorResolvable,
   type ContextMenuCommandInteraction,
   type InteractionResponse,
@@ -14,9 +17,6 @@ import {
   type RepliableInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
-  type APIApplicationCommandSubcommandGroupOption,
-  type APIApplicationCommandSubcommandOption,
-  Collection,
   time,
 } from 'discord.js';
 
@@ -49,7 +49,8 @@ export default abstract class BaseCommand {
     const remainingCooldown = await this.getRemainingCooldown(interaction);
 
     if (remainingCooldown) {
-      const locale = await getUserLocale(interaction.user.id);
+      const { userManager } = interaction.client;
+      const locale = await userManager.getUserLocale(interaction.user.id);
       await this.sendCooldownError(interaction, remainingCooldown, locale);
       return true;
     }
