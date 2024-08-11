@@ -1,4 +1,4 @@
-import { wait } from './Utils.js';
+import { wait } from '../utils/Utils.js';
 
 export default class DelayedQueue {
   private queue: (() => Promise<void>)[] = [];

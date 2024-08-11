@@ -1,8 +1,8 @@
-import Scheduler from '#main/services/SchedulerService.ts';
-import BaseCommand from '#main/core/BaseCommand.ts';
+import Scheduler from '#main/modules/SchedulerService.js';
+import BaseCommand from '#main/core/BaseCommand.js';
 import CooldownService from '#main/services/CooldownService.ts';
-import UserDbManager from '#main/managers/UserDbManager.ts';
-import ServerBlacklisManager from '#main/managers/ServerBlacklistManager.ts';
+import UserDbManager from '#main/modules/UserDbManager.js';
+import ServerBlacklisManager from '#main/modules/ServerBlacklistManager.js';
 import { ClusterClient } from 'discord-hybrid-sharding';
 import { InteractionFunction } from '#main/decorators/Interaction.ts';
 import { Collection, Snowflake } from 'discord.js';

@@ -6,7 +6,7 @@ import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
 import { t } from '#main/utils/Locale.js';
-import { Pagination } from '#main/utils/Pagination.js';
+import { Pagination } from '#main/modules/Pagination.js';
 import {
   calculateAverageRating,
   getOrCreateWebhook,

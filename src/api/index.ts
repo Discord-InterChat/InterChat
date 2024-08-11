@@ -1,5 +1,5 @@
-import { VoteManager } from '../managers/VoteManager.js';
-import Logger from '../utils/Logger.js';
+import { VoteManager } from '#main/modules/VoteManager.js';
+import Logger from '#main/utils/Logger.js';
 import express from 'express';
 import dblRoute from './routes/dbl.js';
 import nsfwRouter from './routes/nsfw.js';

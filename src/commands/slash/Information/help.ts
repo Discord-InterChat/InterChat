@@ -1,6 +1,6 @@
 import { EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import { Pagination } from '#main/utils/Pagination.js';
+import { Pagination } from '#main/modules/Pagination.js';
 import { stripIndents } from 'common-tags';
 import { LINKS, colors, emojis } from '#main/utils/Constants.js';
 

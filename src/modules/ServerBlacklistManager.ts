@@ -1,10 +1,10 @@
-import db from '../utils/Db.js';
-import BaseBlacklistManager from '../core/BaseBlacklistManager.js';
+import BaseBlacklistManager from '#main/core/BaseBlacklistManager.js';
+import { getAllConnections } from '#main/utils/ConnectedList.js';
+import db from '#main/utils/Db.js';
+import { getCachedData } from '#main/utils/db/cacheUtils.js';
+import { logServerUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { blacklistedServers, hubBlacklist, Prisma } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
-import { logServerUnblacklist } from '../utils/HubLogger/ModLogs.js';
-import { getAllConnections } from '../utils/ConnectedList.js';
-import { getCachedData } from '#main/utils/db/cacheUtils.js';
 
 export default class ServerBlacklisManager extends BaseBlacklistManager<blacklistedServers> {
   protected modelName: Prisma.ModelName = 'blacklistedServers';

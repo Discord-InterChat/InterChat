@@ -2,7 +2,7 @@ import { colors, emojis } from '#main/utils/Constants.js';
 import { getAllDocuments, serializeCache } from '#main/utils/db/cacheUtils.js';
 import { hubBlacklist, Prisma } from '@prisma/client';
 import { EmbedBuilder, Snowflake, User } from 'discord.js';
-import Factory from './Factory.js';
+import Factory from '#main/core/Factory.js';
 
 interface BlacklistEntity {
   id: string;

@@ -1,8 +1,7 @@
-import EventManager from '#main/managers/EventManager.js';
-import ServerBlacklistManager from '#main/managers/ServerBlacklistManager.js';
-import UserDbManager from '#main/managers/UserDbManager.js';
-import CooldownService from '#main/services/CooldownService.js';
-import Scheduler from '#main/services/SchedulerService.js';
+import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
+import UserDbManager from '#main/modules/UserDbManager.js';
+import CooldownService from '#main/modules/CooldownService.js';
+import Scheduler from '#main/modules/SchedulerService.js';
 import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/LoadCommands.js';
 import { RandomComponents } from '#main/utils/RandomComponents.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
@@ -22,12 +21,12 @@ import { getAllConnections } from '../utils/ConnectedList.js';
 import { PROJECT_VERSION } from '../utils/Constants.js';
 import { loadLocales } from '../utils/Locale.js';
 import { resolveEval } from '../utils/Utils.js';
+import EventHandler from '#main/modules/EventHandler.js';
 
 export default class SuperClient extends Client {
   public static instance: SuperClient;
 
   private readonly scheduler = new Scheduler();
-  readonly _eventManager = new EventManager();
   readonly _componentListeners = new RandomComponents();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
@@ -41,6 +40,7 @@ export default class SuperClient extends Client {
   readonly cluster = new ClusterClient(this);
   readonly userManager = new UserDbManager(this);
   readonly serverBlacklists = new ServerBlacklistManager(this);
+  readonly eventHandler = new EventHandler(this);
   readonly commandCooldowns = new CooldownService();
 
   constructor() {
@@ -97,6 +97,7 @@ export default class SuperClient extends Client {
 
     // load commands
     await loadCommandFiles({ loadInteractions: true });
+    await this.eventHandler.loadListeners();
 
     // cache connections
     await getAllConnections({ connected: true });

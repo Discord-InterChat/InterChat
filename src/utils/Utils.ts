@@ -32,7 +32,7 @@ import {
 import 'dotenv/config';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
-import Scheduler from '../services/SchedulerService.js';
+import Scheduler from '#main/modules/SchedulerService.js';
 import { RemoveMethods } from '../typings/index.js';
 import { deleteConnection, deleteConnections } from './ConnectedList.js';
 import {

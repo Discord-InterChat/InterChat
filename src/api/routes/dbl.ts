@@ -1,6 +1,6 @@
 import { Webhook } from '@top-gg/sdk';
 import { Router } from 'express';
-import { VoteManager } from '#main/managers/VoteManager.js';
+import { VoteManager } from '#main/modules/VoteManager.js';
 import 'dotenv/config';
 
 // NOTE: testing this against top.gg only works in the production server

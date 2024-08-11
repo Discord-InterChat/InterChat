@@ -1,7 +1,7 @@
 import { colors, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { Pagination } from '#main/utils/Pagination.js';
+import { Pagination } from '#main/modules/Pagination.js';
 import { toTitleCase } from '#main/utils/Utils.js';
 import { blacklistedServers, hubBlacklist, userData } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, time, User } from 'discord.js';

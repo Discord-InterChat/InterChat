@@ -1,5 +1,5 @@
 import db from '../utils/Db.js';
-import Scheduler from '../services/SchedulerService.js';
+import Scheduler from './SchedulerService.js';
 import { WebhookPayload } from '@top-gg/sdk';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';

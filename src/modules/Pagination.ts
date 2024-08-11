@@ -7,7 +7,7 @@ import {
   ComponentType,
   RepliableInteraction,
 } from 'discord.js';
-import { emojis } from './Constants.js';
+import { emojis } from '#main/utils/Constants.js';
 
 type ButtonEmojis = {
   back: string;

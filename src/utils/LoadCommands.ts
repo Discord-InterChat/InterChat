@@ -17,6 +17,7 @@ export const commandsMap = new Collection<string, BaseCommand>();
 export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const importPrefix = process.platform === 'win32' ? 'file://' : '';
 
 const loadCommandInteractions = (command: BaseCommand) => {
   Logger.debug(`Adding interactions for command: ${command.data.name}`);
@@ -61,7 +62,6 @@ export const loadCommandFiles = async (opts?: {
   const loadInteractions = Boolean(opts?.loadInteractions);
 
   Logger.debug(`Called loadCommandFiles with directory: ${commandDir}`);
-  const importPrefix = process.platform === 'win32' ? 'file://' : '';
 
   try {
     const filesInDir = readdirSync(commandDir);
