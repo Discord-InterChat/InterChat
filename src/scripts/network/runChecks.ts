@@ -1,14 +1,16 @@
-import logProfanity from '../../utils/HubLogger/Profanity.js';
-import { Message, EmbedBuilder } from 'discord.js';
-import { HubSettingsBitField } from '../../utils/BitFields.js';
-import { emojis, REGEX } from '../../utils/Constants.js';
-import { t } from '../../utils/Locale.js';
-import { containsInviteLinks, getUserLocale, replaceLinks } from '../../utils/Utils.js';
-import { check as checkProfanity } from '../../utils/Profanity.js';
+import { sendWelcomeMsg } from '#main/scripts/network/helpers.js';
+import { HubSettingsBitField } from '#main/utils/BitFields.js';
+import { emojis, REGEX } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
+import logProfanity from '#main/utils/HubLogger/Profanity.js';
+import { t } from '#main/utils/Locale.js';
+import { analyzeImageForNSFW, isUnsafeImage } from '#main/modules/NSFWDetection.js';
+import { check as checkProfanity } from '#main/utils/Profanity.js';
+import { containsInviteLinks, replaceLinks } from '#main/utils/Utils.js';
+import { connectedList, hubs } from '@prisma/client';
+import { EmbedBuilder, Message } from 'discord.js';
 import { runAntiSpam } from './antiSpam.js';
-import { analyzeImageForNSFW, isUnsafeImage } from '../../utils/NSFWDetection.js';
-import { logBlacklist } from '../../utils/HubLogger/ModLogs.js';
-import { userData as userDataCol } from '@prisma/client';
 
 // if account is created within the last 7 days
 export const isNewUser = (message: Message) => {
@@ -37,10 +39,9 @@ export const isCaughtSpam = async (
   settings: HubSettingsBitField,
   hubId: string,
 ) => {
-  const antiSpamResult = runAntiSpam(message.author, 3);
+  const antiSpamResult = runAntiSpam(message.client, message.author.id, 3);
   if (!antiSpamResult) return false;
-  /* NOTE: Don't use { addUserBlacklist, notifyBlacklist } it makes the methods lose their "this" property
-    better to not have a class like this at all tbh */
+  // NOTE: Don't use { addUserBlacklist, notifyBlacklist } it makes the methods lose their "this" property
   const { userManager } = message.client;
 
   if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
@@ -62,19 +63,15 @@ export const isCaughtSpam = async (
   return true;
 };
 
-export const containsNSFW = async (message: Message, imgUrl: string | null | undefined) => {
-  const attachment = message.attachments.first();
+export const isNSFW = async (imgUrl: string | null | undefined) => {
+  if (!imgUrl) return null;
 
-  if (!imgUrl || !attachment) return null;
   // run static images through the nsfw detector
-  const predictions = await analyzeImageForNSFW(attachment ? attachment.url : imgUrl);
+  const predictions = await analyzeImageForNSFW(imgUrl);
 
   if (!predictions) return null;
 
-  return {
-    predictions,
-    unsafe: isUnsafeImage(predictions),
-  };
+  return isUnsafeImage(predictions);
 };
 
 export const containsLinks = (message: Message, settings: HubSettingsBitField) =>
@@ -94,44 +91,69 @@ export const attachmentTooLarge = (message: Message) => {
   const attachment = message.attachments.first();
   return (attachment && attachment.size > 1024 * 1024 * 8) === true;
 };
+
 /**
  * Runs various checks on a message to determine if it can be sent in the network.
  * @param message - The message to check.
  * @param settings - The settings for the network.
- * @param hubId - The ID of the hub the message is being sent in.
+ * @param hub - The hub where the message is being sent in
  * @returns A boolean indicating whether the message passed all checks.
  */
 
 export const runChecks = async (
   message: Message<true>,
-  hubId: string,
-  opts: { settings: HubSettingsBitField; userData: userDataCol; attachmentURL?: string | null },
+  hub: hubs,
+  opts: {
+    settings: HubSettingsBitField;
+    hubConnections: connectedList[];
+    attachmentURL?: string | null;
+  },
 ): Promise<boolean> => {
   const { hasProfanity, hasSlurs } = checkProfanity(message.content);
-  const { settings, userData, attachmentURL } = opts;
-  const locale = await getUserLocale(userData);
-  const isUserBlacklisted = userData.blacklistedFrom.some((b) => b.hubId === hubId);
+  const { settings, hubConnections, attachmentURL } = opts;
+  const { userManager } = message.client;
+
+  let userData = await userManager.getUser(message.author.id);
+  let locale = userData ? await userManager.getUserLocale(userData) : undefined;
+  if (!userData?.viewedNetworkWelcome) {
+    userData = await db.userData.upsert({
+      where: { id: message.author.id },
+      create: {
+        id: message.author.id,
+        username: message.author.username,
+        viewedNetworkWelcome: true,
+      },
+      update: { viewedNetworkWelcome: true },
+    });
+
+    locale = await userManager.getUserLocale(userData);
+
+    await sendWelcomeMsg(message, locale, {
+      hub: hub.name,
+      totalServers: hubConnections.length.toString(),
+    });
+  }
 
   // banned / blacklisted
+  const isUserBlacklisted = userData.blacklistedFrom.some((b) => b.hubId === hub.id);
   if (userData.banMeta?.reason || isUserBlacklisted) return false;
+
   if (containsLinks(message, settings)) message.content = replaceLinks(message.content);
-  if (await isCaughtSpam(message, settings, hubId)) return false;
+  if (await isCaughtSpam(message, settings, hub.id)) return false;
 
   // send a log to the log channel set by the hub
+  if (hasSlurs) return false;
   if (hasProfanity || hasSlurs) {
-    logProfanity(hubId, message.content, message.author, message.guild);
-    if (hasSlurs) return false;
+    logProfanity(hub.id, message.content, message.author, message.guild);
   }
 
   if (isNewUser(message)) {
-    await message.channel
-      .send(
-        t(
-          { phrase: 'network.accountTooNew', locale },
-          { user: message.author.toString(), emoji: emojis.no },
-        ),
-      )
-      .catch(() => null);
+    await replyToMsg(message, {
+      content: t(
+        { phrase: 'network.accountTooNew', locale },
+        { user: message.author.toString(), emoji: emojis.no },
+      ),
+    });
 
     return false;
   }
@@ -150,7 +172,7 @@ export const runChecks = async (
   }
   if (settings.has('BlockInvites') && containsInviteLinks(message.content)) {
     await replyToMsg(message, {
-      content: 'Advertising is not allowed. Set an invite in `/connection` instead!',
+      content: t({ phrase: 'errors.inviteLinks', locale }, { emoji: emojis.no }),
     });
     return false;
   }
@@ -166,17 +188,13 @@ export const runChecks = async (
     return false;
   }
 
-  const isNsfw = await containsNSFW(message, attachmentURL);
-  if (isNsfw?.unsafe) {
+  if (await isNSFW(attachmentURL)) {
     const nsfwEmbed = new EmbedBuilder()
       .setTitle(t({ phrase: 'network.nsfw.title', locale }))
       .setDescription(
         t(
           { phrase: 'network.nsfw.description', locale },
-          {
-            predictions: `${Math.round(isNsfw.predictions[0].probability * 100)}%`,
-            rules_command: '</rules:924659340898619395>',
-          },
+          { rules_command: '</rules:924659340898619395>' },
         ),
       )
       .setFooter({
