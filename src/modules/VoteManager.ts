@@ -7,7 +7,7 @@ import { WebhookClient, userMention, EmbedBuilder } from 'discord.js';
 import { badgeEmojis, LINKS, VOTER_ROLE_ID } from '../utils/Constants.js';
 import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
 import EventEmitter from 'events';
-import { getCachedData } from '#main/utils/db/cacheUtils.js';
+import { getCachedData } from '#main/utils/cache/cacheUtils.js';
 
 export type TopggEvents = {
   vote: WebhookPayload;
@@ -44,10 +44,10 @@ export class VoteManager extends EventEmitter {
   }
 
   async getDbUser(id: string) {
-    return await getCachedData(
+    return (await getCachedData(
       `userData:${id}`,
       async () => await db.userData.findFirst({ where: { id } }),
-    );
+    )).data;
   }
 
   async getUserVoteCount(id: string) {

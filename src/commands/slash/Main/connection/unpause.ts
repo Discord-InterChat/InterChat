@@ -1,4 +1,4 @@
-import { modifyConnection } from '#main/utils/ConnectedList.js';
+import { updateConnection } from '#main/utils/ConnectedList.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
@@ -71,7 +71,7 @@ export default class Unpause extends Connection {
     }
 
     // reconnect the channel
-    await modifyConnection({ channelId }, { connected: true, webhookURL: webhook.url });
+    await updateConnection({ channelId }, { connected: true, webhookURL: webhook.url });
 
     let pause_cmd = '`/connection pause`';
     let customize_cmd = '`/connection customize`';

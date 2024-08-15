@@ -4,8 +4,10 @@ import { createCipheriv, randomBytes } from 'crypto';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import {
   ActionRow,
+  ActionRowBuilder,
   ApplicationCommand,
   ApplicationCommandOptionType,
+  ButtonBuilder,
   ButtonStyle,
   ChannelType,
   Client,
@@ -21,6 +23,7 @@ import {
   Message,
   MessageActionRowComponent,
   MessageComponentInteraction,
+  messageLink,
   NewsChannel,
   RepliableInteraction,
   Snowflake,
@@ -525,3 +528,29 @@ export const isStaffOrHubMod = (userId: string, hub: hubs) =>
 
 export const isHumanMessage = (message: Message) =>
   !message.author.bot && !message.system && !message.webhookId;
+
+export const greyOutButton = (row: ActionRowBuilder<ButtonBuilder>, disableElement: number) => {
+  row.components.forEach((c) => c.setDisabled(false));
+  row.components[disableElement].setDisabled(true);
+};
+export const greyOutButtons = (rows: ActionRowBuilder<ButtonBuilder>[]) => {
+  rows.forEach((row) => row.components.forEach((c) => c.setDisabled(true)));
+};
+
+
+export const generateJumpButton = (
+  referredAuthorUsername: string,
+  opts: { messageId: Snowflake; channelId: Snowflake; serverId: Snowflake },
+) =>
+  // create a jump to reply button
+  new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Link)
+      .setEmoji(emojis.reply)
+      .setURL(messageLink(opts.channelId, opts.messageId, opts.serverId))
+      .setLabel(
+        referredAuthorUsername.length >= 80
+          ? `@${referredAuthorUsername.slice(0, 76)}...`
+          : `@${referredAuthorUsername}`,
+      ),
+  );

@@ -1,10 +1,10 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import { getAllConnections } from '#main/utils/ConnectedList.js';
+import { getHubConnections } from '#main/utils/ConnectedList.js';
 import { REGEX, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
-import { checkIfStaff } from '#main/utils/Utils.js';
+import { isStaffOrHubMod } from '#main/utils/Utils.js';
 import { captureException } from '@sentry/node';
 import {
   ApplicationCommandType,
@@ -52,13 +52,10 @@ export default class DeleteMessage extends BaseCommand {
 
     const { hub } = originalMsg;
 
-    const isHubMod =
-      hub?.moderators.some((mod) => mod.userId === interaction.user.id) ||
-      hub.ownerId === interaction.user.id;
-
-    const isStaffOrHubMod = checkIfStaff(interaction.user.id) || isHubMod;
-
-    if (!isStaffOrHubMod && interaction.user.id !== originalMsg.authorId) {
+    if (
+      interaction.user.id !== originalMsg.authorId &&
+      !isStaffOrHubMod(interaction.user.id, hub)
+    ) {
       await interaction.editReply(
         t({ phrase: 'errors.notMessageAuthor', locale }, { emoji: emojis.no }),
       );
@@ -71,10 +68,12 @@ export default class DeleteMessage extends BaseCommand {
 
     let passed = 0;
 
-    const allConnections = await getAllConnections();
+    const allConnections = await getHubConnections(hub.id);
 
     for await (const dbMsg of originalMsg.broadcastMsgs) {
-      const connection = allConnections?.find((c) => c.channelId === dbMsg.channelId);
+      const connection = allConnections?.find(
+        (c) => c.connected && c.channelId === dbMsg.channelId,
+      );
 
       if (!connection) break;
 
@@ -114,7 +113,7 @@ export default class DeleteMessage extends BaseCommand {
     const imageUrl =
       targetMessage.embeds.at(0)?.image?.url ?? targetMessage.content.match(REGEX.IMAGE_URL)?.at(0);
 
-    if (isStaffOrHubMod && messageContent) {
+    if (isStaffOrHubMod(interaction.user.id, hub) && messageContent) {
       await logMsgDelete(interaction.client, messageContent, hub, {
         userId: originalMsg.authorId,
         serverId: originalMsg.serverId,

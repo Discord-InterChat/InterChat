@@ -1,6 +1,7 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { getAllConnections, modifyConnection } from '#main/utils/ConnectedList.js';
+import { updateConnection } from '#main/utils/ConnectedList.js';
 import { emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
 import { ForumChannel, MediaChannel, NewsChannel, TextChannel, VoiceChannel } from 'discord.js';
@@ -11,10 +12,9 @@ export default class Ready extends BaseEventListener<'webhooksUpdate'> {
     channel: NewsChannel | TextChannel | VoiceChannel | ForumChannel | MediaChannel,
   ) {
     try {
-      const allConnections = await getAllConnections();
-      const connection = allConnections?.find(
-        (c) => c.connected && (c.channelId === channel.id || c.parentId === channel.id),
-      );
+      const connection = await db.connectedList.findFirst({
+        where: { OR: [{ channelId: channel.id }, { parentId: channel.id }] },
+      });
 
       if (!connection) return;
 
@@ -27,7 +27,7 @@ export default class Ready extends BaseEventListener<'webhooksUpdate'> {
       if (webhook) return;
 
       // disconnect the channel
-      await modifyConnection({ id: connection.id }, { connected: false });
+      await updateConnection({ id: connection.id }, { connected: false });
 
       // send an alert to the channel
       const networkChannel = connection.parentId

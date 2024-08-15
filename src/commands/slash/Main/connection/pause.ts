@@ -1,4 +1,4 @@
-import { modifyConnection } from '#main/utils/ConnectedList.js';
+import { updateConnection } from '#main/utils/ConnectedList.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
@@ -38,7 +38,7 @@ export default class Pause extends Connection {
     }
 
     // disconnect the channel
-    await modifyConnection({ channelId }, { connected: false });
+    await updateConnection({ channelId }, { connected: false });
 
     const commands = await fetchCommands(interaction.client);
     const connectionCmd = findCommand('connection', commands);

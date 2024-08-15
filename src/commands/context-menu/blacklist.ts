@@ -7,7 +7,7 @@ import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
-import { checkIfStaff } from '#main/utils/Utils.js';
+import { isStaffOrHubMod } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   type ModalSubmitInteraction,
@@ -37,41 +37,31 @@ export default class Blacklist extends BaseCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    const messageInDb = await db.broadcastedMessages.findFirst({
-      where: { messageId: interaction.targetId },
-      include: { originalMsg: { include: { hub: true } } },
+    const messageInDb = await this.fetchMessageFromDb(interaction.targetId, {
+      hub: true,
+      broadcastMsgs: true,
     });
 
-    if (!messageInDb?.originalMsg?.hub) {
-      await this.replyEmbed(interaction, t({ phrase: 'hub.notFound_mod', locale }), {
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const isHubMod =
-      messageInDb.originalMsg.hub.ownerId === interaction.user.id ||
-      messageInDb.originalMsg.hub.moderators.find((mod) => mod.userId === interaction.user.id);
-
-    if (checkIfStaff(interaction.user.id) || isHubMod) {
+    if (!messageInDb?.hub || !isStaffOrHubMod(interaction.user.id, messageInDb.hub)) {
       await this.replyEmbed(
         interaction,
         t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
         { ephemeral: true },
       );
+
       return;
     }
 
-    if (messageInDb.originalMsg.authorId === interaction.user.id) {
+    if (messageInDb.authorId === interaction.user.id) {
       await interaction.reply({
-        content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
+        content: '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
         ephemeral: true,
       });
       return;
     }
 
-    const server = await interaction.client.fetchGuild(messageInDb.originalMsg.serverId);
-    const user = await interaction.client.users.fetch(messageInDb.originalMsg.authorId);
+    const user = await interaction.client.users.fetch(messageInDb.authorId);
+    const server = await interaction.client.fetchGuild(messageInDb.serverId);
 
     const embed = new EmbedBuilder()
       .setTitle('Create A Blacklist')
@@ -88,7 +78,7 @@ export default class Blacklist extends BaseCommand {
           new CustomID()
             .setIdentifier('blacklist', 'user')
             .addArgs(interaction.user.id)
-            .addArgs(messageInDb.originalMsgId)
+            .addArgs(messageInDb.messageId)
             .toString(),
         )
         .setStyle(ButtonStyle.Secondary)
@@ -98,7 +88,7 @@ export default class Blacklist extends BaseCommand {
           new CustomID()
             .setIdentifier('blacklist', 'server')
             .addArgs(interaction.user.id)
-            .addArgs(messageInDb.originalMsgId)
+            .addArgs(messageInDb.messageId)
             .toString(),
         )
         .setStyle(ButtonStyle.Secondary)
@@ -156,14 +146,14 @@ export default class Blacklist extends BaseCommand {
   }
 
   @RegisterInteractionHandler('blacklist_modal')
-  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
+  override async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferUpdate();
 
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     const customId = CustomID.parseCustomId(interaction.customId);
     const [messageId] = customId.args;
-    const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });
+    const originalMsg = await this.fetchMessageFromDb(messageId);
 
     if (!originalMsg?.hubId) {
       await interaction.editReply(
@@ -278,5 +268,27 @@ export default class Blacklist extends BaseCommand {
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });
     }
+  }
+
+  // utils
+  private async fetchMessageFromDb(
+    messageId: string,
+    include: { hub: boolean; broadcastMsgs: boolean } = { hub: false, broadcastMsgs: false },
+  ) {
+    let messageInDb = await db.originalMessages.findFirst({
+      where: { messageId },
+      include,
+    });
+
+    if (!messageInDb) {
+      const broadcastedMsg = await db.broadcastedMessages.findFirst({
+        where: { messageId },
+        include: { originalMsg: { include } },
+      });
+
+      messageInDb = broadcastedMsg?.originalMsg ?? null;
+    }
+
+    return messageInDb;
   }
 }

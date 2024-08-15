@@ -4,8 +4,8 @@ import {
   buildCustomizeSelect,
   buildEmbed,
 } from '#main/scripts/network/buildConnectionAssets.js';
-import { modifyConnection } from '#main/utils/ConnectedList.js';
-import { emojis } from '#main/utils/Constants.js';
+import { updateConnection } from '#main/utils/ConnectedList.js';
+import { emojis, REGEX } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
@@ -28,33 +28,34 @@ export default class Customize extends Connection {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply();
 
-    const channelId = interaction.options.getString('channel', true).replace(/<#|!|>/g, ''); // in case they mention the channel
+    const channelId = interaction.options
+      .getString('channel', true)
+      .replace(REGEX.CHANNEL_MENTION, '');
+
     const isInDb = await db.connectedList.findFirst({ where: { channelId } });
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!isInDb) {
-      await interaction.editReply({
-        embeds: [simpleEmbed(t({ phrase: 'connection.notFound', locale }, { emoji: emojis.no }))],
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'connection.notFound', locale }, { emoji: emojis.no }),
+      );
       return;
     }
 
     const channelExists = await interaction.guild?.channels.fetch(channelId).catch(() => null);
-
     if (!channelExists) {
-      await modifyConnection({ channelId }, { connected: !isInDb.connected });
+      await updateConnection({ channelId }, { connected: !isInDb.connected });
       await interaction.followUp({
         content: t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
     }
 
-    const embed = await buildEmbed(
-      channelId,
-      interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
-      locale,
-    );
+    const iconURL = interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString();
+
+    const embed = await buildEmbed(channelId, iconURL, locale);
     const customizeSelect = buildCustomizeSelect(channelId, interaction.user.id, locale);
     const channelSelect = buildChannelSelect(channelId, interaction.user.id);
 
@@ -82,7 +83,7 @@ export default class Customize extends Connection {
       const [channelId] = customId.args;
 
       if (!invite) {
-        await modifyConnection({ channelId }, { invite: { unset: true } });
+        await updateConnection({ channelId }, { invite: { unset: true } });
         await interaction.followUp({
           content: t({ phrase: 'connection.inviteRemoved', locale }, { emoji: emojis.yes }),
           ephemeral: true,
@@ -90,9 +91,8 @@ export default class Customize extends Connection {
         return;
       }
 
-      const isValid = await interaction.client?.fetchInvite(invite).catch(() => null);
-
-      if (isValid?.guild?.id !== interaction.guildId) {
+      const fetchedInvite = await interaction.client?.fetchInvite(invite).catch(() => null);
+      if (fetchedInvite?.guild?.id !== interaction.guildId) {
         await interaction.followUp({
           content: t({ phrase: 'connection.inviteInvalid', locale }, { emoji: emojis.no }),
           ephemeral: true,
@@ -100,7 +100,7 @@ export default class Customize extends Connection {
         return;
       }
 
-      await modifyConnection({ channelId }, { invite });
+      await updateConnection({ channelId }, { invite });
 
       await interaction.followUp({
         content: t({ phrase: 'connection.inviteAdded', locale }, { emoji: emojis.yes }),
@@ -110,8 +110,7 @@ export default class Customize extends Connection {
     else if (customId.suffix === 'embed_color') {
       const embedColor = interaction.fields.getTextInputValue('embed_color');
 
-      const hex_regex = /^#[0-9A-F]{6}$/i;
-      if (embedColor && !hex_regex.test(embedColor)) {
+      if (!REGEX.HEXCODE.test(embedColor)) {
         await interaction.reply({
           content: t({ phrase: 'connection.emColorInvalid', locale }, { emoji: emojis.no }),
           ephemeral: true,
@@ -119,7 +118,7 @@ export default class Customize extends Connection {
         return;
       }
 
-      await modifyConnection(
+      await updateConnection(
         { channelId: customId.args[0] },
         { embedColor: embedColor ? embedColor : { unset: true } },
       );
@@ -175,11 +174,11 @@ export default class Customize extends Connection {
 
     switch (interaction.values[0]) {
       case 'compact':
-        await modifyConnection({ channelId }, { compact: !connection.compact });
+        await updateConnection({ channelId }, { compact: !connection.compact });
         break;
 
       case 'profanity':
-        await modifyConnection({ channelId }, { profFilter: !connection.profFilter });
+        await updateConnection({ channelId }, { profFilter: !connection.profFilter });
         break;
 
       case 'invite': {
@@ -293,7 +292,7 @@ export default class Customize extends Connection {
     }
 
     const newWebhook = await getOrCreateWebhook(newChannel as TextChannel | ThreadChannel);
-    await modifyConnection(
+    await updateConnection(
       { channelId },
       { channelId: newChannel.id, webhookURL: newWebhook?.url },
     );

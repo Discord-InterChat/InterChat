@@ -1,5 +1,5 @@
 import { showOnboarding } from '#main/scripts/network/onboarding.js';
-import { connectChannel, getAllConnections } from '#main/utils/ConnectedList.js';
+import { createConnection, getHubConnections } from '#main/utils/ConnectedList.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
@@ -166,7 +166,7 @@ export default class JoinSubCommand extends Hub {
     }
 
     // finally make the connection
-    await connectChannel({
+    await createConnection({
       serverId: channel.guildId,
       channelId: channel.id,
       parentId: channel.isThread() ? channel.parentId : undefined,
@@ -184,10 +184,8 @@ export default class JoinSubCommand extends Hub {
     });
 
     const totalConnections =
-      (await getAllConnections())?.reduce(
-        (total, c) => total + (c.hubId === hub.id && c.connected ? 1 : 0),
-        0,
-      ) ?? 0;
+      (await getHubConnections(hub.id))?.reduce((total, c) => total + (c.connected ? 1 : 0), 0) ??
+      0;
 
     // announce
     await sendToHub(hub.id, {

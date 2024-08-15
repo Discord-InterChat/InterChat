@@ -1,3 +1,4 @@
+import { analyzeImageForNSFW, isUnsafeImage } from '#main/modules/NSFWDetection.js';
 import { sendWelcomeMsg } from '#main/scripts/network/helpers.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
 import { emojis, REGEX } from '#main/utils/Constants.js';
@@ -5,10 +6,9 @@ import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import logProfanity from '#main/utils/HubLogger/Profanity.js';
 import { t } from '#main/utils/Locale.js';
-import { analyzeImageForNSFW, isUnsafeImage } from '#main/modules/NSFWDetection.js';
 import { check as checkProfanity } from '#main/utils/Profanity.js';
 import { containsInviteLinks, replaceLinks } from '#main/utils/Utils.js';
-import { connectedList, hubs } from '@prisma/client';
+import { hubs } from '@prisma/client';
 import { EmbedBuilder, Message } from 'discord.js';
 import { runAntiSpam } from './antiSpam.js';
 
@@ -41,14 +41,14 @@ export const isCaughtSpam = async (
 ) => {
   const antiSpamResult = runAntiSpam(message.client, message.author.id, 3);
   if (!antiSpamResult) return false;
-  // NOTE: Don't use { addUserBlacklist, notifyBlacklist } it makes the methods lose their "this" property
-  const { userManager } = message.client;
 
   if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
     const expires = new Date(Date.now() + (60 * 5000));
     const reason = 'Auto-blacklisted for spamming.';
     const target = message.author;
     const mod = message.client.user;
+
+    const { userManager } = message.client;
 
     await userManager.addBlacklist({ id: target.id, name: target.username }, hubId, {
       reason,
@@ -105,12 +105,12 @@ export const runChecks = async (
   hub: hubs,
   opts: {
     settings: HubSettingsBitField;
-    hubConnections: connectedList[];
+    totalHubConnections: number;
     attachmentURL?: string | null;
   },
 ): Promise<boolean> => {
   const { hasProfanity, hasSlurs } = checkProfanity(message.content);
-  const { settings, hubConnections, attachmentURL } = opts;
+  const { settings, totalHubConnections, attachmentURL } = opts;
   const { userManager } = message.client;
 
   let userData = await userManager.getUser(message.author.id);
@@ -130,7 +130,7 @@ export const runChecks = async (
 
     await sendWelcomeMsg(message, locale, {
       hub: hub.name,
-      totalServers: hubConnections.length.toString(),
+      totalServers: totalHubConnections.toString(),
     });
   }
 

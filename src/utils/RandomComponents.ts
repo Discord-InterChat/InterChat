@@ -13,7 +13,7 @@ import {
   time,
 } from 'discord.js';
 import { HubSettingsBitField } from './BitFields.js';
-import { modifyConnection } from './ConnectedList.js';
+import { updateConnection } from './ConnectedList.js';
 import { emojis } from './Constants.js';
 import { CustomID } from './CustomID.js';
 import db from './Db.js';
@@ -205,7 +205,7 @@ export class RandomComponents {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [channelId] = customId.args;
 
-    await modifyConnection({ channelId }, { connected: true });
+    await updateConnection({ channelId }, { connected: true });
 
     await interaction.update({
       embeds: [

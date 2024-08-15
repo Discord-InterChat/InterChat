@@ -100,8 +100,6 @@ export default class EditMessage extends BaseCommand {
       );
 
     await interaction.showModal(modal);
-    // TODO
-    // if (interaction.inCachedGuild()) networkMsgUpdate(interaction.member, target, newMessage);
   }
 
   @RegisterInteractionHandler('editMsg')

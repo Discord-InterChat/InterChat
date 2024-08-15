@@ -110,7 +110,7 @@ export default class extends BlacklistCommand {
     else if (userId === interaction.user.id) {
       await this.replyEmbed(
         interaction,
-        '<a:nuhuh:1256859727158050838> Nuh uh! You are stuck with us.',
+        '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
         hiddenOpt,
       );
       return false;

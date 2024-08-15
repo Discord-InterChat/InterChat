@@ -1,9 +1,10 @@
+import { updateConnections } from '#main/utils/ConnectedList.js';
 import db from '#main/utils/Db.js';
+import Logger from '#main/utils/Logger.js';
+import cacheClient from '#main/utils/cache/cacheClient.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
-import { modifyConnections } from '#main/utils/ConnectedList.js';
 import { NetworkAPIError, isNetworkApiError } from './helpers.js';
-import Logger from '#main/utils/Logger.js';
 
 export interface NetworkWebhookSendResult {
   messageOrError: APIMessage | NetworkAPIError;
@@ -59,7 +60,7 @@ export default async (
   }
 
   // store message timestamps to push to db later
-  await db.cache.set(
+  await cacheClient.set(
     `msgTimestamp:${message.channelId}`,
     JSON.stringify({
       channelId: message.channelId,
@@ -69,6 +70,6 @@ export default async (
 
   // disconnect network if, webhook does not exist/bot cannot access webhook
   if (invalidWebhookURLs.length > 0) {
-    await modifyConnections({ webhookURL: { in: invalidWebhookURLs } }, { connected: false });
+    await updateConnections({ webhookURL: { in: invalidWebhookURLs } }, { connected: false });
   }
 };

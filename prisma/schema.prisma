@@ -35,15 +35,6 @@ type HubModerator {
   // honestly... I might as well make permissions lol
 }
 
-// type HubSettings {
-//   useNicknames    Boolean @default(false)
-//   allowInvites    Boolean @default(true)
-//   allowLinks      Boolean @default(true)
-//   allowReactions  Boolean @default(true)
-//   profanityFilter Boolean @default(false)
-//   spamFilter      Boolean @default(true)
-// }
-
 type HubLogChannels {
   modLogs    String?
   joinLeaves String?

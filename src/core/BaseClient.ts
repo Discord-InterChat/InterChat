@@ -1,7 +1,8 @@
+import CooldownService from '#main/modules/CooldownService.js';
+import EventHandler from '#main/modules/EventHandler.js';
+import Scheduler from '#main/modules/SchedulerService.js';
 import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
-import CooldownService from '#main/modules/CooldownService.js';
-import Scheduler from '#main/modules/SchedulerService.js';
 import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/LoadCommands.js';
 import { RandomComponents } from '#main/utils/RandomComponents.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
@@ -17,11 +18,9 @@ import {
 } from 'discord.js';
 import 'dotenv/config';
 import { RemoveMethods } from '../typings/index.js';
-import { getAllConnections } from '../utils/ConnectedList.js';
 import { PROJECT_VERSION } from '../utils/Constants.js';
 import { loadLocales } from '../utils/Locale.js';
 import { resolveEval } from '../utils/Utils.js';
-import EventHandler from '#main/modules/EventHandler.js';
 
 export default class SuperClient extends Client {
   public static instance: SuperClient;
@@ -98,9 +97,6 @@ export default class SuperClient extends Client {
     // load commands
     await loadCommandFiles({ loadInteractions: true });
     await this.eventHandler.loadListeners();
-
-    // cache connections
-    await getAllConnections({ connected: true });
 
     // Discord.js automatically uses DISCORD_TOKEN env variable
     await this.login();

@@ -1,8 +1,6 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import {
   buildNetworkEmbed,
-  fetchConnectionAndHub,
-  generateJumpButton,
   getReferredContent,
   getReferredMsgData,
   trimAndCensorBannedWebhookWords,
@@ -12,10 +10,14 @@ import storeMessageData, {
   NetworkWebhookSendResult,
 } from '#main/scripts/network/storeMessageData.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
+import { getConnection, getHubConnections } from '#main/utils/ConnectedList.js';
+import db from '#main/utils/Db.js';
 import { censor } from '#main/utils/Profanity.js';
-import { getAttachmentURL, isHumanMessage } from '#main/utils/Utils.js';
+import { generateJumpButton, getAttachmentURL, isHumanMessage } from '#main/utils/Utils.js';
 import { broadcastedMessages, connectedList, hubs, originalMessages } from '@prisma/client';
 import {
+  ActionRowBuilder,
+  ButtonBuilder,
   EmbedBuilder,
   HexColorString,
   Message,
@@ -32,6 +34,28 @@ type BroadcastOpts = {
   referredAuthor: User | null;
 };
 
+type CompactFormatOpts = {
+  servername: string;
+  referredAuthorName: string;
+  totalAttachments: number;
+  author: {
+    username: string;
+    avatarURL: string;
+  };
+  contents: {
+    normal: string;
+    censored: string;
+    referred: string | undefined;
+  };
+  jumpButton?: ActionRowBuilder<ButtonBuilder>[];
+};
+
+type EmbedFormatOpts = {
+  hub: hubs;
+  embeds: { normal: EmbedBuilder; censored: EmbedBuilder };
+  jumpButton?: ActionRowBuilder<ButtonBuilder>[];
+};
+
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
 
@@ -39,18 +63,26 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     if (!message.inGuild() || !isHumanMessage(message)) return;
 
     // check if the message was sent in a network channel
-    const { connection, hub, hubConnections, settings } = await fetchConnectionAndHub(message);
+    const connection = await getConnection(message.channelId);
+    if (!connection?.connected) return;
 
-    if (!hub) return;
+    const hub = await db.hubs.findFirst({ where: { id: connection.hubId } });
+    const hubConnections = (await getHubConnections(connection.hubId))?.filter(
+      // ignore current channel from broadcasting list
+      (c) => c.connected && c.channelId !== message.channelId,
+    );
 
+    if (!hub || !hubConnections?.length) return;
+
+    const settings = new HubSettingsBitField(hub.settings);
     const attachmentURL =
       message.attachments.first()?.url ?? (await getAttachmentURL(message.content));
 
     // run checks on the message to determine if it can be sent in the network
     const checksPassed = await runChecks(message, hub, {
       settings,
-      hubConnections,
       attachmentURL,
+      totalHubConnections: hubConnections.length,
     });
 
     if (checksPassed === false) return;
@@ -63,7 +95,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       : null;
 
     const { dbReferrence, referredAuthor } = await getReferredMsgData(referredMessage);
-    const sendResult = await this.sendBroadcast(message, hub, hubConnections, settings, {
+    const sendResult = await this.broadcastMessage(message, hub, hubConnections, settings, {
       attachmentURL,
       dbReferrence,
       referredAuthor,
@@ -71,18 +103,14 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       embedColor: connection.embedColor as HexColorString,
     });
 
-    // only delete the message if there is no attachment or if the user has already viewed the welcome message
-    // deleting attachments will make the image not show up in the embed (discord removes it from its cdn)
-    // if (!attachment) message.delete().catch(() => null);
-
     // store the message in the db
     await storeMessageData(message, sendResult, connection.hubId, dbReferrence);
   }
 
-  private async sendBroadcast(
+  private async broadcastMessage(
     message: Message<true>,
     hub: hubs,
-    allConnected: connectedList[],
+    hubConnections: connectedList[],
     settings: HubSettingsBitField,
     opts: BroadcastOpts,
   ) {
@@ -92,94 +120,150 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
         ? getReferredContent(opts.referredMessage)
         : undefined;
 
-    const servername = trimAndCensorBannedWebhookWords(message.guild.name);
-    const username = trimAndCensorBannedWebhookWords(
-      settings.has('UseNicknames')
-        ? (message.member?.displayName ?? message.author.displayName)
-        : message.author.username,
-    );
-
-    // embeds for the normal mode
+    const username = this.getUsername(settings, message);
     const { embed, censoredEmbed } = buildNetworkEmbed(message, username, censoredContent, {
       attachmentURL: opts.attachmentURL,
       referredContent,
       embedCol: opts.embedColor ?? undefined,
     });
 
-    const authorUsername = opts.referredAuthor?.username.slice(0, 30) ?? '@Unknown User';
+    const results = await Promise.all(
+      hubConnections.map((connection) =>
+        this.processConnection(connection, opts, {
+          hub,
+          servername: trimAndCensorBannedWebhookWords(message.guild.name),
+          referredAuthorName: opts.referredAuthor?.username.slice(0, 30) ?? 'Unknown User',
+          totalAttachments: message.attachments.size,
+          author: { username, avatarURL: message.author.displayAvatarURL() },
+          embeds: { normal: embed, censored: censoredEmbed },
+          contents: {
+            normal: message.content,
+            referred: referredContent,
+            censored: censoredContent,
+          },
+        }),
+      ),
+    );
 
-    const res = allConnected.map(async (connection) => {
-      try {
-        const reply = opts.dbReferrence?.broadcastMsgs.find(
-          (msg) => msg.channelId === connection.channelId,
-        );
-
-        const jumpButton = reply
-          ? [generateJumpButton(reply, authorUsername, connection.serverId)]
-          : undefined;
-
-        // embed format
-        let messageFormat: WebhookMessageCreateOptions = {
-          components: jumpButton,
-          embeds: [connection.profFilter ? censoredEmbed : embed],
-          username: `${hub.name}`,
-          avatarURL: hub.iconUrl,
-          threadId: connection.parentId ? connection.channelId : undefined,
-          allowedMentions: { parse: [] },
-        };
-
-        if (connection.compact) {
-          const replyContent =
-            connection.profFilter && referredContent ? censor(referredContent) : referredContent;
-
-          // preview embed for the message being replied to
-          const replyEmbed = replyContent
-            ? [
-              new EmbedBuilder()
-                .setDescription(replyContent)
-                .setAuthor({
-                  name: `${authorUsername}`,
-                  iconURL: opts.referredAuthor?.displayAvatarURL(),
-                })
-                .setColor('Random'),
-            ]
-            : undefined;
-
-          // compact mode doesn't need new attachment url for tenor and direct image links
-          // we can just slap them right in there without any problems
-          const attachmentUrlNeeded = message.attachments.size > 0;
-
-          // compact format (no embeds, only content)
-          messageFormat = {
-            username: `@${username} • ${servername}`,
-            avatarURL: message.author.displayAvatarURL(),
-            embeds: replyEmbed,
-            components: jumpButton,
-            content: `${connection.profFilter ? censoredContent : message.content} ${attachmentUrlNeeded ? `\n${opts.attachmentURL}` : ''}`,
-            threadId: connection.parentId ? connection.channelId : undefined,
-            allowedMentions: { parse: [] },
-          };
-        }
-
-        const messageOrError = await this.sendMessage(connection.webhookURL, messageFormat);
-
-        // return the message and webhook URL to store the message in the db
-        return {
-          messageOrError,
-          webhookURL: connection.webhookURL,
-        } as NetworkWebhookSendResult;
-      }
-      catch (e) {
-        // return the error and webhook URL to store the message in the db
-        return {
-          messageOrError: { error: e.message },
-          webhookURL: connection.webhookURL,
-        } as NetworkWebhookSendResult;
-      }
-    });
-
-    return await Promise.all(res);
+    return results;
   }
+
+  private getUsername(settings: HubSettingsBitField, message: Message<true>): string {
+    return trimAndCensorBannedWebhookWords(
+      settings.has('UseNicknames')
+        ? (message.member?.displayName ?? message.author.displayName)
+        : message.author.username,
+    );
+  }
+
+  private async processConnection(
+    connection: connectedList,
+    opts: BroadcastOpts,
+    {
+      hub,
+      author,
+      contents,
+      embeds,
+      totalAttachments,
+      servername,
+      referredAuthorName,
+    }: CompactFormatOpts & EmbedFormatOpts,
+  ): Promise<NetworkWebhookSendResult> {
+    try {
+      const reply =
+        opts.dbReferrence?.broadcastMsgs.find((msg) => msg.channelId === connection.channelId) ??
+        opts.dbReferrence;
+      const jumpButton = reply
+        ? [
+          generateJumpButton(author.username, {
+            channelId: connection.channelId,
+            serverId: connection.serverId,
+            messageId: reply.messageId,
+          }),
+        ]
+        : undefined;
+
+      const messageFormat = connection.compact
+        ? this.getCompactMessageFormat(connection, opts, {
+          servername,
+          referredAuthorName,
+          author,
+          contents,
+          totalAttachments,
+          jumpButton,
+        })
+        : this.getEmbedMessageFormat(connection, { hub, embeds, jumpButton });
+
+      const messageOrError = await this.sendMessage(connection.webhookURL, messageFormat);
+
+      return {
+        messageOrError,
+        webhookURL: connection.webhookURL,
+      };
+    }
+    catch (e) {
+      return {
+        messageOrError: { error: e.message },
+        webhookURL: connection.webhookURL,
+      };
+    }
+  }
+
+  private getEmbedMessageFormat(
+    connection: connectedList,
+    { hub, embeds, jumpButton }: EmbedFormatOpts,
+  ): WebhookMessageCreateOptions {
+    return {
+      components: jumpButton,
+      embeds: [connection.profFilter ? embeds.censored : embeds.normal],
+      username: `${hub.name}`,
+      avatarURL: hub.iconUrl,
+      threadId: connection.parentId ? connection.channelId : undefined,
+      allowedMentions: { parse: [] },
+    };
+  }
+
+  private getCompactMessageFormat(
+    connection: connectedList,
+    opts: BroadcastOpts,
+    {
+      author,
+      contents,
+      servername,
+      jumpButton,
+      totalAttachments,
+      referredAuthorName,
+    }: CompactFormatOpts,
+  ): WebhookMessageCreateOptions {
+    const replyContent =
+      connection.profFilter && contents.referred ? censor(contents.referred) : contents.referred;
+    const replyEmbed = replyContent
+      ? [
+        new EmbedBuilder()
+          .setDescription(replyContent)
+          .setAuthor({
+            name: referredAuthorName,
+            iconURL: opts.referredAuthor?.displayAvatarURL(),
+          })
+          .setColor('Random'),
+      ]
+      : undefined;
+
+    // compact mode doesn't need new attachment url for tenor and direct image links
+    // we can just slap them right in the content without any problems
+    const attachmentUrlNeeded = totalAttachments > 0;
+
+    return {
+      username: `@${author.username} • ${servername}`,
+      avatarURL: author.avatarURL,
+      embeds: replyEmbed,
+      components: jumpButton,
+      content: `${connection.profFilter ? contents.censored : contents.normal} ${attachmentUrlNeeded ? `\n[.](${opts.attachmentURL})` : ''}`,
+      threadId: connection.parentId ? connection.channelId : undefined,
+      allowedMentions: { parse: [] },
+    };
+  }
+
   private async sendMessage(webhookUrl: string, data: WebhookMessageCreateOptions) {
     const webhook = new WebhookClient({ url: webhookUrl });
     return await webhook.send(data);

@@ -1,8 +1,8 @@
+import Factory from '#main/core/Factory.js';
+import { cacheData } from '#main/utils/cache/cacheUtils.js';
 import { colors, emojis } from '#main/utils/Constants.js';
-import { getAllDocuments, serializeCache } from '#main/utils/db/cacheUtils.js';
 import { hubBlacklist, Prisma } from '@prisma/client';
 import { EmbedBuilder, Snowflake, User } from 'discord.js';
-import Factory from '#main/core/Factory.js';
 
 interface BlacklistEntity {
   id: string;
@@ -36,8 +36,8 @@ export default abstract class BaseBlacklistManager<T extends BlacklistEntity> ex
     }: { reason: string; moderatorId: Snowflake; expires: Date | null },
   ): Promise<T>;
 
-  public async getAllBlacklists() {
-    return serializeCache<T>(await getAllDocuments(`${this.modelName}:*`));
+  protected async addToCache(entity: ConvertDatesToString<T> | T, expirySecs?: number) {
+    await cacheData(`${this.modelName}:${entity.id}`, JSON.stringify(entity), expirySecs);
   }
 
   protected buildNotifEmbed(description: string, opts: { expires: Date | null; reason?: string }) {

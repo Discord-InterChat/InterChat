@@ -1,12 +1,12 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { Pagination } from '#main/modules/Pagination.js';
 import { showOnboarding } from '#main/scripts/network/onboarding.js';
-import { connectChannel, getAllConnections } from '#main/utils/ConnectedList.js';
+import { createConnection, getHubConnections } from '#main/utils/ConnectedList.js';
 import { colors, emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
 import { t } from '#main/utils/Locale.js';
-import { Pagination } from '#main/modules/Pagination.js';
 import {
   calculateAverageRating,
   getOrCreateWebhook,
@@ -111,7 +111,6 @@ export default class Browse extends Hub {
       return;
     }
 
-
     const paginator = new Pagination().addPages(hubList);
     await paginator.run(interaction);
   }
@@ -119,21 +118,11 @@ export default class Browse extends Hub {
   private createCustomButtons(hubId: string) {
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId(
-          new CustomID()
-            .setIdentifier('hub_browse', 'rate')
-            .addArgs(hubId)
-            .toString(),
-        )
+        .setCustomId(new CustomID().setIdentifier('hub_browse', 'rate').addArgs(hubId).toString())
         .setLabel('Rate')
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
-        .setCustomId(
-          new CustomID()
-            .setIdentifier('hub_browse', 'join')
-            .addArgs(hubId)
-            .toString(),
-        )
+        .setCustomId(new CustomID().setIdentifier('hub_browse', 'join').addArgs(hubId).toString())
         .setLabel('Join')
         .setStyle(ButtonStyle.Success),
     );
@@ -368,7 +357,7 @@ export default class Browse extends Hub {
       if (!webhook) return;
 
       // finally make the connection
-      await connectChannel({
+      await createConnection({
         serverId: channel.guildId,
         channelId: channel.id,
         parentId: channel.isThread() ? channel.parentId : undefined,
@@ -389,8 +378,8 @@ export default class Browse extends Hub {
       });
 
       const totalConnections =
-        (await getAllConnections())?.reduce(
-          (total, c) => total + (c.hubId === hubDetails.id && c.connected ? 1 : 0),
+        (await getHubConnections(hubDetails.id))?.reduce(
+          (total, c) => total + (c.connected ? 1 : 0),
           0,
         ) ?? 0;
 
