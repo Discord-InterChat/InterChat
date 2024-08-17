@@ -3,7 +3,6 @@ import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { censor } from '#main/utils/Profanity.js';
 import {
-  type APIMessage,
   type HexColorString,
   type Message,
   ActionRowBuilder,
@@ -11,8 +10,6 @@ import {
   ButtonStyle,
   EmbedBuilder,
 } from 'discord.js';
-
-export type NetworkAPIError = { error: string };
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
@@ -163,6 +160,3 @@ export const sendWelcomeMsg = async (
     })
     .catch(() => null);
 };
-
-export const isNetworkApiError = (res: NetworkAPIError | APIMessage | undefined) =>
-  (res && 'error' in res) === true;

@@ -69,10 +69,10 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     const hub = await db.hubs.findFirst({ where: { id: connection.hubId } });
     const hubConnections = (await getHubConnections(connection.hubId))?.filter(
       // ignore current channel from broadcasting list
-      (c) => c.connected && c.channelId !== message.channelId,
+      (c) => c.connected && c.channelId !== connection.channelId,
     );
 
-    if (!hub || !hubConnections?.length) return;
+    if (!hub || hubConnections.length < 1) return;
 
     const settings = new HubSettingsBitField(hub.settings);
     const attachmentURL =
@@ -127,22 +127,50 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       embedCol: opts.embedColor ?? undefined,
     });
 
-    const results = await Promise.all(
-      hubConnections.map((connection) =>
-        this.processConnection(connection, opts, {
-          hub,
-          servername: trimAndCensorBannedWebhookWords(message.guild.name),
-          referredAuthorName: opts.referredAuthor?.username.slice(0, 30) ?? 'Unknown User',
-          totalAttachments: message.attachments.size,
-          author: { username, avatarURL: message.author.displayAvatarURL() },
-          embeds: { normal: embed, censored: censoredEmbed },
-          contents: {
-            normal: message.content,
-            referred: referredContent,
-            censored: censoredContent,
-          },
-        }),
-      ),
+    const results: NetworkWebhookSendResult[] = await Promise.all(
+      hubConnections.map(async (connection) => {
+        try {
+          const author = { username, avatarURL: message.author.displayAvatarURL() };
+          const reply =
+            opts.dbReferrence?.broadcastMsgs.find(
+              (msg) => msg.channelId === connection.channelId,
+            ) ?? opts.dbReferrence;
+          const jumpButton = reply
+            ? [
+              generateJumpButton(author.username, {
+                channelId: connection.channelId,
+                serverId: connection.serverId,
+                messageId: reply.messageId,
+              }),
+            ]
+            : undefined;
+
+          const messageFormat = connection.compact
+            ? this.getCompactMessageFormat(connection, opts, {
+              servername: trimAndCensorBannedWebhookWords(message.guild.name),
+              referredAuthorName: opts.referredAuthor?.username.slice(0, 30) ?? 'Unknown User',
+              totalAttachments: message.attachments.size,
+              contents: {
+                normal: message.content,
+                referred: referredContent,
+                censored: censoredContent,
+              },
+              author,
+              jumpButton,
+            })
+            : this.getEmbedMessageFormat(connection, {
+              hub,
+              jumpButton,
+              embeds: { normal: embed, censored: censoredEmbed },
+            });
+
+          const messageRes = await this.sendMessage(connection.webhookURL, messageFormat);
+          return { messageRes, webhookURL: connection.webhookURL };
+        }
+        catch (e) {
+          return { error: e.message, webhookURL: connection.webhookURL };
+        }
+      }),
     );
 
     return results;
@@ -154,59 +182,6 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
         ? (message.member?.displayName ?? message.author.displayName)
         : message.author.username,
     );
-  }
-
-  private async processConnection(
-    connection: connectedList,
-    opts: BroadcastOpts,
-    {
-      hub,
-      author,
-      contents,
-      embeds,
-      totalAttachments,
-      servername,
-      referredAuthorName,
-    }: CompactFormatOpts & EmbedFormatOpts,
-  ): Promise<NetworkWebhookSendResult> {
-    try {
-      const reply =
-        opts.dbReferrence?.broadcastMsgs.find((msg) => msg.channelId === connection.channelId) ??
-        opts.dbReferrence;
-      const jumpButton = reply
-        ? [
-          generateJumpButton(author.username, {
-            channelId: connection.channelId,
-            serverId: connection.serverId,
-            messageId: reply.messageId,
-          }),
-        ]
-        : undefined;
-
-      const messageFormat = connection.compact
-        ? this.getCompactMessageFormat(connection, opts, {
-          servername,
-          referredAuthorName,
-          author,
-          contents,
-          totalAttachments,
-          jumpButton,
-        })
-        : this.getEmbedMessageFormat(connection, { hub, embeds, jumpButton });
-
-      const messageOrError = await this.sendMessage(connection.webhookURL, messageFormat);
-
-      return {
-        messageOrError,
-        webhookURL: connection.webhookURL,
-      };
-    }
-    catch (e) {
-      return {
-        messageOrError: { error: e.message },
-        webhookURL: connection.webhookURL,
-      };
-    }
   }
 
   private getEmbedMessageFormat(

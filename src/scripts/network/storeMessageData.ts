@@ -4,10 +4,10 @@ import Logger from '#main/utils/Logger.js';
 import cacheClient from '#main/utils/cache/cacheClient.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
-import { NetworkAPIError, isNetworkApiError } from './helpers.js';
 
 export interface NetworkWebhookSendResult {
-  messageOrError: APIMessage | NetworkAPIError;
+  messageRes?: APIMessage;
+  error?: string;
   webhookURL: string;
 }
 
@@ -27,16 +27,16 @@ export default async (
   const validErrors = ['Invalid Webhook Token', 'Unknown Webhook', 'Missing Permissions'];
 
   // loop through all results and extract message data and invalid webhook urls
-  channelAndMessageIds.forEach(({ messageOrError, webhookURL }) => {
-    if (!isNetworkApiError(messageOrError)) {
+  channelAndMessageIds.forEach(({ messageRes, error, webhookURL }) => {
+    if (messageRes) {
       messageDataObj.push({
-        channelId: messageOrError.channel_id,
-        messageId: messageOrError.id,
-        createdAt: new Date(messageOrError.timestamp),
+        channelId: messageRes.channel_id,
+        messageId: messageRes.id,
+        createdAt: new Date(messageRes.timestamp),
       });
     }
-    else if (validErrors.some((e) => messageOrError.error?.includes(e))) {
-      Logger.info('%O', messageOrError); // TODO Remove dis
+    else if (error && validErrors.some((e) => error.includes(e))) {
+      Logger.info('%O', messageRes); // TODO Remove dis
       invalidWebhookURLs.push(webhookURL);
     }
   });
