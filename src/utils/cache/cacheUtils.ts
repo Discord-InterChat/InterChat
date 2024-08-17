@@ -70,7 +70,7 @@ export const getCachedData = async <T extends object>(
 
   // If not in cache, fetch from database
   if (!data) {
-    data = (await fetchFunction()) as ConvertDatesToString<T>; // wrong type but prob wont cause any errors
+    data = (await fetchFunction()) as ConvertDatesToString<T>;
 
     // Store in cache with TTL
     await cacheData(key, JSON.stringify(data), expiry);

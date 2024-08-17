@@ -35,7 +35,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
           interactions.get(customId.prefix);
         const isExpiredInteraction = customId.expiry && customId.expiry < Date.now();
 
-        if (!interactionHandler || isExpiredInteraction) {
+        if (isExpiredInteraction) {
           const { userManager } = interaction.client;
           const locale = await userManager.getUserLocale(dbUser);
           await interaction.reply({
@@ -45,7 +45,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
           return;
         }
 
-        await interactionHandler(interaction);
+        if (interactionHandler) await interactionHandler(interaction);
         return;
       }
 
