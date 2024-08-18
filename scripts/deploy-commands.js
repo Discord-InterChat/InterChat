@@ -71,7 +71,7 @@ if (process.argv) {
   const slicedArgs = process.argv.slice(2);
 
   if (slicedArgs.length === 0) logHelp()
-  else parseAndRun(allArgs)
+  else await parseAndRun(allArgs)
 
   process.exit();
 }
