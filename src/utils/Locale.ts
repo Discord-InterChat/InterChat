@@ -64,7 +64,7 @@ export const t = <K extends keyof TranslationKeys>(
   { phrase, locale = 'en' }: tParams<K>,
   variables?: { [Key in TranslationKeys[K]]: string },
 ): string => {
-  const localeFile = localesMap.get(locale);
+  const localeFile = localesMap.get(locale) ?? localesMap.get('en');
 
   if (localeFile) {
     const translation: string = phrase.split('.').reduce((obj, segment) => obj && obj[segment], localeFile);
@@ -85,10 +85,5 @@ export const t = <K extends keyof TranslationKeys>(
       Logger.warn(`Translation for key '${phrase}' not found in ${locale} language.`);
     }
   }
-  else {
-    Logger.warn(`Language ${locale} not supported.`);
-  }
-
-  // Return the key as a fallback
   return phrase;
 };
