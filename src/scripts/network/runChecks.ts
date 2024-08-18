@@ -39,7 +39,7 @@ export const isCaughtSpam = async (
   settings: HubSettingsBitField,
   hubId: string,
 ) => {
-  const antiSpamResult = runAntiSpam(message.client, message.author.id, 3);
+  const antiSpamResult = runAntiSpam(message.author, 3);
   if (!antiSpamResult) return false;
 
   if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
