@@ -1,17 +1,37 @@
-import db from '../utils/Db.js';
-import BaseBlacklistManager from '../core/BaseBlacklistManager.js';
+import BaseBlacklistManager from '#main/core/BaseBlacklistManager.js';
+import { getHubConnections } from '#main/utils/ConnectedList.js';
+import db from '#main/utils/Db.js';
+import { getCachedData } from '#main/utils/cache/cacheUtils.js';
+import { logServerUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { blacklistedServers, hubBlacklist, Prisma } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
-import { logServerUnblacklist } from '../utils/HubLogger/ModLogs.js';
-import { getAllConnections } from '../utils/ConnectedList.js';
 
 export default class ServerBlacklisManager extends BaseBlacklistManager<blacklistedServers> {
   protected modelName: Prisma.ModelName = 'blacklistedServers';
 
-  protected override async fetchEntityFromDb(hubId: string, entityId: string) {
-    return await db.blacklistedServers.findFirst({
-      where: { id: entityId, blacklistedFrom: { some: { hubId } } },
-    });
+  private serializeBlacklist(
+    blacklist: ConvertDatesToString<blacklistedServers>,
+  ): blacklistedServers {
+    return {
+      ...blacklist,
+      blacklistedFrom: blacklist.blacklistedFrom.map((b) => ({
+        ...b,
+        expires: b.expires ? new Date(b.expires) : null,
+      })),
+    };
+  }
+
+  public override async fetchBlacklist(hubId: string, id: string) {
+    const { data: blacklist, cached } = await getCachedData(
+      `${this.modelName}:${id}`,
+      async () => await db.blacklistedServers.findFirst({ where: { id } }),
+    );
+
+    if (blacklist?.blacklistedFrom.some((h) => h.hubId === hubId)) {
+      if (!cached) this.addToCache(blacklist);
+      return this.serializeBlacklist(blacklist);
+    }
+    return null;
   }
   public override async logUnblacklist(
     hubId: string,
@@ -39,24 +59,27 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
     }: { reason: string; moderatorId: Snowflake; expires: Date | null },
   ) {
     const blacklistedFrom: hubBlacklist = { hubId, expires, reason, moderatorId };
-    const createdRes = await db.blacklistedServers.upsert({
+    const blacklist = await db.blacklistedServers.upsert({
       where: { id: server.id },
       update: { serverName: server.name, blacklistedFrom: { push: blacklistedFrom } },
       create: { id: server.id, serverName: server.name, blacklistedFrom: [blacklistedFrom] },
     });
-    return createdRes;
+
+    this.addToCache(blacklist);
+    return blacklist;
   }
 
   public override async removeBlacklist(hubId: string, id: Snowflake) {
-    const where = { id, blacklistedFrom: { some: { hubId } } };
-    const notInBlacklist = await db.blacklistedServers.findFirst({ where });
+    const notInBlacklist = await this.fetchBlacklist(hubId, id);
     if (!notInBlacklist) return null;
 
-    const res = await db.blacklistedServers.update({
-      where,
+    const updatedBlacklist = await db.blacklistedServers.update({
+      where: { id },
       data: { blacklistedFrom: { deleteMany: { where: { hubId } } } },
     });
-    return res;
+
+    this.addToCache(updatedBlacklist);
+    return updatedBlacklist;
   }
   /**
    * Notify a user or server that they have been blacklisted.
@@ -78,15 +101,13 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
       { expires: opts.expires, reason: opts.reason },
     );
 
-    const serverConnected =
-      (await getAllConnections())?.find(
-        (con) => con.serverId === opts.target.id && con.hubId === opts.hubId,
-      ) ??
+    const serverInHub =
+      (await getHubConnections(opts.hubId))?.find((con) => con.serverId === opts.target.id) ??
       (await db.connectedList.findFirst({
         where: { serverId: opts.target.id, hubId: opts.hubId },
       }));
 
-    if (!serverConnected) return;
+    if (!serverInHub) return;
 
     await this.client.cluster.broadcastEval(
       async (_client, ctx) => {
@@ -95,7 +116,7 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
 
         await channel.send({ embeds: [ctx.embed] }).catch(() => null);
       },
-      { context: { channelId: serverConnected.channelId, embed: embed.toJSON() } },
+      { context: { channelId: serverInHub.channelId, embed: embed.toJSON() } },
     );
   }
 }

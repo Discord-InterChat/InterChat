@@ -1,21 +1,21 @@
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { deleteConnection } from '#main/utils/ConnectedList.js';
+import { emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { logGuildLeaveToHub } from '#main/utils/HubLogger/JoinLeave.js';
+import { t } from '#main/utils/Locale.js';
+import { setComponentExpiry } from '#main/utils/Utils.js';
 import {
-  ChatInputCommandInteraction,
-  CacheType,
-  MessageComponentInteraction,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  CacheType,
+  ChatInputCommandInteraction,
   EmbedBuilder,
+  MessageComponentInteraction,
 } from 'discord.js';
-import db from '../../../../utils/Db.js';
 import Hub from './index.js';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { CustomID } from '../../../../utils/CustomID.js';
-import { emojis } from '../../../../utils/Constants.js';
-import { simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
-import { t } from '../../../../utils/Locale.js';
-import { logGuildLeaveToHub } from '../../../../utils/HubLogger/JoinLeave.js';
-import { deleteConnection } from '../../../../utils/ConnectedList.js';
 
 export default class Leave extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -28,27 +28,23 @@ export default class Leave extends Hub {
       include: { hub: true },
     });
 
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (!isChannelConnected) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(
-            t({ phrase: 'hub.leave.noHub', locale: interaction.user.locale }, { emoji: emojis.no }),
-          ),
-        ],
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.leave.noHub', locale }, { emoji: emojis.no }),
+      );
       return;
     }
     else if (!interaction.member.permissions.has('ManageChannels', true)) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'errors.missingPermissions', locale: interaction.user.locale },
-              { permissions: 'Manage Channels', emoji: emojis.no },
-            ),
-          ),
-        ],
-      });
+      await this.replyEmbed(
+        interaction,
+        t(
+          { phrase: 'errors.missingPermissions', locale },
+          { permissions: 'Manage Channels', emoji: emojis.no },
+        ),
+      );
       return;
     }
 
@@ -68,13 +64,13 @@ export default class Leave extends Hub {
     const resetConfirmEmbed = new EmbedBuilder()
       .setDescription(
         t(
-          { phrase: 'hub.leave.confirm', locale: interaction.user.locale },
+          { phrase: 'hub.leave.confirm', locale },
           { channel: `<#${channelId}>`, hub: `${isChannelConnected.hub?.name}` },
         ),
       )
       .setColor('Red')
       .setFooter({
-        text: t({ phrase: 'hub.leave.confirmFooter', locale: interaction.user.locale }),
+        text: t({ phrase: 'hub.leave.confirmFooter', locale }),
       });
 
     const reply = await interaction.editReply({
@@ -86,10 +82,9 @@ export default class Leave extends Hub {
   }
 
   @RegisterInteractionHandler('hub_leave')
-  static override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
+  override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [channelId] = customId.args;
-    const { locale } = interaction.user;
 
     if (customId.suffix === 'no') {
       await interaction.deferUpdate();
@@ -97,6 +92,8 @@ export default class Leave extends Hub {
       return;
     }
 
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const validConnection = await db.connectedList.findFirst({ where: { channelId } });
     if (!validConnection) {
       await interaction.update({

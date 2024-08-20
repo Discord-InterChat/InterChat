@@ -1,32 +1,39 @@
+import { InteractionFunction } from '#main/decorators/Interaction.js';
+import { emojis } from '#main/utils/Constants.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { getReplyMethod, simpleEmbed } from '#main/utils/Utils.js';
 import {
+  APIActionRowComponent,
+  type APIApplicationCommandSubcommandGroupOption,
+  type APIApplicationCommandSubcommandOption,
+  APIMessageActionRowComponent,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
+  Collection,
+  type ColorResolvable,
+  type ContextMenuCommandInteraction,
+  type InteractionResponse,
+  type Message,
   type MessageComponentInteraction,
   type ModalSubmitInteraction,
-  type ContextMenuCommandInteraction,
   type RepliableInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
-  type ColorResolvable,
-  type InteractionResponse,
-  type Message,
-  Collection,
   time,
 } from 'discord.js';
-import { InteractionFunction } from '#main/decorators/Interaction.js';
-import { t } from '#main/utils/Locale.js';
-import { emojis } from '#main/utils/Constants.js';
-import { getReplyMethod, simpleEmbed } from '#main/utils/Utils.js';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
+export type CmdData =
+  | RESTPostAPIChatInputApplicationCommandsJSONBody
+  | RESTPostAPIContextMenuApplicationCommandsJSONBody
+  | APIApplicationCommandSubcommandGroupOption
+  | APIApplicationCommandSubcommandOption;
 
 export const commandsMap = new Collection<string, BaseCommand>();
 export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
 
 export default abstract class BaseCommand {
-  abstract readonly data:
-    | RESTPostAPIChatInputApplicationCommandsJSONBody
-    | RESTPostAPIContextMenuApplicationCommandsJSONBody;
+  abstract readonly data: CmdData;
   readonly staffOnly?: boolean;
   readonly cooldown?: number;
   readonly description?: string;
@@ -35,15 +42,17 @@ export default abstract class BaseCommand {
   abstract execute(interaction: CmdInteraction): Promise<unknown>;
 
   // optional methods
-  static async handleComponents?(interaction: MessageComponentInteraction): Promise<unknown>;
-  static async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
   async autocomplete?(interaction: AutocompleteInteraction): Promise<unknown>;
+  async handleComponents?(interaction: MessageComponentInteraction): Promise<unknown>;
+  async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
 
   async checkAndSetCooldown(interaction: RepliableInteraction): Promise<boolean> {
     const remainingCooldown = await this.getRemainingCooldown(interaction);
 
     if (remainingCooldown) {
-      await this.sendCooldownError(interaction, remainingCooldown);
+      const { userManager } = interaction.client;
+      const locale = await userManager.getUserLocale(interaction.user.id);
+      await this.sendCooldownError(interaction, remainingCooldown, locale);
       return true;
     }
 
@@ -54,12 +63,13 @@ export default abstract class BaseCommand {
   async sendCooldownError(
     interaction: RepliableInteraction,
     remainingCooldown: number,
+    locale: supportedLocaleCodes,
   ): Promise<void> {
     const waitUntil = Math.round((Date.now() + remainingCooldown) / 1000);
 
     await interaction.reply({
       content: t(
-        { phrase: 'errors.cooldown', locale: interaction.user.locale },
+        { phrase: 'errors.cooldown', locale },
         { time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`, emoji: emojis.no },
       ),
       ephemeral: true,
@@ -111,11 +121,17 @@ export default abstract class BaseCommand {
   }
 
   async replyEmbed(
-    interaction: RepliableInteraction,
+    interaction: RepliableInteraction | MessageComponentInteraction,
     desc: string,
-    opts?: { title?: string; color?: ColorResolvable; ephemeral?: boolean; edit?: boolean },
+    opts?: {
+      title?: string;
+      color?: ColorResolvable;
+      components?: APIActionRowComponent<APIMessageActionRowComponent>[];
+      ephemeral?: boolean;
+      edit?: boolean;
+    },
   ): Promise<InteractionResponse | Message> {
-    const message = { embeds: [simpleEmbed(desc, opts)] };
+    const message = { embeds: [simpleEmbed(desc, opts)], components: opts?.components };
     if (opts?.edit) return await interaction.editReply(message);
 
     const methodName = getReplyMethod(interaction);

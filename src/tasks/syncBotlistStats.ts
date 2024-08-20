@@ -5,6 +5,11 @@ import 'dotenv/config';
 export const topgg = new Api(process.env.TOPGG_API_KEY as string);
 
 export default async ({ serverCount, shardCount }: { serverCount: number; shardCount: number }) => {
+  if (process.env.CLIENT_ID !== '769921109209907241') {
+    Logger.warn('[TopGGPostStats]: CLIENT_ID environment variable does not match InterChat\'s actual ID.');
+    return;
+  }
+
   await topgg
     .postStats({ serverCount, shardCount })
     .then((data) => {

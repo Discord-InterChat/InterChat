@@ -1,19 +1,22 @@
-import type { ChatInputCommandInteraction, User } from 'discord.js';
-import parse from 'parse-duration';
 import { emojis } from '#main/utils/Constants.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
+import type { ChatInputCommandInteraction, User } from 'discord.js';
+import parse from 'parse-duration';
 import BlacklistCommand from './index.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
-    const { locale, id: moderatorId } = interaction.user;
+    const { id: moderatorId } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
+
     const hubName = interaction.options.getString('hub');
     const hub = await this.getHub({ name: hubName, userId: moderatorId });
-    if (!this.isValidHub(interaction, hub)) return;
+    if (!this.isValidHub(interaction, hub, locale)) return;
 
     const reason = interaction.options.getString('reason') ?? 'No reason provided.';
     const duration = parse(`${interaction.options.getString('duration')}`);
@@ -22,7 +25,10 @@ export default class extends BlacklistCommand {
 
     if (subcommandGroup === 'add') {
       const user = interaction.options.getUser('user', true);
-      const passedChecks = await this.runUserAddChecks(interaction, hub.id, user.id, { duration });
+      const passedChecks = await this.runUserAddChecks(interaction, hub.id, user.id, {
+        duration,
+      });
+
       if (!passedChecks) return;
 
       await this.addUserBlacklist(interaction, user, { expires, hubId: hub.id, reason });
@@ -44,7 +50,6 @@ export default class extends BlacklistCommand {
       });
     }
     else if (subcommandGroup === 'remove') {
-      const { userManager } = interaction.client;
       const userId = interaction.options.getString('user', true);
       const result = await userManager.removeBlacklist(hub.id, userId);
 
@@ -91,7 +96,8 @@ export default class extends BlacklistCommand {
     userId: string,
     opts?: { duration?: number },
   ) {
-    const { locale } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const hiddenOpt = { ephemeral: true };
     if (userId === interaction.client.user?.id) {
       await this.replyEmbed(
@@ -104,7 +110,7 @@ export default class extends BlacklistCommand {
     else if (userId === interaction.user.id) {
       await this.replyEmbed(
         interaction,
-        '<a:nuhuh:1256859727158050838> Nuh uh! You are stuck with us.',
+        '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
         hiddenOpt,
       );
       return false;

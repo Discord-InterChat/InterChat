@@ -5,11 +5,13 @@ import {
   ChannelType,
   ChatInputCommandInteraction,
   Collection,
+  Guild,
   RESTPostAPIApplicationCommandsJSONBody,
+  Snowflake,
 } from 'discord.js';
-import BaseCommand from '../../../../core/BaseCommand.js';
-import db from '../../../../utils/Db.js';
-import { escapeRegexChars, handleError } from '../../../../utils/Utils.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import db from '#main/utils/Db.js';
+import { escapeRegexChars, handleError } from '#main/utils/Utils.js';
 
 const hubOption: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.String,
@@ -295,72 +297,86 @@ export default class Hub extends BaseCommand {
     let hubChoices;
 
     if (subcommand === 'browse' || subcommand === 'join') {
-      hubChoices = await db.hubs.findMany({
-        where: {
-          name: { mode: 'insensitive', contains: focusedValue },
-          private: false,
-        },
-        take: 25,
-      });
+      hubChoices = await this.getPublicHubs(focusedValue);
     }
     else if (modCmds.includes(subcommandGroup || subcommand)) {
-      hubChoices = await db.hubs.findMany({
-        where: {
-          name: { mode: 'insensitive', contains: focusedValue },
-          OR: [
-            { ownerId: interaction.user.id },
-            { moderators: { some: { userId: interaction.user.id } } },
-          ],
-        },
-        take: 25,
-      });
+      hubChoices = await this.getModeratedHubs(focusedValue, interaction.user.id);
     }
     else if (managerCmds.includes(subcommandGroup || subcommand)) {
-      hubChoices = await db.hubs.findMany({
-        where: {
-          name: { mode: 'insensitive', contains: focusedValue },
-          OR: [
-            { ownerId: interaction.user.id },
-            { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
-          ],
-        },
-        take: 25,
-      });
+      hubChoices = await this.getManagedHubs(focusedValue, interaction.user.id);
+    }
+    else if (subcommand === 'delete') {
+      hubChoices = await this.getOwnedHubs(focusedValue, interaction.user.id);
     }
     else if (subcommand === 'leave') {
-      const networks = await db.connectedList.findMany({
-        where: { serverId: interaction.guild?.id },
-        select: { channelId: true, hub: true },
-        take: 25,
-      });
+      const choices = await this.getLeaveSubcommandChoices(focusedValue, interaction.guild);
+      await interaction.respond(choices ?? []);
+      return;
+    }
 
-      const filteredNets = networks
+    const choices = hubChoices?.map((hub) => ({ name: hub.name, value: hub.name }));
+    await interaction.respond(choices ?? []);
+  }
+
+  private async getPublicHubs(focusedValue: string) {
+    return await db.hubs.findMany({
+      where: {
+        name: { mode: 'insensitive', contains: focusedValue },
+        private: false,
+      },
+      take: 25,
+    });
+  }
+
+  private async getModeratedHubs(focusedValue: string, modId: Snowflake) {
+    return await db.hubs.findMany({
+      where: {
+        name: { mode: 'insensitive', contains: focusedValue },
+        OR: [{ ownerId: modId }, { moderators: { some: { userId: modId } } }],
+      },
+      take: 25,
+    });
+  }
+
+  private async getManagedHubs(focusedValue: string, modId: Snowflake) {
+    return await db.hubs.findMany({
+      where: {
+        name: { mode: 'insensitive', contains: focusedValue },
+        OR: [{ ownerId: modId }, { moderators: { some: { userId: modId, position: 'manager' } } }],
+      },
+      take: 25,
+    });
+  }
+
+  private async getOwnedHubs(focusedValue: string, ownerId: Snowflake) {
+    return await db.hubs.findMany({
+      where: {
+        ownerId,
+        name: { mode: 'insensitive', contains: focusedValue },
+      },
+      take: 25,
+    });
+  }
+
+  private async getLeaveSubcommandChoices(focusedValue: string, guild: Guild | null) {
+    if (!guild) return null;
+
+    const networks = await db.connectedList.findMany({
+      where: { serverId: guild?.id },
+      select: { channelId: true, hub: true },
+      take: 25,
+    });
+
+    return Promise.all(
+      networks
         .filter((network) => network.hub?.name.toLowerCase().includes(focusedValue.toLowerCase()))
         .map(async (network) => {
-          const channel = await interaction.guild?.channels
-            .fetch(network.channelId)
-            .catch(() => null);
+          const channel = await guild?.channels.fetch(network.channelId).catch(() => null);
           return {
             name: `${network.hub?.name} | #${channel?.name ?? network.channelId}`,
             value: network.channelId,
           };
-        });
-
-      await interaction.respond(await Promise.all(filteredNets));
-      return;
-    }
-    else if (subcommand === 'delete') {
-      hubChoices = await db.hubs.findMany({
-        where: {
-          ownerId: interaction.user.id,
-          name: { mode: 'insensitive', contains: focusedValue },
-        },
-        take: 25,
-      });
-    }
-
-    const filtered = hubChoices?.map((hub) => ({ name: hub.name, value: hub.name }));
-
-    if (filtered) await interaction.respond(filtered);
+        }),
+    );
   }
 }

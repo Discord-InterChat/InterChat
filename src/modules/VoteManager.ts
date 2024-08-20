@@ -1,12 +1,13 @@
 import db from '../utils/Db.js';
-import Scheduler from '../services/SchedulerService.js';
+import Scheduler from './SchedulerService.js';
 import { WebhookPayload } from '@top-gg/sdk';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { WebhookClient, userMention, EmbedBuilder } from 'discord.js';
 import { badgeEmojis, LINKS, VOTER_ROLE_ID } from '../utils/Constants.js';
-import { getDbUser, getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
+import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
 import EventEmitter from 'events';
+import { getCachedData } from '#main/utils/cache/cacheUtils.js';
 
 export type TopggEvents = {
   vote: WebhookPayload;
@@ -42,8 +43,15 @@ export class VoteManager extends EventEmitter {
     return super.once(event, listener);
   }
 
+  async getDbUser(id: string) {
+    return (await getCachedData(
+      `userData:${id}`,
+      async () => await db.userData.findFirst({ where: { id } }),
+    )).data;
+  }
+
   async getUserVoteCount(id: string) {
-    const user = await getDbUser(id);
+    const user = await this.getDbUser(id);
     return user?.voteCount ?? 0;
   }
 
@@ -63,16 +71,18 @@ export class VoteManager extends EventEmitter {
     });
     const ordinalSuffix = getOrdinalSuffix(voteCount);
     const userMentionStr = userMention(vote.user);
-    const username = (await getUsername(this.cluster, vote.user)) ?? userMentionStr;
+    const username =
+      (await getUsername(this.cluster, vote.user)) ??
+      (await this.getDbUser(vote.user))?.username ??
+      userMentionStr;
 
     await webhook.send({
-      content: userMentionStr,
+      content: `${userMentionStr} (**${username}**)`,
       embeds: [
         new EmbedBuilder()
           .setDescription(
             stripIndents`
             ### ${badgeEmojis.Voter} Thank you for voting!
-            User **${username}** just voted for InterChat! Thank you for your support!
               
             You can vote again on [top.gg](${LINKS.VOTE}) in 12 hours!
             `,

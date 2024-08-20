@@ -1,18 +1,21 @@
-import { ChatInputCommandInteraction, CacheType, EmbedBuilder } from 'discord.js';
-import Hub from './index.js';
+import { LINKS, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import Logger from '#main/utils/Logger.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import { captureException } from '@sentry/node';
-import { LINKS, emojis } from '../../../../utils/Constants.js';
-import db from '../../../../utils/Db.js';
-import Logger from '../../../../utils/Logger.js';
-import { simpleEmbed } from '../../../../utils/Utils.js';
-import { t } from '../../../../utils/Locale.js';
+import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import parse from 'parse-duration';
+import Hub from './index.js';
 
 export default class Invite extends Hub {
   readonly cooldown = 3000; // 3 seconds
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const subcommand = interaction.options.getSubcommand();
+
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     switch (subcommand) {
       case 'create': {
@@ -33,17 +36,11 @@ export default class Invite extends Hub {
         });
 
         if (!hubInDb) {
-          await interaction.reply({
-            embeds: [
-              simpleEmbed(
-                t(
-                  { phrase: 'hub.notFound_mod', locale: interaction.user.locale },
-                  { emoji: emojis.no },
-                ),
-              ),
-            ],
-            ephemeral: true,
-          });
+          await this.replyEmbed(
+            interaction,
+            t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
+            { ephemeral: true },
+          );
           return;
         }
 
@@ -65,7 +62,7 @@ export default class Invite extends Hub {
         const embed = new EmbedBuilder()
           .setDescription(
             t(
-              { phrase: 'hub.invite.create.success', locale: interaction.user.locale },
+              { phrase: 'hub.invite.create.success', locale },
               {
                 inviteCode: createdInvite.code,
                 docs_link: LINKS.DOCS,
@@ -99,13 +96,7 @@ export default class Invite extends Hub {
 
         if (!inviteInDb) {
           await interaction.reply({
-            content: t(
-              {
-                phrase: 'hub.invite.revoke.invalidCode',
-                locale: interaction.user.locale,
-              },
-              { emoji: emojis.no },
-            ),
+            content: t({ phrase: 'hub.invite.revoke.invalidCode', locale }, { emoji: emojis.no }),
             ephemeral: true,
           });
           return;
@@ -113,34 +104,28 @@ export default class Invite extends Hub {
 
         try {
           await db.hubInvites.delete({ where: { code } });
-          await interaction.reply({
-            embeds: [
-              simpleEmbed(
-                t(
-                  { phrase: 'hub.invite.revoke.success', locale: interaction.user.locale },
-                  { emoji: emojis.yes, inviteCode: code },
-                ),
-              ),
-            ],
-            ephemeral: true,
-          });
+          await this.replyEmbed(
+            interaction,
+            t(
+              { phrase: 'hub.invite.revoke.success', locale },
+              { emoji: emojis.yes, inviteCode: code },
+            ),
+            { ephemeral: true },
+          );
         }
         catch (e) {
           Logger.error(e);
           captureException(e);
-          await interaction
-            .reply({
-              embeds: [
-                simpleEmbed(
-                  t(
-                    { phrase: 'errors.unknown', locale: interaction.user.locale },
-                    { emoji: emojis.no },
-                  ),
-                ),
-              ],
+          await this.replyEmbed(
+            interaction,
+            t(
+              { phrase: 'errors.unknown', locale },
+              { emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
+            ),
+            {
               ephemeral: true,
-            })
-            .catch(() => null);
+            },
+          ).catch(() => null);
           return;
         }
         break;
@@ -159,33 +144,21 @@ export default class Invite extends Hub {
         });
 
         if (!hubInDb?.private) {
-          await interaction.reply({
-            embeds: [
-              simpleEmbed(
-                t(
-                  { phrase: 'hub.invite.list.notPrivate', locale: interaction.user.locale },
-                  { emoji: emojis.no },
-                ),
-              ),
-            ],
-            ephemeral: true,
-          });
+          await this.replyEmbed(
+            interaction,
+            t({ phrase: 'hub.invite.list.notPrivate', locale }, { emoji: emojis.no }),
+            { ephemeral: true },
+          );
           return;
         }
 
         const invitesInDb = await db.hubInvites.findMany({ where: { hubId: hubInDb.id } });
         if (invitesInDb.length === 0) {
-          await interaction.reply({
-            embeds: [
-              simpleEmbed(
-                t(
-                  { phrase: 'hub.invite.list.noInvites', locale: interaction.user.locale },
-                  { emoji: emojis.no },
-                ),
-              ),
-            ],
-            ephemeral: true,
-          });
+          await this.replyEmbed(
+            interaction,
+            t({ phrase: 'hub.invite.list.noInvites', locale }, { emoji: emojis.no }),
+            { ephemeral: true },
+          );
           return;
         }
 
@@ -195,7 +168,7 @@ export default class Invite extends Hub {
         );
 
         const inviteEmbed = new EmbedBuilder()
-          .setTitle(t({ phrase: 'hub.invite.list.title', locale: interaction.user.locale }))
+          .setTitle(t({ phrase: 'hub.invite.list.title', locale }))
           .setDescription(inviteArr.join('\n'))
           .setColor('Yellow')
           .setTimestamp();

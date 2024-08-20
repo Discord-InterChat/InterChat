@@ -1,16 +1,16 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { getHubConnections } from '#main/utils/ConnectedList.js';
+import { REGEX, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
+import { t } from '#main/utils/Locale.js';
+import { isStaffOrHubMod } from '#main/utils/Utils.js';
+import { captureException } from '@sentry/node';
 import {
   ApplicationCommandType,
   MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import db from '../../utils/Db.js';
-import BaseCommand from '../../core/BaseCommand.js';
-import { checkIfStaff } from '../../utils/Utils.js';
-import { REGEX, emojis } from '../../utils/Constants.js';
-import { t } from '../../utils/Locale.js';
-import { logMsgDelete } from '../../utils/HubLogger/ModLogs.js';
-import { captureException } from '@sentry/node';
-import { getAllConnections } from '../../utils/ConnectedList.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -41,36 +41,23 @@ export default class DeleteMessage extends BaseCommand {
       originalMsg = broadcastedMsg?.originalMsg ?? null;
     }
 
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (!originalMsg?.hub) {
       await interaction.editReply(
-        t(
-          {
-            phrase: 'errors.unknownNetworkMessage',
-            locale: interaction.user.locale,
-          },
-          { emoji: emojis.no },
-        ),
+        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       );
       return;
     }
 
     const { hub } = originalMsg;
 
-    const isHubMod =
-      hub?.moderators.some((mod) => mod.userId === interaction.user.id) ||
-      hub.ownerId === interaction.user.id;
-
-    const isStaffOrHubMod = checkIfStaff(interaction.user.id) || isHubMod;
-
-    if (!isStaffOrHubMod && interaction.user.id !== originalMsg.authorId) {
+    if (
+      interaction.user.id !== originalMsg.authorId &&
+      !isStaffOrHubMod(interaction.user.id, hub)
+    ) {
       await interaction.editReply(
-        t(
-          {
-            phrase: 'errors.notMessageAuthor',
-            locale: interaction.user.locale,
-          },
-          { emoji: emojis.no },
-        ),
+        t({ phrase: 'errors.notMessageAuthor', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -81,10 +68,12 @@ export default class DeleteMessage extends BaseCommand {
 
     let passed = 0;
 
-    const allConnections = await getAllConnections();
+    const allConnections = await getHubConnections(hub.id);
 
     for await (const dbMsg of originalMsg.broadcastMsgs) {
-      const connection = allConnections?.find((c) => c.channelId === dbMsg.channelId);
+      const connection = allConnections?.find(
+        (c) => c.connected && c.channelId === dbMsg.channelId,
+      );
 
       if (!connection) break;
 
@@ -105,10 +94,7 @@ export default class DeleteMessage extends BaseCommand {
     await interaction
       .editReply(
         t(
-          {
-            phrase: 'network.deleteSuccess',
-            locale: interaction.user.locale,
-          },
+          { phrase: 'network.deleteSuccess', locale },
           {
             emoji: emojis.yes,
             user: `<@${originalMsg.authorId}>`,
@@ -127,7 +113,7 @@ export default class DeleteMessage extends BaseCommand {
     const imageUrl =
       targetMessage.embeds.at(0)?.image?.url ?? targetMessage.content.match(REGEX.IMAGE_URL)?.at(0);
 
-    if (isStaffOrHubMod && messageContent) {
+    if (isStaffOrHubMod(interaction.user.id, hub) && messageContent) {
       await logMsgDelete(interaction.client, messageContent, hub, {
         userId: originalMsg.authorId,
         serverId: originalMsg.serverId,

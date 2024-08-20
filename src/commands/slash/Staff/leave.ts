@@ -4,10 +4,9 @@ import {
   Guild,
   RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
-import BaseCommand from '../../../core/BaseCommand.js';
-import { isDev, resolveEval } from '../../../utils/Utils.js';
-import { emojis } from '../../../utils/Constants.js';
-import { RemoveMethods } from '../../../typings/index.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import { isDev, resolveEval } from '#main/utils/Utils.js';
+import { emojis } from '#main/utils/Constants.js';
 
 export default class Respawn extends BaseCommand {
   readonly staffOnly = true;
@@ -34,16 +33,15 @@ export default class Respawn extends BaseCommand {
 
     const guildId = interaction.options.getString('server_id', true);
     const leftGuild = resolveEval(
-      await interaction.client.cluster.broadcastEval(
+      (await interaction.client.cluster.broadcastEval(
         async (client, _serverId) => {
           const guild = client.guilds.cache.get(_serverId);
-          if (!guild) return;
 
-          return await guild.leave();
+          return guild ? await guild.leave() : undefined;
         },
         { guildId, context: guildId },
-      ),
-    ) as RemoveMethods<Guild> | undefined;
+      )) as (Guild | undefined)[],
+    );
 
     await interaction.reply(
       `${emojis.tick} Successfully Left guild ${leftGuild?.name} (${leftGuild?.id})`,

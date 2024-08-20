@@ -1,9 +1,9 @@
 import { stripIndents } from 'common-tags';
-import { Guild, EmbedBuilder } from 'discord.js';
-import { emojis, colors } from '../Constants.js';
-import { sendLog } from './Default.js';
+import { EmbedBuilder, Guild } from 'discord.js';
+import { getHubConnections } from '../ConnectedList.js';
+import { colors, emojis } from '../Constants.js';
 import { fetchHub } from '../Utils.js';
-import { getAllConnections } from '../ConnectedList.js';
+import { sendLog } from './Default.js';
 
 export const logJoinToHub = async (
   hubId: string,
@@ -38,8 +38,8 @@ export const logGuildLeaveToHub = async (hubId: string, server: Guild) => {
   if (!hub?.logChannels?.joinLeaves) return;
 
   const owner = await server.client.users.fetch(server.ownerId).catch(() => null);
-  const totalConnections = (await getAllConnections())?.reduce(
-    (total, c) => total + (c.hubId === hub.id && c.connected ? 1 : 0),
+  const totalConnections = (await getHubConnections(hub.id))?.reduce(
+    (total, c) => total + (c.connected ? 1 : 0),
     0,
   );
 

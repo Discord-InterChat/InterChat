@@ -1,10 +1,10 @@
-import Hub from './index.js';
-import db from '../../../../utils/Db.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { Pagination } from '#main/modules/Pagination.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { paginate } from '../../../../utils/Pagination.js';
-import { simpleEmbed } from '../../../../utils/Utils.js';
-import { t } from '../../../../utils/Locale.js';
-import { colors, emojis } from '../../../../utils/Constants.js';
+import Hub from './index.js';
 
 export default class Joined extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -13,15 +13,12 @@ export default class Joined extends Hub {
       include: { hub: true },
     });
 
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (connections.length === 0) {
       await interaction.reply({
         embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'hub.joined.noJoinedHubs', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
+          simpleEmbed(t({ phrase: 'hub.joined.noJoinedHubs', locale }, { emoji: emojis.no })),
         ],
       });
       return;
@@ -33,42 +30,36 @@ export default class Joined extends Hub {
       inline: true,
     }));
 
-    if (allFields.length > 25) {
-      const paginateEmbeds: EmbedBuilder[] = [];
-      let currentEmbed: EmbedBuilder | undefined;
+    const paginator = new Pagination();
 
+    if (allFields.length > 25) {
       // Split the fields into multiple embeds
       allFields.forEach((field, index) => {
+        let embed;
+        // Start a new embed
         if (index % 25 === 0) {
-          // Start a new embed
-          currentEmbed = new EmbedBuilder()
+          embed = new EmbedBuilder()
             .setDescription(
-              t(
-                { phrase: 'hub.joined.joinedHubs', locale: interaction.user.locale },
-                { total: `${allFields.length}` },
-              ),
+              t({ phrase: 'hub.joined.joinedHubs', locale }, { total: `${allFields.length}` }),
             )
             .setColor(colors.interchatBlue);
-
-          paginateEmbeds.push(currentEmbed);
         }
 
         // Add the field to the current embed
-        if (currentEmbed) {
-          currentEmbed.addFields(field);
+        if (embed) {
+          embed.addFields(field);
+          paginator.addPage({ embeds: [embed] });
         }
+
       });
 
-      await paginate(interaction, paginateEmbeds);
+      await paginator.run(interaction);
       return;
     }
 
     const embed = new EmbedBuilder()
       .setDescription(
-        t(
-          { phrase: 'hub.joined.joinedHubs', locale: interaction.user.locale },
-          { total: `${allFields.length}` },
-        ),
+        t({ phrase: 'hub.joined.joinedHubs', locale }, { total: `${allFields.length}` }),
       )
       .setFields(allFields)
       .setColor(colors.interchatBlue);

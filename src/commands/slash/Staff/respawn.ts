@@ -1,7 +1,7 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import BaseCommand from '../../../core/BaseCommand.js';
-import { emojis } from '../../../utils/Constants.js';
-import { isDev } from '../../../utils/Utils.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import { emojis } from '#main/utils/Constants.js';
+import { isDev } from '#main/utils/Utils.js';
 
 export default class Respawn extends BaseCommand {
   readonly staffOnly = true;

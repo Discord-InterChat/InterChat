@@ -13,7 +13,6 @@ COPY locales ./locales
 COPY prisma ./prisma
 COPY tsconfig.json .
 COPY package.json .
-COPY .yarnrc.yml .
 
 RUN pnpm install
 RUN npm rebuild @tensorflow/tfjs-node --build-from-source

@@ -6,11 +6,11 @@ import {
   PermissionFlagsBits,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import db from '../../../utils/Db.js';
-import BaseCommand from '../../../core/BaseCommand.js';
+import db from '#main/utils/Db.js';
+import BaseCommand from '#main/core/BaseCommand.js';
 import { stripIndents } from 'common-tags';
-import { emojis } from '../../../utils/Constants.js';
-import { simpleEmbed, msToReadable, deleteMsgsFromDb, handleError, resolveEval } from '../../../utils/Utils.js';
+import { emojis } from '#main/utils/Constants.js';
+import { simpleEmbed, msToReadable, deleteMsgsFromDb, handleError, resolveEval } from '#main/utils/Utils.js';
 import { broadcastedMessages } from '@prisma/client';
 
 const limitOpt: APIApplicationCommandBasicOption = {

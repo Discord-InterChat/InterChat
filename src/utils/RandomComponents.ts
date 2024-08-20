@@ -1,5 +1,8 @@
 /* eslint-disable complexity */
-import db from './Db.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { addReaction, removeReaction, updateReactions } from '#main/scripts/reaction/actions.js';
+import { checkBlacklists } from '#main/scripts/reaction/helpers.js';
+import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   AnySelectMenuInteraction,
@@ -9,22 +12,19 @@ import {
   StringSelectMenuBuilder,
   time,
 } from 'discord.js';
-import { getEmojiId, simpleEmbed, sortReactions } from './Utils.js';
 import { HubSettingsBitField } from './BitFields.js';
-import { CustomID } from './CustomID.js';
-import { RegisterInteractionHandler } from '../decorators/Interaction.js';
+import { updateConnection } from './ConnectedList.js';
 import { emojis } from './Constants.js';
-import { stripIndents } from 'common-tags';
+import { CustomID } from './CustomID.js';
+import db from './Db.js';
 import { t } from './Locale.js';
-import { removeReaction, addReaction, updateReactions } from '../scripts/reaction/actions.js';
-import { checkBlacklists } from '../scripts/reaction/helpers.js';
-import { modifyConnection } from './ConnectedList.js';
+import { getEmojiId, simpleEmbed, sortReactions } from './Utils.js';
 
 // skipcq: JS-0327
-export abstract class RandomComponents {
+export class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')
-  static async listenForReactionButton(
+  async listenForReactionButton(
     interaction: ButtonInteraction | AnySelectMenuInteraction,
   ): Promise<void> {
     await interaction.deferUpdate();
@@ -116,9 +116,9 @@ export abstract class RandomComponents {
         .setDescription(
           stripIndents`
           ## ${emojis.clipart} Reactions
-    
+
           ${reactionString || 'No reactions yet!'}
-    
+
           **Total Reactions:**
           __${totalReactions}__
       `,
@@ -132,22 +132,19 @@ export abstract class RandomComponents {
       });
     }
     else {
+      const { userManager } = interaction.client;
+      const locale = await userManager.getUserLocale(interaction.user.id);
+
       if (userBlacklisted) {
         await interaction.followUp({
-          content: t(
-            { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
-            { emoji: emojis.no },
-          ),
+          content: t({ phrase: 'errors.userBlacklisted', locale }, { emoji: emojis.no }),
           ephemeral: true,
         });
         return;
       }
       else if (serverBlacklisted) {
         await interaction.followUp({
-          content: t(
-            { phrase: 'errors.userBlacklisted', locale: interaction.user.locale },
-            { emoji: emojis.no },
-          ),
+          content: t({ phrase: 'errors.userBlacklisted', locale }, { emoji: emojis.no }),
           ephemeral: true,
         });
         return;
@@ -175,11 +172,12 @@ export abstract class RandomComponents {
         return;
       }
 
-      emojiAlreadyReacted.includes(interaction.user.id)
-        ? // If the user already reacted, remove the reaction
-        removeReaction(dbReactions, interaction.user.id, reactedEmoji)
-        : // or else add the user to the array
+      if (emojiAlreadyReacted.includes(interaction.user.id)) {
+        removeReaction(dbReactions, interaction.user.id, reactedEmoji);
+      }
+      else {
         addReaction(dbReactions, interaction.user.id, reactedEmoji);
+      }
 
       await db.originalMessages.update({
         where: { messageId: messageInDb.originalMsgId },
@@ -187,7 +185,7 @@ export abstract class RandomComponents {
       });
 
       if (interaction.isStringSelectMenu()) {
-        // FIXME seems like emojiAlreadyReacted is getting mutated somewhere
+        /** FIXME: seems like `emojiAlreadyReacted` is getting mutated somewhere */
         const action = emojiAlreadyReacted.includes(interaction.user.id) ? 'reacted' : 'unreacted';
         interaction
           .followUp({
@@ -203,11 +201,11 @@ export abstract class RandomComponents {
   }
 
   @RegisterInteractionHandler('inactiveConnect', 'toggle')
-  static async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
+  async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [channelId] = customId.args;
 
-    await modifyConnection({ channelId }, { connected: true });
+    await updateConnection({ channelId }, { connected: true });
 
     await interaction.update({
       embeds: [

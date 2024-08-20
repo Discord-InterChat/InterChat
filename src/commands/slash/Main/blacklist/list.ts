@@ -1,11 +1,11 @@
-import db from '#main/utils/Db.js';
-import BlacklistCommand from './index.js';
 import { colors, emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { paginate } from '#main/utils/Pagination.js';
+import { Pagination } from '#main/modules/Pagination.js';
 import { toTitleCase } from '#main/utils/Utils.js';
 import { blacklistedServers, hubBlacklist, userData } from '@prisma/client';
-import { ChatInputCommandInteraction, EmbedBuilder, User, time } from 'discord.js';
+import { ChatInputCommandInteraction, EmbedBuilder, time, User } from 'discord.js';
+import BlacklistCommand from './index.js';
 
 // Type guard
 const isUserType = (list: blacklistedServers | userData) => list && 'username' in list;
@@ -24,10 +24,12 @@ export default class ListBlacklists extends BlacklistCommand {
         ],
       },
     });
-    const { locale } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (!hubInDb) {
-      await this.replyEmbed(interaction, t(
-        { phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -39,51 +41,42 @@ export default class ListBlacklists extends BlacklistCommand {
         ? await db.blacklistedServers.findMany({ where: { blacklistedFrom: { some: { hubId } } } })
         : await db.userData.findMany({ where: { blacklistedFrom: { some: { hubId } } } });
     const options = { LIMIT: 5, iconUrl: hubInDb.iconUrl };
-    const embeds = await this.buildEmbeds(interaction, list, hubId, options);
 
-    await paginate(interaction, embeds);
-  }
-
-  private async buildEmbeds(
-    interaction: ChatInputCommandInteraction,
-    list: blacklistedServers[] | userData[],
-    hubId: string,
-    opts: { LIMIT: number; iconUrl?: string },
-  ): Promise<EmbedBuilder[]> {
-    const embeds: EmbedBuilder[] = [];
     const fields = [];
     let counter = 0;
     const type = isUserType(list[0]) ? 'user' : 'server';
 
+    const paginator = new Pagination();
     for (const data of list) {
       const hubData = data.blacklistedFrom.find((d) => d.hubId === hubId);
       const moderator = hubData?.moderatorId
         ? await interaction.client.users.fetch(hubData.moderatorId).catch(() => null)
         : null;
 
-      fields.push(
-        this.createFieldData(data, type, { hubData, moderator, locale: interaction.user.locale }),
-      );
+      fields.push(this.createFieldData(data, type, { hubData, moderator, locale }));
 
       counter++;
-      if (counter >= opts.LIMIT || fields.length === list.length) {
-        embeds.push(
-          new EmbedBuilder()
-            .setFields(fields)
-            .setColor(colors.invisible)
-            .setAuthor({
-              name: `Blacklisted ${toTitleCase(type)}s:`,
-              iconURL: opts.iconUrl,
-            }),
-        );
+      if (counter >= options.LIMIT || fields.length === list.length) {
+        paginator.addPage({
+          embeds: [
+            new EmbedBuilder()
+              .setFields(fields)
+              .setColor(colors.invisible)
+              .setAuthor({
+                name: `Blacklisted ${toTitleCase(type)}s:`,
+                iconURL: options.iconUrl,
+              }),
+          ],
+        });
 
         counter = 0;
         fields.length = 0; // Clear fields array
       }
     }
 
-    return embeds;
+    await paginator.run(interaction);
   }
+
   private createFieldData(
     data: blacklistedServers | userData,
     type: 'user' | 'server',

@@ -10,14 +10,14 @@
     "start:prod": "pm2 start .ecosystem.config.js",
     "build": "tsc --build",
     "dev": "tsc-watch --outDir ./build --onSuccess \"node --trace-warnings --import ./build/instrument.js .\"",
-    "register:commands": "node build/utils/RegisterCmdCli.js",
+    "deploy-commands": "node scripts/deploy-commands.js",
     "release": "release-it",
     "lint": "eslint --cache --fix ./src",
     "prepare": "husky",
     "postinstall": "prisma generate && node scripts/genLocaleTypes.js"
   },
   "engines": {
-    "node": ">=v20.15.1"
+    "node": ">=v20.16.0"
   },
   "type": "module",
   "dependencies": {
@@ -73,5 +73,5 @@
     "#main/*.js": "./build/*.js",
     "#commands/*.js": "./build/commands/*.js"
   },
-  "packageManager": "pnpm@9.5.0"
+  "packageManager": "pnpm@9.6.0"
 }

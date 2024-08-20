@@ -1,15 +1,53 @@
-import db from '../utils/Db.js';
-import BaseBlacklistManager from '../core/BaseBlacklistManager.js';
+import db from '#main/utils/Db.js';
+import BaseBlacklistManager from '#main/core/BaseBlacklistManager.js';
+import { getCachedData } from '#main/utils/cache/cacheUtils.js';
+import { logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
+import { supportedLocaleCodes } from '#main/utils/Locale.js';
 import { Prisma, userData } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
-import { logUserUnblacklist } from '../utils/HubLogger/ModLogs.js';
-import { getDbUser } from '#main/utils/Utils.js';
 
 export default class UserDbManager extends BaseBlacklistManager<userData> {
   protected modelName: Prisma.ModelName = 'userData';
 
-  protected override async fetchEntityFromDb(hubId: string, id: string) {
-    return await db.userData.findFirst({ where: { id, blacklistedFrom: { some: { hubId } } } });
+  private serializeBlacklist(
+    blacklist: ConvertDatesToString<userData>,
+  ): userData {
+    return {
+      ...blacklist,
+      lastVoted: blacklist.lastVoted ? new Date(blacklist.lastVoted) : null,
+      blacklistedFrom: blacklist.blacklistedFrom.map((b) => ({
+        ...b,
+        expires: b.expires ? new Date(b.expires) : null,
+      })),
+    };
+  }
+
+  async getUser(id: Snowflake): Promise<userData> {
+    const results = await getCachedData(
+      `userData:${id}`,
+      async () => await db.userData.findFirst({ where: { id } }),
+    );
+
+    const dbUser = this.serializeBlacklist(results.data);
+
+    if (results.data && !results.cached) this.addToCache(results.data);
+    return dbUser;
+  }
+
+  async getUserLocale(userOrId: string | userData | null | undefined) {
+    const dbUser = typeof userOrId === 'string' ? await this.getUser(userOrId) : userOrId;
+    return (dbUser?.locale as supportedLocaleCodes | null | undefined) ?? 'en';
+  }
+
+  async userVotedToday(id: Snowflake): Promise<boolean> {
+    const user = await this.getUser(id);
+    const twenty4HoursAgo = new Date(Date.now() - (60 * 60 * 24 * 1000));
+    return Boolean(user?.lastVoted && new Date(user.lastVoted) >= twenty4HoursAgo);
+  }
+
+  public override async fetchBlacklist(hubId: string, id: string) {
+    const blacklist = await this.getUser(id);
+    return blacklist?.blacklistedFrom.find((h) => h.hubId === hubId) ? blacklist : null;
   }
 
   public override async logUnblacklist(
@@ -38,9 +76,10 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
     }: { reason: string; moderatorId: Snowflake; expires: Date | null },
   ) {
     const expires = typeof _expires === 'number' ? new Date(Date.now() + _expires) : _expires;
-    const dbUser = await getDbUser(user.id);
+    const dbUser = await this.getUser(user.id);
 
-    const hubs = dbUser?.blacklistedFrom.filter((i) => i.hubId !== hubId) || [];
+    // if already blacklisted, override it
+    const hubs = dbUser?.blacklistedFrom.filter((b) => b.hubId !== hubId) || [];
     hubs?.push({ expires, reason, hubId, moderatorId });
 
     const updatedUser = await db.userData.upsert({
@@ -48,6 +87,8 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
       update: { username: user.name, blacklistedFrom: { set: hubs } },
       create: { id: user.id, username: user.name, blacklistedFrom: hubs },
     });
+
+    this.addToCache(updatedUser, expires?.getSeconds());
     return updatedUser;
   }
 
@@ -58,16 +99,16 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
    * @returns The updated blacklist.
    */
   async removeBlacklist(hubId: string, userId: Snowflake) {
-    const where = { id: userId, blacklistedFrom: { some: { hubId } } };
-    const notInBlacklist = await db.userData.findFirst({ where });
+    const notInBlacklist = this.fetchBlacklist(hubId, userId);
     if (!notInBlacklist) return null;
 
-    const deletedRes = await db.userData.update({
-      where,
+    const user = await db.userData.update({
+      where: { id: userId },
       data: { blacklistedFrom: { deleteMany: { where: { hubId } } } },
     });
 
-    return deletedRes;
+    this.addToCache(user);
+    return user;
   }
 
   /**

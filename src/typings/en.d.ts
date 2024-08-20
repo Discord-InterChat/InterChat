@@ -1,202 +1,216 @@
-export type TranslationKey =
-  | 'rules'
-  | 'vote.description'
-  | 'vote.footer'
-  | 'network.accountTooNew'
-  | 'network.deleteSuccess'
-  | 'network.editSuccess'
-  | 'network.welcome'
-  | 'network.nsfw.title'
-  | 'network.nsfw.description'
-  | 'network.nsfw.footer'
-  | 'network.onboarding.embed.title'
-  | 'network.onboarding.embed.description'
-  | 'network.onboarding.embed.footer'
-  | 'network.onboarding.inProgress'
-  | 'blacklist.embed.user'
-  | 'blacklist.embed.userValue'
-  | 'blacklist.embed.server'
-  | 'blacklist.embed.serverValue'
-  | 'blacklist.embed.footer'
-  | 'blacklist.modal.reason.label'
-  | 'blacklist.modal.reason.placeholder'
-  | 'blacklist.modal.duration.label'
-  | 'blacklist.modal.duration.placeholder'
-  | 'blacklist.user.success'
-  | 'blacklist.user.removed'
-  | 'blacklist.user.alreadyBlacklisted'
-  | 'blacklist.user.easterEggs.blacklistBot'
-  | 'blacklist.server.success'
-  | 'blacklist.server.removed'
-  | 'blacklist.server.alreadyBlacklisted'
-  | 'blacklist.server.unknownError'
-  | 'blacklist.list.user'
-  | 'blacklist.list.server'
-  | 'msgInfo.buttons.message'
-  | 'msgInfo.buttons.server'
-  | 'msgInfo.buttons.user'
-  | 'msgInfo.buttons.report'
-  | 'msgInfo.message.description'
-  | 'msgInfo.server.description'
-  | 'msgInfo.user.description'
-  | 'msgInfo.report.notEnabled'
-  | 'msgInfo.report.success'
-  | 'invite'
-  | 'connection.notFound'
-  | 'connection.channelNotFound'
-  | 'connection.alreadyConnected'
-  | 'connection.switchChannel'
-  | 'connection.switchCalled'
-  | 'connection.switchSuccess'
-  | 'connection.inviteRemoved'
-  | 'connection.inviteInvalid'
-  | 'connection.inviteAdded'
-  | 'connection.emColorInvalid'
-  | 'connection.emColorChange'
-  | 'connection.embed.title'
-  | 'connection.embed.fields.hub'
-  | 'connection.embed.fields.channel'
-  | 'connection.embed.fields.invite'
-  | 'connection.embed.fields.connected'
-  | 'connection.embed.fields.emColor'
-  | 'connection.embed.fields.compact'
-  | 'connection.embed.fields.profanity'
-  | 'connection.embed.footer'
-  | 'connection.selects.placeholder'
-  | 'connection.unpaused.desc'
-  | 'connection.unpaused.tips'
-  | 'connection.paused.desc'
-  | 'connection.paused.tips'
-  | 'hub.notFound'
-  | 'hub.notFound_mod'
-  | 'hub.alreadyJoined'
-  | 'hub.invalidChannel'
-  | 'hub.invalidImgurUrl'
-  | 'hub.join.success'
-  | 'hub.servers.total'
-  | 'hub.servers.noConnections'
-  | 'hub.servers.notConnected'
-  | 'hub.servers.connectionInfo'
-  | 'hub.create.modal.title'
-  | 'hub.create.modal.name.label'
-  | 'hub.create.modal.name.placeholder'
-  | 'hub.create.modal.description.label'
-  | 'hub.create.modal.description.placeholder'
-  | 'hub.create.modal.icon.label'
-  | 'hub.create.modal.icon.placeholder'
-  | 'hub.create.modal.banner.label'
-  | 'hub.create.modal.banner.placeholder'
-  | 'hub.create.maxHubs'
-  | 'hub.create.invalidName'
-  | 'hub.create.nameTaken'
-  | 'hub.create.success'
-  | 'hub.delete.confirm'
-  | 'hub.delete.ownerOnly'
-  | 'hub.delete.success'
-  | 'hub.delete.cancelled'
-  | 'hub.browse.joinConfirm'
-  | 'hub.browse.joinFooter'
-  | 'hub.browse.noHubs'
-  | 'hub.browse.rating.invalid'
-  | 'hub.browse.rating.success'
-  | 'hub.invite.create.success'
-  | 'hub.invite.revoke.invalidCode'
-  | 'hub.invite.revoke.success'
-  | 'hub.invite.list.title'
-  | 'hub.invite.list.noInvites'
-  | 'hub.invite.list.notPrivate'
-  | 'hub.joined.noJoinedHubs'
-  | 'hub.joined.joinedHubs'
-  | 'hub.leave.noHub'
-  | 'hub.leave.confirm'
-  | 'hub.leave.confirmFooter'
-  | 'hub.leave.success'
-  | 'hub.moderator.noModerators'
-  | 'hub.moderator.add.success'
-  | 'hub.moderator.add.alreadyModerator'
-  | 'hub.moderator.remove.success'
-  | 'hub.moderator.remove.notModerator'
-  | 'hub.moderator.remove.notOwner'
-  | 'hub.moderator.update.success'
-  | 'hub.moderator.update.notModerator'
-  | 'hub.moderator.update.notAllowed'
-  | 'hub.moderator.update.notOwner'
-  | 'hub.manage.enterImgurUrl'
-  | 'hub.manage.icon.changed'
-  | 'hub.manage.icon.modal.title'
-  | 'hub.manage.icon.modal.label'
-  | 'hub.manage.icon.selects.label'
-  | 'hub.manage.icon.selects.description'
-  | 'hub.manage.description.changed'
-  | 'hub.manage.description.modal.title'
-  | 'hub.manage.description.modal.label'
-  | 'hub.manage.description.modal.placeholder'
-  | 'hub.manage.description.selects.label'
-  | 'hub.manage.description.selects.description'
-  | 'hub.manage.banner.changed'
-  | 'hub.manage.banner.removed'
-  | 'hub.manage.banner.modal.title'
-  | 'hub.manage.banner.modal.label'
-  | 'hub.manage.banner.selects.label'
-  | 'hub.manage.banner.selects.description'
-  | 'hub.manage.visibility.success'
-  | 'hub.manage.visibility.selects.label'
-  | 'hub.manage.visibility.selects.description'
-  | 'hub.manage.logs.title'
-  | 'hub.manage.logs.reset'
-  | 'hub.manage.logs.roleSuccess'
-  | 'hub.manage.logs.channelSuccess'
-  | 'hub.manage.logs.channelSelect'
-  | 'hub.manage.logs.roleSelect'
-  | 'hub.manage.logs.reportChannelFirst'
-  | 'hub.manage.logs.config.title'
-  | 'hub.manage.logs.config.description'
-  | 'hub.manage.logs.config.fields.channel'
-  | 'hub.manage.logs.config.fields.role'
-  | 'hub.manage.logs.reports.label'
-  | 'hub.manage.logs.reports.description'
-  | 'hub.manage.logs.modLogs.label'
-  | 'hub.manage.logs.modLogs.description'
-  | 'hub.manage.logs.profanity.label'
-  | 'hub.manage.logs.profanity.description'
-  | 'hub.manage.logs.joinLeave.label'
-  | 'hub.manage.logs.joinLeave.description'
-  | 'report.modal.title'
-  | 'report.modal.other.label'
-  | 'report.modal.other.placeholder'
-  | 'report.modal.bug.input1.label'
-  | 'report.modal.bug.input1.placeholder'
-  | 'report.modal.bug.input2.label'
-  | 'report.modal.bug.input2.placeholder'
-  | 'report.submitted'
-  | 'report.bug.title'
-  | 'report.bug.affected'
-  | 'report.bug.description'
-  | 'language.set'
-  | 'errors.messageNotSentOrExpired'
-  | 'errors.notYourAction'
-  | 'errors.notMessageAuthor'
-  | 'errors.commandError'
-  | 'errors.mustVote'
-  | 'errors.inviteLinks'
-  | 'errors.invalidLangCode'
-  | 'errors.unknownServer'
-  | 'errors.unknownNetworkMessage'
-  | 'errors.userNotFound'
-  | 'errors.blacklisted'
-  | 'errors.userBlacklisted'
-  | 'errors.serverBlacklisted'
-  | 'errors.serverNotBlacklisted'
-  | 'errors.userNotBlacklisted'
-  | 'errors.missingPermissions'
-  | 'errors.botMissingPermissions'
-  | 'errors.unknown'
-  | 'errors.notUsable'
-  | 'errors.cooldown'
-  | 'errors.banned'
-  | 'misc.webhookNoLongerExists'
-  | 'misc.noReason'
-  | 'misc.noDesc'
-  | 'misc.version'
-  | 'misc.loading'
-  | 'misc.reportOptionMoved';
+export type TranslationKeys = {
+  rules: 'support_invite';
+  'vote.description': never;
+  'vote.footer': never;
+  'network.accountTooNew': 'emoji' | 'user';
+  'network.deleteSuccess': 'emoji' | 'user' | 'deleted' | 'total';
+  'network.editSuccess': 'emoji' | 'user' | 'edited' | 'total';
+  'network.welcome': 'emoji' | 'user' | 'hub' | 'totalServers' | 'channel' | 'rules_command';
+  'network.nsfw.title': never;
+  'network.nsfw.description': 'rules_command';
+  'network.nsfw.footer': never;
+  'network.onboarding.embed.title': 'hubName';
+  'network.onboarding.embed.description': 'docs_link';
+  'network.onboarding.embed.footer': 'version';
+  'network.onboarding.inProgress': 'emoji' | 'channel';
+  'blacklist.embed.user': never;
+  'blacklist.embed.userValue': 'user';
+  'blacklist.embed.server': never;
+  'blacklist.embed.serverValue': 'server';
+  'blacklist.embed.footer': never;
+  'blacklist.modal.reason.label': never;
+  'blacklist.modal.reason.placeholder': never;
+  'blacklist.modal.duration.label': never;
+  'blacklist.modal.duration.placeholder': never;
+  'blacklist.user.success': 'emoji' | 'username';
+  'blacklist.user.removed': 'emoji' | 'username';
+  'blacklist.user.alreadyBlacklisted': 'emoji';
+  'blacklist.user.easterEggs.blacklistBot': never;
+  'blacklist.server.success': 'emoji' | 'server';
+  'blacklist.server.removed': 'emoji' | 'server';
+  'blacklist.server.alreadyBlacklisted': 'emoji';
+  'blacklist.server.unknownError': 'server';
+  'blacklist.list.user': 'id' | 'moderator' | 'reason' | 'expires';
+  'blacklist.list.server': 'id' | 'moderator' | 'reason' | 'expires';
+  'msgInfo.buttons.message': never;
+  'msgInfo.buttons.server': never;
+  'msgInfo.buttons.user': never;
+  'msgInfo.buttons.report': never;
+  'msgInfo.message.description': 'emoji' | 'author' | 'server' | 'messageId' | 'hub' | 'createdAt';
+  'msgInfo.server.description':
+    | 'server'
+    | 'description'
+    | 'owner'
+    | 'createdAtFull'
+    | 'createdAt'
+    | 'memberCount'
+    | 'invite';
+  'msgInfo.user.description':
+    | 'username'
+    | 'id'
+    | 'createdAtFull'
+    | 'createdAt'
+    | 'globalName'
+    | 'hubsOwned';
+  'msgInfo.report.notEnabled': 'emoji';
+  'msgInfo.report.success': 'emoji';
+  invite: 'invite_emoji' | 'invite' | 'support_emoji' | 'support';
+  'connection.notFound': 'emoji';
+  'connection.channelNotFound': 'emoji';
+  'connection.alreadyConnected': 'emoji' | 'channel';
+  'connection.switchChannel': 'emoji';
+  'connection.switchCalled': 'emoji';
+  'connection.switchSuccess': 'emoji' | 'channel';
+  'connection.inviteRemoved': 'emoji';
+  'connection.inviteInvalid': 'emoji';
+  'connection.inviteAdded': 'emoji';
+  'connection.emColorInvalid': 'emoji';
+  'connection.emColorChange': 'emoji' | 'action';
+  'connection.embed.title': never;
+  'connection.embed.fields.hub': never;
+  'connection.embed.fields.channel': never;
+  'connection.embed.fields.invite': never;
+  'connection.embed.fields.connected': never;
+  'connection.embed.fields.emColor': never;
+  'connection.embed.fields.compact': never;
+  'connection.embed.fields.profanity': never;
+  'connection.embed.footer': never;
+  'connection.selects.placeholder': never;
+  'connection.unpaused.desc': 'tick_emoji' | 'channel';
+  'connection.unpaused.tips': 'pause_cmd' | 'customize_cmd';
+  'connection.paused.desc': 'clock_emoji' | 'channel';
+  'connection.paused.tips': 'unpause_cmd' | 'leave_cmd';
+  'hub.notFound': 'emoji';
+  'hub.notFound_mod': 'emoji';
+  'hub.alreadyJoined': 'emoji' | 'hub' | 'channel';
+  'hub.invalidChannel': 'emoji';
+  'hub.invalidImgurUrl': 'emoji';
+  'hub.join.success': 'hub' | 'channel';
+  'hub.servers.total': 'from' | 'to' | 'total';
+  'hub.servers.noConnections': 'emoji';
+  'hub.servers.notConnected': 'emoji' | 'hub';
+  'hub.servers.connectionInfo': 'channelName' | 'channelId' | 'joinedAt' | 'invite' | 'connected';
+  'hub.create.modal.title': never;
+  'hub.create.modal.name.label': never;
+  'hub.create.modal.name.placeholder': never;
+  'hub.create.modal.description.label': never;
+  'hub.create.modal.description.placeholder': never;
+  'hub.create.modal.icon.label': never;
+  'hub.create.modal.icon.placeholder': never;
+  'hub.create.modal.banner.label': never;
+  'hub.create.modal.banner.placeholder': never;
+  'hub.create.maxHubs': 'emoji';
+  'hub.create.invalidName': 'emoji';
+  'hub.create.nameTaken': 'emoji';
+  'hub.create.success': 'name' | 'docs_link' | 'support_invite';
+  'hub.delete.confirm': 'hub';
+  'hub.delete.ownerOnly': 'emoji';
+  'hub.delete.success': 'emoji' | 'hub';
+  'hub.delete.cancelled': 'emoji';
+  'hub.browse.joinConfirm': 'hub' | 'channel';
+  'hub.browse.joinFooter': never;
+  'hub.browse.noHubs': 'emoji';
+  'hub.browse.rating.invalid': never;
+  'hub.browse.rating.success': never;
+  'hub.invite.create.success': 'inviteCode' | 'expiry' | 'docs_link';
+  'hub.invite.revoke.invalidCode': 'emoji';
+  'hub.invite.revoke.success': 'emoji' | 'inviteCode';
+  'hub.invite.list.title': never;
+  'hub.invite.list.noInvites': 'emoji';
+  'hub.invite.list.notPrivate': 'emoji';
+  'hub.joined.noJoinedHubs': 'emoji';
+  'hub.joined.joinedHubs': 'total';
+  'hub.leave.noHub': 'emoji';
+  'hub.leave.confirm': 'hub' | 'channel';
+  'hub.leave.confirmFooter': never;
+  'hub.leave.success': 'emoji' | 'channel';
+  'hub.moderator.noModerators': 'emoji';
+  'hub.moderator.add.success': 'emoji' | 'user' | 'position';
+  'hub.moderator.add.alreadyModerator': 'emoji' | 'user';
+  'hub.moderator.remove.success': 'emoji' | 'user';
+  'hub.moderator.remove.notModerator': 'emoji' | 'user';
+  'hub.moderator.remove.notOwner': 'emoji';
+  'hub.moderator.update.success': 'emoji' | 'user' | 'position';
+  'hub.moderator.update.notModerator': 'emoji' | 'user';
+  'hub.moderator.update.notAllowed': 'emoji';
+  'hub.moderator.update.notOwner': 'emoji';
+  'hub.manage.enterImgurUrl': never;
+  'hub.manage.icon.changed': never;
+  'hub.manage.icon.modal.title': never;
+  'hub.manage.icon.modal.label': never;
+  'hub.manage.icon.selects.label': never;
+  'hub.manage.icon.selects.description': never;
+  'hub.manage.description.changed': never;
+  'hub.manage.description.modal.title': never;
+  'hub.manage.description.modal.label': never;
+  'hub.manage.description.modal.placeholder': never;
+  'hub.manage.description.selects.label': never;
+  'hub.manage.description.selects.description': never;
+  'hub.manage.banner.changed': never;
+  'hub.manage.banner.removed': never;
+  'hub.manage.banner.modal.title': never;
+  'hub.manage.banner.modal.label': never;
+  'hub.manage.banner.selects.label': never;
+  'hub.manage.banner.selects.description': never;
+  'hub.manage.visibility.success': 'emoji' | 'visibility';
+  'hub.manage.visibility.selects.label': never;
+  'hub.manage.visibility.selects.description': never;
+  'hub.manage.logs.title': never;
+  'hub.manage.logs.reset': 'emoji' | 'type';
+  'hub.manage.logs.roleSuccess': 'emoji' | 'type' | 'role';
+  'hub.manage.logs.channelSuccess': 'emoji' | 'type' | 'channel';
+  'hub.manage.logs.channelSelect': never;
+  'hub.manage.logs.roleSelect': never;
+  'hub.manage.logs.reportChannelFirst': 'emoji';
+  'hub.manage.logs.config.title': 'type';
+  'hub.manage.logs.config.description': 'arrow' | 'arrow';
+  'hub.manage.logs.config.fields.channel': never;
+  'hub.manage.logs.config.fields.role': never;
+  'hub.manage.logs.reports.label': never;
+  'hub.manage.logs.reports.description': never;
+  'hub.manage.logs.modLogs.label': never;
+  'hub.manage.logs.modLogs.description': never;
+  'hub.manage.logs.profanity.label': never;
+  'hub.manage.logs.profanity.description': never;
+  'hub.manage.logs.joinLeave.label': never;
+  'hub.manage.logs.joinLeave.description': never;
+  'report.modal.title': never;
+  'report.modal.other.label': never;
+  'report.modal.other.placeholder': never;
+  'report.modal.bug.input1.label': never;
+  'report.modal.bug.input1.placeholder': never;
+  'report.modal.bug.input2.label': never;
+  'report.modal.bug.input2.placeholder': never;
+  'report.submitted': 'emoji' | 'support_command';
+  'report.bug.title': never;
+  'report.bug.affected': never;
+  'report.bug.description': never;
+  'language.set': 'lang';
+  'errors.messageNotSentOrExpired': 'emoji';
+  'errors.notYourAction': 'emoji';
+  'errors.notMessageAuthor': 'emoji';
+  'errors.commandError': 'emoji' | 'support_invite' | 'errorId';
+  'errors.mustVote': never;
+  'errors.inviteLinks': 'emoji';
+  'errors.invalidLangCode': 'emoji';
+  'errors.unknownServer': 'emoji';
+  'errors.unknownNetworkMessage': 'emoji';
+  'errors.userNotFound': 'emoji';
+  'errors.blacklisted': 'emoji';
+  'errors.userBlacklisted': 'emoji';
+  'errors.serverBlacklisted': 'emoji';
+  'errors.serverNotBlacklisted': 'emoji';
+  'errors.userNotBlacklisted': 'emoji';
+  'errors.missingPermissions': 'emoji' | 'permissions';
+  'errors.botMissingPermissions': 'emoji' | 'permissions';
+  'errors.unknown': 'emoji' | 'support_invite';
+  'errors.notUsable': 'emoji';
+  'errors.cooldown': 'emoji' | 'time';
+  'errors.banned': 'emoji' | 'reason' | 'support_invite';
+  'misc.webhookNoLongerExists': 'emoji';
+  'misc.noReason': never;
+  'misc.noDesc': never;
+  'misc.version': 'version';
+  'misc.loading': 'emoji';
+  'misc.reportOptionMoved': 'emoji' | 'support_invite';
+};

@@ -1,4 +1,7 @@
-import Support from './index.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { LINKS, channels, colors, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import { t } from '#main/utils/Locale.js';
 import {
   APIEmbed,
   ActionRowBuilder,
@@ -14,10 +17,7 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { LINKS, channels, colors, emojis } from '../../../../utils/Constants.js';
-import { CustomID } from '../../../../utils/CustomID.js';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { t } from '../../../../utils/Locale.js';
+import Support from './index.js';
 
 export default class Report extends Support {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -26,6 +26,9 @@ export default class Report extends Support {
       | 'server'
       | 'bug'
       | 'other';
+
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (reportType === 'bug') {
       const bugSelect = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -47,10 +50,9 @@ export default class Report extends Support {
               .setValue('Other'),
           ),
       );
-
       const bugEmbed = new EmbedBuilder()
-        .setTitle(t({ phrase: 'report.bug.affected', locale: interaction.user.locale }))
-        .setDescription(t({ phrase: 'report.bug.description', locale: interaction.user.locale }))
+        .setTitle(t({ phrase: 'report.bug.affected', locale }))
+        .setDescription(t({ phrase: 'report.bug.description', locale }))
         .setColor(colors.interchatBlue);
 
       await interaction.reply({
@@ -61,16 +63,14 @@ export default class Report extends Support {
     }
     else {
       const modal = new ModalBuilder()
-        .setTitle(t({ phrase: 'report.modal.title', locale: interaction.user.locale }))
+        .setTitle(t({ phrase: 'report.modal.title', locale }))
         .setCustomId(new CustomID().setIdentifier('report_modal', reportType).toString())
         .addComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('description')
-              .setLabel(t({ phrase: 'report.modal.other.label', locale: interaction.user.locale }))
-              .setPlaceholder(
-                t({ phrase: 'report.modal.other.placeholder', locale: interaction.user.locale }),
-              )
+              .setLabel(t({ phrase: 'report.modal.other.label', locale }))
+              .setPlaceholder(t({ phrase: 'report.modal.other.placeholder', locale }))
               .setStyle(TextInputStyle.Paragraph)
               .setMinLength(10)
               .setMaxLength(950),
@@ -79,10 +79,7 @@ export default class Report extends Support {
 
       if (reportType !== 'other') {
         const content = t(
-          {
-            phrase: 'misc.reportOptionMoved',
-            locale: interaction.user.locale,
-          },
+          { phrase: 'misc.reportOptionMoved', locale },
           { emoji: emojis.exclamation, support_invite: LINKS.SUPPORT_INVITE },
         );
 
@@ -95,7 +92,10 @@ export default class Report extends Support {
   }
 
   @RegisterInteractionHandler('report')
-  static override async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
+  override async handleComponents(interaction: MessageComponentInteraction<CacheType>) {
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
+
     if (interaction.isStringSelectMenu()) {
       const modal = new ModalBuilder()
         .setCustomId(
@@ -104,34 +104,20 @@ export default class Report extends Support {
             .addArgs(interaction.values.join(', '))
             .toString(),
         )
-        .setTitle(t({ phrase: 'report.bug.title', locale: interaction.user.locale }))
+        .setTitle(t({ phrase: 'report.bug.title', locale }))
         .setComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('summary')
-              .setLabel(
-                t({ phrase: 'report.modal.bug.input1.label', locale: interaction.user.locale }),
-              )
-              .setPlaceholder(
-                t({
-                  phrase: 'report.modal.bug.input1.placeholder',
-                  locale: interaction.user.locale,
-                }),
-              )
+              .setLabel(t({ phrase: 'report.modal.bug.input1.label', locale }))
+              .setPlaceholder(t({ phrase: 'report.modal.bug.input1.placeholder', locale }))
               .setStyle(TextInputStyle.Short),
           ),
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('description')
-              .setLabel(
-                t({ phrase: 'report.modal.bug.input2.label', locale: interaction.user.locale }),
-              )
-              .setPlaceholder(
-                t({
-                  phrase: 'report.modal.bug.input1.placeholder',
-                  locale: interaction.user.locale,
-                }),
-              )
+              .setLabel(t({ phrase: 'report.modal.bug.input2.label', locale }))
+              .setPlaceholder(t({ phrase: 'report.modal.bug.input1.placeholder', locale }))
               .setStyle(TextInputStyle.Paragraph)
               .setRequired(false)
               .setMinLength(17),
@@ -203,9 +189,12 @@ export default class Report extends Support {
         break;
       }
     }
+
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     await interaction.reply({
       content: t(
-        { phrase: 'report.submitted', locale: interaction.user.locale },
+        { phrase: 'report.submitted', locale },
         { emoji: emojis.yes, support_command: '</support server:924659341049626636>' },
       ),
       ephemeral: true,

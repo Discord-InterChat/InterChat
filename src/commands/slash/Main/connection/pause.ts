@@ -1,20 +1,21 @@
+import { updateConnection } from '#main/utils/ConnectedList.js';
+import { emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { fetchCommands, findCommand, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ChatInputCommandInteraction,
   channelMention,
   chatInputApplicationCommandMention as slashCmdMention,
 } from 'discord.js';
 import Connection from './index.js';
-import { fetchCommands, findCommand, simpleEmbed } from '../../../../utils/Utils.js';
-import { emojis } from '../../../../utils/Constants.js';
-import { t } from '../../../../utils/Locale.js';
-import { modifyConnection } from '../../../../utils/ConnectedList.js';
-import db from '../../../../utils/Db.js';
 
 export default class Pause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const channelId = interaction.options.getString('channel', true);
     const connected = await db.connectedList.findFirst({ where: { channelId } });
-    const { locale } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!connected) {
       await interaction.reply({
@@ -37,7 +38,7 @@ export default class Pause extends Connection {
     }
 
     // disconnect the channel
-    await modifyConnection({ channelId }, { connected: false });
+    await updateConnection({ channelId }, { connected: false });
 
     const commands = await fetchCommands(interaction.client);
     const connectionCmd = findCommand('connection', commands);
@@ -49,10 +50,7 @@ export default class Pause extends Connection {
     const leave_cmd = hubCmd ? slashCmdMention('hub', 'leave', hubCmd.id) : '`/hub leave`';
 
     await interaction.reply({
-      content: t(
-        { phrase: 'connection.paused.tips', locale },
-        { emoji: emojis.dotBlue, unpause_cmd, leave_cmd },
-      ),
+      content: t({ phrase: 'connection.paused.tips', locale }, { unpause_cmd, leave_cmd }),
       embeds: [
         simpleEmbed(
           t(

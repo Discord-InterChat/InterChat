@@ -4,7 +4,7 @@ import jsonEmotes from './JSON/emojis.json';
 import badwordsType from './JSON/profanity.json';
 import 'dotenv/config';
 
-// create a require a ESM doesn't support importing JSON
+// create a require as ESM doesn't support importing JSON
 const require = createRequire(import.meta.url);
 
 export const { slurs, profanity } = require('./JSON/profanity.json') as typeof badwordsType;
@@ -40,6 +40,8 @@ export const REGEX = {
   SPECIAL_CHARACTERS: /[^a-zA-Z0-9|$|@]|\^/g,
   MATCH_WORD: /\w/g,
   SPLIT_WORDS: /\b/,
+  HEXCODE: /^#[0-9A-F]{6}$/i,
+  CHANNEL_MENTION: /<#|!|>/g,
 };
 
 export const StaffIds = ['442653948630007808', '885241933927161896', '597265261665714186'];

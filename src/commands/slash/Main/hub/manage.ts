@@ -3,7 +3,7 @@ import { genLogInfoEmbed } from '#main/scripts/hub/logs.js';
 import { actionsSelect, hubEmbed } from '#main/scripts/hub/manage.js';
 import { buildSettingsEmbed, buildSettingsMenu } from '#main/scripts/hub/settings.js';
 import { HubSettingsBitField, HubSettingsString } from '#main/utils/BitFields.js';
-import { colors, emojis } from '#main/utils/Constants.js';
+import { colors, emojis, LINKS } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
@@ -32,7 +32,8 @@ import Hub from './index.js';
 
 export default class Manage extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
-    // the chosen one heh
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const chosenHub = interaction.options.getString('hub', true);
     const hubInDb = await db.hubs.findFirst({
       where: {
@@ -48,7 +49,7 @@ export default class Manage extends Hub {
     if (!hubInDb) {
       await this.replyEmbed(
         interaction,
-        t({ phrase: 'hub.notFound_mod', locale: interaction.user.locale }, { emoji: emojis.no }),
+        t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -80,7 +81,7 @@ export default class Manage extends Hub {
 
     await interaction.reply({
       embeds: [await hubEmbed(hubInDb)],
-      components: [actionsSelect(hubInDb.id, interaction.user.id, interaction.user.locale), button],
+      components: [actionsSelect(hubInDb.id, interaction.user.id, locale), button],
     });
 
     // disable components after 5 minutes
@@ -92,10 +93,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage', 'settingsSelect')
-  static async handleSettingsSelect(interaction: MessageComponentInteraction) {
+  async handleSettingsSelect(interaction: MessageComponentInteraction) {
     if (!interaction.isStringSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId } = initialData;
@@ -109,14 +110,11 @@ export default class Manage extends Hub {
     // TODO: implement BlockNSFW, only allow hubs that are explicitly marked as NSFW to have this setting
     // & only allow network channels to be marked as NSFW
     if (selected === 'BlockNSFW') {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
-          ),
-        ],
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
+        { ephemeral: true },
+      );
       return;
     }
 
@@ -126,15 +124,17 @@ export default class Manage extends Hub {
       data: { settings: hubSettings.toggle(selected).bitfield }, // toggle the setting
     });
 
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     if (!updHub) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t({ phrase: 'errors.unknown', locale: interaction.user.locale }, { emoji: emojis.no }),
-          ),
-        ],
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        t(
+          { phrase: 'errors.unknown', locale },
+          { emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
+        ),
+        { ephemeral: true },
+      );
       return;
     }
 
@@ -150,10 +150,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage', 'logsSelect')
-  static async handleLogsSelect(interaction: MessageComponentInteraction) {
+  async handleLogsSelect(interaction: MessageComponentInteraction) {
     if (!interaction.isStringSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -252,10 +252,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage', 'actions')
-  static async handleActionsSelect(interaction: MessageComponentInteraction) {
+  async handleActionsSelect(interaction: MessageComponentInteraction) {
     if (!interaction.isStringSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -385,10 +385,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage', 'logsChSel')
-  static async handleChannelSelects(interaction: MessageComponentInteraction) {
+  async handleChannelSelects(interaction: MessageComponentInteraction) {
     if (!interaction.isChannelSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -419,10 +419,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage')
-  static async handleRoleSelects(interaction: MessageComponentInteraction) {
+  async handleRoleSelects(interaction: MessageComponentInteraction) {
     if (!interaction.isRoleSelectMenu()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -467,10 +467,11 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage_modal')
-  static override async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
+  async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId] = customId.args;
-    const locale = interaction.user.locale || 'en';
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     let hubInDb = await db.hubs.findFirst({
       where: {
@@ -588,10 +589,10 @@ export default class Manage extends Hub {
   }
 
   @RegisterInteractionHandler('hub_manage')
-  static async handleButtons(interaction: MessageComponentInteraction) {
+  async handleButtons(interaction: MessageComponentInteraction) {
     if (!interaction.isButton()) return;
 
-    const initialData = await Manage.componentChecks(interaction);
+    const initialData = await this.componentChecks(interaction);
     if (!initialData) return;
 
     const { hubInDb, customId, locale } = initialData;
@@ -657,9 +658,8 @@ export default class Manage extends Hub {
       );
 
       const msgToSend = { embeds: [embed], components: [selects], ephemeral: true };
-      customId.suffix === 'logsBtn'
-        ? await interaction.reply(msgToSend)
-        : await interaction.update(msgToSend);
+      if (customId.suffix === 'logsBtn') await interaction.reply(msgToSend);
+      else await interaction.update(msgToSend);
     }
     else if (customId.suffix === 'logsDel') {
       const type = customId.args[2] as keyof Prisma.HubLogChannelsCreateInput;
@@ -680,23 +680,18 @@ export default class Manage extends Hub {
         });
       }
 
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'hub.manage.logs.reset', locale },
-              { emoji: emojis.deleteDanger_icon, type },
-            ),
-          ),
-        ],
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'hub.manage.logs.reset', locale }, { emoji: emojis.deleteDanger_icon, type }),
+        { ephemeral: true },
+      );
     }
   }
 
-  static async componentChecks(interaction: MessageComponentInteraction) {
+  private async componentChecks(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const { locale } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (customId.args[0] !== interaction.user.id) {
       await interaction.reply({

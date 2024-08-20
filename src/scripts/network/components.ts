@@ -1,6 +1,6 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { CustomID } from '../../utils/CustomID.js';
-import { emojis } from '../../utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import { emojis } from '#main/utils/Constants.js';
 
 type extraOpts = {
   disconnectEmoji?: string;

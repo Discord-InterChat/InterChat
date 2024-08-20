@@ -1,4 +1,17 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { deleteConnections } from '#main/utils/ConnectedList.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
+import { t } from '#main/utils/Locale.js';
+import Logger from '#main/utils/Logger.js';
+import { isStaffOrHubMod } from '#main/utils/Utils.js';
+import { stripIndents } from 'common-tags';
 import {
+  type ModalSubmitInteraction,
+  type RESTPostAPIApplicationCommandsJSONBody,
   ActionRowBuilder,
   ApplicationCommandType,
   ButtonBuilder,
@@ -7,24 +20,11 @@ import {
   MessageComponentInteraction,
   MessageContextMenuCommandInteraction,
   ModalBuilder,
-  ModalSubmitInteraction,
-  RESTPostAPIApplicationCommandsJSONBody,
   TextInputBuilder,
   TextInputStyle,
   time,
 } from 'discord.js';
-import db from '../../utils/Db.js';
 import parse from 'parse-duration';
-import BaseCommand from '../../core/BaseCommand.js';
-import { t } from '../../utils/Locale.js';
-import { colors, emojis } from '../../utils/Constants.js';
-import { CustomID } from '../../utils/CustomID.js';
-import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { checkIfStaff, simpleEmbed } from '../../utils/Utils.js';
-import { stripIndents } from 'common-tags';
-import { logBlacklist } from '../../utils/HubLogger/ModLogs.js';
-import { deleteConnections } from '../../utils/ConnectedList.js';
-import Logger from '../../utils/Logger.js';
 
 export default class Blacklist extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -34,41 +34,34 @@ export default class Blacklist extends BaseCommand {
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
-    const { locale } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
-    const messageInDb = await db.broadcastedMessages.findFirst({
-      where: { messageId: interaction.targetId },
-      include: { originalMsg: { include: { hub: true } } },
+    const messageInDb = await this.fetchMessageFromDb(interaction.targetId, {
+      hub: true,
+      broadcastMsgs: true,
     });
 
-    const isHubMod =
-      messageInDb?.originalMsg?.hub?.ownerId === interaction.user.id ||
-      messageInDb?.originalMsg?.hub?.moderators.find((mod) => mod.userId === interaction.user.id);
+    if (!messageInDb?.hub || !isStaffOrHubMod(interaction.user.id, messageInDb.hub)) {
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
+        { ephemeral: true },
+      );
 
-    const isStaffOrHubMod = checkIfStaff(interaction.user.id) || isHubMod;
+      return;
+    }
 
-    if (!messageInDb || !isStaffOrHubMod) {
+    if (messageInDb.authorId === interaction.user.id) {
       await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
-          ),
-        ],
+        content: '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
         ephemeral: true,
       });
       return;
     }
 
-    if (messageInDb.originalMsg.authorId === interaction.user.id) {
-      await interaction.reply({
-        content: '<a:nuhuh:1256859727158050838> Nuh uh! You\'re stuck with us.',
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const server = await interaction.client.fetchGuild(messageInDb.originalMsg.serverId);
-    const user = await interaction.client.users.fetch(messageInDb.originalMsg.authorId);
+    const user = await interaction.client.users.fetch(messageInDb.authorId);
+    const server = await interaction.client.fetchGuild(messageInDb.serverId);
 
     const embed = new EmbedBuilder()
       .setTitle('Create A Blacklist')
@@ -85,7 +78,7 @@ export default class Blacklist extends BaseCommand {
           new CustomID()
             .setIdentifier('blacklist', 'user')
             .addArgs(interaction.user.id)
-            .addArgs(messageInDb.originalMsgId)
+            .addArgs(messageInDb.messageId)
             .toString(),
         )
         .setStyle(ButtonStyle.Secondary)
@@ -95,7 +88,7 @@ export default class Blacklist extends BaseCommand {
           new CustomID()
             .setIdentifier('blacklist', 'server')
             .addArgs(interaction.user.id)
-            .addArgs(messageInDb.originalMsgId)
+            .addArgs(messageInDb.messageId)
             .toString(),
         )
         .setStyle(ButtonStyle.Secondary)
@@ -106,21 +99,17 @@ export default class Blacklist extends BaseCommand {
   }
 
   @RegisterInteractionHandler('blacklist')
-  static override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
+  override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== customId.args[0]) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'errors.notYourAction', locale: interaction.user.locale },
-              { emoji: emojis.no },
-            ),
-          ),
-        ],
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }),
+        { ephemeral: true },
+      );
       return;
     }
 
@@ -137,27 +126,16 @@ export default class Blacklist extends BaseCommand {
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
             .setCustomId('reason')
-            .setLabel(
-              t({ phrase: 'blacklist.modal.reason.label', locale: interaction.user.locale }),
-            )
-            .setPlaceholder(
-              t({ phrase: 'blacklist.modal.reason.placeholder', locale: interaction.user.locale }),
-            )
+            .setLabel(t({ phrase: 'blacklist.modal.reason.label', locale }))
+            .setPlaceholder(t({ phrase: 'blacklist.modal.reason.placeholder', locale }))
             .setStyle(TextInputStyle.Paragraph)
             .setMaxLength(500),
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
             .setCustomId('duration')
-            .setLabel(
-              t({ phrase: 'blacklist.modal.duration.label', locale: interaction.user.locale }),
-            )
-            .setPlaceholder(
-              t({
-                phrase: 'blacklist.modal.duration.placeholder',
-                locale: interaction.user.locale,
-              }),
-            )
+            .setLabel(t({ phrase: 'blacklist.modal.duration.label', locale }))
+            .setPlaceholder(t({ phrase: 'blacklist.modal.duration.placeholder', locale }))
             .setStyle(TextInputStyle.Short)
             .setMinLength(2)
             .setRequired(false),
@@ -168,13 +146,14 @@ export default class Blacklist extends BaseCommand {
   }
 
   @RegisterInteractionHandler('blacklist_modal')
-  async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
+  override async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferUpdate();
 
-    const { locale } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const customId = CustomID.parseCustomId(interaction.customId);
     const [messageId] = customId.args;
-    const originalMsg = await db.originalMessages.findFirst({ where: { messageId } });
+    const originalMsg = await this.fetchMessageFromDb(messageId);
 
     if (!originalMsg?.hubId) {
       await interaction.editReply(
@@ -200,21 +179,16 @@ export default class Blacklist extends BaseCommand {
       },
     );
 
-    const { userManager } = interaction.client;
-
     // user blacklist
     if (customId.suffix === 'user') {
       const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
 
       if (!user) {
-        await interaction.reply({
-          embeds: [
-            simpleEmbed(
-              `${emojis.neutral} Unable to fetch user. They may have deleted their account?`,
-            ),
-          ],
-          ephemeral: true,
-        });
+        await this.replyEmbed(
+          interaction,
+          `${emojis.neutral} Unable to fetch user. They may have deleted their account?`,
+          { ephemeral: true },
+        );
         return;
       }
 
@@ -294,5 +268,27 @@ export default class Blacklist extends BaseCommand {
 
       await interaction.editReply({ embeds: [successEmbed], components: [] });
     }
+  }
+
+  // utils
+  private async fetchMessageFromDb(
+    messageId: string,
+    include: { hub: boolean; broadcastMsgs: boolean } = { hub: false, broadcastMsgs: false },
+  ) {
+    let messageInDb = await db.originalMessages.findFirst({
+      where: { messageId },
+      include,
+    });
+
+    if (!messageInDb) {
+      const broadcastedMsg = await db.broadcastedMessages.findFirst({
+        where: { messageId },
+        include: { originalMsg: { include } },
+      });
+
+      messageInDb = broadcastedMsg?.originalMsg ?? null;
+    }
+
+    return messageInDb;
   }
 }

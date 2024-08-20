@@ -1,19 +1,15 @@
+import { emojis, LINKS, REGEX } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { censor } from '#main/utils/Profanity.js';
 import {
-  Message,
-  HexColorString,
-  EmbedBuilder,
-  ButtonStyle,
-  ButtonBuilder,
+  type HexColorString,
+  type Message,
   ActionRowBuilder,
-  APIMessage,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
 } from 'discord.js';
-import db from '../../utils/Db.js';
-import { LINKS, REGEX, emojis } from '../../utils/Constants.js';
-import { censor } from '../../utils/Profanity.js';
-import { broadcastedMessages } from '@prisma/client';
-import { t } from '../../utils/Locale.js';
-
-export type NetworkAPIError = { error: string };
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
@@ -41,14 +37,19 @@ export const getReferredMsgData = async (referredMessage: Message | null) => {
   const { client } = referredMessage;
 
   // check if it was sent in the network
-  const dbReferrence = referredMessage
-    ? (
-      await db.broadcastedMessages.findFirst({
-        where: { messageId: referredMessage.id },
-        include: { originalMsg: { include: { broadcastMsgs: true } } },
-      })
-    )?.originalMsg
-    : null;
+  let dbReferrence = await db.originalMessages.findFirst({
+    where: { messageId: referredMessage.id },
+    include: { broadcastMsgs: true },
+  });
+
+  if (!dbReferrence) {
+    const broadcastedMsg = await db.broadcastedMessages.findFirst({
+      where: { messageId: referredMessage.id },
+      include: { originalMsg: { include: { broadcastMsgs: true } } },
+    });
+
+    dbReferrence = broadcastedMsg?.originalMsg ?? null;
+  }
 
   if (!dbReferrence) return { dbReferrence: null, referredAuthor: null };
 
@@ -79,7 +80,7 @@ export const trimAndCensorBannedWebhookWords = (content: string) =>
 export const buildNetworkEmbed = (
   message: Message,
   username: string,
-  _censoredContent: string,
+  censoredContent: string,
   opts?: {
     attachmentURL?: string | null;
     embedCol?: HexColorString;
@@ -88,11 +89,11 @@ export const buildNetworkEmbed = (
 ) => {
   // remove tenor links and image urls from the content
   let msgContent = message.content;
-  let censoredMsg;
+  let censoredMsg = censoredContent;
 
   if (opts?.attachmentURL) {
     msgContent = removeImgLinks(msgContent, opts.attachmentURL);
-    censoredMsg = removeImgLinks(_censoredContent, opts.attachmentURL);
+    censoredMsg = removeImgLinks(censoredContent, opts.attachmentURL);
   }
 
   const embed = new EmbedBuilder()
@@ -119,27 +120,11 @@ export const buildNetworkEmbed = (
   return { embed, censoredEmbed };
 };
 
-export const generateJumpButton = (
-  replyMsg: broadcastedMessages,
-  referredAuthorUsername: string,
-  serverId: string,
-) =>
-  // create a jump to reply button
-  new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setStyle(ButtonStyle.Link)
-      .setEmoji(emojis.reply)
-      .setURL(
-        `https://discord.com/channels/${serverId}/${replyMsg.channelId}/${replyMsg.messageId}`,
-      )
-      .setLabel(
-        referredAuthorUsername.length >= 80
-          ? `@${referredAuthorUsername.slice(0, 76)}...`
-          : `@${referredAuthorUsername}`,
-      ),
-  );
-
-export const sendWelcomeMsg = async (message: Message, totalServers: string, hub: string) => {
+export const sendWelcomeMsg = async (
+  message: Message,
+  locale: supportedLocaleCodes,
+  opts: { totalServers: string; hub: string },
+) => {
   const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setStyle(ButtonStyle.Link)
@@ -161,20 +146,17 @@ export const sendWelcomeMsg = async (message: Message, totalServers: string, hub
   await message.channel
     .send({
       content: t(
-        { phrase: 'network.welcome', locale: message.author.locale ?? 'en' },
+        { phrase: 'network.welcome', locale },
         {
           user: message.author.toString(),
           channel: message.channel.toString(),
           emoji: emojis.wave_anim,
           rules_command: '</rules:924659340898619395>',
-          hub,
-          totalServers,
+          hub: opts.hub,
+          totalServers: opts.totalServers,
         },
       ),
       components: [linkButtons],
     })
     .catch(() => null);
 };
-
-export const isNetworkApiError = (res: NetworkAPIError | APIMessage | undefined) =>
-  (res && 'error' in res) === true;

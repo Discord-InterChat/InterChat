@@ -1,9 +1,9 @@
 import { Prisma, hubs } from '@prisma/client';
 import { EmbedBuilder } from 'discord.js';
-import { colors, emojis } from '../../utils/Constants.js';
+import { colors, emojis } from '#main/utils/Constants.js';
 import { stripIndents } from 'common-tags';
-import { channelMention } from '../../utils/Utils.js';
-import { supportedLocaleCodes, t } from '../../utils/Locale.js';
+import { channelMention } from '#main/utils/Utils.js';
+import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 
 /*
 for later:

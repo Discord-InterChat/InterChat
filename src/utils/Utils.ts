@@ -1,11 +1,13 @@
-import { hubs, userData } from '@prisma/client';
+import { hubs } from '@prisma/client';
 import { captureException } from '@sentry/node';
 import { createCipheriv, randomBytes } from 'crypto';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import {
   ActionRow,
+  ActionRowBuilder,
   ApplicationCommand,
   ApplicationCommandOptionType,
+  ButtonBuilder,
   ButtonStyle,
   ChannelType,
   Client,
@@ -20,6 +22,8 @@ import {
   MediaChannel,
   Message,
   MessageActionRowComponent,
+  MessageComponentInteraction,
+  messageLink,
   NewsChannel,
   RepliableInteraction,
   Snowflake,
@@ -31,7 +35,7 @@ import {
 import 'dotenv/config';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
-import Scheduler from '../services/SchedulerService.js';
+import Scheduler from '#main/modules/SchedulerService.js';
 import { RemoveMethods } from '../typings/index.js';
 import { deleteConnection, deleteConnections } from './ConnectedList.js';
 import {
@@ -48,7 +52,6 @@ import { CustomID } from './CustomID.js';
 import db from './Db.js';
 import { supportedLocaleCodes, t } from './Locale.js';
 import Logger from './Logger.js';
-import { serializeCache } from '#main/utils/db/cacheUtils.js';
 
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
@@ -102,16 +105,6 @@ export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
   ).json()) as { voted: boolean };
 
   return Boolean(res.voted);
-};
-
-export const getDbUser = async (id: Snowflake) => {
-  const cached = serializeCache<userData>(await db.cache.get(`userData:${id}`));
-  return cached ?? (await db.userData.findFirst({ where: { id } }));
-};
-
-export const userVotedToday = async (id: Snowflake): Promise<boolean> => {
-  const user = await getDbUser(id);
-  return Boolean(user?.lastVoted && user.lastVoted >= new Date(Date.now() - (60 * 60 * 24 * 1000)));
 };
 
 export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) =>
@@ -171,11 +164,16 @@ export const disableAllComponents = (
   components.map((row) => {
     const jsonRow = row.toJSON();
     jsonRow.components.forEach((component) => {
-      !disableLinks &&
-      component.type === ComponentType.Button &&
-      component.style === ButtonStyle.Link
-        ? (component.disabled = false) // leave link buttons enabled
-        : (component.disabled = true);
+      if (
+        !disableLinks &&
+        component.type === ComponentType.Button &&
+        component.style === ButtonStyle.Link // leave link buttons enabled
+      ) {
+        component.disabled = false;
+      }
+      else {
+        component.disabled = true;
+      }
     });
     return jsonRow;
   });
@@ -299,8 +297,9 @@ const genCommandErrMsg = (locale: supportedLocaleCodes, errorId: string) =>
     { errorId, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
   );
 
-export const getReplyMethod = (interaction: RepliableInteraction | CommandInteraction) =>
-  interaction.replied || interaction.deferred ? 'followUp' : 'reply';
+export const getReplyMethod = (
+  interaction: RepliableInteraction | CommandInteraction | MessageComponentInteraction,
+) => (interaction.replied || interaction.deferred ? 'followUp' : 'reply');
 
 /**
     Invoke this method to handle errors that occur during command execution.
@@ -308,10 +307,12 @@ export const getReplyMethod = (interaction: RepliableInteraction | CommandIntera
   */
 export const sendErrorEmbed = async (interaction: RepliableInteraction, errorId: string) => {
   const method = getReplyMethod(interaction);
+  const { userManager } = interaction.client;
+  const locale = await userManager.getUserLocale(interaction.user.id);
 
   // reply with an error message if the command failed
   return await interaction[method]({
-    embeds: [simpleEmbed(genCommandErrMsg(interaction.user.locale || 'en', errorId))],
+    embeds: [simpleEmbed(genCommandErrMsg(locale, errorId))],
     ephemeral: true,
   }).catch(() => null);
 };
@@ -369,21 +370,19 @@ export const getOrdinalSuffix = (num: number) => {
 };
 
 export const getUsername = async (client: ClusterManager, userId: Snowflake) => {
-  if (client) {
-    const username = resolveEval(
-      await client.broadcastEval(
-        async (c, ctx) => {
-          const user = await c.users.fetch(ctx.userId).catch(() => null);
-          return user?.username;
-        },
-        { context: { userId } },
-      ),
-    );
+  if (!client) return null;
 
-    return username ?? (await getDbUser(userId))?.username ?? null;
-  }
+  const username = resolveEval(
+    await client.broadcastEval(
+      async (c, ctx) => {
+        const user = await c.users.fetch(ctx.userId).catch(() => null);
+        return user?.username;
+      },
+      { context: { userId } },
+    ),
+  );
 
-  return (await getDbUser(userId))?.username ?? null;
+  return username;
 };
 
 export const modifyUserRole = async (
@@ -475,9 +474,6 @@ export const getAttachmentURL = async (string: string) => {
 
 export const fetchHub = async (id: string) => await db.hubs.findFirst({ where: { id } });
 
-export const getUserLocale = (user: userData | undefined | null) =>
-  (user?.locale as supportedLocaleCodes | null | undefined) || 'en';
-
 export const containsInviteLinks = (str: string) => {
   const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
   return inviteLinks.some((link) => str.includes(link));
@@ -529,3 +525,32 @@ export const isHubMod = (userId: string, hub: hubs) =>
 
 export const isStaffOrHubMod = (userId: string, hub: hubs) =>
   checkIfStaff(userId) || isHubMod(userId, hub);
+
+export const isHumanMessage = (message: Message) =>
+  !message.author.bot && !message.system && !message.webhookId;
+
+export const greyOutButton = (row: ActionRowBuilder<ButtonBuilder>, disableElement: number) => {
+  row.components.forEach((c) => c.setDisabled(false));
+  row.components[disableElement].setDisabled(true);
+};
+export const greyOutButtons = (rows: ActionRowBuilder<ButtonBuilder>[]) => {
+  rows.forEach((row) => row.components.forEach((c) => c.setDisabled(true)));
+};
+
+
+export const generateJumpButton = (
+  referredAuthorUsername: string,
+  opts: { messageId: Snowflake; channelId: Snowflake; serverId: Snowflake },
+) =>
+  // create a jump to reply button
+  new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setStyle(ButtonStyle.Link)
+      .setEmoji(emojis.reply)
+      .setURL(messageLink(opts.channelId, opts.messageId, opts.serverId))
+      .setLabel(
+        referredAuthorUsername.length >= 80
+          ? `@${referredAuthorUsername.slice(0, 76)}...`
+          : `@${referredAuthorUsername}`,
+      ),
+  );

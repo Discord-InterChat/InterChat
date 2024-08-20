@@ -7,7 +7,7 @@ tsconfig.tsbuildinfo
 /logs/
 
 # Configuration
-.env
+.env*
 
 # Unit test coverage
 __tests__/
@@ -25,5 +25,5 @@ build/
 # Sentry Auth Token
 .sentryclirc
 
-# Yarn 4 state file
-.yarn/install-state.gz
+# Redis dev 
+dump.rdb

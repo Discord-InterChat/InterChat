@@ -25,7 +25,7 @@ export const setSpamTimers = (user: User) => {
     scheduler.stopTask(`removeFromCol_${user.id}`);
   }
 
-  scheduler.addRecurringTask(`removeFromCol_${user.id}`, new Date(Date.now() + five_min), () => {
+  scheduler.addRecurringTask(`removeFromCol_${user.id}`, five_min, () => {
     antiSpamMap.delete(user.id);
   });
 };

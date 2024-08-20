@@ -1,3 +1,8 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
 import {
   ActionRowBuilder,
   ApplicationCommandType,
@@ -13,15 +18,8 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import db from '../../utils/Db.js';
-import BaseCommand from '../../core/BaseCommand.js';
-import { userVotedToday } from '../../utils/Utils.js';
-import { RegisterInteractionHandler } from '../../decorators/Interaction.js';
-import { CustomID } from '../../utils/CustomID.js';
-import { t } from '../../utils/Locale.js';
-// @ts-expect-error no types provided for this package
-import { translate, isSupported } from 'google-translate-api-x';
-import { emojis } from '../../utils/Constants.js';
+import { emojis } from '#main/utils/Constants.js';
+import { isSupported, translate } from 'google-translate-api-x';
 
 export default class Translate extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -33,10 +31,11 @@ export default class Translate extends BaseCommand {
   async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
 
-    if (!(await userVotedToday(interaction.user.id))) {
-      await interaction.editReply(
-        t({ phrase: 'errors.mustVote', locale: interaction.user.locale }, { emoji: emojis.no }),
-      );
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
+
+    if (!(await userManager.userVotedToday(interaction.user.id))) {
+      await interaction.editReply(t({ phrase: 'errors.mustVote', locale }, { emoji: emojis.no }));
       return;
     }
 
@@ -51,10 +50,7 @@ export default class Translate extends BaseCommand {
 
     if (!originalMsg) {
       await interaction.editReply(
-        t(
-          { phrase: 'errors.unknownNetworkMessage', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       );
       return;
     }
@@ -65,7 +61,7 @@ export default class Translate extends BaseCommand {
       return;
     }
 
-    const translatedMessage = await translate(messageContent, { to: interaction.user.locale });
+    const translatedMessage = await translate(messageContent, { to: locale });
     const embed = new EmbedBuilder()
       .setDescription('### Translation Results')
       .setColor('Green')
@@ -98,7 +94,7 @@ export default class Translate extends BaseCommand {
   }
 
   @RegisterInteractionHandler('translate')
-  static override async handleComponents(interaction: ButtonInteraction): Promise<void> {
+  override async handleComponents(interaction: ButtonInteraction): Promise<void> {
     const modal = new ModalBuilder()
       .setCustomId(new CustomID('translate_modal').toString())
       .setTitle('Specify Language')
@@ -136,14 +132,13 @@ export default class Translate extends BaseCommand {
       return;
     }
 
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
     const to = interaction.fields.getTextInputValue('to');
     const from = interaction.fields.getTextInputValue('from');
     if (!isSupported(from) || !isSupported(to)) {
       await interaction.reply({
-        content: t(
-          { phrase: 'errors.invalidLangCode', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'errors.invalidLangCode', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;

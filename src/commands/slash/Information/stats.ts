@@ -1,3 +1,10 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { LINKS, colors, emojis, isDevBuild } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { msToReadable } from '#main/utils/Utils.js';
+import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -8,14 +15,7 @@ import {
   Status,
   time,
 } from 'discord.js';
-import db from '../../../utils/Db.js';
-import BaseCommand from '../../../core/BaseCommand.js';
 import { cpus, totalmem } from 'os';
-import { LINKS, colors, emojis, isDevBuild } from '../../../utils/Constants.js';
-import { stripIndents } from 'common-tags';
-import { CustomID } from '../../../utils/CustomID.js';
-import { RegisterInteractionHandler } from '../../../decorators/Interaction.js';
-import { msToReadable } from '../../../utils/Utils.js';
 
 export default class Stats extends BaseCommand {
   override readonly data = {
@@ -106,8 +106,8 @@ export default class Stats extends BaseCommand {
     await interaction.editReply({ embeds: [embed], components: [linksRow, otherBtns] });
   }
 
-  @RegisterInteractionHandler('stats')
-  static override async handleComponents(interaction: ButtonInteraction) {
+  @RegisterInteractionHandler('stats', 'shardStats')
+  override async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
 
     const allCusterData = await interaction.client.cluster.broadcastEval((client) =>

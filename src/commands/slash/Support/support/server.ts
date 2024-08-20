@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import { LINKS, colors } from '../../../../utils/Constants.js';
+import { LINKS, colors } from '#main/utils/Constants.js';
 import Support from './index.js';
 
 export default class SupportServer extends Support {

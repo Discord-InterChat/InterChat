@@ -1,3 +1,13 @@
+import { updateConnection } from '#main/utils/ConnectedList.js';
+import { emojis } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import {
+  fetchCommands,
+  findCommand,
+  getOrCreateWebhook,
+  simpleEmbed,
+} from '#main/utils/Utils.js';
 import {
   ChannelType,
   ChatInputCommandInteraction,
@@ -5,22 +15,13 @@ import {
   chatInputApplicationCommandMention as slashCmdMention,
 } from 'discord.js';
 import Connection from './index.js';
-import {
-  fetchCommands,
-  findCommand,
-  getOrCreateWebhook,
-  simpleEmbed,
-} from '../../../../utils/Utils.js';
-import { emojis } from '../../../../utils/Constants.js';
-import { t } from '../../../../utils/Locale.js';
-import { modifyConnection } from '../../../../utils/ConnectedList.js';
-import db from '../../../../utils/Db.js';
 
 export default class Unpause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const channelId = interaction.options.getString('channel', true);
     const connected = await db.connectedList.findFirst({ where: { channelId } });
-    const { locale } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!connected) {
       await interaction.reply({
@@ -59,21 +60,18 @@ export default class Unpause extends Connection {
 
     const webhook = await getOrCreateWebhook(channel).catch(() => null);
     if (!webhook) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'errors.botMissingPermissions', locale },
-              { emoji: emojis.no, permissions: 'Manage Webhooks' },
-            ),
-          ),
-        ],
-      });
+      await this.replyEmbed(
+        interaction,
+        t(
+          { phrase: 'errors.botMissingPermissions', locale },
+          { emoji: emojis.no, permissions: 'Manage Webhooks' },
+        ),
+      );
       return;
     }
 
     // reconnect the channel
-    await modifyConnection({ channelId }, { connected: true, webhookURL: webhook.url });
+    await updateConnection({ channelId }, { connected: true, webhookURL: webhook.url });
 
     let pause_cmd = '`/connection pause`';
     let customize_cmd = '`/connection customize`';
@@ -85,18 +83,12 @@ export default class Unpause extends Connection {
     }
 
     await interaction.editReply({
-      content: t(
-        { phrase: 'connection.unpaused.tips', locale },
-        { emoji: emojis.dotBlue, pause_cmd, customize_cmd },
-      ),
+      content: t({ phrase: 'connection.unpaused.tips', locale }, { pause_cmd, customize_cmd }),
       embeds: [
         simpleEmbed(
           t(
             { phrase: 'connection.unpaused.desc', locale },
-            {
-              tick_emoji: emojis.tick,
-              channel: channelMention(channelId),
-            },
+            { tick_emoji: emojis.tick, channel: channelMention(channelId) },
           ),
         ),
       ],

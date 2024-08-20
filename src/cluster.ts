@@ -1,18 +1,16 @@
-import db from './utils/Db.js';
+import 'dotenv/config';
+import { ClusterManager } from 'discord-hybrid-sharding';
+import { startApi } from './api/index.js';
+import { VoteManager } from './modules/VoteManager.js';
 import Logger from './utils/Logger.js';
-import Scheduler from './services/SchedulerService.js';
-import syncBotlistStats from './tasks/syncBotlistStats.js';
-import updateBlacklists from './tasks/updateBlacklists.js';
-import storeMsgTimestamps from './tasks/storeMsgTimestamps.js';
+import Scheduler from './modules/SchedulerService.js';
 import deleteExpiredInvites from './tasks/deleteExpiredInvites.js';
 import pauseIdleConnections from './tasks/pauseIdleConnections.js';
-import { startApi } from './api/index.js';
+import storeMsgTimestamps from './tasks/storeMsgTimestamps.js';
+import syncBotlistStats from './tasks/syncBotlistStats.js';
+import updateBlacklists from './tasks/updateBlacklists.js';
 import { isDevBuild } from './utils/Constants.js';
 import { getUsername } from './utils/Utils.js';
-import { VoteManager } from './managers/VoteManager.js';
-import { ClusterManager } from 'discord-hybrid-sharding';
-import { getAllConnections } from './utils/ConnectedList.js';
-import 'dotenv/config';
 
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.TOKEN,
@@ -36,16 +34,19 @@ clusterManager
   .then(async () => {
     const scheduler = new Scheduler();
 
-    const blacklistQuery = { where: { blacklistedFrom: { some: { expires: { isSet: true } } } } };
-
-    // populate cache
-    await db.blacklistedServers.findMany(blacklistQuery);
-    await db.userData.findMany(blacklistQuery);
-
     updateBlacklists(clusterManager).catch(Logger.error);
     deleteExpiredInvites().catch(Logger.error);
 
+    // store network message timestamps to connectedList every minute
+    scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, () => storeMsgTimestamps);
+    scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
+    scheduler.addRecurringTask('deleteExpiredBlacklists', 30 * 1000, () =>
+      updateBlacklists(clusterManager),
+    );
+
+    // production only tasks
     if (isDevBuild) return;
+
     // perform start up tasks
     const serverCount = (await clusterManager.fetchClientValues('guilds.cache.size')).reduce(
       (p: number, n: number) => p + n,
@@ -55,15 +56,6 @@ clusterManager
     syncBotlistStats({ serverCount, shardCount: clusterManager.totalShards }).catch(Logger.error);
     pauseIdleConnections(clusterManager).catch(Logger.error);
 
-    // store network message timestamps to connectedList every minute
-    scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, () => storeMsgTimestamps);
-    scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
-    scheduler.addRecurringTask('populateConnectionCache', 5 * 60 * 1000, () =>
-      getAllConnections({ connected: true }),
-    );
-    scheduler.addRecurringTask('deleteExpiredBlacklists', 10 * 1000, () =>
-      updateBlacklists(clusterManager),
-    );
     scheduler.addRecurringTask('syncBotlistStats', 10 * 60 * 10_000, () =>
       syncBotlistStats({ serverCount, shardCount: clusterManager.totalShards }),
     );

@@ -1,12 +1,13 @@
-import db from '../../utils/Db.js';
+import { updateConnections } from '#main/utils/ConnectedList.js';
+import db from '#main/utils/Db.js';
+import Logger from '#main/utils/Logger.js';
+import cacheClient from '#main/utils/cache/cacheClient.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
-import { modifyConnections } from '../../utils/ConnectedList.js';
-import { NetworkAPIError, isNetworkApiError } from './helpers.js';
-import Logger from '../../utils/Logger.js';
 
 export interface NetworkWebhookSendResult {
-  messageOrError: APIMessage | NetworkAPIError;
+  messageRes?: APIMessage;
+  error?: string;
   webhookURL: string;
 }
 
@@ -26,16 +27,16 @@ export default async (
   const validErrors = ['Invalid Webhook Token', 'Unknown Webhook', 'Missing Permissions'];
 
   // loop through all results and extract message data and invalid webhook urls
-  channelAndMessageIds.forEach(({ messageOrError, webhookURL }) => {
-    if (!isNetworkApiError(messageOrError)) {
+  channelAndMessageIds.forEach(({ messageRes, error, webhookURL }) => {
+    if (messageRes) {
       messageDataObj.push({
-        channelId: messageOrError.channel_id,
-        messageId: messageOrError.id,
-        createdAt: new Date(messageOrError.timestamp),
+        channelId: messageRes.channel_id,
+        messageId: messageRes.id,
+        createdAt: new Date(messageRes.timestamp),
       });
     }
-    else if (validErrors.some((e) => messageOrError.error?.includes(e))) {
-      Logger.info('%O', messageOrError); // TODO Remove dis
+    else if (error && validErrors.some((e) => error.includes(e))) {
+      Logger.info('%O', messageRes); // TODO Remove dis
       invalidWebhookURLs.push(webhookURL);
     }
   });
@@ -59,7 +60,7 @@ export default async (
   }
 
   // store message timestamps to push to db later
-  await db.cache.set(
+  await cacheClient.set(
     `msgTimestamp:${message.channelId}`,
     JSON.stringify({
       channelId: message.channelId,
@@ -69,6 +70,6 @@ export default async (
 
   // disconnect network if, webhook does not exist/bot cannot access webhook
   if (invalidWebhookURLs.length > 0) {
-    await modifyConnections({ webhookURL: { in: invalidWebhookURLs } }, { connected: false });
+    await updateConnections({ webhookURL: { in: invalidWebhookURLs } }, { connected: false });
   }
 };

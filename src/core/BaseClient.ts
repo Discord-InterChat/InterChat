@@ -1,32 +1,32 @@
-import Scheduler from '#main/services/SchedulerService.js';
-import UserDbManager from '#main/managers/UserDbManager.js';
-import CooldownService from '#main/services/CooldownService.js';
-import loadCommandFiles, { commandsMap, interactionsMap } from '#main/utils/LoadCommands.js';
-import ServerBlacklistManager from '#main/managers/ServerBlacklistManager.js';
-import {
-  Client,
-  IntentsBitField,
-  Partials,
-  Options,
-  Collection,
-  Snowflake,
-  Guild,
-  WebhookClient,
-  ActivityType,
-} from 'discord.js';
-import { getAllConnections } from '../utils/ConnectedList.js';
+import CooldownService from '#main/modules/CooldownService.js';
+import EventHandler from '#main/modules/EventHandler.js';
+import Scheduler from '#main/modules/SchedulerService.js';
+import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
+import UserDbManager from '#main/modules/UserDbManager.js';
+import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/LoadCommands.js';
+import { RandomComponents } from '#main/utils/RandomComponents.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
-import { RemoveMethods } from '../typings/index.js';
-import { loadLocales } from '../utils/Locale.js';
-import { PROJECT_VERSION } from '../utils/Constants.js';
-import { resolveEval } from '../utils/Utils.js';
+import {
+  type Guild,
+  type Snowflake,
+  type WebhookClient,
+  ActivityType,
+  Client,
+  Collection,
+  GatewayIntentBits,
+  Options,
+} from 'discord.js';
 import 'dotenv/config';
+import { RemoveMethods } from '../typings/index.js';
+import { PROJECT_VERSION } from '../utils/Constants.js';
+import { loadLocales } from '../utils/Locale.js';
+import { resolveEval } from '../utils/Utils.js';
 
 export default class SuperClient extends Client {
-  // A static instance of the SuperClient class to be used globally.
   public static instance: SuperClient;
 
   private readonly scheduler = new Scheduler();
+  readonly _componentListeners = new RandomComponents();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
   readonly version = PROJECT_VERSION;
@@ -39,6 +39,7 @@ export default class SuperClient extends Client {
   readonly cluster = new ClusterClient(this);
   readonly userManager = new UserDbManager(this);
   readonly serverBlacklists = new ServerBlacklistManager(this);
+  readonly eventHandler = new EventHandler(this);
   readonly commandCooldowns = new CooldownService();
 
   constructor() {
@@ -61,14 +62,13 @@ export default class SuperClient extends Client {
           filter: () => () => true, // Remove all reactions...
         },
       },
-      partials: [Partials.Message, Partials.Channel],
       intents: [
-        IntentsBitField.Flags.MessageContent,
-        IntentsBitField.Flags.Guilds,
-        IntentsBitField.Flags.GuildMembers,
-        IntentsBitField.Flags.GuildMessages,
-        IntentsBitField.Flags.GuildMessageReactions,
-        IntentsBitField.Flags.GuildWebhooks,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMessageReactions,
+        GatewayIntentBits.GuildWebhooks,
       ],
       presence: {
         status: 'invisible',
@@ -92,14 +92,13 @@ export default class SuperClient extends Client {
     SuperClient.instance = this;
 
     // initialize i18n for localization
-    loadLocales('locales/src/locales');
+    loadLocales('locales/locales');
 
     // load commands
-    await loadCommandFiles();
+    await loadCommandFiles({ loadInteractions: true });
+    this.eventHandler.loadListeners();
 
-    await getAllConnections({ connected: true });
-
-    // Discord.js automatically takes DISCORD_TOKEN env variable
+    // Discord.js automatically uses DISCORD_TOKEN env variable
     await this.login();
   }
 

@@ -1,20 +1,22 @@
-import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';
-import parse from 'parse-duration';
 import { deleteConnections } from '#main/utils/ConnectedList.js';
 import { emojis } from '#main/utils/Constants.js';
 import { logBlacklist, logServerUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
+import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';
+import parse from 'parse-duration';
 import BlacklistCommand from './index.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
-    const { locale, id: moderatorId } = interaction.user;
+    const { id: moderatorId } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const hubName = interaction.options.getString('hub');
     const hub = await this.getHub({ name: hubName, userId: moderatorId });
-    if (!this.isValidHub(interaction, hub)) return;
+    if (!this.isValidHub(interaction, hub, locale)) return;
 
     const { serverBlacklists } = interaction.client;
     const subCommandGroup = interaction.options.getSubcommandGroup();
@@ -67,7 +69,8 @@ export default class extends BlacklistCommand {
     else if (subCommandGroup === 'remove') {
       const result = await serverBlacklists.removeBlacklist(hub.id, serverId);
       if (!result) {
-        await this.replyEmbed(interaction,
+        await this.replyEmbed(
+          interaction,
           t({ phrase: 'errors.serverNotBlacklisted', locale }, { emoji: emojis.no }),
         );
         return;

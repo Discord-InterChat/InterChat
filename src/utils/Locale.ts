@@ -2,7 +2,7 @@ import Logger from './Logger.js';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import type { TranslationKey } from '#main/typings/en.js';
+import type { TranslationKeys } from '#main/typings/en.js';
 
 const localesMap = new Map();
 
@@ -37,8 +37,8 @@ export const supportedLocales = {
   hi: { name: 'Hindi', emoji: '🇮🇳' },
 } as const;
 
-export interface tParams {
-  phrase: TranslationKey;
+export interface tParams<K extends keyof TranslationKeys> {
+  phrase: K;
   locale?: supportedLocaleCodes;
 }
 
@@ -60,14 +60,14 @@ export const loadLocales = (localesDirectory: string) => {
 
 /** Get the translated text with variable replacement */
 // skipcq: JS-C1002
-export const t = (
-  { phrase, locale = 'en' }: tParams,
-  variables?: { [key: string]: string },
+export const t = <K extends keyof TranslationKeys>(
+  { phrase, locale = 'en' }: tParams<K>,
+  variables?: { [Key in TranslationKeys[K]]: string },
 ): string => {
-  const localeFile = localesMap.get(locale);
+  const localeFile = localesMap.get(locale) ?? localesMap.get('en');
 
   if (localeFile) {
-    const translation = phrase.split('.').reduce((obj, segment) => obj && obj[segment], localeFile);
+    const translation: string = phrase.split('.').reduce((obj, segment) => obj?.[segment], localeFile);
 
     if (translation) {
       // Replace variables in the translated text
@@ -75,7 +75,7 @@ export const t = (
 
       if (variables) {
         Object.keys(variables).forEach((variable) => {
-          result = result.replace(new RegExp(`{${variable}}`, 'g'), variables[variable]);
+          result = result.replace(new RegExp(`{${variable}}`, 'g'), variables[(variable as TranslationKeys[K])]);
         });
       }
 
@@ -85,10 +85,5 @@ export const t = (
       Logger.warn(`Translation for key '${phrase}' not found in ${locale} language.`);
     }
   }
-  else {
-    Logger.warn(`Language ${locale} not supported.`);
-  }
-
-  // Return the key as a fallback
   return phrase;
 };

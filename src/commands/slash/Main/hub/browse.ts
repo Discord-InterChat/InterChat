@@ -1,39 +1,38 @@
-/* eslint-disable complexity */
-import {
-  ChatInputCommandInteraction,
-  CacheType,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonInteraction,
-  ButtonStyle,
-  ChannelSelectMenuBuilder,
-  ChannelType,
-  EmbedBuilder,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  ModalSubmitInteraction,
-  ChannelSelectMenuInteraction,
-  time,
-} from 'discord.js';
-import db from '../../../../utils/Db.js';
-import Hub from './index.js';
-import { hubs } from '@prisma/client';
-import { colors, emojis } from '../../../../utils/Constants.js';
-import { paginate } from '../../../../utils/Pagination.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { Pagination } from '#main/modules/Pagination.js';
+import { showOnboarding } from '#main/scripts/network/onboarding.js';
+import { createConnection, getHubConnections } from '#main/utils/ConnectedList.js';
+import { colors, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
+import { t } from '#main/utils/Locale.js';
 import {
   calculateAverageRating,
   getOrCreateWebhook,
   sendToHub,
   simpleEmbed,
-} from '../../../../utils/Utils.js';
-import { showOnboarding } from '../../../../scripts/network/onboarding.js';
-import { CustomID } from '../../../../utils/CustomID.js';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
+} from '#main/utils/Utils.js';
+import { hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { t } from '../../../../utils/Locale.js';
-import { logJoinToHub } from '../../../../utils/HubLogger/JoinLeave.js';
-import { connectChannel, getAllConnections } from '../../../../utils/ConnectedList.js';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonInteraction,
+  ButtonStyle,
+  CacheType,
+  ChannelSelectMenuBuilder,
+  ChannelSelectMenuInteraction,
+  ChannelType,
+  ChatInputCommandInteraction,
+  EmbedBuilder,
+  ModalBuilder,
+  ModalSubmitInteraction,
+  TextInputBuilder,
+  TextInputStyle,
+  time,
+} from 'discord.js';
+import Hub from './index.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -95,64 +94,48 @@ export default class Browse extends Hub {
           orderBy: { messageId: 'desc' },
         });
 
-        return Browse.createHubListingsEmbed(hub, connections, lastMessage?.createdAt);
+        return {
+          embeds: [this.createHubListingsEmbed(hub, connections, lastMessage?.createdAt)],
+          components: [this.createCustomButtons(hub.id)],
+        };
       }),
     );
 
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
+
     if (!hubList || hubList.length === 0) {
       await interaction.editReply({
-        content: t(
-          { phrase: 'hub.browse.noHubs', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'hub.browse.noHubs', locale }, { emoji: emojis.no }),
       });
       return;
     }
 
-    const paginateBtns = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    const paginator = new Pagination().addPages(hubList);
+    await paginator.run(interaction);
+  }
+
+  private createCustomButtons(hubId: string) {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setCustomId(
-          new CustomID().setIdentifier('hub_browse', 'rate').addArgs(sortedHubs[0].id).toString(),
-        )
+        .setCustomId(new CustomID().setIdentifier('hub_browse', 'rate').addArgs(hubId).toString())
         .setLabel('Rate')
         .setStyle(ButtonStyle.Secondary),
       new ButtonBuilder()
-        .setCustomId(
-          new CustomID().setIdentifier('hub_browse', 'join').addArgs(sortedHubs[0].id).toString(),
-        )
+        .setCustomId(new CustomID().setIdentifier('hub_browse', 'join').addArgs(hubId).toString())
         .setLabel('Join')
         .setStyle(ButtonStyle.Success),
     );
-
-    await paginate(interaction, hubList, {
-      extraComponents: {
-        actionRow: [paginateBtns],
-        updateComponents(pageNumber) {
-          paginateBtns.components[0].setCustomId(
-            new CustomID()
-              .setIdentifier('hub_browse', 'rate')
-              .addArgs(sortedHubs[pageNumber].id)
-              .toString(),
-          );
-          paginateBtns.components[1].setCustomId(
-            new CustomID()
-              .setIdentifier('hub_browse', 'join')
-              .addArgs(sortedHubs[pageNumber].id)
-              .toString(),
-          );
-
-          return paginateBtns;
-        },
-      },
-    });
   }
 
   @RegisterInteractionHandler('hub_browse')
-  static override async handleComponents(
+  override async handleComponents(
     interaction: ButtonInteraction | ChannelSelectMenuInteraction,
   ): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const { locale } = interaction.user;
+
+    const { userManager, serverBlacklists } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const hubDetails = await db.hubs.findFirst({
       where: { id: customId.args[0] },
@@ -201,7 +184,6 @@ export default class Browse extends Hub {
         return;
       }
 
-      const { userManager, serverBlacklists } = interaction.client;
       const userBlacklisted = await userManager.fetchBlacklist(hubDetails.id, interaction.user.id);
       const serverBlacklisted = await serverBlacklists.fetchBlacklist(
         hubDetails.id,
@@ -375,7 +357,7 @@ export default class Browse extends Hub {
       if (!webhook) return;
 
       // finally make the connection
-      await connectChannel({
+      await createConnection({
         serverId: channel.guildId,
         channelId: channel.id,
         parentId: channel.isThread() ? channel.parentId : undefined,
@@ -396,8 +378,8 @@ export default class Browse extends Hub {
       });
 
       const totalConnections =
-        (await getAllConnections())?.reduce(
-          (total, c) => total + (c.hubId === hubDetails.id && c.connected ? 1 : 0),
+        (await getHubConnections(hubDetails.id))?.reduce(
+          (total, c) => total + (c.connected ? 1 : 0),
           0,
         ) ?? 0;
 
@@ -423,9 +405,10 @@ export default class Browse extends Hub {
   }
 
   @RegisterInteractionHandler('hub_browse_modal')
-  static async handleModals(interaction: ModalSubmitInteraction<CacheType>): Promise<void> {
+  async handleModals(interaction: ModalSubmitInteraction<CacheType>): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const { locale } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const rating = parseInt(interaction.fields.getTextInputValue('rating'));
     if (isNaN(rating) || rating < 1 || rating > 5) {
@@ -466,7 +449,7 @@ export default class Browse extends Hub {
   }
 
   // utils
-  static createHubListingsEmbed(hub: hubs, connections?: number, lastMessage?: Date) {
+  createHubListingsEmbed(hub: hubs, connections?: number, lastMessage?: Date) {
     const rating = calculateAverageRating(hub.rating.map((hr) => hr.rating));
     const stars =
       rating < 5

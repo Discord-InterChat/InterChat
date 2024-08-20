@@ -2,7 +2,6 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
-import { getDbUser } from '#main/utils/Utils.js';
 import {
   type ChatInputCommandInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
@@ -40,7 +39,7 @@ export default class Ban extends BaseCommand {
       return;
     }
 
-    const dbUser = await getDbUser(user.id);
+    const dbUser = await interaction.client.userManager.getUser(user.id);
     if (dbUser?.banMeta) {
       await this.replyEmbed(
         interaction,

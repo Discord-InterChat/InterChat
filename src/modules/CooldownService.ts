@@ -1,4 +1,4 @@
-import db from '../utils/Db.js';
+import cacheClient from '#main/utils/cache/cacheClient.js';
 
 /** Manage and store individual cooldowns */
 export default class CooldownService {
@@ -13,17 +13,17 @@ export default class CooldownService {
    * @param ms The duration of the cooldown in milliseconds
    */
   public async setCooldown(id: string, ms: number) {
-    await db.cache.set(this.getKey(id), Date.now() + ms, 'PX', ms);
+    await cacheClient.set(this.getKey(id), Date.now() + ms, 'PX', ms);
   }
 
   /** Get a cooldown */
   public async getCooldown(id: string) {
-    return parseInt(await db.cache.get(this.getKey(id)) || '0');
+    return parseInt((await cacheClient.get(this.getKey(id))) || '0');
   }
 
   /** Delete a cooldown */
   public async deleteCooldown(id: string) {
-    await db.cache.del(this.getKey(id));
+    await cacheClient.del(this.getKey(id));
   }
 
   /** Get the remaining cooldown in milliseconds */

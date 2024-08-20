@@ -1,22 +1,20 @@
+import { LINKS, colors } from '#main/utils/Constants.js';
+import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { getReplyMethod } from '#main/utils/Utils.js';
 import {
+  type ButtonInteraction,
+  type RepliableInteraction,
   ActionRowBuilder,
-  ButtonStyle,
-  EmbedBuilder,
   ButtonBuilder,
-  ComponentType,
-  ButtonInteraction,
+  ButtonStyle,
   Collection,
-  RepliableInteraction,
+  ComponentType,
+  EmbedBuilder,
 } from 'discord.js';
-import { LINKS, colors } from '../../utils/Constants.js';
-import { supportedLocaleCodes, t } from '../../utils/Locale.js';
 
 const onboardingInProgress = new Collection<string, string>();
 
-const processAcceptButton = async (
-  interaction: ButtonInteraction,
-  channelId: string,
-) => {
+const processAcceptButton = async (interaction: ButtonInteraction, channelId: string) => {
   await interaction?.deferUpdate();
   onboardingInProgress.delete(channelId); // remove in-progress marker as onboarding has either been cancelled or completed
   return interaction?.customId === 'onboarding_:accept';
@@ -81,14 +79,13 @@ export const showOnboarding = async (
   // Mark this as in-progress so server can't join twice
   onboardingInProgress.set(channelId, channelId);
 
-  const { locale } = interaction.user;
+  const { userManager } = interaction.client;
+  const locale = await userManager.getUserLocale(interaction.user.id);
   const embedPhrase = 'network.onboarding.embed';
 
   const embed = new EmbedBuilder()
     .setTitle(t({ phrase: `${embedPhrase}.title`, locale }, { hubName }))
-    .setDescription(
-      t({ phrase: `${embedPhrase}.description`, locale }, { hubName, docs_link: LINKS.DOCS }),
-    )
+    .setDescription(t({ phrase: `${embedPhrase}.description`, locale }, { docs_link: LINKS.DOCS }))
     .setColor(colors.interchatBlue)
     .setFooter({
       text: t({ phrase: `${embedPhrase}.footer`, locale }, { version: interaction.client.version }),
@@ -112,10 +109,7 @@ export const showOnboarding = async (
     ephemeral,
   };
 
-  const reply = interaction.deferred || interaction.replied
-    ? await interaction.editReply(replyMsg)
-    : await interaction.reply(replyMsg);
-
+  const reply = await interaction[getReplyMethod(interaction)](replyMsg);
   const response = await reply
     .awaitMessageComponent({
       time: 60_000 * 2,

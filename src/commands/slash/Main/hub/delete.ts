@@ -1,39 +1,40 @@
 import {
-  ChatInputCommandInteraction,
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle,
-  EmbedBuilder,
   ButtonInteraction,
+  ButtonStyle,
+  ChatInputCommandInteraction,
+  EmbedBuilder,
 } from 'discord.js';
-import db from '../../../../utils/Db.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { LINKS, emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import {
+  deleteHubs,
+  setComponentExpiry,
+  simpleEmbed,
+} from '#main/utils/Utils.js';
 import Hub from './index.js';
-import { LINKS, emojis } from '../../../../utils/Constants.js';
-import { deleteHubs, simpleEmbed, setComponentExpiry } from '../../../../utils/Utils.js';
-import { CustomID } from '../../../../utils/CustomID.js';
-import { RegisterInteractionHandler } from '../../../../decorators/Interaction.js';
-import { t } from '../../../../utils/Locale.js';
 
 export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
     const hubInDb = await db.hubs.findFirst({ where: { name: hubName } });
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== hubInDb?.ownerId) {
       await interaction.reply({
-        content: t(
-          { phrase: 'hub.delete.ownerOnly', locale: interaction.user.locale },
-          { emoji: emojis.no },
-        ),
+        content: t({ phrase: 'hub.delete.ownerOnly', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
     }
 
     const confirmEmbed = new EmbedBuilder()
-      .setDescription(
-        t({ phrase: 'hub.delete.confirm', locale: interaction.user.locale }, { hub: hubInDb.name }),
-      )
+      .setDescription(t({ phrase: 'hub.delete.confirm', locale }, { hub: hubInDb.name }))
       .setColor('Red');
     const confirmButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
@@ -67,10 +68,11 @@ export default class Delete extends Hub {
   }
 
   @RegisterInteractionHandler('hub_delete')
-  static override async handleComponents(interaction: ButtonInteraction) {
+  override async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [userId, hubId] = customId.args;
-    const { locale } = interaction.user;
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== userId) {
       await interaction.reply({
