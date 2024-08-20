@@ -25,7 +25,7 @@ export default async (manager: ClusterManager) => {
   const allServers = await db.blacklistedServers.findMany(query);
 
   await manager.broadcastEval(
-    async (_client, { userBls, serverBls }) => {
+    (_client, { userBls, serverBls }) => {
       const client = _client as unknown as Client;
 
       const checkAndUnblacklist = (

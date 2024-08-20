@@ -3,8 +3,10 @@ import { emojis } from '#main/utils/Constants.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { getReplyMethod, simpleEmbed } from '#main/utils/Utils.js';
 import {
+  APIActionRowComponent,
   type APIApplicationCommandSubcommandGroupOption,
   type APIApplicationCommandSubcommandOption,
+  APIMessageActionRowComponent,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
   Collection,
@@ -26,7 +28,6 @@ export type CmdData =
   | RESTPostAPIContextMenuApplicationCommandsJSONBody
   | APIApplicationCommandSubcommandGroupOption
   | APIApplicationCommandSubcommandOption;
-
 
 export const commandsMap = new Collection<string, BaseCommand>();
 export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
@@ -122,9 +123,15 @@ export default abstract class BaseCommand {
   async replyEmbed(
     interaction: RepliableInteraction | MessageComponentInteraction,
     desc: string,
-    opts?: { title?: string; color?: ColorResolvable; ephemeral?: boolean; edit?: boolean },
+    opts?: {
+      title?: string;
+      color?: ColorResolvable;
+      components?: APIActionRowComponent<APIMessageActionRowComponent>[];
+      ephemeral?: boolean;
+      edit?: boolean;
+    },
   ): Promise<InteractionResponse | Message> {
-    const message = { embeds: [simpleEmbed(desc, opts)] };
+    const message = { embeds: [simpleEmbed(desc, opts)], components: opts?.components };
     if (opts?.edit) return await interaction.editReply(message);
 
     const methodName = getReplyMethod(interaction);

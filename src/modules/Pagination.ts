@@ -80,7 +80,7 @@ export class Pagination {
 
     col.on('collect', async (i) => {
       if (!i.customId.startsWith('page_:')) return;
-      else if (i.customId === 'page_:exit') return null;
+      else if (i.customId === 'page_:exit') return;
 
       // inc/dec the index
       index = this.adjustIndex(i.customId, index);

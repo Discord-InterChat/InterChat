@@ -13,6 +13,7 @@ export default class Invite extends Hub {
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const subcommand = interaction.options.getSubcommand();
+
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 

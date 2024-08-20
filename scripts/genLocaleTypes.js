@@ -21,10 +21,11 @@ const generateTypes = (obj, path = '') => {
   keys.forEach((key) => {
     const fullPath = path ? `${path}.${key}` : key;
     if (typeof obj[key] === 'object' && obj[key] !== null) {
-      return typeDefs.push(...generateTypes(obj[key], fullPath));
+      typeDefs.push(...generateTypes(obj[key], fullPath));
+      return;
     }
 
-    const regex = /\{([^\}]+)\}/g;
+    const regex = /{([^}]+)}/g;
     const variables = [...obj[key].matchAll(regex)].map((match) => `'${match[1]}'`);
     const variablesType = variables.length !== 0 ? variables.join(' | ') : 'never';
 
@@ -50,10 +51,9 @@ const formatWithPrettier = async (values) => {
   if (!configFile) return values;
 
   const config = await prettier.resolveConfig(configFile);
-  return await prettier.format(values, {
-    ...config,
-    parser: 'typescript',
-  });
+  const formatted = await prettier.format(values, { ...config, parser: 'typescript' });
+
+  return formatted;
 };
 
 // Read the YAML file

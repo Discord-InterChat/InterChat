@@ -19,7 +19,6 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import { emojis } from '#main/utils/Constants.js';
-// @ts-expect-error no types provided for this package
 import { isSupported, translate } from 'google-translate-api-x';
 
 export default class Translate extends BaseCommand {

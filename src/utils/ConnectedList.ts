@@ -93,6 +93,7 @@ export const getConnection = async (channelId: string) =>
 export const deleteConnection = async (where: whereUniuqeInput) => {
   const deleted = await db.connectedList.delete({ where });
   await purgeConnectionCache(deleted.channelId);
+  return deleted;
 };
 
 export const deleteConnections = async (where: whereInput) => {
@@ -100,14 +101,18 @@ export const deleteConnections = async (where: whereInput) => {
   if (connections.length === 0) return [];
   else if (connections.length === 1) return await deleteConnection({ id: connections[0].id });
 
-  await db.connectedList.deleteMany({ where: { id: { in: connections.map((i) => i.id) } } });
+  const deletedCounts = await db.connectedList.deleteMany({
+    where: { id: { in: connections.map((i) => i.id) } },
+  });
 
-  // repopulate cache
   // TODO: Make a way to bulk update hubConnCache
+  // repopulate cache
   connections.forEach(async (connection) => {
     await purgeConnectionCache(connection.channelId);
     await syncHubConnCache(connection, 'delete');
   });
+
+  return deletedCounts;
 };
 
 export const updateConnection = async (where: whereUniuqeInput, data: dataInput) => {
