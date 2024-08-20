@@ -73,7 +73,7 @@ export const getCachedData = async <T extends object>(
     data = (await fetchFunction()) as ConvertDatesToString<T>;
 
     // Store in cache with TTL
-    await cacheData(key, JSON.stringify(data), expiry);
+    if (data) await cacheData(key, JSON.stringify(data), expiry);
   }
 
   return { data, cached: Boolean(data) };

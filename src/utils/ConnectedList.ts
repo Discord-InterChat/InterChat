@@ -70,7 +70,7 @@ export const syncHubConnCache = async (connection: connectedList, action: Connec
 
 const cacheConnection = async (connection: connectedList) => {
   await cacheData(`connection:${connection.channelId}`, connection.channelId);
-  Logger.info(`Cached connection ${connection.channelId}.`);
+  Logger.debug(`Cached connection ${connection.channelId}.`);
 };
 
 export const createConnection = async (data: Prisma.connectedListCreateInput) => {
