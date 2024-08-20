@@ -9,7 +9,7 @@ This repo contains the source code for the InterChat Discord bot. InterChat is a
 
 # ❗Contributors Needed ❗
 
-InterChat is an open-source project that connects communities across Discord servers. We're actively looking for contributors to help us improve and expand this project!
+InterChat is an open-source project that connects communities across Discord servers. We're on the lookout for passionate contributors to help us take this project to the next level!
 
 ## How You Can Help
 
@@ -18,13 +18,21 @@ InterChat is an open-source project that connects communities across Discord ser
 - **Documentation:** Improve our documentation to make it easier for others to get involved and use InterChat.
 - **Testing:** Contribute to testing new features and updates, ensuring everything works smoothly.
 
+## I'm Interested! Where do I begin?
+
+- Explore our [good first issues](https://github.com/Discord-InterChat/InterChat/contribute) to tackle beginner-friendly tasks or bug fixes.
+- Or browse through all our [issues](https://github.com/Discord-InterChat/InterChat/issues) and pick one that catches your eye!
+- Interested in improving our documentation/guides? Check out our [docs repository](https://github.com/Discord-InterChat/docs) and start contributing!
+
+If you are unsure of the procedures, please refer our [Contributor Guidelines](./CONTRIBUTING.md) page. Thank you!
+
 # Getting Started
 
 ## Prerequisites
 
 1. [Node.js](https://nodejs.org/)
-2. [Git](https://git-scm.com/downloads)
-3. [MongoDB](https://www.mongodb.com/try/download/community)
+2. [Git](https://git-scm.com/downloads/)
+3. [MongoDB](https://www.mongodb.com/)
 4. [An Imgur API Key](https://api.imgur.com/oauth2/addclient) (optional, for setting hub icon and banner)
 5. [Python 3.9.13](https://www.python.org/downloads/release/python-3913/) & [Visual Studio Build Tools (Windows Only)](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2019) (for Tensorflow)
 
