@@ -2,10 +2,21 @@
 
 <p align="center"><strong>InterChat</strong></p>
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/7dc6dd56012c2c546122/maintainability)](https://codeclimate.com/repos/66a3c98176ac086a07d4c930/maintainability)
+[![CodeFactor](https://www.codefactor.io/repository/github/discord-interchat/interchat/badge)](https://www.codefactor.io/repository/github/discord-interchat/interchat)
 [![Discord Bots](https://top.gg/api/widget/servers/769921109209907241.svg/)](https://top.gg/bot/769921109209907241)
 
 This repo contains the source code for the InterChat Discord bot. InterChat is a Discord bot that allows you to chat with users from other servers.
+
+# ❗Contributors Needed ❗
+
+InterChat is an open-source project that connects communities across Discord servers. We're actively looking for contributors to help us improve and expand this project!
+
+## How You Can Help
+
+- **Feature Development:** Help us build new features that make cross-server communication even more seamless.
+- **Bug Fixes:** Assist in identifying and squashing bugs to enhance stability and performance.
+- **Documentation:** Improve our documentation to make it easier for others to get involved and use InterChat.
+- **Testing:** Contribute to testing new features and updates, ensuring everything works smoothly.
 
 # Getting Started
 

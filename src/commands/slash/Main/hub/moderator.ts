@@ -18,8 +18,7 @@ export default class Moderator extends Hub {
       },
     });
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
     if (!hub) {
       await this.replyEmbed(
         interaction,
@@ -97,6 +96,7 @@ export default class Moderator extends Hub {
       ),
     );
   }
+
   private async handleUpdateSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: hubs,
@@ -142,9 +142,7 @@ export default class Moderator extends Hub {
     await db.hubs.update({
       where: { id: hub.id },
       data: {
-        moderators: {
-          updateMany: { where: { userId: user.id }, data: { position } },
-        },
+        moderators: { updateMany: { where: { userId: user.id }, data: { position } } },
       },
     });
 
@@ -156,6 +154,7 @@ export default class Moderator extends Hub {
       ),
     );
   }
+
   private async handleListSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: hubs,
@@ -183,6 +182,7 @@ export default class Moderator extends Hub {
       ephemeral: true,
     });
   }
+
   private async handleAddSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: hubs,

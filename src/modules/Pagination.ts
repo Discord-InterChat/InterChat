@@ -44,32 +44,6 @@ export class Pagination {
     return this.pages[index];
   }
 
-  private formatMessage(
-    actionBtns: ActionRowBuilder<ButtonBuilder>,
-    replyOpts: BaseMessageOptions,
-  ) {
-    return { ...replyOpts, components: [actionBtns, ...(replyOpts.components || [])] };
-  }
-  private createButtons(index: number, totalPages: number) {
-    return new ActionRowBuilder<ButtonBuilder>().addComponents([
-      new ButtonBuilder()
-        .setEmoji(this.emojis.back)
-        .setCustomId('page_:back')
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(index === 0),
-      new ButtonBuilder()
-        .setEmoji(this.emojis.exit)
-        .setCustomId('page_:exit')
-        .setStyle(ButtonStyle.Danger)
-        .setLabel(`Page ${index + 1} of ${totalPages}`),
-      new ButtonBuilder()
-        .setEmoji(this.emojis.next)
-        .setCustomId('page_:next')
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(totalPages <= index + 1),
-    ]);
-  }
-
   /**
    * Paginates through a collection of embed pages and handles user ctxs with pagination buttons.
    * @param ctx - The command or message component ctx.
@@ -105,19 +79,54 @@ export class Pagination {
     });
 
     col.on('collect', async (i) => {
-      if (i.customId === 'page_:back') index--;
-      else if (i.customId === 'page_:next') index++;
-      else if (i.customId === 'page_:exit') return col.stop();
+      if (!i.customId.startsWith('page_:')) return;
+      else if (i.customId === 'page_:exit') return null;
+
+      // inc/dec the index
+      index = this.adjustIndex(i.customId, index);
 
       const newRow = this.createButtons(index, this.pages.length);
       const newBody = this.formatMessage(newRow, this.pages[index]);
 
       // edit the message only if the customId is one of the paginator buttons
-      if (i.customId.startsWith('page_:')) await i.update(newBody);
+      await i.update(newBody);
     });
 
     col.on('end', async () => {
       await listMessage.edit({ components: [] }).catch(() => null);
     });
+  }
+
+  private adjustIndex(customId: string, index: number) {
+    if (customId === 'page_:back') return index - 1 ;
+    else if (customId === 'page_:next') return index + 1;
+    return index;
+  }
+
+  private formatMessage(
+    actionButtons: ActionRowBuilder<ButtonBuilder>,
+    replyOpts: BaseMessageOptions,
+  ) {
+    return { ...replyOpts, components: [actionButtons, ...(replyOpts.components || [])] };
+  }
+
+  private createButtons(index: number, totalPages: number) {
+    return new ActionRowBuilder<ButtonBuilder>().addComponents([
+      new ButtonBuilder()
+        .setEmoji(this.emojis.back)
+        .setCustomId('page_:back')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(index === 0),
+      new ButtonBuilder()
+        .setEmoji(this.emojis.exit)
+        .setCustomId('page_:exit')
+        .setStyle(ButtonStyle.Danger)
+        .setLabel(`Page ${index + 1} of ${totalPages}`),
+      new ButtonBuilder()
+        .setEmoji(this.emojis.next)
+        .setCustomId('page_:next')
+        .setStyle(ButtonStyle.Secondary)
+        .setDisabled(totalPages <= index + 1),
+    ]);
   }
 }
