@@ -67,7 +67,7 @@ export const t = <K extends keyof TranslationKeys>(
   const localeFile = localesMap.get(locale) ?? localesMap.get('en');
 
   if (localeFile) {
-    const translation: string = phrase.split('.').reduce((obj, segment) => obj && obj[segment], localeFile);
+    const translation: string = phrase.split('.').reduce((obj, segment) => obj?.[segment], localeFile);
 
     if (translation) {
       // Replace variables in the translated text

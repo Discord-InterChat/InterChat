@@ -96,7 +96,7 @@ export default class SuperClient extends Client {
 
     // load commands
     await loadCommandFiles({ loadInteractions: true });
-    await this.eventHandler.loadListeners();
+    this.eventHandler.loadListeners();
 
     // Discord.js automatically uses DISCORD_TOKEN env variable
     await this.login();

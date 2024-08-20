@@ -116,7 +116,7 @@ export default class MessageInfo extends BaseCommand {
       componentType: ComponentType.Button,
     });
 
-    collector.on('collect', async (i) => {
+    collector.on('collect', (i) => {
       const customId = CustomID.parseCustomId(i.customId);
       // component builders taken from the original message
       const newComponents = [
@@ -160,7 +160,10 @@ export default class MessageInfo extends BaseCommand {
       }
     });
 
-    collector.on('end', async () => greyOutButtons(components));
+    collector.on('end', async (i) => {
+      greyOutButtons(components);
+      await i.first()?.editReply({ components });
+    });
   }
 
   @RegisterInteractionHandler('msgInfoModal')

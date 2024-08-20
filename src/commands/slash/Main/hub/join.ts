@@ -236,7 +236,7 @@ export default class JoinSubCommand extends Hub {
         ),
         { components: [], edit: true },
       );
-      return;
+      return null;
     }
 
     return webhook;

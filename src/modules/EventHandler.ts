@@ -11,7 +11,7 @@ const importPrefix = process.platform === 'win32' ? 'file://' : '';
 export default class EventHandler extends Factory {
   private listeners: Map<string, BaseEventListener<keyof ClientEvents>> = new Collection();
 
-  async loadListeners(): Promise<void> {
+  loadListeners() {
     const listenersPath = join(__dirname, '..', 'events');
     const files = readdirSync(listenersPath).filter((file) => file.endsWith('.js'));
 
