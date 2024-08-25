@@ -3,7 +3,7 @@ import { genLogInfoEmbed } from '#main/scripts/hub/logs.js';
 import { actionsSelect, hubEmbed } from '#main/scripts/hub/manage.js';
 import { buildSettingsEmbed, buildSettingsMenu } from '#main/scripts/hub/settings.js';
 import { HubSettingsBitField, HubSettingsString } from '#main/utils/BitFields.js';
-import { colors, emojis, LINKS } from '#main/utils/Constants.js';
+import { colors, emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
@@ -124,22 +124,7 @@ export default class Manage extends Hub {
       data: { settings: hubSettings.toggle(selected).bitfield }, // toggle the setting
     });
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
-    if (!updHub) {
-      await this.replyEmbed(
-        interaction,
-        t(
-          { phrase: 'errors.unknown', locale },
-          { emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
-        ),
-        { ephemeral: true },
-      );
-      return;
-    }
-
     const { id, name, iconUrl, settings } = updHub;
-
     const embed = buildSettingsEmbed(name, iconUrl, settings);
     const selects = buildSettingsMenu(settings, id, customId.args[0]);
 
@@ -166,12 +151,7 @@ export default class Manage extends Hub {
     const channelSelect = new ActionRowBuilder<ChannelSelectMenuBuilder>().addComponents(
       new ChannelSelectMenuBuilder()
         .setCustomId(
-          new CustomID()
-            .setIdentifier('hub_manage', 'logsChSel')
-            .addArgs(interaction.user.id)
-            .addArgs(hubInDb.id)
-            .addArgs(type)
-            .toString(),
+          new CustomID('hub_manage:logsChSel', [interaction.user.id, hubInDb.id, type]).toString(),
         )
         .addChannelTypes(ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread)
         .setPlaceholder(t({ phrase: 'hub.manage.logs.channelSelect', locale })),
@@ -180,12 +160,11 @@ export default class Manage extends Hub {
     const roleSelect = new ActionRowBuilder<RoleSelectMenuBuilder>().addComponents(
       new RoleSelectMenuBuilder()
         .setCustomId(
-          new CustomID()
-            .setIdentifier('hub_manage', 'logsRoleSel')
-            .addArgs(interaction.user.id)
-            .addArgs(hubInDb.id)
-            .addArgs(type)
-            .toString(),
+          new CustomID('hub_manage:logsRoleSel', [
+            interaction.user.id,
+            hubInDb.id,
+            type,
+          ]).toString(),
         )
         .setPlaceholder(t({ phrase: 'hub.manage.logs.roleSelect', locale })),
     );
@@ -195,23 +174,17 @@ export default class Manage extends Hub {
         .setEmoji(emojis.back)
         .setStyle(ButtonStyle.Secondary)
         .setCustomId(
-          new CustomID()
-            .setIdentifier('hub_manage', 'logsBackBtn')
-            .addArgs(interaction.user.id)
-            .addArgs(hubInDb.id)
-            .addArgs(type)
-            .toString(),
+          new CustomID('hub_manage:logsBackBtn', [
+            interaction.user.id,
+            hubInDb.id,
+            type,
+          ]).toString(),
         ),
       new ButtonBuilder()
         .setEmoji(emojis.delete)
         .setStyle(ButtonStyle.Danger)
         .setCustomId(
-          new CustomID()
-            .setIdentifier('hub_manage', 'logsDel')
-            .addArgs(interaction.user.id)
-            .addArgs(hubInDb.id)
-            .addArgs(type)
-            .toString(),
+          new CustomID('hub_manage:logsDel', [interaction.user.id, hubInDb.id, type]).toString(),
         ),
     );
 
@@ -291,33 +264,13 @@ export default class Manage extends Hub {
 
       case 'description': {
         const modal = new ModalBuilder()
-          .setCustomId(
-            new CustomID()
-              .setIdentifier('hub_manage_modal', 'description')
-              .addArgs(hubInDb.id)
-              .toString(),
-          )
-          .setTitle(
-            t({
-              phrase: 'hub.manage.description.modal.title',
-              locale,
-            }),
-          )
+          .setCustomId(new CustomID('hub_manage_modal:description', [hubInDb.id]).toString())
+          .setTitle(t({ phrase: 'hub.manage.description.modal.title', locale }))
           .addComponents(
             new ActionRowBuilder<TextInputBuilder>().addComponents(
               new TextInputBuilder()
-                .setLabel(
-                  t({
-                    phrase: 'hub.manage.description.modal.label',
-                    locale,
-                  }),
-                )
-                .setPlaceholder(
-                  t({
-                    phrase: 'hub.manage.description.modal.placeholder',
-                    locale,
-                  }),
-                )
+                .setLabel(t({ phrase: 'hub.manage.description.modal.label', locale }))
+                .setPlaceholder(t({ phrase: 'hub.manage.description.modal.placeholder', locale }))
                 .setMaxLength(1024)
                 .setStyle(TextInputStyle.Paragraph)
                 .setCustomId('description'),
@@ -330,22 +283,12 @@ export default class Manage extends Hub {
 
       case 'banner': {
         const modal = new ModalBuilder()
-          .setCustomId(
-            new CustomID()
-              .setIdentifier('hub_manage_modal', 'banner')
-              .addArgs(hubInDb.id)
-              .toString(),
-          )
+          .setCustomId(new CustomID('hub_manage_modal:banner', [hubInDb.id]).toString())
           .setTitle('Set Hub Banner')
           .addComponents(
             new ActionRowBuilder<TextInputBuilder>().addComponents(
               new TextInputBuilder()
-                .setLabel(
-                  t({
-                    phrase: 'hub.manage.banner.modal.label',
-                    locale,
-                  }),
-                )
+                .setLabel(t({ phrase: 'hub.manage.banner.modal.label', locale }))
                 .setPlaceholder(t({ phrase: 'hub.manage.enterImgurUrl', locale }))
                 .setStyle(TextInputStyle.Short)
                 .setRequired(false)
@@ -636,18 +579,6 @@ export default class Manage extends Hub {
               description: t({ phrase: 'hub.manage.logs.profanity.description', locale }),
               emoji: '🤬',
             },
-            // {
-            //   label: 'Message Edits',
-            //   value: 'msgEdits',
-            //   description: 'Log message edits.',
-            //   emoji: '📝',
-            // },
-            // {
-            //   label: 'Message Deletes',
-            //   value: 'msgDeletes',
-            //   description: 'Log message deletes.',
-            //   emoji: '🗑️',
-            // },
             {
               label: t({ phrase: 'hub.manage.logs.joinLeave.label', locale }),
               value: 'joinLeaves',

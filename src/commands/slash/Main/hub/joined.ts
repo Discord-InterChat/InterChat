@@ -30,40 +30,34 @@ export default class Joined extends Hub {
       inline: true,
     }));
 
-    const paginator = new Pagination();
+    const description = t(
+      { phrase: 'hub.joined.joinedHubs', locale },
+      { total: `${allFields.length}` },
+    );
 
-    if (allFields.length > 25) {
-      // Split the fields into multiple embeds
-      allFields.forEach((field, index) => {
-        let embed;
-        // Start a new embed
-        if (index % 25 === 0) {
-          embed = new EmbedBuilder()
-            .setDescription(
-              t({ phrase: 'hub.joined.joinedHubs', locale }, { total: `${allFields.length}` }),
-            )
-            .setColor(colors.interchatBlue);
-        }
+    if (allFields.length < 25) {
+      const embed = new EmbedBuilder()
+        .setFields(allFields)
+        .setColor(colors.interchatBlue)
+        .setDescription(description);
 
-        // Add the field to the current embed
-        if (embed) {
-          embed.addFields(field);
-          paginator.addPage({ embeds: [embed] });
-        }
-
-      });
-
-      await paginator.run(interaction);
-      return;
+      await interaction.reply({ embeds: [embed] });
     }
 
-    const embed = new EmbedBuilder()
-      .setDescription(
-        t({ phrase: 'hub.joined.joinedHubs', locale }, { total: `${allFields.length}` }),
-      )
-      .setFields(allFields)
-      .setColor(colors.interchatBlue);
+    // Split the fields into multiple embeds
+    const paginator = new Pagination();
+    allFields.forEach((field, index) => {
+      // Start a new embed
+      if (index % 25 === 0) {
+        const embed = new EmbedBuilder()
+          .addFields(field)
+          .setColor(colors.interchatBlue)
+          .setDescription(description);
 
-    await interaction.reply({ embeds: [embed] });
+        paginator.addPage({ embeds: [embed] });
+      }
+    });
+
+    await paginator.run(interaction);
   }
 }
