@@ -11,12 +11,13 @@ const importPrefix = process.platform === 'win32' ? 'file://' : '';
 export default class EventHandler extends Factory {
   private listeners: Map<string, BaseEventListener<keyof ClientEvents>> = new Collection();
 
-  loadListeners() {
+  /** Loads all event listeners from the 'events' directory. */
+  public loadListeners(): void {
     const listenersPath = join(__dirname, '..', 'events');
     const files = readdirSync(listenersPath).filter((file) => file.endsWith('.js'));
 
     files.forEach(async (file) => {
-      const { default: Listener } = (await import(importPrefix + join(listenersPath, file)));
+      const { default: Listener } = await import(importPrefix + join(listenersPath, file));
       const listenerInstance: BaseEventListener<keyof ClientEvents> = new Listener();
       this.registerListener(listenerInstance);
     });

@@ -75,8 +75,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     if (!hub || hubConnections.length < 1) return;
 
     const settings = new HubSettingsBitField(hub.settings);
-    const attachmentURL =
-      message.attachments.first()?.url ?? (await getAttachmentURL(message.content));
+    const attachmentURL = await this.resolveAttachmentURL(message);
 
     // run checks on the message to determine if it can be sent in the network
     const checksPassed = await runChecks(message, hub, {
@@ -85,7 +84,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       totalHubConnections: hubConnections.length,
     });
 
-    if (checksPassed === false) return;
+    if (!checksPassed) return;
 
     message.channel.sendTyping().catch(() => null);
 
@@ -105,6 +104,10 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
     // store the message in the db
     await storeMessageData(message, sendResult, connection.hubId, dbReferrence);
+  }
+
+  private async resolveAttachmentURL(message: Message) {
+    return message.attachments.first()?.url ?? (await getAttachmentURL(message.content));
   }
 
   private async broadcastMessage(

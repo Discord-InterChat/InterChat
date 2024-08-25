@@ -20,7 +20,6 @@ import db from './Db.js';
 import { t } from './Locale.js';
 import { getEmojiId, simpleEmbed, sortReactions } from './Utils.js';
 
-// skipcq: JS-0327
 export class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
   @RegisterInteractionHandler('reaction_')

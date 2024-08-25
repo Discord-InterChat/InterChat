@@ -38,7 +38,7 @@ clusterManager
     deleteExpiredInvites().catch(Logger.error);
 
     // store network message timestamps to connectedList every minute
-    scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, () => storeMsgTimestamps);
+    scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, storeMsgTimestamps);
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
     scheduler.addRecurringTask('deleteExpiredBlacklists', 30 * 1000, () =>
       updateBlacklists(clusterManager),
@@ -47,18 +47,16 @@ clusterManager
     // production only tasks
     if (isDevBuild) return;
 
-    // perform start up tasks
-    const serverCount = (await clusterManager.fetchClientValues('guilds.cache.size')).reduce(
-      (p: number, n: number) => p + n,
-      0,
-    );
-
-    syncBotlistStats({ serverCount, shardCount: clusterManager.totalShards }).catch(Logger.error);
     pauseIdleConnections(clusterManager).catch(Logger.error);
 
-    scheduler.addRecurringTask('syncBotlistStats', 10 * 60 * 10_000, () =>
-      syncBotlistStats({ serverCount, shardCount: clusterManager.totalShards }),
-    );
+    scheduler.addRecurringTask('syncBotlistStats', 10 * 60 * 10_000, async () => {
+      // perform start up tasks
+      const serverCount = (await clusterManager.fetchClientValues('guilds.cache.size')).reduce(
+        (p: number, n: number) => p + n,
+        0,
+      );
+      syncBotlistStats({ serverCount, shardCount: clusterManager.totalShards });
+    });
     scheduler.addRecurringTask('pauseIdleConnections', 60 * 60 * 1000, () =>
       pauseIdleConnections(clusterManager),
     );

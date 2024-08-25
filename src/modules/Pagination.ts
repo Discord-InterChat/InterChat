@@ -51,8 +51,8 @@ export class Pagination {
    * @param options - Optional configuration for the paginator.
    */
   public async run(ctx: RepliableInteraction, options?: RunOptions) {
+    const replyMethod = getReplyMethod(ctx);
     if (this.pages.length < 1) {
-      const replyMethod = getReplyMethod(ctx);
       await ctx[replyMethod]({
         content: `${emojis.tick} No pages to display!`,
         ephemeral: true,
@@ -65,7 +65,6 @@ export class Pagination {
     const row = this.createButtons(index, this.pages.length);
 
     const resp = this.formatMessage(row, this.pages[index]);
-    const replyMethod = getReplyMethod(ctx);
     const listMessage = await ctx[replyMethod]({
       ...resp,
       content: resp.content ?? undefined,
@@ -76,11 +75,14 @@ export class Pagination {
     const col = listMessage.createMessageComponentCollector({
       idle: options?.idle || 60000,
       componentType: ComponentType.Button,
+      filter: (i) => i.customId.startsWith('page_:'),
     });
 
     col.on('collect', async (i) => {
-      if (!i.customId.startsWith('page_:')) return;
-      else if (i.customId === 'page_:exit') return;
+      if (i.customId === 'page_:exit') {
+        col.stop();
+        return;
+      }
 
       // inc/dec the index
       index = this.adjustIndex(i.customId, index);
@@ -92,13 +94,11 @@ export class Pagination {
       await i.update(newBody);
     });
 
-    col.on('end', async () => {
-      await listMessage.edit({ components: [] }).catch(() => null);
-    });
+    col.on('end', () => listMessage.edit({ components: [] }).catch(() => null));
   }
 
   private adjustIndex(customId: string, index: number) {
-    if (customId === 'page_:back') return index - 1 ;
+    if (customId === 'page_:back') return index - 1;
     else if (customId === 'page_:next') return index + 1;
     return index;
   }

@@ -13,7 +13,7 @@ export default async (manager: ClusterManager) => {
   const connections = await db.connectedList.findMany({
     where: {
       connected: true,
-      lastActive: { lte: new Date(Date.now() - (24 * 60 * 60 * 1000)) },
+      lastActive: { not: null, lte: new Date(Date.now() - (24 * 60 * 60 * 1000)) },
     },
   });
 
