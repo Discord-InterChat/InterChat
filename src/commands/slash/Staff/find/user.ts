@@ -1,9 +1,9 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import Find from './index.js';
-import { stripIndents } from 'common-tags';
-import { colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { simpleEmbed } from '#main/utils/Utils.js';
+import { stripIndents } from 'common-tags';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import Find from './index.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -41,7 +41,7 @@ export default class Server extends Find {
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
-      .setColor(colors.invisible)
+      .setColor(Constants.Colors.invisible)
       .setImage(user.bannerURL({ size: 1024 }) || null)
       .setThumbnail(user.avatarURL())
       .addFields([

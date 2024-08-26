@@ -1,7 +1,7 @@
-import { ActionRowBuilder, EmbedBuilder, Snowflake, StringSelectMenuBuilder } from 'discord.js';
 import { HubSettingsBitField, HubSettingsString } from '#main/utils/BitFields.js';
-import { emojis, colors } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
+import { ActionRowBuilder, EmbedBuilder, Snowflake, StringSelectMenuBuilder } from 'discord.js';
 
 export const buildSettingsEmbed = (name: string, iconURL: string, rawSettings: number) => {
   const settings = new HubSettingsBitField(rawSettings);
@@ -25,7 +25,7 @@ export const buildSettingsEmbed = (name: string, iconURL: string, rawSettings: n
         .join('\n'),
     )
     .setFooter({ text: 'Use the select menu below to toggle.' })
-    .setColor(colors.interchatBlue)
+    .setColor(Constants.Colors.interchatBlue)
     .setTimestamp();
 };
 

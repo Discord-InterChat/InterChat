@@ -1,4 +1,4 @@
-import { LINKS, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
@@ -65,7 +65,7 @@ export default class Invite extends Hub {
               { phrase: 'hub.invite.create.success', locale },
               {
                 inviteCode: createdInvite.code,
-                docs_link: LINKS.DOCS,
+                docs_link: Constants.Links.Docs,
                 expiry: `<t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>`,
               },
             ),
@@ -120,7 +120,7 @@ export default class Invite extends Hub {
             interaction,
             t(
               { phrase: 'errors.unknown', locale },
-              { emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
+              { emoji: emojis.no, support_invite: Constants.Links.SupportInvite },
             ),
             {
               ephemeral: true,

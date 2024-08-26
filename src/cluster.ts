@@ -9,8 +9,8 @@ import pauseIdleConnections from './tasks/pauseIdleConnections.js';
 import storeMsgTimestamps from './tasks/storeMsgTimestamps.js';
 import syncBotlistStats from './tasks/syncBotlistStats.js';
 import updateBlacklists from './tasks/updateBlacklists.js';
-import { isDevBuild } from './utils/Constants.js';
 import { getUsername } from './utils/Utils.js';
+import Constants from '#main/utils/Constants.js';
 
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.TOKEN,
@@ -45,7 +45,7 @@ clusterManager
     );
 
     // production only tasks
-    if (isDevBuild) return;
+    if (Constants.isDevBuild) return;
 
     pauseIdleConnections(clusterManager).catch(Logger.error);
 

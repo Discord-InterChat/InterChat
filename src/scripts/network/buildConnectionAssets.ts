@@ -9,7 +9,7 @@ import {
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
 } from 'discord.js';
-import { colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { yesOrNoEmoji } from '#main/utils/Utils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { stripIndents } from 'common-tags';
@@ -65,7 +65,7 @@ export const buildEmbed = async (
         inline: true,
       },
     ])
-    .setColor(colors.invisible)
+    .setColor(Constants.Colors.invisible)
     .setFooter({ text: t({ phrase: 'connection.embed.footer', locale }) });
 };
 

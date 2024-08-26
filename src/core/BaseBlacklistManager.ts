@@ -1,6 +1,6 @@
 import Factory from '#main/core/Factory.js';
 import { cacheData } from '#main/utils/cache/cacheUtils.js';
-import { colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { hubBlacklist, Prisma } from '@prisma/client';
 import { EmbedBuilder, Snowflake, User } from 'discord.js';
 
@@ -48,7 +48,7 @@ export default abstract class BaseBlacklistManager<T extends BlacklistEntity> ex
     return new EmbedBuilder()
       .setTitle(`${emojis.blobFastBan} Blacklist Notification`)
       .setDescription(description)
-      .setColor(colors.interchatBlue)
+      .setColor(Constants.Colors.interchatBlue)
       .setFields(
         { name: 'Reason', value: opts.reason ?? 'No reason provided.', inline: true },
         { name: 'Expires', value: expireString, inline: true },

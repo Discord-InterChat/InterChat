@@ -1,9 +1,9 @@
-import { Prisma, hubs } from '@prisma/client';
-import { EmbedBuilder } from 'discord.js';
-import { colors, emojis } from '#main/utils/Constants.js';
-import { stripIndents } from 'common-tags';
-import { channelMention } from '#main/utils/Utils.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { channelMention } from '#main/utils/Utils.js';
+import { Prisma, hubs } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import { EmbedBuilder } from 'discord.js';
 
 /*
 for later:
@@ -40,7 +40,7 @@ export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'e
         ${emojis.divider} ${t({ phrase: 'hub.manage.logs.joinLeave.description', locale })}
         ${emojis.dividerEnd} ${channelStr} ${channelMention(joinLeaves)}`,
     )
-    .setColor(colors.invisible)
+    .setColor(Constants.Colors.invisible)
     .setThumbnail(hubInDb.iconUrl)
     .setFooter({
       text: 'Note: This feature is still experimental. Report bugs using /support report.',

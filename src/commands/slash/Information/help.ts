@@ -1,8 +1,8 @@
-import { EmbedBuilder, ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { Pagination } from '#main/modules/Pagination.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { stripIndents } from 'common-tags';
-import { LINKS, colors, emojis } from '#main/utils/Constants.js';
+import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
 export default class Help extends BaseCommand {
   readonly data = {
@@ -12,7 +12,7 @@ export default class Help extends BaseCommand {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const baseEmbed = new EmbedBuilder()
-      .setColor(colors.invisible)
+      .setColor(Constants.Colors.invisible)
       .setThumbnail(interaction.client.user.displayAvatarURL());
 
     const page1 = EmbedBuilder.from(baseEmbed)
@@ -69,9 +69,9 @@ export default class Help extends BaseCommand {
     `);
 
     const page4 = EmbedBuilder.from(baseEmbed).setTitle('Final Notes').setDescription(stripIndents`
-    You\'re all set! You can now chat with people from other servers in real-time. For more detailed information and advanced features, refer to the official  [InterChat guide](${LINKS.DOCS}). Have fun! 🎉
+    You\'re all set! You can now chat with people from other servers in real-time. For more detailed information and advanced features, refer to the official  [InterChat guide](${Constants.Links.Docs}). Have fun! 🎉
     
-    For any questions, suggestions or feedback, join the [support server](${LINKS.SUPPORT_INVITE}) or [vote for InterChat](https://top.gg/bot/769921109209907241/vote).
+    For any questions, suggestions or feedback, join the [support server](${Constants.Links.SupportInvite}) or [vote for InterChat](https://top.gg/bot/769921109209907241/vote).
     `);
 
     const paginator = new Pagination().addPages([

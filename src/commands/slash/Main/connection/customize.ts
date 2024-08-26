@@ -5,7 +5,7 @@ import {
   buildEmbed,
 } from '#main/scripts/network/buildConnectionAssets.js';
 import { updateConnection } from '#main/utils/ConnectedList.js';
-import { emojis, REGEX } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
@@ -30,7 +30,7 @@ export default class Customize extends Connection {
 
     const channelId = interaction.options
       .getString('channel', true)
-      .replace(REGEX.CHANNEL_MENTION, '');
+      .replace(Constants.Regex.ChannelMention, '');
 
     const isInDb = await db.connectedList.findFirst({ where: { channelId } });
     const { userManager } = interaction.client;
@@ -110,7 +110,7 @@ export default class Customize extends Connection {
     else if (customId.suffix === 'embed_color') {
       const embedColor = interaction.fields.getTextInputValue('embed_color');
 
-      if (!REGEX.HEXCODE.test(embedColor)) {
+      if (!Constants.Regex.Hexcode.test(embedColor)) {
         await interaction.reply({
           content: t({ phrase: 'connection.emColorInvalid', locale }, { emoji: emojis.no }),
           ephemeral: true,

@@ -1,3 +1,10 @@
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { HubSettingsBits } from '#main/utils/BitFields.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { checkAndFetchImgurUrl, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   CacheType,
@@ -8,13 +15,6 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { HubSettingsBits } from '#main/utils/BitFields.js';
-import { LINKS, REGEX, emojis } from '#main/utils/Constants.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
-import { checkAndFetchImgurUrl, simpleEmbed } from '#main/utils/Utils.js';
 import Hub from './index.js';
 
 export default class Create extends Hub {
@@ -93,7 +93,7 @@ export default class Create extends Hub {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     // if hubName contains "discord", "clyde" "```" then return
-    if (REGEX.BANNED_WEBHOOK_WORDS.test(name)) {
+    if (Constants.Regex.BannedWebhookWords.test(name)) {
       await interaction.followUp({
         content: t({ phrase: 'hub.create.invalidName', locale }, { emoji: emojis.no }),
         ephemeral: true,
@@ -140,7 +140,7 @@ export default class Create extends Hub {
         description,
         private: true,
         ownerId: interaction.user.id,
-        iconUrl: iconUrl ?? LINKS.EASTER_AVATAR,
+        iconUrl: iconUrl ?? Constants.Links.EasterAvatar,
         bannerUrl,
         settings:
           HubSettingsBits.SpamFilter | HubSettingsBits.Reactions | HubSettingsBits.BlockNSFW,
@@ -158,7 +158,7 @@ export default class Create extends Hub {
       .setDescription(
         t(
           { phrase: 'hub.create.success', locale },
-          { name, support_invite: LINKS.SUPPORT_INVITE, docs_link: LINKS.DOCS },
+          { name, support_invite: Constants.Links.SupportInvite, docs_link: Constants.Links.Docs },
         ),
       )
       .setTimestamp();

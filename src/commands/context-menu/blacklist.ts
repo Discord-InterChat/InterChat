@@ -1,7 +1,7 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { deleteConnections } from '#main/utils/ConnectedList.js';
-import { colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
@@ -65,7 +65,7 @@ export default class Blacklist extends BaseCommand {
 
     const embed = new EmbedBuilder()
       .setTitle('Create A Blacklist')
-      .setColor(colors.invisible)
+      .setColor(Constants.Colors.invisible)
       .setFooter({ text: t({ phrase: 'blacklist.embed.footer', locale }) })
       .setDescription(stripIndents`
           **${t({ phrase: 'blacklist.embed.user', locale })}:** ${emojis.arrow} ${t({ phrase: 'blacklist.embed.userValue', locale }, { user: user.username })}

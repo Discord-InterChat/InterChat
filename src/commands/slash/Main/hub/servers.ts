@@ -1,7 +1,7 @@
-import { colors, emojis } from '#main/utils/Constants.js';
+import { Pagination } from '#main/modules/Pagination.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { Pagination } from '#main/modules/Pagination.js';
 import { resolveEval } from '#main/utils/Utils.js';
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
@@ -59,7 +59,7 @@ export default class Servers extends Hub {
       const channel = await server?.channels.fetch(connection.channelId).catch(() => null);
       const embed = new EmbedBuilder()
         .setTitle(`${server?.name} \`(${connection.serverId})\``)
-        .setColor(colors.interchatBlue)
+        .setColor(Constants.Colors.interchatBlue)
         .setDescription(
           t(
             { phrase: 'hub.servers.connectionInfo', locale },

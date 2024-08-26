@@ -4,7 +4,7 @@ import { WebhookPayload } from '@top-gg/sdk';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { WebhookClient, userMention, EmbedBuilder } from 'discord.js';
-import { badgeEmojis, LINKS, VOTER_ROLE_ID } from '../utils/Constants.js';
+import Constants, { badgeEmojis } from '../utils/Constants.js';
 import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
 import EventEmitter from 'events';
 import { getCachedData } from '#main/utils/cache/cacheUtils.js';
@@ -45,7 +45,7 @@ export class VoteManager extends EventEmitter {
 
   async getDbUser(id: string) {
     return (await getCachedData(
-      `userData:${id}`,
+      `${Constants.RedisKeys.userData}:${id}`,
       async () => await db.userData.findFirst({ where: { id } }),
     )).data;
   }
@@ -84,7 +84,7 @@ export class VoteManager extends EventEmitter {
             stripIndents`
             ### ${badgeEmojis.Voter} Thank you for voting!
               
-            You can vote again on [top.gg](${LINKS.VOTE}) in 12 hours!
+            You can vote again on [top.gg](${Constants.Links.Vote}) in 12 hours!
             `,
           )
           .setFooter({ text: `This is your ${voteCount}${ordinalSuffix} time voting!` })
@@ -94,9 +94,9 @@ export class VoteManager extends EventEmitter {
   }
 
   async addVoterRole(userId: string) {
-    await modifyUserRole(this.cluster, 'add', { userId, roleId: VOTER_ROLE_ID });
+    await modifyUserRole(this.cluster, 'add', { userId, roleId: Constants.VoterRoleId });
   }
   async removeVoterRole(userId: string) {
-    await modifyUserRole(this.cluster, 'remove', { userId, roleId: VOTER_ROLE_ID });
+    await modifyUserRole(this.cluster, 'remove', { userId, roleId: Constants.VoterRoleId });
   }
 }

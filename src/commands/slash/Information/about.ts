@@ -1,14 +1,14 @@
+import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
+import Constants, { badgeEmojis, emojis } from '#main/utils/Constants.js';
+import { getCredits, simpleEmbed } from '#main/utils/Utils.js';
+import { stripIndents } from 'common-tags';
 import {
-  ChatInputCommandInteraction,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChatInputCommandInteraction,
   Client,
 } from 'discord.js';
-import { badgeEmojis, emojis, LINKS } from '#main/utils/Constants.js';
-import { getCredits, simpleEmbed } from '#main/utils/Utils.js';
-import { stripIndents } from 'common-tags';
-import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
 
 export default class About extends BaseCommand {
   public readonly data: CmdData = {
@@ -25,7 +25,7 @@ export default class About extends BaseCommand {
     const creditsEmbed = simpleEmbed(
       stripIndents`
       ## ${emojis.wand} The Team
-      InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${LINKS.SUPPORT_INVITE}).
+      InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${Constants.Links.SupportInvite}).
 
       ${creditsDivider}
       ✨ **Design:**
@@ -42,7 +42,7 @@ export default class About extends BaseCommand {
       ${emojis.dotBlue} @${usernames[5]}
 
       ${linksDivider}
-      [Guide](${LINKS.DOCS}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${LINKS.SUPPORT_INVITE}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${LINKS.DOCS}/legal/privacy) • [Terms](${LINKS.DOCS}/legal/terms)
+      [Guide](${Constants.Links.Docs}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${Constants.Links.SupportInvite}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${Constants.Links.Docs}/legal/privacy) • [Terms](${Constants.Links.Docs}/legal/terms)
     `,
     );
 
@@ -56,12 +56,12 @@ export default class About extends BaseCommand {
         .setStyle(ButtonStyle.Link)
         .setLabel('Guide')
         .setEmoji(emojis.guide_icon)
-        .setURL(LINKS.DOCS),
+        .setURL(Constants.Links.Docs),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Support')
         .setEmoji(emojis.code_icon)
-        .setURL(LINKS.SUPPORT_INVITE),
+        .setURL(Constants.Links.SupportInvite),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Vote!')

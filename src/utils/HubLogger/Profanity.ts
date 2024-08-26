@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
-import { User, Guild, EmbedBuilder } from 'discord.js';
-import { colors, emojis } from '../Constants.js';
+import { EmbedBuilder, Guild, User } from 'discord.js';
+import Constants, { emojis } from '../Constants.js';
 import { fetchHub } from '../Utils.js';
 import { sendLog } from './Default.js';
 
@@ -17,7 +17,7 @@ export default async (hubId: string, rawContent: string, author: User, server: G
   const embed = new EmbedBuilder()
     .setTitle('Profanity Detected')
     .setDescription(`||${rawContent}||`)
-    .setColor(colors.interchatBlue)
+    .setColor(Constants.Colors.interchatBlue)
     .addFields({
       name: 'Details',
       value: stripIndents`

@@ -1,3 +1,9 @@
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { deleteHubs, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -6,16 +12,6 @@ import {
   ChatInputCommandInteraction,
   EmbedBuilder,
 } from 'discord.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { LINKS, emojis } from '#main/utils/Constants.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
-import {
-  deleteHubs,
-  setComponentExpiry,
-  simpleEmbed,
-} from '#main/utils/Utils.js';
 import Hub from './index.js';
 
 export default class Delete extends Hub {
@@ -104,7 +100,7 @@ export default class Delete extends Hub {
           simpleEmbed(
             t(
               { phrase: 'errors.unknown', locale },
-              { support_invite: LINKS.SUPPORT_INVITE, emoji: emojis.no },
+              { support_invite: Constants.Links.SupportInvite, emoji: emojis.no },
             ),
           ),
         ],

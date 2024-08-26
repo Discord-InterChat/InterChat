@@ -1,4 +1,4 @@
-import { channels, colors, mascotEmojis } from '#main/utils/Constants.js';
+import Constants, { mascotEmojis } from '#main/utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { ColorResolvable, EmbedBuilder, Guild } from 'discord.js';
 
@@ -46,11 +46,15 @@ export const logGuildJoin = async (guild: Guild, channelId: string) => {
       context: {
         guildName: guild.name,
         goalChannel: channelId,
-        inviteLogs: channels.inviteLogs,
+        inviteLogs: Constants.Channels.inviteLogs,
         flushedEmoji: mascotEmojis.flushed,
-        goalEmbed: buildGoalEmbed(guild.name, guild.iconURL(), colors.interchatBlue).toJSON(),
+        goalEmbed: buildGoalEmbed(
+          guild.name,
+          guild.iconURL(),
+          Constants.Colors.interchatBlue,
+        ).toJSON(),
         logsEmbed: buildLogsEmbed(guild, guildOwner.username, {
-          color: colors.interchatBlue,
+          color: Constants.Colors.interchatBlue,
           title: '✨ Invited to New Server',
         }).toJSON(),
       },
@@ -81,12 +85,12 @@ export const logGuildLeave = async (guild: Guild, channelId: string) => {
       context: {
         guildName: guild.name,
         goalChannel: channelId,
-        inviteLogs: channels.inviteLogs,
+        inviteLogs: Constants.Channels.inviteLogs,
         guildCount: count.reduce((p, n) => p + n, 0),
         cryEmoji: mascotEmojis.cry,
         goalEmbed: buildGoalEmbed(guild.name, guild.iconURL(), 'Red'),
         logsEmbed: buildLogsEmbed(guild, guildOwner.username, {
-          color: colors.interchatBlue,
+          color: Constants.Colors.interchatBlue,
           title: '👢 Kicked from server',
         }).toJSON(),
       },

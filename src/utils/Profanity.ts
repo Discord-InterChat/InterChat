@@ -1,4 +1,5 @@
-import { REGEX } from './Constants.js';
+import Constants from '#main/utils/Constants.js';
+
 /**
  * Checks if a string contains profanity or slurs.
  * @param string - The string to check.
@@ -8,8 +9,8 @@ export const check = (string: string | undefined) => {
   if (!string) return { hasProfanity: false, hasSlurs: false };
   // NOTE: Since the regex is created using RegExp, the regex keeps internally the state of the search
   // and may give unexpected results if used multiple times. https://dev.to/dvddpl/why-is-my-regex-working-intermittently-4f4g
-  const profanity = string.match(REGEX.PROFANITY);
-  const slurs = string.match(REGEX.SLURS);
+  const profanity = string.match(Constants.Regex.Profanity);
+  const slurs = string.match(Constants.Regex.Slurs);
 
   return {
     hasProfanity: profanity ? profanity.length > 0 : false,
@@ -25,5 +26,7 @@ export const check = (string: string | undefined) => {
  */
 export const censor = (string: string, symbol = '\\*'): string => {
   const replaceFunc = (match: string) => symbol.repeat(match.length);
-  return string.replace(REGEX.PROFANITY, replaceFunc).replace(REGEX.SLURS, replaceFunc);
+  return string
+    .replace(Constants.Regex.Profanity, replaceFunc)
+    .replace(Constants.Regex.Slurs, replaceFunc);
 };

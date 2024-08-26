@@ -3,7 +3,7 @@ import { genLogInfoEmbed } from '#main/scripts/hub/logs.js';
 import { actionsSelect, hubEmbed } from '#main/scripts/hub/manage.js';
 import { buildSettingsEmbed, buildSettingsMenu } from '#main/scripts/hub/settings.js';
 import { HubSettingsBitField, HubSettingsString } from '#main/utils/BitFields.js';
-import { colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
@@ -215,7 +215,7 @@ export default class Manage extends Hub {
             },
           ],
       )
-      .setColor(colors.invisible);
+      .setColor(Constants.Colors.invisible);
 
     // reports have both channel and role selects
     const componentsToSend =

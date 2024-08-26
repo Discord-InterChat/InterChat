@@ -1,5 +1,5 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { emojis, LINKS } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
@@ -73,7 +73,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
             {
               emoji: emojis.no,
               reason: dbUser.banMeta.reason,
-              support_invite: LINKS.SUPPORT_INVITE,
+              support_invite: Constants.Links.SupportInvite,
             },
           ),
           ephemeral: true,

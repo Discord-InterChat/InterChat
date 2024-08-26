@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { User, EmbedBuilder, Snowflake, Client, codeBlock } from 'discord.js';
-import { emojis, colors } from '../Constants.js';
+import Constants, { emojis } from '../Constants.js';
 import { fetchHub, resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
 import { hubs } from '@prisma/client';
@@ -74,7 +74,7 @@ export const logBlacklist = async (
         inline: true,
       },
     )
-    .setColor(colors.interchatBlue)
+    .setColor(Constants.Colors.interchatBlue)
     .setFooter({ text: `Blacklisted by: ${mod.username}`, iconURL: mod.displayAvatarURL() });
 
   await sendLog(opts.mod.client, hub.logChannels.modLogs, embed);
@@ -108,7 +108,7 @@ const getUnblacklistEmbed = (
       },
       { name: 'Blacklisted For', value: opts.originalReason ?? 'Unknown', inline: true },
     )
-    .setColor(colors.interchatBlue)
+    .setColor(Constants.Colors.interchatBlue)
     .setFooter({
       text: `Unblacklisted by: ${opts.mod.username}`,
       iconURL: opts.mod instanceof User ? opts.mod.displayAvatarURL() : undefined,
@@ -184,7 +184,7 @@ export const logMsgDelete = async (
       ${codeBlock(content)}
     `,
     )
-    .setColor(colors.invisible)
+    .setColor(Constants.Colors.invisible)
     .setImage(opts.imageUrl ?? null)
     .addFields([
       { name: `${emojis.connect_icon} User`, value: `${user?.username} (\`${userId}\`)` },

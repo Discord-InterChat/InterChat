@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { LINKS, colors, emojis, isDevBuild } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { msToReadable } from '#main/utils/Utils.js';
@@ -46,10 +46,10 @@ export default class Stats extends BaseCommand {
     const memoryUsed = memoryUsedRaw.reduce((p, n) => p + (n ?? 0), 0);
 
     const embed = new EmbedBuilder()
-      .setColor(colors.interchatBlue)
+      .setColor(Constants.Colors.interchatBlue)
       .setTitle(`${interaction.client.user.username} Statistics`)
       .setFooter({
-        text: `InterChat v${interaction.client.version}${isDevBuild ? '+dev' : ''}`,
+        text: `InterChat v${interaction.client.version}${Constants.isDevBuild ? '+dev' : ''}`,
         iconURL: interaction.client.user.displayAvatarURL(),
       })
       .addFields([
@@ -83,12 +83,12 @@ export default class Stats extends BaseCommand {
         .setLabel('Guide')
         .setStyle(ButtonStyle.Link)
         .setEmoji(emojis.docs_icon)
-        .setURL(LINKS.DOCS),
+        .setURL(Constants.Links.Docs),
       new ButtonBuilder()
         .setLabel('Support')
         .setStyle(ButtonStyle.Link)
         .setEmoji(emojis.code_icon)
-        .setURL(LINKS.SUPPORT_INVITE),
+        .setURL(Constants.Links.SupportInvite),
       new ButtonBuilder()
         .setLabel('Invite')
         .setStyle(ButtonStyle.Link)
@@ -124,7 +124,7 @@ export default class Stats extends BaseCommand {
     if (customId.suffix !== 'shardStats') return;
 
     const embed = new EmbedBuilder()
-      .setColor(colors.invisible)
+      .setColor(Constants.Colors.invisible)
       .setDescription(
         stripIndents`
 					### Shard Stats
@@ -146,7 +146,7 @@ export default class Stats extends BaseCommand {
         })),
       )
       .setFooter({
-        text: `InterChat v${interaction.client.version}${isDevBuild ? '+dev' : ''}`,
+        text: `InterChat v${interaction.client.version}${Constants.isDevBuild ? '+dev' : ''}`,
         iconURL: interaction.client.user.displayAvatarURL(),
       });
 

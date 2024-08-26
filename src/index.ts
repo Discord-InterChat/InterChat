@@ -1,6 +1,7 @@
 import './instrument.js';
 import SuperClient from './core/BaseClient.js';
 import Logger from './utils/Logger.js';
+import 'dotenv/config';
 
 const client = new SuperClient();
 

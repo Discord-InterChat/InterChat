@@ -2,7 +2,7 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { RemoveMethods } from '#main/typings/index.js';
 import { getHubConnections } from '#main/utils/ConnectedList.js';
-import { REGEX, colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { sendHubReport } from '#main/utils/HubLogger/Report.js';
@@ -186,7 +186,7 @@ export default class MessageInfo extends BaseCommand {
     const message = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     const content = message?.content || message?.embeds[0].description || undefined;
     const attachmentUrl =
-      content?.match(REGEX.STATIC_IMAGE_URL)?.at(0) ?? message?.embeds[0]?.image?.url;
+      content?.match(Constants.Regex.StaticImageUrl)?.at(0) ?? message?.embeds[0]?.image?.url;
 
     await sendHubReport(originalMsg.hub.id, interaction.client, {
       userId: authorId,
@@ -232,7 +232,7 @@ export default class MessageInfo extends BaseCommand {
     const inviteString = guildConnected?.invite ? `${guildConnected.invite}` : 'Not Set.';
 
     const serverEmbed = new EmbedBuilder()
-      .setColor(colors.invisible)
+      .setColor(Constants.Colors.invisible)
       .setThumbnail(iconUrl)
       .setImage(bannerUrL)
       .setDescription(
