@@ -1,4 +1,4 @@
-import { LINKS, colors } from '#main/utils/Constants.js';
+import Constants from '#main/utils/Constants.js';
 import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { getReplyMethod } from '#main/utils/Utils.js';
 import {
@@ -39,9 +39,9 @@ const processNextButton = async (
   );
 
   const rulesEmbed = new EmbedBuilder()
-    .setDescription(t({ phrase: 'rules', locale }, { support_invite: LINKS.SUPPORT_INVITE }))
-    .setImage(LINKS.RULES_BANNER)
-    .setColor(colors.interchatBlue);
+    .setDescription(t({ phrase: 'rules', locale }, { support_invite: Constants.Links.SupportInvite }))
+    .setImage(Constants.Links.RulesBanner)
+    .setColor(Constants.Colors.interchatBlue);
 
   // next button
   const acceptOnboarding = await interaction.update({
@@ -85,8 +85,8 @@ export const showOnboarding = async (
 
   const embed = new EmbedBuilder()
     .setTitle(t({ phrase: `${embedPhrase}.title`, locale }, { hubName }))
-    .setDescription(t({ phrase: `${embedPhrase}.description`, locale }, { docs_link: LINKS.DOCS }))
-    .setColor(colors.interchatBlue)
+    .setDescription(t({ phrase: `${embedPhrase}.description`, locale }, { docs_link: Constants.Links.Docs }))
+    .setColor(Constants.Colors.interchatBlue)
     .setFooter({
       text: t({ phrase: `${embedPhrase}.footer`, locale }, { version: interaction.client.version }),
     });

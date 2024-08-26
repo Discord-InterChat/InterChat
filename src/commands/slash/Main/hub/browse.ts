@@ -2,7 +2,7 @@ import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { showOnboarding } from '#main/scripts/network/onboarding.js';
 import { createConnection, getHubConnections } from '#main/utils/ConnectedList.js';
-import { colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
@@ -481,7 +481,7 @@ export default class Browse extends Hub {
           inline: true,
         },
       )
-      .setColor(colors.interchatBlue)
+      .setColor(Constants.Colors.interchatBlue)
       .setThumbnail(hub.iconUrl)
       .setImage(hub.bannerUrl);
   }

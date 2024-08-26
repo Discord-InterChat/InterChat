@@ -1,10 +1,10 @@
-import { hubs, connectedList } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import { ActionRowBuilder, StringSelectMenuBuilder, EmbedBuilder } from 'discord.js';
-import { colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { connectedList, hubs } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import { ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 
 export const actionsSelect = (hubId: string, userId: string, locale: supportedLocaleCodes = 'en') =>
   new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
@@ -54,7 +54,7 @@ export const hubEmbed = async (hub: hubs & { connections: connectedList[] }) => 
 
   return new EmbedBuilder()
     .setTitle(hub.name)
-    .setColor(colors.interchatBlue)
+    .setColor(Constants.Colors.interchatBlue)
     .setDescription(
       stripIndents`
     ${hub.description}

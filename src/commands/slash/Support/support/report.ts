@@ -1,5 +1,5 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { LINKS, channels, colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { t } from '#main/utils/Locale.js';
 import {
@@ -53,7 +53,7 @@ export default class Report extends Support {
       const bugEmbed = new EmbedBuilder()
         .setTitle(t({ phrase: 'report.bug.affected', locale }))
         .setDescription(t({ phrase: 'report.bug.description', locale }))
-        .setColor(colors.interchatBlue);
+        .setColor(Constants.Colors.interchatBlue);
 
       await interaction.reply({
         embeds: [bugEmbed],
@@ -80,7 +80,7 @@ export default class Report extends Support {
       if (reportType !== 'other') {
         const content = t(
           { phrase: 'misc.reportOptionMoved', locale },
-          { emoji: emojis.exclamation, support_invite: LINKS.SUPPORT_INVITE },
+          { emoji: emojis.exclamation, support_invite: Constants.Links.SupportInvite },
         );
 
         await interaction.reply({ content, ephemeral: true });
@@ -148,7 +148,7 @@ export default class Report extends Support {
           // finally make the post in ic central
           await devChat.send({ embeds: [ctx.embed] });
         },
-        { context: { affected, devChannel: channels.devChat, embed } },
+        { context: { affected, devChannel: Constants.Channels.devChat, embed } },
       );
     };
 
@@ -158,7 +158,7 @@ export default class Report extends Support {
         const description = interaction.fields.getTextInputValue('description');
 
         const bugReportEmbed = new EmbedBuilder()
-          .setColor(colors.invisible)
+          .setColor(Constants.Colors.invisible)
           .setTitle(summary)
           .setDescription(`**Affects:** ${affected}`)
           .setThumbnail(

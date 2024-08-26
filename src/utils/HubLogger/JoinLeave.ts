@@ -1,7 +1,7 @@
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, Guild } from 'discord.js';
 import { getHubConnections } from '../ConnectedList.js';
-import { colors, emojis } from '../Constants.js';
+import Constants, { emojis } from '../Constants.js';
 import { fetchHub } from '../Utils.js';
 import { sendLog } from './Default.js';
 
@@ -24,7 +24,7 @@ export const logJoinToHub = async (
         ${emojis.dotBlue} **Member Count:** ${server.memberCount}
       `,
     )
-    .setColor(colors.interchatBlue)
+    .setColor(Constants.Colors.interchatBlue)
     .setThumbnail(server.iconURL())
     .setFooter({
       text: `We have ${opt?.totalConnections} server(s) connected to ${opt?.hubName} now!`,

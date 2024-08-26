@@ -1,11 +1,11 @@
+import Constants from '#main/utils/Constants.js';
 import * as Sentry from '@sentry/node';
-import { isDevBuild, PROJECT_VERSION } from './utils/Constants.js';
 import 'dotenv/config';
 
-if (!isDevBuild) {
+if (!Constants.isDevBuild) {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
-    release: `interchat@${PROJECT_VERSION}`,
+    release: `interchat@${Constants.ProjectVersion}`,
     tracesSampleRate: 1.0,
     maxValueLength: 1000,
     integrations: [

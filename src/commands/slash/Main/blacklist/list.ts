@@ -1,4 +1,4 @@
-import { colors, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { Pagination } from '#main/modules/Pagination.js';
@@ -61,7 +61,7 @@ export default class ListBlacklists extends BlacklistCommand {
           embeds: [
             new EmbedBuilder()
               .setFields(fields)
-              .setColor(colors.invisible)
+              .setColor(Constants.Colors.invisible)
               .setAuthor({
                 name: `Blacklisted ${toTitleCase(type)}s:`,
                 iconURL: options.iconUrl,

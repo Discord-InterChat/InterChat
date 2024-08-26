@@ -1,7 +1,7 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { logGuildLeave } from '#main/scripts/guilds/goals.js';
 import { deleteConnections } from '#main/utils/ConnectedList.js';
-import { channels } from '#main/utils/Constants.js';
+import Constants from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logGuildLeaveToHub } from '#main/utils/HubLogger/JoinLeave.js';
 import Logger from '#main/utils/Logger.js';
@@ -19,7 +19,7 @@ export default class Ready extends BaseEventListener<'guildDelete'> {
 
     connections.forEach(async (connection) => await logGuildLeaveToHub(connection.hubId, guild));
 
-    await logGuildLeave(guild, channels.goal);
+    await logGuildLeave(guild, Constants.Channels.goal);
 
   }
 }

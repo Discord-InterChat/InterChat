@@ -1,9 +1,9 @@
-import Find from './index.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
-import { ChatInputCommandInteraction, EmbedBuilder, GuildPremiumTier } from 'discord.js';
 import { toTitleCase } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import { colors, emojis } from '#main/utils/Constants.js';
+import { ChatInputCommandInteraction, EmbedBuilder, GuildPremiumTier } from 'discord.js';
+import Find from './index.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -34,7 +34,7 @@ export default class Server extends Find {
     const embed = new EmbedBuilder()
       .setAuthor({ name: `${guild.name}`, iconURL: guild.iconURL() || undefined })
       .setDescription(guild.description || 'No Description')
-      .setColor(colors.invisible)
+      .setColor(Constants.Colors.invisible)
       .setThumbnail(guild.iconURL() || null)
       .setImage(guild.bannerURL({ size: 1024 }) || null)
       .addFields([

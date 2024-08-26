@@ -1,5 +1,5 @@
 import Logger from '#main/utils/Logger.js';
-import { REGEX } from '#main/utils/Constants.js';
+import Constants from '#main/utils/Constants.js';
 import { captureException } from '@sentry/node';
 import { node } from '@tensorflow/tfjs-node';
 import { Router } from 'express';
@@ -21,7 +21,7 @@ router.post('/nsfw', async (req, res) => {
     return;
   }
 
-  if (!REGEX.STATIC_IMAGE_URL.test(imageUrl)) {
+  if (!Constants.Regex.StaticImageUrl.test(imageUrl)) {
     res
       .status(400)
       .json({ error: 'Invalid url parameter. Must be a valid PNG, JPG, or JPEG image URL.' });

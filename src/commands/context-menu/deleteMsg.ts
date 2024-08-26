@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { getHubConnections } from '#main/utils/ConnectedList.js';
-import { REGEX, emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
@@ -111,7 +111,8 @@ export default class DeleteMessage extends BaseCommand {
       targetMessage.cleanContent ?? targetMessage.embeds.at(0)?.description?.replaceAll('`', '`');
 
     const imageUrl =
-      targetMessage.embeds.at(0)?.image?.url ?? targetMessage.content.match(REGEX.IMAGE_URL)?.at(0);
+      targetMessage.embeds.at(0)?.image?.url ??
+      targetMessage.content.match(Constants.Regex.ImageURL)?.at(0);
 
     if (isStaffOrHubMod(interaction.user.id, hub) && messageContent) {
       await logMsgDelete(interaction.client, messageContent, hub, {

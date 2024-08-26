@@ -1,15 +1,15 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
+import { t } from '#main/utils/Locale.js';
 import {
-  ChatInputCommandInteraction,
-  EmbedBuilder,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  ChatInputCommandInteraction,
   codeBlock,
+  EmbedBuilder,
   time,
 } from 'discord.js';
-import BaseCommand from '#main/core/BaseCommand.js';
-import { colors, emojis, LINKS } from '#main/utils/Constants.js';
-import { t } from '#main/utils/Locale.js';
 
 export default class Vote extends BaseCommand {
   readonly data = {
@@ -37,18 +37,20 @@ export default class Vote extends BaseCommand {
         },
         {
           name: 'Last Vote',
-          value: userData?.lastVoted ? time(userData.lastVoted, 'R') : `[Vote Now](${LINKS.VOTE})!`,
+          value: userData?.lastVoted
+            ? time(userData.lastVoted, 'R')
+            : `[Vote Now](${Constants.Links.Vote})!`,
           inline: true,
         },
       )
-      .setColor(colors.invisible);
+      .setColor(Constants.Colors.invisible);
 
     const button = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Vote')
         .setEmoji(emojis.topggSparkles)
-        .setURL(LINKS.VOTE),
+        .setURL(Constants.Links.Vote),
     );
 
     await interaction.reply({ embeds: [embed], components: [button] });

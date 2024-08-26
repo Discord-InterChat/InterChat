@@ -1,4 +1,4 @@
-import { emojis, LINKS, REGEX } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { censor } from '#main/utils/Profanity.js';
@@ -62,10 +62,10 @@ export const getReferredMsgData = async (referredMessage: Message | null) => {
 };
 
 export const removeImgLinks = (content: string, imgUrl: string) =>
-  content.replace(REGEX.TENOR_LINKS, '').replace(imgUrl, '');
+  content.replace(Constants.Regex.TenorLinks, '').replace(imgUrl, '');
 
 export const trimAndCensorBannedWebhookWords = (content: string) =>
-  content.slice(0, 35).replace(REGEX.BANNED_WEBHOOK_WORDS, '[censored]');
+  content.slice(0, 35).replace(Constants.Regex.BannedWebhookWords, '[censored]');
 
 /**
  * Builds an embed for a network message.
@@ -130,17 +130,17 @@ export const sendWelcomeMsg = async (
       .setStyle(ButtonStyle.Link)
       .setEmoji(emojis.add_icon)
       .setLabel('Invite Me!')
-      .setURL(LINKS.APP_DIRECTORY),
+      .setURL(Constants.Links.AppDirectory),
     new ButtonBuilder()
       .setStyle(ButtonStyle.Link)
       .setEmoji(emojis.code_icon)
       .setLabel('Support Server')
-      .setURL(LINKS.SUPPORT_INVITE),
+      .setURL(Constants.Links.SupportInvite),
     new ButtonBuilder()
       .setStyle(ButtonStyle.Link)
       .setEmoji(emojis.docs_icon)
       .setLabel('How-To Guide')
-      .setURL(LINKS.DOCS),
+      .setURL(Constants.Links.Docs),
   );
 
   await message.channel

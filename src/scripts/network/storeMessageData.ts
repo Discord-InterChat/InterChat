@@ -1,4 +1,5 @@
 import { updateConnections } from '#main/utils/ConnectedList.js';
+import Constants from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import cacheClient from '#main/utils/cache/cacheClient.js';
@@ -61,7 +62,7 @@ export default async (
 
   // store message timestamps to push to db later
   await cacheClient.set(
-    `msgTimestamp:${message.channelId}`,
+    `${Constants.RedisKeys.msgTimestamp}:${message.channelId}`,
     JSON.stringify({
       channelId: message.channelId,
       timestamp: message.createdTimestamp,

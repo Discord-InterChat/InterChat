@@ -1,7 +1,7 @@
-import { colors, emojis } from '#main/utils/Constants.js';
+import { Pagination } from '#main/modules/Pagination.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { Pagination } from '#main/modules/Pagination.js';
 import { simpleEmbed } from '#main/utils/Utils.js';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Hub from './index.js';
@@ -38,7 +38,7 @@ export default class Joined extends Hub {
     if (allFields.length < 25) {
       const embed = new EmbedBuilder()
         .setFields(allFields)
-        .setColor(colors.interchatBlue)
+        .setColor(Constants.Colors.interchatBlue)
         .setDescription(description);
 
       await interaction.reply({ embeds: [embed] });
@@ -51,7 +51,7 @@ export default class Joined extends Hub {
       if (index % 25 === 0) {
         const embed = new EmbedBuilder()
           .addFields(field)
-          .setColor(colors.interchatBlue)
+          .setColor(Constants.Colors.interchatBlue)
           .setDescription(description);
 
         paginator.addPage({ embeds: [embed] });

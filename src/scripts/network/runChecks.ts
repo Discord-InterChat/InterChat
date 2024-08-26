@@ -1,7 +1,7 @@
 import { analyzeImageForNSFW, isUnsafeImage } from '#main/modules/NSFWDetection.js';
 import { sendWelcomeMsg } from '#main/scripts/network/helpers.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
-import { emojis, REGEX } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import logProfanity from '#main/utils/HubLogger/Profanity.js';
@@ -76,8 +76,8 @@ export const isNSFW = async (imgUrl: string | null | undefined) => {
 
 export const containsLinks = (message: Message, settings: HubSettingsBitField) =>
   settings.has('HideLinks') &&
-  !REGEX.STATIC_IMAGE_URL.test(message.content) &&
-  REGEX.LINKS.test(message.content);
+  !Constants.Regex.StaticImageUrl.test(message.content) &&
+  Constants.Regex.Links.test(message.content);
 
 export const unsupportedAttachment = (message: Message) => {
   const attachment = message.attachments.first();

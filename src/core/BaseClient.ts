@@ -16,9 +16,8 @@ import {
   GatewayIntentBits,
   Options,
 } from 'discord.js';
-import 'dotenv/config';
 import { RemoveMethods } from '../typings/index.js';
-import { PROJECT_VERSION } from '../utils/Constants.js';
+import Constants from '../utils/Constants.js';
 import { loadLocales } from '../utils/Locale.js';
 import { resolveEval } from '../utils/Utils.js';
 
@@ -29,7 +28,7 @@ export default class SuperClient extends Client {
   readonly _componentListeners = new RandomComponents();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
-  readonly version = PROJECT_VERSION;
+  readonly version = Constants.ProjectVersion;
   readonly commands = commandsMap;
   readonly interactions = interactionsMap;
 

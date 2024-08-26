@@ -32,22 +32,12 @@ import {
   WebhookClient,
   WebhookMessageCreateOptions,
 } from 'discord.js';
-import 'dotenv/config';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import { RemoveMethods } from '../typings/index.js';
 import { deleteConnection, deleteConnections } from './ConnectedList.js';
-import {
-  colors,
-  DeveloperIds,
-  emojis,
-  LINKS,
-  REGEX,
-  StaffIds,
-  SUPPORT_SERVER_ID,
-  SupporterIds,
-} from './Constants.js';
+import Constants, { emojis } from './Constants.js';
 import { CustomID } from './CustomID.js';
 import db from './Db.js';
 import { supportedLocaleCodes, t } from './Locale.js';
@@ -96,7 +86,7 @@ export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
   if (!process.env.TOPGG_API_KEY) throw new TypeError('Missing TOPGG_API_KEY environment variable');
 
   const res = (await (
-    await fetch(`${LINKS.TOPGG_API}/check?userId=${userId}`, {
+    await fetch(`${Constants.Links.TopggApi}/check?userId=${userId}`, {
       method: 'GET',
       headers: {
         Authorization: process.env.TOPGG_API_KEY,
@@ -137,7 +127,7 @@ const findExistingWebhook = async (
 
 export const getOrCreateWebhook = async (
   channel: NewsChannel | TextChannel | ThreadChannel,
-  avatar = LINKS.EASTER_AVATAR,
+  avatar = Constants.Links.EasterAvatar,
 ) => {
   const channelOrParent =
     channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement
@@ -150,10 +140,14 @@ export const getOrCreateWebhook = async (
   return existingWebhook || (await createWebhook(channelOrParent, avatar));
 };
 
-export const getCredits = () => [...DeveloperIds, ...StaffIds, ...SupporterIds];
+export const getCredits = () => [
+  ...Constants.DeveloperIds,
+  ...Constants.StaffIds,
+  ...Constants.SupporterIds,
+];
 
 export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
-  const staffMembers = [...DeveloperIds, ...(onlyCheckForDev ? [] : StaffIds)];
+  const staffMembers = [...Constants.DeveloperIds, ...(onlyCheckForDev ? [] : Constants.StaffIds)];
   return staffMembers.includes(userId);
 };
 
@@ -237,7 +231,7 @@ export const deleteHubs = async (ids: string[]) => {
 };
 
 export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') =>
-  string.replaceAll(REGEX.LINKS, replaceText);
+  string.replaceAll(Constants.Regex.Links, replaceText);
 
 export const simpleEmbed = (
   description: string,
@@ -245,7 +239,7 @@ export const simpleEmbed = (
 ) =>
   new EmbedBuilder()
     .setTitle(opts?.title ?? null)
-    .setColor(opts?.color ?? colors.invisible)
+    .setColor(opts?.color ?? Constants.Colors.invisible)
     .setDescription(description.toString());
 
 export const calculateAverageRating = (ratings: number[]): number => {
@@ -259,7 +253,7 @@ export const calculateAverageRating = (ratings: number[]): number => {
 type ImgurResponse = { data: { link: string; nsfw: boolean; cover: string } };
 
 export const checkAndFetchImgurUrl = async (url: string): Promise<string | false> => {
-  const regex = REGEX.IMGUR_LINKS;
+  const regex = Constants.Regex.ImgurLinks;
   const match = url.match(regex);
 
   if (!match?.[1]) return false;
@@ -294,7 +288,7 @@ export const channelMention = (channelId: Snowflake | null | undefined) => {
 const genCommandErrMsg = (locale: supportedLocaleCodes, errorId: string) =>
   t(
     { phrase: 'errors.commandError', locale },
-    { errorId, emoji: emojis.no, support_invite: LINKS.SUPPORT_INVITE },
+    { errorId, emoji: emojis.no, support_invite: Constants.Links.SupportInvite },
   );
 
 export const getReplyMethod = (
@@ -341,13 +335,13 @@ export const handleError = (e: Error, interaction?: Interaction) => {
   if (interaction?.isRepliable()) sendErrorEmbed(interaction, errorId).catch(Logger.error);
 };
 
-export const isDev = (userId: Snowflake) => DeveloperIds.includes(userId);
+export const isDev = (userId: Snowflake) => Constants.DeveloperIds.includes(userId);
 
 export const escapeRegexChars = (input: string): string =>
   input.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
 
 export const parseEmoji = (emoji: string) => {
-  const match = emoji.match(REGEX.EMOJI);
+  const match = emoji.match(Constants.Regex.Emoji);
   if (!match) return null;
 
   const [, animated, name, id] = match;
@@ -391,7 +385,7 @@ export const modifyUserRole = async (
   {
     userId,
     roleId,
-    guildId = SUPPORT_SERVER_ID,
+    guildId = Constants.SupportServerId,
   }: { userId: Snowflake; roleId: Snowflake; guildId?: Snowflake },
 ) => {
   await cluster.broadcastEval(
@@ -452,11 +446,11 @@ export const getAttachmentURL = async (string: string) => {
   if (!process.env.TENOR_KEY) throw new TypeError('Tenor API key not found in .env file.');
 
   // Image URLs
-  const URLMatch = string.match(REGEX.STATIC_IMAGE_URL);
+  const URLMatch = string.match(Constants.Regex.StaticImageUrl);
   if (URLMatch) return URLMatch[0];
 
   // Tenor Gifs
-  const gifMatch = string.match(REGEX.TENOR_LINKS);
+  const gifMatch = string.match(Constants.Regex.TenorLinks);
   if (!gifMatch) return null;
 
   try {
@@ -536,7 +530,6 @@ export const greyOutButton = (row: ActionRowBuilder<ButtonBuilder>, disableEleme
 export const greyOutButtons = (rows: ActionRowBuilder<ButtonBuilder>[]) => {
   rows.forEach((row) => row.components.forEach((c) => c.setDisabled(true)));
 };
-
 
 export const generateJumpButton = (
   referredAuthorUsername: string,

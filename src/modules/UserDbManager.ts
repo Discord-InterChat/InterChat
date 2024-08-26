@@ -5,13 +5,12 @@ import { logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { supportedLocaleCodes } from '#main/utils/Locale.js';
 import { Prisma, userData } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
+import Constants from '#main/utils/Constants.js';
 
 export default class UserDbManager extends BaseBlacklistManager<userData> {
   protected modelName: Prisma.ModelName = 'userData';
 
-  private serializeBlacklist(
-    blacklist: ConvertDatesToString<userData>,
-  ): userData {
+  private serializeBlacklist(blacklist: ConvertDatesToString<userData>): userData {
     return {
       ...blacklist,
       lastVoted: blacklist.lastVoted ? new Date(blacklist.lastVoted) : null,
@@ -24,7 +23,7 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
 
   async getUser(id: Snowflake): Promise<userData> {
     const results = await getCachedData(
-      `userData:${id}`,
+      `${Constants.RedisKeys.userData}:${id}`,
       async () => await db.userData.findFirst({ where: { id } }),
     );
 
