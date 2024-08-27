@@ -4,13 +4,9 @@ We welcome contributions to InterChat! Whether you're fixing bugs, adding new fe
 
 ## Getting Started
 
-1. **Fork the Repository:** Click on the "Fork" button in the top-right corner of this page.
-2. **Clone Your Fork:** Use `git clone` to clone your forked repository to your local machine.
-3. **Create a Branch:** It's good practice to create a new branch for each feature or bug fix:
+Start by deciding *what* you’d like to contribute. A good place to begin is by browsing our [Issues](https://github.com/Discord-InterChat/InterChat/issues). Select one that aligns with your interests and skills.
 
-   ```sh
-   git checkout -b feature/new-feature
-   ```
+Once you've chosen an issue, make your changes and submit a pull request for review. For more details on this process, refer to [GitHub’s contributing guide](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project).
 
 ## Making Changes
 
@@ -29,7 +25,7 @@ We welcome contributions to InterChat! Whether you're fixing bugs, adding new fe
   - `test`: adding missing tests, refactoring tests; no production code change
   - `chore`: updating grunt tasks etc; no production code change
 
-### Commitizen Friendly
+#### Commitizen Friendly
 
   To make our lives easier by not having to remember the commit messages at all times, this repository is [commitizen](https://www.npmjs.com/package/commitizen) friendly! Commitizen is a commandline tool that guides you through the process of choosing your desired commit type.
 
@@ -73,6 +69,6 @@ If you encounter any issues or bugs, please report them by creating a new issue 
 
 ## Community
 
-Join our [Discord server](https://interchat.fun/support) to connect with other contributors and discuss the project. Be respectful and follow the community guidelines.
+Join our [Discord server](https://interchat.fun/support) to connect with other contributors and discuss the project. Please be respectful and follow our community guidelines.
 
 Thank you for contributing to InterChat!
