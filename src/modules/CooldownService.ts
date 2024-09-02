@@ -1,10 +1,10 @@
 import cacheClient from '#main/utils/cache/cacheClient.js';
-import Constants from '#main/utils/Constants.js';
+import { RedisKeys } from '#main/utils/Constants.js';
 
 /** Manage and store individual cooldowns */
 export default class CooldownService {
   private getKey(id: string) {
-    return `${Constants.RedisKeys.cooldown}:${id}`;
+    return `${RedisKeys.cooldown}:${id}`;
   }
   /**
    * Set a cooldown

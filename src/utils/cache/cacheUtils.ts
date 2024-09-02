@@ -1,7 +1,7 @@
 import cacheClient from '#main/utils/cache/cacheClient.js';
+import { RedisKeys } from '#main/utils/Constants.js';
 import { Prisma } from '@prisma/client';
 import Logger from '../Logger.js';
-import Constants from '#main/utils/Constants.js';
 
 // TODO: make this into a class
 
@@ -62,7 +62,7 @@ export const getAllDocuments = async (match: string) => {
 };
 
 export const getCachedData = async <T extends object>(
-  key: `${keyof typeof Constants.RedisKeys}:${string}`,
+  key: `${RedisKeys}:${string}`,
   fetchFunction: () => Promise<T | null>,
   expiry?: number,
 ) => {
