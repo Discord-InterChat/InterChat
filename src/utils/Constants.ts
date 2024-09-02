@@ -6,7 +6,22 @@ import badwordsType from './JSON/profanity.json';
 // create a require as ESM doesn't support importing JSON
 const require = createRequire(import.meta.url);
 export const { slurs, profanity } = require('./JSON/profanity.json') as typeof badwordsType;
-export const { normal: emojis, mascot: mascotEmojis, badge: badgeEmojis } = require('./JSON/emojis.json') as typeof jsonEmotes;
+export const {
+  normal: emojis,
+  mascot: mascotEmojis,
+  badge: badgeEmojis,
+} = require('./JSON/emojis.json') as typeof jsonEmotes;
+
+export enum RedisKeys {
+  msgTimestamp = 'msgTimestamp',
+  lastActive = 'lastActive',
+  connection = 'connection',
+  hubConnections = 'hubConnections',
+  userData = 'userData',
+  cooldown = 'cooldown',
+  blacklistedServers = 'blacklistedServers',
+  channelQueue = 'channelQueue',
+}
 
 export default {
   isDevBuild: process.env.NODE_ENV === 'development',
@@ -14,7 +29,6 @@ export default {
   StaffIds: ['442653948630007808', '885241933927161896', '597265261665714186'] as Snowflake[],
   DeveloperIds: ['828492978716409856', '701727675311587358', '456961943505338369'] as Snowflake[],
   SupporterIds: ['880978672037802014'] as Snowflake[],
-
 
   ProjectVersion: require('../../package.json').version ?? 'Unknown',
   SupportServerId: '770256165300338709',
@@ -29,7 +43,7 @@ export default {
     Links: /https?:\/\/(?!tenor\.com|giphy\.com)\S+/g,
     /** matches imgur urls */
     ImgurLinks:
-    /(?:https?:\/\/)?(?:www\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?/i,
+      /(?:https?:\/\/)?(?:www\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?/i,
     /** matches profanity words */
     Profanity: new RegExp(profanity.map((word) => `\\b${word}\\b`).join('|'), 'gi'),
     /** matches slurs */
@@ -101,14 +115,5 @@ export default {
     interchatBlue: '#58b9ff' as HexColorString,
     invisible: '#2b2d31' as HexColorString,
     christmas: ['#00B32C', '#D6001C', '#FFFFFF'] as HexColorString[],
-  },
-
-  RedisKeys: {
-    msgTimestamp: 'msgTimestamp',
-    lastActive: 'lastActive',
-    connection: 'connection',
-    hubConnections: 'hubConnections',
-    userData: 'userData',
-    cooldown: 'cooldown',
   },
 } as const;

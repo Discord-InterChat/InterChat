@@ -4,7 +4,7 @@ import { WebhookPayload } from '@top-gg/sdk';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { WebhookClient, userMention, EmbedBuilder } from 'discord.js';
-import Constants, { badgeEmojis } from '../utils/Constants.js';
+import Constants, { badgeEmojis, RedisKeys } from '../utils/Constants.js';
 import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
 import EventEmitter from 'events';
 import { getCachedData } from '#main/utils/cache/cacheUtils.js';
@@ -45,7 +45,7 @@ export class VoteManager extends EventEmitter {
 
   async getDbUser(id: string) {
     return (await getCachedData(
-      `${Constants.RedisKeys.userData}:${id}`,
+      `${RedisKeys.userData}:${id}`,
       async () => await db.userData.findFirst({ where: { id } }),
     )).data;
   }
