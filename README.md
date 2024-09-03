@@ -1,4 +1,4 @@
-<p align="center"><img src="https://i.imgur.com/MZiw1Yp.png" alt="interchat logo" width="150px"/></p>
+<p align="center"><img src="https://github.com/user-attachments/assets/33f68c3a-67bc-4653-8578-2ab350ac3a75" alt="interchat logo" style="border-radius: 50%; width: 200px; height: 200px;"></p>
 
 <p align="center"><strong>InterChat</strong></p>
 
@@ -7,24 +7,24 @@
 
 This repo contains the source code for the InterChat Discord bot. InterChat is a Discord bot that allows you to chat with users from other servers.
 
-# ❗Contributors Needed ❗
+## ❗Contributors Needed ❗
 
 InterChat is an open-source project that connects communities across Discord servers. We're on the lookout for passionate contributors to help us take this project to the next level!
 
-## How You Can Help
+### How You Can Help
 
 - **Feature Development:** Help us build new features that make cross-server communication even more seamless.
 - **Bug Fixes:** Assist in identifying and squashing bugs to enhance stability and performance.
 - **Documentation:** Improve our documentation to make it easier for others to get involved and use InterChat.
 - **Testing:** Contribute to testing new features and updates, ensuring everything works smoothly.
 
-## I'm Interested! Where do I begin?
+### I'm Interested! Where do I begin?
 
 - Explore our [good first issues](https://github.com/Discord-InterChat/InterChat/contribute) to tackle beginner-friendly tasks or bug fixes.
 - Or browse through all our [issues](https://github.com/Discord-InterChat/InterChat/issues) and pick one that catches your eye!
 - Interested in improving our documentation/guides? Check out our [docs repository](https://github.com/Discord-InterChat/docs) and start contributing!
 
-If you are unsure of the procedures, please refer our [Contributor Guidelines](./CONTRIBUTING.md) page. Thank you!
+Please refer to the [CONTRIBUTING.md](./CONTRIBUTING.md) file for guidelines on how to contribute to this project. Thank you!
 
 # Getting Started
 
