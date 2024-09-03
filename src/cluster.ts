@@ -1,32 +1,22 @@
 import 'dotenv/config';
-import { ClusterManager } from 'discord-hybrid-sharding';
-import { startApi } from './api/index.js';
-import { VoteManager } from './modules/VoteManager.js';
 import Logger from './utils/Logger.js';
 import Scheduler from './modules/SchedulerService.js';
+import Constants from '#main/utils/Constants.js';
 import deleteExpiredInvites from './tasks/deleteExpiredInvites.js';
 import pauseIdleConnections from './tasks/pauseIdleConnections.js';
 import storeMsgTimestamps from './tasks/storeMsgTimestamps.js';
 import syncBotlistStats from './tasks/syncBotlistStats.js';
 import updateBlacklists from './tasks/updateBlacklists.js';
+import { ClusterManager } from 'discord-hybrid-sharding';
+import { startApi } from './api/index.js';
+import { VoteManager } from './modules/VoteManager.js';
 import { getUsername } from './utils/Utils.js';
-import Constants from '#main/utils/Constants.js';
 
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.TOKEN,
   shardsPerClusters: 5,
   totalClusters: 'auto',
 });
-
-const voteManager = new VoteManager(clusterManager);
-voteManager.on('vote', async (vote) => {
-  const username = (await getUsername(clusterManager, vote.user)) ?? undefined;
-  await voteManager.incrementUserVote(vote.user, username);
-  await voteManager.addVoterRole(vote.user);
-  await voteManager.announceVote(vote);
-});
-
-startApi({ voteManager });
 
 // spawn clusters and start the api that handles nsfw filter and votes
 clusterManager
@@ -62,3 +52,16 @@ clusterManager
     );
   })
   .catch(Logger.error);
+
+const voteManager = new VoteManager(clusterManager);
+voteManager.on('vote', async (vote) => {
+  if (vote.type === 'upvote') {
+    const username = (await getUsername(clusterManager, vote.user)) ?? undefined;
+    await voteManager.incrementUserVote(vote.user, username);
+    await voteManager.addVoterRole(vote.user);
+  }
+
+  await voteManager.announceVote(vote);
+});
+
+startApi(voteManager);

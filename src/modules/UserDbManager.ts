@@ -1,14 +1,14 @@
-import db from '#main/utils/Db.js';
 import BaseBlacklistManager from '#main/core/BaseBlacklistManager.js';
 import { getCachedData } from '#main/utils/cache/cacheUtils.js';
+import { RedisKeys } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
 import { logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { supportedLocaleCodes } from '#main/utils/Locale.js';
-import { Prisma, userData } from '@prisma/client';
+import { userData } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
-import Constants from '#main/utils/Constants.js';
 
 export default class UserDbManager extends BaseBlacklistManager<userData> {
-  protected modelName: Prisma.ModelName = 'userData';
+  protected modelName = 'userData' as const;
 
   private serializeBlacklist(blacklist: ConvertDatesToString<userData>): userData {
     return {
@@ -23,7 +23,7 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
 
   async getUser(id: Snowflake): Promise<userData> {
     const results = await getCachedData(
-      `${Constants.RedisKeys.userData}:${id}`,
+      `${RedisKeys.userData}:${id}`,
       async () => await db.userData.findFirst({ where: { id } }),
     );
 

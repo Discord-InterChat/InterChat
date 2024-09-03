@@ -6,17 +6,19 @@ export declare type predictionType = {
 };
 /**
  * Analyze an image URL and return the predictions
- * @param imageUrl The image URL
+ * @param imageURL The image URL
  * @returns The predictions object
  */
-export const analyzeImageForNSFW = async (imageUrl: string): Promise<predictionType[] | null> => {
+export const analyzeImageForNSFW = async (imageURL: string): Promise<predictionType[] | null> => {
   const res = await fetch(`http://localhost:${process.env.PORT}/nsfw`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ imageUrl }),
+    body: JSON.stringify({ imageURL }),
   });
 
-  return res.status === 200 ? await res.json() : null;
+  const data = await res.json();
+  if (res.status !== 200) throw new Error(`Failed to analyze image: ${data.message}`);
+  return data.predictions;
 };
 
 /**
@@ -28,5 +30,6 @@ export const isUnsafeImage = (predictions: predictionType[]): boolean => {
   const safeCategories = ['Neutral', 'Drawing'];
 
   const [topPrediction] = predictions;
-  return !safeCategories.includes(topPrediction.className) && topPrediction.probability > 0.7;
+  const res = !safeCategories.includes(topPrediction.className) && topPrediction.probability >= 0.7;
+  return res;
 };

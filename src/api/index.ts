@@ -1,18 +1,20 @@
+import dblRouter from '#main/api/routes/dbl.js';
+import nsfwRouter from '#main/api/routes/nsfw.js';
 import { VoteManager } from '#main/modules/VoteManager.js';
 import Logger from '#main/utils/Logger.js';
 import express from 'express';
-import dblRoute from './routes/dbl.js';
-import nsfwRouter from './routes/nsfw.js';
 
-// to start the server
-export const startApi = (data: { voteManager: VoteManager }) => {
-  const app = express();
+const app = express();
 
+export const startApi = (voteManager: VoteManager) => {
   app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(dblRouter(voteManager));
   app.use(nsfwRouter);
-  if (data.voteManager) app.use(dblRoute(data.voteManager));
 
-  const port = process.env.PORT;
-  app.listen(port, () => Logger.info(`API listening on http://localhost:${port}.`));
+  app.get('/', (req, res) => res.redirect('https://interchat.fun'));
+
+  // run da server
+  app.listen(process.env.PORT, () =>
+    Logger.info(`API listening on http://localhost:${process.env.PORT}`),
+  );
 };

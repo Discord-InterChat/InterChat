@@ -3,11 +3,11 @@ import { getHubConnections } from '#main/utils/ConnectedList.js';
 import db from '#main/utils/Db.js';
 import { getCachedData } from '#main/utils/cache/cacheUtils.js';
 import { logServerUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
-import { blacklistedServers, hubBlacklist, Prisma } from '@prisma/client';
+import { blacklistedServers, hubBlacklist } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
 
 export default class ServerBlacklisManager extends BaseBlacklistManager<blacklistedServers> {
-  protected modelName: Prisma.ModelName = 'blacklistedServers';
+  protected modelName = 'blacklistedServers' as const;
 
   private serializeBlacklist(
     blacklist: ConvertDatesToString<blacklistedServers>,

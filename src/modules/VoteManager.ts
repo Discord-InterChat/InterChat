@@ -1,20 +1,21 @@
-import db from '../utils/Db.js';
-import Scheduler from './SchedulerService.js';
-import { WebhookPayload } from '@top-gg/sdk';
+import type { WebhookPayload } from '#main/typings/topgg.d.ts';
+import { getCachedData } from '#main/utils/cache/cacheUtils.js';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';
-import { WebhookClient, userMention, EmbedBuilder } from 'discord.js';
-import Constants, { badgeEmojis } from '../utils/Constants.js';
-import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
+import { EmbedBuilder, time, userMention, WebhookClient } from 'discord.js';
 import EventEmitter from 'events';
-import { getCachedData } from '#main/utils/cache/cacheUtils.js';
+import Constants, { emojis, RedisKeys } from '../utils/Constants.js';
+import db from '../utils/Db.js';
+import { getOrdinalSuffix, getUsername, modifyUserRole } from '../utils/Utils.js';
+import Scheduler from './SchedulerService.js';
+import parse from 'parse-duration';
 
 export type TopggEvents = {
-  vote: WebhookPayload;
-  voteExpired: string;
+  vote: WebhookPayload[];
+  voteExpired: string[];
 };
 
-export class VoteManager extends EventEmitter {
+export class VoteManager extends EventEmitter<TopggEvents> {
   private scheduler: Scheduler;
   private cluster: ClusterManager;
 
@@ -31,23 +32,13 @@ export class VoteManager extends EventEmitter {
     });
   }
 
-  on<K extends keyof TopggEvents>(event: K, listener: (data: TopggEvents[K]) => void): this {
-    return super.on(event, listener);
-  }
-
-  emit<K extends keyof TopggEvents>(event: K, data: TopggEvents[K]): boolean {
-    return super.emit(event, data);
-  }
-
-  once<K extends keyof TopggEvents>(event: K, listener: (data: TopggEvents[K]) => void): this {
-    return super.once(event, listener);
-  }
-
   async getDbUser(id: string) {
-    return (await getCachedData(
-      `${Constants.RedisKeys.userData}:${id}`,
-      async () => await db.userData.findFirst({ where: { id } }),
-    )).data;
+    return (
+      await getCachedData(
+        `${RedisKeys.userData}:${id}`,
+        async () => await db.userData.findFirst({ where: { id } }),
+      )
+    ).data;
   }
 
   async getUserVoteCount(id: string) {
@@ -74,7 +65,10 @@ export class VoteManager extends EventEmitter {
     const username =
       (await getUsername(this.cluster, vote.user)) ??
       (await this.getDbUser(vote.user))?.username ??
-      userMentionStr;
+      'Unknown User';
+
+    const isTestVote = vote.type === 'test';
+    const timeUntilNextVote = time(new Date(Date.now() + (parse('12h') ?? 0)), 'R');
 
     await webhook.send({
       content: `${userMentionStr} (**${username}**)`,
@@ -82,13 +76,14 @@ export class VoteManager extends EventEmitter {
         new EmbedBuilder()
           .setDescription(
             stripIndents`
-            ### ${badgeEmojis.Voter} Thank you for voting!
+            ### ${emojis.topggSparkles} Thank you for voting!
               
-            You can vote again on [top.gg](${Constants.Links.Vote}) in 12 hours!
+            You can vote again on [top.gg](${Constants.Links.Vote}) ${timeUntilNextVote}!
+
+            -# ${isTestVote ? '⚠️ This is a test vote.' : `${emojis.tada} This is your **${voteCount}${ordinalSuffix}** time voting!`}
             `,
           )
-          .setFooter({ text: `This is your ${voteCount}${ordinalSuffix} time voting!` })
-          .setColor('Green'),
+          .setColor('#FB3265'),
       ],
     });
   }
