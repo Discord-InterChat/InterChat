@@ -20,7 +20,7 @@ const isValidVotePayload = (payload: WebhookPayload) => {
 const router: Router = Router();
 
 export default (voteManager: VoteManager) => {
-  router.post('/dbl', async (req, res) => {
+  router.post('/dbl', (req, res) => {
     const dblHeader = req.header('Authorization');
     if (dblHeader !== process.env.TOPGG_WEBHOOK_SECRET) {
       return res.status(401).json({ message: 'Unauthorized' });
