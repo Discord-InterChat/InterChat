@@ -65,7 +65,7 @@ export const getCachedData = async <T extends object>(
   key: `${RedisKeys}:${string}`,
   fetchFunction: () => Promise<T | null>,
   expiry?: number,
-) => {
+): Promise<{ data: ConvertDatesToString<T> | null; cached: boolean }> => {
   // Check cache first
   let data = serializeCache<T>(await cacheClient.get(key));
 

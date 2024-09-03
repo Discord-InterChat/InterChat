@@ -68,7 +68,6 @@ export const isNSFW = async (imgUrl: string | null | undefined) => {
 
   // run static images through the nsfw detector
   const predictions = await analyzeImageForNSFW(imgUrl);
-
   if (!predictions) return null;
 
   return isUnsafeImage(predictions);
@@ -82,9 +81,9 @@ export const containsLinks = (message: Message, settings: HubSettingsBitField) =
 export const unsupportedAttachment = (message: Message) => {
   const attachment = message.attachments.first();
   // NOTE: Even 'image/gif' was allowed before
-  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+  const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
 
-  return (attachment?.contentType && !allowedTypes.includes(attachment.contentType)) === true;
+  return Boolean(attachment?.contentType && !allowedTypes.includes(attachment.contentType));
 };
 
 export const attachmentTooLarge = (message: Message) => {

@@ -38,7 +38,7 @@ export default {
   Regex: {
     ImageURL: /\bhttps?:\/\/\S+?\.(?:png|jpe?g|gif)(?:\?\S+)?\b/,
     /** no animated images */
-    StaticImageUrl: /\bhttps?:\/\/\S+?\.(?:png|jpe?g)(?:\?\S+)?\b/,
+    StaticImageUrl: /\bhttps?:\/\/\S+?\.(?:png|jpe?g|webp)(?:\?\S+)?\b/,
     /** ignores giphy and tenor */
     Links: /https?:\/\/(?!tenor\.com|giphy\.com)\S+/g,
     /** matches imgur urls */
