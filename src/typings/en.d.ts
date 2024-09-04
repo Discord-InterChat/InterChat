@@ -13,10 +13,12 @@ export type TranslationKeys = {
   'network.onboarding.embed.description': 'docs_link';
   'network.onboarding.embed.footer': 'version';
   'network.onboarding.inProgress': 'emoji' | 'channel';
-  'blacklist.embed.user': never;
+  'blacklist.embed.user': 'emoji';
   'blacklist.embed.userValue': 'user';
-  'blacklist.embed.server': never;
+  'blacklist.embed.userAlreadyBlacklisted': 'user';
+  'blacklist.embed.server': 'emoji';
   'blacklist.embed.serverValue': 'server';
+  'blacklist.embed.serverAlreadyBlacklisted': 'server';
   'blacklist.embed.footer': never;
   'blacklist.modal.reason.label': never;
   'blacklist.modal.reason.placeholder': never;
