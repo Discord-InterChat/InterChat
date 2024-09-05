@@ -98,7 +98,7 @@ export const buildNetworkEmbed = (
 
   const embed = new EmbedBuilder()
     .setImage(opts?.attachmentURL ?? null)
-    .setColor(opts?.embedCol ?? 'Random')
+    .setColor(opts?.embedCol ?? Constants.Colors.invisible)
     .setAuthor({
       name: username,
       iconURL: message.author.displayAvatarURL(),

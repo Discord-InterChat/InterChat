@@ -15,7 +15,7 @@ export const {
 export enum RedisKeys {
   msgTimestamp = 'msgTimestamp',
   lastActive = 'lastActive',
-  connection = 'connection',
+  connectionHubId = 'connectionHubId',
   hubConnections = 'hubConnections',
   userData = 'userData',
   cooldown = 'cooldown',

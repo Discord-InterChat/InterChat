@@ -32,8 +32,18 @@ export function serializeCache<K>(
 export function serializeCache(data: string | (string | null)[] | null) {
   if (!data) return null;
 
-  if (!Array.isArray(data)) return JSON.parse(data);
-  else if (data.length > 0) return data.map((v) => (v ? JSON.parse(v) : undefined)).filter(Boolean);
+  if (!Array.isArray(data)) {
+    try {
+      return JSON.parse(data);
+    }
+    catch {
+      return data;
+    }
+  }
+  else if (data.length > 0) {
+    return data.map((v) => (v ? JSON.parse(v) : undefined)).filter(Boolean);
+  }
+
   return null;
 }
 

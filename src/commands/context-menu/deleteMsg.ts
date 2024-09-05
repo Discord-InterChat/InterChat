@@ -5,7 +5,6 @@ import db from '#main/utils/Db.js';
 import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
 import { isStaffOrHubMod } from '#main/utils/Utils.js';
-import { captureException } from '@sentry/node';
 import {
   ApplicationCommandType,
   MessageContextMenuCommandInteraction,
@@ -120,7 +119,7 @@ export default class DeleteMessage extends BaseCommand {
         serverId: originalMsg.serverId,
         modName: interaction.user.username,
         imageUrl,
-      }).catch(captureException);
+      });
     }
   }
 }
