@@ -71,7 +71,7 @@ export const getAllDocuments = async (match: string) => {
   return result;
 };
 
-export const getCachedData = async <T extends object>(
+export const getCachedData = async <T>(
   key: `${RedisKeys}:${string}`,
   fetchFunction: () => Promise<T | null>,
   expiry?: number,
