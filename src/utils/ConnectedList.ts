@@ -11,7 +11,7 @@ type dataInput = Prisma.connectedListUpdateInput;
 type ConnectionAction = 'create' | 'modify' | 'delete';
 
 const purgeConnectionCache = async (channelId: string) =>
-  await cacheClient.del(`${RedisKeys.connection}:${channelId}`);
+  await cacheClient.del(`${RedisKeys.connectionHubId}:${channelId}`);
 
 const serializeConnection = (connection: ConvertDatesToString<connectedList>) => ({
   ...connection,
@@ -30,7 +30,7 @@ export const getHubConnections = async (hubId: string) => {
       5 * 60, // 5 mins
     )) ?? [];
 
-  return connections.data.map(serializeConnection);
+  return connections.data?.map(serializeConnection) || null;
 };
 
 export const syncHubConnCache = async (connection: connectedList, action: ConnectionAction) => {
@@ -39,7 +39,7 @@ export const syncHubConnCache = async (connection: connectedList, action: Connec
     (
       await getCachedData(
         `${RedisKeys.hubConnections}:${connection.hubId}`,
-        async () => await getHubConnections(connection.hubId),
+        async () => (await getHubConnections(connection.hubId)) || [],
       )
     ).data || []
   ).map(serializeConnection);
@@ -72,35 +72,46 @@ export const syncHubConnCache = async (connection: connectedList, action: Connec
   );
 };
 
-const cacheConnection = async (connection: connectedList) => {
+const cacheConnectionStatus = async (connection: connectedList) => {
   await cacheData(
-    `${RedisKeys.connection}:${connection.channelId}`,
-    connection.channelId,
+    `${RedisKeys.connectionHubId}:${connection.channelId}`,
+    connection.connected ? 't' : 'f',
   );
-  Logger.debug(`Cached connection ${connection.channelId}.`);
+
+  Logger.debug(
+    `Cached connection status for ${connection.channelId}: ${connection.connected ? 'connected' : 'disconnected'}.`,
+  );
 };
 
-export const createConnection = async (data: Prisma.connectedListCreateInput) => {
-  const connection = await db.connectedList.create({ data });
-  cacheConnection(connection);
-  syncHubConnCache(connection, 'create');
+export const getConnection = async (channelId: string) => {
+  const connection = await db.connectedList.findFirst({ where: { channelId } });
+  if (!connection) return null;
+  cacheConnectionStatus(connection);
 
   return connection;
 };
 
-export const getConnection = async (channelId: string) =>
-  (
-    await getCachedData(
-      `${RedisKeys.connection}:${channelId}`,
-      async () => await db.connectedList.findFirst({ where: { channelId } }),
-      5 * 60, // 5 mins
-    )
-  ).data;
+export const getConnectionHubId = async (channelId: string) => {
+  const { data: hubId } = await getCachedData(
+    `${RedisKeys.connectionHubId}:${channelId}`,
+    async () => (await getConnection(channelId))?.hubId,
+  );
+
+  return hubId;
+};
 
 export const deleteConnection = async (where: whereUniuqeInput) => {
   const deleted = await db.connectedList.delete({ where });
   await purgeConnectionCache(deleted.channelId);
   return deleted;
+};
+
+export const createConnection = async (data: Prisma.connectedListCreateInput) => {
+  const connection = await db.connectedList.create({ data });
+  cacheConnectionStatus(connection);
+  syncHubConnCache(connection, 'create');
+
+  return connection;
 };
 
 export const deleteConnections = async (where: whereInput) => {
@@ -127,7 +138,7 @@ export const updateConnection = async (where: whereUniuqeInput, data: dataInput)
   const connection = await db.connectedList.update({ where, data });
 
   // Update cache
-  await cacheConnection(connection);
+  await cacheConnectionStatus(connection);
   await syncHubConnCache(connection, 'modify');
 
   return connection;
@@ -143,7 +154,7 @@ export const updateConnections = async (where: whereInput, data: dataInput) => {
     // repopulate cache
     db.connectedList.findMany({ where }).then((connections) => {
       connections.forEach(async (connection) => {
-        await cacheConnection(connection);
+        await cacheConnectionStatus(connection);
         await syncHubConnCache(connection, 'modify');
       });
     });

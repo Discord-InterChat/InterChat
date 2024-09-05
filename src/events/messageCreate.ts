@@ -10,7 +10,8 @@ import storeMessageData, {
   NetworkWebhookSendResult,
 } from '#main/scripts/network/storeMessageData.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
-import { getConnection, getHubConnections } from '#main/utils/ConnectedList.js';
+import { getConnectionHubId, getHubConnections } from '#main/utils/ConnectedList.js';
+import Constants from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { censor } from '#main/utils/Profanity.js';
 import { generateJumpButton, getAttachmentURL, isHumanMessage } from '#main/utils/Utils.js';
@@ -62,17 +63,11 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   async execute(message: Message) {
     if (!message.inGuild() || !isHumanMessage(message)) return;
 
-    // check if the message was sent in a network channel
-    const connection = await getConnection(message.channelId);
-    if (!connection?.connected) return;
+    const { connection, hubConnections } = await this.getConnectionAndHubConnections(message);
+    if (!connection || !hubConnections) return;
 
     const hub = await db.hubs.findFirst({ where: { id: connection.hubId } });
-    const hubConnections = (await getHubConnections(connection.hubId))?.filter(
-      // ignore current channel from broadcasting list
-      (c) => c.connected && c.channelId !== connection.channelId,
-    );
-
-    if (!hub || hubConnections.length < 1) return;
+    if (!hub) return;
 
     const settings = new HubSettingsBitField(hub.settings);
     const attachmentURL = await this.resolveAttachmentURL(message);
@@ -179,6 +174,20 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     return results;
   }
 
+  private async getConnectionAndHubConnections(message: Message) {
+    // check if the message was sent in a network channel
+    const connectionHubId = await getConnectionHubId(message.channelId);
+    if (!connectionHubId) return {};
+
+    const hubConnections = await getHubConnections(connectionHubId);
+    const connection = hubConnections?.find(({ channelId }) => channelId === message.channelId);
+
+    return {
+      connection,
+      hubConnections: hubConnections?.filter((c) => c.channelId !== message.channelId),
+    };
+  }
+
   private getUsername(settings: HubSettingsBitField, message: Message<true>): string {
     return trimAndCensorBannedWebhookWords(
       settings.has('UseNicknames')
@@ -223,7 +232,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
             name: referredAuthorName,
             iconURL: opts.referredAuthor?.displayAvatarURL(),
           })
-          .setColor('Random'),
+          .setColor(Constants.Colors.invisible),
       ]
       : undefined;
 

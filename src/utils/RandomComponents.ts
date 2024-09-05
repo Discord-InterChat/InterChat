@@ -13,8 +13,8 @@ import {
   time,
 } from 'discord.js';
 import { HubSettingsBitField } from './BitFields.js';
-import { updateConnection } from './ConnectedList.js';
-import { emojis } from './Constants.js';
+import { getConnection, updateConnection } from './ConnectedList.js';
+import Constants, { emojis } from './Constants.js';
 import { CustomID } from './CustomID.js';
 import db from './Db.js';
 import { t } from './Locale.js';
@@ -122,7 +122,7 @@ export class RandomComponents {
           __${totalReactions}__
       `,
         )
-        .setColor('Random');
+        .setColor(Constants.Colors.invisible);
 
       await interaction.followUp({
         embeds: [embed],
@@ -203,6 +203,18 @@ export class RandomComponents {
   async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [channelId] = customId.args;
+
+    const connection = await getConnection(channelId);
+    if (!connection) {
+      const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+      await interaction.reply({
+        embeds: [
+          simpleEmbed(t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no })),
+        ],
+        ephemeral: true,
+      });
+      return;
+    }
 
     await updateConnection({ channelId }, { connected: true });
 
