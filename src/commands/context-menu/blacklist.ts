@@ -125,10 +125,11 @@ export default class Blacklist extends BaseCommand {
   async handleButtons(interaction: MessageComponentInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     if (customId.prefix !== 'blacklist') return;
+    const [userId, originalMsgId] = customId.args;
 
     const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
 
-    if (interaction.user.id !== interaction.user.id) {
+    if (interaction.user.id !== userId) {
       await this.replyEmbed(
         interaction,
         t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }),
@@ -137,7 +138,6 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
-    const originalMsgId = customId.args[1];
     const modal = new ModalBuilder()
       .setTitle('Blacklist')
       .setCustomId(
