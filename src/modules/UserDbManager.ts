@@ -21,16 +21,16 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
     };
   }
 
-  async getUser(id: Snowflake): Promise<userData> {
+  async getUser(id: Snowflake): Promise<userData | null> {
     const results = await getCachedData(
       `${RedisKeys.userData}:${id}`,
       async () => await db.userData.findFirst({ where: { id } }),
     );
 
-    const dbUser = this.serializeBlacklist(results.data);
+    if (!results.data) return null;
+    if (!results.cached) this.addToCache(results.data);
 
-    if (results.data && !results.cached) this.addToCache(results.data);
-    return dbUser;
+    return this.serializeBlacklist(results.data);
   }
 
   async getUserLocale(userOrId: string | userData | null | undefined) {
