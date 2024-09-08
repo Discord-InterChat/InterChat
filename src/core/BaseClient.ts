@@ -70,7 +70,7 @@ export default class SuperClient extends Client {
         GatewayIntentBits.GuildWebhooks,
       ],
       presence: {
-        status: 'invisible',
+        status: 'online',
         activities: [
           {
             state: '🔗 Watching over 700+ cross-server chats',

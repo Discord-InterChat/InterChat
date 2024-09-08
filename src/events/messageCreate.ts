@@ -5,57 +5,22 @@ import {
   getReferredMsgData,
   trimAndCensorBannedWebhookWords,
 } from '#main/scripts/network/helpers.js';
+import {
+  BroadcastOpts,
+  getCompactMessageFormat,
+  getEmbedMessageFormat,
+} from '#main/scripts/network/messageFormatters.js';
 import { runChecks } from '#main/scripts/network/runChecks.js';
 import storeMessageData, {
   NetworkWebhookSendResult,
 } from '#main/scripts/network/storeMessageData.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
 import { getConnectionHubId, getHubConnections } from '#main/utils/ConnectedList.js';
-import Constants from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { censor } from '#main/utils/Profanity.js';
 import { generateJumpButton, getAttachmentURL, isHumanMessage } from '#main/utils/Utils.js';
-import { broadcastedMessages, connectedList, hubs, originalMessages } from '@prisma/client';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  EmbedBuilder,
-  HexColorString,
-  Message,
-  User,
-  WebhookClient,
-  WebhookMessageCreateOptions,
-} from 'discord.js';
-
-type BroadcastOpts = {
-  embedColor?: HexColorString | null;
-  attachmentURL?: string | null;
-  referredMessage: Message | null;
-  dbReferrence: (originalMessages & { broadcastMsgs: broadcastedMessages[] }) | null;
-  referredAuthor: User | null;
-};
-
-type CompactFormatOpts = {
-  servername: string;
-  referredAuthorName: string;
-  totalAttachments: number;
-  author: {
-    username: string;
-    avatarURL: string;
-  };
-  contents: {
-    normal: string;
-    censored: string;
-    referred: string | undefined;
-  };
-  jumpButton?: ActionRowBuilder<ButtonBuilder>[];
-};
-
-type EmbedFormatOpts = {
-  hub: hubs;
-  embeds: { normal: EmbedBuilder; censored: EmbedBuilder };
-  jumpButton?: ActionRowBuilder<ButtonBuilder>[];
-};
+import { connectedList, hubs } from '@prisma/client';
+import { HexColorString, Message, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
@@ -144,7 +109,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
             : undefined;
 
           const messageFormat = connection.compact
-            ? this.getCompactMessageFormat(connection, opts, {
+            ? getCompactMessageFormat(connection, opts, {
               servername: trimAndCensorBannedWebhookWords(message.guild.name),
               referredAuthorName: opts.referredAuthor?.username.slice(0, 30) ?? 'Unknown User',
               totalAttachments: message.attachments.size,
@@ -156,8 +121,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
               author,
               jumpButton,
             })
-            : this.getEmbedMessageFormat(connection, {
-              hub,
+            : getEmbedMessageFormat(connection, hub, {
               jumpButton,
               embeds: { normal: embed, censored: censoredEmbed },
             });
@@ -194,61 +158,6 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
         ? (message.member?.displayName ?? message.author.displayName)
         : message.author.username,
     );
-  }
-
-  private getEmbedMessageFormat(
-    connection: connectedList,
-    { hub, embeds, jumpButton }: EmbedFormatOpts,
-  ): WebhookMessageCreateOptions {
-    return {
-      components: jumpButton,
-      embeds: [connection.profFilter ? embeds.censored : embeds.normal],
-      username: `${hub.name}`,
-      avatarURL: hub.iconUrl,
-      threadId: connection.parentId ? connection.channelId : undefined,
-      allowedMentions: { parse: [] },
-    };
-  }
-
-  private getCompactMessageFormat(
-    connection: connectedList,
-    opts: BroadcastOpts,
-    {
-      author,
-      contents,
-      servername,
-      jumpButton,
-      totalAttachments,
-      referredAuthorName,
-    }: CompactFormatOpts,
-  ): WebhookMessageCreateOptions {
-    const replyContent =
-      connection.profFilter && contents.referred ? censor(contents.referred) : contents.referred;
-    const replyEmbed = replyContent
-      ? [
-        new EmbedBuilder()
-          .setDescription(replyContent)
-          .setAuthor({
-            name: referredAuthorName,
-            iconURL: opts.referredAuthor?.displayAvatarURL(),
-          })
-          .setColor(Constants.Colors.invisible),
-      ]
-      : undefined;
-
-    // compact mode doesn't need new attachment url for tenor and direct image links
-    // we can just slap them right in the content without any problems
-    const attachmentUrlNeeded = totalAttachments > 0;
-
-    return {
-      username: `@${author.username} • ${servername}`,
-      avatarURL: author.avatarURL,
-      embeds: replyEmbed,
-      components: jumpButton,
-      content: `${connection.profFilter ? contents.censored : contents.normal} ${attachmentUrlNeeded ? `\n[.](${opts.attachmentURL})` : ''}`,
-      threadId: connection.parentId ? connection.channelId : undefined,
-      allowedMentions: { parse: [] },
-    };
   }
 
   private async sendMessage(webhookUrl: string, data: WebhookMessageCreateOptions) {

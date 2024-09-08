@@ -13,15 +13,12 @@ import { EmbedBuilder, Message } from 'discord.js';
 import { runAntiSpam } from './antiSpam.js';
 
 // if account is created within the last 7 days
-export const isNewUser = (message: Message) => {
+const isNewUser = (message: Message) => {
   const sevenDaysAgo = Date.now() - (1000 * 60 * 60 * 24 * 7);
   return message.author.createdTimestamp > sevenDaysAgo;
 };
 
-export const replyToMsg = async (
-  message: Message,
-  opts: { content?: string; embed?: EmbedBuilder },
-) => {
+const replyToMsg = async (message: Message, opts: { content?: string; embed?: EmbedBuilder }) => {
   const embeds = opts.embed ? [opts.embed] : [];
 
   const reply = await message.reply({ content: opts.content, embeds }).catch(() => null);
@@ -32,13 +29,9 @@ export const replyToMsg = async (
   }
 };
 
-export const containsStickers = (message: Message) => message.stickers.size > 0 && !message.content;
+const containsStickers = (message: Message) => message.stickers.size > 0 && !message.content;
 
-export const isCaughtSpam = async (
-  message: Message,
-  settings: HubSettingsBitField,
-  hubId: string,
-) => {
+const isCaughtSpam = async (message: Message, settings: HubSettingsBitField, hubId: string) => {
   const antiSpamResult = runAntiSpam(message.author, 3);
   if (!antiSpamResult) return false;
 
@@ -63,8 +56,9 @@ export const isCaughtSpam = async (
   return true;
 };
 
-export const isNSFW = async (imgUrl: string | null | undefined) => {
-  if (!imgUrl) return null;
+const isStaticAttachmentURL = (imgUrl: string) => Constants.Regex.StaticImageUrl.test(imgUrl);
+const isNSFW = async (imgUrl: string | null | undefined) => {
+  if (!imgUrl || !isStaticAttachmentURL(imgUrl)) return null;
 
   // run static images through the nsfw detector
   const predictions = await analyzeImageForNSFW(imgUrl);
@@ -73,12 +67,12 @@ export const isNSFW = async (imgUrl: string | null | undefined) => {
   return isUnsafeImage(predictions);
 };
 
-export const containsLinks = (message: Message, settings: HubSettingsBitField) =>
+const containsLinks = (message: Message, settings: HubSettingsBitField) =>
   settings.has('HideLinks') &&
   !Constants.Regex.StaticImageUrl.test(message.content) &&
   Constants.Regex.Links.test(message.content);
 
-export const unsupportedAttachment = (message: Message) => {
+const unsupportedAttachment = (message: Message) => {
   const attachment = message.attachments.first();
   // NOTE: Even 'image/gif' was allowed before
   const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
@@ -86,7 +80,7 @@ export const unsupportedAttachment = (message: Message) => {
   return Boolean(attachment?.contentType && !allowedTypes.includes(attachment.contentType));
 };
 
-export const attachmentTooLarge = (message: Message) => {
+const attachmentTooLarge = (message: Message) => {
   const attachment = message.attachments.first();
   return (attachment && attachment.size > 1024 * 1024 * 8) === true;
 };

@@ -73,10 +73,12 @@ export const syncHubConnCache = async (connection: connectedList, action: Connec
 };
 
 const cacheConnectionStatus = async (connection: connectedList) => {
-  await cacheData(
-    `${RedisKeys.connectionHubId}:${connection.channelId}`,
-    connection.connected ? 't' : 'f',
-  );
+  if (!connection.connected) {
+    await cacheClient.del(`${RedisKeys.connectionHubId}:${connection.channelId}`);
+  }
+  else {
+    await cacheData(`${RedisKeys.connectionHubId}:${connection.channelId}`, connection.hubId);
+  }
 
   Logger.debug(
     `Cached connection status for ${connection.channelId}: ${connection.connected ? 'connected' : 'disconnected'}.`,
