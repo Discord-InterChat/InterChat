@@ -141,5 +141,6 @@ model userData {
   banMeta              userBan?
   blacklistedFrom      hubBlacklist[]
   // if user has seen the welcome message when they first use the network
+  mentionOnReply       Boolean?       @default(false)
   viewedNetworkWelcome Boolean        @default(false)
 }

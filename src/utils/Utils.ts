@@ -443,7 +443,6 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
  * @returns The URL of the attachment, or null if no attachment is found.
  */
 export const getAttachmentURL = async (string: string) => {
-
   // Image URLs
   const URLMatch = string.match(Constants.Regex.StaticImageUrl);
   if (URLMatch) return URLMatch[0];

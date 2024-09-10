@@ -89,7 +89,7 @@ export default class MessageInfo extends BaseCommand {
       )
       .setColor('Random');
 
-    const expiry = new Date(Date.now() + (5 * 60 * 1000)); // 5 minutes
+    const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
     const components = this.buildButtons(expiry, locale);
     const guildConnected = (await getHubConnections(originalMsg.hub.id))?.find(
       (c) => c.connected && c.serverId === originalMsg.serverId,

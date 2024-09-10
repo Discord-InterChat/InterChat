@@ -6,7 +6,9 @@ const logPostError = (error: unknown) => {
 };
 
 const logPostSuccess = (data: TopggStats) => {
-  Logger.info(`[TopGGPostStats]: Updated top.gg stats with ${data.serverCount} guilds and ${data.shardCount} shards`);
+  Logger.info(
+    `[TopGGPostStats]: Updated top.gg stats with ${data.serverCount} guilds and ${data.shardCount} shards`,
+  );
 };
 
 type TopggStats = {

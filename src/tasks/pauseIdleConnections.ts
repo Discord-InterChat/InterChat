@@ -13,7 +13,7 @@ export default async (manager: ClusterManager) => {
   const connections = await db.connectedList.findMany({
     where: {
       connected: true,
-      lastActive: { not: null, lte: new Date(Date.now() - (24 * 60 * 60 * 1000)) },
+      lastActive: { not: null, lte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
     },
   });
 
@@ -55,7 +55,7 @@ export default async (manager: ClusterManager) => {
         const channel = await client.channels.fetch(connection.channelId).catch(() => null);
         const button = buttons.find((b) => b.channelId === connection.channelId)?.button;
 
-        if (!channel?.isTextBased() || !button) return;
+        if (!channel?.isTextBased() || channel.isDMBased() || !button) return;
 
         // remove it since we are done with it
         _connections.splice(_connections.indexOf(connection), 1);

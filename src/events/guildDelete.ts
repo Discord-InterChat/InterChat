@@ -20,6 +20,5 @@ export default class Ready extends BaseEventListener<'guildDelete'> {
     connections.forEach(async (connection) => await logGuildLeaveToHub(connection.hubId, guild));
 
     await logGuildLeave(guild, Constants.Channels.goal);
-
   }
 }

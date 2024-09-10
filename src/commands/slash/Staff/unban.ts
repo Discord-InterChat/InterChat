@@ -2,10 +2,7 @@ import BaseCommand, { type CmdData } from '#main/core/BaseCommand.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { simpleEmbed } from '#main/utils/Utils.js';
-import {
-  type ChatInputCommandInteraction,
-  ApplicationCommandOptionType,
-} from 'discord.js';
+import { type ChatInputCommandInteraction, ApplicationCommandOptionType } from 'discord.js';
 
 export default class Unban extends BaseCommand {
   readonly staffOnly = true;

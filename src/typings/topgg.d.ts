@@ -6,19 +6,19 @@ export interface WebhookPayload {
   /** ID of the user who voted */
   user: Snowflake;
   /**
-     * The type of the vote (should always be "upvote" except when using the test
-     * button it's "test")
-     */
+   * The type of the vote (should always be "upvote" except when using the test
+   * button it's "test")
+   */
   type: 'upvote' | 'test';
   /**
-     * Whether the weekend multiplier is in effect, meaning users votes count as
-     * two
-     */
+   * Whether the weekend multiplier is in effect, meaning users votes count as
+   * two
+   */
   isWeekend?: boolean;
   /** Query parameters in vote page in a key to value object */
   query:
-      | {
-        [key: string]: string;
-      }
-      | string;
+    | {
+      [key: string]: string;
+    }
+    | string;
 }

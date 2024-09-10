@@ -71,6 +71,5 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
 
     channelToSend?.send(leaveMsg).catch(() => guildChannel?.send(leaveMsg).catch(() => null));
     await guild.leave();
-
   }
 }

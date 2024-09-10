@@ -14,9 +14,9 @@
       "\tasync execute(interaction: ChatInputCommandInteraction) {",
       "\t\t$4",
       "\t}",
-      "}"
+      "}",
     ],
-    "description": "Create a slash command with a name and description."
+    "description": "Create a slash command with a name and description.",
   },
   "Define an InterChat SubCommand": {
     "scope": "javascript,typescript",
@@ -29,8 +29,8 @@
       "\tasync execute(interaction: ChatInputCommandInteraction) {",
       "\t\t$4",
       "\t}",
-      "}"
+      "}",
     ],
-    "description": "Create a slash subcommand with a name and description."
-  }
+    "description": "Create a slash subcommand with a name and description.",
+  },
 }

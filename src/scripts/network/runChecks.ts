@@ -14,11 +14,14 @@ import { runAntiSpam } from './antiSpam.js';
 
 // if account is created within the last 7 days
 const isNewUser = (message: Message) => {
-  const sevenDaysAgo = Date.now() - (1000 * 60 * 60 * 24 * 7);
+  const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
   return message.author.createdTimestamp > sevenDaysAgo;
 };
 
-const replyToMsg = async (message: Message, opts: { content?: string; embed?: EmbedBuilder }) => {
+const replyToMsg = async (
+  message: Message<true>,
+  opts: { content?: string; embed?: EmbedBuilder },
+) => {
   const embeds = opts.embed ? [opts.embed] : [];
 
   const reply = await message.reply({ content: opts.content, embeds }).catch(() => null);
@@ -36,7 +39,7 @@ const isCaughtSpam = async (message: Message, settings: HubSettingsBitField, hub
   if (!antiSpamResult) return false;
 
   if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
-    const expires = new Date(Date.now() + (60 * 5000));
+    const expires = new Date(Date.now() + 60 * 5000);
     const reason = 'Auto-blacklisted for spamming.';
     const target = message.author;
     const mod = message.client.user;

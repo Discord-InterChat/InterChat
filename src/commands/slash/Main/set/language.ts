@@ -11,7 +11,10 @@ export default class SetLanguage extends Set {
     if (!Object.keys(supportedLocales).includes(locale)) {
       await interaction.reply({
         content: t(
-          { phrase: 'errors.invalidLangCode', locale: await interaction.client.userManager.getUserLocale(interaction.user.id) },
+          {
+            phrase: 'errors.invalidLangCode',
+            locale: await interaction.client.userManager.getUserLocale(interaction.user.id),
+          },
           { emoji: emojis.info },
         ),
         ephemeral: true,
