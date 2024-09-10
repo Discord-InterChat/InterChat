@@ -29,7 +29,12 @@ export const logGuildJoin = async (guild: Guild, channelId: string) => {
       const goalChannel = client.channels.cache.get(ctx.goalChannel);
       const inviteLogChannel = client.channels.cache.get(ctx.inviteLogs);
 
-      if (!goalChannel?.isTextBased() || !inviteLogChannel?.isTextBased()) return;
+      if (
+        !client.isGuildTextBasedChannel(goalChannel) ||
+        !client.isGuildTextBasedChannel(inviteLogChannel)
+      ) {
+        return;
+      }
 
       const count = (await client.cluster.fetchClientValues('guilds.cache.size')) as number[];
       const guildCount = count.reduce((p, n) => p + n, 0);
@@ -73,7 +78,12 @@ export const logGuildLeave = async (guild: Guild, channelId: string) => {
       const goalChannel = await client.channels.fetch(ctx.goalChannel).catch(() => null);
       const inviteLogChannel = client.channels.cache.get(ctx.inviteLogs);
 
-      if (!goalChannel?.isTextBased() || !inviteLogChannel?.isTextBased()) return;
+      if (
+        !client.isGuildTextBasedChannel(goalChannel) ||
+        !client.isGuildTextBasedChannel(inviteLogChannel)
+      ) {
+        return;
+      }
 
       await inviteLogChannel.send({ embeds: [ctx.logsEmbed] });
       await goalChannel.send({

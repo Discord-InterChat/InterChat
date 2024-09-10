@@ -1,3 +1,4 @@
+import type { ReferredMsgData } from '#main/scripts/network/Types.d.ts';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
@@ -31,8 +32,16 @@ export const getReferredContent = (referredMessage: Message) => {
   return referredContent;
 };
 
-export const getReferredMsgData = async (referredMessage: Message | null) => {
-  if (!referredMessage) return { dbReferrence: null, referredAuthor: null };
+export const getReferredMsgData = async (
+  referredMessage: Message | null,
+): Promise<ReferredMsgData> => {
+  if (!referredMessage) {
+    return {
+      dbReferrence: null,
+      referredAuthor: null,
+      dbReferredAuthor: null,
+    };
+  }
 
   const { client } = referredMessage;
 
@@ -51,14 +60,19 @@ export const getReferredMsgData = async (referredMessage: Message | null) => {
     dbReferrence = broadcastedMsg?.originalMsg ?? null;
   }
 
-  if (!dbReferrence) return { dbReferrence: null, referredAuthor: null };
+  if (!dbReferrence) {
+    return {
+      dbReferrence: null,
+      referredAuthor: null,
+      dbReferredAuthor: null,
+    };
+  }
 
-  const referredAuthor =
-    referredMessage.author.id === client.user.id
-      ? client.user
-      : await client.users.fetch(dbReferrence.authorId).catch(() => null); // fetch the acttual user ("referredMessage" is a webhook message)
+  // fetch the acttual user ("referredMessage" is a webhook message)
+  const referredAuthor = await client.users.fetch(dbReferrence.authorId).catch(() => null);
+  const dbReferredAuthor = await client.userManager.getUser(dbReferrence.authorId);
 
-  return { dbReferrence, referredAuthor };
+  return { dbReferrence, referredAuthor, dbReferredAuthor, referredMessage };
 };
 
 export const removeImgLinks = (content: string, imgUrl: string) =>
@@ -96,7 +110,7 @@ export const buildNetworkEmbed = (
     censoredMsg = removeImgLinks(censoredContent, opts.attachmentURL);
   }
 
-  const embed = new EmbedBuilder()
+  const normal = new EmbedBuilder()
     .setImage(opts?.attachmentURL ?? null)
     .setColor(opts?.embedCol ?? Constants.Colors.invisible)
     .setAuthor({
@@ -109,19 +123,19 @@ export const buildNetworkEmbed = (
       iconURL: message.guild?.iconURL() ?? undefined,
     });
 
-  const censoredEmbed = EmbedBuilder.from(embed).setDescription(censoredMsg || null);
+  const censored = EmbedBuilder.from(normal).setDescription(censoredMsg || null);
 
   const formattedReply = opts?.referredContent?.replaceAll('\n', '\n> ');
   if (formattedReply) {
-    embed.setFields({ name: 'Replying To:', value: `> ${formattedReply}` });
-    censoredEmbed.setFields({ name: 'Replying To:', value: `> ${censor(formattedReply)}` });
+    normal.setFields({ name: 'Replying To:', value: `> ${formattedReply}` });
+    censored.setFields({ name: 'Replying To:', value: `> ${censor(formattedReply)}` });
   }
 
-  return { embed, censoredEmbed };
+  return { normal, censored };
 };
 
 export const sendWelcomeMsg = async (
-  message: Message,
+  message: Message<true>,
   locale: supportedLocaleCodes,
   opts: { totalServers: string; hub: string },
 ) => {

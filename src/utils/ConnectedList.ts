@@ -8,7 +8,7 @@ import { cacheData, getCachedData } from './cache/cacheUtils.js';
 type whereUniuqeInput = Prisma.connectedListWhereUniqueInput;
 type whereInput = Prisma.connectedListWhereInput;
 type dataInput = Prisma.connectedListUpdateInput;
-type ConnectionAction = 'create' | 'modify' | 'delete';
+type ConnectionOperation = 'create' | 'modify' | 'delete';
 
 const purgeConnectionCache = async (channelId: string) =>
   await cacheClient.del(`${RedisKeys.connectionHubId}:${channelId}`);
@@ -33,46 +33,51 @@ export const getHubConnections = async (hubId: string) => {
   return connections.data?.map(serializeConnection) || null;
 };
 
-export const syncHubConnCache = async (connection: connectedList, action: ConnectionAction) => {
+export const syncHubConnCache = async (
+  connection: connectedList,
+  operation: ConnectionOperation,
+) => {
   const start = performance.now();
-  const hubConnections = (
-    (
-      await getCachedData(
-        `${RedisKeys.hubConnections}:${connection.hubId}`,
-        async () => (await getHubConnections(connection.hubId)) || [],
-      )
-    ).data || []
-  ).map(serializeConnection);
+  const hubConnections = await getHubConnections(connection.hubId);
 
-  Logger.debug(`[HubCon Sync]: Started syncing ${hubConnections.length} hub connections...`);
+  const totalConnections = hubConnections?.length ?? 0;
+  Logger.debug(
+    `[HubConnectionSync]: Started syncing ${totalConnections} hub connections with operation: ${operation}...`,
+  );
 
-  let updatedConnections: connectedList[];
-  switch (action) {
-    case 'create':
-      updatedConnections = [...hubConnections, connection];
-      break;
-    case 'modify':
-      updatedConnections = hubConnections.map((conn) =>
-        conn.id === connection.id ? connection : conn,
-      );
-      break;
-    case 'delete':
-      updatedConnections = hubConnections.filter((conn) => conn.id !== connection.id);
-      break;
-    default:
-      return;
+  if (hubConnections && hubConnections?.length > 0) {
+    let updatedConnections = hubConnections;
+    switch (operation) {
+      case 'create':
+        updatedConnections = updatedConnections.concat(connection);
+        break;
+      case 'modify': {
+        const index = updatedConnections.findIndex((c) => c.id === connection.id);
+
+        if (index !== -1) updatedConnections[index] = connection;
+        else updatedConnections = updatedConnections.concat(connection);
+
+        break;
+      }
+      case 'delete':
+        updatedConnections = updatedConnections.filter((conn) => conn.id !== connection.id);
+        break;
+      default:
+        return;
+    }
+
+    await cacheData(
+      `${RedisKeys.hubConnections}:${connection.hubId}`,
+      JSON.stringify(updatedConnections),
+    );
   }
 
-  await cacheData(
-    `${RedisKeys.hubConnections}:${connection.hubId}`,
-    JSON.stringify(updatedConnections),
-  );
   Logger.debug(
-    `[HubCon Sync]: Finished syncing ${hubConnections.length} hub connections in ${performance.now() - start}ms`,
+    `[HubConnectionSync]: Finished syncing ${totalConnections} hub connections with operation ${operation} in ${performance.now() - start}ms`,
   );
 };
 
-const cacheConnectionStatus = async (connection: connectedList) => {
+const cacheConnectionHubId = async (connection: connectedList) => {
   if (!connection.connected) {
     await cacheClient.del(`${RedisKeys.connectionHubId}:${connection.channelId}`);
   }
@@ -81,14 +86,16 @@ const cacheConnectionStatus = async (connection: connectedList) => {
   }
 
   Logger.debug(
-    `Cached connection status for ${connection.channelId}: ${connection.connected ? 'connected' : 'disconnected'}.`,
+    `Cached connection hubId for ${connection.connected ? 'connected' : 'disconnected'} channel ${connection.channelId}.`,
   );
 };
 
-export const getConnection = async (channelId: string) => {
+export const fetchConnection = async (channelId: string) => {
   const connection = await db.connectedList.findFirst({ where: { channelId } });
   if (!connection) return null;
-  cacheConnectionStatus(connection);
+
+  cacheConnectionHubId(connection);
+  if (connection.connected) syncHubConnCache(connection, 'modify');
 
   return connection;
 };
@@ -96,7 +103,7 @@ export const getConnection = async (channelId: string) => {
 export const getConnectionHubId = async (channelId: string) => {
   const { data: hubId } = await getCachedData(
     `${RedisKeys.connectionHubId}:${channelId}`,
-    async () => (await getConnection(channelId))?.hubId,
+    async () => (await fetchConnection(channelId))?.hubId,
   );
 
   return hubId;
@@ -110,7 +117,7 @@ export const deleteConnection = async (where: whereUniuqeInput) => {
 
 export const createConnection = async (data: Prisma.connectedListCreateInput) => {
   const connection = await db.connectedList.create({ data });
-  cacheConnectionStatus(connection);
+  cacheConnectionHubId(connection);
   syncHubConnCache(connection, 'create');
 
   return connection;
@@ -140,25 +147,22 @@ export const updateConnection = async (where: whereUniuqeInput, data: dataInput)
   const connection = await db.connectedList.update({ where, data });
 
   // Update cache
-  await cacheConnectionStatus(connection);
-  await syncHubConnCache(connection, 'modify');
+  await cacheConnectionHubId(connection);
+  await syncHubConnCache(connection, connection.connected ? 'modify' : 'delete');
 
   return connection;
 };
 
 export const updateConnections = async (where: whereInput, data: dataInput) => {
-  try {
-    // Update in database
-    const updated = await db.connectedList.updateMany({ where, data });
-    return updated;
-  }
-  finally {
-    // repopulate cache
-    db.connectedList.findMany({ where }).then((connections) => {
-      connections.forEach(async (connection) => {
-        await cacheConnectionStatus(connection);
-        await syncHubConnCache(connection, 'modify');
-      });
+  // Update in database
+  const updated = await db.connectedList.updateMany({ where, data });
+
+  db.connectedList.findMany({ where }).then((connections) => {
+    connections.forEach(async (connection) => {
+      await cacheConnectionHubId(connection);
+      await syncHubConnCache(connection, connection.connected ? 'modify' : 'delete');
     });
-  }
+  });
+
+  return updated;
 };

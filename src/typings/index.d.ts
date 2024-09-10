@@ -4,7 +4,7 @@ import UserDbManager from '#main/modules/UserDbManager.js';
 import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
 import { ClusterClient } from 'discord-hybrid-sharding';
 import { InteractionFunction } from '#main/decorators/Interaction.ts';
-import { Collection, Snowflake } from 'discord.js';
+import { Collection, Snowflake, Channel } from 'discord.js';
 import CooldownService from '#main/modules/CooldownService.js';
 
 type RemoveMethods<T> = {
@@ -27,5 +27,6 @@ declare module 'discord.js' {
 
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;
+    isGuildTextBasedChannel(channel: Channel | null | undefined): channel is GuildTextBasedChannel;
   }
 }

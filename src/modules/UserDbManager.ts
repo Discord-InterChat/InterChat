@@ -4,13 +4,13 @@ import { RedisKeys } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { supportedLocaleCodes } from '#main/utils/Locale.js';
-import { userData } from '@prisma/client';
+import { Prisma, userData } from '@prisma/client';
 import { Snowflake, User } from 'discord.js';
 
 export default class UserDbManager extends BaseBlacklistManager<userData> {
   protected modelName = 'userData' as const;
 
-  private serializeBlacklist(blacklist: ConvertDatesToString<userData>): userData {
+  private serializeBlacklists(blacklist: ConvertDatesToString<userData>): userData {
     return {
       ...blacklist,
       lastVoted: blacklist.lastVoted ? new Date(blacklist.lastVoted) : null,
@@ -30,7 +30,7 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
     if (!results.data) return null;
     if (!results.cached) this.addToCache(results.data);
 
-    return this.serializeBlacklist(results.data);
+    return this.serializeBlacklists(results.data);
   }
 
   async getUserLocale(userOrId: string | userData | null | undefined) {
@@ -38,9 +38,21 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
     return (dbUser?.locale as supportedLocaleCodes | null | undefined) ?? 'en';
   }
 
+  async createUser(data: Prisma.userDataCreateInput) {
+    const createdUser = await db.userData.create({ data });
+    await this.addToCache(createdUser);
+    return createdUser;
+  }
+
+  async updateUser(id: Snowflake, data: Prisma.userDataUpdateInput) {
+    const updatedUser = await db.userData.update({ where: { id }, data });
+    await this.addToCache(updatedUser);
+    return updatedUser;
+  }
+
   async userVotedToday(id: Snowflake): Promise<boolean> {
     const user = await this.getUser(id);
-    const twenty4HoursAgo = new Date(Date.now() - (60 * 60 * 24 * 1000));
+    const twenty4HoursAgo = new Date(Date.now() - 60 * 60 * 24 * 1000);
     return Boolean(user?.lastVoted && new Date(user.lastVoted) >= twenty4HoursAgo);
   }
 

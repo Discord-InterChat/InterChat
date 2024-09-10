@@ -163,8 +163,8 @@ export default class EditMessage extends BaseCommand {
       where: { channelId: { in: originalMsg.broadcastMsgs.map((c) => c.channelId) } },
     });
 
-    const results = originalMsg.broadcastMsgs.map(async (element) => {
-      const settings = channelSettingsArr.find((c) => c.channelId === element.channelId);
+    const results = originalMsg.broadcastMsgs.map(async (msg) => {
+      const settings = channelSettingsArr.find((c) => c.channelId === msg.channelId);
       if (!settings) return false;
 
       const webhookURL = settings.webhookURL.split('/');
@@ -182,7 +182,7 @@ export default class EditMessage extends BaseCommand {
 
       // finally, edit the message
       return await webhook
-        .editMessage(element.messageId, {
+        .editMessage(msg.messageId, {
           content,
           embeds,
           threadId: settings.parentId ? settings.channelId : undefined,

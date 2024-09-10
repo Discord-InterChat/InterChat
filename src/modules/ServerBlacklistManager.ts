@@ -112,7 +112,7 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
     await this.client.cluster.broadcastEval(
       async (_client, ctx) => {
         const channel = await _client.channels.fetch(ctx.channelId).catch(() => null);
-        if (!channel?.isTextBased()) return;
+        if (!_client.isGuildTextBasedChannel(channel)) return;
 
         await channel.send({ embeds: [ctx.embed] }).catch(() => null);
       },
