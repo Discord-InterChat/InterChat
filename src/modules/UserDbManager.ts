@@ -28,7 +28,7 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
     );
 
     if (!results.data) return null;
-    if (!results.cached) this.addToCache(results.data);
+    if (!results.fromCache) this.addToCache(results.data);
 
     return this.serializeBlacklists(results.data);
   }
@@ -91,7 +91,7 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
 
     // if already blacklisted, override it
     const hubs = dbUser?.blacklistedFrom.filter((b) => b.hubId !== hubId) || [];
-    hubs?.push({ expires, reason, hubId, moderatorId });
+    hubs.push({ expires, reason, hubId, moderatorId });
 
     const updatedUser = await db.userData.upsert({
       where: { id: user.id },

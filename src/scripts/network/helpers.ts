@@ -1,5 +1,5 @@
 import type { ReferredMsgData } from '#main/scripts/network/Types.d.ts';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { ConnectionMode, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { censor } from '#main/utils/Profanity.js';
@@ -9,6 +9,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  Collection,
   EmbedBuilder,
 } from 'discord.js';
 
@@ -17,10 +18,14 @@ import {
  * If the referred message has no content, returns a default message indicating that the original message contains an attachment.
  * If the referred message's content exceeds 1000 characters, truncates it and appends an ellipsis.
  * @param referredMessage The message being referred to.
+ * @param parseMode The mode in which the original message was sent in.
  * @returns The content of the referred message.
  */
-export const getReferredContent = (referredMessage: Message) => {
-  let referredContent = referredMessage.content || referredMessage.embeds[0]?.description;
+export const getReferredContent = (referredMessage: Message, parseMode: ConnectionMode) => {
+  let referredContent =
+    parseMode === ConnectionMode.Compact
+      ? referredMessage.content
+      : referredMessage.embeds[0]?.description;
 
   if (!referredContent) {
     referredContent = '*Original message contains attachment <:attachment:1102464803647275028>*';
@@ -46,21 +51,21 @@ export const getReferredMsgData = async (
   const { client } = referredMessage;
 
   // check if it was sent in the network
-  let dbReferrence = await db.originalMessages.findFirst({
+  let dbReferrenceRaw = await db.originalMessages.findFirst({
     where: { messageId: referredMessage.id },
     include: { broadcastMsgs: true },
   });
 
-  if (!dbReferrence) {
+  if (!dbReferrenceRaw) {
     const broadcastedMsg = await db.broadcastedMessages.findFirst({
       where: { messageId: referredMessage.id },
       include: { originalMsg: { include: { broadcastMsgs: true } } },
     });
 
-    dbReferrence = broadcastedMsg?.originalMsg ?? null;
+    dbReferrenceRaw = broadcastedMsg?.originalMsg ?? null;
   }
 
-  if (!dbReferrence) {
+  if (!dbReferrenceRaw) {
     return {
       dbReferrence: null,
       referredAuthor: null,
@@ -69,8 +74,13 @@ export const getReferredMsgData = async (
   }
 
   // fetch the acttual user ("referredMessage" is a webhook message)
-  const referredAuthor = await client.users.fetch(dbReferrence.authorId).catch(() => null);
-  const dbReferredAuthor = await client.userManager.getUser(dbReferrence.authorId);
+  const referredAuthor = await client.users.fetch(dbReferrenceRaw.authorId).catch(() => null);
+  const dbReferredAuthor = await client.userManager.getUser(dbReferrenceRaw.authorId);
+
+  const dbReferrence = {
+    ...dbReferrenceRaw,
+    broadcastMsgs: new Collection(dbReferrenceRaw.broadcastMsgs.map((m) => [m.channelId, m])),
+  };
 
   return { dbReferrence, referredAuthor, dbReferredAuthor, referredMessage };
 };

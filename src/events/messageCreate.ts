@@ -22,6 +22,7 @@ import {
   getEmbedMessageFormat,
   getReplyMention,
 } from '#main/scripts/network/messageFormatters.js';
+import { ConnectionMode } from '#main/utils/Constants.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
@@ -62,7 +63,14 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     });
 
     // store the message in the db
-    await storeMessageData(message, sendResult, connection.hubId, referredMsgData.dbReferrence);
+    const mode = connection.compact ? ConnectionMode.Compact : ConnectionMode.Embed;
+    await storeMessageData(
+      message,
+      sendResult,
+      connection.hubId,
+      mode,
+      referredMsgData.dbReferrence,
+    );
   }
 
   private async broadcastMessage(
@@ -72,20 +80,16 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     settings: HubSettingsBitField,
     opts: BroadcastOpts,
   ) {
-    const { referredMsgData } = opts;
-
-    const referredContent = this.getReferredContent(referredMsgData);
-    const censoredContent = censor(message.content);
     const username = this.getUsername(settings, message);
+    const censoredContent = censor(message.content);
+    const referredContent = this.getReferredContent(opts.referredMsgData);
+    const { dbReferrence } = opts.referredMsgData;
 
     const results: NetworkWebhookSendResult[] = await Promise.all(
       hubConnections.map(async (connection) => {
         try {
           const author = { username, avatarURL: message.author.displayAvatarURL() };
-          const reply =
-            referredMsgData.dbReferrence?.broadcastMsgs.find(
-              (m) => m.channelId === connection.channelId,
-            ) ?? referredMsgData.dbReferrence;
+          const reply = dbReferrence?.broadcastMsgs.get(connection.channelId) ?? dbReferrence;
 
           const jumpButton = reply
             ? [
@@ -124,10 +128,10 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
             messageFormat = getEmbedMessageFormat(connection, hub, { jumpButton, embeds });
           }
 
-          const replyMention = getReplyMention(referredMsgData.dbReferredAuthor);
-          const { dbReferrence } = referredMsgData;
+          const replyMention = getReplyMention(opts.referredMsgData.dbReferredAuthor);
 
-          // NOTE: If multiple connections to same hub is possible in the future, checking for serverId only won't be enough
+          // NOTE: If multiple connections to same hub will be a feature in the future,
+          // checking for only serverId will not be enough
           if (replyMention && connection.serverId === dbReferrence?.serverId) {
             messageFormat.content = `${replyMention}, ${messageFormat.content ?? ''}`;
             messageFormat.allowedMentions = {
@@ -137,7 +141,9 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
           }
 
           const messageRes = await this.sendMessage(connection.webhookURL, messageFormat);
-          return { messageRes, webhookURL: connection.webhookURL };
+          const mode = connection.compact ? ConnectionMode.Compact : ConnectionMode.Embed;
+
+          return { messageRes, webhookURL: connection.webhookURL, mode };
         }
         catch (e) {
           return { error: e.message, webhookURL: connection.webhookURL };
@@ -153,9 +159,12 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   }
 
   private getReferredContent(data: ReferredMsgData) {
-    return data?.referredMessage && data.dbReferrence
-      ? getReferredContent(data.referredMessage)
-      : undefined;
+    if (data.referredMessage && data.dbReferrence) {
+      const messagesRepliedTo =
+        data.dbReferrence.broadcastMsgs.get(data.referredMessage.channelId) ?? data.dbReferrence;
+
+      return getReferredContent(data.referredMessage, messagesRepliedTo.mode);
+    }
   }
 
   private async getConnectionAndHubConnections(message: Message): Promise<{
@@ -173,7 +182,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
     hubConnections?.forEach((conn) => {
       if (conn.channelId === message.channelId) connection = conn;
-      else filteredHubConnections.push(conn);
+      else if (conn.connected) filteredHubConnections.push(conn);
     });
 
     return {

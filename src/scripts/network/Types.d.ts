@@ -6,10 +6,13 @@ import type {
   ActionRowBuilder,
   ButtonBuilder,
   EmbedBuilder,
+  Collection,
 } from 'discord.js';
 
 export interface ReferredMsgData {
-  dbReferrence: (originalMessages & { broadcastMsgs: broadcastedMessages[] }) | null;
+  dbReferrence:
+    | (originalMessages & { broadcastMsgs: Collection<string, broadcastedMessages> })
+    | null;
   referredAuthor: User | null;
   dbReferredAuthor: userData | null;
   referredMessage?: Message;

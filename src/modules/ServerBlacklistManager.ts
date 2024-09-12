@@ -22,13 +22,13 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
   }
 
   public override async fetchBlacklist(hubId: string, id: string) {
-    const { data: blacklist, cached } = await getCachedData(
+    const { data: blacklist, fromCache } = await getCachedData(
       `${this.modelName}:${id}`,
       async () => await db.blacklistedServers.findFirst({ where: { id } }),
     );
 
     if (blacklist?.blacklistedFrom.some((h) => h.hubId === hubId)) {
-      if (!cached) this.addToCache(blacklist);
+      if (!fromCache) this.addToCache(blacklist);
       return this.serializeBlacklist(blacklist);
     }
     return null;

@@ -1,16 +1,23 @@
 import { updateConnections } from '#main/utils/ConnectedList.js';
-import { RedisKeys } from '#main/utils/Constants.js';
+import { ConnectionMode, RedisKeys } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import cacheClient from '#main/utils/cache/cacheClient.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
 
-export interface NetworkWebhookSendResult {
-  messageRes?: APIMessage;
-  error?: string;
+interface ErrorResult {
+  webhookURL: string;
+  error: string;
+}
+
+interface SendResult {
+  messageRes: APIMessage;
+  mode: ConnectionMode;
   webhookURL: string;
 }
+
+export type NetworkWebhookSendResult = ErrorResult | SendResult;
 
 /**
  * Stores message data in the database and updates the connectedList based on the webhook status.
@@ -19,27 +26,37 @@ export interface NetworkWebhookSendResult {
  */
 export default async (
   message: Message,
-  channelAndMessageIds: NetworkWebhookSendResult[],
+  broadcastResults: NetworkWebhookSendResult[],
   hubId: string,
+  mode: ConnectionMode,
   dbReference?: originalMessages | null,
 ) => {
-  const messageDataObj: { channelId: string; messageId: string; createdAt: Date }[] = [];
+  const messageDataObj: {
+    channelId: string;
+    messageId: string;
+    createdAt: Date;
+    mode: ConnectionMode;
+  }[] = [];
+
   const invalidWebhookURLs: string[] = [];
   const validErrors = ['Invalid Webhook Token', 'Unknown Webhook', 'Missing Permissions'];
 
   // loop through all results and extract message data and invalid webhook urls
-  channelAndMessageIds.forEach(({ messageRes, error, webhookURL }) => {
-    if (messageRes) {
-      messageDataObj.push({
-        channelId: messageRes.channel_id,
-        messageId: messageRes.id,
-        createdAt: new Date(messageRes.timestamp),
-      });
+  broadcastResults.forEach((res) => {
+    if ('error' in res) {
+      if (!validErrors.some((e) => res.error.includes(e))) return;
+
+      Logger.info('%O', res.error); // TODO Remove dis
+      invalidWebhookURLs.push(res.webhookURL);
+      return;
     }
-    else if (error && validErrors.some((e) => error.includes(e))) {
-      Logger.info('%O', messageRes); // TODO Remove dis
-      invalidWebhookURLs.push(webhookURL);
-    }
+
+    messageDataObj.push({
+      channelId: res.messageRes.channel_id,
+      messageId: res.messageRes.id,
+      createdAt: new Date(res.messageRes.timestamp),
+      mode: res.mode,
+    });
   });
 
   if (hubId && messageDataObj.length > 0) {
@@ -48,14 +65,15 @@ export default async (
     // store message data in db
     await db.originalMessages.create({
       data: {
+        mode,
         messageId: message.id,
         authorId: message.author.id,
         serverId: message.guildId,
         messageReference: dbReference?.messageId,
         createdAt: message.createdAt,
+        reactions: {},
         broadcastMsgs: { createMany: { data: messageDataObj } },
         hub: { connect: { id: hubId } },
-        reactions: {},
       },
     });
   }
