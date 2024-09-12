@@ -11,7 +11,7 @@ export const cacheData = async (key: string, value: string, expirySecs?: number)
     if (expirySecs) {
       return await cacheClient.set(key, value, 'EX', expirySecs);
     }
-    await cacheClient.set(key, value, 'KEEPTTL');
+    return await cacheClient.set(key, value, 'KEEPTTL');
   }
   catch (e) {
     Logger.error('Failed to set cache: ', e);
