@@ -6,9 +6,6 @@ export type TranslationKeys = {
   'network.deleteSuccess': 'emoji' | 'user' | 'deleted' | 'total';
   'network.editSuccess': 'emoji' | 'user' | 'edited' | 'total';
   'network.welcome': 'emoji' | 'user' | 'hub' | 'totalServers' | 'channel' | 'rules_command';
-  'network.nsfw.title': never;
-  'network.nsfw.description': 'rules_command';
-  'network.nsfw.footer': never;
   'network.onboarding.embed.title': 'hubName';
   'network.onboarding.embed.description': 'docs_link';
   'network.onboarding.embed.footer': 'version';

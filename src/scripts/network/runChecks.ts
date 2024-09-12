@@ -1,4 +1,3 @@
-import { analyzeImageForNSFW, isUnsafeImage } from '#main/modules/NSFWDetection.js';
 import { sendWelcomeMsg } from '#main/scripts/network/helpers.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
@@ -59,17 +58,6 @@ const isCaughtSpam = async (message: Message, settings: HubSettingsBitField, hub
   return true;
 };
 
-const isStaticAttachmentURL = (imgUrl: string) => Constants.Regex.StaticImageUrl.test(imgUrl);
-const isNSFW = async (imgUrl: string | null | undefined) => {
-  if (!imgUrl || !isStaticAttachmentURL(imgUrl)) return null;
-
-  // run static images through the nsfw detector
-  const predictions = await analyzeImageForNSFW(imgUrl);
-  if (!predictions) return null;
-
-  return isUnsafeImage(predictions);
-};
-
 const containsLinks = (message: Message, settings: HubSettingsBitField) =>
   settings.has('HideLinks') &&
   !Constants.Regex.StaticImageUrl.test(message.content) &&
@@ -102,11 +90,10 @@ export const runChecks = async (
   opts: {
     settings: HubSettingsBitField;
     totalHubConnections: number;
-    attachmentURL?: string | null;
   },
 ): Promise<boolean> => {
   const { hasProfanity, hasSlurs } = checkProfanity(message.content);
-  const { settings, totalHubConnections, attachmentURL } = opts;
+  const { settings, totalHubConnections } = opts;
   const { userManager } = message.client;
 
   let userData = await userManager.getUser(message.author.id);
@@ -181,25 +168,6 @@ export const runChecks = async (
 
   if (attachmentTooLarge(message)) {
     await replyToMsg(message, { content: 'Please keep your attachments under 8MB.' });
-    return false;
-  }
-
-  if (await isNSFW(attachmentURL)) {
-    const nsfwEmbed = new EmbedBuilder()
-      .setTitle(t({ phrase: 'network.nsfw.title', locale }))
-      .setDescription(
-        t(
-          { phrase: 'network.nsfw.description', locale },
-          { rules_command: '</rules:924659340898619395>' },
-        ),
-      )
-      .setFooter({
-        text: t({ phrase: 'network.nsfw.footer', locale }),
-        iconURL: 'https://i.imgur.com/625Zy9W.png',
-      })
-      .setColor('Red');
-
-    await replyToMsg(message, { content: `${message.author}`, embed: nsfwEmbed });
     return false;
   }
 

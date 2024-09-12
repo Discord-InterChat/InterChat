@@ -9,7 +9,6 @@ export const buildSettingsEmbed = (name: string, iconURL: string, rawSettings: n
     Reactions: '**Reactions** - Allow users to react to messages.',
     HideLinks: '**Hide Links** - Redact links sent by users.',
     BlockInvites: '**Block Invites** - Prevent users from sending Discord invites.',
-    BlockNSFW: '**Block NSFW** - Detect and block NSFW images (static only).',
     SpamFilter: '**Spam Filter** - Automatically blacklist spammers for 5 minutes.',
     UseNicknames: '**Use Nicknames** - Use server nicknames as the network usernames.',
   };

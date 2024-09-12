@@ -40,7 +40,6 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     // run checks on the message to determine if it can be sent in the network
     const checksPassed = await runChecks(message, hub, {
       settings,
-      attachmentURL,
       totalHubConnections: hubConnections.length,
     });
 

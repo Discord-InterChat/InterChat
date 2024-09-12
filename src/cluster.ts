@@ -18,7 +18,7 @@ const clusterManager = new ClusterManager('build/index.js', {
   totalClusters: 'auto',
 });
 
-// spawn clusters and start the api that handles nsfw filter and votes
+// spawn clusters and start the api that handles vote webhooks
 clusterManager
   .spawn({ timeout: -1 })
   .then(async () => {

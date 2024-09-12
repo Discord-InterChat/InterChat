@@ -107,17 +107,6 @@ export default class Manage extends Hub {
     // respond to select menu
     const selected = interaction.values[0] as HubSettingsString;
 
-    // TODO: implement BlockNSFW, only allow hubs that are explicitly marked as NSFW to have this setting
-    // & only allow network channels to be marked as NSFW
-    if (selected === 'BlockNSFW') {
-      await this.replyEmbed(
-        interaction,
-        `${emojis.no} This setting cannot be changed yet. Please wait for the next update.`,
-        { ephemeral: true },
-      );
-      return;
-    }
-
     const hubSettings = new HubSettingsBitField(hubInDb.settings);
     const updHub = await db.hubs.update({
       where: { id: hubInDb.id },
