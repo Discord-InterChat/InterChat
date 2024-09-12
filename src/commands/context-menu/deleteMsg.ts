@@ -107,7 +107,7 @@ export default class DeleteMessage extends BaseCommand {
     const { targetMessage } = interaction;
 
     const messageContent =
-      targetMessage.cleanContent ?? targetMessage.embeds.at(0)?.description?.replaceAll('`', '\`');
+      targetMessage.cleanContent ?? targetMessage.embeds.at(0)?.description?.replaceAll('`', '\\`');
 
     const imageUrl =
       targetMessage.embeds.at(0)?.image?.url ??
