@@ -40,9 +40,9 @@ export const sendLog = async (
   await client.cluster.broadcastEval(
     async (shardClient, ctx) => {
       const channel = await shardClient.channels.fetch(ctx.channelId).catch(() => null);
-      if (!channel?.isTextBased()) return;
-
-      await channel.send({ content: ctx.content, embeds: [ctx.embed] }).catch(() => null);
+      if (shardClient.isGuildTextBasedChannel(channel)) {
+        await channel.send({ content: ctx.content, embeds: [ctx.embed] }).catch(() => null);
+      }
     },
     { context: { channelId, embed, content } },
   );

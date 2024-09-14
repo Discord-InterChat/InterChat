@@ -1,44 +1,12 @@
+import type {
+  BroadcastOpts,
+  CompactFormatOpts,
+  EmbedFormatOpts,
+} from '#main/scripts/network/Types.d.ts';
 import Constants from '#main/utils/Constants.js';
 import { censor } from '#main/utils/Profanity.js';
-import type { broadcastedMessages, connectedList, hubs, originalMessages } from '@prisma/client';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  EmbedBuilder,
-  type HexColorString,
-  type Message,
-  type User,
-  type WebhookMessageCreateOptions,
-} from 'discord.js';
-
-export interface BroadcastOpts {
-  embedColor?: HexColorString | null;
-  attachmentURL?: string | null;
-  referredMessage: Message | null;
-  dbReferrence: (originalMessages & { broadcastMsgs: broadcastedMessages[] }) | null;
-  referredAuthor: User | null;
-}
-
-type CompactFormatOpts = {
-  servername: string;
-  referredAuthorName: string;
-  totalAttachments: number;
-  author: {
-    username: string;
-    avatarURL: string;
-  };
-  contents: {
-    normal: string;
-    censored: string;
-    referred: string | undefined;
-  };
-  jumpButton?: ActionRowBuilder<ButtonBuilder>[];
-};
-
-type EmbedFormatOpts = {
-  embeds: { normal: EmbedBuilder; censored: EmbedBuilder };
-  jumpButton?: ActionRowBuilder<ButtonBuilder>[];
-};
+import type { connectedList, hubs, userData } from '@prisma/client';
+import { EmbedBuilder, userMention, type WebhookMessageCreateOptions } from 'discord.js';
 
 export const getEmbedMessageFormat = (
   connection: connectedList,
@@ -53,46 +21,52 @@ export const getEmbedMessageFormat = (
   allowedMentions: { parse: [] },
 });
 
+const getReplyContent = (content: string | undefined, profFilter: boolean) => {
+  if (!content) return null;
+  return profFilter ? censor(content) : content;
+};
+
+export const getReplyMention = (dbReferredAuthor: userData | null) => {
+  if (!dbReferredAuthor?.mentionOnReply) return null;
+  return userMention(dbReferredAuthor.id);
+};
+
 export const getCompactMessageFormat = (
   connection: connectedList,
   opts: BroadcastOpts,
-  {
-    author,
-    contents,
-    servername,
-    jumpButton,
-    totalAttachments,
-    referredAuthorName,
-  }: CompactFormatOpts,
+  { author, contents, servername, jumpButton, totalAttachments }: CompactFormatOpts,
 ): WebhookMessageCreateOptions => {
-  const replyContent =
-    connection.profFilter && contents.referred ? censor(contents.referred) : contents.referred;
-  let replyEmbed;
+  const { referredAuthor } = opts.referredMsgData;
+
+  // check if the person being replied to explicitly allowed mentionOnReply setting for themself
+  const replyContent = getReplyContent(contents.referred, connection.profFilter);
 
   // discord displays either an embed or an attachment url in a compact message (embeds take priority, so image will not display)
   // which is why if there is an image, we don't send the reply embed. Reply button remains though
-  if (replyContent && !opts.attachmentURL) {
-    replyEmbed = [
-      new EmbedBuilder()
-        .setDescription(replyContent)
-        .setAuthor({
-          name: referredAuthorName,
-          iconURL: opts.referredAuthor?.displayAvatarURL(),
-        })
-        .setColor(Constants.Colors.invisible),
-    ];
-  }
+  const replyEmbed =
+    replyContent && !opts.attachmentURL
+      ? [
+        new EmbedBuilder()
+          .setDescription(replyContent)
+          .setAuthor({
+            name: referredAuthor?.username.slice(0, 30) ?? 'Unknown User',
+            iconURL: referredAuthor?.displayAvatarURL(),
+          })
+          .setColor(Constants.Colors.invisible),
+      ]
+      : undefined;
 
   // compact mode doesn't need new attachment url for tenor and direct image links
   // we can just slap them right in the content without any problems
-  const attachmentUrl = totalAttachments > 0 ? `\n[.](${opts.attachmentURL})` : '';
+  const attachmentURL = totalAttachments > 0 ? `\n[.](${opts.attachmentURL})` : '';
+  const messageContent = `${connection.profFilter ? contents.censored : contents.normal} ${attachmentURL}`;
 
   return {
     username: `@${author.username} • ${servername}`,
     avatarURL: author.avatarURL,
     embeds: replyEmbed,
     components: jumpButton,
-    content: `${connection.profFilter ? contents.censored : contents.normal} ${attachmentUrl}`,
+    content: messageContent,
     threadId: connection.parentId ? connection.channelId : undefined,
     allowedMentions: { parse: [] },
   };

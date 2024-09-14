@@ -1,15 +1,19 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
-import { emojis } from '#main/utils/Constants.js';
+import Constants, { ConnectionMode, emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import { censor } from '#main/utils/Profanity.js';
 import {
-  checkIfStaff,
   containsInviteLinks,
   getAttachmentURL,
+  handleError,
   replaceLinks,
 } from '#main/utils/Utils.js';
+import { originalMessages } from '@prisma/client';
 import {
   ActionRowBuilder,
   ApplicationCommandType,
@@ -24,8 +28,11 @@ import {
   User,
   userMention,
 } from 'discord.js';
-import BaseCommand from '#main/core/BaseCommand.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+
+interface ImageUrls {
+  oldURL?: string | null;
+  newURL?: string | null;
+}
 
 export default class EditMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -33,22 +40,21 @@ export default class EditMessage extends BaseCommand {
     name: 'Edit Message',
     dm_permission: false,
   };
+
   readonly cooldown = 10_000;
 
   async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
-    const isOnCooldown = await this.checkAndSetCooldown(interaction);
+    const isOnCooldown = await this.checkOrSetCooldown(interaction);
     if (isOnCooldown) return;
 
     const { userManager } = interaction.client;
     const target = interaction.targetMessage;
     const locale = await userManager.getUserLocale(interaction.user.id);
+    const voteLimiter = new VoteBasedLimiter('editMsg', interaction.user.id, userManager);
 
-    if (
-      !checkIfStaff(interaction.user.id) &&
-      !(await userManager.userVotedToday(interaction.user.id))
-    ) {
+    if (await voteLimiter.hasExceededLimit()) {
       await interaction.reply({
-        content: t({ phrase: 'errors.mustVote', locale }, { emoji: emojis.no }),
+        content: `${emojis.topggSparkles} You've hit your daily limit for message edits. [Vote for InterChat](${Constants.Links.Vote}) on top.gg to get unlimited edits!`,
       });
       return;
     }
@@ -119,21 +125,21 @@ export default class EditMessage extends BaseCommand {
       return;
     }
 
-    let originalMsg = await db.originalMessages.findFirst({
+    let targetMsgData = await db.originalMessages.findFirst({
       where: { messageId: target.id },
       include: { hub: true, broadcastMsgs: true },
     });
 
-    if (!originalMsg) {
+    if (!targetMsgData) {
       const broadcastedMsg = await db.broadcastedMessages.findFirst({
         where: { messageId: target.id },
         include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
       });
 
-      originalMsg = broadcastedMsg?.originalMsg ?? null;
+      targetMsgData = broadcastedMsg?.originalMsg ?? null;
     }
 
-    if (!originalMsg?.hub) {
+    if (!targetMsgData?.hub) {
       await interaction.editReply(
         t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
       );
@@ -142,32 +148,34 @@ export default class EditMessage extends BaseCommand {
 
     // get the new message input by user
     const userInput = interaction.fields.getTextInputValue('newMessage');
-    const hubSettings = new HubSettingsBitField(originalMsg.hub.settings);
-    const newMessage = hubSettings.has('HideLinks') ? replaceLinks(userInput) : userInput;
-    const { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg } = await this.fabricateNewMsg(
-      interaction.user,
-      target,
-      newMessage,
-      originalMsg.serverId,
-    );
+    const hubSettings = new HubSettingsBitField(targetMsgData.hub.settings);
+    const messageToEdit = this.sanitizeMessage(userInput, hubSettings);
 
-    if (hubSettings.has('BlockInvites') && containsInviteLinks(newMessage)) {
+    if (hubSettings.has('BlockInvites') && containsInviteLinks(messageToEdit)) {
       await interaction.editReply(
         t({ phrase: 'errors.inviteLinks', locale }, { emoji: emojis.no }),
       );
       return;
     }
 
-    // find all the messages through the network
-    const channelSettingsArr = await db.connectedList.findMany({
-      where: { channelId: { in: originalMsg.broadcastMsgs.map((c) => c.channelId) } },
+    const imageURLs = await this.getImageURLs(target, targetMsgData.mode, messageToEdit);
+    const newContents = this.getCompactContents(messageToEdit, imageURLs);
+    const newEmbeds = await this.buildEmbeds(target, targetMsgData, messageToEdit, {
+      serverId: targetMsgData.serverId,
+      user: interaction.user,
+      imageURLs,
     });
 
-    const results = originalMsg.broadcastMsgs.map(async (element) => {
-      const settings = channelSettingsArr.find((c) => c.channelId === element.channelId);
-      if (!settings) return false;
+    // find all the messages through the network
+    const channelSettingsArr = await db.connectedList.findMany({
+      where: { channelId: { in: targetMsgData.broadcastMsgs.map((c) => c.channelId) } },
+    });
 
-      const webhookURL = settings.webhookURL.split('/');
+    const results = targetMsgData.broadcastMsgs.map(async (msg) => {
+      const connection = channelSettingsArr.find((c) => c.channelId === msg.channelId);
+      if (!connection) return false;
+
+      const webhookURL = connection.webhookURL.split('/');
       const webhook = await interaction.client
         .fetchWebhook(webhookURL[webhookURL.length - 2])
         ?.catch(() => null);
@@ -177,15 +185,19 @@ export default class EditMessage extends BaseCommand {
       let content;
       let embeds;
 
-      if (!settings.compact) embeds = settings.profFilter ? [censoredEmbed] : [newEmbed];
-      else content = settings.profFilter ? censoredCmpctMsg : compactMsg;
+      if (msg.mode === ConnectionMode.Embed) {
+        embeds = connection.profFilter ? [newEmbeds.censored] : [newEmbeds.normal];
+      }
+      else {
+        content = connection.profFilter ? newContents.censored : newContents.normal;
+      }
 
       // finally, edit the message
       return await webhook
-        .editMessage(element.messageId, {
+        .editMessage(msg.messageId, {
           content,
           embeds,
-          threadId: settings.parentId ? settings.channelId : undefined,
+          threadId: connection.parentId ? connection.channelId : undefined,
         })
         .then(() => true)
         .catch(() => false);
@@ -193,89 +205,101 @@ export default class EditMessage extends BaseCommand {
 
     const resultsArray = await Promise.all(results);
     const edited = resultsArray.reduce((acc, cur) => acc + (cur ? 1 : 0), 0).toString();
-    await interaction.editReply(
-      t(
-        { phrase: 'network.editSuccess', locale },
-        {
-          edited,
-          total: resultsArray.length.toString(),
-          emoji: emojis.yes,
-          user: userMention(originalMsg.authorId),
-        },
-      ),
-    );
-  }
 
-  private async getImageUrls(target: Message, newMessage: string) {
-    // get image from embed
-    // get image from content
-    const oldImageUrl = target.content
-      ? await getAttachmentURL(target.content)
-      : target.embeds[0]?.image?.url;
-    const newImageUrl = await getAttachmentURL(newMessage);
-    return { oldImageUrl, newImageUrl };
-  }
-
-  private async buildNewEmbed(
-    user: User,
-    target: Message,
-    newMessage: string,
-    serverId: string,
-    opts?: {
-      oldImageUrl?: string | null;
-      newImageUrl?: string | null;
-    },
-  ) {
-    const embedContent =
-      newMessage.replace(opts?.oldImageUrl ?? '', '').replace(opts?.newImageUrl ?? '', '') ?? null;
-    const embedImage = opts?.newImageUrl ?? opts?.oldImageUrl ?? null;
-
-    if (!target.content) {
-      // utilize the embed directly from the message
-      return EmbedBuilder.from(target.embeds[0]).setDescription(embedContent).setImage(embedImage);
-    }
-
-    const guild = await target.client.fetchGuild(serverId);
-
-    // create a new embed if the message being edited is in compact mode
-    return new EmbedBuilder()
-      .setAuthor({ name: user.username, iconURL: user.displayAvatarURL() })
-      .setDescription(embedContent)
-      .setColor('Random')
-      .setImage(embedImage)
-      .addFields(
-        target.embeds.at(0)?.fields.at(0)
-          ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
-          : [],
+    await interaction
+      .editReply(
+        t(
+          { phrase: 'network.editSuccess', locale },
+          {
+            edited,
+            total: resultsArray.length.toString(),
+            emoji: emojis.yes,
+            user: userMention(targetMsgData.authorId),
+          },
+        ),
       )
-      .setFooter({ text: `Server: ${guild?.name}` });
+      .catch(handleError);
+
+    const voteLimiter = new VoteBasedLimiter('editMsg', interaction.user.id, userManager);
+    await voteLimiter.decrementUses();
   }
 
-  private async fabricateNewMsg(user: User, target: Message, newMessage: string, serverId: string) {
-    const { oldImageUrl, newImageUrl } = await this.getImageUrls(target, newMessage);
-    const newEmbed = await this.buildNewEmbed(user, target, newMessage, serverId, {
-      oldImageUrl,
-      newImageUrl,
-    });
+  private async getImageURLs(
+    target: Message,
+    mode: ConnectionMode,
+    newMessage: string,
+  ): Promise<ImageUrls> {
+    const oldURL =
+      mode === ConnectionMode.Compact
+        ? await getAttachmentURL(target.content)
+        : target.embeds[0]?.image?.url;
 
-    // if the message being edited is in compact mode
-    // then we create a new embed with the new message and old reply
-    // else we just use the old embed and replace the description
+    const newURL = await getAttachmentURL(newMessage);
 
-    const censoredEmbed = EmbedBuilder.from(newEmbed).setDescription(
-      censor(newEmbed.data.description ?? '') || null,
-    );
-    let compactMsg = newMessage;
+    return { oldURL, newURL };
+  }
 
-    if (oldImageUrl && newImageUrl) {
-      compactMsg = compactMsg.replace(oldImageUrl, newImageUrl);
+  private async buildEmbeds(
+    target: Message,
+    targetMsgData: originalMessages,
+    messageToEdit: string,
+    opts: { user: User; serverId: string; imageURLs?: ImageUrls },
+  ) {
+    let embedContent = messageToEdit;
+    let embedImage = null;
+
+    // This if check must come on top of the next one at all times
+    // because we want newImage Url to be given priority for the embedImage
+    if (opts.imageURLs?.newURL) {
+      embedContent = embedContent.replace(opts.imageURLs.newURL, '');
+      embedImage = opts.imageURLs.newURL;
     }
-    else if (oldImageUrl && !newMessage.includes(oldImageUrl)) {
-      newEmbed.setImage(null);
-      censoredEmbed.setImage(null);
+    if (opts.imageURLs?.oldURL) {
+      embedContent = embedContent.replace(opts.imageURLs.oldURL, '');
+      embedImage = opts.imageURLs.oldURL;
     }
-    const censoredCmpctMsg = censor(compactMsg);
 
-    return { newEmbed, censoredEmbed, compactMsg, censoredCmpctMsg };
+    let embed: EmbedBuilder;
+
+    if (targetMsgData.mode === ConnectionMode.Embed) {
+      // utilize the embed directly from the message
+      embed = EmbedBuilder.from(target.embeds[0]).setDescription(embedContent).setImage(embedImage);
+    }
+    else {
+      const guild = await target.client.fetchGuild(opts.serverId);
+
+      // create a new embed if the message being edited is in compact mode
+      embed = new EmbedBuilder()
+        .setAuthor({ name: opts.user.username, iconURL: opts.user.displayAvatarURL() })
+        .setDescription(embedContent)
+        .setColor(Constants.Colors.invisible)
+        .setImage(embedImage)
+        .addFields(
+          target.embeds.at(0)?.fields.at(0)
+            ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
+            : [],
+        )
+        .setFooter({ text: `Server: ${guild?.name}` });
+    }
+
+    const censored = EmbedBuilder.from({ ...embed.data, description: censor(embedContent) });
+
+    return { normal: embed, censored };
+  }
+
+  private sanitizeMessage(content: string, settings: HubSettingsBitField) {
+    const newMessage = settings.has('HideLinks') ? replaceLinks(content) : content;
+    return newMessage;
+  }
+
+  private getCompactContents(messageToEdit: string, imageUrls: ImageUrls) {
+    let compactMsg = messageToEdit;
+
+    if (imageUrls.oldURL && imageUrls.newURL) {
+      // use the new url instead
+      compactMsg = compactMsg.replace(imageUrls.oldURL, imageUrls.newURL);
+    }
+
+    return { normal: compactMsg, censored: censor(compactMsg) };
   }
 }

@@ -21,6 +21,12 @@ export enum RedisKeys {
   cooldown = 'cooldown',
   blacklistedServers = 'blacklistedServers',
   channelQueue = 'channelQueue',
+  commandUsesLeft = 'commandUsesLeft',
+}
+
+export enum ConnectionMode {
+  Compact = 0,
+  Embed = 1,
 }
 
 export default {

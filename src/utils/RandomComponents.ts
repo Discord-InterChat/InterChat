@@ -5,15 +5,15 @@ import { checkBlacklists } from '#main/scripts/reaction/helpers.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
-  AnySelectMenuInteraction,
   ButtonInteraction,
   EmbedBuilder,
-  Snowflake,
   StringSelectMenuBuilder,
   time,
+  type AnySelectMenuInteraction,
+  type Snowflake,
 } from 'discord.js';
 import { HubSettingsBitField } from './BitFields.js';
-import { getConnection, updateConnection } from './ConnectedList.js';
+import { fetchConnection, updateConnection } from './ConnectedList.js';
 import Constants, { emojis } from './Constants.js';
 import { CustomID } from './CustomID.js';
 import db from './Db.js';
@@ -204,7 +204,7 @@ export class RandomComponents {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [channelId] = customId.args;
 
-    const connection = await getConnection(channelId);
+    const connection = await fetchConnection(channelId);
     if (!connection) {
       const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
       await interaction.reply({

@@ -22,13 +22,13 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
   }
 
   public override async fetchBlacklist(hubId: string, id: string) {
-    const { data: blacklist, cached } = await getCachedData(
+    const { data: blacklist, fromCache } = await getCachedData(
       `${this.modelName}:${id}`,
       async () => await db.blacklistedServers.findFirst({ where: { id } }),
     );
 
     if (blacklist?.blacklistedFrom.some((h) => h.hubId === hubId)) {
-      if (!cached) this.addToCache(blacklist);
+      if (!fromCache) this.addToCache(blacklist);
       return this.serializeBlacklist(blacklist);
     }
     return null;
@@ -112,7 +112,7 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
     await this.client.cluster.broadcastEval(
       async (_client, ctx) => {
         const channel = await _client.channels.fetch(ctx.channelId).catch(() => null);
-        if (!channel?.isTextBased()) return;
+        if (!_client.isGuildTextBasedChannel(channel)) return;
 
         await channel.send({ embeds: [ctx.embed] }).catch(() => null);
       },

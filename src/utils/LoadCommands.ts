@@ -32,7 +32,6 @@ const loadCommandInteractions = (command: BaseCommand) => {
 
     // @ts-expect-error The names of child class properties can be custom
     const method: InteractionFunction = command[methodName];
-    // console.log(method, methodName, customId);
 
     interactionsMap.set(customId, method.bind(command));
   });

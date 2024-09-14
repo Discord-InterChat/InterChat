@@ -5,11 +5,7 @@ import {
   getReferredMsgData,
   trimAndCensorBannedWebhookWords,
 } from '#main/scripts/network/helpers.js';
-import {
-  BroadcastOpts,
-  getCompactMessageFormat,
-  getEmbedMessageFormat,
-} from '#main/scripts/network/messageFormatters.js';
+import type { BroadcastOpts, ReferredMsgData } from '#main/scripts/network/Types.d.ts';
 import { runChecks } from '#main/scripts/network/runChecks.js';
 import storeMessageData, {
   NetworkWebhookSendResult,
@@ -21,6 +17,12 @@ import { censor } from '#main/utils/Profanity.js';
 import { generateJumpButton, getAttachmentURL, isHumanMessage } from '#main/utils/Utils.js';
 import { connectedList, hubs } from '@prisma/client';
 import { HexColorString, Message, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
+import {
+  getCompactMessageFormat,
+  getEmbedMessageFormat,
+  getReplyMention,
+} from '#main/scripts/network/messageFormatters.js';
+import { ConnectionMode } from '#main/utils/Constants.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
@@ -48,26 +50,27 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
     message.channel.sendTyping().catch(() => null);
 
-    // fetch the referred message  (message being replied to) from discord
+    // fetch the message being replied-to from discord
     const referredMessage = message.reference
       ? await message.fetchReference().catch(() => null)
       : null;
 
-    const { dbReferrence, referredAuthor } = await getReferredMsgData(referredMessage);
+    const referredMsgData = await getReferredMsgData(referredMessage);
     const sendResult = await this.broadcastMessage(message, hub, hubConnections, settings, {
       attachmentURL,
-      dbReferrence,
-      referredAuthor,
-      referredMessage,
+      referredMsgData,
       embedColor: connection.embedColor as HexColorString,
     });
 
     // store the message in the db
-    await storeMessageData(message, sendResult, connection.hubId, dbReferrence);
-  }
-
-  private async resolveAttachmentURL(message: Message) {
-    return message.attachments.first()?.url ?? (await getAttachmentURL(message.content));
+    const mode = connection.compact ? ConnectionMode.Compact : ConnectionMode.Embed;
+    await storeMessageData(
+      message,
+      sendResult,
+      connection.hubId,
+      mode,
+      referredMsgData.dbReferrence,
+    );
   }
 
   private async broadcastMessage(
@@ -77,27 +80,17 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     settings: HubSettingsBitField,
     opts: BroadcastOpts,
   ) {
-    const censoredContent = censor(message.content);
-    const referredContent =
-      opts.referredMessage && opts.dbReferrence
-        ? getReferredContent(opts.referredMessage)
-        : undefined;
-
     const username = this.getUsername(settings, message);
-    const { embed, censoredEmbed } = buildNetworkEmbed(message, username, censoredContent, {
-      attachmentURL: opts.attachmentURL,
-      referredContent,
-      embedCol: opts.embedColor ?? undefined,
-    });
+    const censoredContent = censor(message.content);
+    const referredContent = this.getReferredContent(opts.referredMsgData);
+    const { dbReferrence } = opts.referredMsgData;
 
     const results: NetworkWebhookSendResult[] = await Promise.all(
       hubConnections.map(async (connection) => {
         try {
           const author = { username, avatarURL: message.author.displayAvatarURL() };
-          const reply =
-            opts.dbReferrence?.broadcastMsgs.find(
-              (msg) => msg.channelId === connection.channelId,
-            ) ?? opts.dbReferrence;
+          const reply = dbReferrence?.broadcastMsgs.get(connection.channelId) ?? dbReferrence;
+
           const jumpButton = reply
             ? [
               generateJumpButton(author.username, {
@@ -108,26 +101,49 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
             ]
             : undefined;
 
-          const messageFormat = connection.compact
-            ? getCompactMessageFormat(connection, opts, {
+          let messageFormat;
+
+          if (connection.compact) {
+            const contents = {
+              normal: message.content,
+              referred: referredContent,
+              censored: censoredContent,
+            };
+
+            messageFormat = getCompactMessageFormat(connection, opts, {
               servername: trimAndCensorBannedWebhookWords(message.guild.name),
-              referredAuthorName: opts.referredAuthor?.username.slice(0, 30) ?? 'Unknown User',
               totalAttachments: message.attachments.size,
-              contents: {
-                normal: message.content,
-                referred: referredContent,
-                censored: censoredContent,
-              },
+              contents,
               author,
               jumpButton,
-            })
-            : getEmbedMessageFormat(connection, hub, {
-              jumpButton,
-              embeds: { normal: embed, censored: censoredEmbed },
+            });
+          }
+          else {
+            const embeds = buildNetworkEmbed(message, username, censoredContent, {
+              attachmentURL: opts.attachmentURL,
+              referredContent,
+              embedCol: opts.embedColor,
             });
 
+            messageFormat = getEmbedMessageFormat(connection, hub, { jumpButton, embeds });
+          }
+
+          const replyMention = getReplyMention(opts.referredMsgData.dbReferredAuthor);
+
+          // NOTE: If multiple connections to same hub will be a feature in the future,
+          // checking for only serverId will not be enough
+          if (replyMention && connection.serverId === dbReferrence?.serverId) {
+            messageFormat.content = `${replyMention}, ${messageFormat.content ?? ''}`;
+            messageFormat.allowedMentions = {
+              ...messageFormat.allowedMentions,
+              users: [...(messageFormat.allowedMentions?.users ?? []), dbReferrence.authorId],
+            };
+          }
+
           const messageRes = await this.sendMessage(connection.webhookURL, messageFormat);
-          return { messageRes, webhookURL: connection.webhookURL };
+          const mode = connection.compact ? ConnectionMode.Compact : ConnectionMode.Embed;
+
+          return { messageRes, webhookURL: connection.webhookURL, mode };
         }
         catch (e) {
           return { error: e.message, webhookURL: connection.webhookURL };
@@ -138,17 +154,40 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     return results;
   }
 
-  private async getConnectionAndHubConnections(message: Message) {
+  private async resolveAttachmentURL(message: Message) {
+    return message.attachments.first()?.url ?? (await getAttachmentURL(message.content));
+  }
+
+  private getReferredContent(data: ReferredMsgData) {
+    if (data.referredMessage && data.dbReferrence) {
+      const messagesRepliedTo =
+        data.dbReferrence.broadcastMsgs.get(data.referredMessage.channelId) ?? data.dbReferrence;
+
+      return getReferredContent(data.referredMessage, messagesRepliedTo.mode);
+    }
+  }
+
+  private async getConnectionAndHubConnections(message: Message): Promise<{
+    connection: connectedList | null;
+    hubConnections: connectedList[] | null;
+  }> {
     // check if the message was sent in a network channel
     const connectionHubId = await getConnectionHubId(message.channelId);
-    if (!connectionHubId) return {};
+    if (!connectionHubId) return { connection: null, hubConnections: null };
 
     const hubConnections = await getHubConnections(connectionHubId);
-    const connection = hubConnections?.find(({ channelId }) => channelId === message.channelId);
+
+    let connection: connectedList | null = null;
+    const filteredHubConnections: connectedList[] = [];
+
+    hubConnections?.forEach((conn) => {
+      if (conn.channelId === message.channelId) connection = conn;
+      else if (conn.connected) filteredHubConnections.push(conn);
+    });
 
     return {
       connection,
-      hubConnections: hubConnections?.filter((c) => c.channelId !== message.channelId),
+      hubConnections: filteredHubConnections.length > 0 ? filteredHubConnections : null,
     };
   }
 

@@ -1,4 +1,5 @@
-import Constants, { emojis } from '#main/utils/Constants.js';
+import type { ReferredMsgData } from '#main/scripts/network/Types.d.ts';
+import Constants, { ConnectionMode, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { censor } from '#main/utils/Profanity.js';
@@ -8,6 +9,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  Collection,
   EmbedBuilder,
 } from 'discord.js';
 
@@ -16,10 +18,14 @@ import {
  * If the referred message has no content, returns a default message indicating that the original message contains an attachment.
  * If the referred message's content exceeds 1000 characters, truncates it and appends an ellipsis.
  * @param referredMessage The message being referred to.
+ * @param parseMode The mode in which the original message was sent in.
  * @returns The content of the referred message.
  */
-export const getReferredContent = (referredMessage: Message) => {
-  let referredContent = referredMessage.content || referredMessage.embeds[0]?.description;
+export const getReferredContent = (referredMessage: Message, parseMode: ConnectionMode) => {
+  let referredContent =
+    parseMode === ConnectionMode.Compact
+      ? referredMessage.content
+      : referredMessage.embeds[0]?.description;
 
   if (!referredContent) {
     referredContent = '*Original message contains attachment <:attachment:1102464803647275028>*';
@@ -31,34 +37,52 @@ export const getReferredContent = (referredMessage: Message) => {
   return referredContent;
 };
 
-export const getReferredMsgData = async (referredMessage: Message | null) => {
-  if (!referredMessage) return { dbReferrence: null, referredAuthor: null };
+export const getReferredMsgData = async (
+  referredMessage: Message | null,
+): Promise<ReferredMsgData> => {
+  if (!referredMessage) {
+    return {
+      dbReferrence: null,
+      referredAuthor: null,
+      dbReferredAuthor: null,
+    };
+  }
 
   const { client } = referredMessage;
 
   // check if it was sent in the network
-  let dbReferrence = await db.originalMessages.findFirst({
+  let dbReferrenceRaw = await db.originalMessages.findFirst({
     where: { messageId: referredMessage.id },
     include: { broadcastMsgs: true },
   });
 
-  if (!dbReferrence) {
+  if (!dbReferrenceRaw) {
     const broadcastedMsg = await db.broadcastedMessages.findFirst({
       where: { messageId: referredMessage.id },
       include: { originalMsg: { include: { broadcastMsgs: true } } },
     });
 
-    dbReferrence = broadcastedMsg?.originalMsg ?? null;
+    dbReferrenceRaw = broadcastedMsg?.originalMsg ?? null;
   }
 
-  if (!dbReferrence) return { dbReferrence: null, referredAuthor: null };
+  if (!dbReferrenceRaw) {
+    return {
+      dbReferrence: null,
+      referredAuthor: null,
+      dbReferredAuthor: null,
+    };
+  }
 
-  const referredAuthor =
-    referredMessage.author.id === client.user.id
-      ? client.user
-      : await client.users.fetch(dbReferrence.authorId).catch(() => null); // fetch the acttual user ("referredMessage" is a webhook message)
+  // fetch the acttual user ("referredMessage" is a webhook message)
+  const referredAuthor = await client.users.fetch(dbReferrenceRaw.authorId).catch(() => null);
+  const dbReferredAuthor = await client.userManager.getUser(dbReferrenceRaw.authorId);
 
-  return { dbReferrence, referredAuthor };
+  const dbReferrence = {
+    ...dbReferrenceRaw,
+    broadcastMsgs: new Collection(dbReferrenceRaw.broadcastMsgs.map((m) => [m.channelId, m])),
+  };
+
+  return { dbReferrence, referredAuthor, dbReferredAuthor, referredMessage };
 };
 
 export const removeImgLinks = (content: string, imgUrl: string) =>
@@ -96,7 +120,7 @@ export const buildNetworkEmbed = (
     censoredMsg = removeImgLinks(censoredContent, opts.attachmentURL);
   }
 
-  const embed = new EmbedBuilder()
+  const normal = new EmbedBuilder()
     .setImage(opts?.attachmentURL ?? null)
     .setColor(opts?.embedCol ?? Constants.Colors.invisible)
     .setAuthor({
@@ -109,19 +133,19 @@ export const buildNetworkEmbed = (
       iconURL: message.guild?.iconURL() ?? undefined,
     });
 
-  const censoredEmbed = EmbedBuilder.from(embed).setDescription(censoredMsg || null);
+  const censored = EmbedBuilder.from(normal).setDescription(censoredMsg || null);
 
   const formattedReply = opts?.referredContent?.replaceAll('\n', '\n> ');
   if (formattedReply) {
-    embed.setFields({ name: 'Replying To:', value: `> ${formattedReply}` });
-    censoredEmbed.setFields({ name: 'Replying To:', value: `> ${censor(formattedReply)}` });
+    normal.setFields({ name: 'Replying To:', value: `> ${formattedReply}` });
+    censored.setFields({ name: 'Replying To:', value: `> ${censor(formattedReply)}` });
   }
 
-  return { embed, censoredEmbed };
+  return { normal, censored };
 };
 
 export const sendWelcomeMsg = async (
-  message: Message,
+  message: Message<true>,
   locale: supportedLocaleCodes,
   opts: { totalServers: string; hub: string },
 ) => {
