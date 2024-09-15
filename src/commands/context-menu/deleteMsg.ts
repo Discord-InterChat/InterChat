@@ -1,5 +1,8 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import { getHubConnections } from '#main/utils/ConnectedList.js';
+import {
+  deleteMessageFromAllNetworks,
+  isDeleteInProgress,
+} from '#main/scripts/deleteMessage/deleteMessage.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
@@ -49,6 +52,15 @@ export default class DeleteMessage extends BaseCommand {
       return;
     }
 
+    if (await isDeleteInProgress(originalMsg.messageId)) {
+      await this.replyEmbed(
+        interaction,
+        `${emojis.neutral} This message is already in-progress of being deleted.`,
+        { ephemeral: true },
+      );
+      return;
+    }
+
     const { hub } = originalMsg;
 
     if (
@@ -65,30 +77,12 @@ export default class DeleteMessage extends BaseCommand {
       `${emojis.yes} Your request has been queued. Messages will be deleted shortly...`,
     );
 
-    let passed = 0;
-
-    const allConnections = await getHubConnections(hub.id);
-
-    for await (const dbMsg of originalMsg.broadcastMsgs) {
-      const connection = allConnections?.find(
-        (c) => c.connected && c.channelId === dbMsg.channelId,
-      );
-
-      if (!connection) break;
-
-      const webhookURL = connection.webhookURL.split('/');
-      const webhook = await interaction.client
-        .fetchWebhook(webhookURL[webhookURL.length - 2])
-        ?.catch(() => null);
-
-      if (webhook?.owner?.id !== interaction.client.user?.id) break;
-
-      // finally, delete the message
-      await webhook
-        ?.deleteMessage(dbMsg.messageId, connection.parentId ? connection.channelId : undefined)
-        .catch(() => null);
-      passed++;
-    }
+    // delete the message
+    const { deletedCount } = await deleteMessageFromAllNetworks(
+      hub.id,
+      originalMsg.messageId,
+      originalMsg.broadcastMsgs,
+    );
 
     await interaction
       .editReply(
@@ -97,8 +91,8 @@ export default class DeleteMessage extends BaseCommand {
           {
             emoji: emojis.yes,
             user: `<@${originalMsg.authorId}>`,
-            deleted: passed.toString(),
-            total: originalMsg.broadcastMsgs.length.toString(),
+            deleted: `${deletedCount}`,
+            total: `${originalMsg.broadcastMsgs.length}`,
           },
         ),
       )
