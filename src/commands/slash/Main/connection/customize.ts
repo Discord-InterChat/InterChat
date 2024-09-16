@@ -3,7 +3,7 @@ import {
   buildChannelSelect,
   buildCustomizeSelect,
   buildEmbed,
-} from '#main/scripts/network/buildConnectionAssets.js';
+} from '#main/utils/network/buildConnectionAssets.js';
 import { updateConnection } from '#main/utils/ConnectedList.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';

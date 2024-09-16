@@ -4,12 +4,12 @@ import {
   getReferredContent,
   getReferredMsgData,
   trimAndCensorBannedWebhookWords,
-} from '#main/scripts/network/helpers.js';
-import type { BroadcastOpts, ReferredMsgData } from '#main/scripts/network/Types.d.ts';
-import { runChecks } from '#main/scripts/network/runChecks.js';
+} from '#main/utils/network/helpers.js';
+import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
+import { runChecks } from '#main/utils/network/runChecks.js';
 import storeMessageData, {
   NetworkWebhookSendResult,
-} from '#main/scripts/network/storeMessageData.js';
+} from '#main/utils/network/storeMessageData.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
 import { getConnectionHubId, getHubConnections } from '#main/utils/ConnectedList.js';
 import db from '#main/utils/Db.js';
@@ -21,7 +21,7 @@ import {
   getCompactMessageFormat,
   getEmbedMessageFormat,
   getReplyMention,
-} from '#main/scripts/network/messageFormatters.js';
+} from '#main/utils/network/messageFormatters.js';
 import { ConnectionMode } from '#main/utils/Constants.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {

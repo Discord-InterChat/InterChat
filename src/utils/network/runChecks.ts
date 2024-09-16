@@ -1,5 +1,5 @@
 import { analyzeImageForNSFW, isUnsafeImage } from '#main/modules/NSFWDetection.js';
-import { sendWelcomeMsg } from '#main/scripts/network/helpers.js';
+import { sendWelcomeMsg } from '#main/utils/network/helpers.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';

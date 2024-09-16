@@ -2,7 +2,7 @@ import type {
   BroadcastOpts,
   CompactFormatOpts,
   EmbedFormatOpts,
-} from '#main/scripts/network/Types.d.ts';
+} from '#main/utils/network/Types.js';
 import Constants from '#main/utils/Constants.js';
 import { censor } from '#main/utils/Profanity.js';
 import type { connectedList, hubs, userData } from '@prisma/client';

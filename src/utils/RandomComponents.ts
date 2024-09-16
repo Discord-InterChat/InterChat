@@ -1,7 +1,7 @@
 /* eslint-disable complexity */
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { addReaction, removeReaction, updateReactions } from '#main/scripts/reaction/actions.js';
-import { checkBlacklists } from '#main/scripts/reaction/helpers.js';
+import { addReaction, removeReaction, updateReactions } from '#main/utils/reaction/actions.js';
+import { checkBlacklists } from '#main/utils/reaction/helpers.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,

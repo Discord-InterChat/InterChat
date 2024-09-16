@@ -1,7 +1,7 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { genLogInfoEmbed } from '#main/scripts/hub/logs.js';
-import { actionsSelect, hubEmbed } from '#main/scripts/hub/manage.js';
-import { buildSettingsEmbed, buildSettingsMenu } from '#main/scripts/hub/settings.js';
+import { genLogInfoEmbed } from '#main/utils/hub/logs.js';
+import { actionsSelect, hubEmbed } from '#main/utils/hub/manage.js';
+import { buildSettingsEmbed, buildSettingsMenu } from '#main/utils/hub/settings.js';
 import { HubSettingsBitField, HubSettingsString } from '#main/utils/BitFields.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
