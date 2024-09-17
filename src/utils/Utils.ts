@@ -35,9 +35,9 @@ import {
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
 import Scheduler from '#main/modules/SchedulerService.js';
-import { RemoveMethods } from '../typings/index.js';
+import { RemoveMethods } from '../types/index.js';
 import { deleteConnection, deleteConnections } from './ConnectedList.js';
-import Constants, { emojis } from './Constants.js';
+import Constants, { emojis } from '../config/Constants.js';
 import { CustomID } from './CustomID.js';
 import db from './Db.js';
 import { supportedLocaleCodes, t } from './Locale.js';

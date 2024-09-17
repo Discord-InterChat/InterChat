@@ -2,7 +2,7 @@ import Logger from './Logger.js';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import type { TranslationKeys } from '#main/typings/locale.js';
+import type { TranslationKeys } from '#main/types/locale.js';
 
 const localesMap = new Map();
 

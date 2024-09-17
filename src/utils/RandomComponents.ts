@@ -12,9 +12,9 @@ import {
   type AnySelectMenuInteraction,
   type Snowflake,
 } from 'discord.js';
+import Constants, { emojis } from '../config/Constants.js';
 import { HubSettingsBitField } from './BitFields.js';
 import { fetchConnection, updateConnection } from './ConnectedList.js';
-import Constants, { emojis } from './Constants.js';
 import { CustomID } from './CustomID.js';
 import db from './Db.js';
 import { t } from './Locale.js';

@@ -1,6 +1,6 @@
 // express route boyeee
 import { VoteManager } from '#main/modules/VoteManager.js';
-import { WebhookPayload } from '#main/typings/topgg.js';
+import { WebhookPayload } from '#main/types/topgg.js';
 import Logger from '#main/utils/Logger.js';
 import { Router } from 'express';
 
