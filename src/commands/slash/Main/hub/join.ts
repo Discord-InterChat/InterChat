@@ -1,9 +1,9 @@
-import { showOnboarding } from '#main/utils/network/onboarding.js';
 import { createConnection, getHubConnections } from '#main/utils/ConnectedList.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { showOnboarding } from '#main/utils/network/onboarding.js';
 import { getOrCreateWebhook, sendToHub, simpleEmbed } from '#main/utils/Utils.js';
 import { hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
@@ -11,10 +11,7 @@ import {
   ChannelType,
   ChatInputCommandInteraction,
   GuildTextBasedChannel,
-  NewsChannel,
   Snowflake,
-  TextChannel,
-  ThreadChannel,
 } from 'discord.js';
 import Hub from './index.js';
 
@@ -223,7 +220,7 @@ export default class JoinSubCommand extends Hub {
 
   private async createWebhook(
     interaction: ChatInputCommandInteraction,
-    channel: NewsChannel | TextChannel | ThreadChannel,
+    channel: GuildTextBasedChannel,
     locale: supportedLocaleCodes,
   ) {
     const webhook = await getOrCreateWebhook(channel);

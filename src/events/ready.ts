@@ -5,6 +5,6 @@ import { Client } from 'discord.js';
 export default class Ready extends BaseEventListener<'ready'> {
   readonly name = 'ready';
   public execute(client: Client<true>) {
-    Logger.info(`Logged in as ${client.user?.tag}!`);
+    Logger.info(`Logged in as ${client.user.tag}!`);
   }
 }

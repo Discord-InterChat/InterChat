@@ -3,7 +3,7 @@ import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import ServerBlacklisManager from '#main/modules/ServerBlacklistManager.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
 import {
-  deleteMessageFromAllNetworks,
+  deleteMessageFromHub,
   isDeleteInProgress,
 } from '#main/scripts/deleteMessage/deleteMessage.js';
 import { deleteConnections } from '#main/utils/ConnectedList.js';
@@ -191,7 +191,7 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
-    const { deletedCount } = await deleteMessageFromAllNetworks(
+    const { deletedCount } = await deleteMessageFromHub(
       originalMsg.hubId,
       originalMsg.messageId,
       originalMsg.broadcastMsgs,
@@ -439,7 +439,7 @@ export default class Blacklist extends BaseCommand {
     return new EmbedBuilder().setColor('Green').addFields(
       {
         name: 'Reason',
-        value: reason ? reason : t({ phrase: 'misc.noReason', locale }),
+        value: reason ?? t({ phrase: 'misc.noReason', locale }),
         inline: true,
       },
       {

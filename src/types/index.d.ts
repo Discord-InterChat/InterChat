@@ -4,12 +4,24 @@ import UserDbManager from '#main/modules/UserDbManager.js';
 import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
 import { ClusterClient } from 'discord-hybrid-sharding';
 import { InteractionFunction } from '#main/decorators/Interaction.ts';
-import { Collection, Snowflake, Channel } from 'discord.js';
+import {
+  Collection,
+  Snowflake,
+  Channel,
+  NewsChannel,
+  TextChannel,
+  ForumChannel,
+  MediaChannel,
+  StageChannel,
+  VoiceChannel,
+} from 'discord.js';
 import CooldownService from '#main/modules/CooldownService.js';
 
 type RemoveMethods<T> = {
   [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? never : RemoveMethods<T[K]>;
 };
+
+type ThreadParentChannel = NewsChannel | TextChannel | ForumChannel | MediaChannel;
 
 declare module 'discord.js' {
   export interface Client {

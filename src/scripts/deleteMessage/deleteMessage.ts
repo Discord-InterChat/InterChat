@@ -5,7 +5,7 @@ import { RedisKeys } from '#main/utils/Constants.js';
 import { broadcastedMessages } from '@prisma/client';
 import { Snowflake, WebhookClient } from 'discord.js';
 
-export const deleteMessageFromAllNetworks = async (
+export const deleteMessageFromHub = async (
   hubId: string,
   originalMsgId: string,
   dbMessagesToDelete: broadcastedMessages[],
@@ -15,10 +15,9 @@ export const deleteMessageFromAllNetworks = async (
   let deletedCount = 0;
   const hubConnections = await getHubConnections(hubId);
   const hubConnectionsMap = new Map(hubConnections?.map((c) => [c.channelId, c]));
-  console.log(hubConnections?.length, hubConnectionsMap.size);
 
   for await (const dbMsg of dbMessagesToDelete) {
-    const connection = hubConnectionsMap?.get(dbMsg.channelId);
+    const connection = hubConnectionsMap.get(dbMsg.channelId);
     if (!connection) continue;
 
     const webhook = new WebhookClient({ url: connection.webhookURL });
@@ -33,5 +32,5 @@ export const deleteMessageFromAllNetworks = async (
 
 export const isDeleteInProgress = async (originalMsgId: Snowflake) => {
   const res = await getCachedData(`${RedisKeys.msgDeleteInProgress}:${originalMsgId}`);
-  return res.data === 't' ? true : false;
+  return res.data === 't';
 };

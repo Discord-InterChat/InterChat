@@ -97,7 +97,7 @@ export class RandomComponents {
           .setPlaceholder('Add a reaction'),
       );
 
-      const { hub } = networkMessage?.originalMsg;
+      const { hub } = networkMessage.originalMsg;
       const hubSettings = new HubSettingsManager(hub.id, hub.settings);
       if (!hubSettings.getSetting('Reactions')) reactionMenu.components[0].setDisabled(true);
 

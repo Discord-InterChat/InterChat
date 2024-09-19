@@ -10,33 +10,29 @@ import {
   ApplicationCommandOptionType,
   ButtonBuilder,
   ButtonStyle,
-  ChannelType,
   Client,
   Collection,
   ColorResolvable,
   CommandInteraction,
   ComponentType,
   EmbedBuilder,
-  ForumChannel,
   GuildResolvable,
+  GuildTextBasedChannel,
   Interaction,
-  MediaChannel,
   Message,
   MessageActionRowComponent,
   MessageComponentInteraction,
   messageLink,
-  NewsChannel,
   RepliableInteraction,
   Snowflake,
-  TextChannel,
-  ThreadChannel,
+  VoiceBasedChannel,
   WebhookClient,
   WebhookMessageCreateOptions,
 } from 'discord.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
 import Constants, { emojis } from '../config/Constants.js';
-import { RemoveMethods } from '../types/index.js';
+import { RemoveMethods, ThreadParentChannel } from '../types/index.js';
 import { deleteConnection, deleteConnections } from './ConnectedList.js';
 import { CustomID } from './CustomID.js';
 import db from './Db.js';
@@ -107,10 +103,12 @@ export const disableComponents = (message: Message) =>
     return jsonRow;
   });
 
-const createWebhook = async (
-  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
-  avatar: string,
-) =>
+const findExistingWebhook = async (channel: ThreadParentChannel | VoiceBasedChannel) => {
+  const webhooks = await channel?.fetchWebhooks().catch(() => null);
+  return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
+};
+
+const createWebhook = async (channel: ThreadParentChannel | VoiceBasedChannel, avatar: string) =>
   await channel
     ?.createWebhook({
       name: 'InterChat Network',
@@ -118,22 +116,11 @@ const createWebhook = async (
     })
     .catch(() => undefined);
 
-const findExistingWebhook = async (
-  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
-) => {
-  const webhooks = await channel?.fetchWebhooks().catch(() => null);
-  return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
-};
-
 export const getOrCreateWebhook = async (
-  channel: NewsChannel | TextChannel | ThreadChannel,
+  channel: GuildTextBasedChannel,
   avatar = Constants.Links.EasterAvatar,
 ) => {
-  const channelOrParent =
-    channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement
-      ? channel
-      : channel.parent;
-
+  const channelOrParent = channel.isThread() ? channel.parent : channel;
   if (!channelOrParent) return null;
 
   const existingWebhook = await findExistingWebhook(channelOrParent);
