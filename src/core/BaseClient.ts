@@ -17,10 +17,10 @@ import {
   GatewayIntentBits,
   Options,
 } from 'discord.js';
-import { RemoveMethods } from '../typings/index.js';
-import Constants from '../utils/Constants.js';
-import { loadLocales } from '../utils/Locale.js';
-import { resolveEval } from '../utils/Utils.js';
+import { RemoveMethods } from '#main/types/index.js';
+import Constants from '#main/config/Constants.js';
+import { loadLocales } from '#main/utils/Locale.js';
+import { resolveEval } from '#main/utils/Utils.js';
 import { isGuildTextBasedChannel } from '#main/utils/Channels.js';
 
 export default class SuperClient extends Client {

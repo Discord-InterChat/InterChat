@@ -110,8 +110,7 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
    * @returns The updated blacklist.
    */
   async removeBlacklist(hubId: string, userId: Snowflake) {
-    const notInBlacklist = this.fetchBlacklist(hubId, userId);
-    if (!notInBlacklist) return null;
+    if (!(await this.fetchBlacklist(hubId, userId))) return null;
 
     const user = await db.userData.update({
       where: { id: userId },

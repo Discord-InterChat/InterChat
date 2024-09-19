@@ -1,6 +1,5 @@
 import { analyzeImageForNSFW, isUnsafeImage } from '#main/modules/NSFWDetection.js';
-import { sendWelcomeMsg } from '#main/scripts/network/helpers.js';
-import { HubSettingsBitField } from '#main/utils/BitFields.js';
+import { sendWelcomeMsg } from '#main/utils/network/helpers.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
@@ -11,6 +10,7 @@ import { containsInviteLinks, replaceLinks } from '#main/utils/Utils.js';
 import { hubs } from '@prisma/client';
 import { EmbedBuilder, Message } from 'discord.js';
 import { runAntiSpam } from './antiSpam.js';
+import HubSettingsManager from '#main/modules/HubSettingsManager.js';
 
 // if account is created within the last 7 days
 const isNewUser = (message: Message) => {
@@ -34,11 +34,11 @@ const replyToMsg = async (
 
 const containsStickers = (message: Message) => message.stickers.size > 0 && !message.content;
 
-const isCaughtSpam = async (message: Message, settings: HubSettingsBitField, hubId: string) => {
+const isCaughtSpam = async (message: Message, settings: HubSettingsManager, hubId: string) => {
   const antiSpamResult = runAntiSpam(message.author, 3);
   if (!antiSpamResult) return false;
 
-  if (settings.has('SpamFilter') && antiSpamResult.infractions >= 3) {
+  if (settings.getSetting('SpamFilter') && antiSpamResult.infractions >= 3) {
     const expires = new Date(Date.now() + 60 * 5000);
     const reason = 'Auto-blacklisted for spamming.';
     const target = message.author;
@@ -70,8 +70,8 @@ const isNSFW = async (imgUrl: string | null | undefined) => {
   return isUnsafeImage(predictions);
 };
 
-const containsLinks = (message: Message, settings: HubSettingsBitField) =>
-  settings.has('HideLinks') &&
+const containsLinks = (message: Message, settings: HubSettingsManager) =>
+  settings.getSetting('HideLinks') &&
   !Constants.Regex.StaticImageUrl.test(message.content) &&
   Constants.Regex.Links.test(message.content);
 
@@ -100,7 +100,7 @@ export const runChecks = async (
   message: Message<true>,
   hub: hubs,
   opts: {
-    settings: HubSettingsBitField;
+    settings: HubSettingsManager;
     totalHubConnections: number;
     attachmentURL?: string | null;
   },
@@ -166,7 +166,7 @@ export const runChecks = async (
     });
     return false;
   }
-  if (settings.has('BlockInvites') && containsInviteLinks(message.content)) {
+  if (settings.getSetting('BlockInvites') && containsInviteLinks(message.content)) {
     await replyToMsg(message, {
       content: t({ phrase: 'errors.inviteLinks', locale }, { emoji: emojis.no }),
     });

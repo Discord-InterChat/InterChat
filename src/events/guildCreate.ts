@@ -1,11 +1,11 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { logGuildJoin } from '#main/scripts/guilds/goals.js';
+import { logGuildJoin } from '#main/utils/guilds/goals.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import Logger from '#main/utils/Logger.js';
 import { check } from '#main/utils/Profanity.js';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Guild } from 'discord.js';
-import getWelcomeTarget from '#main/scripts/guilds/getWelcomeTarget.js';
+import getWelcomeTarget from '#main/utils/guilds/getWelcomeTarget.js';
 
 export default class Ready extends BaseEventListener<'guildCreate'> {
   readonly name = 'guildCreate';

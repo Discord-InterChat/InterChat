@@ -98,7 +98,7 @@ ${errorLocaleKeysExtra}
 `
 
 // Write the .d.ts file
-const outputFilePath = resolve(__dirname, '..', 'src/typings/locale.d.ts');
+const outputFilePath = resolve(__dirname, '..', 'src/types/locale.d.ts');
 writeFileSync(outputFilePath, output);
 
 console.log(`Type definitions for locales written to ${outputFilePath}`);

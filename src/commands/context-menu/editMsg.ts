@@ -1,7 +1,8 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import HubSettingsManager from '#main/modules/HubSettingsManager.js';
 import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
-import { HubSettingsBitField } from '#main/utils/BitFields.js';
+import { SerializedHubSettings } from '#main/utils/BitFields.js';
 import Constants, { ConnectionMode, emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
@@ -148,10 +149,13 @@ export default class EditMessage extends BaseCommand {
 
     // get the new message input by user
     const userInput = interaction.fields.getTextInputValue('newMessage');
-    const hubSettings = new HubSettingsBitField(targetMsgData.hub.settings);
-    const messageToEdit = this.sanitizeMessage(userInput, hubSettings);
+    const settingsManager = new HubSettingsManager(
+      targetMsgData.hub.id,
+      targetMsgData.hub.settings,
+    );
+    const messageToEdit = this.sanitizeMessage(userInput, settingsManager.getAllSettings());
 
-    if (hubSettings.has('BlockInvites') && containsInviteLinks(messageToEdit)) {
+    if (settingsManager.getSetting('BlockInvites') && containsInviteLinks(messageToEdit)) {
       await interaction.editReply(
         t({ phrase: 'errors.inviteLinks', locale }, { emoji: emojis.no }),
       );
@@ -287,8 +291,8 @@ export default class EditMessage extends BaseCommand {
     return { normal: embed, censored };
   }
 
-  private sanitizeMessage(content: string, settings: HubSettingsBitField) {
-    const newMessage = settings.has('HideLinks') ? replaceLinks(content) : content;
+  private sanitizeMessage(content: string, settings: SerializedHubSettings) {
+    const newMessage = settings.HideLinks ? replaceLinks(content) : content;
     return newMessage;
   }
 

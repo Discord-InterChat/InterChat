@@ -1,6 +1,7 @@
+import Scheduler from '#main/modules/SchedulerService.js';
 import { hubs } from '@prisma/client';
 import { captureException } from '@sentry/node';
-import { createCipheriv, randomBytes } from 'crypto';
+import { randomBytes } from 'crypto';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import {
   ActionRow,
@@ -34,10 +35,9 @@ import {
 } from 'discord.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
-import Scheduler from '#main/modules/SchedulerService.js';
-import { RemoveMethods } from '../typings/index.js';
+import Constants, { emojis } from '../config/Constants.js';
+import { RemoveMethods } from '../types/index.js';
 import { deleteConnection, deleteConnections } from './ConnectedList.js';
-import Constants, { emojis } from './Constants.js';
 import { CustomID } from './CustomID.js';
 import db from './Db.js';
 import { supportedLocaleCodes, t } from './Locale.js';
@@ -265,17 +265,17 @@ export const checkAndFetchImgurUrl = async (url: string): Promise<string | false
     },
   });
 
-  const data = (await response.json().catch(() => null)) as ImgurResponse;
-  if (!data || data?.data?.nsfw) {
+  const res = (await response.json().catch(() => null)) as ImgurResponse;
+
+  if (!res || res.data?.nsfw) {
     return false;
   }
-  // if means the image is an album or gallery
-  else if (data.data.cover) {
-    // refetch the cover image
-    return await checkAndFetchImgurUrl(`https://imgur.com/${data.data.cover}`);
+  else if (res.data.cover) {
+    // refetch the cover image for albuns/galleries
+    return await checkAndFetchImgurUrl(`https://imgur.com/${res.data.cover}`);
   }
 
-  return data.data.link;
+  return res.data.link;
 };
 
 export const toTitleCase = (str: string) => startCase(toLower(str));
@@ -500,14 +500,6 @@ export const findSubcommand = (
   return command?.options.find(
     ({ type, name }) => type === ApplicationCommandOptionType.Subcommand && name === subName,
   );
-};
-
-export const encryptMessage = (string: string, key: Buffer) => {
-  const iv: Buffer = randomBytes(16); // Initialization vector
-  const cipher = createCipheriv('aes-256-cbc', key, iv);
-  let encrypted = cipher.update(string, 'utf8', 'hex');
-  encrypted += cipher.final('hex');
-  return `${iv.toString('hex')}:${encrypted}`;
 };
 
 export const getTagOrUsername = (username: string, discrim: string) =>

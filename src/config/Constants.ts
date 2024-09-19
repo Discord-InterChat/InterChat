@@ -1,16 +1,16 @@
 import type { Colors, HexColorString, Snowflake } from 'discord.js';
 import { createRequire } from 'module';
-import jsonEmotes from './JSON/emojis.json';
-import badwordsType from './JSON/profanity.json';
+import jsonEmotes from './emojis.json';
+import badwordsType from './profanity.json';
 
 // create a require as ESM doesn't support importing JSON
 const require = createRequire(import.meta.url);
-export const { slurs, profanity } = require('./JSON/profanity.json') as typeof badwordsType;
+export const { slurs, profanity } = require('./profanity.json') as typeof badwordsType;
 export const {
   normal: emojis,
   mascot: mascotEmojis,
   badge: badgeEmojis,
-} = require('./JSON/emojis.json') as typeof jsonEmotes;
+} = require('./emojis.json') as typeof jsonEmotes;
 
 export enum RedisKeys {
   msgTimestamp = 'msgTimestamp',
