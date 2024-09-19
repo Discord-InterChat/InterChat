@@ -70,8 +70,7 @@ export default class ServerBlacklisManager extends BaseBlacklistManager<blacklis
   }
 
   public override async removeBlacklist(hubId: string, id: Snowflake) {
-    const notInBlacklist = await this.fetchBlacklist(hubId, id);
-    if (!notInBlacklist) return null;
+    if (!(await this.fetchBlacklist(hubId, id))) return null;
 
     const updatedBlacklist = await db.blacklistedServers.update({
       where: { id },

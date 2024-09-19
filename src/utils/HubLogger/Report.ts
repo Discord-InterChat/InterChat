@@ -9,7 +9,7 @@ import {
   User,
   Client,
 } from 'discord.js';
-import { emojis } from '../Constants.js';
+import { emojis } from '../../config/Constants.js';
 import { fetchHub, resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
 

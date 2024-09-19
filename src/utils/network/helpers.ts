@@ -1,4 +1,4 @@
-import type { ReferredMsgData } from '#main/scripts/network/Types.d.ts';
+import type { ReferredMsgData } from '#main/utils/network/Types.js';
 import Constants, { ConnectionMode, emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
