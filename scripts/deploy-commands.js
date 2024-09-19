@@ -63,7 +63,6 @@ const parseAndRun = async (args) => {
     await registerAllCommands(arg === '--private').catch((e) => {
       console.error(`${redText('✘ Error: ')}`, e);
     });
-    continue;
   }
 };
 

@@ -19,6 +19,7 @@ import { CustomID } from './CustomID.js';
 import db from './Db.js';
 import { t } from './Locale.js';
 import { getEmojiId, simpleEmbed, sortReactions } from './Utils.js';
+import HubSettingsManager from '#main/modules/HubSettingsManager.js';
 
 export class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
@@ -77,7 +78,7 @@ export class RandomComponents {
         },
       });
 
-      if (!networkMessage?.originalMsg.reactions) {
+      if (!networkMessage?.originalMsg.reactions || !networkMessage?.originalMsg.hub) {
         await interaction.followUp({
           content: 'There are no more reactions to view.',
           ephemeral: true,
@@ -96,8 +97,9 @@ export class RandomComponents {
           .setPlaceholder('Add a reaction'),
       );
 
-      const hubSettings = new HubSettingsBitField(networkMessage.originalMsg.hub?.settings);
-      if (!hubSettings.has('Reactions')) reactionMenu.components[0].setDisabled(true);
+      const { hub } = networkMessage?.originalMsg;
+      const hubSettings = new HubSettingsManager(hub.id, hub.settings);
+      if (!hubSettings.getSetting('Reactions')) reactionMenu.components[0].setDisabled(true);
 
       sortedReactions.forEach((r, index) => {
         if (r[1].length === 0 || index >= 10) return;
@@ -134,16 +136,10 @@ export class RandomComponents {
       const { userManager } = interaction.client;
       const locale = await userManager.getUserLocale(interaction.user.id);
 
-      if (userBlacklisted) {
+      if (userBlacklisted || serverBlacklisted) {
+        const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
         await interaction.followUp({
-          content: t({ phrase: 'errors.userBlacklisted', locale }, { emoji: emojis.no }),
-          ephemeral: true,
-        });
-        return;
-      }
-      else if (serverBlacklisted) {
-        await interaction.followUp({
-          content: t({ phrase: 'errors.userBlacklisted', locale }, { emoji: emojis.no }),
+          content: t({ phrase, locale }, { emoji: emojis.no }),
           ephemeral: true,
         });
         return;

@@ -1,28 +1,28 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
+import HubSettingsManager from '#main/modules/HubSettingsManager.js';
+import { getConnectionHubId, getHubConnections } from '#main/utils/ConnectedList.js';
+import { ConnectionMode } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
 import {
   buildNetworkEmbed,
   getReferredContent,
   getReferredMsgData,
   trimAndCensorBannedWebhookWords,
 } from '#main/utils/network/helpers.js';
-import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
-import { runChecks } from '#main/utils/network/runChecks.js';
-import storeMessageData, {
-  NetworkWebhookSendResult,
-} from '#main/utils/network/storeMessageData.js';
-import { HubSettingsBitField } from '#main/utils/BitFields.js';
-import { getConnectionHubId, getHubConnections } from '#main/utils/ConnectedList.js';
-import db from '#main/utils/Db.js';
-import { censor } from '#main/utils/Profanity.js';
-import { generateJumpButton, getAttachmentURL, isHumanMessage } from '#main/utils/Utils.js';
-import { connectedList, hubs } from '@prisma/client';
-import { HexColorString, Message, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import {
   getCompactMessageFormat,
   getEmbedMessageFormat,
   getReplyMention,
 } from '#main/utils/network/messageFormatters.js';
-import { ConnectionMode } from '#main/utils/Constants.js';
+import { runChecks } from '#main/utils/network/runChecks.js';
+import storeMessageData, {
+  NetworkWebhookSendResult,
+} from '#main/utils/network/storeMessageData.js';
+import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
+import { censor } from '#main/utils/Profanity.js';
+import { generateJumpButton, getAttachmentURL, isHumanMessage } from '#main/utils/Utils.js';
+import { connectedList, hubs } from '@prisma/client';
+import { HexColorString, Message, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
@@ -36,7 +36,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     const hub = await db.hubs.findFirst({ where: { id: connection.hubId } });
     if (!hub) return;
 
-    const settings = new HubSettingsBitField(hub.settings);
+    const settings = new HubSettingsManager(hub.id, hub.settings);
     const attachmentURL = await this.resolveAttachmentURL(message);
 
     // run checks on the message to determine if it can be sent in the network
@@ -77,7 +77,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     message: Message<true>,
     hub: hubs,
     hubConnections: connectedList[],
-    settings: HubSettingsBitField,
+    settings: HubSettingsManager,
     opts: BroadcastOpts,
   ) {
     const username = this.getUsername(settings, message);
@@ -191,9 +191,9 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     };
   }
 
-  private getUsername(settings: HubSettingsBitField, message: Message<true>): string {
+  private getUsername(settings: HubSettingsManager, message: Message<true>): string {
     return trimAndCensorBannedWebhookWords(
-      settings.has('UseNicknames')
+      settings.getSetting('UseNicknames')
         ? (message.member?.displayName ?? message.author.displayName)
         : message.author.username,
     );

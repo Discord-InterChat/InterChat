@@ -1,14 +1,15 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import {
-  buildChannelSelect,
-  buildCustomizeSelect,
-  buildEmbed,
-} from '#main/utils/network/buildConnectionAssets.js';
+import { isGuildTextBasedChannel } from '#main/utils/Channels.js';
 import { updateConnection } from '#main/utils/ConnectedList.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
+import {
+  buildChannelSelect,
+  buildCustomizeSelect,
+  buildEmbed,
+} from '#main/utils/network/buildConnectionAssets.js';
 import { getOrCreateWebhook, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
@@ -17,10 +18,8 @@ import {
   ModalBuilder,
   ModalSubmitInteraction,
   StringSelectMenuInteraction,
-  TextChannel,
   TextInputBuilder,
   TextInputStyle,
-  ThreadChannel,
 } from 'discord.js';
 import Connection from './index.js';
 
@@ -256,7 +255,7 @@ export default class Customize extends Connection {
 
     const newChannel = interaction.channels.first();
 
-    if (!newChannel) {
+    if (!isGuildTextBasedChannel(newChannel) || newChannel.isVoiceBased()) {
       await interaction.followUp({
         content: t({ phrase: 'hub.invalidChannel', locale }, { emoji }),
         ephemeral: true,
@@ -282,7 +281,7 @@ export default class Customize extends Connection {
           simpleEmbed(
             t(
               { phrase: 'connection.alreadyConnected', locale },
-              { channel: `${newChannel?.toString()}`, emoji },
+              { channel: `${newChannel}`, emoji },
             ),
           ),
         ],
@@ -291,7 +290,7 @@ export default class Customize extends Connection {
       return;
     }
 
-    const newWebhook = await getOrCreateWebhook(newChannel as TextChannel | ThreadChannel);
+    const newWebhook = await getOrCreateWebhook(newChannel);
     await updateConnection(
       { channelId },
       { channelId: newChannel.id, webhookURL: newWebhook?.url },
