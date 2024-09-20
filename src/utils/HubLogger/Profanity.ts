@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, Guild, User } from 'discord.js';
-import Constants, { emojis } from '../Constants.js';
+import Constants, { emojis } from '../../config/Constants.js';
 import { fetchHub } from '../Utils.js';
 import { sendLog } from './Default.js';
 

@@ -2,7 +2,7 @@ import Logger from './Logger.js';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
-import type { TranslationKeys } from '#main/typings/en.js';
+import type { TranslationKeys } from '#main/types/locale.js';
 
 const localesMap = new Map();
 
@@ -67,7 +67,9 @@ export const t = <K extends keyof TranslationKeys>(
   const localeFile = localesMap.get(locale) ?? localesMap.get('en');
 
   if (localeFile) {
-    const translation: string = phrase.split('.').reduce((obj, segment) => obj?.[segment], localeFile);
+    const translation: string = phrase
+      .split('.')
+      .reduce((obj, segment) => obj?.[segment], localeFile);
 
     if (translation) {
       // Replace variables in the translated text
@@ -75,7 +77,10 @@ export const t = <K extends keyof TranslationKeys>(
 
       if (variables) {
         Object.keys(variables).forEach((variable) => {
-          result = result.replace(new RegExp(`{${variable}}`, 'g'), variables[(variable as TranslationKeys[K])]);
+          result = result.replace(
+            new RegExp(`{${variable}}`, 'g'),
+            variables[variable as TranslationKeys[K]],
+          );
         });
       }
 

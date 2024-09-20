@@ -1,6 +1,6 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { addReaction, updateReactions } from '#main/scripts/reaction/actions.js';
-import { checkBlacklists } from '#main/scripts/reaction/helpers.js';
+import { addReaction, updateReactions } from '#main/utils/reaction/actions.js';
+import { checkBlacklists } from '#main/utils/reaction/helpers.js';
 import { HubSettingsBitField } from '#main/utils/BitFields.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';

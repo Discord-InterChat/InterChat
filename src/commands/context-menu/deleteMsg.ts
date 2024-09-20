@@ -21,7 +21,7 @@ export default class DeleteMessage extends BaseCommand {
   readonly cooldown = 10_000;
 
   async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
-    const isOnCooldown = await this.checkAndSetCooldown(interaction);
+    const isOnCooldown = await this.checkOrSetCooldown(interaction);
     if (isOnCooldown || !interaction.inCachedGuild()) return;
 
     await interaction.deferReply({ ephemeral: true });
@@ -107,7 +107,7 @@ export default class DeleteMessage extends BaseCommand {
     const { targetMessage } = interaction;
 
     const messageContent =
-      targetMessage.cleanContent ?? targetMessage.embeds.at(0)?.description?.replaceAll('`', '`');
+      targetMessage.cleanContent ?? targetMessage.embeds.at(0)?.description?.replaceAll('`', '\\`');
 
     const imageUrl =
       targetMessage.embeds.at(0)?.image?.url ??

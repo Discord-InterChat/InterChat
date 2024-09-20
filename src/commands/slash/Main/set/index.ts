@@ -37,6 +37,19 @@ export default class Set extends BaseCommand {
           },
         ],
       },
+      {
+        name: 'reply_mentions',
+        description: 'Get pinged when someone replies to your messages.',
+        type: ApplicationCommandOptionType.Subcommand,
+        options: [
+          {
+            type: ApplicationCommandOptionType.Boolean,
+            name: 'enable',
+            description: 'Enable this setting',
+            required: true,
+          },
+        ],
+      },
     ],
   };
 

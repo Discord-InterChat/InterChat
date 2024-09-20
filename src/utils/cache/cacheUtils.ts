@@ -2,13 +2,20 @@ import cacheClient from '#main/utils/cache/cacheClient.js';
 import { RedisKeys } from '#main/utils/Constants.js';
 import { Prisma } from '@prisma/client';
 import Logger from '../Logger.js';
+import { Awaitable } from 'discord.js';
 
 // TODO: make this into a class
 
-export const cacheData = async (key: string, value: string, expiry = 3600) => {
-  await cacheClient.set(key, value, 'EX', expiry).catch((e) => {
+export const cacheData = async (key: string, value: string, expirySecs?: number) => {
+  try {
+    if (expirySecs) {
+      return await cacheClient.set(key, value, 'EX', expirySecs);
+    }
+    return await cacheClient.set(key, value, 'KEEPTTL');
+  }
+  catch (e) {
     Logger.error('Failed to set cache: ', e);
-  });
+  }
 };
 
 export const parseKey = (key: string) => {
@@ -73,19 +80,20 @@ export const getAllDocuments = async (match: string) => {
 
 export const getCachedData = async <T>(
   key: `${RedisKeys}:${string}`,
-  fetchFunction: () => Promise<T | null>,
+  fetchFunction: (() => Awaitable<T | null>) | null,
   expiry?: number,
-): Promise<{ data: ConvertDatesToString<T> | null; cached: boolean }> => {
+): Promise<{ data: ConvertDatesToString<T> | null; fromCache: boolean }> => {
   // Check cache first
   let data = serializeCache<T>(await cacheClient.get(key));
+  const fromCache = data !== null;
 
   // If not in cache, fetch from database
-  if (!data) {
+  if (!fromCache && fetchFunction) {
     data = (await fetchFunction()) as ConvertDatesToString<T>;
 
     // Store in cache with TTL
     if (data) await cacheData(key, JSON.stringify(data), expiry);
   }
 
-  return { data, cached: Boolean(data) };
+  return { data, fromCache };
 };

@@ -2,12 +2,7 @@ import { updateConnection } from '#main/utils/ConnectedList.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import {
-  fetchCommands,
-  findCommand,
-  getOrCreateWebhook,
-  simpleEmbed,
-} from '#main/utils/Utils.js';
+import { fetchCommands, findCommand, getOrCreateWebhook, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ChannelType,
   ChatInputCommandInteraction,

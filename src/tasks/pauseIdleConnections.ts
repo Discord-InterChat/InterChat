@@ -1,10 +1,10 @@
 import Logger from '../utils/Logger.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { APIActionRowComponent, APIButtonComponent, Snowflake } from 'discord.js';
-import { buildConnectionButtons } from '../scripts/network/components.js';
-import { simpleEmbed } from '../utils/Utils.js';
+import { buildConnectionButtons } from '#main/utils/network/components.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import { emojis } from '../utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import 'dotenv/config';
 import { updateConnection } from '#main/utils/ConnectedList.js';
 import db from '#main/utils/Db.js';
@@ -13,7 +13,7 @@ export default async (manager: ClusterManager) => {
   const connections = await db.connectedList.findMany({
     where: {
       connected: true,
-      lastActive: { not: null, lte: new Date(Date.now() - (24 * 60 * 60 * 1000)) },
+      lastActive: { not: null, lte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
     },
   });
 
@@ -55,7 +55,7 @@ export default async (manager: ClusterManager) => {
         const channel = await client.channels.fetch(connection.channelId).catch(() => null);
         const button = buttons.find((b) => b.channelId === connection.channelId)?.button;
 
-        if (!channel?.isTextBased() || !button) return;
+        if (!channel?.isTextBased() || channel.isDMBased() || !button) return;
 
         // remove it since we are done with it
         _connections.splice(_connections.indexOf(connection), 1);

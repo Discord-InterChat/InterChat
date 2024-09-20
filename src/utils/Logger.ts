@@ -3,7 +3,7 @@ import 'source-map-support/register.js';
 
 const custom = format.printf(
   (info) =>
-    `${info.timestamp} ${info.level}: ${info.message} ${info.stack ? `\n${info.stack}` : ''}`,
+    `\x1b[2;37m${info.timestamp}\x1b[0m ${info.level}: ${info.message} ${info.stack ? `\n${info.stack}` : ''}`,
 );
 
 const combinedFormat = format.combine(

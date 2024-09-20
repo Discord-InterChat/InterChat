@@ -46,7 +46,7 @@ export default abstract class BaseCommand {
   async handleComponents?(interaction: MessageComponentInteraction): Promise<unknown>;
   async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
 
-  async checkAndSetCooldown(interaction: RepliableInteraction): Promise<boolean> {
+  async checkOrSetCooldown(interaction: RepliableInteraction): Promise<boolean> {
     const remainingCooldown = await this.getRemainingCooldown(interaction);
 
     if (remainingCooldown) {

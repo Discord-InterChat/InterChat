@@ -1,6 +1,6 @@
 import { stripIndents } from 'common-tags';
 import { User, EmbedBuilder, Snowflake, Client, codeBlock } from 'discord.js';
-import Constants, { emojis } from '../Constants.js';
+import Constants, { emojis } from '../../config/Constants.js';
 import { fetchHub, resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
 import { hubs } from '@prisma/client';

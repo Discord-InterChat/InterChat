@@ -39,7 +39,9 @@ const processNextButton = async (
   );
 
   const rulesEmbed = new EmbedBuilder()
-    .setDescription(t({ phrase: 'rules', locale }, { support_invite: Constants.Links.SupportInvite }))
+    .setDescription(
+      t({ phrase: 'rules', locale }, { support_invite: Constants.Links.SupportInvite }),
+    )
     .setImage(Constants.Links.RulesBanner)
     .setColor(Constants.Colors.interchatBlue);
 
@@ -85,7 +87,9 @@ export const showOnboarding = async (
 
   const embed = new EmbedBuilder()
     .setTitle(t({ phrase: `${embedPhrase}.title`, locale }, { hubName }))
-    .setDescription(t({ phrase: `${embedPhrase}.description`, locale }, { docs_link: Constants.Links.Docs }))
+    .setDescription(
+      t({ phrase: `${embedPhrase}.description`, locale }, { docs_link: Constants.Links.Docs }),
+    )
     .setColor(Constants.Colors.interchatBlue)
     .setFooter({
       text: t({ phrase: `${embedPhrase}.footer`, locale }, { version: interaction.client.version }),

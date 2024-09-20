@@ -28,12 +28,7 @@ router.post('/nsfw', async (req, res) => {
 
     if (!Constants.Regex.StaticImageUrl.test(imageURL)) return invalidImageURLResponse(res);
 
-    const imageReq = await fetch('https://api.interchat.fun/fetch-image', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageURL }),
-    });
-
+    const imageReq = await fetch(imageURL);
     if (!imageReq.ok) return invalidImageURLResponse(res);
 
     const jpegImgBuffer = await sharp(await imageReq.arrayBuffer())

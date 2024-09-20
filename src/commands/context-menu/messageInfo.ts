@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { RemoveMethods } from '#main/typings/index.js';
+import { RemoveMethods } from '#main/types/index.js';
 import { getHubConnections } from '#main/utils/ConnectedList.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
@@ -89,7 +89,7 @@ export default class MessageInfo extends BaseCommand {
       )
       .setColor('Random');
 
-    const expiry = new Date(Date.now() + (5 * 60 * 1000)); // 5 minutes
+    const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
     const components = this.buildButtons(expiry, locale);
     const guildConnected = (await getHubConnections(originalMsg.hub.id))?.find(
       (c) => c.connected && c.serverId === originalMsg.serverId,

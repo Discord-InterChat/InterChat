@@ -10,7 +10,13 @@ import db from '#main/utils/Db.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { stripIndents } from 'common-tags';
 import { emojis } from '#main/utils/Constants.js';
-import { simpleEmbed, msToReadable, deleteMsgsFromDb, handleError, resolveEval } from '#main/utils/Utils.js';
+import {
+  simpleEmbed,
+  msToReadable,
+  deleteMsgsFromDb,
+  handleError,
+  resolveEval,
+} from '#main/utils/Utils.js';
 import { broadcastedMessages } from '@prisma/client';
 
 const limitOpt: APIApplicationCommandBasicOption = {
@@ -102,7 +108,7 @@ export default class Purge extends BaseCommand {
   };
 
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    const isOnCooldown = await this.checkAndSetCooldown(interaction);
+    const isOnCooldown = await this.checkOrSetCooldown(interaction);
     if (isOnCooldown) return;
 
     await interaction.deferReply({ fetchReply: true });

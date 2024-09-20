@@ -17,7 +17,6 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
       const isBanned = await this.handleUserBan(interaction, dbUser);
       if (isBanned) return;
 
-
       if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
         const ignoreList = ['page_', 'onboarding_', 'shardStats'];
         const customId = CustomID.parseCustomId(interaction.customId);

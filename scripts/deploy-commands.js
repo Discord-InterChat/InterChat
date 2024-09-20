@@ -9,11 +9,12 @@ const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const SUPPORT_SERVER_ID = '770256165300338709';
 
-if (!TOKEN || !CLIENT_ID || !SUPPORT_SERVER_ID) throw new Error('Missing TOKEN, CLIENT_ID or SUPPORT_SERVER_ID.')
+if (!TOKEN || !CLIENT_ID || !SUPPORT_SERVER_ID)
+  throw new Error('Missing TOKEN, CLIENT_ID or SUPPORT_SERVER_ID.');
 
 const { loadCommandFiles } = await import('../build/utils/LoadCommands.js').catch(() => {
-  console.error(`${redText('✘')} Code is not build yet. Use \`pnpm build\` first.`)
-  process.exit()
+  console.error(`${redText('✘')} Code is not build yet. Use \`pnpm build\` first.`);
+  process.exit();
 });
 
 const registerAllCommands = async (staffOnly = false) => {
@@ -32,7 +33,7 @@ const registerAllCommands = async (staffOnly = false) => {
 
   // register all other commands to the global application;
   /** @type {any} */
-  const registerRes = (await rest.put(route, { body: commands }));
+  const registerRes = await rest.put(route, { body: commands });
 
   const type = staffOnly ? 'private' : 'public';
   const totalRegistered =
@@ -45,33 +46,32 @@ const registerAllCommands = async (staffOnly = false) => {
   );
 };
 
-const logHelp = () => console.log(`${greenText('Usage')}: node scripts/deploy-commands.js {--public|--private|--help}`)
-/** 
- * @param {string[]} args 
+const logHelp = () =>
+  console.log(`${greenText('Usage')}: node scripts/deploy-commands.js {--public|--private|--help}`);
+/**
+ * @param {string[]} args
  */
 const parseAndRun = async (args) => {
   for (const arg of process.argv.slice(2)) {
-    if (!args.includes(arg)) continue
+    if (!args.includes(arg)) continue;
 
     if (arg === '--help') {
-      logHelp()
+      logHelp();
       break;
     }
 
     await registerAllCommands(arg === '--private').catch((e) => {
       console.error(`${redText('✘ Error: ')}`, e);
     });
-    continue;
   }
-}
-
+};
 
 if (process.argv) {
-  const allArgs = ['--help', '--public', '--private']
+  const allArgs = ['--help', '--public', '--private'];
   const slicedArgs = process.argv.slice(2);
 
-  if (slicedArgs.length === 0) logHelp()
-  else await parseAndRun(allArgs)
+  if (slicedArgs.length === 0) logHelp();
+  else await parseAndRun(allArgs);
 
   process.exit();
 }
