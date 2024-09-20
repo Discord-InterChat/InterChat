@@ -27,3 +27,6 @@ build/
 
 # Redis dev 
 dump.rdb
+
+# dev dbs
+dev/docker/db*
