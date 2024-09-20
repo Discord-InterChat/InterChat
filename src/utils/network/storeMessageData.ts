@@ -1,5 +1,5 @@
 import { updateConnections } from '#main/utils/ConnectedList.js';
-import { ConnectionMode, RedisKeys } from '#main/utils/Constants.js';
+import { ConnectionMode, RedisKeys } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import cacheClient from '#main/utils/cache/cacheClient.js';

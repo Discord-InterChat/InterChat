@@ -18,7 +18,7 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { emojis } from '#main/utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import { isSupported, translate } from 'google-translate-api-x';
 
 export default class Translate extends BaseCommand {

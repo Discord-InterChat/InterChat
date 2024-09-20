@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { channelMention } from '#main/utils/Utils.js';
 import { Prisma, hubs } from '@prisma/client';

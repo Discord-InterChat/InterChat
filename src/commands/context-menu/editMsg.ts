@@ -3,7 +3,7 @@ import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
 import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
 import { SerializedHubSettings } from '#main/utils/BitFields.js';
-import Constants, { ConnectionMode, emojis } from '#main/utils/Constants.js';
+import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';

@@ -3,7 +3,7 @@ import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import ServerBlacklisManager from '#main/modules/ServerBlacklistManager.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
 import { deleteConnections } from '#main/utils/ConnectedList.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';

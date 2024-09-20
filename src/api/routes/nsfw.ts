@@ -1,4 +1,4 @@
-import Constants from '#main/utils/Constants.js';
+import Constants from '#main/config/Constants.js';
 import Logger from '#main/utils/Logger.js';
 import { captureException } from '@sentry/node';
 import { node, Tensor3D } from '@tensorflow/tfjs-node';

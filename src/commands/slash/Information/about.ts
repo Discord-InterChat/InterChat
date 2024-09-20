@@ -1,5 +1,5 @@
 import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
-import Constants, { badgeEmojis, emojis } from '#main/utils/Constants.js';
+import Constants, { badgeEmojis, emojis } from '#main/config/Constants.js';
 import { getCredits, simpleEmbed } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {

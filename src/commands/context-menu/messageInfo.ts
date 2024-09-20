@@ -2,7 +2,7 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { RemoveMethods } from '#main/types/index.js';
 import { getHubConnections } from '#main/utils/ConnectedList.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { sendHubReport } from '#main/utils/HubLogger/Report.js';

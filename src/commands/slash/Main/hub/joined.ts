@@ -1,5 +1,5 @@
 import { Pagination } from '#main/modules/Pagination.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import { simpleEmbed } from '#main/utils/Utils.js';

@@ -1,6 +1,6 @@
 import { showOnboarding } from '#main/utils/network/onboarding.js';
 import { createConnection, getHubConnections } from '#main/utils/ConnectedList.js';
-import { emojis } from '#main/utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';

@@ -2,7 +2,7 @@ import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { showOnboarding } from '#main/utils/network/onboarding.js';
 import { createConnection, getHubConnections } from '#main/utils/ConnectedList.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';

@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { getHubConnections } from '#main/utils/ConnectedList.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';

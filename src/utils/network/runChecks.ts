@@ -1,6 +1,6 @@
 import { analyzeImageForNSFW, isUnsafeImage } from '#main/modules/NSFWDetection.js';
 import { sendWelcomeMsg } from '#main/utils/network/helpers.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import logProfanity from '#main/utils/HubLogger/Profanity.js';

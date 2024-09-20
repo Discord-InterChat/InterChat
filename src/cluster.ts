@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import Logger from './utils/Logger.js';
 import Scheduler from './modules/SchedulerService.js';
-import Constants from '#main/utils/Constants.js';
+import Constants from '#main/config/Constants.js';
 import deleteExpiredInvites from './tasks/deleteExpiredInvites.js';
 import pauseIdleConnections from './tasks/pauseIdleConnections.js';
 import storeMsgTimestamps from './tasks/storeMsgTimestamps.js';

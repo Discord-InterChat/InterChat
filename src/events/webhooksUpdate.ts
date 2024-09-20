@@ -1,7 +1,7 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { isGuildTextBasedChannel } from '#main/utils/Channels.js';
 import { updateConnection } from '#main/utils/ConnectedList.js';
-import { emojis } from '#main/utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';

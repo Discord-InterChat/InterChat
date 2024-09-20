@@ -1,4 +1,4 @@
-import Constants from '#main/utils/Constants.js';
+import Constants from '#main/config/Constants.js';
 
 /**
  * Checks if a string contains profanity or slurs.

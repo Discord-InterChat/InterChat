@@ -1,5 +1,5 @@
 import cacheClient from '#main/utils/cache/cacheClient.js';
-import { RedisKeys } from '#main/utils/Constants.js';
+import { RedisKeys } from '#main/config/Constants.js';
 import { Prisma } from '@prisma/client';
 import Logger from '../Logger.js';
 import { Awaitable } from 'discord.js';

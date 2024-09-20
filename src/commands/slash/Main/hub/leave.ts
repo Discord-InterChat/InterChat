@@ -1,6 +1,6 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { deleteConnection } from '#main/utils/ConnectedList.js';
-import { emojis } from '#main/utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logGuildLeaveToHub } from '#main/utils/HubLogger/JoinLeave.js';

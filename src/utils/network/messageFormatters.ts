@@ -3,7 +3,7 @@ import type {
   CompactFormatOpts,
   EmbedFormatOpts,
 } from '#main/utils/network/Types.js';
-import Constants from '#main/utils/Constants.js';
+import Constants from '#main/config/Constants.js';
 import { censor } from '#main/utils/Profanity.js';
 import type { connectedList, hubs, userData } from '@prisma/client';
 import { EmbedBuilder, userMention, type WebhookMessageCreateOptions } from 'discord.js';
