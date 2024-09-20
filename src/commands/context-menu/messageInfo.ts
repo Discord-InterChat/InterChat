@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { RemoveMethods } from '#main/types/index.js';
+import type { RemoveMethods } from '#main/types/index.d.ts';
 import { getHubConnections } from '#main/utils/ConnectedList.js';
 import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';

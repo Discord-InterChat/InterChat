@@ -32,7 +32,7 @@ import {
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
 import Constants, { emojis } from '../config/Constants.js';
-import { RemoveMethods, ThreadParentChannel } from '../types/index.js';
+import type { RemoveMethods, ThreadParentChannel } from '../types/index.d.ts';
 import { deleteConnection, deleteConnections } from './ConnectedList.js';
 import { CustomID } from './CustomID.js';
 import db from './Db.js';

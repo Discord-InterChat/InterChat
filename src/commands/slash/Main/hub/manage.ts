@@ -173,7 +173,7 @@ export default class Manage extends Hub {
   }
 
   private async fetchHubFromDb(userId: string, hubName: string) {
-    return db.hubs.findFirst({
+    return await db.hubs.findFirst({
       where: {
         name: hubName,
         OR: [{ ownerId: userId }, { moderators: { some: { userId, position: 'manager' } } }],

@@ -1,27 +1,24 @@
-import Scheduler from '#main/modules/SchedulerService.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import UserDbManager from '#main/modules/UserDbManager.js';
-import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
-import { ClusterClient } from 'discord-hybrid-sharding';
 import { InteractionFunction } from '#main/decorators/Interaction.ts';
+import CooldownService from '#main/modules/CooldownService.js';
+import Scheduler from '#main/modules/SchedulerService.js';
+import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
+import UserDbManager from '#main/modules/UserDbManager.js';
+import { ClusterClient } from 'discord-hybrid-sharding';
 import {
   Collection,
-  Snowflake,
-  Channel,
-  NewsChannel,
-  TextChannel,
   ForumChannel,
   MediaChannel,
-  StageChannel,
-  VoiceChannel,
+  NewsChannel,
+  Snowflake,
+  TextChannel,
 } from 'discord.js';
-import CooldownService from '#main/modules/CooldownService.js';
 
-type RemoveMethods<T> = {
+export type RemoveMethods<T> = {
   [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? never : RemoveMethods<T[K]>;
 };
 
-type ThreadParentChannel = NewsChannel | TextChannel | ForumChannel | MediaChannel;
+export type ThreadParentChannel = NewsChannel | TextChannel | ForumChannel | MediaChannel;
 
 declare module 'discord.js' {
   export interface Client {
