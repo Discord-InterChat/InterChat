@@ -9,7 +9,7 @@ import {
 import db from '#main/utils/Db.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { stripIndents } from 'common-tags';
-import { emojis } from '#main/utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import {
   simpleEmbed,
   msToReadable,

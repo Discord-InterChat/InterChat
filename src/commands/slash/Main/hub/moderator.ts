@@ -1,6 +1,6 @@
 import db from '#main/utils/Db.js';
 import Hub from './index.js';
-import { emojis } from '#main/utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { hubs } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';

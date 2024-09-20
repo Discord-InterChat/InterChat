@@ -1,5 +1,5 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import Constants from '#main/utils/Constants.js';
+import Constants from '#main/config/Constants.js';
 import { t } from '#main/utils/Locale.js';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 

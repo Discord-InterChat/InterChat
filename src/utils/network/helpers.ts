@@ -1,5 +1,5 @@
 import type { ReferredMsgData } from '#main/utils/network/Types.js';
-import Constants, { ConnectionMode, emojis } from '#main/utils/Constants.js';
+import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { censor } from '#main/utils/Profanity.js';

@@ -7,7 +7,7 @@ import {
   isDeleteInProgress,
 } from '#main/scripts/deleteMessage/deleteMessage.js';
 import { deleteConnections } from '#main/utils/ConnectedList.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';

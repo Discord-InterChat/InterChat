@@ -1,6 +1,6 @@
-import { analyzeImageForNSFW, isUnsafeImage } from '#main/modules/NSFWDetection.js';
+import { analyzeImageForNSFW, isImageUnsafe } from '#main/modules/NSFWDetection.js';
 import { sendWelcomeMsg } from '#main/utils/network/helpers.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import logProfanity from '#main/utils/HubLogger/Profanity.js';
@@ -11,6 +11,7 @@ import { hubs } from '@prisma/client';
 import { EmbedBuilder, Message } from 'discord.js';
 import { runAntiSpam } from './antiSpam.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
+import { stripIndents } from 'common-tags';
 
 // if account is created within the last 7 days
 const isNewUser = (message: Message) => {
@@ -65,9 +66,9 @@ const isNSFW = async (imgUrl: string | null | undefined) => {
 
   // run static images through the nsfw detector
   const predictions = await analyzeImageForNSFW(imgUrl);
-  if (!predictions) return null;
+  if (predictions.length < 1) return null;
 
-  return isUnsafeImage(predictions);
+  return isImageUnsafe(predictions[0]);
 };
 
 const containsLinks = (message: Message, settings: HubSettingsManager) =>
@@ -186,20 +187,19 @@ export const runChecks = async (
 
   if (await isNSFW(attachmentURL)) {
     const nsfwEmbed = new EmbedBuilder()
-      .setTitle(t({ phrase: 'network.nsfw.title', locale }))
+      .setColor(Constants.Colors.invisible)
       .setDescription(
-        t(
-          { phrase: 'network.nsfw.description', locale },
-          { rules_command: '</rules:924659340898619395>' },
-        ),
+        stripIndents`
+        ### ${emojis.exclamation} NSFW Image Blocked
+        Images that contain NSFW (Not Safe For Work) content are not allowed on InterChat and may result in a blacklist from the hub and bot.
+        `,
       )
       .setFooter({
-        text: t({ phrase: 'network.nsfw.footer', locale }),
-        iconURL: 'https://i.imgur.com/625Zy9W.png',
-      })
-      .setColor('Red');
+        text: `Notification sent for: ${message.author.username}`,
+        iconURL: message.author.displayAvatarURL(),
+      });
 
-    await replyToMsg(message, { content: `${message.author}`, embed: nsfwEmbed });
+    await replyToMsg(message, { embed: nsfwEmbed });
     return false;
   }
 

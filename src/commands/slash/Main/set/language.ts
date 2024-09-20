@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction } from 'discord.js';
-import { emojis } from '#main/utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, supportedLocales, t } from '#main/utils/Locale.js';
 import Set from './index.js';

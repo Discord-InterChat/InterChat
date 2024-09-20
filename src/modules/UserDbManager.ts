@@ -1,6 +1,6 @@
 import BaseBlacklistManager from '#main/core/BaseBlacklistManager.js';
 import { getCachedData } from '#main/utils/cache/cacheUtils.js';
-import { RedisKeys } from '#main/utils/Constants.js';
+import { RedisKeys } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { supportedLocaleCodes } from '#main/utils/Locale.js';

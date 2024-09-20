@@ -1,4 +1,4 @@
-import { emojis } from '#main/utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import { ChatInputCommandInteraction } from 'discord.js';
 import Set from './index.js';
 export default class replyMention extends Set {

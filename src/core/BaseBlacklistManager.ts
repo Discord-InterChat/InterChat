@@ -1,6 +1,6 @@
 import Factory from '#main/core/Factory.js';
 import { cacheData } from '#main/utils/cache/cacheUtils.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import { hubBlacklist, Prisma } from '@prisma/client';
 import { EmbedBuilder, Snowflake, User } from 'discord.js';
 

@@ -1,5 +1,5 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import { emojis } from '#main/utils/Constants.js';
+import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import {

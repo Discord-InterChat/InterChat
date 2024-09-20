@@ -1,4 +1,4 @@
-import Constants, { mascotEmojis } from '#main/utils/Constants.js';
+import Constants, { mascotEmojis } from '#main/config/Constants.js';
 import { stripIndents } from 'common-tags';
 import { ColorResolvable, EmbedBuilder, Guild } from 'discord.js';
 

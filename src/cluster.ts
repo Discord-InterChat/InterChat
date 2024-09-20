@@ -1,4 +1,4 @@
-import Constants from '#main/utils/Constants.js';
+import Constants from '#main/config/Constants.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import 'dotenv/config';
 import { startApi } from './api/index.js';

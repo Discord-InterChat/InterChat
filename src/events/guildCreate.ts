@@ -1,6 +1,6 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { logGuildJoin } from '#main/utils/guilds/goals.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import Logger from '#main/utils/Logger.js';
 import { check } from '#main/utils/Profanity.js';
 import { stripIndents } from 'common-tags';

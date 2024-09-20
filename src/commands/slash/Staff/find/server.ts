@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { toTitleCase } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
