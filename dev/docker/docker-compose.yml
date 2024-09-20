@@ -1,50 +1,20 @@
-version: "3.8"
-
+version: '3.7'
 services:
+  mongodb_container:
+    # This image automatically creates a replica set required for transactions
+    image: prismagraphql/mongo-single-replica:5.0.3
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: prisma
+      INIT_WAIT_SEC: 3
+    ports:
+      - 27017:27017
+
   safe-content-ai:
     ports:
       - 8000:8000
     image: steelcityamir/safe-content-ai:latest
 
-  mongo1:
-    image: mongo:7.0
-    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
-    ports:
-      - 27017:27017
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    healthcheck:
-      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'host.docker.internal:27017',priority:1},{_id:1,host:'host.docker.internal:27018',priority:0.5},{_id:2,host:'host.docker.internal:27019',priority:0.5}]}) }" | mongosh --port 27017 --quiet
-      interval: 5s
-      timeout: 30s
-      start_period: 0s
-      start_interval: 1s
-      retries: 30
-    volumes:
-      - "./db1/data:/data/db"
-      - "./db1/config:/data/configdb"
-
-  mongo2:
-    image: mongo:7.0
-    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27018"]
-    ports:
-      - 27018:27018
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - "./db2/data:/data/db"
-      - "./db2/config:/data/configdb"
-
-  mongo3:
-    image: mongo:7.0
-    command: ["--replSet", "rs0", "--bind_ip_all", "--port", "27019"]
-    ports:
-      - 27019:27019
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    volumes:
-      - "./db3/data:/data/db"
-      - "./db3/config:/data/configdb"
   redis:
     image: redis
     ports:
