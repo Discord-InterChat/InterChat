@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { type InteractionFunction } from '#main/decorators/Interaction.js';
 import Logger from '#main/utils/Logger.js';
@@ -7,8 +6,9 @@ import {
   type ContextMenuCommandInteraction,
   Collection,
 } from 'discord.js';
-import { readdirSync, statSync } from 'fs';
+import { readdir, stat } from 'fs/promises';
 import { dirname, join } from 'path';
+import 'reflect-metadata';
 import { fileURLToPath } from 'url';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
@@ -62,35 +62,31 @@ export const loadCommandFiles = async (opts?: {
 
   Logger.debug(`Called loadCommandFiles with directory: ${commandDir}`);
 
-  try {
-    const filesInDir = readdirSync(commandDir);
-    for (const fileName of filesInDir) {
-      const filePath = join(commandDir, fileName);
-      const stats = statSync(filePath);
+  const filesInDir = await readdir(commandDir);
+  filesInDir.forEach(async (fileName, index) => {
+    const filePath = join(commandDir, fileName);
+    const stats = await stat(filePath);
 
-      // If the item is a directory, recursively read its files
-      if (stats.isDirectory()) {
-        Logger.debug(`Entering directory: ${filePath}`);
-        await loadCommandFiles({ commandDir: filePath, loadInteractions });
-      }
-      else if (fileName.endsWith('.js')) {
-        Logger.debug(`Importing command file: ${filePath}`);
-        const imported = await import(importPrefix + filePath);
-        const command: BaseCommand = new imported.default();
-
-        // load the commands
-        if (Object.getPrototypeOf(command.constructor) === BaseCommand) loadCommand(command);
-        else loadSubCommand(command, { fileName });
-
-        // load related button/select/modal etc. interaction listeners
-        if (loadInteractions) loadCommandInteractions(command);
-      }
+    // If the item is a directory, recursively read its files
+    if (stats.isDirectory()) {
+      Logger.debug(`Entering directory: ${filePath}`);
+      await loadCommandFiles({ commandDir: filePath, loadInteractions });
     }
-    Logger.debug(`Finished loading commands from: ${commandDir}`);
-  }
-  catch (error) {
-    Logger.error(`Error loading command files from ${commandDir}:`, error);
-  }
+    else if (fileName.endsWith('.js')) {
+      Logger.debug(`Importing command file: ${filePath}`);
+      const imported = await import(importPrefix + filePath);
+      const command: BaseCommand = new imported.default();
+
+      // load the commands
+      if (Object.getPrototypeOf(command.constructor) === BaseCommand) loadCommand(command);
+      else loadSubCommand(command, { fileName });
+
+      // load related button/select/modal etc. interaction listeners
+      if (loadInteractions) loadCommandInteractions(command);
+
+      if (index === filesInDir.length) Logger.debug(`Finished loading commands from: ${commandDir}`);
+    }
+  });
 
   return commandsMap;
 };
