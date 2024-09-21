@@ -1,30 +1,25 @@
+import { emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import ServerBlacklisManager from '#main/modules/ServerBlacklistManager.js';
-import UserDbManager from '#main/modules/UserDbManager.js';
-import {
-  deleteMessageFromHub,
-  isDeleteInProgress,
-} from '#main/scripts/deleteMessage/deleteMessage.js';
+import handleBan from '#main/utils/banUtls/handleBan.js';
 import { deleteConnections } from '#main/utils/ConnectedList.js';
-import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t, type supportedLocaleCodes } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
+import { deleteMessageFromHub, isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
+import { isBlacklisted } from '#main/utils/moderator/blacklistUtils.js';
+import modActionsPanel, { ModActionsDbMsgT } from '#main/utils/moderator/modActionsPanel.js';
 import { isStaffOrHubMod } from '#main/utils/Utils.js';
-import { broadcastedMessages, hubs, originalMessages, Prisma } from '@prisma/client';
-import { stripIndents } from 'common-tags';
+import { Prisma } from '@prisma/client';
 import {
   ActionRowBuilder,
   ApplicationCommandType,
-  ButtonBuilder,
   ButtonInteraction,
-  ButtonStyle,
   EmbedBuilder,
-  Interaction,
   ModalBuilder,
+  RepliableInteraction,
   Snowflake,
   TextInputBuilder,
   TextInputStyle,
@@ -34,8 +29,6 @@ import {
   type RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 import parse from 'parse-duration';
-
-type DbMessageT = originalMessages & { hub?: hubs | null; broadcastMsgs?: broadcastedMessages[] };
 
 export default class Blacklist extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -48,8 +41,8 @@ export default class Blacklist extends BaseCommand {
     await interaction.deferReply({ ephemeral: true });
 
     const { userManager } = interaction.client;
-    const userData = await userManager.getUser(interaction.user.id);
-    const locale = await userManager.getUserLocale(userData);
+    const dbUser = await userManager.getUser(interaction.user.id);
+    const locale = await userManager.getUserLocale(dbUser);
 
     const originalMsg = await this.fetchMessageFromDb(interaction.targetId, {
       hub: true,
@@ -65,14 +58,14 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
-    // if (originalMsg.authorId === interaction.user.id) {
-    //   await interaction.editReply(
-    //     '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t moderate your own messages.',
-    //   );
-    //   return;
-    // }
+    if (originalMsg.authorId === interaction.user.id) {
+      await interaction.editReply(
+        '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t moderate your own messages.',
+      );
+      return;
+    }
 
-    const { embed, buttons } = await this.buildMessage(interaction, originalMsg);
+    const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: [buttons] });
   }
 
@@ -93,7 +86,11 @@ export default class Blacklist extends BaseCommand {
     }
 
     if (customId.suffix === 'deleteMsg') {
-      await this.handleDeleteMessage(interaction, originalMsgId);
+      await this.handleDeleteMessage(interaction, originalMsgId, locale);
+      return;
+    }
+    else if (customId.suffix === 'banUser') {
+      await this.handleBanButton(interaction, originalMsgId, locale);
       return;
     }
 
@@ -129,7 +126,7 @@ export default class Blacklist extends BaseCommand {
   }
 
   @RegisterInteractionHandler('blacklist_modal')
-  override async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
+  async handleBlacklistModal(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferUpdate();
 
     const customId = CustomID.parseCustomId(interaction.customId);
@@ -138,9 +135,7 @@ export default class Blacklist extends BaseCommand {
     const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
 
     if (!originalMsg?.hubId) {
-      await interaction.editReply(
-        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
-      );
+      await this.replyWithUnknownMessage(interaction, locale);
       return;
     }
 
@@ -151,7 +146,7 @@ export default class Blacklist extends BaseCommand {
         ? interaction.client.userManager
         : interaction.client.serverBlacklists;
 
-    if (await this.isBlacklisted(idToBlacklist, originalMsg.hubId, manager)) {
+    if (await isBlacklisted(idToBlacklist, originalMsg.hubId, manager)) {
       await this.replyEmbed(
         interaction,
         t(
@@ -171,18 +166,25 @@ export default class Blacklist extends BaseCommand {
     }
   }
 
-  async handleDeleteMessage(interaction: ButtonInteraction, originalMsgId: Snowflake) {
+  async handleDeleteMessage(
+    interaction: ButtonInteraction,
+    originalMsgId: Snowflake,
+    locale: supportedLocaleCodes,
+  ) {
     const originalMsg = await this.fetchMessageFromDb(originalMsgId, {
       broadcastMsgs: true,
     });
 
     if (!originalMsg?.hubId || !originalMsg.broadcastMsgs) {
-      await this.replyEmbed(interaction, 'This message no longer exists.', { ephemeral: true });
+      await this.replyWithUnknownMessage(interaction, locale);
       return;
     }
 
     const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
     if (deleteInProgress) {
+      const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
+      await interaction.update({ embeds: [embed], components: [buttons] });
+
       await this.replyEmbed(
         interaction,
         `${emojis.neutral} This message is already deleted or is being deleted by another moderator.`,
@@ -191,21 +193,19 @@ export default class Blacklist extends BaseCommand {
       return;
     }
 
+    await interaction.reply({
+      content: `${emojis.loading} Deleting messages... This may take a minute or so.`,
+      ephemeral: true,
+    });
+
     const { deletedCount } = await deleteMessageFromHub(
       originalMsg.hubId,
       originalMsg.messageId,
       originalMsg.broadcastMsgs,
     );
 
-    const { embed, buttons } = await this.buildMessage(interaction, originalMsg);
-    await interaction.update({ embeds: [embed], components: [buttons] });
-    const initialReply = await interaction.followUp({
-      content: `${emojis.loading} Deleting messages... This may take a minute or so.`,
-      ephemeral: true,
-    });
-
-    await initialReply
-      .edit(
+    await interaction
+      .editReply(
         t(
           {
             phrase: 'network.deleteSuccess',
@@ -222,9 +222,51 @@ export default class Blacklist extends BaseCommand {
       .catch(() => null);
   }
 
+  private async handleBanButton(
+    interaction: ButtonInteraction,
+    originalMsgId: Snowflake,
+    locale: supportedLocaleCodes,
+  ) {
+    const originalMsg = await this.fetchMessageFromDb(originalMsgId);
+
+    if (!originalMsg) {
+      await this.replyWithUnknownMessage(interaction, locale);
+      return;
+    }
+
+    const modal = new ModalBuilder()
+      .setTitle('Ban User')
+      .setCustomId(
+        new CustomID().setIdentifier('userBanModal').addArgs(originalMsg.authorId).toString(),
+      )
+      .addComponents(
+        new ActionRowBuilder<TextInputBuilder>().addComponents(
+          new TextInputBuilder()
+            .setCustomId('reason')
+            .setLabel('reason')
+            .setPlaceholder('Breaking rules...')
+            .setStyle(TextInputStyle.Paragraph)
+            .setMaxLength(500),
+        ),
+      );
+
+    await interaction.showModal(modal);
+  }
+
+  @RegisterInteractionHandler('userBanModal')
+  async handleBanModal(interaction: ModalSubmitInteraction) {
+    const customId = CustomID.parseCustomId(interaction.customId);
+    const [userId] = customId.args;
+
+    const user = await interaction.client.users.fetch(userId).catch(() => null);
+    const reason = interaction.fields.getTextInputValue('reason');
+
+    await handleBan(interaction, userId, user, reason);
+  }
+
   private async handleUserBlacklist(
     interaction: ModalSubmitInteraction,
-    originalMsg: DbMessageT,
+    originalMsg: ModActionsDbMsgT,
     locale: supportedLocaleCodes,
   ) {
     const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
@@ -279,15 +321,14 @@ export default class Blacklist extends BaseCommand {
       `User ${user?.username} blacklisted by ${interaction.user.username} in ${originalMsg.hub?.name}`,
     );
 
-    const { embed, buttons } = await this.buildMessage(interaction, originalMsg);
-
+    const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: [buttons] });
     await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
   }
 
   private async handleServerBlacklist(
     interaction: ModalSubmitInteraction,
-    originalMsg: DbMessageT,
+    originalMsg: ModActionsDbMsgT,
     locale: supportedLocaleCodes,
   ) {
     if (!originalMsg.hubId) {
@@ -348,22 +389,12 @@ export default class Blacklist extends BaseCommand {
       ),
     );
 
-    const { embed, buttons } = await this.buildMessage(interaction, originalMsg);
-
+    const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: [buttons] });
     await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
   }
 
   // utils
-  private async isBlacklisted(
-    id: Snowflake,
-    hubId: string,
-    manager: UserDbManager | ServerBlacklisManager,
-  ) {
-    const isBlacklisted = await manager.fetchBlacklist(hubId, id);
-    return Boolean(isBlacklisted);
-  }
-
   private getModalData(interaction: ModalSubmitInteraction) {
     const reason = interaction.fields.getTextInputValue('reason');
     const duration = parse(interaction.fields.getTextInputValue('duration'));
@@ -372,67 +403,16 @@ export default class Blacklist extends BaseCommand {
     return { reason, expires };
   }
 
-  private buildButtons(
-    interaction: Interaction,
-    messageId: Snowflake,
-    opts: { isUserBlacklisted: boolean; isServerBlacklisted: boolean; isDeleteInProgress: boolean },
+  private async replyWithUnknownMessage(
+    interaction: RepliableInteraction,
+    locale: supportedLocaleCodes,
+    edit = false,
   ) {
-    return new ActionRowBuilder<ButtonBuilder>().addComponents(
-      new ButtonBuilder()
-        .setCustomId(
-          new CustomID('modMessage:blacklistUser', [interaction.user.id, messageId])
-            .setExpiry(new Date(Date.now() + 60_000))
-            .toString(),
-        )
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji(emojis.user_icon)
-        .setDisabled(opts.isUserBlacklisted),
-      new ButtonBuilder()
-        .setCustomId(
-          new CustomID('modMessage:blacklistServer', [interaction.user.id, messageId])
-            .setExpiry(new Date(Date.now() + 60_000))
-            .toString(),
-        )
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji(emojis.globe_icon)
-        .setDisabled(opts.isServerBlacklisted),
-      new ButtonBuilder()
-        .setCustomId(
-          new CustomID('modMessage:deleteMsg', [interaction.user.id, messageId])
-            .setExpiry(new Date(Date.now() + 60_000))
-            .toString(),
-        )
-        .setStyle(ButtonStyle.Secondary)
-        .setEmoji(emojis.deleteDanger_icon)
-        .setDisabled(opts.isDeleteInProgress),
+    return await this.replyEmbed(
+      interaction,
+      t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
+      { edit, ephemeral: true },
     );
-  }
-
-  private buildInfoEmbed(
-    username: string,
-    servername: string,
-    opts: { isUserBlacklisted: boolean; isServerBlacklisted: boolean; isDeleteInProgress: boolean },
-  ) {
-    const userEmbedDesc = opts.isUserBlacklisted
-      ? `~~User **${username}** is already blacklisted.~~`
-      : `Blacklist user **${username}** from this hub.`;
-
-    const serverEmbedDesc = opts.isServerBlacklisted
-      ? `Blacklist server **${servername}** from this hub.`
-      : `~~Server **${servername}** is already blacklisted.~~`;
-
-    const deleteDesc = opts.isDeleteInProgress
-      ? 'Message is already deleted or is being deleted.'
-      : 'Delete this message from all connections.';
-
-    return new EmbedBuilder().setColor(Constants.Colors.invisible).setFooter({
-      text: 'Target will be notified of the blacklist. Use /blacklist list to view all blacklists.',
-    }).setDescription(stripIndents`
-          ### ${emojis.timeout_icon} Moderation Actions
-          **${emojis.user_icon} Blacklist User**: ${userEmbedDesc}
-          **${emojis.globe_icon} Blacklist Server**: ${serverEmbedDesc}
-          **${emojis.deleteDanger_icon} Delete Message**: ${deleteDesc}
-      `);
   }
 
   private buildSuccessEmbed(reason: string, expires: Date | null, locale: supportedLocaleCodes) {
@@ -453,7 +433,7 @@ export default class Blacklist extends BaseCommand {
   private async fetchMessageFromDb(
     messageId: string,
     include: Prisma.originalMessagesInclude = { hub: false, broadcastMsgs: false },
-  ): Promise<DbMessageT | null> {
+  ): Promise<ModActionsDbMsgT | null> {
     let messageInDb = await db.originalMessages.findFirst({ where: { messageId }, include });
 
     if (!messageInDb) {
@@ -466,36 +446,5 @@ export default class Blacklist extends BaseCommand {
     }
 
     return messageInDb;
-  }
-
-  private async buildMessage(interaction: Interaction, originalMsg: DbMessageT) {
-    const user = await interaction.client.users.fetch(originalMsg.authorId);
-    const server = await interaction.client.fetchGuild(originalMsg.serverId);
-    const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
-
-    const isUserBlacklisted = await this.isBlacklisted(
-      originalMsg.authorId,
-      `${originalMsg.hubId}`,
-      interaction.client.userManager,
-    );
-    const isServerBlacklisted = await this.isBlacklisted(
-      originalMsg.serverId,
-      `${originalMsg.hubId}`,
-      interaction.client.serverBlacklists,
-    );
-
-    const embed = this.buildInfoEmbed(user.username, server?.name ?? 'Unknown Server', {
-      isUserBlacklisted,
-      isServerBlacklisted,
-      isDeleteInProgress: deleteInProgress,
-    });
-
-    const buttons = this.buildButtons(interaction, originalMsg.messageId, {
-      isUserBlacklisted,
-      isServerBlacklisted,
-      isDeleteInProgress: deleteInProgress,
-    });
-
-    return { embed, buttons };
   }
 }

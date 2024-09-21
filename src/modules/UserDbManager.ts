@@ -144,4 +144,32 @@ export default class UserDbManager extends BaseBlacklistManager<userData> {
 
     await opts.target.send({ embeds: [embed] }).catch(() => null);
   }
+
+  async ban(id: string, reason: string, username?: string) {
+    return await db.userData.upsert({
+      where: { id },
+      create: {
+        id,
+        username,
+        viewedNetworkWelcome: false,
+        voteCount: 0,
+        banMeta: { reason },
+      },
+      update: { banMeta: { reason }, username },
+    });
+  }
+
+  async unban(id: string, username?: string) {
+    return await db.userData.upsert({
+      where: { id },
+      create: {
+        id,
+        username,
+        viewedNetworkWelcome: false,
+        voteCount: 0,
+        banMeta: { set: null },
+      },
+      update: { banMeta: { set: null }, username },
+    });
+  }
 }

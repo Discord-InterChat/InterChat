@@ -1,8 +1,5 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import {
-  deleteMessageFromHub,
-  isDeleteInProgress,
-} from '#main/scripts/deleteMessage/deleteMessage.js';
+import { deleteMessageFromHub, isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
 import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
@@ -107,7 +104,7 @@ export default class DeleteMessage extends BaseCommand {
     if (await isDeleteInProgress(originalMsg.messageId)) {
       await this.replyEmbed(
         interaction,
-        `${emojis.neutral} This message is already in-progress of being deleted.`,
+        `${emojis.neutral} This message is already deleted or is being deleted by another moderator.`,
         { ephemeral: true, edit: true },
       );
       return false;

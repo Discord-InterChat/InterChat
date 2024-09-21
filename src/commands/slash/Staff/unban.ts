@@ -1,6 +1,5 @@
-import BaseCommand, { type CmdData } from '#main/core/BaseCommand.js';
 import { emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
+import BaseCommand, { type CmdData } from '#main/core/BaseCommand.js';
 import { simpleEmbed } from '#main/utils/Utils.js';
 import { type ChatInputCommandInteraction, ApplicationCommandOptionType } from 'discord.js';
 
@@ -20,7 +19,9 @@ export default class Unban extends BaseCommand {
   };
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
     const user = interaction.options.getUser('user', true);
-    const alreadyBanned = await interaction.client.userManager.getUser(user.id);
+
+    const { userManager } = interaction.client;
+    const alreadyBanned = await userManager.getUser(user.id);
 
     if (!alreadyBanned?.banMeta?.reason) {
       await interaction.reply({
@@ -29,17 +30,7 @@ export default class Unban extends BaseCommand {
       return;
     }
 
-    await db.userData.upsert({
-      where: { id: user.id },
-      create: {
-        id: user.id,
-        username: user.username,
-        viewedNetworkWelcome: false,
-        voteCount: 0,
-        banMeta: { set: null },
-      },
-      update: { banMeta: { set: null } },
-    });
+    await userManager.unban(user.id, user.username);
 
     await interaction.reply({
       embeds: [

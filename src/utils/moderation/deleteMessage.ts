@@ -1,16 +1,22 @@
+import { RedisKeys } from '#main/config/Constants.js';
 import cacheClient from '#main/utils/cache/cacheClient.js';
 import { cacheData, getCachedData } from '#main/utils/cache/cacheUtils.js';
 import { getHubConnections } from '#main/utils/ConnectedList.js';
-import { RedisKeys } from '#main/utils/Constants.js';
 import { broadcastedMessages } from '@prisma/client';
 import { Snowflake, WebhookClient } from 'discord.js';
+
+export const setDeleteLock = async (messageId: string) => {
+  const key = `${RedisKeys.msgDeleteInProgress}:${messageId}` as const;
+  const alreadyLocked = await getCachedData(key);
+  if (!alreadyLocked.data) await cacheData(key, 't', 900); // 15 mins
+};
 
 export const deleteMessageFromHub = async (
   hubId: string,
   originalMsgId: string,
   dbMessagesToDelete: broadcastedMessages[],
 ) => {
-  await cacheData(`${RedisKeys.msgDeleteInProgress}:${originalMsgId}`, 't', 60);
+  await setDeleteLock(originalMsgId);
 
   let deletedCount = 0;
   const hubConnections = await getHubConnections(hubId);
