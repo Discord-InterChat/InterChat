@@ -10,52 +10,6 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/** Recursively generate type definitions from the translation data
-    @param obj {{ [key: string]: string }} the object with all translation data
-    @returns {import('typescript').TypeElement[]}
-*/
-const generateTypes = (obj, path = '') => {
-  const keys = Object.keys(obj);
-  /** @type {import('typescript').TypeElement[]} */
-  const typeDefs = [];
-  keys.forEach((key) => {
-    const fullPath = path ? `${path}.${key}` : key;
-    if (typeof obj[key] === 'object' && obj[key] !== null) {
-      typeDefs.push(...generateTypes(obj[key], fullPath));
-      return;
-    }
-
-    const regex = /{([^}]+)}/g;
-    const variables = [...obj[key].matchAll(regex)].map((match) => `'${match[1]}'`);
-    const variablesType = variables.length !== 0 ? variables.join(' | ') : 'never';
-
-    typeDefs.push(
-      factory.createPropertySignature(
-        undefined,
-        factory.createStringLiteral(fullPath),
-        undefined,
-        factory.createTypeReferenceNode(variablesType),
-      ),
-    );
-  });
-
-  return typeDefs;
-};
-
-/**
- *
- * @param {string} values
- */
-const formatWithPrettier = async (values) => {
-  const configFile = await prettier.resolveConfigFile();
-  if (!configFile) return values;
-
-  const config = await prettier.resolveConfig(configFile);
-  const formatted = await prettier.format(values, { ...config, parser: 'typescript' });
-
-  return formatted;
-};
-
 // Read the YAML file
 const filePath = resolve(__dirname, '..', 'locales/locales/en.yml');
 const file = readFileSync(filePath, 'utf8');
@@ -102,3 +56,51 @@ const outputFilePath = resolve(__dirname, '..', 'src/types/locale.d.ts');
 writeFileSync(outputFilePath, output);
 
 console.log(`Type definitions for locales written to ${outputFilePath}`);
+
+
+/** Recursively generate type definitions from the translation data
+    @param { { [key: string]: string } } obj the object with all translation data
+    @returns {import('typescript').TypeElement[]}
+*/
+function generateTypes (obj, path = '') {
+  /** @type {import('typescript').TypeElement[]} */
+  const typeDefs = [];
+  const keys = Object.keys(obj);
+
+  keys.forEach((key) => {
+    const fullPath = path ? `${path}.${key}` : key;
+    if (typeof obj[key] === 'object' && obj[key] !== null) {
+      typeDefs.push(...generateTypes(obj[key], fullPath));
+      return;
+    }
+
+    const regex = /{([^}]+)}/g;
+    const variables = [...obj[key].matchAll(regex)].map((match) => `'${match[1]}'`);
+    const variablesType = variables.length !== 0 ? variables.join(' | ') : 'never';
+
+    typeDefs.push(
+      factory.createPropertySignature(
+        undefined,
+        factory.createStringLiteral(fullPath),
+        undefined,
+        factory.createTypeReferenceNode(variablesType),
+      ),
+    );
+  });
+
+  return typeDefs;
+};
+
+/**
+ *
+ * @param {string} values
+ */
+async function formatWithPrettier(values) {
+  const configFile = await prettier.resolveConfigFile();
+  if (!configFile) return values;
+
+  const config = await prettier.resolveConfig(configFile);
+  const formatted = await prettier.format(values, { ...config, parser: 'typescript' });
+
+  return formatted;
+};
