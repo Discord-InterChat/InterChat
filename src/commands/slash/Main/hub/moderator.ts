@@ -1,9 +1,9 @@
-import db from '#main/utils/Db.js';
-import Hub from './index.js';
 import { emojis } from '#main/config/Constants.js';
+import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { hubs } from '@prisma/client';
+import { HubModeratorPosition, hubs } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import Hub from './index.js';
 
 export default class Moderator extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -65,14 +65,15 @@ export default class Moderator extends Hub {
     }
 
     const mod = hub.moderators.find((m) => m.userId === user.id);
-    const userIsManager = mod?.position === 'manager';
+
+    const isRestrictedAction = mod?.position === 'manager' || user.id === interaction.user.id;
     const isExecutorOwner = hub.ownerId === interaction.user.id;
 
     /* executor needs to be owner to:
      - change position of other managers
      - change their own position
      */
-    if (!isExecutorOwner && (userIsManager || user.id === interaction.user.id)) {
+    if (!isExecutorOwner && isRestrictedAction) {
       await this.replyEmbed(
         interaction,
         t({ phrase: 'hub.moderator.remove.notOwner', locale }, { emoji: emojis.no }),
@@ -103,7 +104,7 @@ export default class Moderator extends Hub {
     locale: supportedLocaleCodes,
   ) {
     const user = interaction.options.getUser('user', true);
-    const position = interaction.options.getString('position', true);
+    const position = interaction.options.getString('position', true) as HubModeratorPosition;
     const isUserMod = hub.moderators.find((mod) => mod.userId === user.id);
     const isExecutorMod = hub.moderators.find(
       (mod) =>
@@ -202,7 +203,8 @@ export default class Moderator extends Hub {
       return;
     }
 
-    const position = interaction.options.getString('position') ?? 'network_mod';
+    const position = (interaction.options.getString('position') ??
+      'network_mod') as HubModeratorPosition;
     await db.hubs.update({
       where: { id: hub.id },
       data: { moderators: { push: { userId: user.id, position } } },

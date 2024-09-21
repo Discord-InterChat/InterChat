@@ -30,6 +30,5 @@ export default class Ban extends BaseCommand {
     const user = interaction.options.getUser('user', true);
     const reason = interaction.options.getString('reason', true);
     await handleBan(interaction, user.id, user, reason);
-    return;
   }
 }

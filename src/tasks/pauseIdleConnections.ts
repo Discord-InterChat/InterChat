@@ -27,7 +27,7 @@ export default async (manager: ClusterManager) => {
   // Loop through the data
   connections.forEach(async ({ channelId, lastActive }) => {
     Logger.info(
-      `[InterChat]: Channel ${channelId} is older than 24 hours: ${lastActive?.toLocaleString()} - ${new Date().toLocaleString()}`,
+      `[InterChat]: Pausing inactive connection ${channelId} due to inactivity since ${lastActive?.toLocaleString()} - ${new Date().toLocaleString()}`,
     );
 
     // Create the button
@@ -45,7 +45,9 @@ export default async (manager: ClusterManager) => {
   const embed = simpleEmbed(
     stripIndents`
     ### ${emojis.timeout} Paused Due to Inactivity
-    Connection to this hub has been stopped to save resources because no messages were sent for past day. **Click the button** below to resume chatting (or alternatively, \`/connection\`).
+    Connection to this hub has been stopped to save resources because no messages were sent to this channel in the past day.
+
+    -# **Click the button** below or use  \`/connection unpause\` anytime to resume chatting.
     `,
   ).toJSON();
 

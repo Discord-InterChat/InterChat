@@ -1,5 +1,5 @@
-import { deleteConnections } from '#main/utils/ConnectedList.js';
 import { emojis } from '#main/config/Constants.js';
+import { deleteConnections } from '#main/utils/ConnectedList.js';
 import { logBlacklist, logServerUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
 import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';
@@ -48,10 +48,7 @@ export default class extends BlacklistCommand {
 
       await this.sendSuccessResponse(
         interaction,
-        t(
-          { phrase: 'blacklist.server.success', locale },
-          { server: server.name, emoji: emojis.tick },
-        ),
+        t({ phrase: 'blacklist.success', locale }, { name: server.name, emoji: emojis.tick }),
         { reason, expires },
       );
 
@@ -80,8 +77,8 @@ export default class extends BlacklistCommand {
       await this.replyEmbed(
         interaction,
         t(
-          { phrase: 'blacklist.server.removed', locale },
-          { emoji: emojis.delete, server: result.serverName },
+          { phrase: 'blacklist.removed', locale },
+          { emoji: emojis.delete, name: result.serverName },
         ),
       );
 

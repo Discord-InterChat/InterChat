@@ -2,8 +2,8 @@ import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { isBlacklisted } from '#main/utils/moderation/blacklistUtils.js';
 import { isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
+import { ModActionsDbMsgT } from '#main/utils/moderation/modActions/utils.js';
 import { checkIfStaff } from '#main/utils/Utils.js';
-import { broadcastedMessages, hubs, originalMessages } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   type Interaction,
@@ -13,11 +13,6 @@ import {
   ButtonStyle,
   EmbedBuilder,
 } from 'discord.js';
-
-export type ModActionsDbMsgT = originalMessages & {
-  hub?: hubs | null;
-  broadcastMsgs?: broadcastedMessages[];
-};
 
 type BuilderOpts = {
   isUserBlacklisted: boolean;
