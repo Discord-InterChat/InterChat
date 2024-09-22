@@ -1,9 +1,9 @@
-import db from '#main/utils/Db.js';
-import Hub from './index.js';
 import { emojis } from '#main/config/Constants.js';
+import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { hubs } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import Hub from './index.js';
 
 export default class Moderator extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {

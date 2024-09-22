@@ -6,7 +6,7 @@
   "main": "build/cluster.js",
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "start": "node --max-old-space-size=4096 --import ./build/instrument.js .",
+    "start": "node --import ./build/instrument.js .",
     "start:prod": "pm2 start .ecosystem.config.js",
     "build": "tsc --build",
     "dev": "tsc-watch --outDir ./build --onSuccess \"node --trace-warnings --import ./build/instrument.js .\"",

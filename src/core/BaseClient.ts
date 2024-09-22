@@ -17,7 +17,7 @@ import {
   GatewayIntentBits,
   Options,
 } from 'discord.js';
-import { RemoveMethods } from '#main/types/index.js';
+import type { RemoveMethods } from '#main/types/index.d.ts';
 import Constants from '#main/config/Constants.js';
 import { loadLocales } from '#main/utils/Locale.js';
 import { resolveEval } from '#main/utils/Utils.js';
@@ -100,7 +100,7 @@ export default class SuperClient extends Client {
     this.eventHandler.loadListeners();
 
     // Discord.js automatically uses DISCORD_TOKEN env variable
-    await this.login();
+    await this.login(process.env.DISCORD_TOKEN);
   }
 
   /**
