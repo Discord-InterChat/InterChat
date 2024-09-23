@@ -653,10 +653,11 @@ export default class Manage extends Hub {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (customId.args[0] !== interaction.user.id) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }))],
-        ephemeral: true,
-      });
+      const embed = new InfoEmbed().setDescription(
+        t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       return {};
     }
 
@@ -666,10 +667,11 @@ export default class Manage extends Hub {
     });
 
     if (!hubInDb) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
-        ephemeral: true,
-      });
+      const embed = new InfoEmbed().setDescription(
+        t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       return {};
     }
 

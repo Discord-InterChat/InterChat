@@ -6,7 +6,7 @@
   "main": "build/cluster.js",
   "license": "GPL-3.0-or-later",
   "scripts": {
-    "start": "node --max-old-space-size=4096 --import ./build/instrument.js .",
+    "start": "node --import ./build/instrument.js .",
     "start:prod": "pm2 start .ecosystem.config.js",
     "build": "tsc --build",
     "dev": "tsc-watch --outDir ./build --onSuccess \"node --trace-warnings --import ./build/instrument.js .\"",
@@ -28,7 +28,6 @@
     "discord.js": "^14.16.2",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
-    "fuse.js": "^7.0.0",
     "google-translate-api-x": "^10.7.1",
     "husky": "^9.1.6",
     "ioredis": "^5.4.1",
@@ -39,7 +38,6 @@
     "reflect-metadata": "^0.2.2",
     "sharp": "^0.33.5",
     "source-map-support": "^0.5.21",
-    "ts-node": "^10.9.2",
     "winston": "^3.14.2"
   },
   "devDependencies": {

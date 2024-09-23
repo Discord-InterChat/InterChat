@@ -1,16 +1,18 @@
+import Constants, { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
+import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
 import { updateConnection } from '#main/utils/ConnectedListUtils.js';
-import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { t } from '#main/utils/Locale.js';
 import {
   buildChannelSelect,
+  buildCustomizeEmbed,
   buildCustomizeSelect,
-  buildEmbed,
 } from '#main/utils/network/buildConnectionAssets.js';
-import { getOrCreateWebhook, simpleEmbed } from '#main/utils/Utils.js';
+import { getOrCreateWebhook } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   ChannelSelectMenuInteraction,
@@ -22,7 +24,6 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import Connection from './index.js';
-import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
 
 export default class Customize extends Connection {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -55,7 +56,7 @@ export default class Customize extends Connection {
 
     const iconURL = interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString();
 
-    const embed = await buildEmbed(channelId, iconURL, locale);
+    const embed = await buildCustomizeEmbed(channelId, iconURL, locale);
     const customizeSelect = buildCustomizeSelect(channelId, interaction.user.id, locale);
     const channelSelect = buildChannelSelect(channelId, interaction.user.id);
 
@@ -135,7 +136,7 @@ export default class Customize extends Connection {
     await interaction.message
       ?.edit({
         embeds: [
-          await buildEmbed(
+          await buildCustomizeEmbed(
             customId.args[0],
             interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
             locale,
@@ -156,10 +157,10 @@ export default class Customize extends Connection {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (userIdFilter !== interaction.user.id) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }))],
-        ephemeral: true,
-      });
+      const embed = new InfoEmbed().setDescription(
+        t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }),
+      );
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
 
@@ -230,7 +231,7 @@ export default class Customize extends Connection {
         break;
     }
 
-    const newEmbeds = await buildEmbed(
+    const newEmbeds = await buildCustomizeEmbed(
       channelId,
       interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
       locale,
@@ -265,10 +266,11 @@ export default class Customize extends Connection {
     }
 
     if (userIdFilter !== interaction.user.id) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }, { emoji }))],
-        ephemeral: true,
-      });
+      const embed = new InfoEmbed().setDescription(
+        t({ phrase: 'errors.notYourAction', locale }, { emoji }),
+      );
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
 
@@ -277,17 +279,11 @@ export default class Customize extends Connection {
     });
 
     if (alreadyConnected) {
-      await interaction.followUp({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'connection.alreadyConnected', locale },
-              { channel: `${newChannel}`, emoji },
-            ),
-          ),
-        ],
-        ephemeral: true,
-      });
+      const embed = new InfoEmbed().setDescription(
+        t({ phrase: 'connection.alreadyConnected', locale }, { channel: `${newChannel}`, emoji }),
+      );
+
+      await interaction.followUp({ embeds: [embed], ephemeral: true });
       return;
     }
 
@@ -302,7 +298,7 @@ export default class Customize extends Connection {
 
     await interaction.editReply({
       embeds: [
-        await buildEmbed(
+        await buildCustomizeEmbed(
           newChannel.id,
           interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
           locale,

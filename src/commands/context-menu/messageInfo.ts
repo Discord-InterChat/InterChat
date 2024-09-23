@@ -1,12 +1,14 @@
+import Constants, { emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { RemoveMethods } from '#main/types/index.js';
+import { greyOutButton, greyOutButtons } from '#main/utils/ComponentUtils.js';
 import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
-import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { sendHubReport } from '#main/utils/HubLogger/Report.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import type { RemoveMethods } from '#types/index.d.ts';
 import { connectedList, hubs } from '@prisma/client';
 import {
   ActionRow,
@@ -27,10 +29,9 @@ import {
   TextInputBuilder,
   TextInputStyle,
   User,
+  codeBlock,
   time,
 } from 'discord.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { greyOutButtons, greyOutButton } from '#main/utils/ComponentUtils.js';
 
 type LocaleInfo = { locale: supportedLocaleCodes };
 type AuthorInfo = { author: User };
@@ -72,23 +73,16 @@ export default class MessageInfo extends BaseCommand {
     const server = await interaction.client.fetchGuild(originalMsg.serverId);
 
     const embed = new EmbedBuilder()
-      .setDescription(
-        t(
-          { phrase: 'msgInfo.message.description', locale },
-          {
-            emoji: emojis.clipart,
-            author: author.discriminator !== '0' ? author.tag : author.username,
-            server: `${server?.name}`,
-            messageId: target.id,
-            hub: `${originalMsg.hub.name}`,
-            createdAt: time(Math.floor(target.createdTimestamp / 1000), 'R'),
-          },
-        ),
-      )
-      .setThumbnail(
-        server ? `https://cdn.discordapp.com/icons/${server.id}/${server.icon}.png` : null,
-      )
-      .setColor('Random');
+      .setDescription(`### ${emojis.info} Message Info`)
+      .addFields([
+        { name: 'Sender', value: codeBlock(author.username), inline: true },
+        { name: 'From Server', value: codeBlock(`${server?.name}`), inline: true },
+        { name: 'Which Hub?', value: codeBlock(originalMsg.hub.name), inline: true },
+        { name: 'Message ID', value: codeBlock(originalMsg.messageId), inline: true },
+        { name: 'Sent At', value: time(originalMsg.createdAt, 't'), inline: true },
+      ])
+      .setThumbnail(author.displayAvatarURL())
+      .setColor(Constants.Colors.invisible);
 
     const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
     const components = this.buildButtons(expiry, locale);

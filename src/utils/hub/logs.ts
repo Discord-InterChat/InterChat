@@ -15,7 +15,7 @@ ${emojis.dividerEnd} ${channelStr} ${undefined ?? emojis.no}
 */
 
 const channelMention = (channelId: string | null | undefined) =>
-  channelId ? `<#${channelId}>` : emojis.slash;
+  channelId ? `<#${channelId}>` : emojis.no;
 
 export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'en') => {
   const { reports, modLogs, profanity, joinLeaves } = (hubInDb.logChannels ||
@@ -28,7 +28,7 @@ export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'e
     .removeTitle()
     .setDescription(
       stripIndents`
-        ## t({ phrase: 'hub.manage.logs.title', locale })
+        ## ${t({ phrase: 'hub.manage.logs.title', locale })}
       
         ${emojis.arrow} \`reports:\`
         ${emojis.divider} ${t({ phrase: 'hub.manage.logs.reports.description', locale })}

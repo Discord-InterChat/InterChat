@@ -1,7 +1,10 @@
+import { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import Constants, { emojis } from '#main/config/Constants.js';
+import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import { deleteHubs } from '#main/utils/hub/utils.js';
 import { t } from '#main/utils/Locale.js';
 import { simpleEmbed } from '#main/utils/Utils.js';
 import {
@@ -13,8 +16,6 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import Hub from './index.js';
-import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
-import { deleteHubs } from '#main/utils/hub/utils.js';
 
 export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -73,40 +74,36 @@ export default class Delete extends Hub {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (interaction.user.id !== userId) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.delete.ownerOnly', locale }, { emoji: emojis.no }))],
-        ephemeral: true,
-      });
+      const infoEmbed = new InfoEmbed().setDescription(
+        t({ phrase: 'hub.delete.ownerOnly', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.reply({ embeds: [infoEmbed], ephemeral: true });
       return;
     }
 
     if (customId.suffix === 'cancel') {
-      await interaction.update({
-        embeds: [simpleEmbed(t({ phrase: 'hub.delete.cancelled', locale }, { emoji: emojis.no }))],
-        components: [],
-      });
+      const infoEmbed = new InfoEmbed().setDescription(
+        t({ phrase: 'hub.delete.cancelled', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.update({ embeds: [infoEmbed], components: [] });
       return;
     }
 
-    await interaction.update({
-      embeds: [simpleEmbed(t({ phrase: 'misc.loading', locale }, { emoji: emojis.loading }))],
-      components: [],
-    });
+    const embed = new InfoEmbed().setDescription(
+      t({ phrase: 'misc.loading', locale }, { emoji: emojis.loading }),
+    );
 
-    const hubInDb = await db.hubs.findFirst({
-      where: { id: hubId, ownerId: interaction.user.id },
-    });
+    await interaction.update({ embeds: [embed], components: [] });
+
+    const hubInDb = await db.hubs.findFirst({ where: { id: hubId, ownerId: interaction.user.id } });
     if (!hubInDb) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(
-            t(
-              { phrase: 'errors.unknown', locale },
-              { support_invite: Constants.Links.SupportInvite, emoji: emojis.no },
-            ),
-          ),
-        ],
-      });
+      const infoEmbed = new InfoEmbed().setDescription(
+        t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.editReply({ embeds: [infoEmbed] });
       return;
     }
 

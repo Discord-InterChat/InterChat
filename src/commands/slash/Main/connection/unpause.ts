@@ -1,8 +1,9 @@
-import { updateConnection } from '#main/utils/ConnectedListUtils.js';
 import { emojis } from '#main/config/Constants.js';
+import { fetchCommands, findCommand } from '#main/utils/CommandUtls.js';
+import { updateConnection } from '#main/utils/ConnectedListUtils.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { getOrCreateWebhook, simpleEmbed } from '#main/utils/Utils.js';
+import { getOrCreateWebhook } from '#main/utils/Utils.js';
 import {
   ChannelType,
   ChatInputCommandInteraction,
@@ -10,7 +11,6 @@ import {
   chatInputApplicationCommandMention as slashCmdMention,
 } from 'discord.js';
 import Connection from './index.js';
-import { fetchCommands, findCommand } from '#main/utils/CommandUtls.js';
 
 export default class Unpause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -20,39 +20,35 @@ export default class Unpause extends Connection {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!connected) {
-      await interaction.reply({
-        embeds: [simpleEmbed(`${emojis.no} That channel is not connected to a hub!`)],
+      await this.replyEmbed(interaction, `${emojis.no} That channel is not connected to a hub!`, {
         ephemeral: true,
       });
       return;
     }
 
     if (connected.connected) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            `${emojis.no} This connection is not paused! Use \`/connection pause\` to pause your connection.`,
-          ),
-        ],
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        `${emojis.no} This connection is not paused! Use \`/connection pause\` to pause your connection.`,
+        { ephemeral: true },
+      );
       return;
     }
 
     const channel = await interaction.guild?.channels.fetch(channelId).catch(() => null);
 
     if (!channel?.isThread() && channel?.type !== ChannelType.GuildText) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no })),
-        ],
-      });
+      await this.replyEmbed(
+        interaction,
+        t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no }),
+        { ephemeral: true },
+      );
       return;
     }
 
-    await interaction.reply({
-      content: `${emojis.loading} Checking webhook status... May take a few seconds if it needs to be re-created.`,
-    });
+    await interaction.reply(
+      `${emojis.loading} Checking webhook status... May take a few seconds if it needs to be re-created.`,
+    );
 
     const webhook = await getOrCreateWebhook(channel).catch(() => null);
     if (!webhook) {
@@ -78,16 +74,16 @@ export default class Unpause extends Connection {
       customize_cmd = slashCmdMention('connection', 'customize', command.id);
     }
 
-    await interaction.editReply({
-      content: t({ phrase: 'connection.unpaused.tips', locale }, { pause_cmd, customize_cmd }),
-      embeds: [
-        simpleEmbed(
-          t(
-            { phrase: 'connection.unpaused.desc', locale },
-            { tick_emoji: emojis.tick, channel: channelMention(channelId) },
-          ),
-        ),
-      ],
-    });
+    await this.replyEmbed(
+      interaction,
+      t(
+        { phrase: 'connection.unpaused.desc', locale },
+        { tick_emoji: emojis.tick, channel: channelMention(channelId) },
+      ),
+      {
+        edit: true,
+        content: t({ phrase: 'connection.unpaused.tips', locale }, { pause_cmd, customize_cmd }),
+      },
+    );
   }
 }

@@ -1,4 +1,4 @@
-import type { WebhookPayload } from '#main/types/topgg.d.ts';
+import type { WebhookPayload } from '#types/topgg.d.ts';
 import { getCachedData } from '#main/utils/cache/cacheUtils.js';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';

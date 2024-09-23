@@ -23,7 +23,9 @@
     "forceConsistentCasingInFileNames": true,
     "types": [ "node" ], // @types/node for showing the types...
     "paths": {
-      "#main/*": ["src/*"],
+      "#main/*.js": ["src/*"],
+      "#utils/*.js": ["src/utils/*"],
+      "#types/*.d.ts": ["src/types/*"],
     }
   },
   "include": ["src/**/*.ts", "src/**/*.json"],

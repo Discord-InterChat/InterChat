@@ -4,7 +4,7 @@ import EventHandler from '#main/modules/EventHandler.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
-import type { RemoveMethods } from '#main/types/index.d.ts';
+import type { RemoveMethods } from '#types/index.d.ts';
 import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
 import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/CommandUtls.js';
 import { loadLocales } from '#main/utils/Locale.js';
@@ -100,7 +100,7 @@ export default class SuperClient extends Client {
     this.eventHandler.loadListeners();
 
     // Discord.js automatically uses DISCORD_TOKEN env variable
-    await this.login();
+    await this.login(process.env.DISCORD_TOKEN);
   }
 
   /**

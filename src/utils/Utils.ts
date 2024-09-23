@@ -1,5 +1,5 @@
 import Constants from '#main/config/Constants.js';
-import type { RemoveMethods } from '#main/types/index.d.ts';
+import type { RemoveMethods } from '#types/index.d.ts';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { ErrorEmbed } from '#main/utils/EmbedUtils.js';
@@ -160,7 +160,8 @@ export const getReplyMethod = (
   */
 export const sendErrorEmbed = async (interaction: RepliableInteraction, errorCode: string) => {
   const method = getReplyMethod(interaction);
-  const errorEmbed = new ErrorEmbed().setErrorCode(errorCode);
+  const errorEmbed = new ErrorEmbed({ errorCode });
+
   return await interaction[method]({ embeds: [errorEmbed], ephemeral: true }).catch(() => null);
 };
 

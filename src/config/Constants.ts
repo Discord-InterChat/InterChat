@@ -22,12 +22,12 @@ export const enum RedisKeys {
   blacklistedServers = 'blacklistedServers',
   channelQueue = 'channelQueue',
   commandUsesLeft = 'commandUsesLeft',
-};
+}
 
 export const enum ConnectionMode {
   Compact = 0,
   Embed = 1,
-};
+}
 
 export default {
   isDevBuild: process.env.NODE_ENV === 'development',
