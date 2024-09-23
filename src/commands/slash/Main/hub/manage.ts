@@ -1,7 +1,7 @@
+import Constants, { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
 import { HubSettingsString } from '#main/utils/BitFields.js';
-import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID, ParsedCustomId } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { genLogInfoEmbed } from '#main/utils/hub/logs.js';
@@ -10,7 +10,7 @@ import { buildSettingsMenu } from '#main/utils/hub/settings.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
 import { removeReportsFrom, setReportRole } from '#main/utils/HubLogger/Report.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { channelMention, checkAndFetchImgurUrl, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
+import { checkAndFetchImgurUrl, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
 import { hubs, Prisma } from '@prisma/client';
 import {
   ActionRowBuilder,
@@ -399,7 +399,7 @@ export default class Manage extends Hub {
     await setLogChannelFor(hubInDb.id, type, channelId);
 
     const embed = interaction.message.embeds[0].toJSON();
-    const channelStr = channelMention(channelId);
+    const channelStr = this.channelMention(channelId);
     if (embed.fields?.at(0)) embed.fields[0].value = channelStr;
     await interaction.update({ embeds: [embed] });
 
@@ -700,5 +700,10 @@ export default class Manage extends Hub {
     }
 
     return { hubInDb, customId, locale };
+  }
+
+  private channelMention(channelId: string | null | undefined) {
+    if (!channelId) return emojis.no;
+    return `<#${channelId}>`;
   }
 }

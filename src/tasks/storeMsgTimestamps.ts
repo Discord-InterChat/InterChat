@@ -2,7 +2,7 @@ import cacheClient from '#main/utils/cache/cacheClient.js';
 import { updateConnection } from '#main/utils/ConnectedList.js';
 import { RedisKeys } from '#main/config/Constants.js';
 import Logger from '#main/utils/Logger.js';
-import { getAllDocuments, serializeCache } from '../utils/cache/cacheUtils.js';
+import { getAllDocuments, serializeCache } from '#main/utils/cache/cacheUtils.js';
 
 export default async () => {
   const data = serializeCache<{ channelId: string; timestamp: number }>(

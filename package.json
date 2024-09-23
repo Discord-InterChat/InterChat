@@ -39,6 +39,7 @@
     "reflect-metadata": "^0.2.2",
     "sharp": "^0.33.5",
     "source-map-support": "^0.5.21",
+    "ts-node": "^10.9.2",
     "winston": "^3.14.2"
   },
   "devDependencies": {
@@ -68,8 +69,7 @@
     "*.ts": "eslint --cache --fix"
   },
   "imports": {
-    "#main/*.js": "./build/*.js",
-    "#commands/*.js": "./build/commands/*.js"
+    "#main/*.js": "./build/*.js"
   },
   "packageManager": "pnpm@9.6.0"
 }

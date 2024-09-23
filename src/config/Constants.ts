@@ -1,7 +1,7 @@
 import type { Colors, HexColorString, Snowflake } from 'discord.js';
 import { createRequire } from 'module';
-import jsonEmotes from './emojis.json';
-import badwordsType from './profanity.json';
+import type jsonEmotes from './emojis.json';
+import type badwordsType from './profanity.json';
 
 // create a require as ESM doesn't support importing JSON
 const require = createRequire(import.meta.url);
@@ -12,7 +12,7 @@ export const {
   badge: badgeEmojis,
 } = require('./emojis.json') as typeof jsonEmotes;
 
-export enum RedisKeys {
+export const enum RedisKeys {
   msgTimestamp = 'msgTimestamp',
   lastActive = 'lastActive',
   connectionHubId = 'connectionHubId',
@@ -22,12 +22,12 @@ export enum RedisKeys {
   blacklistedServers = 'blacklistedServers',
   channelQueue = 'channelQueue',
   commandUsesLeft = 'commandUsesLeft',
-}
+};
 
-export enum ConnectionMode {
+export const enum ConnectionMode {
   Compact = 0,
   Embed = 1,
-}
+};
 
 export default {
   isDevBuild: process.env.NODE_ENV === 'development',

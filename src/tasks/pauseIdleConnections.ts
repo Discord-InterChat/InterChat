@@ -1,6 +1,6 @@
-import Logger from '../utils/Logger.js';
+import Logger from '#main/utils/Logger.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
-import { APIActionRowComponent, APIButtonComponent, Snowflake } from 'discord.js';
+import { type APIActionRowComponent, type APIButtonComponent, type Snowflake } from 'discord.js';
 import { buildConnectionButtons } from '#main/utils/network/components.js';
 import { simpleEmbed } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';

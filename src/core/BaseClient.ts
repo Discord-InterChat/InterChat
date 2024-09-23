@@ -1,27 +1,27 @@
+import Constants from '#main/config/Constants.js';
 import CooldownService from '#main/modules/CooldownService.js';
 import EventHandler from '#main/modules/EventHandler.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
+import type { RemoveMethods } from '#main/types/index.d.ts';
+import { isGuildTextBasedChannel } from '#main/utils/Channels.js';
 import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/LoadCommands.js';
+import { loadLocales } from '#main/utils/Locale.js';
 import { RandomComponents } from '#main/utils/RandomComponents.js';
+import { resolveEval } from '#main/utils/Utils.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {
+  type Channel,
   type Guild,
   type Snowflake,
   type WebhookClient,
   ActivityType,
-  Channel,
   Client,
   Collection,
   GatewayIntentBits,
   Options,
 } from 'discord.js';
-import { RemoveMethods } from '#main/types/index.js';
-import Constants from '#main/config/Constants.js';
-import { loadLocales } from '#main/utils/Locale.js';
-import { resolveEval } from '#main/utils/Utils.js';
-import { isGuildTextBasedChannel } from '#main/utils/Channels.js';
 
 export default class SuperClient extends Client {
   public static instance: SuperClient;

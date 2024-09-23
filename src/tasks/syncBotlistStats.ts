@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import Logger from '../utils/Logger.js';
+import Logger from '#main/utils/Logger.js';
 
 const logPostError = (error: unknown) => {
   Logger.error('[TopGGPostStats]: Error updating stats %O', error);
@@ -33,7 +33,7 @@ export default async ({ serverCount, shardCount }: TopggStats) => {
     },
   })
     .then(async (res) => {
-      const data: TopggStats = await res.json();
+      const data = await res.json() as TopggStats;
 
       if (res.status !== 200) {
         logPostError(data);
