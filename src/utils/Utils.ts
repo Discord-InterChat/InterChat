@@ -1,47 +1,29 @@
-import Scheduler from '#main/modules/SchedulerService.js';
-import { hubs } from '@prisma/client';
+import Constants from '#main/config/Constants.js';
+import type { RemoveMethods } from '#main/types/index.d.ts';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { ErrorEmbed } from '#main/utils/EmbedUtils.js';
+import Logger from '#main/utils/Logger.js';
 import { captureException } from '@sentry/node';
-import { randomBytes } from 'crypto';
-import { ClusterManager } from 'discord-hybrid-sharding';
+import type { ClusterManager } from 'discord-hybrid-sharding';
 import {
-  ActionRow,
-  ActionRowBuilder,
-  ApplicationCommand,
-  ApplicationCommandOptionType,
-  ButtonBuilder,
-  ButtonStyle,
   ChannelType,
-  Client,
-  Collection,
   ColorResolvable,
-  CommandInteraction,
-  ComponentType,
   EmbedBuilder,
-  ForumChannel,
-  GuildResolvable,
-  Interaction,
-  MediaChannel,
-  Message,
-  MessageActionRowComponent,
-  MessageComponentInteraction,
-  messageLink,
   NewsChannel,
-  RepliableInteraction,
-  Snowflake,
-  TextChannel,
-  ThreadChannel,
-  WebhookClient,
-  WebhookMessageCreateOptions,
+  type CommandInteraction,
+  type ForumChannel,
+  type Interaction,
+  type MediaChannel,
+  type Message,
+  type MessageComponentInteraction,
+  type RepliableInteraction,
+  type Snowflake,
+  type TextChannel,
+  type ThreadChannel,
 } from 'discord.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
-import Constants, { emojis } from '../config/Constants.js';
-import { RemoveMethods } from '../types/index.js';
-import { deleteConnection, deleteConnections } from './ConnectedList.js';
-import { CustomID } from './CustomID.js';
-import db from './Db.js';
-import { supportedLocaleCodes, t } from './Locale.js';
-import Logger from './Logger.js';
 
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
@@ -69,7 +51,7 @@ export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve,
 
 /**
  * Sort the array based on the reaction counts.
- * ### Eg:
+ *
  * **Before:**
  * ```ts
  *  { '👍': ['10201930193'], '👎': ['10201930193', '10201930194'] }
@@ -81,21 +63,6 @@ export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve,
  * */
 export const sortReactions = (reactions: { [key: string]: string[] }): [string, string[]][] =>
   Object.entries(reactions).sort((a, b) => b[1].length - a[1].length);
-
-export const hasVoted = async (userId: Snowflake): Promise<boolean> => {
-  if (!process.env.TOPGG_API_KEY) throw new TypeError('Missing TOPGG_API_KEY environment variable');
-
-  const res = (await (
-    await fetch(`${Constants.Links.TopggApi}/check?userId=${userId}`, {
-      method: 'GET',
-      headers: {
-        Authorization: process.env.TOPGG_API_KEY,
-      },
-    })
-  ).json()) as { voted: boolean };
-
-  return Boolean(res.voted);
-};
 
 export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) =>
   option ? yesEmoji : noEmoji;
@@ -151,50 +118,6 @@ export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
   return staffMembers.includes(userId);
 };
 
-export const disableAllComponents = (
-  components: ActionRow<MessageActionRowComponent>[],
-  disableLinks = false,
-) =>
-  components.map((row) => {
-    const jsonRow = row.toJSON();
-    jsonRow.components.forEach((component) => {
-      if (
-        !disableLinks &&
-        component.type === ComponentType.Button &&
-        component.style === ButtonStyle.Link // leave link buttons enabled
-      ) {
-        component.disabled = false;
-      }
-      else {
-        component.disabled = true;
-      }
-    });
-    return jsonRow;
-  });
-
-/**
- *
- * @param scheduler The scheduler to use
- * @param message The message on which to disable components
- * @param time The time in milliseconds after which to disable the components
- */
-export const setComponentExpiry = (
-  scheduler: Scheduler,
-  message: Message,
-  time: number | Date,
-): string => {
-  const timerId = randomBytes(8).toString('hex');
-  scheduler.addTask(`disableComponents_${timerId}`, time, async () => {
-    const updatedMsg = await message.fetch().catch(() => null);
-    if (updatedMsg?.components.length === 0 || !updatedMsg?.editable) return;
-
-    const disabled = disableAllComponents(message.components);
-    await updatedMsg.edit({ components: disabled });
-  });
-
-  return timerId;
-};
-
 export const deleteMsgsFromDb = async (broadcastMsgs: string[]) => {
   // delete all relations first and then delete the hub
   const msgsToDelete = await db.broadcastedMessages.findMany({
@@ -214,33 +137,8 @@ export const deleteMsgsFromDb = async (broadcastMsgs: string[]) => {
   return await db.$transaction([childrenBatch, originalBatch]);
 };
 
-export const deleteHubs = async (ids: string[]) => {
-  // delete all relations first and then delete the hub
-  await deleteConnections({ hubId: { in: ids } });
-  await db.hubInvites.deleteMany({ where: { hubId: { in: ids } } });
-  await db.originalMessages
-    .findMany({ where: { hubId: { in: ids } }, include: { broadcastMsgs: true } })
-    .then((m) =>
-      deleteMsgsFromDb(
-        m.map(({ broadcastMsgs }) => broadcastMsgs.map(({ messageId }) => messageId)).flat(),
-      ),
-    );
-
-  // finally, delete the hub
-  await db.hubs.deleteMany({ where: { id: { in: ids } } });
-};
-
 export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') =>
   string.replaceAll(Constants.Regex.Links, replaceText);
-
-export const simpleEmbed = (
-  description: string,
-  opts?: { color?: ColorResolvable; title?: string },
-) =>
-  new EmbedBuilder()
-    .setTitle(opts?.title ?? null)
-    .setColor(opts?.color ?? Constants.Colors.invisible)
-    .setDescription(description.toString());
 
 export const calculateAverageRating = (ratings: number[]): number => {
   if (ratings.length === 0) return 0;
@@ -250,46 +148,7 @@ export const calculateAverageRating = (ratings: number[]): number => {
   return Math.round(average * 10) / 10;
 };
 
-type ImgurResponse = { data: { link: string; nsfw: boolean; cover: string } };
-
-export const checkAndFetchImgurUrl = async (url: string): Promise<string | false> => {
-  const regex = Constants.Regex.ImgurLinks;
-  const match = url.match(regex);
-
-  if (!match?.[1]) return false;
-
-  const type = match[0].includes('/a/') || match[0].includes('/gallery/') ? 'gallery' : 'image';
-  const response = await fetch(`https://api.imgur.com/3/${type}/${match[1]}`, {
-    headers: {
-      Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
-    },
-  });
-
-  const res = (await response.json().catch(() => null)) as ImgurResponse;
-
-  if (!res || res.data?.nsfw) {
-    return false;
-  }
-  else if (res.data.cover) {
-    // refetch the cover image for albuns/galleries
-    return await checkAndFetchImgurUrl(`https://imgur.com/${res.data.cover}`);
-  }
-
-  return res.data.link;
-};
-
 export const toTitleCase = (str: string) => startCase(toLower(str));
-
-export const channelMention = (channelId: Snowflake | null | undefined) => {
-  if (!channelId) return emojis.no;
-  return `<#${channelId}>`;
-};
-
-const genCommandErrMsg = (locale: supportedLocaleCodes, errorId: string) =>
-  t(
-    { phrase: 'errors.commandError', locale },
-    { errorId, emoji: emojis.no, support_invite: Constants.Links.SupportInvite },
-  );
 
 export const getReplyMethod = (
   interaction: RepliableInteraction | CommandInteraction | MessageComponentInteraction,
@@ -299,16 +158,10 @@ export const getReplyMethod = (
     Invoke this method to handle errors that occur during command execution.
     It will send an error message to the user and log the error to the system.
   */
-export const sendErrorEmbed = async (interaction: RepliableInteraction, errorId: string) => {
+export const sendErrorEmbed = async (interaction: RepliableInteraction, errorCode: string) => {
   const method = getReplyMethod(interaction);
-  const { userManager } = interaction.client;
-  const locale = await userManager.getUserLocale(interaction.user.id);
-
-  // reply with an error message if the command failed
-  return await interaction[method]({
-    embeds: [simpleEmbed(genCommandErrMsg(locale, errorId))],
-    ephemeral: true,
-  }).catch(() => null);
+  const errorEmbed = new ErrorEmbed().setErrorCode(errorCode);
+  return await interaction[method]({ embeds: [errorEmbed], ephemeral: true }).catch(() => null);
 };
 
 export const handleError = (e: Error, interaction?: Interaction) => {
@@ -329,10 +182,10 @@ export const handleError = (e: Error, interaction?: Interaction) => {
     : undefined;
 
   // capture the error to Sentry.io with additional information
-  const errorId = captureException(e, extra);
+  const errorCode = captureException(e, extra);
 
   // reply with an error message to the user
-  if (interaction?.isRepliable()) sendErrorEmbed(interaction, errorId).catch(Logger.error);
+  if (interaction?.isRepliable()) sendErrorEmbed(interaction, errorCode).catch(Logger.error);
 };
 
 export const isDev = (userId: Snowflake) => Constants.DeveloperIds.includes(userId);
@@ -404,137 +257,25 @@ export const modifyUserRole = async (
   );
 };
 
-/**
- * Sends a message to all connections in a hub's network.
- * @param hubId The ID of the hub to send the message to.
- * @param message The message to send. Can be a string or a MessageCreateOptions object.
- * @returns A array of the responses from each connection's webhook.
- */
-export const sendToHub = async (hubId: string, message: string | WebhookMessageCreateOptions) => {
-  const connections = await db.connectedList.findMany({ where: { hubId } });
-
-  const res = connections
-    .filter((c) => c.connected === true)
-    .map(async ({ channelId, webhookURL, parentId }) => {
-      const threadId = parentId ? channelId : undefined;
-      const payload =
-        typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
-
-      try {
-        const webhook = new WebhookClient({ url: webhookURL });
-        return await webhook.send(payload);
-      }
-      catch (e) {
-        // if the webhook is unknown, delete the connection
-        if (e.message.includes('Unknown Webhook')) await deleteConnection({ channelId });
-
-        e.message = `For Connection: ${channelId} ${e.message}`;
-        Logger.error(e);
-        return null;
-      }
-    });
-
-  return await Promise.all(res);
-};
-
-/**
- * Returns the URL of an attachment in a message, if it exists.
- * @param message The message to search for an attachment URL.
- * @returns The URL of the attachment, or null if no attachment is found.
- */
-export const getAttachmentURL = async (string: string) => {
-  // Image URLs
-  const URLMatch = string.match(Constants.Regex.StaticImageUrl);
-  if (URLMatch) return URLMatch[0];
-
-  // Tenor Gifs
-  const gifMatch = string.match(Constants.Regex.TenorLinks);
-  if (!gifMatch) return null;
-
-  try {
-    if (!process.env.TENOR_KEY) throw new TypeError('Tenor API key not found in .env file.');
-    const id = gifMatch[0].split('-').at(-1);
-    const url = `https://g.tenor.com/v1/gifs?ids=${id}&key=${process.env.TENOR_KEY}`;
-    const gifJSON = await (await fetch(url)).json();
-
-    return gifJSON.results.at(0)?.media.at(0)?.gif.url as string | null;
-  }
-  catch (e) {
-    Logger.error(e);
-    return null;
-  }
-};
-
-export const fetchHub = async (id: string) => await db.hubs.findFirst({ where: { id } });
-
 export const containsInviteLinks = (str: string) => {
   const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
   return inviteLinks.some((link) => str.includes(link));
 };
 
-export const fetchCommands = async (client: Client) => await client.application?.commands.fetch();
-
-export const findCommand = (
-  name: string,
-  commands:
-    | Collection<
-      string,
-      ApplicationCommand<{
-        guild: GuildResolvable;
-      }>
-    >
-    | undefined,
-) => commands?.find((command) => command.name === name);
-
-export const findSubcommand = (
-  cmdName: string,
-  subName: string,
-  commands: Collection<
-    string,
-    ApplicationCommand<{
-      guild: GuildResolvable;
-    }>
-  >,
-) => {
-  const command = commands.find(({ name }) => name === cmdName);
-  return command?.options.find(
-    ({ type, name }) => type === ApplicationCommandOptionType.Subcommand && name === subName,
-  );
-};
-
 export const getTagOrUsername = (username: string, discrim: string) =>
   discrim !== '0' ? `${username}#${discrim}` : username;
-
-export const isHubMod = (userId: string, hub: hubs) =>
-  Boolean(hub.ownerId === userId || hub.moderators.find((mod) => mod.userId === userId));
-
-export const isStaffOrHubMod = (userId: string, hub: hubs) =>
-  checkIfStaff(userId) || isHubMod(userId, hub);
 
 export const isHumanMessage = (message: Message) =>
   !message.author.bot && !message.system && !message.webhookId;
 
-export const greyOutButton = (row: ActionRowBuilder<ButtonBuilder>, disableElement: number) => {
-  row.components.forEach((c) => c.setDisabled(false));
-  row.components[disableElement].setDisabled(true);
-};
-export const greyOutButtons = (rows: ActionRowBuilder<ButtonBuilder>[]) => {
-  rows.forEach((row) => row.components.forEach((c) => c.setDisabled(true)));
-};
+export const trimAndCensorBannedWebhookWords = (content: string) =>
+  content.slice(0, 35).replace(Constants.Regex.BannedWebhookWords, '[censored]');
 
-export const generateJumpButton = (
-  referredAuthorUsername: string,
-  opts: { messageId: Snowflake; channelId: Snowflake; serverId: Snowflake },
+export const simpleEmbed = (
+  description: string,
+  opts?: { color?: ColorResolvable; title?: string },
 ) =>
-  // create a jump to reply button
-  new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setStyle(ButtonStyle.Link)
-      .setEmoji(emojis.reply)
-      .setURL(messageLink(opts.channelId, opts.messageId, opts.serverId))
-      .setLabel(
-        referredAuthorUsername.length >= 80
-          ? `@${referredAuthorUsername.slice(0, 76)}...`
-          : `@${referredAuthorUsername}`,
-      ),
-  );
+  new EmbedBuilder()
+    .setTitle(opts?.title ?? null)
+    .setColor(opts?.color ?? Constants.Colors.invisible)
+    .setDescription(description.toString());

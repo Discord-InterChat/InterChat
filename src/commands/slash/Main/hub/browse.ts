@@ -1,7 +1,7 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { showOnboarding } from '#main/utils/network/onboarding.js';
-import { createConnection, getHubConnections } from '#main/utils/ConnectedList.js';
+import { createConnection, getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
@@ -10,7 +10,6 @@ import { t } from '#main/utils/Locale.js';
 import {
   calculateAverageRating,
   getOrCreateWebhook,
-  sendToHub,
   simpleEmbed,
 } from '#main/utils/Utils.js';
 import { hubs } from '@prisma/client';
@@ -33,6 +32,7 @@ import {
   time,
 } from 'discord.js';
 import Hub from './index.js';
+import { sendToHub } from '#main/utils/hub/utils.js';
 
 export default class Browse extends Hub {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {

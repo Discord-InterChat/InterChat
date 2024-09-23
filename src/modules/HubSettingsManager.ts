@@ -2,7 +2,7 @@ import {
   HubSettingsBitField,
   HubSettingsBits,
   type HubSettingsString,
-} from '#main/utils/BitFields.js';
+} from '#main/modules/BitFields.js';
 import db from '#main/utils/Db.js';
 import { hubs } from '@prisma/client';
 import { EmbedBuilder } from 'discord.js';

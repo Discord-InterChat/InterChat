@@ -1,6 +1,6 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { isGuildTextBasedChannel } from '#main/utils/Channels.js';
-import { updateConnection } from '#main/utils/ConnectedList.js';
+import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
+import { updateConnection } from '#main/utils/ConnectedListUtils.js';
 import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
@@ -10,7 +10,7 @@ import {
   buildCustomizeSelect,
   buildEmbed,
 } from '#main/utils/network/buildConnectionAssets.js';
-import { getOrCreateWebhook, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
+import { getOrCreateWebhook, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   ChannelSelectMenuInteraction,
@@ -22,6 +22,7 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import Connection from './index.js';
+import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
 
 export default class Customize extends Connection {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {

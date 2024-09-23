@@ -3,7 +3,7 @@ import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { deleteHubs, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -13,6 +13,8 @@ import {
   EmbedBuilder,
 } from 'discord.js';
 import Hub from './index.js';
+import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
+import { deleteHubs } from '#main/utils/hub/utils.js';
 
 export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {

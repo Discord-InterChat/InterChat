@@ -1,9 +1,11 @@
 import { stripIndents } from 'common-tags';
 import { User, EmbedBuilder, Snowflake, Client, codeBlock } from 'discord.js';
 import Constants, { emojis } from '../../config/Constants.js';
-import { fetchHub, resolveEval } from '../Utils.js';
+import { resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
 import { hubs } from '@prisma/client';
+import { fetchHub } from '#main/utils/hub/utils.js';
+
 
 /**
  * Logs the blacklisting of a user or server.

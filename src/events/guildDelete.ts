@@ -1,6 +1,6 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { logGuildLeave } from '#main/utils/guilds/goals.js';
-import { deleteConnections } from '#main/utils/ConnectedList.js';
+import { logGuildLeave } from '#main/utils/GuildUtils.js';
+import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
 import Constants from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logGuildLeaveToHub } from '#main/utils/HubLogger/JoinLeave.js';

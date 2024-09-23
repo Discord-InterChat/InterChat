@@ -1,4 +1,4 @@
-import { updateConnections } from '#main/utils/ConnectedList.js';
+import { updateConnections } from '#main/utils/ConnectedListUtils.js';
 import { ConnectionMode, RedisKeys } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';

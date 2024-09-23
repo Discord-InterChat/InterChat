@@ -1,6 +1,7 @@
-import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
 import Constants, { badgeEmojis, emojis } from '#main/config/Constants.js';
-import { getCredits, simpleEmbed } from '#main/utils/Utils.js';
+import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import { getCredits } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -22,9 +23,10 @@ export default class About extends BaseCommand {
     const linksDivider = `${emojis.blueLine.repeat(9)} **LINKS** ${emojis.blueLine.repeat(9)}`;
     const creditsDivider = `${emojis.blueLine.repeat(9)} **TEAM** ${emojis.blueLine.repeat(9)}`;
 
-    const creditsEmbed = simpleEmbed(
-      stripIndents`
-      ## ${emojis.wand} The Team
+    // TODO: Make this an actual about command, not only credits
+    const creditsEmbed = new InfoEmbed().setTitle(`${emojis.wand} About Us`)
+      .setDescription(stripIndents`
+      
       InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${Constants.Links.SupportInvite}).
 
       ${creditsDivider}
@@ -43,8 +45,7 @@ export default class About extends BaseCommand {
 
       ${linksDivider}
       [Guide](${Constants.Links.Docs}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${Constants.Links.SupportInvite}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${Constants.Links.Docs}/legal/privacy) • [Terms](${Constants.Links.Docs}/legal/terms)
-    `,
-    );
+    `);
 
     const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()

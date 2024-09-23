@@ -12,14 +12,15 @@ import {
   type AnySelectMenuInteraction,
   type Snowflake,
 } from 'discord.js';
-import Constants, { emojis } from '../config/Constants.js';
-import { HubSettingsBitField } from './BitFields.js';
-import { fetchConnection, updateConnection } from './ConnectedList.js';
-import { CustomID } from './CustomID.js';
-import db from './Db.js';
-import { t } from './Locale.js';
-import { getEmojiId, simpleEmbed, sortReactions } from './Utils.js';
+import Constants, { emojis } from './config/Constants.js';
+import { HubSettingsBitField } from './modules/BitFields.js';
+import { fetchConnection, updateConnection } from './utils/ConnectedListUtils.js';
+import { CustomID } from './utils/CustomID.js';
+import db from './utils/Db.js';
+import { t } from './utils/Locale.js';
+import { getEmojiId, simpleEmbed, sortReactions } from './utils/Utils.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 
 export class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
@@ -203,12 +204,11 @@ export class RandomComponents {
     const connection = await fetchConnection(channelId);
     if (!connection) {
       const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no })),
-        ],
-        ephemeral: true,
-      });
+      const notFoundEmbed = new InfoEmbed().setDescription(
+        t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.reply({ embeds: [notFoundEmbed], ephemeral: true });
       return;
     }
 

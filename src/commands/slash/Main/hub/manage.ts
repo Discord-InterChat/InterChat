@@ -1,16 +1,19 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { HubSettingsString } from '#main/modules/BitFields.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
-import { HubSettingsString } from '#main/utils/BitFields.js';
+import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
 import { CustomID, ParsedCustomId } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { genLogInfoEmbed } from '#main/utils/hub/logs.js';
 import { actionsSelect, hubEmbed } from '#main/utils/hub/manage.js';
 import { buildSettingsMenu } from '#main/utils/hub/settings.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
 import { removeReportsFrom, setReportRole } from '#main/utils/HubLogger/Report.js';
+import { checkAndFetchImgurUrl } from '#main/utils/ImageUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { checkAndFetchImgurUrl, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import { hubs, Prisma } from '@prisma/client';
 import {
   ActionRowBuilder,
@@ -79,7 +82,6 @@ export default class Manage extends Hub {
 
     const { hubInDb, locale } = await this.componentChecks(interaction);
     if (!hubInDb) return;
-
 
     const action = interaction.values[0];
     await this.handleAction(interaction, hubInDb, action, locale);
@@ -405,7 +407,7 @@ export default class Manage extends Hub {
 
     await interaction.followUp({
       embeds: [
-        simpleEmbed(
+        new InfoEmbed().setDescription(
           t(
             { phrase: 'hub.manage.logs.channelSuccess', locale },
             { emoji: emojis.yes, type, channel: channelStr },

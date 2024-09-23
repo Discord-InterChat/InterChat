@@ -1,7 +1,7 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { addReaction, updateReactions } from '#main/utils/reaction/actions.js';
 import { checkBlacklists } from '#main/utils/reaction/helpers.js';
-import { HubSettingsBitField } from '#main/utils/BitFields.js';
+import { HubSettingsBitField } from '#main/modules/BitFields.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';

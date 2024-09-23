@@ -1,8 +1,8 @@
-import { updateConnection } from '#main/utils/ConnectedList.js';
+import { updateConnection } from '#main/utils/ConnectedListUtils.js';
 import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { fetchCommands, findCommand, getOrCreateWebhook, simpleEmbed } from '#main/utils/Utils.js';
+import { getOrCreateWebhook, simpleEmbed } from '#main/utils/Utils.js';
 import {
   ChannelType,
   ChatInputCommandInteraction,
@@ -10,6 +10,7 @@ import {
   chatInputApplicationCommandMention as slashCmdMention,
 } from 'discord.js';
 import Connection from './index.js';
+import { fetchCommands, findCommand } from '#main/utils/CommandUtls.js';
 
 export default class Unpause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
