@@ -1,10 +1,10 @@
 import { showOnboarding } from '#main/utils/network/onboarding.js';
-import { createConnection, getHubConnections } from '#main/utils/ConnectedList.js';
+import { createConnection, getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { getOrCreateWebhook, sendToHub, simpleEmbed } from '#main/utils/Utils.js';
+import { getOrCreateWebhook, simpleEmbed } from '#main/utils/Utils.js';
 import { hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
@@ -17,6 +17,7 @@ import {
   ThreadChannel,
 } from 'discord.js';
 import Hub from './index.js';
+import { sendToHub } from '#main/utils/hub/utils.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {

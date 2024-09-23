@@ -1,7 +1,8 @@
-import { InteractionFunction } from '#main/decorators/Interaction.js';
 import { emojis } from '#main/config/Constants.js';
+import { InteractionFunction } from '#main/decorators/Interaction.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { getReplyMethod, simpleEmbed } from '#main/utils/Utils.js';
+import { getReplyMethod } from '#main/utils/Utils.js';
 import {
   APIActionRowComponent,
   type APIApplicationCommandSubcommandGroupOption,
@@ -124,6 +125,7 @@ export default abstract class BaseCommand {
     interaction: RepliableInteraction | MessageComponentInteraction,
     desc: string,
     opts?: {
+      content?: string;
       title?: string;
       color?: ColorResolvable;
       components?: APIActionRowComponent<APIMessageActionRowComponent>[];
@@ -131,7 +133,9 @@ export default abstract class BaseCommand {
       edit?: boolean;
     },
   ): Promise<InteractionResponse | Message> {
-    const message = { embeds: [simpleEmbed(desc, opts)], components: opts?.components };
+    const embed = new InfoEmbed().setDescription(desc).setTitle(opts?.title);
+    const message = { content: opts?.content, embeds: [embed], components: opts?.components };
+
     if (opts?.edit) return await interaction.editReply(message);
 
     const methodName = getReplyMethod(interaction);

@@ -1,13 +1,14 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { RemoveMethods } from '#main/types/index.js';
-import { getHubConnections } from '#main/utils/ConnectedList.js';
+import { greyOutButton, greyOutButtons } from '#main/utils/ComponentUtils.js';
+import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { sendHubReport } from '#main/utils/HubLogger/Report.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { greyOutButton, greyOutButtons, simpleEmbed } from '#main/utils/Utils.js';
+import type { RemoveMethods } from '#types/index.d.ts';
 import { connectedList, hubs } from '@prisma/client';
 import {
   ActionRow,
@@ -165,12 +166,11 @@ export default class MessageInfo extends BaseCommand {
     const { originalMsg, messageId, locale } = await this.getModalMessageInfo(interaction);
 
     if (!originalMsg?.hub?.logChannels?.reports) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no })),
-        ],
-        ephemeral: true,
-      });
+      const notEnabledEmbed = new InfoEmbed().setDescription(
+        t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.reply({ embeds: [notEnabledEmbed], ephemeral: true });
       return;
     }
 
@@ -194,10 +194,11 @@ export default class MessageInfo extends BaseCommand {
       },
     });
 
-    await interaction.reply({
-      embeds: [simpleEmbed(t({ phrase: 'msgInfo.report.success', locale }, { emoji: emojis.yes }))],
-      ephemeral: true,
-    });
+    const successEmbed = new InfoEmbed().setDescription(
+      t({ phrase: 'msgInfo.report.success', locale }, { emoji: emojis.yes }),
+    );
+
+    await interaction.reply({ embeds: [successEmbed], ephemeral: true });
   }
 
   private async handleServerInfoButton(
@@ -331,12 +332,11 @@ export default class MessageInfo extends BaseCommand {
     { hub, locale, messageId }: ReportOpts,
   ) {
     if (!hub?.logChannels?.reports) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no })),
-        ],
-        ephemeral: true,
-      });
+      const notEnabledEmbed = new InfoEmbed().setDescription(
+        t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.reply({ embeds: [notEnabledEmbed], ephemeral: true });
       return;
     }
 

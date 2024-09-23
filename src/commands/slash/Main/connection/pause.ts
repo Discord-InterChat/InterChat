@@ -1,14 +1,16 @@
-import { updateConnection } from '#main/utils/ConnectedList.js';
+import { updateConnection } from '#main/utils/ConnectedListUtils.js';
 import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { fetchCommands, findCommand, simpleEmbed } from '#main/utils/Utils.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import {
   ChatInputCommandInteraction,
   channelMention,
   chatInputApplicationCommandMention as slashCmdMention,
 } from 'discord.js';
 import Connection from './index.js';
+import { fetchCommands, findCommand } from '#main/utils/CommandUtls.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 
 export default class Pause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -19,7 +21,7 @@ export default class Pause extends Connection {
 
     if (!connected) {
       await interaction.reply({
-        embeds: [simpleEmbed(`${emojis.no} That channel is not connected to a hub!`)],
+        content: `${emojis.no} That channel is not connected to a hub!`,
         ephemeral: true,
       });
       return;
@@ -46,22 +48,19 @@ export default class Pause extends Connection {
 
     const unpause_cmd = connectionCmd
       ? slashCmdMention('connection', 'unpause', connectionCmd.id)
-      : '`/connection pause`';
+      : '`/connection unpause`';
     const leave_cmd = hubCmd ? slashCmdMention('hub', 'leave', hubCmd.id) : '`/hub leave`';
+
+    const successEmbed = new InfoEmbed().setDescription(
+      t(
+        { phrase: 'connection.paused.desc', locale },
+        { clock_emoji: emojis.timeout, channel: channelMention(channelId) },
+      ),
+    );
 
     await interaction.reply({
       content: t({ phrase: 'connection.paused.tips', locale }, { unpause_cmd, leave_cmd }),
-      embeds: [
-        simpleEmbed(
-          t(
-            { phrase: 'connection.paused.desc', locale },
-            {
-              clock_emoji: emojis.timeout,
-              channel: channelMention(channelId),
-            },
-          ),
-        ),
-      ],
+      embeds: [successEmbed],
     });
   }
 }

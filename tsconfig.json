@@ -3,8 +3,9 @@
     "incremental": true,
     "composite": true,
     "target": "ESNext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "lib": ["ESNext", "ESNext.AsyncIterable"],
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
     "allowJs": false,
     "declaration": true,
@@ -18,14 +19,16 @@
     "useUnknownInCatchVariables": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "allowSyntheticDefaultImports": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
+    "types": [ "node" ], // @types/node for showing the types...
     "paths": {
-      "#main/*": ["src/*"],
-      "#commands/*": ["./src/commands/*"]
+      "#main/*.js": ["src/*"],
+      "#utils/*.js": ["src/utils/*"],
+      "#types/*.d.ts": ["src/types/*"],
     }
   },
   "include": ["src/**/*.ts", "src/**/*.json"],
   "exclude": ["node_modules", "build", ".yarn"]
 }
+

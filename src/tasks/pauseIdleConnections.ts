@@ -1,13 +1,13 @@
-import Logger from '../utils/Logger.js';
-import { ClusterManager } from 'discord-hybrid-sharding';
-import { APIActionRowComponent, APIButtonComponent, Snowflake } from 'discord.js';
-import { buildConnectionButtons } from '#main/utils/network/components.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
-import { stripIndents } from 'common-tags';
 import { emojis } from '#main/config/Constants.js';
-import 'dotenv/config';
-import { updateConnection } from '#main/utils/ConnectedList.js';
+import { updateConnection } from '#main/utils/ConnectedListUtils.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import Logger from '#main/utils/Logger.js';
+import { buildConnectionButtons } from '#main/utils/network/components.js';
+import { stripIndents } from 'common-tags';
+import { ClusterManager } from 'discord-hybrid-sharding';
+import { type APIActionRowComponent, type APIButtonComponent, type Snowflake } from 'discord.js';
+import 'dotenv/config';
 
 export default async (manager: ClusterManager) => {
   const connections = await db.connectedList.findMany({
@@ -42,12 +42,14 @@ export default async (manager: ClusterManager) => {
     await updateConnection({ channelId }, { connected: false });
   });
 
-  const embed = simpleEmbed(
-    stripIndents`
+  const embed = new InfoEmbed()
+    .setDescription(
+      stripIndents`
     ### ${emojis.timeout} Paused Due to Inactivity
     Connection to this hub has been stopped to save resources because no messages were sent for past day. **Click the button** below to resume chatting (or alternatively, \`/connection\`).
     `,
-  ).toJSON();
+    )
+    .toJSON();
 
   await manager.broadcastEval(
     (client, { _connections, _embed, buttons }) => {

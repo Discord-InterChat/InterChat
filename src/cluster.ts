@@ -1,16 +1,16 @@
 import 'dotenv/config';
-import Logger from './utils/Logger.js';
-import Scheduler from './modules/SchedulerService.js';
+import Logger from '#main/utils/Logger.js';
+import Scheduler from '#main/modules/SchedulerService.js';
 import Constants from '#main/config/Constants.js';
-import deleteExpiredInvites from './tasks/deleteExpiredInvites.js';
-import pauseIdleConnections from './tasks/pauseIdleConnections.js';
-import storeMsgTimestamps from './tasks/storeMsgTimestamps.js';
-import syncBotlistStats from './tasks/syncBotlistStats.js';
-import updateBlacklists from './tasks/updateBlacklists.js';
+import deleteExpiredInvites from '#main/tasks/deleteExpiredInvites.js';
+import pauseIdleConnections from '#main/tasks/pauseIdleConnections.js';
+import storeMsgTimestamps from '#main/tasks/storeMsgTimestamps.js';
+import syncBotlistStats from '#main/tasks/syncBotlistStats.js';
+import updateBlacklists from '#main/tasks/updateBlacklists.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
-import { startApi } from './api/index.js';
-import { VoteManager } from './modules/VoteManager.js';
-import { getUsername } from './utils/Utils.js';
+import { startApi } from '#main/api/index.js';
+import { VoteManager } from '#main/modules/VoteManager.js';
+import { getUsername } from '#main/utils/Utils.js';
 
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.TOKEN,

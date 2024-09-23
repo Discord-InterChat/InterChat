@@ -1,11 +1,10 @@
-import BaseEventListener from '#main/core/BaseEventListener.js';
-import { logGuildJoin } from '#main/utils/guilds/goals.js';
 import Constants, { emojis } from '#main/config/Constants.js';
+import BaseEventListener from '#main/core/BaseEventListener.js';
+import { getGuildOwnerOrFirstChannel, logGuildJoin } from '#main/utils/GuildUtils.js';
 import Logger from '#main/utils/Logger.js';
-import { check } from '#main/utils/Profanity.js';
+import { check } from '#main/utils/ProfanityUtils.js';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Guild } from 'discord.js';
-import getWelcomeTarget from '#main/utils/guilds/getWelcomeTarget.js';
 
 export default class Ready extends BaseEventListener<'guildCreate'> {
   readonly name = 'guildCreate';
@@ -15,7 +14,7 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
     // log that bot joined a guild to goal channel in support server
     await logGuildJoin(guild, Constants.Channels.goal);
 
-    const { guildOwner, guildChannel } = await getWelcomeTarget(guild);
+    const { guildOwner, guildChannel } = await getGuildOwnerOrFirstChannel(guild);
 
     // notify the person who added the bot
     const embed = new EmbedBuilder()

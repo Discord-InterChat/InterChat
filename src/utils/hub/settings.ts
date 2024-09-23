@@ -1,4 +1,4 @@
-import { SerializedHubSettings } from '#main/utils/BitFields.js';
+import { SerializedHubSettings } from '#main/modules/BitFields.js';
 import { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { ActionRowBuilder, Snowflake, StringSelectMenuBuilder } from 'discord.js';

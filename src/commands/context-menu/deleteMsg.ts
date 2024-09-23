@@ -1,15 +1,15 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import { getHubConnections } from '#main/utils/ConnectedList.js';
+import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
-import { isStaffOrHubMod } from '#main/utils/Utils.js';
 import {
   ApplicationCommandType,
   MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
+import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {

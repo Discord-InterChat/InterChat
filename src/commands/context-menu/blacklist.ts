@@ -2,14 +2,13 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import ServerBlacklisManager from '#main/modules/ServerBlacklistManager.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
-import { deleteConnections } from '#main/utils/ConnectedList.js';
+import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
 import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t, type supportedLocaleCodes } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
-import { isStaffOrHubMod } from '#main/utils/Utils.js';
 import { broadcastedMessages, hubs, originalMessages } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
@@ -30,6 +29,7 @@ import {
   type RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 import parse from 'parse-duration';
+import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 
 type DbMessageT = originalMessages & { hub: hubs | null; broadcastMsgs: broadcastedMessages[] };
 

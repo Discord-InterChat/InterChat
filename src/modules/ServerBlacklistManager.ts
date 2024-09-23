@@ -1,5 +1,5 @@
 import BaseBlacklistManager from '#main/core/BaseBlacklistManager.js';
-import { getHubConnections } from '#main/utils/ConnectedList.js';
+import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import db from '#main/utils/Db.js';
 import { getCachedData } from '#main/utils/cache/cacheUtils.js';
 import { logServerUnblacklist } from '#main/utils/HubLogger/ModLogs.js';

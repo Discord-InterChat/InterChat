@@ -1,13 +1,12 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
-import { getConnectionHubId, getHubConnections } from '#main/utils/ConnectedList.js';
+import { getConnectionHubId, getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { ConnectionMode } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import {
   buildNetworkEmbed,
   getReferredContent,
   getReferredMsgData,
-  trimAndCensorBannedWebhookWords,
 } from '#main/utils/network/helpers.js';
 import {
   getCompactMessageFormat,
@@ -19,10 +18,12 @@ import storeMessageData, {
   NetworkWebhookSendResult,
 } from '#main/utils/network/storeMessageData.js';
 import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
-import { censor } from '#main/utils/Profanity.js';
-import { generateJumpButton, getAttachmentURL, isHumanMessage } from '#main/utils/Utils.js';
+import { censor } from '#main/utils/ProfanityUtils.js';
+import { isHumanMessage, trimAndCensorBannedWebhookWords } from '#main/utils/Utils.js';
 import { connectedList, hubs } from '@prisma/client';
 import { HexColorString, Message, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
+import { generateJumpButton } from '#main/utils/ComponentUtils.js';
+import { getAttachmentURL } from '#main/utils/ImageUtils.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';

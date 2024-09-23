@@ -1,16 +1,19 @@
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import HubSettingsManager from '#main/modules/HubSettingsManager.js';
-import { HubSettingsString } from '#main/utils/BitFields.js';
 import Constants, { emojis } from '#main/config/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { HubSettingsString } from '#main/modules/BitFields.js';
+import HubSettingsManager from '#main/modules/HubSettingsManager.js';
+import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
 import { CustomID, ParsedCustomId } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { genLogInfoEmbed } from '#main/utils/hub/logs.js';
 import { actionsSelect, hubEmbed } from '#main/utils/hub/manage.js';
 import { buildSettingsMenu } from '#main/utils/hub/settings.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
 import { removeReportsFrom, setReportRole } from '#main/utils/HubLogger/Report.js';
+import { checkAndFetchImgurUrl } from '#main/utils/ImageUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { channelMention, checkAndFetchImgurUrl, setComponentExpiry, simpleEmbed } from '#main/utils/Utils.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import { hubs, Prisma } from '@prisma/client';
 import {
   ActionRowBuilder,
@@ -79,7 +82,6 @@ export default class Manage extends Hub {
 
     const { hubInDb, locale } = await this.componentChecks(interaction);
     if (!hubInDb) return;
-
 
     const action = interaction.values[0];
     await this.handleAction(interaction, hubInDb, action, locale);
@@ -399,13 +401,13 @@ export default class Manage extends Hub {
     await setLogChannelFor(hubInDb.id, type, channelId);
 
     const embed = interaction.message.embeds[0].toJSON();
-    const channelStr = channelMention(channelId);
+    const channelStr = this.channelMention(channelId);
     if (embed.fields?.at(0)) embed.fields[0].value = channelStr;
     await interaction.update({ embeds: [embed] });
 
     await interaction.followUp({
       embeds: [
-        simpleEmbed(
+        new InfoEmbed().setDescription(
           t(
             { phrase: 'hub.manage.logs.channelSuccess', locale },
             { emoji: emojis.yes, type, channel: channelStr },
@@ -651,10 +653,11 @@ export default class Manage extends Hub {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (customId.args[0] !== interaction.user.id) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }))],
-        ephemeral: true,
-      });
+      const embed = new InfoEmbed().setDescription(
+        t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       return {};
     }
 
@@ -664,10 +667,11 @@ export default class Manage extends Hub {
     });
 
     if (!hubInDb) {
-      await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }))],
-        ephemeral: true,
-      });
+      const embed = new InfoEmbed().setDescription(
+        t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
+      );
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       return {};
     }
 
@@ -700,5 +704,10 @@ export default class Manage extends Hub {
     }
 
     return { hubInDb, customId, locale };
+  }
+
+  private channelMention(channelId: string | null | undefined) {
+    if (!channelId) return emojis.no;
+    return `<#${channelId}>`;
   }
 }

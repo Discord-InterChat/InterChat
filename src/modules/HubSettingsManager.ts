@@ -1,8 +1,9 @@
+import { emojis } from '#main/config/Constants.js';
 import {
   HubSettingsBitField,
   HubSettingsBits,
   type HubSettingsString,
-} from '#main/utils/BitFields.js';
+} from '#main/modules/BitFields.js';
 import db from '#main/utils/Db.js';
 import { hubs } from '@prisma/client';
 import { EmbedBuilder } from 'discord.js';
@@ -56,7 +57,7 @@ export default class HubSettingsManager {
       .setDescription('Current settings for this hub:');
 
     for (const [key, value] of Object.entries(this.getAllSettings())) {
-      embed.addFields({ name: key, value: value ? '✅ Enabled' : '❌ Disabled', inline: true });
+      embed.addFields({ name: key, value: value ? `${emojis.yes} Enabled` : `${emojis.no} Disabled`, inline: true });
     }
 
     return embed;

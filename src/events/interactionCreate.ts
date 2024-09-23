@@ -1,9 +1,10 @@
-import BaseEventListener from '#main/core/BaseEventListener.js';
 import Constants, { emojis } from '#main/config/Constants.js';
+import BaseEventListener from '#main/core/BaseEventListener.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { t } from '#main/utils/Locale.js';
-import { checkIfStaff, handleError, simpleEmbed } from '#main/utils/Utils.js';
+import { checkIfStaff, handleError } from '#main/utils/Utils.js';
 import { userData } from '@prisma/client';
 import { CacheType, Interaction } from 'discord.js';
 
@@ -37,10 +38,11 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
         if (isExpiredInteraction) {
           const { userManager } = interaction.client;
           const locale = await userManager.getUserLocale(dbUser);
-          await interaction.reply({
-            embeds: [simpleEmbed(t({ phrase: 'errors.notUsable', locale }, { emoji: emojis.no }))],
-            ephemeral: true,
+          const embed = new InfoEmbed({
+            description: t({ phrase: 'errors.notUsable', locale }, { emoji: emojis.slash }),
           });
+
+          await interaction.reply({ embeds: [embed], ephemeral: true });
           return;
         }
 

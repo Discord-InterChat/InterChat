@@ -2,15 +2,14 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
 import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
-import { SerializedHubSettings } from '#main/utils/BitFields.js';
+import { SerializedHubSettings } from '#main/modules/BitFields.js';
 import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { censor } from '#main/utils/Profanity.js';
+import { censor } from '#main/utils/ProfanityUtils.js';
 import {
   containsInviteLinks,
-  getAttachmentURL,
   handleError,
   replaceLinks,
 } from '#main/utils/Utils.js';
@@ -29,6 +28,7 @@ import {
   User,
   userMention,
 } from 'discord.js';
+import { getAttachmentURL } from '#main/utils/ImageUtils.js';
 
 interface ImageUrls {
   oldURL?: string | null;

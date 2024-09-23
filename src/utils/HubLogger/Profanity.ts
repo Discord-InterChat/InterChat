@@ -1,8 +1,8 @@
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, Guild, User } from 'discord.js';
 import Constants, { emojis } from '../../config/Constants.js';
-import { fetchHub } from '../Utils.js';
 import { sendLog } from './Default.js';
+import { fetchHub } from '#main/utils/hub/utils.js';
 
 /**
  * Logs the detected profanity along with relevant details.
