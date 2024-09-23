@@ -2,20 +2,21 @@ import { emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { CustomID } from '#main/utils/CustomID.js';
+import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { t, type supportedLocaleCodes } from '#main/utils/Locale.js';
 import {
   BlacklistServerHandler,
   BlacklistUserHandler,
 } from '#main/utils/moderation/modActions/handlers/blacklistHandler.js';
-import { DeleteMessageHandler } from '#main/utils/moderation/modActions/handlers/deleteMsgHandler.js';
-import { UserBanHandler } from '#main/utils/moderation/modActions/handlers/userBanHandler.js';
+import DeleteMessageHandler from '#main/utils/moderation/modActions/handlers/deleteMsgHandler.js';
+import RemoveReactionsHandler from '#main/utils/moderation/modActions/handlers/RemoveReactionsHandler.js';
+import UserBanHandler from '#main/utils/moderation/modActions/handlers/userBanHandler.js';
 import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import {
   fetchMessageFromDb,
   ModAction,
   ModActionsDbMsgT,
 } from '#main/utils/moderation/modActions/utils.js';
-import { isStaffOrHubMod } from '#main/utils/Utils.js';
 import {
   ApplicationCommandType,
   ButtonInteraction,
@@ -41,6 +42,7 @@ export default class Blacklist extends BaseCommand {
       banUser: new UserBanHandler(),
       blacklistUser: new BlacklistUserHandler(),
       blacklistServer: new BlacklistServerHandler(),
+      removeAllReactions: new RemoveReactionsHandler(),
     };
   }
 
@@ -104,13 +106,6 @@ export default class Blacklist extends BaseCommand {
         interaction,
         t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
         { ephemeral: true, edit: true },
-      );
-      return false;
-    }
-
-    if (originalMsg.authorId === interaction.user.id) {
-      await interaction.editReply(
-        '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t moderate your own messages.',
       );
       return false;
     }

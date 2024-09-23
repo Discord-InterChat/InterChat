@@ -44,6 +44,12 @@ const buildButtons = (interaction: Interaction, messageId: Snowflake, opts: Buil
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.deleteDanger_icon)
       .setDisabled(opts.isDeleteInProgress),
+    new ButtonBuilder()
+      .setCustomId(
+        new CustomID('modMessage:removeAllReactions', [interaction.user.id, messageId]).toString(),
+      )
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji(emojis.add_icon),
   );
 
   if (checkIfStaff(interaction.user.id)) {
@@ -85,14 +91,12 @@ const buildInfoEmbed = (username: string, servername: string, opts: BuilderOpts)
         **${emojis.user_icon} Blacklist User**: ${userEmbedDesc}
         **${emojis.globe_icon} Blacklist Server**: ${serverEmbedDesc}
         **${emojis.deleteDanger_icon} Delete Message**: ${deleteDesc}
+        **${emojis.add_icon} Remove Reactions**: Remove all reactions from this message.
         **${emojis.blobFastBan} Ban User**: ${banUserDesc}
     `);
 };
 
-const buildMessage = async (
-  interaction: Interaction,
-  originalMsg: ModActionsDbMsgT,
-) => {
+const buildMessage = async (interaction: Interaction, originalMsg: ModActionsDbMsgT) => {
   const user = await interaction.client.users.fetch(originalMsg.authorId);
   const server = await interaction.client.fetchGuild(originalMsg.serverId);
   const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);

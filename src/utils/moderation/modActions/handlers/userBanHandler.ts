@@ -17,7 +17,7 @@ import {
   TextInputStyle,
 } from 'discord.js';
 
-export class UserBanHandler implements ModAction {
+export default class UserBanHandler implements ModAction {
   async handle(
     interaction: ButtonInteraction,
     originalMsgId: Snowflake,

@@ -1,7 +1,7 @@
 import { RedisKeys } from '#main/config/Constants.js';
 import cacheClient from '#main/utils/cache/cacheClient.js';
 import { cacheData, getCachedData } from '#main/utils/cache/cacheUtils.js';
-import { getHubConnections } from '#main/utils/ConnectedList.js';
+import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { broadcastedMessages } from '@prisma/client';
 import { Snowflake, WebhookClient } from 'discord.js';
 

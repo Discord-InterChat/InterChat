@@ -10,7 +10,7 @@ import {
 import { simpleEmbed } from '#main/utils/Utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
 
-export class DeleteMessageHandler implements ModAction {
+export default class DeleteMessageHandler implements ModAction {
   async handle(
     interaction: ButtonInteraction,
     originalMsgId: Snowflake,

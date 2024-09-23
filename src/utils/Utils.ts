@@ -9,14 +9,14 @@ import type { ClusterManager } from 'discord-hybrid-sharding';
 import {
   EmbedBuilder,
   type ColorResolvable,
-  type GuildTextBasedChannel,
-  type VoiceBasedChannel,
   type CommandInteraction,
+  type GuildTextBasedChannel,
   type Interaction,
   type Message,
   type MessageComponentInteraction,
   type RepliableInteraction,
   type Snowflake,
+  type VoiceBasedChannel,
 } from 'discord.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
@@ -44,21 +44,6 @@ export const msToReadable = (milliseconds: number) => {
 };
 
 export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Sort the array based on the reaction counts.
- *
- * **Before:**
- * ```ts
- *  { '👍': ['10201930193'], '👎': ['10201930193', '10201930194'] }
- * ```
- * **After:**
- * ```ts
- * [ [ '👎', ['10201930193', '10201930194'] ], [ '👍', ['10201930193'] ] ]
- * ```
- * */
-export const sortReactions = (reactions: { [key: string]: string[] }): [string, string[]][] =>
-  Object.entries(reactions).sort((a, b) => b[1].length - a[1].length);
 
 export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) =>
   option ? yesEmoji : noEmoji;

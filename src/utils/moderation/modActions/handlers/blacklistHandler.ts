@@ -1,5 +1,5 @@
 import { emojis } from '#main/config/Constants.js';
-import { deleteConnections } from '#main/utils/ConnectedList.js';
+import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
@@ -120,6 +120,13 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
         embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }))],
         ephemeral: true,
       });
+      return;
+    }
+
+    if (originalMsg.authorId === interaction.user.id) {
+      await interaction.editReply(
+        '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t moderate your own messages.',
+      );
       return;
     }
 
