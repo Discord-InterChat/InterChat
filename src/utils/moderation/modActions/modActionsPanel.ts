@@ -39,17 +39,17 @@ const buildButtons = (interaction: Interaction, messageId: Snowflake, opts: Buil
       .setDisabled(opts.isServerBlacklisted),
     new ButtonBuilder()
       .setCustomId(
+        new CustomID('modMessage:removeAllReactions', [interaction.user.id, messageId]).toString(),
+      )
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji(emojis.add_icon),
+    new ButtonBuilder()
+      .setCustomId(
         new CustomID('modMessage:deleteMsg', [interaction.user.id, messageId]).toString(),
       )
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.deleteDanger_icon)
       .setDisabled(opts.isDeleteInProgress),
-    new ButtonBuilder()
-      .setCustomId(
-        new CustomID('modMessage:removeAllReactions', [interaction.user.id, messageId]).toString(),
-      )
-      .setStyle(ButtonStyle.Secondary)
-      .setEmoji(emojis.add_icon),
   );
 
   if (checkIfStaff(interaction.user.id)) {
@@ -90,8 +90,8 @@ const buildInfoEmbed = (username: string, servername: string, opts: BuilderOpts)
         ### ${emojis.timeout_icon} Moderation Actions
         **${emojis.user_icon} Blacklist User**: ${userEmbedDesc}
         **${emojis.globe_icon} Blacklist Server**: ${serverEmbedDesc}
-        **${emojis.deleteDanger_icon} Delete Message**: ${deleteDesc}
         **${emojis.add_icon} Remove Reactions**: Remove all reactions from this message.
+        **${emojis.deleteDanger_icon} Delete Message**: ${deleteDesc}
         **${emojis.blobFastBan} Ban User**: ${banUserDesc}
     `);
 };

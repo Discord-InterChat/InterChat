@@ -1,14 +1,14 @@
 import ServerBlacklisManager from '#main/modules/ServerBlacklistManager.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
-import { userData } from '@prisma/client';
+import { blacklistedServers, userData } from '@prisma/client';
 import { Snowflake } from 'discord.js';
 
 export const isBlacklisted = async (
-  user: Snowflake | userData,
+  userOrServer: Snowflake | userData | blacklistedServers,
   hubId: string,
   manager: UserDbManager | ServerBlacklisManager,
 ) => {
   const blacklist =
-    typeof user === 'string' ? await manager.fetchBlacklist(hubId, user) : user;
+    typeof userOrServer === 'string' ? await manager.fetchBlacklist(hubId, userOrServer) : userOrServer;
   return Boolean(blacklist?.blacklistedFrom.some((b) => b.hubId === hubId));
 };
