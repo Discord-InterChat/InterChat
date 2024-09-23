@@ -1,5 +1,5 @@
 import db from '#main/utils/Db.js';
-import { blacklistedServers, hubBlacklist, userData } from '@prisma/client';
+import { type blacklistedServers, type hubBlacklist, type userData } from '@prisma/client';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { Client } from 'discord.js';
 

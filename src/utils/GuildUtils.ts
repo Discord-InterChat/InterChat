@@ -1,6 +1,38 @@
 import Constants, { mascotEmojis } from '#main/config/Constants.js';
 import { stripIndents } from 'common-tags';
-import { ColorResolvable, EmbedBuilder, Guild } from 'discord.js';
+import {
+  AuditLogEvent,
+  ChannelType,
+  EmbedBuilder,
+  type ColorResolvable,
+  type Guild,
+  type TextChannel,
+} from 'discord.js';
+
+/**
+ * Retrieves the first channel in a guild or the inviter of the bot.
+ * @param guild The guild to retrieve the target for.
+ * @returns The greeting target, which can be a TextChannel or a User.
+ */
+export const getGuildOwnerOrFirstChannel = async (guild: Guild) => {
+  let guildOwner = null;
+
+  if (guild.members.me?.permissions.has('ViewAuditLog', true)) {
+    const auditLog = await guild
+      .fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
+      .catch(() => null);
+
+    guildOwner = auditLog?.entries.first()?.executor;
+  }
+
+  const guildChannel = guild.channels.cache
+    .filter(
+      (c) => c.type === ChannelType.GuildText && c.permissionsFor(guild.id)?.has('SendMessages'),
+    )
+    .first() as TextChannel | undefined;
+
+  return { guildOwner, guildChannel };
+};
 
 const buildGoalEmbed = (guildName: string, iconURL: string | null, color: ColorResolvable) =>
   new EmbedBuilder().setAuthor({ name: guildName, iconURL: iconURL ?? undefined }).setColor(color);

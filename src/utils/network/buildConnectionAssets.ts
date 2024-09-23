@@ -15,7 +15,7 @@ import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { stripIndents } from 'common-tags';
 import { CustomID } from '#main/utils/CustomID.js';
 
-export const buildEmbed = async (
+export const buildCustomizeEmbed = async (
   channelId: string,
   iconURL: string | undefined,
   locale: supportedLocaleCodes = 'en',
@@ -27,7 +27,6 @@ export const buildEmbed = async (
 
   const bold = '\x1b[1m';
   const reset = '\x1b[0m';
-  const prefix = 'connection.embed.fields';
   const invite = networkData?.invite
     ? `[\`${networkData.invite.replace('https://discord.gg/', '')}\`](${networkData.invite})`
     : 'Not Set.';
@@ -41,26 +40,26 @@ export const buildEmbed = async (
       codeBlock(
         'ansi',
         stripIndents`
-      ${bold}${t({ phrase: `${prefix}.connected`, locale })}${reset}: ${yesOrNoEmoji(networkData?.connected, '✅', '❌')}
-      ${bold}${t({ phrase: `${prefix}.compact`, locale })}${reset}: ${yesOrNoEmoji(networkData?.compact, '✅', '❌')}
-      ${bold}${t({ phrase: `${prefix}.emColor`, locale })}${reset}: ${networkData?.embedColor ? networkData?.embedColor : '❌'}
-      ${bold}${t({ phrase: `${prefix}.profanity`, locale })}${reset}: ${yesOrNoEmoji(networkData?.profFilter, '✅', '❌')}
+      ${bold}${t({ phrase: 'connection.embed.fields.connected', locale })}${reset}: ${yesOrNoEmoji(networkData?.connected, '✅', '❌')}
+      ${bold}${t({ phrase: 'connection.embed.fields.compact', locale })}${reset}: ${yesOrNoEmoji(networkData?.compact, '✅', '❌')}
+      ${bold}${t({ phrase: 'connection.embed.fields.emColor', locale })}${reset}: ${networkData?.embedColor ? networkData?.embedColor : '❌'}
+      ${bold}${t({ phrase: 'connection.embed.fields.profanity', locale })}${reset}: ${yesOrNoEmoji(networkData?.profFilter, '✅', '❌')}
     `,
       ),
     )
     .addFields([
       {
-        name: `${emojis.globe_icon} ${t({ phrase: `${prefix}.hub`, locale })}`,
+        name: `${emojis.globe_icon} ${t({ phrase: 'connection.embed.fields.hub', locale })}`,
         value: `${networkData?.hub?.name}`,
         inline: true,
       },
       {
-        name: `${emojis.chat_icon} ${t({ phrase: `${prefix}.channel`, locale })}`,
+        name: `${emojis.chat_icon} ${t({ phrase: 'connection.embed.fields.channel', locale })}`,
         value: `<#${channelId}>`,
         inline: true,
       },
       {
-        name: `${emojis.add_icon} ${t({ phrase: `${prefix}.invite`, locale })}`,
+        name: `${emojis.add_icon} ${t({ phrase: 'connection.embed.fields.invite', locale })}`,
         value: invite,
         inline: true,
       },

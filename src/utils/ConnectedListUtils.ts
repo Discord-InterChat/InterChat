@@ -2,8 +2,8 @@ import { RedisKeys } from '#main/config/Constants.js';
 import Logger from '#main/utils/Logger.js';
 import cacheClient from '#main/utils/cache/cacheClient.js';
 import type { connectedList, Prisma } from '@prisma/client';
-import db from './Db.js';
-import { cacheData, getCachedData } from './cache/cacheUtils.js';
+import db from '#main/utils/Db.js';
+import { cacheData, getCachedData } from '#main/utils/cache/cacheUtils.js';
 
 type whereUniuqeInput = Prisma.connectedListWhereUniqueInput;
 type whereInput = Prisma.connectedListWhereInput;

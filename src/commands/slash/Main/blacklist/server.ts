@@ -1,5 +1,5 @@
 import { emojis } from '#main/config/Constants.js';
-import { deleteConnections } from '#main/utils/ConnectedList.js';
+import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
 import { logBlacklist, logServerUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
 import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';

@@ -1,8 +1,8 @@
-import cacheClient from '#main/utils/cache/cacheClient.js';
 import { RedisKeys } from '#main/config/Constants.js';
+import cacheClient from '#main/utils/cache/cacheClient.js';
+import Logger from '#main/utils/Logger.js';
 import { Prisma } from '@prisma/client';
-import Logger from '../Logger.js';
-import { Awaitable } from 'discord.js';
+import { type Awaitable } from 'discord.js';
 
 // TODO: make this into a class
 

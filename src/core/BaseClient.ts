@@ -4,23 +4,23 @@ import EventHandler from '#main/modules/EventHandler.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
-import type { RemoveMethods } from '#main/types/index.d.ts';
-import { isGuildTextBasedChannel } from '#main/utils/Channels.js';
-import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/LoadCommands.js';
+import type { RemoveMethods } from '#types/index.d.ts';
+import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
+import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/CommandUtls.js';
 import { loadLocales } from '#main/utils/Locale.js';
-import { RandomComponents } from '#main/utils/RandomComponents.js';
+import { RandomComponents } from '#main/RandomComponents.js';
 import { resolveEval } from '#main/utils/Utils.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {
+  type Channel,
+  type Guild,
+  type Snowflake,
+  type WebhookClient,
   ActivityType,
   Client,
   Collection,
   GatewayIntentBits,
   Options,
-  type Channel,
-  type Guild,
-  type Snowflake,
-  type WebhookClient,
 } from 'discord.js';
 
 export default class SuperClient extends Client {
@@ -100,7 +100,7 @@ export default class SuperClient extends Client {
     this.eventHandler.loadListeners();
 
     // Discord.js automatically uses DISCORD_TOKEN env variable
-    await this.login();
+    await this.login(process.env.DISCORD_TOKEN);
   }
 
   /**

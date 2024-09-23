@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import BaseCommand from '#main/core/BaseCommand.js';
-import { interactionsMap } from '#main/utils/LoadCommands.js';
+import { interactionsMap } from '#main/utils/CommandUtls.js';
 import type { Awaitable, MessageComponentInteraction, ModalSubmitInteraction } from 'discord.js';
 
 const getProto = (object: object) => Object.getPrototypeOf(object);

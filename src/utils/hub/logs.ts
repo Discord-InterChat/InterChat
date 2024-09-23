@@ -1,9 +1,8 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import { emojis } from '#main/config/Constants.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { channelMention } from '#main/utils/Utils.js';
 import { Prisma, hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { EmbedBuilder } from 'discord.js';
 
 /*
 for later:
@@ -15,6 +14,9 @@ ${emojis.divider} Log message when it is deleted.
 ${emojis.dividerEnd} ${channelStr} ${undefined ?? emojis.no}
 */
 
+const channelMention = (channelId: string | null | undefined) =>
+  channelId ? `<#${channelId}>` : emojis.no;
+
 export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'en') => {
   const { reports, modLogs, profanity, joinLeaves } = (hubInDb.logChannels ||
     {}) as Prisma.HubLogChannelsCreateInput;
@@ -22,10 +24,12 @@ export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'e
   const channelStr = t({ phrase: 'hub.manage.logs.config.fields.channel', locale });
   const roleStr = t({ phrase: 'hub.manage.logs.config.fields.role', locale });
 
-  return new EmbedBuilder()
-    .setTitle(t({ phrase: 'hub.manage.logs.title', locale }))
+  return new InfoEmbed()
+    .removeTitle()
     .setDescription(
       stripIndents`
+        ## ${t({ phrase: 'hub.manage.logs.title', locale })}
+      
         ${emojis.arrow} \`reports:\`
         ${emojis.divider} ${t({ phrase: 'hub.manage.logs.reports.description', locale })}
         ${emojis.divider} ${channelStr} ${channelMention(reports?.channelId)}
@@ -40,9 +44,5 @@ export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'e
         ${emojis.divider} ${t({ phrase: 'hub.manage.logs.joinLeave.description', locale })}
         ${emojis.dividerEnd} ${channelStr} ${channelMention(joinLeaves)}`,
     )
-    .setColor(Constants.Colors.invisible)
-    .setThumbnail(hubInDb.iconUrl)
-    .setFooter({
-      text: 'Note: This feature is still experimental. Report bugs using /support report.',
-    });
+    .setThumbnail(hubInDb.iconUrl);
 };

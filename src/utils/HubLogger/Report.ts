@@ -10,8 +10,9 @@ import {
   Client,
 } from 'discord.js';
 import { emojis } from '../../config/Constants.js';
-import { fetchHub, resolveEval } from '../Utils.js';
+import { resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
+import { fetchHub } from '#main/utils/hub/utils.js';
 
 export type ReportEvidenceOpts = {
   // the message content

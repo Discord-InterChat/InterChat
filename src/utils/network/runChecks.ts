@@ -5,7 +5,7 @@ import db from '#main/utils/Db.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import logProfanity from '#main/utils/HubLogger/Profanity.js';
 import { t } from '#main/utils/Locale.js';
-import { check as checkProfanity } from '#main/utils/Profanity.js';
+import { check as checkProfanity } from '#main/utils/ProfanityUtils.js';
 import { containsInviteLinks, replaceLinks } from '#main/utils/Utils.js';
 import { hubs } from '@prisma/client';
 import { EmbedBuilder, Message } from 'discord.js';

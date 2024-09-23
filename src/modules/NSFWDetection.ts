@@ -17,8 +17,8 @@ export const analyzeImageForNSFW = async (imageURL: string): Promise<predictionT
   });
 
   const data = await res.json();
-  if (res.status !== 200) throw new Error(`Failed to analyze image: ${data.message}`);
-  return data;
+  if (res.status !== 200) throw new Error(`Failed to analyze image: ${data}`);
+  return data as predictionType[];
 };
 
 /**

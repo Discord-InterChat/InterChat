@@ -2,9 +2,13 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import { type InteractionFunction } from '#main/decorators/Interaction.js';
 import Logger from '#main/utils/Logger.js';
 import {
-  type ChatInputCommandInteraction,
-  type ContextMenuCommandInteraction,
+  ApplicationCommandOptionType,
   Collection,
+  type ApplicationCommand,
+  type ChatInputCommandInteraction,
+  type Client,
+  type ContextMenuCommandInteraction,
+  type GuildResolvable,
 } from 'discord.js';
 import { readdir, stat } from 'fs/promises';
 import { dirname, join } from 'path';
@@ -89,4 +93,34 @@ export const loadCommandFiles = async (opts?: {
   });
 
   return commandsMap;
+};
+
+export const fetchCommands = async (client: Client) => await client.application?.commands.fetch();
+
+export const findCommand = (
+  name: string,
+  commands:
+    | Collection<
+      string,
+      ApplicationCommand<{
+        guild: GuildResolvable;
+      }>
+    >
+    | undefined,
+) => commands?.find((command) => command.name === name);
+
+export const findSubcommand = (
+  cmdName: string,
+  subName: string,
+  commands: Collection<
+    string,
+    ApplicationCommand<{
+      guild: GuildResolvable;
+    }>
+  >,
+) => {
+  const command = commands.find(({ name }) => name === cmdName);
+  return command?.options.find(
+    ({ type, name }) => type === ApplicationCommandOptionType.Subcommand && name === subName,
+  );
 };

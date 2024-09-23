@@ -1,10 +1,10 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { HubSettingsBits } from '#main/utils/BitFields.js';
+import { HubSettingsBits } from '#main/modules/BitFields.js';
 import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { checkAndFetchImgurUrl, simpleEmbed } from '#main/utils/Utils.js';
+import { simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   CacheType,
@@ -16,6 +16,7 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import Hub from './index.js';
+import { checkAndFetchImgurUrl } from '#main/utils/ImageUtils.js';
 
 export default class Create extends Hub {
   readonly cooldown = 10 * 60 * 1000; // 10 mins

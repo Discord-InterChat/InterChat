@@ -1,8 +1,8 @@
-import type { ReferredMsgData } from '#main/utils/network/Types.js';
+import type { ReferredMsgData } from './Types.d.ts';
 import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { censor } from '#main/utils/Profanity.js';
+import { censor } from '#main/utils/ProfanityUtils.js';
 import {
   type HexColorString,
   type Message,
@@ -12,6 +12,7 @@ import {
   Collection,
   EmbedBuilder,
 } from 'discord.js';
+import { stripTenorLinks } from '#main/utils/ImageUtils.js';
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
@@ -85,11 +86,53 @@ export const getReferredMsgData = async (
   return { dbReferrence, referredAuthor, dbReferredAuthor, referredMessage };
 };
 
-export const removeImgLinks = (content: string, imgUrl: string) =>
-  content.replace(Constants.Regex.TenorLinks, '').replace(imgUrl, '');
+const processContent = (
+  content: string,
+  censoredContent: string,
+  attachmentURL?: string | null,
+) => {
+  let msgContent = content;
+  let censoredMsg = censoredContent;
 
-export const trimAndCensorBannedWebhookWords = (content: string) =>
-  content.slice(0, 35).replace(Constants.Regex.BannedWebhookWords, '[censored]');
+  if (attachmentURL) {
+    msgContent = stripTenorLinks(msgContent, attachmentURL);
+    censoredMsg = stripTenorLinks(censoredContent, attachmentURL);
+  }
+
+  return { msgContent, censoredMsg };
+};
+
+const createEmbed = (
+  message: Message,
+  username: string,
+  content: string,
+  opts?: {
+    attachmentURL?: string | null;
+    embedCol?: HexColorString;
+  },
+) =>
+  new EmbedBuilder()
+    .setImage(opts?.attachmentURL ?? null)
+    .setColor(opts?.embedCol ?? Constants.Colors.invisible)
+    .setAuthor({
+      name: username,
+      iconURL: message.author.displayAvatarURL(),
+    })
+    .setDescription(content || null)
+    .setFooter({
+      text: `From: ${message.guild?.name}`,
+      iconURL: message.guild?.iconURL() ?? undefined,
+    });
+
+const createCensoredEmbed = (embed: EmbedBuilder, censoredContent: string) =>
+  EmbedBuilder.from(embed).setDescription(censoredContent || null);
+
+const addReplyField = (normal: EmbedBuilder, censored: EmbedBuilder, referredContent: string) => {
+  const formattedReply = referredContent.replaceAll('\n', '\n> ');
+  normal.setFields({ name: 'Replying To:', value: `> ${formattedReply}` });
+  censored.setFields({ name: 'Replying To:', value: `> ${censor(formattedReply)}` });
+};
+
 
 /**
  * Builds an embed for a network message.
@@ -111,34 +154,17 @@ export const buildNetworkEmbed = (
     referredContent?: string;
   },
 ) => {
-  // remove tenor links and image urls from the content
-  let msgContent = message.content;
-  let censoredMsg = censoredContent;
+  const { msgContent, censoredMsg } = processContent(
+    message.content,
+    censoredContent,
+    opts?.attachmentURL,
+  );
 
-  if (opts?.attachmentURL) {
-    msgContent = removeImgLinks(msgContent, opts.attachmentURL);
-    censoredMsg = removeImgLinks(censoredContent, opts.attachmentURL);
-  }
+  const normal = createEmbed(message, username, msgContent, opts);
+  const censored = createCensoredEmbed(normal, censoredMsg);
 
-  const normal = new EmbedBuilder()
-    .setImage(opts?.attachmentURL ?? null)
-    .setColor(opts?.embedCol ?? Constants.Colors.invisible)
-    .setAuthor({
-      name: username,
-      iconURL: message.author.displayAvatarURL(),
-    })
-    .setDescription(msgContent || null)
-    .setFooter({
-      text: `From: ${message.guild?.name}`,
-      iconURL: message.guild?.iconURL() ?? undefined,
-    });
-
-  const censored = EmbedBuilder.from(normal).setDescription(censoredMsg || null);
-
-  const formattedReply = opts?.referredContent?.replaceAll('\n', '\n> ');
-  if (formattedReply) {
-    normal.setFields({ name: 'Replying To:', value: `> ${formattedReply}` });
-    censored.setFields({ name: 'Replying To:', value: `> ${censor(formattedReply)}` });
+  if (opts?.referredContent) {
+    addReplyField(normal, censored, opts.referredContent);
   }
 
   return { normal, censored };
