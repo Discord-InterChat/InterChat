@@ -6,8 +6,17 @@ import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
 import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import { ModAction, ModActionsDbMsgT } from '#main/utils/moderation/modActions/utils.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
-import { ActionRowBuilder, ButtonInteraction, EmbedBuilder, ModalBuilder, ModalSubmitInteraction, Snowflake, TextInputBuilder, TextInputStyle, time } from 'discord.js';
+import {
+  ActionRowBuilder,
+  ButtonInteraction,
+  EmbedBuilder,
+  ModalBuilder,
+  ModalSubmitInteraction,
+  Snowflake,
+  TextInputBuilder,
+  TextInputStyle,
+  time,
+} from 'discord.js';
 import parse from 'parse-duration';
 
 abstract class BaseBlacklistHandler implements ModAction {
@@ -105,11 +114,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
 
     if (!user) {
       await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            `${emojis.neutral} Unable to fetch user. They may have deleted their account?`,
-          ),
-        ],
+        content: `${emojis.neutral} Unable to fetch user. They may have deleted their account?`,
         ephemeral: true,
       });
       return;
@@ -117,7 +122,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
 
     if (!originalMsg.hubId) {
       await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }))],
+        content: t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -182,7 +187,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
   ) {
     if (!originalMsg.hubId) {
       await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }))],
+        content: t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -191,7 +196,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     const server = await interaction.client.fetchGuild(originalMsg.serverId);
     if (!server) {
       await interaction.reply({
-        embeds: [simpleEmbed(t({ phrase: 'errors.unknownServer', locale }, { emoji: emojis.no }))],
+        content: t({ phrase: 'errors.unknownServer', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
