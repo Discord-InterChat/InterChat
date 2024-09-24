@@ -95,7 +95,7 @@ export const fetchConnection = async (channelId: string) => {
   if (!connection) return null;
 
   cacheConnectionHubId(connection);
-  if (connection.connected) syncHubConnCache(connection, 'modify');
+  syncHubConnCache(connection, 'modify');
 
   return connection;
 };
@@ -148,7 +148,7 @@ export const updateConnection = async (where: whereUniuqeInput, data: dataInput)
 
   // Update cache
   await cacheConnectionHubId(connection);
-  await syncHubConnCache(connection, connection.connected ? 'modify' : 'delete');
+  await syncHubConnCache(connection, 'modify');
 
   return connection;
 };
@@ -160,7 +160,7 @@ export const updateConnections = async (where: whereInput, data: dataInput) => {
   db.connectedList.findMany({ where }).then((connections) => {
     connections.forEach(async (connection) => {
       await cacheConnectionHubId(connection);
-      await syncHubConnCache(connection, connection.connected ? 'modify' : 'delete');
+      await syncHubConnCache(connection, 'modify');
     });
   });
 

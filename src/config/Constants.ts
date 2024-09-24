@@ -22,6 +22,7 @@ export const enum RedisKeys {
   blacklistedServers = 'blacklistedServers',
   channelQueue = 'channelQueue',
   commandUsesLeft = 'commandUsesLeft',
+  msgDeleteInProgress = 'msgDeleteInProgress',
 }
 
 export const enum ConnectionMode {

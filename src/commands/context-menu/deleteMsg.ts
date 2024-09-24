@@ -1,5 +1,4 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
@@ -10,6 +9,10 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
+import { deleteMessageFromHub, isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
+import { originalMessages, hubs, broadcastedMessages } from '@prisma/client';
+
+type OriginalMsgT = originalMessages & { hub: hubs; broadcastMsgs: broadcastedMessages[] };
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -21,74 +24,49 @@ export default class DeleteMessage extends BaseCommand {
   readonly cooldown = 10_000;
 
   async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
-    const isOnCooldown = await this.checkOrSetCooldown(interaction);
-    if (isOnCooldown || !interaction.inCachedGuild()) return;
+    if ((await this.checkOrSetCooldown(interaction)) || !interaction.inCachedGuild()) return;
 
     await interaction.deferReply({ ephemeral: true });
 
-    let originalMsg = await db.originalMessages.findFirst({
-      where: { messageId: interaction.targetId },
+    const originalMsg = await this.getOriginalMessage(interaction.targetId);
+    if (!(await this.validateMessage(interaction, originalMsg))) return;
+
+    await this.processMessageDeletion(interaction, originalMsg as OriginalMsgT);
+  }
+
+  private async getOriginalMessage(messageId: string) {
+    const originalMsg = await db.originalMessages.findFirst({
+      where: { messageId },
       include: { hub: true, broadcastMsgs: true },
     });
 
-    if (!originalMsg) {
-      const broadcastedMsg = await db.broadcastedMessages.findFirst({
-        where: { messageId: interaction.targetId },
-        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
-      });
+    if (originalMsg) return originalMsg;
 
-      originalMsg = broadcastedMsg?.originalMsg ?? null;
-    }
+    const broadcastedMsg = await db.broadcastedMessages.findFirst({
+      where: { messageId },
+      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
+    });
 
+    return broadcastedMsg?.originalMsg ?? null;
+  }
+
+  private async processMessageDeletion(
+    interaction: MessageContextMenuCommandInteraction,
+    originalMsg: OriginalMsgT,
+  ): Promise<void> {
+    const { hub } = originalMsg;
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
-    if (!originalMsg?.hub) {
-      await interaction.editReply(
-        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
-      );
-      return;
-    }
-
-    const { hub } = originalMsg;
-
-    if (
-      interaction.user.id !== originalMsg.authorId &&
-      !isStaffOrHubMod(interaction.user.id, hub)
-    ) {
-      await interaction.editReply(
-        t({ phrase: 'errors.notMessageAuthor', locale }, { emoji: emojis.no }),
-      );
-      return;
-    }
 
     await interaction.editReply(
       `${emojis.yes} Your request has been queued. Messages will be deleted shortly...`,
     );
 
-    let passed = 0;
-
-    const allConnections = await getHubConnections(hub.id);
-
-    for await (const dbMsg of originalMsg.broadcastMsgs) {
-      const connection = allConnections?.find(
-        (c) => c.connected && c.channelId === dbMsg.channelId,
-      );
-
-      if (!connection) break;
-
-      const webhookURL = connection.webhookURL.split('/');
-      const webhook = await interaction.client
-        .fetchWebhook(webhookURL[webhookURL.length - 2])
-        ?.catch(() => null);
-
-      if (webhook?.owner?.id !== interaction.client.user?.id) break;
-
-      // finally, delete the message
-      await webhook
-        ?.deleteMessage(dbMsg.messageId, connection.parentId ? connection.channelId : undefined)
-        .catch(() => null);
-      passed++;
-    }
+    const { deletedCount } = await deleteMessageFromHub(
+      hub.id,
+      originalMsg.messageId,
+      originalMsg.broadcastMsgs,
+    );
 
     await interaction
       .editReply(
@@ -97,29 +75,76 @@ export default class DeleteMessage extends BaseCommand {
           {
             emoji: emojis.yes,
             user: `<@${originalMsg.authorId}>`,
-            deleted: passed.toString(),
-            total: originalMsg.broadcastMsgs.length.toString(),
+            deleted: `${deletedCount}`,
+            total: `${originalMsg.broadcastMsgs.length}`,
           },
         ),
       )
       .catch(() => null);
 
-    const { targetMessage } = interaction;
+    await this.logDeletion(interaction, hub, originalMsg);
+  }
 
+  private async validateMessage(
+    interaction: MessageContextMenuCommandInteraction,
+    originalMsg:
+      | (originalMessages & { hub: hubs | null; broadcastMsgs: broadcastedMessages[] })
+      | null,
+  ): Promise<boolean> {
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
+
+    if (!originalMsg?.hub) {
+      await interaction.editReply(
+        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
+      );
+      return false;
+    }
+
+    if (await isDeleteInProgress(originalMsg.messageId)) {
+      await this.replyEmbed(
+        interaction,
+        `${emojis.neutral} This message is already deleted or is being deleted by another moderator.`,
+        { ephemeral: true, edit: true },
+      );
+      return false;
+    }
+
+    if (
+      interaction.user.id !== originalMsg.authorId &&
+      !isStaffOrHubMod(interaction.user.id, originalMsg.hub)
+    ) {
+      await interaction.editReply(
+        t({ phrase: 'errors.notMessageAuthor', locale }, { emoji: emojis.no }),
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  private async logDeletion(
+    interaction: MessageContextMenuCommandInteraction,
+    hub: hubs,
+    originalMsg: OriginalMsgT,
+  ): Promise<void> {
+    if (!isStaffOrHubMod(interaction.user.id, hub)) return;
+
+    const { targetMessage } = interaction;
     const messageContent =
       targetMessage.cleanContent ?? targetMessage.embeds.at(0)?.description?.replaceAll('`', '\\`');
 
+    if (!messageContent) return;
+
     const imageUrl =
       targetMessage.embeds.at(0)?.image?.url ??
-      targetMessage.content.match(Constants.Regex.ImageURL)?.at(0);
+      targetMessage.content.match(Constants.Regex.ImageURL)?.[0];
 
-    if (isStaffOrHubMod(interaction.user.id, hub) && messageContent) {
-      await logMsgDelete(interaction.client, messageContent, hub, {
-        userId: originalMsg.authorId,
-        serverId: originalMsg.serverId,
-        modName: interaction.user.username,
-        imageUrl,
-      });
-    }
+    await logMsgDelete(interaction.client, messageContent, hub, {
+      userId: originalMsg.authorId,
+      serverId: originalMsg.serverId,
+      modName: interaction.user.username,
+      imageUrl,
+    });
   }
 }

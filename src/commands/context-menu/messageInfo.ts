@@ -6,10 +6,12 @@ import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { sendHubReport } from '#main/utils/HubLogger/Report.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import type { RemoveMethods } from '#types/index.d.ts';
-import { connectedList, hubs } from '@prisma/client';
+import { connectedList, hubs, originalMessages } from '@prisma/client';
 import {
   ActionRow,
   ActionRowBuilder,
@@ -42,10 +44,8 @@ type MsgInfo = { messageId: string };
 type UserInfoOpts = LocaleInfo & AuthorInfo;
 type MsgInfoOpts = AuthorInfo & ServerInfo & LocaleInfo & HubInfo & MsgInfo;
 type ReportOpts = LocaleInfo & HubInfo & MsgInfo;
-type ServerInfoOpts = LocaleInfo &
-  ServerInfo & {
-    guildConnected: connectedList | undefined;
-  };
+type ModActionsOpts = { originalMsg: originalMessages };
+type ServerInfoOpts = LocaleInfo & ServerInfo & { connection: connectedList | undefined };
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -84,21 +84,14 @@ export default class MessageInfo extends BaseCommand {
       .setThumbnail(author.displayAvatarURL())
       .setColor(Constants.Colors.invisible);
 
-    const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-    const components = this.buildButtons(expiry, locale);
-    const guildConnected = (await getHubConnections(originalMsg.hub.id))?.find(
+    const connection = (await getHubConnections(originalMsg.hub.id))?.find(
       (c) => c.connected && c.serverId === originalMsg.serverId,
     );
-
-    if (guildConnected?.invite) {
-      components[1].addComponents(
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Link)
-          .setURL(`https://discord.gg/${guildConnected?.invite}`)
-          .setEmoji(emojis.join)
-          .setLabel('Join Server'),
-      );
-    }
+    const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+    const components = this.buildButtons(expiry, locale, {
+      buildModActions: isStaffOrHubMod(interaction.user.id, originalMsg.hub),
+      inviteButtonUrl: connection?.invite,
+    });
 
     const reply = await interaction.followUp({
       embeds: [embed],
@@ -129,7 +122,7 @@ export default class MessageInfo extends BaseCommand {
       // button responses
       switch (customId.suffix) {
         case 'serverInfo':
-          this.handleServerInfoButton(i, newComponents, { server, locale, guildConnected });
+          this.handleServerInfoButton(i, newComponents, { server, locale, connection });
           break;
 
         case 'userInfo':
@@ -148,6 +141,10 @@ export default class MessageInfo extends BaseCommand {
 
         case 'report':
           this.handleReportButton(i, { hub: originalMsg.hub, locale, messageId: target.id });
+          break;
+
+        case 'modActions':
+          this.handleModActionsButton(i, { originalMsg });
           break;
 
         default:
@@ -204,7 +201,7 @@ export default class MessageInfo extends BaseCommand {
   private async handleServerInfoButton(
     interaction: ButtonInteraction,
     components: ActionRowBuilder<ButtonBuilder>[],
-    { server, locale, guildConnected }: ServerInfoOpts,
+    { server, locale, connection }: ServerInfoOpts,
   ) {
     if (!server) {
       await interaction.update({
@@ -217,6 +214,9 @@ export default class MessageInfo extends BaseCommand {
 
     const owner = await interaction.client.users.fetch(server.ownerId);
     const createdAt = Math.round(server.createdTimestamp / 1000);
+    const ownerName = `${owner.username}#${
+      owner.discriminator !== '0' ? `#${owner.discriminator}` : ''
+    }`;
 
     const iconUrl = server.icon
       ? `https://cdn.discordapp.com/icons/${server.id}/${server.icon}.png`
@@ -224,29 +224,20 @@ export default class MessageInfo extends BaseCommand {
     const bannerUrL = server.icon
       ? `https://cdn.discordapp.com/icons/${server.id}/${server.banner}.png`
       : null;
-    const inviteString = guildConnected?.invite ? `${guildConnected.invite}` : 'Not Set.';
+    const inviteString = connection?.invite ? `${connection.invite}` : 'Not Set.';
 
     const serverEmbed = new EmbedBuilder()
-      .setColor(Constants.Colors.invisible)
+      .setDescription(`### ${emojis.info} ${server.name}`)
+      .addFields([
+        { name: 'Owner', value: codeBlock(ownerName), inline: true },
+        { name: 'Member Count', value: codeBlock(String(server.memberCount)), inline: true },
+        { name: 'Server ID', value: codeBlock(server.id), inline: true },
+        { name: 'Invite', value: inviteString, inline: true },
+        { name: 'Created At', value: time(createdAt, 'R'), inline: true },
+      ])
       .setThumbnail(iconUrl)
       .setImage(bannerUrL)
-      .setDescription(
-        t(
-          { phrase: 'msgInfo.server.description', locale },
-          {
-            server: server.name,
-            description: server.description || t({ phrase: 'misc.noDesc', locale }),
-            owner: `${owner.username}#${
-              owner.discriminator !== '0' ? `#${owner.discriminator}` : ''
-            }`,
-            createdAt: time(createdAt, 'R'),
-            createdAtFull: time(createdAt, 'd'),
-            memberCount: `${server.memberCount}`,
-            invite: `${inviteString}`,
-          },
-        ),
-      )
-      .setFooter({ text: `ID: ${server.id}` });
+      .setColor(Constants.Colors.invisible);
 
     // disable the server info button
     greyOutButton(components[0], 1);
@@ -257,29 +248,28 @@ export default class MessageInfo extends BaseCommand {
   private async handleUserInfoButton(
     interaction: ButtonInteraction,
     components: ActionRowBuilder<ButtonBuilder>[],
-    { author, locale }: UserInfoOpts,
+    { author }: UserInfoOpts,
   ) {
     await interaction.deferUpdate();
     const createdAt = Math.round(author.createdTimestamp / 1000);
+    const hubsOwned = await db.hubs.count({ where: { ownerId: author.id } });
+    const displayName = author.globalName || 'Not Set.';
 
     const userEmbed = new EmbedBuilder()
+      .setDescription(`### ${emojis.info} ${author.username}`)
+      .addFields([
+        { name: 'Display Name', value: codeBlock(displayName), inline: true },
+        { name: 'User ID', value: codeBlock(author.id), inline: true },
+        { name: 'Hubs Owned', value: codeBlock(`${hubsOwned}`), inline: true },
+        {
+          name: 'Created At',
+          value: `${time(createdAt, 'd')} (${time(createdAt, 'R')})`,
+          inline: true,
+        },
+      ])
       .setThumbnail(author.displayAvatarURL())
-      .setColor('Random')
       .setImage(author.bannerURL() ?? null)
-      .setDescription(
-        t(
-          { phrase: 'msgInfo.user.description', locale },
-          {
-            username: author.discriminator !== '0' ? author.tag : author.username,
-            id: author.id,
-            createdAt: time(createdAt, 'R'),
-            createdAtFull: time(createdAt, 'd'),
-            globalName: author.globalName || 'Not Set.',
-            hubsOwned: `${await db.hubs.count({ where: { ownerId: author.id } })}`,
-          },
-        ),
-      )
-      .setTimestamp();
+      .setColor(Constants.Colors.invisible);
 
     // disable the user info button
     greyOutButton(components[0], 2);
@@ -294,7 +284,7 @@ export default class MessageInfo extends BaseCommand {
   ) {
     const message = await interaction.channel?.messages.fetch(messageId).catch(() => null);
 
-    if (!message) {
+    if (!message || !hub) {
       await interaction.update({
         content: t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
         embeds: [],
@@ -304,27 +294,28 @@ export default class MessageInfo extends BaseCommand {
     }
 
     const embed = new EmbedBuilder()
-      .setDescription(
-        t(
-          { phrase: 'msgInfo.message.description', locale },
-          {
-            emoji: emojis.clipart,
-            author: author.discriminator !== '0' ? author.tag : author.username,
-            server: `${server?.name}`,
-            messageId: message.id,
-            hub: `${hub?.name}`,
-            createdAt: time(Math.floor(message.createdTimestamp / 1000), 'R'),
-          },
-        ),
-      )
-      .setThumbnail(
-        server?.icon ? `https://cdn.discordapp.com/icons/${server.id}/${server.icon}.png` : null,
-      )
-      .setColor('Random');
+      .setDescription(`### ${emojis.info} Message Info`)
+      .addFields([
+        { name: 'Sender', value: codeBlock(author.username), inline: true },
+        { name: 'From Server', value: codeBlock(`${server?.name}`), inline: true },
+        { name: 'Which Hub?', value: codeBlock(hub.name), inline: true },
+        { name: 'Message ID', value: codeBlock(messageId), inline: true },
+        { name: 'Sent At', value: time(message.createdAt, 't'), inline: true },
+      ])
+      .setThumbnail(author.displayAvatarURL())
+      .setColor(Constants.Colors.invisible);
 
     greyOutButton(components[0], 0);
 
     await interaction.update({ embeds: [embed], components, files: [] });
+  }
+
+  private async handleModActionsButton(
+    interaction: ButtonInteraction,
+    { originalMsg }: ModActionsOpts,
+  ) {
+    const { buttons, embed } = await modActionsPanel.buildMessage(interaction, originalMsg);
+    await interaction.reply({ embeds: [embed], components: [buttons], ephemeral: true });
   }
 
   private async handleReportButton(
@@ -387,7 +378,41 @@ export default class MessageInfo extends BaseCommand {
     return { originalMsg, locale, messageId };
   }
 
-  private buildButtons(expiry: Date, locale: supportedLocaleCodes = 'en') {
+  private buildButtons(
+    expiry: Date,
+    locale: supportedLocaleCodes = 'en',
+    opts?: { buildModActions?: boolean; inviteButtonUrl?: string | null },
+  ) {
+    const extras = [
+      new ButtonBuilder()
+        .setLabel(t({ phrase: 'msgInfo.buttons.report', locale }))
+        .setStyle(ButtonStyle.Danger)
+        .setCustomId(
+          new CustomID().setIdentifier('msgInfo', 'report').setExpiry(expiry).toString(),
+        ),
+    ];
+
+    if (opts?.buildModActions) {
+      extras.push(
+        new ButtonBuilder()
+          .setStyle(ButtonStyle.Secondary)
+          .setEmoji('🛠️')
+          .setLabel('Mod Actions')
+          .setCustomId(
+            new CustomID().setIdentifier('msgInfo', 'modActions').setExpiry(expiry).toString(),
+          ),
+      );
+    }
+    if (opts?.inviteButtonUrl) {
+      extras.push(
+        new ButtonBuilder()
+          .setLabel('Join Server')
+          .setStyle(ButtonStyle.Link)
+          .setURL(opts.inviteButtonUrl)
+          .setDisabled(false),
+      );
+    }
+
     return [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
@@ -395,7 +420,7 @@ export default class MessageInfo extends BaseCommand {
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(true)
           .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'info').setExpiry(expiry).toString(),
+            new CustomID().setIdentifier('msgInfo', 'msgInfo').setExpiry(expiry).toString(),
           ),
         new ButtonBuilder()
           .setLabel(t({ phrase: 'msgInfo.buttons.server', locale }))
@@ -410,14 +435,7 @@ export default class MessageInfo extends BaseCommand {
             new CustomID().setIdentifier('msgInfo', 'userInfo').setExpiry(expiry).toString(),
           ),
       ),
-      new ActionRowBuilder<ButtonBuilder>().addComponents(
-        new ButtonBuilder()
-          .setLabel(t({ phrase: 'msgInfo.buttons.report', locale }))
-          .setStyle(ButtonStyle.Danger)
-          .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'report').setExpiry(expiry).toString(),
-          ),
-      ),
+      new ActionRowBuilder<ButtonBuilder>({ components: extras }),
     ];
   }
 }

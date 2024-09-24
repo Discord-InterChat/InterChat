@@ -3,7 +3,8 @@ import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import { simpleEmbed } from '#main/utils/Utils.js';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { connectedList, hubs } from '@prisma/client';
+import { ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import Hub from './index.js';
 
 export default class Joined extends Hub {
@@ -24,40 +25,51 @@ export default class Joined extends Hub {
       return;
     }
 
-    const allFields = connections.map((con) => ({
-      name: `${con.hub?.name}`,
-      value: `<#${con.channelId}>`,
-      inline: true,
-    }));
-
     const description = t(
       { phrase: 'hub.joined.joinedHubs', locale },
-      { total: `${allFields.length}` },
+      { total: `${connections.length}` },
     );
 
-    if (allFields.length < 25) {
-      const embed = new EmbedBuilder()
-        .setFields(allFields)
-        .setColor(Constants.Colors.interchatBlue)
-        .setDescription(description);
-
+    if (connections.length <= 25) {
+      const embed = this.getEmbed(connections.map(this.getField), description);
       await interaction.reply({ embeds: [embed] });
+      return;
     }
 
-    // Split the fields into multiple embeds
-    const paginator = new Pagination();
-    allFields.forEach((field, index) => {
-      // Start a new embed
-      if (index % 25 === 0) {
-        const embed = new EmbedBuilder()
-          .addFields(field)
-          .setColor(Constants.Colors.interchatBlue)
-          .setDescription(description);
+    const pages = this.createPaginatedEmbeds(connections, description);
 
-        paginator.addPage({ embeds: [embed] });
-      }
+    new Pagination().addPages(pages).run(interaction);
+  }
+
+  private createPaginatedEmbeds(
+    connections: (connectedList & { hub: hubs | null })[],
+    description: string,
+    fieldsPerPage = 25,
+  ) {
+    const totalPages = Math.ceil(connections.length / fieldsPerPage);
+
+    const pages = Array.from({ length: totalPages }, (_, pageIndex) => {
+      const startIndex = pageIndex * fieldsPerPage;
+      const fields = connections.slice(startIndex, startIndex + fieldsPerPage).map(this.getField);
+
+      return { embeds: [this.getEmbed(fields, description)] };
     });
 
-    await paginator.run(interaction);
+    return pages;
+  }
+
+  private getField(connection: connectedList & { hub: hubs | null }) {
+    return {
+      name: `${connection.hub?.name}`,
+      value: `<#${connection.channelId}>`,
+      inline: true,
+    };
+  }
+
+  private getEmbed(fields: EmbedField[], description: string) {
+    return new EmbedBuilder()
+      .setColor(Constants.Colors.interchatBlue)
+      .setDescription(description)
+      .addFields(fields);
   }
 }

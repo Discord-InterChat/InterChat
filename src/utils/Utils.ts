@@ -1,26 +1,22 @@
 import Constants from '#main/config/Constants.js';
-import type { RemoveMethods } from '#types/index.d.ts';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { ErrorEmbed } from '#main/utils/EmbedUtils.js';
 import Logger from '#main/utils/Logger.js';
+import type { RemoveMethods, ThreadParentChannel } from '#types/index.d.ts';
 import { captureException } from '@sentry/node';
 import type { ClusterManager } from 'discord-hybrid-sharding';
 import {
-  ChannelType,
-  ColorResolvable,
   EmbedBuilder,
-  NewsChannel,
+  type ColorResolvable,
   type CommandInteraction,
-  type ForumChannel,
+  type GuildTextBasedChannel,
   type Interaction,
-  type MediaChannel,
   type Message,
   type MessageComponentInteraction,
   type RepliableInteraction,
   type Snowflake,
-  type TextChannel,
-  type ThreadChannel,
+  type VoiceBasedChannel,
 } from 'discord.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
@@ -49,21 +45,6 @@ export const msToReadable = (milliseconds: number) => {
 
 export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- * Sort the array based on the reaction counts.
- *
- * **Before:**
- * ```ts
- *  { '👍': ['10201930193'], '👎': ['10201930193', '10201930194'] }
- * ```
- * **After:**
- * ```ts
- * [ [ '👎', ['10201930193', '10201930194'] ], [ '👍', ['10201930193'] ] ]
- * ```
- * */
-export const sortReactions = (reactions: { [key: string]: string[] }): [string, string[]][] =>
-  Object.entries(reactions).sort((a, b) => b[1].length - a[1].length);
-
 export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) =>
   option ? yesEmoji : noEmoji;
 
@@ -74,10 +55,12 @@ export const disableComponents = (message: Message) =>
     return jsonRow;
   });
 
-const createWebhook = async (
-  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
-  avatar: string,
-) =>
+const findExistingWebhook = async (channel: ThreadParentChannel | VoiceBasedChannel) => {
+  const webhooks = await channel?.fetchWebhooks().catch(() => null);
+  return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
+};
+
+const createWebhook = async (channel: ThreadParentChannel | VoiceBasedChannel, avatar: string) =>
   await channel
     ?.createWebhook({
       name: 'InterChat Network',
@@ -85,22 +68,11 @@ const createWebhook = async (
     })
     .catch(() => undefined);
 
-const findExistingWebhook = async (
-  channel: NewsChannel | TextChannel | ForumChannel | MediaChannel,
-) => {
-  const webhooks = await channel?.fetchWebhooks().catch(() => null);
-  return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
-};
-
 export const getOrCreateWebhook = async (
-  channel: NewsChannel | TextChannel | ThreadChannel,
+  channel: GuildTextBasedChannel,
   avatar = Constants.Links.EasterAvatar,
 ) => {
-  const channelOrParent =
-    channel.type === ChannelType.GuildText || channel.type === ChannelType.GuildAnnouncement
-      ? channel
-      : channel.parent;
-
+  const channelOrParent = channel.isThread() ? channel.parent : channel;
   if (!channelOrParent) return null;
 
   const existingWebhook = await findExistingWebhook(channelOrParent);

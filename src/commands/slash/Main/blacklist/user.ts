@@ -34,10 +34,7 @@ export default class extends BlacklistCommand {
       await this.addUserBlacklist(interaction, user, { expires, hubId: hub.id, reason });
       await this.sendSuccessResponse(
         interaction,
-        t(
-          { phrase: 'blacklist.user.success', locale },
-          { username: user.username, emoji: emojis.tick },
-        ),
+        t({ phrase: 'blacklist.success', locale }, { name: user.username, emoji: emojis.tick }),
         { reason, expires },
       );
 
@@ -64,8 +61,8 @@ export default class extends BlacklistCommand {
 
       await interaction.followUp(
         t(
-          { phrase: 'blacklist.user.removed', locale },
-          { emoji: emojis.delete, username: `${result.username}` },
+          { phrase: 'blacklist.removed', locale },
+          { emoji: emojis.delete, name: `${result.username}` },
         ),
       );
 

@@ -1,7 +1,10 @@
 /* eslint-disable complexity */
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import HubSettingsManager from '#main/modules/HubSettingsManager.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { addReaction, removeReaction, updateReactions } from '#main/utils/reaction/actions.js';
 import { checkBlacklists } from '#main/utils/reaction/helpers.js';
+import sortReactions from '#main/utils/reaction/sortReactions.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -18,9 +21,7 @@ import { fetchConnection, updateConnection } from './utils/ConnectedListUtils.js
 import { CustomID } from './utils/CustomID.js';
 import db from './utils/Db.js';
 import { t } from './utils/Locale.js';
-import { getEmojiId, simpleEmbed, sortReactions } from './utils/Utils.js';
-import HubSettingsManager from '#main/modules/HubSettingsManager.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import { getEmojiId } from './utils/Utils.js';
 
 export class RandomComponents {
   /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
@@ -98,7 +99,7 @@ export class RandomComponents {
           .setPlaceholder('Add a reaction'),
       );
 
-      const { hub } = networkMessage?.originalMsg;
+      const { hub } = networkMessage.originalMsg;
       const hubSettings = new HubSettingsManager(hub.id, hub.settings);
       if (!hubSettings.getSetting('Reactions')) reactionMenu.components[0].setDisabled(true);
 
@@ -214,13 +215,12 @@ export class RandomComponents {
 
     await updateConnection({ channelId }, { connected: true });
 
-    await interaction.update({
-      embeds: [
-        simpleEmbed(
-          `### ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`,
-        ),
-      ],
-      components: [],
-    });
+    const embed = new InfoEmbed()
+      .removeTitle()
+      .setDescription(
+        `### ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`,
+      );
+
+    await interaction.update({ embeds: [embed], components: [] });
   }
 }

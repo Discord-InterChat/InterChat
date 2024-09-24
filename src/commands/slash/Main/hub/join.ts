@@ -11,10 +11,7 @@ import {
   ChannelType,
   ChatInputCommandInteraction,
   GuildTextBasedChannel,
-  NewsChannel,
   Snowflake,
-  TextChannel,
-  ThreadChannel,
 } from 'discord.js';
 import Hub from './index.js';
 import { sendToHub } from '#main/utils/hub/utils.js';
@@ -224,7 +221,7 @@ export default class JoinSubCommand extends Hub {
 
   private async createWebhook(
     interaction: ChatInputCommandInteraction,
-    channel: NewsChannel | TextChannel | ThreadChannel,
+    channel: GuildTextBasedChannel,
     locale: supportedLocaleCodes,
   ) {
     const webhook = await getOrCreateWebhook(channel);

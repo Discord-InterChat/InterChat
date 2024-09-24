@@ -80,7 +80,7 @@ export const getAllDocuments = async (match: string) => {
 
 export const getCachedData = async <T>(
   key: `${RedisKeys}:${string}`,
-  fetchFunction: (() => Awaitable<T | null>) | null,
+  fetchFunction?: (() => Awaitable<T | null>) | null,
   expiry?: number,
 ): Promise<{ data: ConvertDatesToString<T> | null; fromCache: boolean }> => {
   // Check cache first

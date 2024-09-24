@@ -27,12 +27,14 @@ type HubRating {
   rating Int    @default(0)
 }
 
+enum HubModeratorPosition {
+  network_mod
+  manager
+}
+
 type HubModerator {
   userId   String
-  position String @default("network_mod") // network, manager 
-  // network -> just basic actions like warning/muting
-  // manager -> perm blacklisting, managing hub etc.
-  // honestly... I might as well make permissions lol
+  position HubModeratorPosition @default(network_mod)
 }
 
 type HubLogChannels {
