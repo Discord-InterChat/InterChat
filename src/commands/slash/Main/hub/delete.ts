@@ -6,7 +6,6 @@ import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { deleteHubs } from '#main/utils/hub/utils.js';
 import { t } from '#main/utils/Locale.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -110,12 +109,10 @@ export default class Delete extends Hub {
     await deleteHubs([hubInDb.id]);
 
     await interaction.editReply({
-      embeds: [
-        simpleEmbed(
-          t({ phrase: 'hub.delete.success', locale }, { emoji: emojis.tick, hub: hubInDb.name }),
-          { color: 'Green' },
-        ),
-      ],
+      content: t(
+        { phrase: 'hub.delete.success', locale },
+        { emoji: emojis.tick, hub: hubInDb.name },
+      ),
     });
   }
 }

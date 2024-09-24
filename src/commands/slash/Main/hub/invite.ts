@@ -2,7 +2,6 @@ import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
 import { captureException } from '@sentry/node';
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import parse from 'parse-duration';
@@ -46,7 +45,7 @@ export default class Invite extends Hub {
 
         if (!Date.parse(expires.toString())) {
           await interaction.reply({
-            embeds: [simpleEmbed(`${emojis.no} Invalid Expiry Duration provided!`)],
+            content: `${emojis.no} Invalid Expiry Duration provided!`,
             ephemeral: true,
           });
           return;

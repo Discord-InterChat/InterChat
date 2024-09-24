@@ -1,9 +1,14 @@
 import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
 import type { broadcastedMessages, hubs, originalMessages, Prisma } from '@prisma/client';
-import type { ButtonInteraction, ModalSubmitInteraction, RepliableInteraction, Snowflake } from 'discord.js';
+import type {
+  ButtonInteraction,
+  ModalSubmitInteraction,
+  RepliableInteraction,
+  Snowflake,
+} from 'discord.js';
 
 export type ModActionsDbMsgT = originalMessages & {
   hub?: hubs | null;
@@ -22,7 +27,6 @@ export interface ModAction {
     locale: supportedLocaleCodes,
   ): Promise<void>;
 }
-
 
 export const fetchMessageFromDb = async (
   messageId: string,
@@ -47,7 +51,7 @@ export async function replyWithUnknownMessage(
   locale: supportedLocaleCodes,
   edit = false,
 ) {
-  const embed = simpleEmbed(
+  const embed = new InfoEmbed().setDescription(
     t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
   );
 

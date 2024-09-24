@@ -1,3 +1,14 @@
+import { emojis } from '#main/config/Constants.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import db from '#main/utils/Db.js';
+import {
+  deleteMsgsFromDb,
+  handleError,
+  msToReadable,
+  resolveEval,
+} from '#main/utils/Utils.js';
+import { broadcastedMessages } from '@prisma/client';
+import { stripIndents } from 'common-tags';
 import {
   APIApplicationCommandBasicOption,
   ApplicationCommandOptionType,
@@ -6,18 +17,6 @@ import {
   PermissionFlagsBits,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import db from '#main/utils/Db.js';
-import BaseCommand from '#main/core/BaseCommand.js';
-import { stripIndents } from 'common-tags';
-import { emojis } from '#main/config/Constants.js';
-import {
-  simpleEmbed,
-  msToReadable,
-  deleteMsgsFromDb,
-  handleError,
-  resolveEval,
-} from '#main/utils/Utils.js';
-import { broadcastedMessages } from '@prisma/client';
 
 const limitOpt: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.Integer,
@@ -129,13 +128,9 @@ export default class Purge extends BaseCommand {
     });
 
     if (!isMod) {
-      await interaction.editReply({
-        embeds: [
-          simpleEmbed(
-            `${emojis.no} You must be a moderator or owner of this hub to use this command.`,
-          ),
-        ],
-      });
+      await interaction.editReply(
+        `${emojis.no} You must be a moderator or owner of this hub to use this command.`,
+      );
       return;
     }
 

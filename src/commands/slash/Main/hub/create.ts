@@ -1,10 +1,10 @@
+import Constants, { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { HubSettingsBits } from '#main/modules/BitFields.js';
-import Constants, { emojis } from '#main/config/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
+import { checkAndFetchImgurUrl } from '#main/utils/ImageUtils.js';
 import { t } from '#main/utils/Locale.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   CacheType,
@@ -16,7 +16,6 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import Hub from './index.js';
-import { checkAndFetchImgurUrl } from '#main/utils/ImageUtils.js';
 
 export default class Create extends Hub {
   readonly cooldown = 10 * 60 * 1000; // 10 mins
@@ -129,7 +128,7 @@ export default class Create extends Hub {
     // TODO: create a gif showing how to get imgur links
     if (iconUrl === false || bannerUrl === false) {
       await interaction.followUp({
-        embeds: [simpleEmbed(t({ phrase: 'hub.invalidImgurUrl', locale }, { emoji: emojis.no }))],
+        content: t({ phrase: 'hub.invalidImgurUrl', locale }, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;

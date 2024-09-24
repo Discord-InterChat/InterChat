@@ -13,7 +13,6 @@ import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
 import { removeReportsFrom, setReportRole } from '#main/utils/HubLogger/Report.js';
 import { checkAndFetchImgurUrl } from '#main/utils/ImageUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
 import { hubs, Prisma } from '@prisma/client';
 import {
   ActionRowBuilder,
@@ -428,11 +427,10 @@ export default class Manage extends Hub {
     if (type === 'reports' && role?.id) {
       if (!hubInDb.logChannels?.reports?.channelId) {
         await interaction.reply({
-          embeds: [
-            simpleEmbed(
-              t({ phrase: 'hub.manage.logs.reportChannelFirst', locale }, { emoji: emojis.no }),
-            ),
-          ],
+          content: t(
+            { phrase: 'hub.manage.logs.reportChannelFirst', locale },
+            { emoji: emojis.no },
+          ),
           ephemeral: true,
         });
         return;
@@ -443,19 +441,16 @@ export default class Manage extends Hub {
 
     const embed = interaction.message.embeds[0].toJSON();
     if (embed.fields?.at(1)) embed.fields[1].value = `${role || 'None'}`;
-
     await interaction.update({ embeds: [embed] });
-    await interaction.followUp({
-      embeds: [
-        simpleEmbed(
-          t(
-            { phrase: 'hub.manage.logs.roleSuccess', locale },
-            { emoji: emojis.yes, type, role: `${role}` },
-          ),
-        ),
-      ],
-      ephemeral: true,
-    });
+
+    const successEmbed = new InfoEmbed().setDescription(
+      t(
+        { phrase: 'hub.manage.logs.roleSuccess', locale },
+        { emoji: emojis.yes, type, role: `${role}` },
+      ),
+    );
+
+    await interaction.followUp({ embeds: [successEmbed], ephemeral: true });
   }
 
   private async updateDescription(

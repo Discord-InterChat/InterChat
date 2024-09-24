@@ -1,8 +1,7 @@
-import { Pagination } from '#main/modules/Pagination.js';
 import Constants, { emojis } from '#main/config/Constants.js';
+import { Pagination } from '#main/modules/Pagination.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
 import { connectedList, hubs } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import Hub from './index.js';
@@ -17,11 +16,9 @@ export default class Joined extends Hub {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (connections.length === 0) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(t({ phrase: 'hub.joined.noJoinedHubs', locale }, { emoji: emojis.no })),
-        ],
-      });
+      await interaction.reply(
+        t({ phrase: 'hub.joined.noJoinedHubs', locale }, { emoji: emojis.no }),
+      );
       return;
     }
 

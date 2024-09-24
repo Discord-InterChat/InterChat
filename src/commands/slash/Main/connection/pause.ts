@@ -1,16 +1,15 @@
-import { updateConnection } from '#main/utils/ConnectedListUtils.js';
 import { emojis } from '#main/config/Constants.js';
+import { fetchCommands, findCommand } from '#main/utils/CommandUtls.js';
+import { updateConnection } from '#main/utils/ConnectedListUtils.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { t } from '#main/utils/Locale.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
 import {
   ChatInputCommandInteraction,
   channelMention,
   chatInputApplicationCommandMention as slashCmdMention,
 } from 'discord.js';
 import Connection from './index.js';
-import { fetchCommands, findCommand } from '#main/utils/CommandUtls.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 
 export default class Pause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -28,14 +27,10 @@ export default class Pause extends Connection {
     }
 
     if (!connected.connected) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            `${emojis.no} The connection is already paused for this channel. Use \`/connection unpause\` to continue chatting. `,
-          ),
-        ],
-        ephemeral: true,
-      });
+      const embed = new InfoEmbed().setDescription(
+        `${emojis.no} The connection is already paused for this channel. Use \`/connection unpause\` to continue chatting.`,
+      );
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
 

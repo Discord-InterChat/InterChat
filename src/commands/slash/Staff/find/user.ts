@@ -1,6 +1,6 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js.js';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Find from './index.js';
@@ -11,14 +11,10 @@ export default class Server extends Find {
     const userId = interaction.options.getString('user', true);
     const user = await interaction.client.users.fetch(userId).catch(() => null);
     if (!user) {
-      await interaction.reply({
-        embeds: [
-          simpleEmbed(
-            `${emojis.no} Unknown user. Try using user\`s ID instead if you used username.`,
-          ),
-        ],
-        ephemeral: true,
-      });
+      const embed = new InfoEmbed().setDescription(
+        `${emojis.no} Unknown user. Try using user\`s ID instead if you used username.`,
+      );
+      await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
 

@@ -1,13 +1,13 @@
 import { emojis } from '#main/config/Constants.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { isDeleteInProgress, deleteMessageFromHub } from '#main/utils/moderation/deleteMessage.js';
+import { deleteMessageFromHub, isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
 import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import {
   type ModAction,
   fetchMessageFromDb,
   replyWithUnknownMessage,
 } from '#main/utils/moderation/modActions/utils.js';
-import { simpleEmbed } from '#main/utils/Utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
 
 export default class DeleteMessageHandler implements ModAction {
@@ -30,7 +30,7 @@ export default class DeleteMessageHandler implements ModAction {
       const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
       await interaction.update({ embeds: [embed], components: [buttons] });
 
-      const errorEmbed = simpleEmbed(
+      const errorEmbed = new InfoEmbed().setDescription(
         `${emojis.neutral} This message is already deleted or is being deleted by another moderator.`,
       );
 
