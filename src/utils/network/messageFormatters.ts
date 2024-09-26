@@ -5,7 +5,7 @@ import type {
 } from './Types.d.ts';
 import Constants from '#main/config/Constants.js';
 import { censor } from '#main/utils/ProfanityUtils.js';
-import type { connectedList, hubs, userData } from '@prisma/client';
+import type { connectedList, hubs, UserData } from '@prisma/client';
 import { EmbedBuilder, userMention, type WebhookMessageCreateOptions } from 'discord.js';
 
 export const getEmbedMessageFormat = (
@@ -26,7 +26,7 @@ const getReplyContent = (content: string | undefined, profFilter: boolean) => {
   return profFilter ? censor(content) : content;
 };
 
-export const getReplyMention = (dbReferredAuthor: userData | null) => {
+export const getReplyMention = (dbReferredAuthor: UserData | null) => {
   if (!dbReferredAuthor?.mentionOnReply) return null;
   return userMention(dbReferredAuthor.id);
 };

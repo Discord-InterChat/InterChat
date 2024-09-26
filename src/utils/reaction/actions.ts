@@ -10,7 +10,7 @@ import {
   WebhookClient,
 } from 'discord.js';
 import sortReactions from './sortReactions.js';
-import { ReactionArray } from '#main/types/network.js.js';
+import type { ReactionArray } from '../../types/network.d.ts';
 
 export const addReaction = (reactionArr: ReactionArray, userId: string, emoji: string): void => {
   reactionArr[emoji] = reactionArr[emoji] || [];

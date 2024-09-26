@@ -10,6 +10,7 @@ import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { sendHubReport } from '#main/utils/HubLogger/Report.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
+import { isValidDbMsgWithHubId } from '#main/utils/moderation/modActions/utils.js';
 import type { RemoveMethods } from '#types/index.d.ts';
 import { connectedList, hubs, originalMessages } from '@prisma/client';
 import {
@@ -314,6 +315,8 @@ export default class MessageInfo extends BaseCommand {
     interaction: ButtonInteraction,
     { originalMsg }: ModActionsOpts,
   ) {
+    if (!isValidDbMsgWithHubId(originalMsg)) return;
+
     const { buttons, embed } = await modActionsPanel.buildMessage(interaction, originalMsg);
     await interaction.reply({ embeds: [embed], components: [buttons], ephemeral: true });
   }

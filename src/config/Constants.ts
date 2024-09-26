@@ -17,12 +17,14 @@ export const enum RedisKeys {
   lastActive = 'lastActive',
   connectionHubId = 'connectionHubId',
   hubConnections = 'hubConnections',
-  userData = 'userData',
+  userData = 'UserData',
   cooldown = 'cooldown',
   blacklistedServers = 'blacklistedServers',
   channelQueue = 'channelQueue',
   commandUsesLeft = 'commandUsesLeft',
   msgDeleteInProgress = 'msgDeleteInProgress',
+  userInfraction = 'UserInfraction',
+  serverInfraction = 'ServerInfraction',
 }
 
 export const enum ConnectionMode {

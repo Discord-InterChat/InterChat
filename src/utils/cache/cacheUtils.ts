@@ -88,11 +88,13 @@ export const getCachedData = async <T>(
   const fromCache = data !== null;
 
   // If not in cache, fetch from database
-  if (!fromCache && fetchFunction) {
+  if ((!fromCache || (Array.isArray(data) && data.length > 0)) && fetchFunction) {
     data = (await fetchFunction()) as ConvertDatesToString<T>;
 
     // Store in cache with TTL
-    if (data) await cacheData(key, JSON.stringify(data), expiry);
+    if (data || (Array.isArray(data) && data.length > 0)) {
+      await cacheData(key, JSON.stringify(data), expiry);
+    }
   }
 
   return { data, fromCache };

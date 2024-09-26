@@ -60,7 +60,11 @@ export default class Blacklist extends BaseCommand {
 
     if (!(await this.validateMessage(interaction, originalMsg, locale))) return;
 
-    const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg!);
+    const { embed, buttons } = await modActionsPanel.buildMessage(
+      interaction,
+      originalMsg as ModActionsDbMsgT & { hubId: string },
+    );
+
     await interaction.editReply({ embeds: [embed], components: [buttons] });
   }
 
@@ -104,7 +108,7 @@ export default class Blacklist extends BaseCommand {
     if (!originalMsg?.hub || !isStaffOrHubMod(interaction.user.id, originalMsg.hub)) {
       await this.replyEmbed(
         interaction,
-        t({ phrase: 'errors.messageNotSentOrExpired', locale }, { emoji: emojis.info }),
+        t({ phrase: 'errors.messageNotSentOrExpired', locale }),
         { ephemeral: true, edit: true },
       );
       return false;

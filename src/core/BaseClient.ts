@@ -2,14 +2,13 @@ import Constants from '#main/config/Constants.js';
 import CooldownService from '#main/modules/CooldownService.js';
 import EventHandler from '#main/modules/EventHandler.js';
 import Scheduler from '#main/modules/SchedulerService.js';
-import ServerBlacklistManager from '#main/modules/ServerBlacklistManager.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
-import type { RemoveMethods } from '#types/index.d.ts';
+import { RandomComponents } from '#main/RandomComponents.js';
 import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
 import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/CommandUtls.js';
 import { loadLocales } from '#main/utils/Locale.js';
-import { RandomComponents } from '#main/RandomComponents.js';
 import { resolveEval } from '#main/utils/Utils.js';
+import type { RemoveMethods } from '#types/index.d.ts';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {
   type Channel,
@@ -37,9 +36,8 @@ export default class SuperClient extends Client {
   readonly webhooks = new Collection<string, WebhookClient>();
   readonly reactionCooldowns = new Collection<string, number>();
 
+  readonly userManager = new UserDbManager();
   readonly cluster = new ClusterClient(this);
-  readonly userManager = new UserDbManager(this);
-  readonly serverBlacklists = new ServerBlacklistManager(this);
   readonly eventHandler = new EventHandler(this);
   readonly commandCooldowns = new CooldownService();
 

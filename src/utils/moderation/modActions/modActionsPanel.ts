@@ -1,6 +1,8 @@
 import Constants, { emojis } from '#main/config/Constants.js';
+import BlacklistManager from '#main/modules/BlacklistManager.js';
+import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
 import { CustomID } from '#main/utils/CustomID.js';
-import { isBlacklisted } from '#main/utils/moderation/blacklistUtils.js';
 import { isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
 import { ModActionsDbMsgT } from '#main/utils/moderation/modActions/utils.js';
 import { checkIfStaff } from '#main/utils/Utils.js';
@@ -96,24 +98,22 @@ const buildInfoEmbed = (username: string, servername: string, opts: BuilderOpts)
     `);
 };
 
-const buildMessage = async (interaction: Interaction, originalMsg: ModActionsDbMsgT) => {
+const buildMessage = async (
+  interaction: Interaction,
+  originalMsg: ModActionsDbMsgT & { hubId: string },
+) => {
   const user = await interaction.client.users.fetch(originalMsg.authorId);
   const server = await interaction.client.fetchGuild(originalMsg.serverId);
   const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
 
-  const { userManager } = interaction.client;
-  const dbUserTarget = await userManager.getUser(user.id);
 
-  const isUserBlacklisted = await isBlacklisted(
-    dbUserTarget ?? user.id,
-    `${originalMsg.hubId}`,
-    userManager,
-  );
-  const isServerBlacklisted = await isBlacklisted(
-    originalMsg.serverId,
-    `${originalMsg.hubId}`,
-    interaction.client.serverBlacklists,
-  );
+  const { userManager } = interaction.client;
+  const userBlManager = new BlacklistManager(new UserInfractionManager(originalMsg.authorId));
+  const serverBlManager = new BlacklistManager(new ServerInfractionManager(originalMsg.serverId));
+
+  const isUserBlacklisted = Boolean(await userBlManager.fetchBlacklist(originalMsg.hubId));
+  const isServerBlacklisted = Boolean(await serverBlManager.fetchBlacklist(originalMsg.hubId));
+  const dbUserTarget = await userManager.getUser(user.id);
 
   const embed = buildInfoEmbed(user.username, server?.name ?? 'Unknown Server', {
     isUserBlacklisted,

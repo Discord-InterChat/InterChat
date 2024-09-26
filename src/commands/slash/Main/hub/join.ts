@@ -15,6 +15,9 @@ import {
   Snowflake,
 } from 'discord.js';
 import Hub from './index.js';
+import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import BlacklistManager from '#main/modules/BlacklistManager.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -177,12 +180,13 @@ export default class JoinSubCommand extends Hub {
     hub: hubs,
     locale: supportedLocaleCodes,
   ) {
-    const { userManager, serverBlacklists } = interaction.client;
+    const userBlManager = new BlacklistManager(new UserInfractionManager(interaction.user.id));
+    const serverBlManager = new BlacklistManager(new ServerInfractionManager(interaction.guildId));
 
-    const userBlacklisted = await userManager.fetchBlacklist(hub.id, interaction.user.id);
-    const serverBlacklisted = await serverBlacklists.fetchBlacklist(hub.id, interaction.guildId);
+    const userBlacklist = await userBlManager.fetchBlacklist(hub.id);
+    const serverBlacklist = await serverBlManager.fetchBlacklist(hub.id);
 
-    if (userBlacklisted || serverBlacklisted) {
+    if (userBlacklist || serverBlacklist) {
       await interaction.reply({
         content: t({ phrase: 'errors.blacklisted', locale }, { emoji: emojis.no }),
         ephemeral: true,

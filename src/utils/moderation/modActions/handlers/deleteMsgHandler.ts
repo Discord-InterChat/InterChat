@@ -6,6 +6,7 @@ import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.j
 import {
   type ModAction,
   fetchMessageFromDb,
+  isValidDbMsgWithHubId,
   replyWithUnknownMessage,
 } from '#main/utils/moderation/modActions/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
@@ -20,7 +21,7 @@ export default class DeleteMessageHandler implements ModAction {
       broadcastMsgs: true,
     });
 
-    if (!originalMsg?.hubId || !originalMsg.broadcastMsgs) {
+    if (!originalMsg?.broadcastMsgs || !isValidDbMsgWithHubId(originalMsg)) {
       await replyWithUnknownMessage(interaction, locale);
       return;
     }

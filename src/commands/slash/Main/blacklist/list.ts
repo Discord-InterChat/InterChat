@@ -1,14 +1,14 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { toTitleCase } from '#main/utils/Utils.js';
-import { blacklistedServers, hubBlacklist, userData } from '@prisma/client';
-import { ChatInputCommandInteraction, EmbedBuilder, time, User } from 'discord.js';
+import { type ChatInputCommandInteraction, EmbedBuilder, time, User } from 'discord.js';
 import BlacklistCommand from './index.js';
+import type { ServerInfraction, UserInfraction } from '@prisma/client';
 
 // Type guard
-const isUserType = (list: blacklistedServers | userData) => list && 'username' in list;
+const isServerType = (list: ServerInfraction | UserInfraction) => list && 'serverName' in list;
 
 export default class ListBlacklists extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -36,24 +36,28 @@ export default class ListBlacklists extends BlacklistCommand {
 
     const blacklistType = interaction.options.getString('type') as 'server' | 'user';
     const hubId = hubInDb.id;
+    const query = { where: { hubId, type: 'BLACKLIST', status: 'ACTIVE' } } as const;
     const list =
       blacklistType === 'server'
-        ? await db.blacklistedServers.findMany({ where: { blacklistedFrom: { some: { hubId } } } })
-        : await db.userData.findMany({ where: { blacklistedFrom: { some: { hubId } } } });
+        ? await db.serverInfraction.findMany(query)
+        : await db.userInfraction.findMany({
+          where: query.where,
+          include: { userData: { select: { username: true } } },
+        });
+
     const options = { LIMIT: 5, iconUrl: hubInDb.iconUrl };
 
     const fields = [];
     let counter = 0;
-    const type = isUserType(list[0]) ? 'user' : 'server';
+    const type = isServerType(list[0]) ? 'server' : 'user';
 
     const paginator = new Pagination();
     for (const data of list) {
-      const hubData = data.blacklistedFrom.find((d) => d.hubId === hubId);
-      const moderator = hubData?.moderatorId
-        ? await interaction.client.users.fetch(hubData.moderatorId).catch(() => null)
+      const moderator = data.moderatorId
+        ? await interaction.client.users.fetch(data.moderatorId).catch(() => null)
         : null;
 
-      fields.push(this.createFieldData(data, type, { hubData, moderator, locale }));
+      fields.push(this.createFieldData(data, type, { moderator, locale }));
 
       counter++;
       if (counter >= options.LIMIT || fields.length === list.length) {
@@ -78,29 +82,27 @@ export default class ListBlacklists extends BlacklistCommand {
   }
 
   private createFieldData(
-    data: blacklistedServers | userData,
+    data: ServerInfraction | (UserInfraction & { userData: { username: string | null } }),
     type: 'user' | 'server',
     {
       moderator,
       locale,
-      hubData,
     }: {
       moderator: User | null;
       locale?: supportedLocaleCodes;
-      hubData?: hubBlacklist;
     },
   ) {
     return {
-      name: (isUserType(data) ? data.username : data.serverName) ?? 'Unknown User.',
+      name: (isServerType(data) ? data.serverName : data.userData.username) ?? 'Unknown User.',
       value: t(
         { phrase: `blacklist.list.${type}`, locale },
         {
-          id: data.id,
+          id: 'userId' in data ? data.userId : data.serverId,
           moderator: moderator ? `@${moderator.username} (${moderator.id})` : 'Unknown',
-          reason: `${hubData?.reason}`,
-          expires: !hubData?.expires
+          reason: `${data?.reason}`,
+          expires: !data?.expiresAt
             ? 'Never.'
-            : `${time(Math.round(hubData?.expires.getTime() / 1000), 'R')}`,
+            : `${time(Math.round(data?.expiresAt.getTime() / 1000), 'R')}`,
         },
       ),
     };

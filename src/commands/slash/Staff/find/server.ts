@@ -24,7 +24,9 @@ export default class Server extends Find {
       include: { hub: true },
     });
 
-    const guildBlacklisted = await db.blacklistedServers.count({ where: { id: guild.id } });
+    const guildBlacklisted = await db.serverInfraction.count({
+      where: { expiresAt: { gt: new Date() }, serverId: guild.id },
+    });
     const guildBoostLevel = GuildPremiumTier[guild.premiumTier];
 
     const guildHubs =

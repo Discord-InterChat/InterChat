@@ -16,6 +16,5 @@
  * */
 export default (reactions: { [key: string]: string[] }): [string, string[]][] => {
   const idk = Object.entries(reactions).sort((a, b) => b[1].length - a[1].length);
-  console.log(idk);
   return idk;
 };

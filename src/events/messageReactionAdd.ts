@@ -36,7 +36,6 @@ export default class ReadctionAdd extends BaseEventListener<'messageReactionAdd'
     );
 
     const { userBlacklisted, serverBlacklisted } = await checkBlacklists(
-      user.client,
       originalMsg.hub.id,
       reaction.message.guildId,
       user.id,

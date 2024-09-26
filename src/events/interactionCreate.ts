@@ -5,7 +5,7 @@ import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { t } from '#main/utils/Locale.js';
 import { checkIfStaff, handleError } from '#main/utils/Utils.js';
-import { userData } from '@prisma/client';
+import { UserData } from '@prisma/client';
 import { CacheType, Interaction } from 'discord.js';
 
 export default class InteractionCreate extends BaseEventListener<'interactionCreate'> {
@@ -63,7 +63,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     }
   }
 
-  private async handleUserBan(interaction: Interaction, dbUser: userData | undefined | null) {
+  private async handleUserBan(interaction: Interaction, dbUser: UserData | undefined | null) {
     if (dbUser?.banMeta?.reason) {
       if (interaction.isRepliable()) {
         const { userManager } = interaction.client;
