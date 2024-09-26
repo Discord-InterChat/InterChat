@@ -1,3 +1,7 @@
+// TODO: for infractions, i guess it needs one that is active and one that isnt
+// because when you remove blacklist, now you can't because if u do, u dont preseve the infraction
+// yeah
+
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["tracing"]
@@ -8,28 +12,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-type MessageDataReference {
-  channelId String
-  guildId   String?
-  messageId String?
-}
-
-type UserDataWarnings {
-  automated   Boolean
-  moderatorId String?
-  id          String
-  reason      String
-  timestamp   DateTime
+enum HubModeratorPosition {
+  network_mod
+  manager
 }
 
 type HubRating {
   userId String
   rating Int    @default(0)
-}
-
-enum HubModeratorPosition {
-  network_mod
-  manager
 }
 
 type HubModerator {
@@ -60,10 +50,48 @@ type hubBlacklist {
   hubId       String    @db.ObjectId
 }
 
-model blacklistedServers {
-  id              String         @id @map("_id") @db.String
-  serverName      String
-  blacklistedFrom hubBlacklist[]
+enum InfractionType {
+  BLACKLIST
+  WARNING
+}
+
+enum InfractionStatus {
+  ACTIVE
+  REVOKED
+}
+
+model UserInfraction {
+  id          String           @id @default(nanoid()) @map("_id")
+  userId      String           @db.String
+  hubId       String           @db.ObjectId
+  reason      String
+  status      InfractionStatus @default(ACTIVE)
+  type        InfractionType   @default(BLACKLIST)
+  dateIssued  DateTime         @default(now()) // Date when the infraction was issued
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  moderatorId String?
+  userData    UserData         @relation(fields: [userId], references: [id])
+  hub         hubs             @relation(fields: [hubId], references: [id])
+
+  @@index([userId, hubId])
+}
+
+model ServerInfraction {
+  id          String         @id @default(nanoid()) @map("_id")
+  serverName  String
+  serverId    String
+  hubId       String         @db.ObjectId
+  reason      String
+  status      InfractionStatus @default(ACTIVE)
+  type        InfractionType @default(BLACKLIST)
+  dateIssued  DateTime       @default(now()) // Date when the infraction was issued
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  moderatorId String?
+  hub         hubs           @relation(fields: [hubId], references: [id])
+
+  @@index([serverId, hubId])
 }
 
 model connectedList {
@@ -81,6 +109,8 @@ model connectedList {
   date       DateTime  @default(now())
   hub        hubs?     @relation(fields: [hubId], references: [id])
   hubId      String    @db.ObjectId
+
+  @@index(fields: [channelId, serverId])
 }
 
 model hubs {
@@ -103,6 +133,8 @@ model hubs {
   // approved           Boolean              @default(false)
   // official           Boolean              @default(false)
   originalMessages originalMessages[]
+  userInfractions  UserInfraction[]
+  ServerInfraction ServerInfraction[]
 }
 
 model hubInvites {
@@ -135,16 +167,14 @@ model broadcastedMessages {
   originalMsgId String           @db.String
 }
 
-model userData {
-  id                   String         @id @map("_id") @db.String
-  voteCount            Int            @default(0)
-  // username is only guarenteed to be set and/or used for blacklisted users
+model UserData {
+  id                   String           @id @map("_id") @db.String
+  voteCount            Int              @default(0)
   username             String?
   locale               String?
   lastVoted            DateTime?
   banMeta              userBan?
-  blacklistedFrom      hubBlacklist[]
-  // if user has seen the welcome message when they first use the network
-  mentionOnReply       Boolean?       @default(false)
-  viewedNetworkWelcome Boolean        @default(false)
+  mentionOnReply       Boolean?         @default(false)
+  viewedNetworkWelcome Boolean          @default(false)
+  infractions          UserInfraction[]
 }
