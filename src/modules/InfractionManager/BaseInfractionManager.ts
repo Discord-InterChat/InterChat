@@ -37,21 +37,21 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
 
   protected abstract queryEntityInfractions(hubId: string): Promise<T[]>;
 
-  public async getHubInfractions(type: InfractionType, hubId: string): Promise<T[]> {
+  public async getHubInfractions(hubId: string, type?: InfractionType): Promise<T[]> {
     const fetched = await getCachedData(
       `${this.modelName}:${this.targetId}:${hubId}`,
       async () => await this.queryEntityInfractions(hubId),
       this.cacheExpirySecs,
     );
 
-    const infractionsArr = fetched.data?.filter((i) => i.type === type);
+    const infractionsArr = fetched.data?.filter((i) => (type ? i.type === type : true));
     if (!infractionsArr) return [];
 
     return this.updateInfractionDates(infractionsArr);
   }
 
   public async fetchInfraction(type: InfractionType, hubId: string, status?: InfractionStatus) {
-    const infractions = await this.getHubInfractions(type, hubId);
+    const infractions = await this.getHubInfractions(hubId, type);
     const infraction = infractions.find(
       (i) => (status ? i.status === status : true) && i.type === type,
     );
@@ -88,7 +88,7 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
   protected async cacheEntity(entity: T) {
     const entitySnowflake = 'userId' in entity ? entity.userId : entity.serverId;
     const key = `${this.modelName}:${entitySnowflake}:${entity.hubId}`;
-    const existing = (await this.getHubInfractions(entity.type, entity.hubId)).filter(
+    const existing = (await this.getHubInfractions(entity.hubId, entity.type)).filter(
       (i) => i.id !== entity.id,
     );
 
@@ -96,7 +96,7 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
   }
 
   protected async removeCachedEntity(entity: T) {
-    const existingInfractions = await this.getHubInfractions(entity.type, entity.hubId);
+    const existingInfractions = await this.getHubInfractions(entity.hubId, entity.type);
     const entitySnowflake = 'userId' in entity ? entity.userId : entity.serverId;
     return cacheData(
       `${this.modelName}:${entitySnowflake}:${entity.hubId}`,
@@ -122,8 +122,6 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
   }
 
   public isExpiredInfraction(infraction: T | null) {
-    if (!infraction) return true;
-    else if (!infraction.expiresAt || infraction.expiresAt > new Date()) return false;
-    return true;
+    return !infraction || (!!infraction.expiresAt && infraction.expiresAt <= new Date());
   }
 }

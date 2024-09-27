@@ -1,5 +1,6 @@
-import { Prisma } from '@prisma/client';
-import { Client, EmbedBuilder } from 'discord.js';
+import type { Prisma } from '@prisma/client';
+import type { ClusterClient } from 'discord-hybrid-sharding';
+import type { Channel, Client, EmbedBuilder } from 'discord.js';
 import db from '../Db.js';
 import { setReportLogChannel } from './Report.js';
 
@@ -32,15 +33,18 @@ export const setLogChannelFor = async (
  * @param embed The embed object containing the log message.
  */
 export const sendLog = async (
-  client: Client,
+  cluster: ClusterClient<Client>,
   channelId: string,
   embed: EmbedBuilder,
   content?: string,
 ) => {
-  await client.cluster.broadcastEval(
+  await cluster.broadcastEval(
     async (shardClient, ctx) => {
-      const channel = await shardClient.channels.fetch(ctx.channelId).catch(() => null);
-      if (shardClient.isGuildTextBasedChannel(channel)) {
+      const channel = (await shardClient.channels
+        .fetch(ctx.channelId)
+        .catch(() => null)) as Channel | null;
+
+      if (channel?.isSendable()) {
         await channel.send({ content: ctx.content, embeds: [ctx.embed] }).catch(() => null);
       }
     },

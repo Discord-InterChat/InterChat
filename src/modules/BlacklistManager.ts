@@ -70,7 +70,6 @@ export default class BlacklistManager<T extends UserInfraction | ServerInfractio
 
   public async fetchBlacklist(hubId: string) {
     const blacklist = await this.infracManager.fetchInfraction('BLACKLIST', hubId, 'ACTIVE');
-    console.log(blacklist);
     return blacklist;
   }
 }

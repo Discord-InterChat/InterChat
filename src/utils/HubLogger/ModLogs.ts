@@ -81,7 +81,7 @@ export const logBlacklist = async (
     .setColor(Constants.Colors.interchatBlue)
     .setFooter({ text: `Blacklisted by: ${mod.username}`, iconURL: mod.displayAvatarURL() });
 
-  await sendLog(opts.mod.client, hub.logChannels.modLogs, embed);
+  await sendLog(opts.mod.client.cluster, hub.logChannels.modLogs, embed);
 };
 
 const getUnblacklistEmbed = (
@@ -144,7 +144,7 @@ export const logServerUnblacklist = async (
     originalReason: blacklist.reason,
   });
 
-  await sendLog(client, hub.logChannels.modLogs, embed);
+  await sendLog(client.cluster, hub.logChannels.modLogs, embed);
 };
 
 export const logUserUnblacklist = async (client: Client, hubId: string, opts: UnblacklistOpts) => {
@@ -165,7 +165,7 @@ export const logUserUnblacklist = async (client: Client, hubId: string, opts: Un
     originalReason: blacklist.reason,
   });
 
-  await sendLog(client, hub.logChannels.modLogs, embed);
+  await sendLog(client.cluster, hub.logChannels.modLogs, embed);
 };
 
 export const logMsgDelete = async (
@@ -197,5 +197,5 @@ export const logMsgDelete = async (
     ])
     .setFooter({ text: `Deleted by: ${opts.modName}` });
 
-  await sendLog(client, hub.logChannels.modLogs, embed);
+  await sendLog(client.cluster, hub.logChannels.modLogs, embed);
 };

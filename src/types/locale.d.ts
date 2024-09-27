@@ -181,7 +181,7 @@ export type TranslationKeys = {
   'report.bug.affected': never;
   'report.bug.description': never;
   'language.set': 'lang';
-  'errors.messageNotSentOrExpired': 'emoji';
+  'errors.messageNotSentOrExpired': never;
   'errors.notYourAction': 'emoji';
   'errors.notMessageAuthor': 'emoji';
   'errors.commandError': 'emoji' | 'support_invite' | 'errorId';

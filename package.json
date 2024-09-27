@@ -67,7 +67,8 @@
     "*.ts": "eslint --cache --fix"
   },
   "imports": {
-    "#main/*.js": "./build/*.js"
+    "#main/*.js": "./build/*.js",
+    "#utils/*": "./build/utils/*.js"
   },
   "packageManager": "pnpm@9.6.0"
 }

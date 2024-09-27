@@ -316,9 +316,11 @@ export default class MessageInfo extends BaseCommand {
     { originalMsg }: ModActionsOpts,
   ) {
     if (!isValidDbMsgWithHubId(originalMsg)) return;
+    if (!originalMsg.hub || isStaffOrHubMod(interaction.user.id, originalMsg.hub)) return;
+
 
     const { buttons, embed } = await modActionsPanel.buildMessage(interaction, originalMsg);
-    await interaction.reply({ embeds: [embed], components: [buttons], ephemeral: true });
+    await interaction.reply({ embeds: [embed], components: buttons, ephemeral: true });
   }
 
   private async handleReportButton(

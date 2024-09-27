@@ -1,7 +1,6 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { t } from '#main/utils/Locale.js';
 import { checkIfStaff, handleError } from '#main/utils/Utils.js';
@@ -14,7 +13,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
   async execute(interaction: Interaction<CacheType>) {
     try {
       const { commands, interactions } = interaction.client;
-      const dbUser = await db.userData.findFirst({ where: { id: interaction.user.id } });
+      const dbUser = await interaction.client.userManager.getUser(interaction.user.id);
       const isBanned = await this.handleUserBan(interaction, dbUser);
       if (isBanned) return;
 

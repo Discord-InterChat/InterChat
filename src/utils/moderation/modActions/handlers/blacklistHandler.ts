@@ -11,7 +11,7 @@ import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import {
   isValidDbMsgWithHubId,
-  ModAction,
+  type ModAction,
   type ModActionsDbMsgT,
 } from '#main/utils/moderation/modActions/utils.js';
 import {
@@ -175,7 +175,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     );
 
     const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
-    await interaction.editReply({ embeds: [embed], components: [buttons] });
+    await interaction.editReply({ embeds: [embed], components: buttons });
 
     const successEmbed = this.buildSuccessEmbed(user.username, reason, expiresAt, locale);
     await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
@@ -250,7 +250,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     const successEmbed = this.buildSuccessEmbed(server.name, reason, expiresAt, locale);
 
     const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
-    await interaction.editReply({ embeds: [embed], components: [buttons] });
+    await interaction.editReply({ embeds: [embed], components: buttons });
     await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
   }
 }

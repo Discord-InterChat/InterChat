@@ -12,14 +12,14 @@ const SUPPORT_SERVER_ID = '770256165300338709';
 if (!TOKEN || !CLIENT_ID || !SUPPORT_SERVER_ID)
   throw new Error('Missing TOKEN, CLIENT_ID or SUPPORT_SERVER_ID.');
 
-const { loadCommandFiles } = await import('../build/utils/LoadCommands.js').catch(() => {
+const commandUtils = await import('../build/utils/CommandUtls.js').catch(() => {
   console.error(`${redText('✘')} Code is not build yet. Use \`pnpm build\` first.`);
   process.exit();
 });
 
 const registerAllCommands = async (staffOnly = false) => {
   // make sure CommandsMap is not empty
-  const commandsMap = await loadCommandFiles();
+  const commandsMap = await commandUtils.loadCommandFiles();
 
   const rest = new REST().setToken(TOKEN);
 

@@ -27,27 +27,27 @@ const buildButtons = (interaction: Interaction, messageId: Snowflake, opts: Buil
   const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(
-        new CustomID('modMessage:blacklistUser', [interaction.user.id, messageId]).toString(),
+        new CustomID('modActions:blacklistUser', [interaction.user.id, messageId]).toString(),
       )
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.user_icon)
       .setDisabled(opts.isUserBlacklisted),
     new ButtonBuilder()
       .setCustomId(
-        new CustomID('modMessage:blacklistServer', [interaction.user.id, messageId]).toString(),
+        new CustomID('modActions:blacklistServer', [interaction.user.id, messageId]).toString(),
       )
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.globe_icon)
       .setDisabled(opts.isServerBlacklisted),
     new ButtonBuilder()
       .setCustomId(
-        new CustomID('modMessage:removeAllReactions', [interaction.user.id, messageId]).toString(),
+        new CustomID('modActions:removeAllReactions', [interaction.user.id, messageId]).toString(),
       )
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.add_icon),
     new ButtonBuilder()
       .setCustomId(
-        new CustomID('modMessage:deleteMsg', [interaction.user.id, messageId]).toString(),
+        new CustomID('modActions:deleteMsg', [interaction.user.id, messageId]).toString(),
       )
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.deleteDanger_icon)
@@ -58,7 +58,7 @@ const buildButtons = (interaction: Interaction, messageId: Snowflake, opts: Buil
     buttons.addComponents(
       new ButtonBuilder()
         .setCustomId(
-          new CustomID('modMessage:banUser', [interaction.user.id, messageId]).toString(),
+          new CustomID('modActions:banUser', [interaction.user.id, messageId]).toString(),
         )
         .setStyle(ButtonStyle.Secondary)
         .setEmoji(emojis.blobFastBan)
@@ -66,7 +66,17 @@ const buildButtons = (interaction: Interaction, messageId: Snowflake, opts: Buil
     );
   }
 
-  return buttons;
+  const extras = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(
+        new CustomID('modActions:viewInfractions', [interaction.user.id, messageId]).toString(),
+      )
+      .setLabel('View Infractions')
+      .setStyle(ButtonStyle.Secondary)
+      .setEmoji(emojis.exclamation),
+  );
+
+  return [buttons, extras];
 };
 
 const buildInfoEmbed = (username: string, servername: string, opts: BuilderOpts) => {

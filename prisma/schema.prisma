@@ -154,8 +154,8 @@ model originalMessages {
   mode             Int                   @default(0)
   broadcastMsgs    broadcastedMessages[] // Ids of messages that were broadcasted to other hubs
   messageReference String?               @db.String // id of the original message this message is replying to
-  hub              hubs?                 @relation(fields: [hubId], references: [id])
-  hubId            String?               @db.ObjectId
+  hub              hubs                 @relation(fields: [hubId], references: [id])
+  hubId            String               @db.ObjectId
 }
 
 model broadcastedMessages {

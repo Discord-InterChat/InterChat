@@ -11,20 +11,24 @@ import {
 import DeleteMessageHandler from '#main/utils/moderation/modActions/handlers/deleteMsgHandler.js';
 import RemoveReactionsHandler from '#main/utils/moderation/modActions/handlers/RemoveReactionsHandler.js';
 import UserBanHandler from '#main/utils/moderation/modActions/handlers/userBanHandler.js';
+import ViewInfractionsHandler from '#main/utils/moderation/modActions/handlers/viewInfractions.js';
 import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import {
   fetchMessageFromDb,
   ModAction,
   ModActionsDbMsgT,
 } from '#main/utils/moderation/modActions/utils.js';
+import { hubs } from '@prisma/client';
 import {
   ApplicationCommandType,
-  ButtonInteraction,
-  RepliableInteraction,
+  type ButtonInteraction,
   type MessageContextMenuCommandInteraction,
   type ModalSubmitInteraction,
+  type RepliableInteraction,
   type RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
+
+type ValidDbMsg = ModActionsDbMsgT & { hubId: string; hub: hubs };
 
 export default class Blacklist extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -43,6 +47,7 @@ export default class Blacklist extends BaseCommand {
       blacklistUser: new BlacklistUserHandler(),
       blacklistServer: new BlacklistServerHandler(),
       removeAllReactions: new RemoveReactionsHandler(),
+      viewInfractions: new ViewInfractionsHandler(),
     };
   }
 
@@ -62,13 +67,13 @@ export default class Blacklist extends BaseCommand {
 
     const { embed, buttons } = await modActionsPanel.buildMessage(
       interaction,
-      originalMsg as ModActionsDbMsgT & { hubId: string },
+      originalMsg as ValidDbMsg,
     );
 
-    await interaction.editReply({ embeds: [embed], components: [buttons] });
+    await interaction.editReply({ embeds: [embed], components: buttons });
   }
 
-  @RegisterInteractionHandler('modMessage')
+  @RegisterInteractionHandler('modActions')
   async handleButtons(interaction: ButtonInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [userId, originalMsgId] = customId.args;
@@ -106,11 +111,10 @@ export default class Blacklist extends BaseCommand {
     locale: supportedLocaleCodes,
   ) {
     if (!originalMsg?.hub || !isStaffOrHubMod(interaction.user.id, originalMsg.hub)) {
-      await this.replyEmbed(
-        interaction,
-        t({ phrase: 'errors.messageNotSentOrExpired', locale }),
-        { ephemeral: true, edit: true },
-      );
+      await this.replyEmbed(interaction, t({ phrase: 'errors.messageNotSentOrExpired', locale }), {
+        ephemeral: true,
+        edit: true,
+      });
       return false;
     }
 
@@ -130,6 +134,7 @@ export default class Blacklist extends BaseCommand {
       );
       return false;
     }
+
     return true;
   }
 }

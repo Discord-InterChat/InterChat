@@ -1,13 +1,13 @@
+import { emojis } from '#main/config/Constants.js';
 import { getReplyMethod } from '#main/utils/Utils.js';
 import {
+  type BaseMessageOptions,
+  type RepliableInteraction,
   ActionRowBuilder,
-  BaseMessageOptions,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
-  RepliableInteraction,
 } from 'discord.js';
-import { emojis } from '#main/config/Constants.js';
 
 type ButtonEmojis = {
   back: string;
@@ -16,8 +16,9 @@ type ButtonEmojis = {
 };
 
 type RunOptions = {
-  idle: number;
-  ephemeral: boolean;
+  idle?: number;
+  ephemeral?: boolean;
+  deleteOnEnd?: boolean;
 };
 
 export class Pagination {
@@ -63,12 +64,12 @@ export class Pagination {
 
     let index = 0;
     const row = this.createButtons(index, this.pages.length);
-
     const resp = this.formatMessage(row, this.pages[index]);
     const listMessage = await ctx[replyMethod]({
       ...resp,
       content: resp.content ?? undefined,
       ephemeral: options?.ephemeral,
+      fetchReply: true,
       flags: [],
     });
 
@@ -94,7 +95,32 @@ export class Pagination {
       await i.update(newBody);
     });
 
-    col.on('end', () => listMessage.edit({ components: [] }).catch(() => null));
+
+    // bad code dont look
+    col.on('end', async (interactions) => {
+      const interaction = interactions.first();
+
+      if (!interaction) {
+        if (options?.ephemeral) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+          options?.deleteOnEnd
+            ? await listMessage.delete()
+            : await listMessage.edit({ components: [] });
+        }
+        return;
+      }
+
+      if (options?.deleteOnEnd) {
+        // acknowledge the interaction if it hasn't been acknowledged yet
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.update({ components: [] });
+        }
+        await interaction.deleteReply();
+      }
+      else {
+        await interaction.update({ components: [] });
+      }
+    });
   }
 
   private adjustIndex(customId: string, index: number) {
