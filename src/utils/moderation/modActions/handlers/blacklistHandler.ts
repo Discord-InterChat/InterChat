@@ -1,18 +1,26 @@
 import { emojis } from '#main/config/Constants.js';
+import BlacklistManager from '#main/modules/BlacklistManager.js';
+import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
 import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
+import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
-import { ModAction, ModActionsDbMsgT } from '#main/utils/moderation/modActions/utils.js';
+import {
+  isValidDbMsgWithHubId,
+  type ModAction,
+  type ModActionsDbMsgT,
+} from '#main/utils/moderation/modActions/utils.js';
 import {
   ActionRowBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   EmbedBuilder,
   ModalBuilder,
-  ModalSubmitInteraction,
-  Snowflake,
+  type ModalSubmitInteraction,
+  type Snowflake,
   TextInputBuilder,
   TextInputStyle,
   time,
@@ -67,9 +75,9 @@ abstract class BaseBlacklistHandler implements ModAction {
   protected getModalData(interaction: ModalSubmitInteraction) {
     const reason = interaction.fields.getTextInputValue('reason');
     const duration = parse(interaction.fields.getTextInputValue('duration'));
-    const expires = duration ? new Date(Date.now() + duration) : null;
+    const expiresAt = duration ? new Date(Date.now() + duration) : null;
 
-    return { reason, expires };
+    return { reason, expiresAt };
   }
 
   protected buildSuccessEmbed(
@@ -120,7 +128,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
       return;
     }
 
-    if (!originalMsg.hubId) {
+    if (!isValidDbMsgWithHubId(originalMsg)) {
       await interaction.reply({
         content: t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
         ephemeral: true,
@@ -129,31 +137,36 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     }
 
     if (originalMsg.authorId === interaction.user.id) {
-      await interaction.editReply(
-        '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t moderate your own messages.',
-      );
+      await interaction.followUp({
+        content: '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
+        ephemeral: true,
+      });
       return;
     }
 
-    const { userManager } = interaction.client;
-    const { reason, expires } = this.getModalData(interaction);
+    const { reason, expiresAt } = this.getModalData(interaction);
+    const blacklistManager = new BlacklistManager(new UserInfractionManager(user.id));
 
-    await userManager.addBlacklist({ id: user.id, name: user.username }, originalMsg.hubId, {
-      reason,
+    await blacklistManager.addBlacklist({
+      hubId: originalMsg.hubId,
       moderatorId: interaction.user.id,
-      expires,
+      reason,
+      expiresAt,
     });
 
     if (user) {
-      userManager
-        .sendNotification({ target: user, hubId: originalMsg.hubId, expires, reason })
-        .catch(() => null);
+      sendBlacklistNotif('user', interaction.client, {
+        expiresAt,
+        target: user,
+        hubId: originalMsg.hubId,
+        reason,
+      }).catch(() => null);
 
       await logBlacklist(originalMsg.hubId, interaction.client, {
         target: user,
         mod: interaction.user,
         reason,
-        expires,
+        expiresAt,
       });
     }
 
@@ -162,9 +175,9 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     );
 
     const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
-    await interaction.editReply({ embeds: [embed], components: [buttons] });
+    await interaction.editReply({ embeds: [embed], components: buttons });
 
-    const successEmbed = this.buildSuccessEmbed(user.username, reason, expires, locale);
+    const successEmbed = this.buildSuccessEmbed(user.username, reason, expiresAt, locale);
     await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
   }
 }
@@ -185,7 +198,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     originalMsg: ModActionsDbMsgT,
     locale: supportedLocaleCodes,
   ) {
-    if (!originalMsg.hubId) {
+    if (!isValidDbMsgWithHubId(originalMsg)) {
       await interaction.reply({
         content: t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
         ephemeral: true,
@@ -202,24 +215,24 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
       return;
     }
 
-    const { serverBlacklists } = interaction.client;
-    const { reason, expires } = this.getModalData(interaction);
-
-    await serverBlacklists.addBlacklist(
-      { name: server?.name ?? 'Unknown Server', id: originalMsg.serverId },
-      originalMsg.hubId,
-      {
-        reason,
-        moderatorId: interaction.user.id,
-        expires,
-      },
+    const { reason, expiresAt } = this.getModalData(interaction);
+    const blacklistManager = new BlacklistManager(
+      new ServerInfractionManager(originalMsg.serverId),
     );
 
+    await blacklistManager.addBlacklist({
+      reason,
+      expiresAt,
+      hubId: originalMsg.hubId,
+      serverName: server?.name ?? 'Unknown Server',
+      moderatorId: interaction.user.id,
+    });
+
     // Notify server of blacklist
-    await serverBlacklists.sendNotification({
+    await sendBlacklistNotif('user', interaction.client, {
       target: { id: originalMsg.serverId },
       hubId: originalMsg.hubId,
-      expires,
+      expiresAt,
       reason,
     });
 
@@ -230,14 +243,14 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
         target: server.id,
         mod: interaction.user,
         reason,
-        expires,
+        expiresAt,
       }).catch(() => null);
     }
 
-    const successEmbed = this.buildSuccessEmbed(server.name, reason, expires, locale);
+    const successEmbed = this.buildSuccessEmbed(server.name, reason, expiresAt, locale);
 
     const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
-    await interaction.editReply({ embeds: [embed], components: [buttons] });
+    await interaction.editReply({ embeds: [embed], components: buttons });
     await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
   }
 }

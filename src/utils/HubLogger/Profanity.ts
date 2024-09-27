@@ -27,5 +27,5 @@ export default async (hubId: string, rawContent: string, author: User, server: G
 				`,
     });
 
-  await sendLog(author.client, hub?.logChannels?.profanity, embed);
+  await sendLog(author.client.cluster, hub?.logChannels?.profanity, embed);
 };

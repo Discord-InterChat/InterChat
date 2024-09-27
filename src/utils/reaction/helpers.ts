@@ -1,4 +1,7 @@
-import { Client } from 'discord.js';
+import BlacklistManager from '#main/modules/BlacklistManager.js';
+import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import { isBlacklisted } from '#main/utils/moderation/blacklistUtils.js';
 
 /**
  * Checks if a user or server is blacklisted in a given hub.
@@ -8,17 +11,18 @@ import { Client } from 'discord.js';
  * @returns An object containing whether the user and/or server is blacklisted in the hub.
  */
 export const checkBlacklists = async (
-  client: Client,
   hubId: string,
   guildId: string,
   userId: string,
 ) => {
-  const userBlacklisted = await client.userManager.fetchBlacklist(hubId, userId);
-  const guildBlacklisted = await client.serverBlacklists.fetchBlacklist(hubId, guildId);
+  const userBlacklistManager = new BlacklistManager(new UserInfractionManager(userId));
+  const guildBlacklistManager = new BlacklistManager(new ServerInfractionManager(guildId));
 
-  if (userBlacklisted || guildBlacklisted) {
-    return { userBlacklisted, serverBlacklisted: guildBlacklisted };
-  }
+  const userBlacklist = await userBlacklistManager.fetchBlacklist(hubId);
+  const serverBlacklist = await guildBlacklistManager.fetchBlacklist(hubId);
 
-  return { userBlacklisted: false, serverBlacklisted: false };
+  return {
+    userBlacklisted: isBlacklisted(userBlacklist),
+    serverBlacklisted: isBlacklisted(serverBlacklist),
+  };
 };

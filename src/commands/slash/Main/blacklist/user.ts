@@ -1,10 +1,13 @@
 import { emojis } from '#main/config/Constants.js';
-import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
+import BlacklistManager from '#main/modules/BlacklistManager.js';
+import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import { logBlacklist, logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
-import Logger from '#main/utils/Logger.js';
+import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import type { ChatInputCommandInteraction, User } from 'discord.js';
 import parse from 'parse-duration';
 import BlacklistCommand from './index.js';
+import { UserInfraction } from '@prisma/client';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -25,13 +28,26 @@ export default class extends BlacklistCommand {
 
     if (subcommandGroup === 'add') {
       const user = interaction.options.getUser('user', true);
-      const passedChecks = await this.runUserAddChecks(interaction, hub.id, user.id, {
-        duration,
-      });
+      const blacklistManager = new BlacklistManager(new UserInfractionManager(user.id));
+
+      const passedChecks = await this.runUserAddChecks(
+        interaction,
+        blacklistManager,
+        {
+          hubId: hub.id,
+          userId: user.id,
+          duration,
+        },
+      );
 
       if (!passedChecks) return;
 
-      await this.addUserBlacklist(interaction, user, { expires, hubId: hub.id, reason });
+      await this.addUserBlacklist(interaction, blacklistManager, user, {
+        expiresAt: expires,
+        hubId: hub.id,
+        reason,
+      });
+
       await this.sendSuccessResponse(
         interaction,
         t({ phrase: 'blacklist.success', locale }, { name: user.username, emoji: emojis.tick }),
@@ -43,12 +59,17 @@ export default class extends BlacklistCommand {
         target: user,
         mod: interaction.user,
         reason,
-        expires,
+        expiresAt: expires,
       });
     }
     else if (subcommandGroup === 'remove') {
       const userId = interaction.options.getString('user', true);
-      const result = await userManager.removeBlacklist(hub.id, userId);
+      const blacklistManager = new BlacklistManager(new UserInfractionManager(userId));
+
+      const result = await this.removeUserBlacklist(interaction, blacklistManager, userId, {
+        hubId: hub.id,
+        reason,
+      });
 
       if (!result) {
         await this.replyEmbed(
@@ -59,44 +80,69 @@ export default class extends BlacklistCommand {
         return;
       }
 
+      const user = await interaction.client.users.fetch(userId).catch(() => null);
       await interaction.followUp(
         t(
           { phrase: 'blacklist.removed', locale },
-          { emoji: emojis.delete, name: `${result.username}` },
+          { emoji: emojis.delete, name: `${user?.username}` },
         ),
       );
-
-      await userManager.logUnblacklist(hub.id, userId, { mod: interaction.user, reason });
     }
   }
 
   private async addUserBlacklist(
     interaction: ChatInputCommandInteraction,
+    blacklistManager: BlacklistManager<UserInfraction>,
     user: User,
-    { expires, hubId, reason }: { expires: Date | null; reason: string; hubId: string },
+    { expiresAt, hubId, reason }: { expiresAt: Date | null; reason: string; hubId: string },
   ) {
-    const { userManager } = interaction.client;
-    await userManager.addBlacklist({ id: user.id, name: user.username }, hubId, {
+    await blacklistManager.addBlacklist({
+      hubId,
       reason,
+      expiresAt,
       moderatorId: interaction.user.id,
-      expires,
     });
 
-    await userManager
-      .sendNotification({ target: user, hubId, expires, reason })
-      .catch(Logger.error);
+    await sendBlacklistNotif('user', interaction.client, {
+      target: user,
+      expiresAt,
+      hubId,
+      reason,
+    });
+  }
+
+  private async removeUserBlacklist(
+    interaction: ChatInputCommandInteraction,
+    blacklistManager: BlacklistManager<UserInfraction>,
+    userId: string,
+    opts: { hubId: string; reason: string },
+  ) {
+    const revoked = await blacklistManager.removeBlacklist(opts.hubId);
+
+    if (revoked) {
+      await logUserUnblacklist(interaction.client, opts.hubId, {
+        id: userId,
+        mod: interaction.user,
+        reason: opts.reason,
+      });
+    }
+
+    return revoked;
   }
 
   private async runUserAddChecks(
     interaction: ChatInputCommandInteraction,
-    hubId: string,
-    userId: string,
-    opts?: { duration?: number },
+    blacklistManager: BlacklistManager<UserInfraction>,
+    opts: {
+      userId: string,
+      hubId: string,
+      duration?: number
+    },
   ) {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     const hiddenOpt = { ephemeral: true };
-    if (userId === interaction.client.user?.id) {
+    if (opts.userId === interaction.client.user?.id) {
       await this.replyEmbed(
         interaction,
         t({ phrase: 'blacklist.user.easterEggs.blacklistBot', locale }),
@@ -104,7 +150,7 @@ export default class extends BlacklistCommand {
       );
       return false;
     }
-    else if (userId === interaction.user.id) {
+    else if (opts.userId === interaction.user.id) {
       await this.replyEmbed(
         interaction,
         '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
@@ -122,7 +168,7 @@ export default class extends BlacklistCommand {
       return false;
     }
 
-    const userInBlacklist = await interaction.client.userManager.fetchBlacklist(hubId, userId);
+    const userInBlacklist = await blacklistManager.fetchBlacklist(opts.hubId);
     if (userInBlacklist) {
       await this.replyEmbed(
         interaction,

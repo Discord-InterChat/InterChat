@@ -28,6 +28,10 @@ export interface ModAction {
   ): Promise<void>;
 }
 
+export const isValidDbMsgWithHubId = (
+  obj: ModActionsDbMsgT,
+): obj is ModActionsDbMsgT & { hubId: string } => obj.hubId !== null;
+
 export const fetchMessageFromDb = async (
   messageId: string,
   include: Prisma.originalMessagesInclude = { hub: false, broadcastMsgs: false },

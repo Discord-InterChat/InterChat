@@ -1,6 +1,6 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Find from './index.js';
@@ -18,13 +18,16 @@ export default class Server extends Find {
       return;
     }
 
-    const { userManager } = interaction.client;
-    const userData = await userManager.getUser(user.id);
-    const blacklistedFrom = userData?.blacklistedFrom.map(
-      async (bl) => (await db.hubs.findFirst({ where: { id: bl.hubId } }))?.name,
-    );
+    const userData = await interaction.client.userManager.getUser(user.id);
+    const blacklistList = await db.userInfraction.findMany({
+      where: { userId: user.id, status: 'ACTIVE', type: 'BLACKLIST' },
+      select: { hub: { select: { name: true } } },
+    });
+
     const blacklistedFromStr =
-      blacklistedFrom && blacklistedFrom.length > 0 ? blacklistedFrom.join(', ') : 'None';
+      blacklistList && blacklistList.length > 0
+        ? blacklistList.map((bl) => bl.hub.name).join(', ')
+        : 'None';
 
     const serversOwned = user.client.guilds.cache
       .filter((guild) => guild.ownerId === user.id)

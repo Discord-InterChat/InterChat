@@ -118,7 +118,7 @@ export const sendHubReport = async (
     });
 
   const mentionRole = reportsRoleId ? roleMention(reportsRoleId) : undefined;
-  await sendLog(client, reportsChannelId, embed, mentionRole);
+  await sendLog(client.cluster, reportsChannelId, embed, mentionRole);
 };
 
 const updateLogChannels = async (

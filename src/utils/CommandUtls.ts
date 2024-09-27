@@ -67,7 +67,7 @@ export const loadCommandFiles = async (opts?: {
   Logger.debug(`Called loadCommandFiles with directory: ${commandDir}`);
 
   const filesInDir = await readdir(commandDir);
-  filesInDir.forEach(async (fileName, index) => {
+  const done = filesInDir.map(async (fileName, index) => {
     const filePath = join(commandDir, fileName);
     const stats = await stat(filePath);
 
@@ -91,6 +91,8 @@ export const loadCommandFiles = async (opts?: {
       if (index === filesInDir.length) Logger.debug(`Finished loading commands from: ${commandDir}`);
     }
   });
+
+  await Promise.allSettled(done);
 
   return commandsMap;
 };

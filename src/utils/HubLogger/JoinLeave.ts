@@ -30,7 +30,7 @@ export const logJoinToHub = async (
       text: `We have ${opt?.totalConnections} server(s) connected to ${opt?.hubName} now!`,
     });
 
-  await sendLog(server.client, hub?.logChannels?.joinLeaves, embed);
+  await sendLog(server.client.cluster, hub?.logChannels?.joinLeaves, embed);
 };
 
 export const logGuildLeaveToHub = async (hubId: string, server: Guild) => {
@@ -58,5 +58,5 @@ export const logGuildLeaveToHub = async (hubId: string, server: Guild) => {
       text: `We now have ${totalConnections} server(s) connected to ${hub.name} now!`,
     });
 
-  await sendLog(server.client, hub.logChannels.joinLeaves, embed);
+  await sendLog(server.client.cluster, hub.logChannels.joinLeaves, embed);
 };

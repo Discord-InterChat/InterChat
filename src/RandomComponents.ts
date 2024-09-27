@@ -57,7 +57,6 @@ export class RandomComponents {
     }
 
     const { userBlacklisted, serverBlacklisted } = await checkBlacklists(
-      interaction.client,
       messageInDb.originalMsg.hub.id,
       interaction.guildId,
       interaction.user.id,
@@ -199,6 +198,8 @@ export class RandomComponents {
 
   @RegisterInteractionHandler('inactiveConnect', 'toggle')
   async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
+    await interaction.deferUpdate();
+
     const customId = CustomID.parseCustomId(interaction.customId);
     const [channelId] = customId.args;
 
@@ -221,6 +222,6 @@ export class RandomComponents {
         `### ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`,
       );
 
-    await interaction.update({ embeds: [embed], components: [] });
+    await interaction.editReply({ embeds: [embed], components: [] });
   }
 }

@@ -78,6 +78,8 @@ export const getAllDocuments = async (match: string) => {
   return result;
 };
 
+const containsElements = (data: unknown) => Array.isArray(data) ? !data.length : true;
+
 export const getCachedData = async <T>(
   key: `${RedisKeys}:${string}`,
   fetchFunction?: (() => Awaitable<T | null>) | null,
@@ -85,14 +87,16 @@ export const getCachedData = async <T>(
 ): Promise<{ data: ConvertDatesToString<T> | null; fromCache: boolean }> => {
   // Check cache first
   let data = serializeCache<T>(await cacheClient.get(key));
-  const fromCache = data !== null;
+  const fromCache = data !== null && containsElements(data);
 
   // If not in cache, fetch from database
   if (!fromCache && fetchFunction) {
     data = (await fetchFunction()) as ConvertDatesToString<T>;
 
     // Store in cache with TTL
-    if (data) await cacheData(key, JSON.stringify(data), expiry);
+    if (data || containsElements(data)) {
+      cacheData(key, JSON.stringify(data), expiry);
+    }
   }
 
   return { data, fromCache };

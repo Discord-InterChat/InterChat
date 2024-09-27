@@ -45,11 +45,11 @@ export const actionsSelect = (hubId: string, userId: string, locale: supportedLo
   );
 
 export const hubEmbed = async (hub: hubs & { connections: connectedList[] }) => {
-  const hubBlacklistedUsers = await db.userData.count({
-    where: { blacklistedFrom: { some: { hubId: hub.id } } },
+  const hubBlacklistedUsers = await db.userInfraction.count({
+    where: { hubId: hub.id, status: 'ACTIVE' },
   });
-  const hubBlacklistedServers = await db.blacklistedServers.count({
-    where: { blacklistedFrom: { some: { hubId: hub.id } } },
+  const hubBlacklistedServers = await db.serverInfraction.count({
+    where: { hubId: hub.id, status: 'ACTIVE' },
   });
 
   return new EmbedBuilder()

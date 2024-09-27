@@ -1,61 +1,69 @@
 import db from '#main/utils/Db.js';
-import { type blacklistedServers, type hubBlacklist, type userData } from '@prisma/client';
-import { ClusterManager } from 'discord-hybrid-sharding';
-import { Client } from 'discord.js';
+import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import { type ServerInfraction, type UserInfraction } from '@prisma/client';
+import type { Client } from 'discord.js';
+import BlacklistManager from '#main/modules/BlacklistManager.js';
+import { logServerUnblacklist, logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 
-type OmittedBlacklistedFrom = Omit<hubBlacklist, 'expires'> & {
-  expires: string | null;
+type ExtractedEntityInfo = {
+  id: string;
+  hubId: string;
+  moderatorId: string | null;
 };
 
-type StringifiedUserData = Omit<userData, 'lastVoted' | 'blacklistedFrom'> & {
-  lastVoted: string | null;
-  blacklistedFrom: OmittedBlacklistedFrom[];
+const unblacklistEntity = async (
+  client: Client,
+  infrac: ExtractedEntityInfo,
+  type: 'user' | 'server',
+) => {
+  if (client.user) {
+    if (type === 'user') {
+      await logUserUnblacklist(client, infrac.hubId, {
+        id: infrac.id,
+        mod: client.user,
+        reason: 'Blacklist duration expired.',
+      });
+    }
+    else if (type === 'server') {
+      await logServerUnblacklist(client, infrac.hubId, {
+        id: infrac.id,
+        mod: client.user,
+        reason: 'Blacklist duration expired.',
+      });
+    }
+  }
+
+  const blacklistManager =
+    type === 'user'
+      ? new BlacklistManager(new UserInfractionManager(infrac.id))
+      : new BlacklistManager(new ServerInfractionManager(infrac.id));
+
+  await blacklistManager.removeBlacklist(infrac.hubId);
 };
 
-type StringifiedServerData = Omit<blacklistedServers, 'blacklistedFrom'> & {
-  blacklistedFrom: OmittedBlacklistedFrom[];
-};
+const extractEntityInfo = (
+  entities: (UserInfraction | ServerInfraction)[] | null,
+): ExtractedEntityInfo[] | undefined =>
+  entities?.map((infrac) => ({
+    id: 'userId' in infrac ? infrac.userId : infrac.serverId,
+    hubId: infrac.hubId,
+    moderatorId: infrac.moderatorId,
+  }));
 
-export default async (manager: ClusterManager) => {
+export default async (client: Client) => {
   const query = {
-    where: { blacklistedFrom: { some: { expires: { not: null, lte: new Date() } } } },
-  };
+    where: { status: 'ACTIVE', expiresAt: { not: null, lte: new Date() } },
+  } as const;
 
-  const allUsers = await db.userData.findMany(query);
-  const allServers = await db.blacklistedServers.findMany(query);
+  // find blacklists that expired in the past 1.5 minutes
+  const allUsers = await db.userInfraction.findMany(query);
+  const allServers = await db.serverInfraction.findMany(query);
 
-  await manager.broadcastEval(
-    (_client, { userBls, serverBls }) => {
-      const client = _client as unknown as Client;
-
-      const checkAndUnblacklist = (
-        entities: (StringifiedUserData | StringifiedServerData)[] | null,
-        type: 'user' | 'server',
-      ) => {
-        entities?.forEach((entity) => {
-          entity?.blacklistedFrom.forEach(async (bl) => {
-            const blacklistManager = type === 'user' ? client.userManager : client.serverBlacklists;
-            if (client.user) {
-              await blacklistManager.logUnblacklist(bl.hubId, entity.id, {
-                mod: client.user,
-                reason: `Blacklist expired for ${type}.`,
-              });
-            }
-            const upd = await blacklistManager.removeBlacklist(bl.hubId, entity.id);
-
-            // Logger cant be used inside eval
-            // eslint-disable-next-line no-console
-            console.log(
-              `Updated blacklist for entity ${entity.id}. Total entities: ${entities?.length}. Updated: `,
-              upd,
-            );
-          });
-        });
-      };
-
-      checkAndUnblacklist(serverBls, 'server');
-      checkAndUnblacklist(userBls, 'user');
-    },
-    { shard: 0, context: { userBls: allUsers, serverBls: allServers } },
+  extractEntityInfo(allUsers)?.forEach(
+    async (infrac) => await unblacklistEntity(client, infrac, 'user'),
+  );
+  extractEntityInfo(allServers)?.forEach(
+    async (infrac) => await unblacklistEntity(client, infrac, 'server'),
   );
 };

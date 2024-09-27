@@ -6,6 +6,7 @@ import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.j
 import {
   type ModAction,
   fetchMessageFromDb,
+  isValidDbMsgWithHubId,
   replyWithUnknownMessage,
 } from '#main/utils/moderation/modActions/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
@@ -20,7 +21,7 @@ export default class DeleteMessageHandler implements ModAction {
       broadcastMsgs: true,
     });
 
-    if (!originalMsg?.hubId || !originalMsg.broadcastMsgs) {
+    if (!originalMsg?.broadcastMsgs || !isValidDbMsgWithHubId(originalMsg)) {
       await replyWithUnknownMessage(interaction, locale);
       return;
     }
@@ -28,7 +29,7 @@ export default class DeleteMessageHandler implements ModAction {
     const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
     if (deleteInProgress) {
       const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
-      await interaction.update({ embeds: [embed], components: [buttons] });
+      await interaction.update({ embeds: [embed], components: buttons });
 
       const errorEmbed = new InfoEmbed().setDescription(
         `${emojis.neutral} This message is already deleted or is being deleted by another moderator.`,

@@ -5,6 +5,9 @@ import { t } from '#main/utils/Locale.js';
 import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';
 import parse from 'parse-duration';
 import BlacklistCommand from './index.js';
+import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
+import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
+import BlacklistManager from '#main/modules/BlacklistManager.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -18,9 +21,10 @@ export default class extends BlacklistCommand {
     const hub = await this.getHub({ name: hubName, userId: moderatorId });
     if (!this.isValidHub(interaction, hub, locale)) return;
 
-    const { serverBlacklists } = interaction.client;
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverId = interaction.options.getString('server', true);
+
+    const blacklistManager = new BlacklistManager(new ServerInfractionManager(serverId));
 
     if (subCommandGroup === 'add') {
       const reason = interaction.options.getString('reason', true);
@@ -38,11 +42,18 @@ export default class extends BlacklistCommand {
         return;
       }
 
-      await serverBlacklists.addBlacklist(server, hub.id, { reason, expires, moderatorId });
-      await serverBlacklists.sendNotification({
+      await blacklistManager.addBlacklist({
+        reason,
+        expiresAt: expires,
+        moderatorId,
+        serverName: server.name,
+        hubId: hub.id,
+      });
+
+      await sendBlacklistNotif('server', interaction.client, {
         target: { id: serverId },
         hubId: hub.id,
-        expires,
+        expiresAt: expires,
         reason,
       });
 
@@ -60,11 +71,12 @@ export default class extends BlacklistCommand {
         target: serverId,
         mod: interaction.user,
         reason,
-        expires,
+        expiresAt: expires,
       });
     }
     else if (subCommandGroup === 'remove') {
-      const result = await serverBlacklists.removeBlacklist(hub.id, serverId);
+      const result = await blacklistManager.removeBlacklist(hub.id);
+
       if (!result) {
         await this.replyEmbed(
           interaction,
@@ -95,11 +107,11 @@ export default class extends BlacklistCommand {
     serverId: Snowflake,
     opts: { duration?: number },
   ) {
-    const { serverBlacklists } = interaction.client;
-    const inBlacklist = await serverBlacklists.fetchBlacklist(hubId, serverId);
+    const blacklistManager = new BlacklistManager(new ServerInfractionManager(serverId));
+    const blacklist = await blacklistManager.fetchBlacklist(hubId);
     const hiddenOpt = { ephemeral: true };
 
-    if (inBlacklist) {
+    if (blacklist) {
       await this.replyEmbed(
         interaction,
         t({ phrase: 'blacklist.server.alreadyBlacklisted' }, { emoji: emojis.no }),

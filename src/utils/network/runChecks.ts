@@ -12,6 +12,9 @@ import { EmbedBuilder, Message } from 'discord.js';
 import { runAntiSpam } from './antiSpam.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
 import { stripIndents } from 'common-tags';
+import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
+import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import BlacklistManager from '#main/modules/BlacklistManager.js';
 
 // if account is created within the last 7 days
 const isNewUser = (message: Message) => {
@@ -40,20 +43,18 @@ const isCaughtSpam = async (message: Message, settings: HubSettingsManager, hubI
   if (!antiSpamResult) return false;
 
   if (settings.getSetting('SpamFilter') && antiSpamResult.infractions >= 3) {
-    const expires = new Date(Date.now() + 60 * 5000);
+    const expiresAt = new Date(Date.now() + 60 * 5000);
     const reason = 'Auto-blacklisted for spamming.';
     const target = message.author;
     const mod = message.client.user;
 
-    const { userManager } = message.client;
+    const blacklistManager = new BlacklistManager(new UserInfractionManager(target.id));
 
-    await userManager.addBlacklist({ id: target.id, name: target.username }, hubId, {
-      reason,
-      expires,
-      moderatorId: mod.id,
-    });
-    await userManager.sendNotification({ target, hubId, expires, reason }).catch(() => null);
-    await logBlacklist(hubId, message.client, { target, mod, reason, expires }).catch(() => null);
+    await blacklistManager.addBlacklist({ hubId, reason, expiresAt, moderatorId: mod.id });
+    await logBlacklist(hubId, message.client, { target, mod, reason, expiresAt }).catch(() => null);
+    await sendBlacklistNotif('user', message.client, { target, hubId, expiresAt, reason }).catch(
+      () => null,
+    );
   }
 
   await message.react(emojis.timeout).catch(() => null);
@@ -111,7 +112,7 @@ export const runChecks = async (
   const { userManager } = message.client;
 
   let userData = await userManager.getUser(message.author.id);
-  let locale = userData ? await userManager.getUserLocale(userData) : undefined;
+  let locale = await userManager.getUserLocale(userData);
   if (!userData?.viewedNetworkWelcome) {
     userData = await db.userData.upsert({
       where: { id: message.author.id },
@@ -132,8 +133,9 @@ export const runChecks = async (
   }
 
   // banned / blacklisted
-  const isUserBlacklisted = userData.blacklistedFrom.some((b) => b.hubId === hub.id);
-  if (userData.banMeta?.reason || isUserBlacklisted) return false;
+  const blacklistManager = new BlacklistManager(new UserInfractionManager(message.author.id));
+  const blacklisted = await blacklistManager.fetchBlacklist(hub.id);
+  if (userData?.banMeta?.reason || blacklisted) return false;
 
   if (containsLinks(message, settings)) message.content = replaceLinks(message.content);
   if (await isCaughtSpam(message, settings, hub.id)) return false;

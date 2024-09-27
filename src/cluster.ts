@@ -6,14 +6,13 @@ import deleteExpiredInvites from '#main/tasks/deleteExpiredInvites.js';
 import pauseIdleConnections from '#main/tasks/pauseIdleConnections.js';
 import storeMsgTimestamps from '#main/tasks/storeMsgTimestamps.js';
 import syncBotlistStats from '#main/tasks/syncBotlistStats.js';
-import updateBlacklists from '#main/tasks/updateBlacklists.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { startApi } from '#main/api/index.js';
 import { VoteManager } from '#main/modules/VoteManager.js';
 import { getUsername } from '#main/utils/Utils.js';
 
 const clusterManager = new ClusterManager('build/index.js', {
-  token: process.env.TOKEN,
+  token: process.env.DISCORD_TOKEN,
   shardsPerClusters: 5,
   totalClusters: 'auto',
 });
@@ -21,18 +20,15 @@ const clusterManager = new ClusterManager('build/index.js', {
 // spawn clusters and start the api that handles nsfw filter and votes
 clusterManager
   .spawn({ timeout: -1 })
-  .then(async () => {
+  .then(() => {
     const scheduler = new Scheduler();
 
-    updateBlacklists(clusterManager).catch(Logger.error);
     deleteExpiredInvites().catch(Logger.error);
 
     // store network message timestamps to connectedList every minute
     scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, storeMsgTimestamps);
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
-    scheduler.addRecurringTask('deleteExpiredBlacklists', 30 * 1000, () =>
-      updateBlacklists(clusterManager),
-    );
+
 
     // production only tasks
     if (Constants.isDevBuild) return;

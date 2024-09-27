@@ -43,6 +43,7 @@ export default async (manager: ClusterManager) => {
   });
 
   const embed = new InfoEmbed()
+    .removeTitle()
     .setDescription(
       stripIndents`
     ### ${emojis.timeout} Paused Due to Inactivity

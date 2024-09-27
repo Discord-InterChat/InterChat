@@ -27,7 +27,8 @@ export class ErrorEmbed extends EmbedBuilder {
   constructor(data?: { errorCode?: string }) {
     super({
       title: `${emojis.no} Error`,
-      description: 'An error occurred while executing this command. Please join our [support server](https://discord.gg/interchat) and report the Error Code!',
+      description:
+        'An error occurred while executing this command. Please join our [support server](https://discord.gg/interchat) and report the Error Code!',
       color: Colors.Red,
     });
 

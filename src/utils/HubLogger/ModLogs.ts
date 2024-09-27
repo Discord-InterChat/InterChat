@@ -1,11 +1,13 @@
+import BlacklistManager from '#main/modules/BlacklistManager.js';
+import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import { fetchHub } from '#main/utils/hub/utils.js';
+import { hubs } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { User, EmbedBuilder, Snowflake, Client, codeBlock } from 'discord.js';
+import { Client, codeBlock, EmbedBuilder, Snowflake, User } from 'discord.js';
 import Constants, { emojis } from '../../config/Constants.js';
 import { resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
-import { hubs } from '@prisma/client';
-import { fetchHub } from '#main/utils/hub/utils.js';
-
 
 /**
  * Logs the blacklisting of a user or server.
@@ -21,10 +23,10 @@ export const logBlacklist = async (
     target: User | Snowflake;
     mod: User;
     reason: string;
-    expires: Date | null;
+    expiresAt: Date | null;
   },
 ) => {
-  const { target: _target, mod, reason, expires } = opts;
+  const { target: _target, mod, reason, expiresAt } = opts;
 
   const hub = await fetchHub(hubId);
   if (!hub?.logChannels?.modLogs) return;
@@ -72,14 +74,14 @@ export const logBlacklist = async (
       { name: 'Reason', value: reason, inline: true },
       {
         name: 'Expires',
-        value: expires ? `<t:${Math.round(expires.getTime() / 1000)}:R>` : 'Never.',
+        value: expiresAt ? `<t:${Math.round(expiresAt.getTime() / 1000)}:R>` : 'Never.',
         inline: true,
       },
     )
     .setColor(Constants.Colors.interchatBlue)
     .setFooter({ text: `Blacklisted by: ${mod.username}`, iconURL: mod.displayAvatarURL() });
 
-  await sendLog(opts.mod.client, hub.logChannels.modLogs, embed);
+  await sendLog(opts.mod.client.cluster, hub.logChannels.modLogs, embed);
 };
 
 const getUnblacklistEmbed = (
@@ -128,31 +130,31 @@ export const logServerUnblacklist = async (
   opts: UnblacklistOpts,
 ) => {
   const hub = await fetchHub(hubId);
-  const blacklisted = await client.serverBlacklists.fetchBlacklist(hubId, opts.id);
-  const blacklistData = blacklisted?.blacklistedFrom.find((data) => data.hubId === hubId);
+  const blacklistManager = new BlacklistManager(new ServerInfractionManager(opts.id));
+  const blacklist = await blacklistManager.fetchBlacklist(hubId);
 
-  if (!blacklisted || !blacklistData || !hub?.logChannels?.modLogs) return;
+  if (!blacklist || !hub?.logChannels?.modLogs) return;
 
   const embed = getUnblacklistEmbed('Server', {
-    name: blacklisted.serverName,
     id: opts.id,
+    name: blacklist.serverName,
     mod: opts.mod,
-    reason: opts.reason,
     hubName: hub.name,
-    originalReason: blacklistData.reason,
+    reason: opts.reason,
+    originalReason: blacklist.reason,
   });
 
-  await sendLog(client, hub.logChannels.modLogs, embed);
+  await sendLog(client.cluster, hub.logChannels.modLogs, embed);
 };
 
 export const logUserUnblacklist = async (client: Client, hubId: string, opts: UnblacklistOpts) => {
   const hub = await fetchHub(hubId);
-  const blacklisted = await client.userManager.fetchBlacklist(hubId, opts.id);
-  if (!blacklisted || !hub?.logChannels?.modLogs) return;
+  const blacklistManager = new BlacklistManager(new UserInfractionManager(opts.id));
+  const blacklist = await blacklistManager.fetchBlacklist(hubId);
+  if (!blacklist || !hub?.logChannels?.modLogs) return;
 
   const user = await client.users.fetch(opts.id).catch(() => null);
-  const name = user?.username ?? `${blacklisted?.username}`;
-  const originalReason = blacklisted?.blacklistedFrom.find((h) => h.hubId === hub.id)?.reason;
+  const name = `${user?.username}`;
 
   const embed = getUnblacklistEmbed('User', {
     name,
@@ -160,10 +162,10 @@ export const logUserUnblacklist = async (client: Client, hubId: string, opts: Un
     mod: opts.mod,
     reason: opts.reason,
     hubName: hub.name,
-    originalReason,
+    originalReason: blacklist.reason,
   });
 
-  await sendLog(client, hub.logChannels.modLogs, embed);
+  await sendLog(client.cluster, hub.logChannels.modLogs, embed);
 };
 
 export const logMsgDelete = async (
@@ -195,5 +197,5 @@ export const logMsgDelete = async (
     ])
     .setFooter({ text: `Deleted by: ${opts.modName}` });
 
-  await sendLog(client, hub.logChannels.modLogs, embed);
+  await sendLog(client.cluster, hub.logChannels.modLogs, embed);
 };
