@@ -18,6 +18,7 @@ import Hub from './index.js';
 import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
 import BlacklistManager from '#main/modules/BlacklistManager.js';
+import { check } from '#main/utils/ProfanityUtils.js';
 
 export default class JoinSubCommand extends Hub {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -42,8 +43,10 @@ export default class JoinSubCommand extends Hub {
       return;
     }
 
-    if (await this.isAlreadyInHub(interaction, hub, channel.guildId, locale)) return;
-    if (await this.isBlacklisted(interaction, hub, locale)) return;
+    if (
+      (await this.isAlreadyInHub(interaction, channel.id, locale)) ||
+      (await this.isBlacklisted(interaction, hub, locale))
+    ) return;
 
     const onboardingSuccess = await this.processOnboarding(interaction, { hub, channel, locale });
     if (!onboardingSuccess) return;
@@ -107,15 +110,11 @@ export default class JoinSubCommand extends Hub {
       return false;
     }
 
-    const channelInHub = await db.connectedList.findFirst({ where: { channelId: channel.id } });
-    if (channelInHub) {
-      const otherHub = await db.hubs.findFirst({ where: { id: channelInHub.hubId } });
+    const doesGuildNameContainBadWords = check(interaction.guild.name);
+    if (doesGuildNameContainBadWords) {
       await this.replyEmbed(
         interaction,
-        t(
-          { phrase: 'hub.alreadyJoined', locale },
-          { channel: `${channel.toString()}`, hub: `${otherHub?.name}`, emoji: emojis.no },
-        ),
+        `${emojis.no} Your server name contains inappropriate words. Please change it before joining the hub.`,
         { ephemeral: true },
       );
       return false;
@@ -152,24 +151,21 @@ export default class JoinSubCommand extends Hub {
 
   private async isAlreadyInHub(
     interaction: ChatInputCommandInteraction,
-    hub: hubs,
-    serverId: Snowflake,
+    channelId: Snowflake,
     locale: supportedLocaleCodes,
   ) {
-    const alreadyInHub = await db.connectedList.findFirst({
-      where: { hubId: hub.id, serverId },
-    });
-
-    if (alreadyInHub) {
+    const channelInHub = await db.connectedList.findFirst({ where: { channelId } });
+    if (channelInHub) {
+      const otherHub = await db.hubs.findFirst({ where: { id: channelInHub.hubId } });
       await this.replyEmbed(
         interaction,
         t(
           { phrase: 'hub.alreadyJoined', locale },
-          { hub: hub.name, channel: `<#${alreadyInHub.channelId}>`, emoji: emojis.no },
+          { channel: `<#${channelId}>`, hub: `${otherHub?.name}`, emoji: emojis.no },
         ),
         { ephemeral: true },
       );
-      return true;
+      return false;
     }
 
     return false;
