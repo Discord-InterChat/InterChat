@@ -20,7 +20,7 @@ import storeMessageData, {
 import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
 import { censor } from '#main/utils/ProfanityUtils.js';
 import { isHumanMessage, trimAndCensorBannedWebhookWords } from '#main/utils/Utils.js';
-import { connectedList, hubs } from '@prisma/client';
+import { connectedList, Hub } from '@prisma/client';
 import { HexColorString, Message, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 import { generateJumpButton } from '#main/utils/ComponentUtils.js';
 import { getAttachmentURL } from '#main/utils/ImageUtils.js';
@@ -34,7 +34,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     const { connection, hubConnections } = await this.getConnectionAndHubConnections(message);
     if (!connection || !hubConnections) return;
 
-    const hub = await db.hubs.findFirst({ where: { id: connection.hubId } });
+    const hub = await db.hub.findFirst({ where: { id: connection.hubId } });
     if (!hub) return;
 
     const settings = new HubSettingsManager(hub.id, hub.settings);
@@ -76,7 +76,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
   private async broadcastMessage(
     message: Message<true>,
-    hub: hubs,
+    hub: Hub,
     hubConnections: connectedList[],
     settings: HubSettingsManager,
     opts: BroadcastOpts,

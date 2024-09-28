@@ -319,7 +319,7 @@ export default class Hub extends BaseCommand {
   }
 
   private async getPublicHubs(focusedValue: string) {
-    return await db.hubs.findMany({
+    return await db.hub.findMany({
       where: {
         name: { mode: 'insensitive', contains: focusedValue },
         private: false,
@@ -329,7 +329,7 @@ export default class Hub extends BaseCommand {
   }
 
   private async getModeratedHubs(focusedValue: string, modId: Snowflake) {
-    return await db.hubs.findMany({
+    return await db.hub.findMany({
       where: {
         name: { mode: 'insensitive', contains: focusedValue },
         OR: [{ ownerId: modId }, { moderators: { some: { userId: modId } } }],
@@ -339,7 +339,7 @@ export default class Hub extends BaseCommand {
   }
 
   private async getManagedHubs(focusedValue: string, modId: Snowflake) {
-    return await db.hubs.findMany({
+    return await db.hub.findMany({
       where: {
         name: { mode: 'insensitive', contains: focusedValue },
         OR: [{ ownerId: modId }, { moderators: { some: { userId: modId, position: 'manager' } } }],
@@ -349,7 +349,7 @@ export default class Hub extends BaseCommand {
   }
 
   private async getOwnedHubs(focusedValue: string, ownerId: Snowflake) {
-    return await db.hubs.findMany({
+    return await db.hub.findMany({
       where: {
         ownerId,
         name: { mode: 'insensitive', contains: focusedValue },

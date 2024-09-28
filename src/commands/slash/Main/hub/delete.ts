@@ -19,7 +19,7 @@ import Hub from './index.js';
 export default class Delete extends Hub {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
-    const hubInDb = await db.hubs.findFirst({ where: { name: hubName } });
+    const hubInDb = await db.hub.findFirst({ where: { name: hubName } });
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
@@ -96,7 +96,7 @@ export default class Delete extends Hub {
 
     await interaction.update({ embeds: [embed], components: [] });
 
-    const hubInDb = await db.hubs.findFirst({ where: { id: hubId, ownerId: interaction.user.id } });
+    const hubInDb = await db.hub.findFirst({ where: { id: hubId, ownerId: interaction.user.id } });
     if (!hubInDb) {
       const infoEmbed = new InfoEmbed().setDescription(
         t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),

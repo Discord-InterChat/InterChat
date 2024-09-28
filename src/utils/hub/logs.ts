@@ -1,7 +1,7 @@
 import { emojis } from '#main/config/Constants.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { Prisma, hubs } from '@prisma/client';
+import { Prisma, Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 
 /*
@@ -17,7 +17,7 @@ ${emojis.dividerEnd} ${channelStr} ${undefined ?? emojis.no}
 const channelMention = (channelId: string | null | undefined) =>
   channelId ? `<#${channelId}>` : emojis.no;
 
-export const genLogInfoEmbed = (hubInDb: hubs, locale: supportedLocaleCodes = 'en') => {
+export const genLogInfoEmbed = (hubInDb: Hub, locale: supportedLocaleCodes = 'en') => {
   const { reports, modLogs, profanity, joinLeaves } = (hubInDb.logChannels ||
     {}) as Prisma.HubLogChannelsCreateInput;
   const reportRole = reports?.roleId ? `<@&${reports.roleId}>` : emojis.no;

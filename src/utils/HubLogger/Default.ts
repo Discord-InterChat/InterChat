@@ -13,7 +13,7 @@ export const setLogChannelFor = async (
     await setReportLogChannel(hubId, channelId);
   }
   else {
-    await db.hubs.update({
+    await db.hub.update({
       where: { id: hubId },
       data: {
         logChannels: {

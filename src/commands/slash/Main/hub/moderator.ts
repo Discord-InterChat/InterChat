@@ -1,14 +1,14 @@
 import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { HubModeratorPosition, hubs } from '@prisma/client';
+import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import type { HubModeratorPosition, Hub } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import Hub from './index.js';
+import HubCommand from './index.js';
 
-export default class Moderator extends Hub {
+export default class Moderator extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
-    const hub = await db.hubs.findFirst({
+    const hub = await db.hub.findFirst({
       where: {
         name: hubName,
         OR: [
@@ -48,7 +48,7 @@ export default class Moderator extends Hub {
   }
   private async handleRemoveSubcommand(
     interaction: ChatInputCommandInteraction,
-    hub: hubs,
+    hub: Hub,
     locale: supportedLocaleCodes,
   ) {
     const user = interaction.options.getUser('user', true);
@@ -82,7 +82,7 @@ export default class Moderator extends Hub {
       return;
     }
 
-    await db.hubs.update({
+    await db.hub.update({
       where: { id: hub.id },
       data: {
         moderators: { deleteMany: { where: { userId: user.id } } },
@@ -100,7 +100,7 @@ export default class Moderator extends Hub {
 
   private async handleUpdateSubcommand(
     interaction: ChatInputCommandInteraction,
-    hub: hubs,
+    hub: Hub,
     locale: supportedLocaleCodes,
   ) {
     const user = interaction.options.getUser('user', true);
@@ -140,7 +140,7 @@ export default class Moderator extends Hub {
       return;
     }
 
-    await db.hubs.update({
+    await db.hub.update({
       where: { id: hub.id },
       data: {
         moderators: { updateMany: { where: { userId: user.id }, data: { position } } },
@@ -158,7 +158,7 @@ export default class Moderator extends Hub {
 
   private async handleListSubcommand(
     interaction: ChatInputCommandInteraction,
-    hub: hubs,
+    hub: Hub,
     locale: supportedLocaleCodes,
   ) {
     await interaction.reply({
@@ -186,7 +186,7 @@ export default class Moderator extends Hub {
 
   private async handleAddSubcommand(
     interaction: ChatInputCommandInteraction,
-    hub: hubs,
+    hub: Hub,
     locale: supportedLocaleCodes,
   ) {
     const user = interaction.options.getUser('user', true);
@@ -205,7 +205,7 @@ export default class Moderator extends Hub {
 
     const position = (interaction.options.getString('position') ??
       'network_mod') as HubModeratorPosition;
-    await db.hubs.update({
+    await db.hub.update({
       where: { id: hub.id },
       data: { moderators: { push: { userId: user.id, position } } },
     });

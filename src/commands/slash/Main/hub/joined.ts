@@ -2,11 +2,11 @@ import Constants, { emojis } from '#main/config/Constants.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
-import { connectedList, hubs } from '@prisma/client';
+import { connectedList, Hub } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
-import Hub from './index.js';
+import HubCommand from './index.js';
 
-export default class Joined extends Hub {
+export default class Joined extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const connections = await db.connectedList.findMany({
       where: { serverId: interaction.guild?.id },
@@ -39,7 +39,7 @@ export default class Joined extends Hub {
   }
 
   private createPaginatedEmbeds(
-    connections: (connectedList & { hub: hubs | null })[],
+    connections: (connectedList & { hub: Hub | null })[],
     description: string,
     fieldsPerPage = 25,
   ) {
@@ -55,7 +55,7 @@ export default class Joined extends Hub {
     return pages;
   }
 
-  private getField(connection: connectedList & { hub: hubs | null }) {
+  private getField(connection: connectedList & { hub: Hub | null }) {
     return {
       name: `${connection.hub?.name}`,
       value: `<#${connection.channelId}>`,

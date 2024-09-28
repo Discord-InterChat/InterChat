@@ -10,9 +10,9 @@ import {
 } from 'discord.js';
 import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { deleteMessageFromHub, isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
-import { originalMessages, hubs, broadcastedMessages } from '@prisma/client';
+import { originalMessages, Hub, broadcastedMessages } from '@prisma/client';
 
-type OriginalMsgT = originalMessages & { hub: hubs; broadcastMsgs: broadcastedMessages[] };
+type OriginalMsgT = originalMessages & { hub: Hub; broadcastMsgs: broadcastedMessages[] };
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -88,7 +88,7 @@ export default class DeleteMessage extends BaseCommand {
   private async validateMessage(
     interaction: MessageContextMenuCommandInteraction,
     originalMsg:
-      | (originalMessages & { hub: hubs | null; broadcastMsgs: broadcastedMessages[] })
+      | (originalMessages & { hub: Hub | null; broadcastMsgs: broadcastedMessages[] })
       | null,
   ): Promise<boolean> {
     const { userManager } = interaction.client;
@@ -125,7 +125,7 @@ export default class DeleteMessage extends BaseCommand {
 
   private async logDeletion(
     interaction: MessageContextMenuCommandInteraction,
-    hub: hubs,
+    hub: Hub,
     originalMsg: OriginalMsgT,
   ): Promise<void> {
     if (!isStaffOrHubMod(interaction.user.id, hub)) return;

@@ -9,32 +9,33 @@ import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { genLogInfoEmbed } from '#main/utils/hub/logs.js';
 import { actionsSelect, hubEmbed } from '#main/utils/hub/manage.js';
 import { buildSettingsMenu } from '#main/utils/hub/settings.js';
+import { sendToHub } from '#main/utils/hub/utils.js';
 import { setLogChannelFor } from '#main/utils/HubLogger/Default.js';
 import { removeReportsFrom, setReportRole } from '#main/utils/HubLogger/Report.js';
 import { checkAndFetchImgurUrl } from '#main/utils/ImageUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { hubs, Prisma } from '@prisma/client';
+import type { Hub, Prisma } from '@prisma/client';
 import {
   ActionRowBuilder,
-  APIRole,
+  type APIRole,
   ButtonBuilder,
   ButtonStyle,
   ChannelSelectMenuBuilder,
   ChannelType,
-  ChatInputCommandInteraction,
+  type ChatInputCommandInteraction,
   EmbedBuilder,
-  MessageComponentInteraction,
+  type MessageComponentInteraction,
   ModalBuilder,
-  ModalSubmitInteraction,
-  Role,
+  type ModalSubmitInteraction,
+  type Role,
   RoleSelectMenuBuilder,
   StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import Hub from './index.js';
+import HubCommand from './index.js';
 
-export default class Manage extends Hub {
+export default class Manage extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const { hubInDb, locale } = await this.getInitialData(interaction);
     if (!hubInDb) return;
@@ -174,7 +175,7 @@ export default class Manage extends Hub {
   }
 
   private async fetchHubFromDb(userId: string, hubName: string) {
-    return await db.hubs.findFirst({
+    return await db.hub.findFirst({
       where: {
         name: hubName,
         OR: [{ ownerId: userId }, { moderators: { some: { userId, position: 'manager' } } }],
@@ -205,7 +206,7 @@ export default class Manage extends Hub {
 
   private async updateSetting(
     interaction: MessageComponentInteraction,
-    hubInDb: hubs,
+    hubInDb: Hub,
     selected: HubSettingsString,
     customId: ParsedCustomId,
   ) {
@@ -235,7 +236,7 @@ export default class Manage extends Hub {
 
   private async showLogConfigMenu(
     interaction: MessageComponentInteraction,
-    hubInDb: hubs,
+    hubInDb: Hub,
     type: keyof Prisma.HubLogChannelsCreateInput,
     locale: supportedLocaleCodes,
   ) {
@@ -316,7 +317,7 @@ export default class Manage extends Hub {
 
   private async handleAction(
     interaction: MessageComponentInteraction,
-    hubInDb: hubs,
+    hubInDb: Hub,
     action: string,
     locale: supportedLocaleCodes,
   ) {
@@ -328,6 +329,9 @@ export default class Manage extends Hub {
         break;
       case 'visibility':
         await this.toggleVisibility(interaction, hubInDb, locale);
+        break;
+      case 'toggle_lock':
+        await this.toggleLock(interaction, hubInDb);
         break;
       default:
         break;
@@ -367,10 +371,10 @@ export default class Manage extends Hub {
 
   private async toggleVisibility(
     interaction: MessageComponentInteraction,
-    hubInDb: hubs,
+    hubInDb: Hub,
     locale: supportedLocaleCodes,
   ) {
-    const updatedHub = await db.hubs.update({
+    const updatedHub = await db.hub.update({
       where: { id: hubInDb?.id },
       data: { private: !hubInDb?.private },
       include: { connections: true },
@@ -390,9 +394,37 @@ export default class Manage extends Hub {
     await interaction.message.edit({ embeds: [await hubEmbed(updatedHub)] }).catch(() => null);
   }
 
+  private async toggleLock(interaction: MessageComponentInteraction, hubInDb: Hub) {
+    const updatedHub = await db.hub.update({
+      where: { id: hubInDb?.id },
+      data: { locked: !hubInDb?.locked },
+      include: { connections: true },
+    });
+
+    const lockedStatus = updatedHub.locked ? 'locked' : 'unlocked';
+
+    await this.replyEmbed(
+      interaction,
+      `${lockedStatus === 'locked' ? '🔒' : '🔓'} Hub chats are now ${lockedStatus}.`,
+      { ephemeral: true },
+    );
+
+    await interaction.message.edit({ embeds: [await hubEmbed(updatedHub)] }).catch(() => null);
+
+    await sendToHub(updatedHub.id, {
+      embeds: [
+        new InfoEmbed()
+          .setTitle(`🛡️ Hub chats are now ${lockedStatus}.`)
+          .setDescription(
+            `${lockedStatus === 'locked' ? 'Only moderators can send messages.' : 'Everyone can send messages.'}`,
+          ),
+      ],
+    });
+  }
+
   private async updateLogChannel(
     interaction: MessageComponentInteraction,
-    hubInDb: hubs,
+    hubInDb: Hub,
     type: keyof Prisma.HubLogChannelsCreateInput,
     channelId: string,
     locale: supportedLocaleCodes,
@@ -419,7 +451,7 @@ export default class Manage extends Hub {
 
   private async updateReportRole(
     interaction: MessageComponentInteraction,
-    hubInDb: hubs,
+    hubInDb: Hub,
     type: keyof Prisma.HubLogChannelsCreateInput,
     role: Role | APIRole | undefined,
     locale: supportedLocaleCodes,
@@ -459,7 +491,7 @@ export default class Manage extends Hub {
     locale: supportedLocaleCodes,
   ) {
     const description = interaction.fields.getTextInputValue('description');
-    await db.hubs.update({
+    await db.hub.update({
       where: { id: hubId },
       data: { description },
     });
@@ -486,7 +518,7 @@ export default class Manage extends Hub {
       return;
     }
 
-    await db.hubs.update({
+    await db.hub.update({
       where: { id: hubId },
       data: { iconUrl },
     });
@@ -507,7 +539,7 @@ export default class Manage extends Hub {
     const newBanner = interaction.fields.getTextInputValue('banner');
 
     if (!newBanner) {
-      await db.hubs.update({
+      await db.hub.update({
         where: { id: hubId },
         data: { bannerUrl: { unset: true } },
       });
@@ -525,7 +557,7 @@ export default class Manage extends Hub {
       return;
     }
 
-    await db.hubs.update({
+    await db.hub.update({
       where: { id: hubId },
       data: { bannerUrl },
     });
@@ -534,7 +566,7 @@ export default class Manage extends Hub {
   }
 
   private async updateOriginalMessage(interaction: ModalSubmitInteraction, hubId: string) {
-    const updatedHub = await db.hubs.findFirst({
+    const updatedHub = await db.hub.findFirst({
       where: { id: hubId },
       include: { connections: true },
     });
@@ -546,7 +578,7 @@ export default class Manage extends Hub {
 
   private async showSettingsMenu(
     interaction: MessageComponentInteraction,
-    hubInDb: hubs,
+    hubInDb: Hub,
     customId: ParsedCustomId,
   ) {
     const settingsManager = new HubSettingsManager(hubInDb.id, hubInDb.settings);
@@ -563,7 +595,7 @@ export default class Manage extends Hub {
 
   private async showLogsMenu(
     interaction: MessageComponentInteraction,
-    hubInDb: hubs,
+    hubInDb: Hub,
     customId: ParsedCustomId,
     locale: supportedLocaleCodes,
   ) {
@@ -614,7 +646,7 @@ export default class Manage extends Hub {
 
   private async deleteLogChannel(
     interaction: MessageComponentInteraction,
-    hubInDb: hubs,
+    hubInDb: Hub,
     customId: ParsedCustomId,
     locale: supportedLocaleCodes,
   ) {
@@ -629,7 +661,7 @@ export default class Manage extends Hub {
         delete currentConfig[type];
       }
 
-      await db.hubs.update({
+      await db.hub.update({
         where: { id: hubInDb.id },
         data: { logChannels: currentConfig ? { set: currentConfig } : { unset: true } },
       });
@@ -656,7 +688,7 @@ export default class Manage extends Hub {
       return {};
     }
 
-    const hubInDb = await db.hubs.findFirst({
+    const hubInDb = await db.hub.findFirst({
       where: { id: customId.args[1] },
       include: { connections: true },
     });
@@ -679,7 +711,7 @@ export default class Manage extends Hub {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    const hubInDb = await db.hubs.findFirst({
+    const hubInDb = await db.hub.findFirst({
       where: {
         id: hubId,
         OR: [

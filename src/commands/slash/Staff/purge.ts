@@ -118,7 +118,7 @@ export default class Purge extends BaseCommand {
       where: { channelId: interaction.channelId, connected: true },
     });
 
-    const isMod = db.hubs.findFirst({
+    const isMod = db.hub.findFirst({
       where: {
         OR: [
           { moderators: { some: { userId: interaction.user.id } } },

@@ -101,7 +101,7 @@ export default class Create extends Hub {
       return;
     }
 
-    const hubs = await db.hubs.findMany({
+    const hubs = await db.hub.findMany({
       where: { OR: [{ ownerId: interaction.user.id }, { name }] },
     });
 
@@ -134,7 +134,7 @@ export default class Create extends Hub {
       return;
     }
 
-    await db.hubs.create({
+    await db.hub.create({
       data: {
         name,
         description,

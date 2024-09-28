@@ -23,7 +23,7 @@ export default class Invite extends Hub {
         const duration = expiryStr ? parse(expiryStr) : undefined;
         const expires = new Date(Date.now() + (duration || 60 * 60 * 4000));
 
-        const hubInDb = await db.hubs.findFirst({
+        const hubInDb = await db.hub.findFirst({
           where: {
             name: hubName,
             private: true,
@@ -132,7 +132,7 @@ export default class Invite extends Hub {
 
       case 'list': {
         const hubName = interaction.options.getString('hub', true);
-        const hubInDb = await db.hubs.findFirst({
+        const hubInDb = await db.hub.findFirst({
           where: {
             name: hubName,
             OR: [

@@ -7,7 +7,7 @@ import logProfanity from '#main/utils/HubLogger/Profanity.js';
 import { t } from '#main/utils/Locale.js';
 import { check as checkProfanity } from '#main/utils/ProfanityUtils.js';
 import { containsInviteLinks, replaceLinks } from '#main/utils/Utils.js';
-import { hubs } from '@prisma/client';
+import { Hub } from '@prisma/client';
 import { EmbedBuilder, Message } from 'discord.js';
 import { runAntiSpam } from './antiSpam.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
@@ -100,7 +100,7 @@ const attachmentTooLarge = (message: Message) => {
 
 export const runChecks = async (
   message: Message<true>,
-  hub: hubs,
+  hub: Hub,
   opts: {
     settings: HubSettingsManager;
     totalHubConnections: number;

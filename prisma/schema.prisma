@@ -72,24 +72,24 @@ model UserInfraction {
   revokedAt   DateTime?
   moderatorId String?
   userData    UserData         @relation(fields: [userId], references: [id])
-  hub         hubs             @relation(fields: [hubId], references: [id])
+  hub         Hub              @relation(fields: [hubId], references: [id])
 
   @@index([userId, hubId])
 }
 
 model ServerInfraction {
-  id          String         @id @default(nanoid()) @map("_id")
+  id          String           @id @default(nanoid()) @map("_id")
   serverName  String
   serverId    String
-  hubId       String         @db.ObjectId
+  hubId       String           @db.ObjectId
   reason      String
   status      InfractionStatus @default(ACTIVE)
-  type        InfractionType @default(BLACKLIST)
-  dateIssued  DateTime       @default(now()) // Date when the infraction was issued
+  type        InfractionType   @default(BLACKLIST)
+  dateIssued  DateTime         @default(now()) // Date when the infraction was issued
   expiresAt   DateTime?
   revokedAt   DateTime?
   moderatorId String?
-  hub         hubs           @relation(fields: [hubId], references: [id])
+  hub         Hub              @relation(fields: [hubId], references: [id])
 
   @@index([serverId, hubId])
 }
@@ -107,13 +107,13 @@ model connectedList {
   webhookURL String
   lastActive DateTime? @default(now())
   date       DateTime  @default(now())
-  hub        hubs?     @relation(fields: [hubId], references: [id])
+  hub        Hub?      @relation(fields: [hubId], references: [id])
   hubId      String    @db.ObjectId
 
   @@index(fields: [channelId, serverId])
 }
 
-model hubs {
+model Hub {
   id               String             @id @default(auto()) @map("_id") @db.ObjectId
   name             String             @unique
   description      String
@@ -130,18 +130,20 @@ model hubs {
   moderators       HubModerator[]
   connections      connectedList[]
   logChannels      HubLogChannels?
-  // approved           Boolean              @default(false)
+  locked           Boolean            @default(false)
   // official           Boolean              @default(false)
   originalMessages originalMessages[]
   userInfractions  UserInfraction[]
   ServerInfraction ServerInfraction[]
+
+  @@index([id, name, ownerId, logChannels])
 }
 
 model hubInvites {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
   code    String   @unique @default(nanoid(10))
   expires DateTime
-  hub     hubs     @relation(fields: [hubId], references: [id])
+  hub     Hub      @relation(fields: [hubId], references: [id])
   hubId   String   @db.ObjectId
 }
 
@@ -154,8 +156,8 @@ model originalMessages {
   mode             Int                   @default(0)
   broadcastMsgs    broadcastedMessages[] // Ids of messages that were broadcasted to other hubs
   messageReference String?               @db.String // id of the original message this message is replying to
-  hub              hubs                 @relation(fields: [hubId], references: [id])
-  hubId            String               @db.ObjectId
+  hub              Hub                   @relation(fields: [hubId], references: [id])
+  hubId            String                @db.ObjectId
 }
 
 model broadcastedMessages {

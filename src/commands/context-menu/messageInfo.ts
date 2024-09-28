@@ -12,7 +12,7 @@ import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import { isValidDbMsgWithHubId } from '#main/utils/moderation/modActions/utils.js';
 import type { RemoveMethods } from '#types/index.d.ts';
-import { connectedList, hubs, originalMessages } from '@prisma/client';
+import type { connectedList, Hub, originalMessages } from '@prisma/client';
 import {
   ActionRow,
   ActionRowBuilder,
@@ -39,7 +39,7 @@ import {
 type LocaleInfo = { locale: supportedLocaleCodes };
 type AuthorInfo = { author: User };
 type ServerInfo = { server: RemoveMethods<Guild> | undefined };
-type HubInfo = { hub: hubs | null };
+type HubInfo = { hub: Hub | null };
 type MsgInfo = { messageId: string };
 
 type UserInfoOpts = LocaleInfo & AuthorInfo;
@@ -253,7 +253,7 @@ export default class MessageInfo extends BaseCommand {
   ) {
     await interaction.deferUpdate();
     const createdAt = Math.round(author.createdTimestamp / 1000);
-    const hubsOwned = await db.hubs.count({ where: { ownerId: author.id } });
+    const hubsOwned = await db.hub.count({ where: { ownerId: author.id } });
     const displayName = author.globalName || 'Not Set.';
 
     const userEmbed = new EmbedBuilder()

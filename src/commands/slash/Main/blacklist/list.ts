@@ -15,7 +15,7 @@ export default class ListBlacklists extends BlacklistCommand {
     await interaction.deferReply();
 
     const hubName = interaction.options.getString('hub', true);
-    const hubInDb = await db.hubs.findFirst({
+    const hubInDb = await db.hub.findFirst({
       where: {
         name: hubName,
         OR: [

@@ -18,7 +18,7 @@ import {
   ModAction,
   ModActionsDbMsgT,
 } from '#main/utils/moderation/modActions/utils.js';
-import { hubs } from '@prisma/client';
+import { Hub } from '@prisma/client';
 import {
   ApplicationCommandType,
   type ButtonInteraction,
@@ -28,7 +28,7 @@ import {
   type RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 
-type ValidDbMsg = ModActionsDbMsgT & { hubId: string; hub: hubs };
+type ValidDbMsg = ModActionsDbMsgT & { hubId: string; hub: Hub };
 
 export default class Blacklist extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {

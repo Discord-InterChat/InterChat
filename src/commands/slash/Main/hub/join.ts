@@ -6,7 +6,7 @@ import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { showOnboarding } from '#main/utils/network/onboarding.js';
 import { getOrCreateWebhook } from '#main/utils/Utils.js';
-import { hubs } from '@prisma/client';
+import type { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   ChannelType,
@@ -14,13 +14,13 @@ import {
   GuildTextBasedChannel,
   Snowflake,
 } from 'discord.js';
-import Hub from './index.js';
+import HubCommand from './index.js';
 import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
 import BlacklistManager from '#main/modules/BlacklistManager.js';
 import { check } from '#main/utils/ProfanityUtils.js';
 
-export default class JoinSubCommand extends Hub {
+export default class JoinSubCommand extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.inCachedGuild()) return;
 
@@ -110,8 +110,8 @@ export default class JoinSubCommand extends Hub {
       return false;
     }
 
-    const doesGuildNameContainBadWords = check(interaction.guild.name);
-    if (doesGuildNameContainBadWords) {
+    const { hasSlurs, hasProfanity } = check(interaction.guild.name);
+    if (hasSlurs || hasProfanity) {
       await this.replyEmbed(
         interaction,
         `${emojis.no} Your server name contains inappropriate words. Please change it before joining the hub.`,
@@ -146,7 +146,7 @@ export default class JoinSubCommand extends Hub {
       return fetchedInvite.hub;
     }
 
-    return await db.hubs.findFirst({ where: { name: hubName, private: false } });
+    return await db.hub.findFirst({ where: { name: hubName, private: false } });
   }
 
   private async isAlreadyInHub(
@@ -156,7 +156,7 @@ export default class JoinSubCommand extends Hub {
   ) {
     const channelInHub = await db.connectedList.findFirst({ where: { channelId } });
     if (channelInHub) {
-      const otherHub = await db.hubs.findFirst({ where: { id: channelInHub.hubId } });
+      const otherHub = await db.hub.findFirst({ where: { id: channelInHub.hubId } });
       await this.replyEmbed(
         interaction,
         t(
@@ -165,7 +165,7 @@ export default class JoinSubCommand extends Hub {
         ),
         { ephemeral: true },
       );
-      return false;
+      return true;
     }
 
     return false;
@@ -173,7 +173,7 @@ export default class JoinSubCommand extends Hub {
 
   private async isBlacklisted(
     interaction: ChatInputCommandInteraction<'cached'>,
-    hub: hubs,
+    hub: Hub,
     locale: supportedLocaleCodes,
   ) {
     const userBlManager = new BlacklistManager(new UserInfractionManager(interaction.user.id));
@@ -195,7 +195,7 @@ export default class JoinSubCommand extends Hub {
 
   private async processOnboarding(
     interaction: ChatInputCommandInteraction,
-    opts: { hub: hubs; channel: GuildTextBasedChannel; locale: supportedLocaleCodes },
+    opts: { hub: Hub; channel: GuildTextBasedChannel; locale: supportedLocaleCodes },
   ): Promise<boolean> {
     // display onboarding message, also prevents user from joining twice
     const onboardingCompleted = await showOnboarding(interaction, opts.hub.name, opts.channel.id);

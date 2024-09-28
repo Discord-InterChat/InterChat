@@ -1,18 +1,18 @@
-import db from '../Db.js';
-import { Prisma, hubs } from '@prisma/client';
+import { fetchHub } from '#main/utils/hub/utils.js';
+import type { Hub, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   EmbedBuilder,
-  roleMention,
-  GuildTextBasedChannel,
   messageLink,
-  User,
-  Client,
+  roleMention,
+  type Client,
+  type GuildTextBasedChannel,
+  type User,
 } from 'discord.js';
 import { emojis } from '../../config/Constants.js';
+import db from '../Db.js';
 import { resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
-import { fetchHub } from '#main/utils/hub/utils.js';
 
 export type ReportEvidenceOpts = {
   // the message content
@@ -125,7 +125,7 @@ const updateLogChannels = async (
   hubId: string,
   logChannels: Prisma.HubLogChannelsCreateInput | Prisma.HubLogChannelsNullableUpdateEnvelopeInput,
 ) => {
-  await db.hubs.update({ where: { id: hubId }, data: { logChannels } });
+  await db.hub.update({ where: { id: hubId }, data: { logChannels } });
 };
 
 export const removeReportsFrom = async (hubId: string) => {
@@ -143,7 +143,7 @@ export const setReportLogChannel = async (hubId: string, channelId: string) => {
   });
 };
 
-export const setReportRole = async (hub: hubs, roleId: string) => {
+export const setReportRole = async (hub: Hub, roleId: string) => {
   if (!hub?.logChannels?.reports) {
     throw new Error('Role ID can only be set if Channel ID is also set.');
   }

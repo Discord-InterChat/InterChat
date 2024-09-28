@@ -5,7 +5,7 @@ import {
   type HubSettingsString,
 } from '#main/modules/BitFields.js';
 import db from '#main/utils/Db.js';
-import { hubs } from '@prisma/client';
+import { Hub } from '@prisma/client';
 import { EmbedBuilder } from 'discord.js';
 
 export default class HubSettingsManager {
@@ -18,7 +18,7 @@ export default class HubSettingsManager {
   }
 
   static async create(hubId: string): Promise<HubSettingsManager> {
-    const hub = await db.hubs.findUnique({ where: { id: hubId } });
+    const hub = await db.hub.findUnique({ where: { id: hubId } });
     if (!hub) throw new Error('Hub not found');
     return new HubSettingsManager(hubId, hub.settings);
   }
@@ -63,8 +63,8 @@ export default class HubSettingsManager {
     return embed;
   }
 
-  private async saveSettings(): Promise<hubs> {
-    return await db.hubs.update({
+  private async saveSettings(): Promise<Hub> {
+    return await db.hub.update({
       where: { id: this.hubId },
       data: { settings: this.settings.bitfield },
     });

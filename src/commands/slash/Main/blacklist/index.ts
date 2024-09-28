@@ -1,6 +1,6 @@
 import { emojis } from '#main/config/Constants.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { hubs as hubsT } from '@prisma/client';
+import { Hub } from '@prisma/client';
 import {
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
@@ -213,7 +213,7 @@ export default class BlacklistCommand extends BaseCommand {
   }
 
   protected async getHub({ name, userId }: { name: string | null; userId: Snowflake }) {
-    const allHubs = await db.hubs.findMany({
+    const allHubs = await db.hub.findMany({
       where: {
         name: name ?? undefined,
         OR: [{ ownerId: userId }, { moderators: { some: { userId } } }],
@@ -251,9 +251,9 @@ export default class BlacklistCommand extends BaseCommand {
 
   protected isValidHub(
     interaction: ChatInputCommandInteraction,
-    hub: hubsT | string | null,
+    hub: Hub | string | null,
     locale: supportedLocaleCodes = 'en',
-  ): hub is hubsT {
+  ): hub is Hub {
     const hiddenOpt = { ephemeral: true };
     if (!hub) {
       this.replyEmbed(interaction, t({ phrase: 'hub.notFound_mod', locale }), hiddenOpt);
@@ -271,7 +271,7 @@ export default class BlacklistCommand extends BaseCommand {
     return true;
   }
 
-  protected isStaffOrHubMod(userId: string, hub: hubsT | null): hub is hubsT {
+  protected isStaffOrHubMod(userId: string, hub: Hub | null): hub is Hub {
     const isHubMod =
       hub?.ownerId === userId || hub?.moderators.find((mod) => mod.userId === userId);
     const isStaff = checkIfStaff(userId);
@@ -316,10 +316,10 @@ export default class BlacklistCommand extends BaseCommand {
     }));
   }
 
-  private async findHubsByName(name: string, ownerId: string, limit?: number): Promise<hubsT[]>;
-  private async findHubsByName(name: string, ownerId: string, limit: 1): Promise<hubsT>;
+  private async findHubsByName(name: string, ownerId: string, limit?: number): Promise<Hub[]>;
+  private async findHubsByName(name: string, ownerId: string, limit: 1): Promise<Hub>;
   private async findHubsByName(name: string, ownerId: string, limit?: number) {
-    const hubs = await db.hubs.findMany({
+    const hubs = await db.hub.findMany({
       where: { name: { mode: 'insensitive', contains: escapeRegexChars(name) } },
       take: limit ?? 25,
     });

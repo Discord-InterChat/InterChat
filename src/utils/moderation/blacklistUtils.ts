@@ -52,7 +52,7 @@ export const sendBlacklistNotif = async (
   opts: BlacklistOpts,
 ) => {
   try {
-    const hub = await db.hubs.findUnique({ where: { id: opts.hubId } });
+    const hub = await db.hub.findUnique({ where: { id: opts.hubId } });
     const embed = buildBlacklistNotifEmbed(type, {
       hubName: `${hub?.name}`,
       expiresAt: opts.expiresAt,

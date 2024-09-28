@@ -2,7 +2,7 @@ import { emojis } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import type { broadcastedMessages, hubs, originalMessages, Prisma } from '@prisma/client';
+import type { broadcastedMessages, Hub, originalMessages, Prisma } from '@prisma/client';
 import type {
   ButtonInteraction,
   ModalSubmitInteraction,
@@ -11,7 +11,7 @@ import type {
 } from 'discord.js';
 
 export type ModActionsDbMsgT = originalMessages & {
-  hub?: hubs | null;
+  hub?: Hub | null;
   broadcastMsgs?: broadcastedMessages[];
 };
 

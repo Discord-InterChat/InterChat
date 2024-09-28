@@ -32,7 +32,7 @@ export default class Server extends Find {
     const serversOwned = user.client.guilds.cache
       .filter((guild) => guild.ownerId === user.id)
       .map((guild) => guild.name);
-    const hubsOwned = await db.hubs.findMany({
+    const hubsOwned = await db.hub.findMany({
       where: { ownerId: user.id },
     });
     const numServersOwned = serversOwned.length > 0 ? serversOwned.join(', ') : 'None';

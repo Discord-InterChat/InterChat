@@ -15,7 +15,7 @@ export default class Servers extends Hub {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    const hub = await db.hubs.findUnique({
+    const hub = await db.hub.findUnique({
       where: { name: hubOpt },
       include: { connections: true },
     });

@@ -5,12 +5,12 @@ import type {
 } from './Types.d.ts';
 import Constants from '#main/config/Constants.js';
 import { censor } from '#main/utils/ProfanityUtils.js';
-import type { connectedList, hubs, UserData } from '@prisma/client';
+import type { connectedList, Hub, UserData } from '@prisma/client';
 import { EmbedBuilder, userMention, type WebhookMessageCreateOptions } from 'discord.js';
 
 export const getEmbedMessageFormat = (
   connection: connectedList,
-  hub: hubs,
+  hub: Hub,
   { embeds, jumpButton }: EmbedFormatOpts,
 ): WebhookMessageCreateOptions => ({
   components: jumpButton,

@@ -28,9 +28,8 @@ export default class Stats extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
-    const { originalMessages, hubs } = db;
-    const totalHubs = await hubs?.count();
-    const totalNetworkMessages = await originalMessages.count();
+    const totalHubs = await db.hub.count();
+    const totalNetworkMessages = await db.originalMessages.count();
 
     const guildCount: number[] =
       await interaction.client.cluster.fetchClientValues('guilds.cache.size');

@@ -2,8 +2,8 @@ import { deleteConnection, deleteConnections } from '#main/utils/ConnectedListUt
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import { deleteMsgsFromDb, checkIfStaff } from '#main/utils/Utils.js';
-import { hubs } from '@prisma/client';
-import { WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
+import type { Hub } from '@prisma/client';
+import { type WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
 
 /**
  * Sends a message to all connections in a hub's network.
@@ -51,11 +51,11 @@ export const deleteHubs = async (ids: string[]) => {
     );
 
   // finally, delete the hub
-  await db.hubs.deleteMany({ where: { id: { in: ids } } });
+  await db.hub.deleteMany({ where: { id: { in: ids } } });
 };
-export const fetchHub = async (id: string) => await db.hubs.findFirst({ where: { id } });
-export const isHubMod = (userId: string, hub: hubs) =>
+export const fetchHub = async (id: string) => await db.hub.findFirst({ where: { id } });
+export const isHubMod = (userId: string, hub: Hub) =>
   Boolean(hub.ownerId === userId || hub.moderators.find((mod) => mod.userId === userId));
 
-export const isStaffOrHubMod = (userId: string, hub: hubs) =>
+export const isStaffOrHubMod = (userId: string, hub: Hub) =>
   checkIfStaff(userId) || isHubMod(userId, hub);

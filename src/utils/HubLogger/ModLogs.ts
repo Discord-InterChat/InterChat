@@ -2,9 +2,9 @@ import BlacklistManager from '#main/modules/BlacklistManager.js';
 import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
 import { fetchHub } from '#main/utils/hub/utils.js';
-import { hubs } from '@prisma/client';
+import type { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { Client, codeBlock, EmbedBuilder, Snowflake, User } from 'discord.js';
+import { type Client, codeBlock, EmbedBuilder, type Snowflake, User } from 'discord.js';
 import Constants, { emojis } from '../../config/Constants.js';
 import { resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
@@ -171,7 +171,7 @@ export const logUserUnblacklist = async (client: Client, hubId: string, opts: Un
 export const logMsgDelete = async (
   client: Client,
   content: string,
-  hub: hubs,
+  hub: Hub,
   opts: { userId: string; serverId: string; modName: string; imageUrl?: string },
 ) => {
   if (!hub.logChannels?.modLogs) return;
