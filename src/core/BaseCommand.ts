@@ -1,7 +1,6 @@
 import { emojis } from '#main/config/Constants.js';
 import { MetadataHandler } from '#main/core/FileLoader.js';
 import { InteractionFunction } from '#main/decorators/Interaction.js';
-import { TranslationKeys } from '#main/types/locale.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import Logger from '#main/utils/Logger.js';
@@ -127,7 +126,7 @@ export default abstract class BaseCommand {
 
   async replyEmbed(
     interaction: RepliableInteraction | MessageComponentInteraction,
-    desc: keyof TranslationKeys | (string & {}),
+    desc: string,
     opts?: {
       content?: string;
       title?: string;
@@ -161,7 +160,6 @@ export default abstract class BaseCommand {
       opts.commandsMap.set(this.data.name, this);
       this.loadCommandInteractions(this, opts.interactionsMap);
     }
-
     else {
       const parentCommand = Object.getPrototypeOf(this.constructor) as typeof BaseCommand;
       parentCommand.subcommands?.set(fileName.replace('.js', ''), this);

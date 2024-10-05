@@ -38,8 +38,8 @@ export class MetadataHandler {
 }
 
 export class FileLoader {
-  private baseDir: string;
-  private recursive: boolean;
+  private readonly baseDir: string;
+  private readonly recursive: boolean;
 
   constructor(baseDir: string, opts?: { recursive: boolean }) {
     this.baseDir = baseDir;

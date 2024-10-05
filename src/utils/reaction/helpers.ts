@@ -12,17 +12,21 @@ import { isBlacklisted } from '#main/utils/moderation/blacklistUtils.js';
  */
 export const checkBlacklists = async (
   hubId: string,
-  guildId: string,
-  userId: string,
+  guildId: string | null,
+  userId: string | null,
 ) => {
-  const userBlacklistManager = new BlacklistManager(new UserInfractionManager(userId));
-  const guildBlacklistManager = new BlacklistManager(new ServerInfractionManager(guildId));
+  const userBlacklistManager = userId
+    ? new BlacklistManager(new UserInfractionManager(userId))
+    : undefined;
+  const guildBlacklistManager = guildId
+    ? new BlacklistManager(new ServerInfractionManager(guildId))
+    : undefined;
 
-  const userBlacklist = await userBlacklistManager.fetchBlacklist(hubId);
-  const serverBlacklist = await guildBlacklistManager.fetchBlacklist(hubId);
+  const userBlacklist = await userBlacklistManager?.fetchBlacklist(hubId);
+  const serverBlacklist = await guildBlacklistManager?.fetchBlacklist(hubId);
 
   return {
-    userBlacklisted: isBlacklisted(userBlacklist),
-    serverBlacklisted: isBlacklisted(serverBlacklist),
+    userBlacklisted: isBlacklisted(userBlacklist ?? null),
+    serverBlacklisted: isBlacklisted(serverBlacklist ?? null),
   };
 };
