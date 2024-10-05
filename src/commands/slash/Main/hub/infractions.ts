@@ -1,5 +1,5 @@
+import HubCommand from '#main/commands/slash/Main/hub/index.js';
 import { emojis } from '#main/config/Constants.js';
-import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
 import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
@@ -9,38 +9,9 @@ import {
   buildInfractionListEmbeds,
   isServerInfraction,
 } from '#main/utils/moderation/infractionUtils.js';
-import { type ChatInputCommandInteraction, ApplicationCommandOptionType } from 'discord.js';
+import { type ChatInputCommandInteraction } from 'discord.js';
 
-export default class ViewInfractions extends BaseCommand {
-  data: CmdData = {
-    name: 'viewinfractions',
-    description: 'View all blacklisted users or servers in a hub.',
-    options: [
-      {
-        name: 'hub',
-        description: 'The hub to view infractions in.',
-        type: ApplicationCommandOptionType.String,
-        required: true,
-      },
-      {
-        name: 'type',
-        description: 'The type of blacklist to view.',
-        type: ApplicationCommandOptionType.String,
-        required: true,
-        choices: [
-          { name: 'Server', value: 'server' },
-          { name: 'User', value: 'user' },
-        ],
-      },
-      {
-        name: 'target',
-        description: 'The user or server to view infractions for.',
-        type: ApplicationCommandOptionType.String,
-        autocomplete: true,
-        required: true,
-      },
-    ],
-  };
+export default class ViewInfractions extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
@@ -75,9 +46,9 @@ export default class ViewInfractions extends BaseCommand {
     if (type === 'user') {
       infractionManager = new UserInfractionManager(targetId);
 
-      const user = await interaction.client.users.fetch(targetId);
-      targetName = user.username ?? 'Unknown User.';
-      iconURL = user.displayAvatarURL();
+      const user = await interaction.client.users.fetch(targetId).catch(() => null);
+      targetName = user?.username ?? 'Unknown User.';
+      iconURL = user?.displayAvatarURL() ?? iconURL;
     }
     else {
       infractionManager = new ServerInfractionManager(targetId);

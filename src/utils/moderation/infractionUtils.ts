@@ -2,17 +2,17 @@ import Constants from '#main/config/Constants.js';
 import { msToReadable, toTitleCase } from '#main/utils/Utils.js';
 import { ServerInfraction, UserInfraction } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { EmbedBuilder, User, Client } from 'discord.js';
+import { EmbedBuilder, User, Client, time } from 'discord.js';
 
 // Type guard
-export const isServerInfraction = (list: ServerInfraction | UserInfraction) =>
-  list && 'serverName' in list;
+export const isServerInfraction = (
+  list: ServerInfraction | UserInfraction | undefined,
+): list is ServerInfraction => Boolean(list && 'serverName' in list);
 
 const createFieldData = (
   data: ServerInfraction | UserInfraction,
   { moderator }: { moderator: User | null },
 ) => {
-  const targetId = isServerInfraction(data) ? data.serverId : data.userId;
   let expiresAt = 'Never';
   if (data.expiresAt) {
     expiresAt =
@@ -22,16 +22,15 @@ const createFieldData = (
   }
 
   return {
-    name: `${data.id}`,
+    name: `${data.id} (${time(data.dateIssued, 'R')})`,
     value: stripIndents`
-    \`\`\`yaml
-    Status: ${data.status}
-    Type: ${data.type}
-    TargetID: ${targetId}
-    Reason: ${data.reason}
-    Moderator: ${moderator ? moderator.tag : 'Unknown.'}
-    Expires: ${expiresAt}
-    \`\`\`
+    > \`\`\`yaml
+    > Type: ${data.type}
+    > Status: ${data.status}
+    > Reason: ${data.reason}
+    > Moderator: ${moderator ? moderator.tag : 'Unknown.'}
+    > Expires: ${expiresAt}
+    > \`\`\`
     `,
   };
 };
@@ -47,6 +46,11 @@ export const buildInfractionListEmbeds = async (
   const options = { LIMIT: 5 };
   let counter = 0;
 
+  const firstInfraction = infractions.at(0);
+  const targetId = isServerInfraction(firstInfraction)
+    ? firstInfraction.serverId
+    : firstInfraction?.userId;
+
   const pages = [];
   for (const infraction of infractions) {
     const moderator = infraction.moderatorId
@@ -60,7 +64,7 @@ export const buildInfractionListEmbeds = async (
       pages.push({
         embeds: [
           new EmbedBuilder()
-            .setTitle(targetName)
+            .setTitle(`ID: ${targetId} | ${infractions.length} Total Infractions`)
             .setFields(fields)
             .setColor(Constants.Colors.invisible)
             .setAuthor({

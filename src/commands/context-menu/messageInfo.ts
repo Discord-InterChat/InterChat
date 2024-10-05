@@ -1,6 +1,7 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import HubLogManager from '#main/managers/HubLogManager.js';
 import { greyOutButton, greyOutButtons } from '#main/utils/ComponentUtils.js';
 import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
@@ -163,7 +164,10 @@ export default class MessageInfo extends BaseCommand {
   override async handleModals(interaction: ModalSubmitInteraction<CacheType>) {
     const { originalMsg, messageId, locale } = await this.getModalMessageInfo(interaction);
 
-    if (!originalMsg?.hub?.logChannels?.reports) {
+    if (
+      !originalMsg?.hubId ||
+      !(await HubLogManager.create(originalMsg?.hubId)).config.reports?.channelId
+    ) {
       const notEnabledEmbed = new InfoEmbed().setDescription(
         t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no }),
       );
@@ -318,7 +322,6 @@ export default class MessageInfo extends BaseCommand {
     if (!isValidDbMsgWithHubId(originalMsg)) return;
     if (!originalMsg.hub || isStaffOrHubMod(interaction.user.id, originalMsg.hub)) return;
 
-
     const { buttons, embed } = await modActionsPanel.buildMessage(interaction, originalMsg);
     await interaction.reply({ embeds: [embed], components: buttons, ephemeral: true });
   }
@@ -327,7 +330,7 @@ export default class MessageInfo extends BaseCommand {
     interaction: ButtonInteraction,
     { hub, locale, messageId }: ReportOpts,
   ) {
-    if (!hub?.logChannels?.reports) {
+    if (!hub || !(await HubLogManager.create(hub.id)).config.reports?.channelId) {
       const notEnabledEmbed = new InfoEmbed().setDescription(
         t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no }),
       );

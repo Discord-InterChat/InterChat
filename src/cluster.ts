@@ -26,9 +26,8 @@ clusterManager
     deleteExpiredInvites().catch(Logger.error);
 
     // store network message timestamps to connectedList every minute
-    scheduler.addRecurringTask('storeMsgTimestamps', 60 * 1_000, storeMsgTimestamps);
+    scheduler.addRecurringTask('storeMsgTimestamps', 10 * 60 * 1000, storeMsgTimestamps);
     scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
-
 
     // production only tasks
     if (Constants.isDevBuild) return;

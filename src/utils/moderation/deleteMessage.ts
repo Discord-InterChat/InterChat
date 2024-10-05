@@ -37,6 +37,6 @@ export const deleteMessageFromHub = async (
 };
 
 export const isDeleteInProgress = async (originalMsgId: Snowflake) => {
-  const res = await getCachedData(`${RedisKeys.msgDeleteInProgress}:${originalMsgId}`);
-  return res.data === 't';
+  const res = await cacheClient.get(`${RedisKeys.msgDeleteInProgress}:${originalMsgId}`);
+  return res === 't';
 };

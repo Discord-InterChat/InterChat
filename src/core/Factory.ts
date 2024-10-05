@@ -1,13 +1,13 @@
-import SuperClient from './BaseClient.js';
+import InterChatClient from './BaseClient.js';
 
 export default abstract class Factory {
-  protected readonly client: SuperClient;
+  protected readonly client: InterChatClient;
 
-  constructor(client: SuperClient) {
+  constructor(client: InterChatClient) {
     this.client = client;
   }
 
-  protected getClient(): SuperClient {
+  protected getClient(): InterChatClient {
     return this.client;
   }
 }

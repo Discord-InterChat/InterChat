@@ -14,10 +14,10 @@ import {
   EmbedBuilder,
   MessageComponentInteraction,
 } from 'discord.js';
-import Hub from './index.js';
+import HubCommand from './index.js';
 import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
 
-export default class Leave extends Hub {
+export default class Leave extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
     if (!interaction.inCachedGuild()) return;
     await interaction.deferReply({ ephemeral: true });

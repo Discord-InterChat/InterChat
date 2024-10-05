@@ -25,6 +25,7 @@ export const enum RedisKeys {
   msgDeleteInProgress = 'msgDeleteInProgress',
   userInfraction = 'UserInfraction',
   serverInfraction = 'ServerInfraction',
+  hubLogConfig = 'hubLogConfig',
 }
 
 export const enum ConnectionMode {

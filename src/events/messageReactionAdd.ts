@@ -1,9 +1,8 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { addReaction, updateReactions } from '#main/utils/reaction/actions.js';
-import { checkBlacklists } from '#main/utils/reaction/helpers.js';
 import { HubSettingsBitField } from '#main/modules/BitFields.js';
 import db from '#main/utils/Db.js';
-import Logger from '#main/utils/Logger.js';
+import { addReaction, updateReactions } from '#main/utils/reaction/actions.js';
+import { checkBlacklists } from '#main/utils/reaction/helpers.js';
 import { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
 
 export default class ReadctionAdd extends BaseEventListener<'messageReactionAdd'> {
@@ -30,10 +29,6 @@ export default class ReadctionAdd extends BaseEventListener<'messageReactionAdd'
     if (!originalMsg?.hub || !new HubSettingsBitField(originalMsg.hub.settings).has('Reactions')) {
       return;
     }
-
-    Logger.info(
-      `${reaction.emoji.name} reacted by ${user.tag} guild ${reaction.message.guild?.name} (${reaction.message.guildId}). Hub: ${originalMsg.hub.name}`,
-    );
 
     const { userBlacklisted, serverBlacklisted } = await checkBlacklists(
       originalMsg.hub.id,

@@ -23,12 +23,13 @@ export default class HubSettingsManager {
     return new HubSettingsManager(hubId, hub.settings);
   }
 
-  async updateSetting(setting: HubSettingsString, value?: boolean): Promise<void> {
+  async updateSetting(setting: HubSettingsString, value?: boolean): Promise<boolean> {
     if (value) this.settings.add(setting);
     else if (value === undefined) this.settings.toggle(setting);
     else this.settings.remove(setting);
 
     await this.saveSettings();
+    return this.settings.has(setting);
   }
 
   async updateMultipleSettings(
@@ -50,7 +51,7 @@ export default class HubSettingsManager {
     return this.settings.serialize();
   }
 
-  getSettingsEmbed(): EmbedBuilder {
+  get settingsEmbed(): EmbedBuilder {
     const embed = new EmbedBuilder()
       .setTitle('Hub Settings')
       .setColor('#0099ff')

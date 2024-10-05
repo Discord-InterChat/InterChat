@@ -24,23 +24,35 @@ import toLower from 'lodash/toLower.js';
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
 
-/** Convert milliseconds to a human readable time (eg: 1d 2h 3m 4s) */
-export const msToReadable = (milliseconds: number) => {
-  let totalSeconds = milliseconds / 1000;
-  const days = Math.floor(totalSeconds / 86400);
-  totalSeconds %= 86400;
-  const hours = Math.floor(totalSeconds / 3600);
-  totalSeconds %= 3600;
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = Math.floor(totalSeconds % 60);
-  let readable;
+export const msToReadable = (milliseconds: number, short = true): string => {
+  if (milliseconds < 0) return 'Invalid input';
+  if (milliseconds === 0) return short ? '0s' : '0 seconds';
 
-  if (days === 0 && hours === 0 && minutes === 0) readable = `${seconds} seconds`;
-  else if (days === 0 && hours === 0) readable = `${minutes}m ${seconds}s`;
-  else if (days === 0) readable = `${hours}h, ${minutes}m ${seconds}s`;
-  else readable = `${days}d ${hours}h, ${minutes}m ${seconds}s`;
+  const timeUnits = [
+    { div: 31536000000, short: 'y', long: 'year' },
+    { div: 2629746000, short: 'm', long: 'month' },
+    { div: 86400000, short: 'd', long: 'day' },
+    { div: 3600000, short: 'h', long: 'hour' },
+    { div: 60000, short: 'm', long: 'minute' },
+    { div: 1000, short: 's', long: 'second' },
+  ];
 
-  return readable;
+  let remainingMs = milliseconds;
+  const parts: string[] = [];
+
+  for (const unit of timeUnits) {
+    const value = Math.floor(remainingMs / unit.div);
+    if (value > 0) {
+      // eslint-disable-next-line no-nested-ternary
+      const suffix = short ? unit.short : value === 1 ? ` ${unit.long}` : ` ${unit.long}s`;
+
+      parts.push(`${value}${suffix}`);
+      remainingMs %= unit.div;
+    }
+  }
+
+  // Limit to two most significant parts for readability
+  return parts.slice(0, 2).join(' ');
 };
 
 export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

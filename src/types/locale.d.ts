@@ -167,8 +167,10 @@ export type TranslationKeys = {
   'hub.manage.logs.modLogs.description': never;
   'hub.manage.logs.profanity.label': never;
   'hub.manage.logs.profanity.description': never;
-  'hub.manage.logs.joinLeave.label': never;
-  'hub.manage.logs.joinLeave.description': never;
+  'hub.manage.logs.joinLeaves.label': never;
+  'hub.manage.logs.joinLeaves.description': never;
+  'hub.manage.logs.appeals.label': never;
+  'hub.manage.logs.appeals.description': never;
   'report.modal.title': never;
   'report.modal.other.label': never;
   'report.modal.other.placeholder': never;

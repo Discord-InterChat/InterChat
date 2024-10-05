@@ -1,3 +1,8 @@
+import BaseCommand from '#main/core/BaseCommand.js';
+import { logsWithRoleId } from '#main/managers/HubLogManager.js';
+import { HubSettingsBits } from '#main/modules/BitFields.js';
+import db from '#main/utils/Db.js';
+import { escapeRegexChars, handleError, toTitleCase } from '#main/utils/Utils.js';
 import {
   APIApplicationCommandBasicOption,
   ApplicationCommandOptionType,
@@ -9,9 +14,6 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
   Snowflake,
 } from 'discord.js';
-import BaseCommand from '#main/core/BaseCommand.js';
-import db from '#main/utils/Db.js';
-import { escapeRegexChars, handleError } from '#main/utils/Utils.js';
 
 const hubOption: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.String,
@@ -21,7 +23,15 @@ const hubOption: APIApplicationCommandBasicOption = {
   autocomplete: true,
 };
 
-export default class Hub extends BaseCommand {
+const logTypeOpt = [
+  { name: 'Reports', value: 'reports' },
+  { name: 'Moderation Logs', value: 'modLogs' },
+  { name: 'Profanity', value: 'profanity' },
+  { name: 'Join/Leave', value: 'joinLeaves' },
+  { name: 'Appeals', value: 'appeals' },
+];
+
+export default class HubCommand extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'hub',
     description: 'Manage your hubs.',
@@ -45,29 +55,17 @@ export default class Hub extends BaseCommand {
             description: 'Sort the results.',
             required: false,
             choices: [
-              {
-                name: 'Most Active',
-                value: 'active',
-              },
-              {
-                name: 'Most Popular',
-                value: 'popular',
-              },
-              {
-                name: 'Most Servers',
-                value: 'servers',
-              },
-              {
-                name: 'Recently Created',
-                value: 'recent',
-              },
+              { name: 'Most Active', value: 'active' },
+              { name: 'Most Popular', value: 'popular' },
+              { name: 'Most Servers', value: 'servers' },
+              { name: 'Recently Created', value: 'recent' },
             ],
           },
         ],
       },
       {
         type: ApplicationCommandOptionType.Subcommand,
-        name: 'manage',
+        name: 'edit',
         description: '📝 Edit a hub you own.',
         options: [hubOption],
       },
@@ -173,7 +171,7 @@ export default class Hub extends BaseCommand {
             name: 'remove',
             description: 'Remove a user from moderator position in your hub',
             options: [
-              { ...hubOption },
+              hubOption,
               {
                 type: ApplicationCommandOptionType.User,
                 name: 'user',
@@ -187,7 +185,7 @@ export default class Hub extends BaseCommand {
             name: 'update',
             description: 'Update the position of a hub moderator',
             options: [
-              { ...hubOption },
+              hubOption,
               {
                 type: ApplicationCommandOptionType.User,
                 name: 'user',
@@ -273,6 +271,136 @@ export default class Hub extends BaseCommand {
         name: 'joined',
         description: '📜 List all hubs you have joined from this server.',
       },
+      {
+        name: 'settings',
+        description:
+          'Manage the toggleable settings of the hub. (eg. Reactions, Spam filter, etc.)',
+        type: ApplicationCommandOptionType.SubcommandGroup,
+        options: [
+          {
+            name: 'list',
+            description: 'List all the settings of the hub.',
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [{ ...hubOption, required: false }],
+          },
+          {
+            name: 'toggle',
+            description: 'Toggle a setting of the hub.',
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [
+              {
+                name: 'setting',
+                description: 'The setting to toggle.',
+                type: ApplicationCommandOptionType.String,
+                required: true,
+                choices: Object.keys(HubSettingsBits).map((s) => ({ name: s, value: s })),
+              },
+              { ...hubOption, required: false },
+            ],
+          },
+        ],
+      },
+      {
+        name: 'logging',
+        description: 'Edit log channels & roles for this hub.',
+        type: ApplicationCommandOptionType.SubcommandGroup,
+        options: [
+          {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: 'view',
+            description: 'View the current log channel & role configuration.',
+            options: [{ ...hubOption, required: false }],
+          },
+          {
+            name: 'set_channel',
+            description: 'Set a channel for a log type.',
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [
+              {
+                name: 'log_type',
+                description: 'The type of log to set a channel for.',
+                type: ApplicationCommandOptionType.String,
+                required: true,
+                choices: logTypeOpt,
+              },
+              {
+                name: 'channel',
+                description: 'The channel to set for the log type.',
+                type: ApplicationCommandOptionType.Channel,
+                required: true,
+              },
+              { ...hubOption, required: false },
+            ],
+          },
+          {
+            name: 'set_role',
+            description: 'Set a role for a log type.',
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [
+              {
+                name: 'log_type',
+                description: 'The type of log to set a role for.',
+                type: ApplicationCommandOptionType.String,
+                required: true,
+                choices: logsWithRoleId.map((log) => ({ name: toTitleCase(log), value: log })),
+              },
+              {
+                name: 'role',
+                description: 'The role to set for the log type.',
+                type: ApplicationCommandOptionType.Role,
+                required: true,
+              },
+              { ...hubOption, required: false },
+            ],
+          },
+        ],
+      },
+      {
+        type: ApplicationCommandOptionType.SubcommandGroup,
+        name: 'appeal',
+        description: 'Manage appeal settings for your hub.',
+        options: [
+          {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: 'set_cooldown',
+            description: 'Set the duration a user must wait before appealing a blacklist again.',
+            options: [
+              {
+                type: ApplicationCommandOptionType.String,
+                name: 'cooldown',
+                description: 'The duration. Eg. 1h, 1d, 1w, 1mo',
+                required: true,
+              },
+              { ...hubOption, required: false },
+            ],
+          },
+        ],
+      },
+      {
+        type: ApplicationCommandOptionType.Subcommand,
+        name: 'infractions',
+        description: 'View infractions for a user or server in a hub.',
+        options: [
+          hubOption,
+          {
+            name: 'type',
+            description: 'The type of blacklist to view.',
+            type: ApplicationCommandOptionType.String,
+            required: true,
+            choices: [
+              { name: 'Server', value: 'server' },
+              { name: 'User', value: 'user' },
+            ],
+          },
+          {
+            name: 'target',
+            description: 'The user or server to view infractions for.',
+            type: ApplicationCommandOptionType.String,
+            autocomplete: true,
+            required: true,
+          },
+        ],
+      },
     ],
   };
 
@@ -280,7 +408,7 @@ export default class Hub extends BaseCommand {
   static readonly subcommands = new Collection<string, BaseCommand>();
 
   async execute(interaction: ChatInputCommandInteraction) {
-    const subcommand = Hub.subcommands?.get(
+    const subcommand = HubCommand.subcommands?.get(
       interaction.options.getSubcommandGroup() || interaction.options.getSubcommand(),
     );
 
@@ -288,7 +416,7 @@ export default class Hub extends BaseCommand {
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const managerCmds = ['manage', 'settings', 'invite', 'moderator', 'logging'];
+    const managerCmds = ['edit', 'settings', 'invite', 'moderator', 'logging', 'appeal'];
     const modCmds = ['servers'];
 
     const subcommand = interaction.options.getSubcommand();
@@ -310,6 +438,11 @@ export default class Hub extends BaseCommand {
     }
     else if (subcommand === 'leave') {
       const choices = await this.getLeaveSubcommandChoices(focusedValue, interaction.guild);
+      await interaction.respond(choices ?? []);
+      return;
+    }
+    else if (subcommand === 'infractions') {
+      const choices = await this.getInfractionSubcommandChoices(interaction);
       await interaction.respond(choices ?? []);
       return;
     }

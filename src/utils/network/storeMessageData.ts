@@ -5,6 +5,7 @@ import Logger from '#main/utils/Logger.js';
 import cacheClient from '#main/utils/cache/cacheClient.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
+import { getCachedData } from '#main/utils/cache/cacheUtils.js';
 
 interface ErrorResult {
   webhookURL: string;
@@ -18,6 +19,19 @@ interface SendResult {
 }
 
 export type NetworkWebhookSendResult = ErrorResult | SendResult;
+
+const storeMessageTimestamp = async (message: Message) => {
+  const { data: msgTimestampArr } = await getCachedData<{ channelId: string; timestamp: number }[]>(
+    `${RedisKeys.msgTimestamp}:all`,
+  );
+
+  const data = JSON.stringify([
+    ...(msgTimestampArr ?? []),
+    { channelId: message.channelId, timestamp: message.createdTimestamp },
+  ]);
+
+  await cacheClient.set(`${RedisKeys.msgTimestamp}:all`, data);
+};
 
 /**
  * Stores message data in the database and updates the connectedList based on the webhook status.
@@ -39,7 +53,7 @@ export default async (
   }[] = [];
 
   const invalidWebhookURLs: string[] = [];
-  const validErrors = ['Invalid Webhook Token', 'Unknown Webhook', 'Missing Permissions'];
+  const validErrors = ['Unknown Webhook', 'Missing Permissions', 'Invalid Webhook'];
 
   // loop through all results and extract message data and invalid webhook urls
   broadcastResults.forEach((res) => {
@@ -78,14 +92,7 @@ export default async (
     });
   }
 
-  // store message timestamps to push to db later
-  await cacheClient.set(
-    `${RedisKeys.msgTimestamp}:${message.channelId}`,
-    JSON.stringify({
-      channelId: message.channelId,
-      timestamp: message.createdTimestamp,
-    }),
-  );
+  await storeMessageTimestamp(message);
 
   // disconnect network if, webhook does not exist/bot cannot access webhook
   if (invalidWebhookURLs.length > 0) {

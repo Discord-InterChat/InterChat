@@ -14,9 +14,9 @@ import {
   ChatInputCommandInteraction,
   EmbedBuilder,
 } from 'discord.js';
-import Hub from './index.js';
+import HubCommand from './index.js';
 
-export default class Delete extends Hub {
+export default class Delete extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
     const hubInDb = await db.hub.findFirst({ where: { name: hubName } });

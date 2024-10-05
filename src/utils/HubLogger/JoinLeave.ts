@@ -1,20 +1,19 @@
+import HubLogManager from '#main/managers/HubLogManager.js';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, Guild } from 'discord.js';
-import { getHubConnections } from '../ConnectedListUtils.js';
 import Constants, { emojis } from '../../config/Constants.js';
+import { getHubConnections } from '../ConnectedListUtils.js';
 import { sendLog } from './Default.js';
-import { fetchHub } from '#main/utils/hub/utils.js';
 
 export const logJoinToHub = async (
   hubId: string,
   server: Guild,
   opt?: { totalConnections: number; hubName: string },
 ) => {
-  const hub = await fetchHub(hubId);
-  if (!hub?.logChannels?.joinLeaves) return;
+  const logManager = await HubLogManager.create(hubId);
+  if (!logManager.config.joinLeaves) return;
 
   const owner = await server.fetchOwner();
-
   const embed = new EmbedBuilder()
     .setTitle('New Server Joined')
     .setDescription(
@@ -30,15 +29,15 @@ export const logJoinToHub = async (
       text: `We have ${opt?.totalConnections} server(s) connected to ${opt?.hubName} now!`,
     });
 
-  await sendLog(server.client.cluster, hub?.logChannels?.joinLeaves, embed);
+  await sendLog(server.client.cluster, logManager.config.joinLeaves, embed);
 };
 
 export const logGuildLeaveToHub = async (hubId: string, server: Guild) => {
-  const hub = await fetchHub(hubId);
-  if (!hub?.logChannels?.joinLeaves) return;
+  const logManager = await HubLogManager.create(hubId);
+  if (!logManager.config.joinLeaves) return;
 
   const owner = await server.client.users.fetch(server.ownerId).catch(() => null);
-  const totalConnections = (await getHubConnections(hub.id))?.reduce(
+  const totalConnections = (await getHubConnections(hubId))?.reduce(
     (total, c) => total + (c.connected ? 1 : 0),
     0,
   );
@@ -55,8 +54,8 @@ export const logGuildLeaveToHub = async (hubId: string, server: Guild) => {
     .setColor('Red')
     .setThumbnail(server.iconURL())
     .setFooter({
-      text: `We now have ${totalConnections} server(s) connected to ${hub.name} now!`,
+      text: `We now have ${totalConnections} server(s) connected to the hub now!`,
     });
 
-  await sendLog(server.client.cluster, hub.logChannels.joinLeaves, embed);
+  await sendLog(server.client.cluster, logManager.config.joinLeaves, embed);
 };

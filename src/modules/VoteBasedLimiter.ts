@@ -24,10 +24,12 @@ export default class VoteLimitManager {
   }
 
   public async getRemainingUses() {
-    const { data: usesLeft, fromCache } = await getCachedData<number>(
+    const { data, fromCache } = await getCachedData<{ usesLeft: string }>(
       `${RedisKeys.commandUsesLeft}:${this.limitObjKey}:${this.userId}`,
       null,
     );
+
+    const usesLeft = isNaN(Number(data?.usesLeft)) ? null : Number(data?.usesLeft);
 
     return { usesLeft, fromCache };
   }
@@ -35,7 +37,7 @@ export default class VoteLimitManager {
   public async setRemainingUses(remainingUses: number, expirySecs?: number) {
     return await cacheData(
       `${RedisKeys.commandUsesLeft}:${this.limitObjKey}:${this.userId}`,
-      remainingUses.toString(),
+      JSON.stringify({ usesLeft: remainingUses.toString() }),
       expirySecs,
     );
   }
@@ -44,10 +46,7 @@ export default class VoteLimitManager {
     const { usesLeft, fromCache } = await this.getRemainingUses();
 
     // Default to max edits if there's no data
-    const newUsesCount =
-      usesLeft !== null && !isNaN(usesLeft)
-        ? Math.max(usesLeft - 1, 0)
-        : this.MAX_USES_WITHOUT_VOTE;
+    const newUsesCount = usesLeft !== null ? Math.max(usesLeft - 1, 0) : this.MAX_USES_WITHOUT_VOTE;
 
     // If from cache, don't overrite the duration
     const expirySecs = !fromCache ? this.CACHE_DURATION : undefined;

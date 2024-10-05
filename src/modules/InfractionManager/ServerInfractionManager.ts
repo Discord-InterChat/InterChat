@@ -28,7 +28,7 @@ export default class ServerInfractionManager extends BaseInfractionManager<Serve
 
     const revoked = await db.serverInfraction.update({
       where: { id: infraction.id },
-      data: { status: 'REVOKED', revokedAt: new Date() },
+      data: { status: 'REVOKED' },
     });
 
     this.cacheEntity(revoked);

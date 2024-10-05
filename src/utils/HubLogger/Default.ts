@@ -1,31 +1,5 @@
-import type { Prisma } from '@prisma/client';
 import type { ClusterClient } from 'discord-hybrid-sharding';
 import type { Channel, Client, EmbedBuilder } from 'discord.js';
-import db from '../Db.js';
-import { setReportLogChannel } from './Report.js';
-
-export const setLogChannelFor = async (
-  hubId: string,
-  type: keyof Prisma.HubLogChannelsCreateInput,
-  channelId: string,
-) => {
-  if (type === 'reports') {
-    await setReportLogChannel(hubId, channelId);
-  }
-  else {
-    await db.hub.update({
-      where: { id: hubId },
-      data: {
-        logChannels: {
-          upsert: {
-            set: { [type]: channelId },
-            update: { [type]: channelId },
-          },
-        },
-      },
-    });
-  }
-};
 
 /**
  * Sends a log message to the specified channel with the provided embed.

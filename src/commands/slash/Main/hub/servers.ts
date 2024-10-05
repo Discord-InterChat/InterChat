@@ -4,9 +4,9 @@ import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import { resolveEval } from '#main/utils/Utils.js';
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import Hub from './index.js';
+import HubCommand from './index.js';
 
-export default class Servers extends Hub {
+export default class Servers extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply();
 

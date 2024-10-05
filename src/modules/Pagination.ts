@@ -55,7 +55,7 @@ export class Pagination {
     const replyMethod = getReplyMethod(ctx);
     if (this.pages.length < 1) {
       await ctx[replyMethod]({
-        content: `${emojis.tick} No pages to display!`,
+        content: `${emojis.tick} No results to display!`,
         ephemeral: true,
       });
 
@@ -118,7 +118,7 @@ export class Pagination {
         await interaction.deleteReply();
       }
       else {
-        await interaction.update({ components: [] });
+        await interaction.editReply({ components: [] });
       }
     });
   }

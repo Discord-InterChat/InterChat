@@ -1,4 +1,8 @@
-import { deleteConnection, deleteConnections } from '#main/utils/ConnectedListUtils.js';
+import {
+  deleteConnection,
+  deleteConnections,
+  getHubConnections,
+} from '#main/utils/ConnectedListUtils.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import { deleteMsgsFromDb, checkIfStaff } from '#main/utils/Utils.js';
@@ -12,30 +16,28 @@ import { type WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
  * @returns A array of the responses from each connection's webhook.
  */
 export const sendToHub = async (hubId: string, message: string | WebhookMessageCreateOptions) => {
-  const connections = await db.connectedList.findMany({ where: { hubId } });
+  const connections = await getHubConnections(hubId);
 
-  const res = connections
-    .filter((c) => c.connected === true)
-    .map(async ({ channelId, webhookURL, parentId }) => {
-      const threadId = parentId ? channelId : undefined;
-      const payload =
-        typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
+  connections?.forEach(async ({ channelId, webhookURL, parentId, connected }) => {
+    if (!connected) return;
 
-      try {
-        const webhook = new WebhookClient({ url: webhookURL });
-        return await webhook.send(payload);
-      }
-      catch (e) {
-        // if the webhook is unknown, delete the connection
-        if (e.message.includes('Unknown Webhook')) await deleteConnection({ channelId });
+    const threadId = parentId ? channelId : undefined;
+    const payload =
+      typeof message === 'string' ? { content: message, threadId } : { ...message, threadId };
 
-        e.message = `For Connection: ${channelId} ${e.message}`;
-        Logger.error(e);
-        return null;
-      }
-    });
+    try {
+      const webhook = new WebhookClient({ url: webhookURL });
+      return await webhook.send(payload);
+    }
+    catch (e) {
+      // if the webhook is unknown, delete the connection
+      if (e.message.includes('Unknown Webhook')) await deleteConnection({ channelId });
 
-  return await Promise.all(res);
+      e.message = `For Connection: ${channelId} ${e.message}`;
+      Logger.error(e);
+      return null;
+    }
+  });
 };
 
 export const deleteHubs = async (ids: string[]) => {

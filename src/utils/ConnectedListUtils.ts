@@ -82,7 +82,7 @@ const cacheConnectionHubId = async (connection: connectedList) => {
     await cacheClient.del(`${RedisKeys.connectionHubId}:${connection.channelId}`);
   }
   else {
-    await cacheData(`${RedisKeys.connectionHubId}:${connection.channelId}`, connection.hubId);
+    await cacheData(`${RedisKeys.connectionHubId}:${connection.channelId}`, JSON.stringify({ id: connection.hubId }));
   }
 
   Logger.debug(
@@ -101,12 +101,15 @@ export const fetchConnection = async (channelId: string) => {
 };
 
 export const getConnectionHubId = async (channelId: string) => {
-  const { data: hubId } = await getCachedData(
+  const { data } = await getCachedData(
     `${RedisKeys.connectionHubId}:${channelId}`,
-    async () => (await fetchConnection(channelId))?.hubId,
+    async () => {
+      const connection = await fetchConnection(channelId);
+      return connection ? { id: connection.hubId } : null;
+    },
   );
 
-  return hubId;
+  return data?.id ?? null;
 };
 
 export const deleteConnection = async (where: whereUniuqeInput) => {

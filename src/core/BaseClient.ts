@@ -1,11 +1,12 @@
 import Constants from '#main/config/Constants.js';
+import type BaseCommand from '#main/core/BaseCommand.js';
+import type { InteractionFunction } from '#main/decorators/Interaction.js';
 import CooldownService from '#main/modules/CooldownService.js';
-import EventHandler from '#main/modules/EventHandler.js';
+import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import UserDbManager from '#main/modules/UserDbManager.js';
-import { RandomComponents } from '#main/RandomComponents.js';
 import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
-import { commandsMap, interactionsMap, loadCommandFiles } from '#main/utils/CommandUtls.js';
+import { loadCommandFiles, loadInteractions } from '#main/utils/CommandUtils.js';
 import { loadLocales } from '#main/utils/Locale.js';
 import { resolveEval } from '#main/utils/Utils.js';
 import type { RemoveMethods } from '#types/index.d.ts';
@@ -22,24 +23,23 @@ import {
   Options,
 } from 'discord.js';
 
-export default class SuperClient extends Client {
-  public static instance: SuperClient;
+export default class InterChatClient extends Client {
+  static instance: InterChatClient;
 
   private readonly scheduler = new Scheduler();
-  readonly _componentListeners = new RandomComponents();
 
   readonly description = 'The only cross-server chatting bot you\'ll ever need.';
   readonly version = Constants.ProjectVersion;
-  readonly commands = commandsMap;
-  readonly interactions = interactionsMap;
 
   readonly webhooks = new Collection<string, WebhookClient>();
   readonly reactionCooldowns = new Collection<string, number>();
 
   readonly userManager = new UserDbManager();
   readonly cluster = new ClusterClient(this);
-  readonly eventHandler = new EventHandler(this);
+  readonly eventLoader = new EventLoader(this);
   readonly commandCooldowns = new CooldownService();
+  public readonly commands = new Collection<string, BaseCommand>();
+  public readonly interactions = new Collection<string, InteractionFunction>();
 
   constructor() {
     super({
@@ -88,14 +88,15 @@ export default class SuperClient extends Client {
    */
   async start() {
     // initialize the client
-    SuperClient.instance = this;
+    InterChatClient.instance = this;
 
     // initialize i18n for localization
     loadLocales('locales/locales');
 
     // load commands
-    await loadCommandFiles({ loadInteractions: true });
-    this.eventHandler.loadListeners();
+    loadCommandFiles(this.commands, this.interactions);
+    loadInteractions(this.interactions);
+    this.eventLoader.load();
 
     // Discord.js automatically uses DISCORD_TOKEN env variable
     await this.login(process.env.DISCORD_TOKEN);
