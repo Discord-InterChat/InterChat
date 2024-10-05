@@ -37,7 +37,7 @@ export default class Blacklist extends BaseCommand {
     dm_permission: false,
   };
 
-  private modActionHandlers: Record<string, ModAction>;
+  private readonly modActionHandlers: Record<string, ModAction>;
 
   constructor() {
     super();

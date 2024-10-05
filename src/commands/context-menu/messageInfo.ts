@@ -89,8 +89,7 @@ export default class MessageInfo extends BaseCommand {
     const connection = (await getHubConnections(originalMsg.hub.id))?.find(
       (c) => c.connected && c.serverId === originalMsg.serverId,
     );
-    const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-    const components = this.buildButtons(expiry, locale, {
+    const components = this.buildButtons(locale, {
       buildModActions: isStaffOrHubMod(interaction.user.id, originalMsg.hub),
       inviteButtonUrl: connection?.invite,
     });
@@ -258,7 +257,7 @@ export default class MessageInfo extends BaseCommand {
     await interaction.deferUpdate();
     const createdAt = Math.round(author.createdTimestamp / 1000);
     const hubsOwned = await db.hub.count({ where: { ownerId: author.id } });
-    const displayName = author.globalName || 'Not Set.';
+    const displayName = author.globalName ?? 'Not Set.';
 
     const userEmbed = new EmbedBuilder()
       .setDescription(`### ${emojis.info} ${author.username}`)
@@ -320,7 +319,13 @@ export default class MessageInfo extends BaseCommand {
     { originalMsg }: ModActionsOpts,
   ) {
     if (!isValidDbMsgWithHubId(originalMsg)) return;
-    if (!originalMsg.hub || isStaffOrHubMod(interaction.user.id, originalMsg.hub)) return;
+    if (!originalMsg.hub || !isStaffOrHubMod(interaction.user.id, originalMsg.hub)) {
+      await interaction.reply({
+        content: t({ phrase: 'hub.notFound_mod', locale: 'en' }, { emoji: emojis.no }),
+        ephemeral: true,
+      });
+      return;
+    };
 
     const { buttons, embed } = await modActionsPanel.buildMessage(interaction, originalMsg);
     await interaction.reply({ embeds: [embed], components: buttons, ephemeral: true });
@@ -387,7 +392,6 @@ export default class MessageInfo extends BaseCommand {
   }
 
   private buildButtons(
-    expiry: Date,
     locale: supportedLocaleCodes = 'en',
     opts?: { buildModActions?: boolean; inviteButtonUrl?: string | null },
   ) {
@@ -396,7 +400,7 @@ export default class MessageInfo extends BaseCommand {
         .setLabel(t({ phrase: 'msgInfo.buttons.report', locale }))
         .setStyle(ButtonStyle.Danger)
         .setCustomId(
-          new CustomID().setIdentifier('msgInfo', 'report').setExpiry(expiry).toString(),
+          new CustomID().setIdentifier('msgInfo', 'report').toString(),
         ),
     ];
 
@@ -407,7 +411,7 @@ export default class MessageInfo extends BaseCommand {
           .setEmoji('🛠️')
           .setLabel('Mod Actions')
           .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'modActions').setExpiry(expiry).toString(),
+            new CustomID().setIdentifier('msgInfo', 'modActions').toString(),
           ),
       );
     }
@@ -428,19 +432,19 @@ export default class MessageInfo extends BaseCommand {
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(true)
           .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'msgInfo').setExpiry(expiry).toString(),
+            new CustomID().setIdentifier('msgInfo', 'msgInfo').toString(),
           ),
         new ButtonBuilder()
           .setLabel(t({ phrase: 'msgInfo.buttons.server', locale }))
           .setStyle(ButtonStyle.Secondary)
           .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'serverInfo').setExpiry(expiry).toString(),
+            new CustomID().setIdentifier('msgInfo', 'serverInfo').toString(),
           ),
         new ButtonBuilder()
           .setLabel(t({ phrase: 'msgInfo.buttons.user', locale }))
           .setStyle(ButtonStyle.Secondary)
           .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'userInfo').setExpiry(expiry).toString(),
+            new CustomID().setIdentifier('msgInfo', 'userInfo').toString(),
           ),
       ),
       new ActionRowBuilder<ButtonBuilder>({ components: extras }),
