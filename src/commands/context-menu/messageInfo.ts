@@ -325,7 +325,7 @@ export default class MessageInfo extends BaseCommand {
         ephemeral: true,
       });
       return;
-    };
+    }
 
     const { buttons, embed } = await modActionsPanel.buildMessage(interaction, originalMsg);
     await interaction.reply({ embeds: [embed], components: buttons, ephemeral: true });
