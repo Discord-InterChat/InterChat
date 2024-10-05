@@ -88,7 +88,7 @@ export const sendHubReport = async (
   const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
   if (!hub?.logConfig[0]?.reports?.channelId) return;
 
-  const { channelId: reportsChannelId, roleId: reportsRoleId } = hub?.logConfig[0]?.reports;
+  const { channelId: reportsChannelId, roleId: reportsRoleId } = hub.logConfig[0].reports;
   const server = await client.fetchGuild(serverId);
   const jumpLink = await genJumpLink(hubId, client, evidence?.messageId, reportsChannelId);
 

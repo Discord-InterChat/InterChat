@@ -81,7 +81,6 @@ export default class LoggingCommand extends HubCommand {
         'You must set the logging channel before setting the role ID.',
         { ephemeral: true },
       );
-      return;
     }
   }
 

@@ -122,7 +122,7 @@ model Hub {
   createdAt           DateTime           @default(now())
   settings            Int // each bit is a setting
   // all the stuff below is relations to other collections
-  invites             hubInvites[]
+  invites             HubInvite[]
   moderators          HubModerator[]
   connections         connectedList[]
   logConfig           HubLogConfig[]
@@ -146,12 +146,13 @@ model HubLogConfig {
   @@index([id, hubId])
 }
 
-model hubInvites {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  code    String   @unique @default(nanoid(10))
+model HubInvite {
+  code      String   @id @default(nanoid(10)) @map("_id")
   expires DateTime
   hub     Hub      @relation(fields: [hubId], references: [id])
   hubId   String   @db.ObjectId
+
+  @@index([code, hubId])
 }
 
 model originalMessages {
