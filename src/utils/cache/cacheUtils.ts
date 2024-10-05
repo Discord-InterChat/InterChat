@@ -8,10 +8,7 @@ import { type Awaitable } from 'discord.js';
 
 export const cacheData = async (key: string, value: string, expirySecs?: number) => {
   try {
-    if (expirySecs) {
-      return await cacheClient.set(key, value, 'EX', expirySecs);
-    }
-    return await cacheClient.set(key, value, 'KEEPTTL');
+    return await cacheClient.set(key, value, 'EX', expirySecs ?? 5 * 60);
   }
   catch (e) {
     Logger.error('Failed to set cache: ', e);
@@ -32,40 +29,31 @@ export const invalidateCacheForModel = async (model: string) => {
   });
 };
 
-export function serializeCache<K>(data: string | null): ConvertDatesToString<K> | null;
-export function serializeCache<K>(
-  data: string | (string | null)[] | null,
-): ConvertDatesToString<K>[] | null;
-export function serializeCache(data: string | (string | null)[] | null) {
+export const serializeCache = <K>(data: string | null): ConvertDatesToString<K> | null => {
   if (!data) return null;
-
-  if (!Array.isArray(data)) {
-    try {
-      return JSON.parse(data);
-    }
-    catch {
-      return data;
-    }
+  try {
+    return JSON.parse(data);
   }
-  else if (data.length > 0) {
-    return data.map((v) => (v ? JSON.parse(v) : undefined)).filter(Boolean);
+  catch (e) {
+    Logger.error('Failed to parse cache data: ', e);
+    return data as ConvertDatesToString<K>;
   }
-
-  return null;
-}
+};
 
 export const traverseCursor = async (
   result: [cursor: string, elements: string[]],
   match: string,
   start: number,
-) => {
+): Promise<[cursor: string, elements: string[]]> => {
   const cursor = parseInt(result[0]);
   if (isNaN(cursor) || cursor === 0) return result;
 
-  const newRes = await cacheClient.scan(start, 'MATCH', match, 'COUNT', cursor);
+  const newRes = await cacheClient.scan(start, 'MATCH', match, 'COUNT', 100);
 
   result[0] = newRes[0];
   result[1].push(...newRes[1]);
+
+  if (newRes[0] !== '0') return await traverseCursor(result, match, start);
   return result;
 };
 
@@ -78,25 +66,22 @@ export const getAllDocuments = async (match: string) => {
   return result;
 };
 
-const containsElements = (data: unknown) => Array.isArray(data) ? !data.length : true;
+const isCacheable = (data: unknown): boolean =>
+  Array.isArray(data) ? data.length > 0 : data !== null && data !== undefined;
 
-export const getCachedData = async <T>(
+export const getCachedData = async <
+  T extends { [key: string]: unknown } | { [key: string]: unknown }[],
+>(
   key: `${RedisKeys}:${string}`,
   fetchFunction?: (() => Awaitable<T | null>) | null,
   expiry?: number,
-): Promise<{ data: ConvertDatesToString<T> | null; fromCache: boolean }> => {
-  // Check cache first
+) => {
   let data = serializeCache<T>(await cacheClient.get(key));
-  const fromCache = data !== null && containsElements(data);
+  const fromCache = isCacheable(data);
 
-  // If not in cache, fetch from database
   if (!fromCache && fetchFunction) {
     data = (await fetchFunction()) as ConvertDatesToString<T>;
-
-    // Store in cache with TTL
-    if (data || containsElements(data)) {
-      cacheData(key, JSON.stringify(data), expiry);
-    }
+    if (isCacheable(data)) await cacheData(key, JSON.stringify(data), expiry);
   }
 
   return { data, fromCache };
