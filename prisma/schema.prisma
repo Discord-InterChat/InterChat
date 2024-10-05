@@ -27,14 +27,7 @@ type HubModerator {
   position HubModeratorPosition @default(network_mod)
 }
 
-type HubLogChannels {
-  modLogs    String?
-  joinLeaves String?
-  profanity  String?
-  reports    hubLogReports?
-}
-
-type hubLogReports {
+type hubLogChannelAndRole {
   channelId String
   roleId    String?
 }
@@ -58,10 +51,11 @@ enum InfractionType {
 enum InfractionStatus {
   ACTIVE
   REVOKED
+  APPEALED
 }
 
 model UserInfraction {
-  id          String           @id @default(nanoid()) @map("_id")
+  id          String           @id @default(nanoid(10)) @map("_id")
   userId      String           @db.String
   hubId       String           @db.ObjectId
   reason      String
@@ -69,29 +63,30 @@ model UserInfraction {
   type        InfractionType   @default(BLACKLIST)
   dateIssued  DateTime         @default(now()) // Date when the infraction was issued
   expiresAt   DateTime?
-  revokedAt   DateTime?
+  appealedAt  DateTime?
   moderatorId String?
   userData    UserData         @relation(fields: [userId], references: [id])
   hub         Hub              @relation(fields: [hubId], references: [id])
 
-  @@index([userId, hubId])
+  @@index([userId, hubId, status])
 }
 
 model ServerInfraction {
-  id          String           @id @default(nanoid()) @map("_id")
-  serverName  String
-  serverId    String
-  hubId       String           @db.ObjectId
-  reason      String
-  status      InfractionStatus @default(ACTIVE)
-  type        InfractionType   @default(BLACKLIST)
-  dateIssued  DateTime         @default(now()) // Date when the infraction was issued
-  expiresAt   DateTime?
-  revokedAt   DateTime?
-  moderatorId String?
-  hub         Hub              @relation(fields: [hubId], references: [id])
+  id             String           @id @default(nanoid(10)) @map("_id")
+  serverName     String
+  serverId       String
+  hubId          String           @db.ObjectId
+  reason         String
+  status         InfractionStatus @default(ACTIVE)
+  type           InfractionType   @default(BLACKLIST)
+  dateIssued     DateTime         @default(now()) // Date when the infraction was issued
+  expiresAt      DateTime?
+  appealedAt     DateTime?
+  appealerUserId String?
+  moderatorId    String?
+  hub            Hub              @relation(fields: [hubId], references: [id])
 
-  @@index([serverId, hubId])
+  @@index([serverId, hubId, status])
 }
 
 model connectedList {
@@ -114,29 +109,41 @@ model connectedList {
 }
 
 model Hub {
-  id               String             @id @default(auto()) @map("_id") @db.ObjectId
-  name             String             @unique
-  description      String
-  rating           HubRating[]
-  ownerId          String
-  iconUrl          String
-  bannerUrl        String?
-  private          Boolean            @default(true)
-  createdAt        DateTime           @default(now())
-  // settings are stored as a number, each bit is a setting
-  settings         Int
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  name                String             @unique
+  description         String
+  rating              HubRating[]
+  ownerId             String
+  iconUrl             String
+  bannerUrl           String?
+  private             Boolean            @default(true)
+  locked              Boolean            @default(false)
+  appealCooldownHours Int                @default(168) // 7 days
+  createdAt           DateTime           @default(now())
+  settings            Int // each bit is a setting
   // all the stuff below is relations to other collections
-  invites          hubInvites[]
-  moderators       HubModerator[]
-  connections      connectedList[]
-  logChannels      HubLogChannels?
-  locked           Boolean            @default(false)
-  // official           Boolean              @default(false)
-  originalMessages originalMessages[]
-  userInfractions  UserInfraction[]
-  ServerInfraction ServerInfraction[]
+  invites             hubInvites[]
+  moderators          HubModerator[]
+  connections         connectedList[]
+  logConfig           HubLogConfig[]
+  originalMessages    originalMessages[]
+  userInfractions     UserInfraction[]
+  serverInfractions   ServerInfraction[]
 
-  @@index([id, name, ownerId, logChannels])
+  @@index([id, name, ownerId])
+}
+
+model HubLogConfig {
+  id         String                @id @default(auto()) @map("_id") @db.ObjectId
+  modLogs    String?
+  joinLeaves String?
+  profanity  String?
+  appeals    hubLogChannelAndRole?
+  reports    hubLogChannelAndRole?
+  hub        Hub                   @relation(fields: [hubId], references: [id])
+  hubId      String                @unique @db.ObjectId
+
+  @@index([id, hubId])
 }
 
 model hubInvites {

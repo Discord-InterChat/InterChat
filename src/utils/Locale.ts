@@ -6,7 +6,6 @@ import type { TranslationKeys } from '#types/locale.d.ts';
 
 const localesMap = new Map();
 
-export type supportedLocaleCodes = keyof typeof supportedLocales;
 
 export const supportedLocales = {
   bg: { name: 'Bulgarian', emoji: '🇧🇬' },
@@ -36,6 +35,9 @@ export const supportedLocales = {
   vi: { name: 'Vietnamese', emoji: '🇻🇳' },
   hi: { name: 'Hindi', emoji: '🇮🇳' },
 } as const;
+
+export type supportedLocaleCodes = keyof typeof supportedLocales;
+
 
 export interface tParams<K extends keyof TranslationKeys> {
   phrase: K;

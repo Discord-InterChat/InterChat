@@ -1,5 +1,5 @@
 import { emojis } from '#main/config/Constants.js';
-import { fetchCommands, findCommand } from '#main/utils/CommandUtls.js';
+import { fetchCommands, findCommand } from '#main/utils/CommandUtils.js';
 import { updateConnection } from '#main/utils/ConnectedListUtils.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';

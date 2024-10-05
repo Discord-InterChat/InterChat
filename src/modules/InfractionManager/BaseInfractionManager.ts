@@ -37,21 +37,25 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
 
   protected abstract queryEntityInfractions(hubId: string): Promise<T[]>;
 
-  public async getHubInfractions(hubId: string, type?: InfractionType): Promise<T[]> {
+  public async getHubInfractions(
+    hubId: string,
+    opts?: { type?: InfractionType; count?: number },
+  ) {
     const fetched = await getCachedData(
       `${this.modelName}:${this.targetId}:${hubId}`,
       async () => await this.queryEntityInfractions(hubId),
       this.cacheExpirySecs,
     );
 
-    const infractionsArr = fetched.data?.filter((i) => (type ? i.type === type : true));
-    if (!infractionsArr) return [];
+    let infractionsArr = fetched.data ?? [];
+    if (opts?.type) infractionsArr = infractionsArr.filter((i) => i.type === opts.type);
+    if (opts?.count) infractionsArr = infractionsArr.slice(0, opts.count);
 
     return this.updateInfractionDates(infractionsArr);
   }
 
   public async fetchInfraction(type: InfractionType, hubId: string, status?: InfractionStatus) {
-    const infractions = await this.getHubInfractions(hubId, type);
+    const infractions = await this.getHubInfractions(hubId, { type });
     const infraction = infractions.find(
       (i) => (status ? i.status === status : true) && i.type === type,
     );
@@ -62,13 +66,9 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
   public async revokeInfraction(
     type: InfractionType,
     hubId: string,
-    status: InfractionStatus = 'ACTIVE',
+    status: Exclude<InfractionStatus, 'ACTIVE'> = 'REVOKED',
   ) {
-    const revoked = await this.updateInfraction(
-      { type, hubId, status },
-      { status: 'REVOKED', revokedAt: new Date() },
-    );
-
+    const revoked = await this.updateInfraction({ type, hubId, status: 'ACTIVE' }, { status });
     return revoked;
   }
 
@@ -88,7 +88,7 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
   protected async cacheEntity(entity: T) {
     const entitySnowflake = 'userId' in entity ? entity.userId : entity.serverId;
     const key = `${this.modelName}:${entitySnowflake}:${entity.hubId}`;
-    const existing = (await this.getHubInfractions(entity.hubId, entity.type)).filter(
+    const existing = (await this.getHubInfractions(entity.hubId, { type: entity.type })).filter(
       (i) => i.id !== entity.id,
     );
 
@@ -96,7 +96,7 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
   }
 
   protected async removeCachedEntity(entity: T) {
-    const existingInfractions = await this.getHubInfractions(entity.hubId, entity.type);
+    const existingInfractions = await this.getHubInfractions(entity.hubId, { type: entity.type });
     const entitySnowflake = 'userId' in entity ? entity.userId : entity.serverId;
     return cacheData(
       `${this.modelName}:${entitySnowflake}:${entity.hubId}`,
@@ -112,9 +112,9 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
     return infractions.map((infrac) => ({
       ...infrac,
       dateIssued: new Date(infrac.dateIssued),
+      appealedAt: infrac.appealedAt ? new Date(infrac.appealedAt) : null,
       expiresAt: infrac.expiresAt ? new Date(infrac.expiresAt) : null,
-      revokedAt: infrac.revokedAt ? new Date(infrac.revokedAt) : null,
-    })) as T[];
+    }));
   }
 
   public filterValidInfractions(infractions: UserInfraction[]): UserInfraction[] {

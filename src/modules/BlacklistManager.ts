@@ -1,5 +1,5 @@
 import BaseInfractionManager from '#main/modules/InfractionManager/BaseInfractionManager.js';
-import { Prisma, ServerInfraction, UserInfraction } from '@prisma/client';
+import { InfractionStatus, Prisma, ServerInfraction, UserInfraction } from '@prisma/client';
 import { Snowflake } from 'discord.js';
 
 export default class BlacklistManager<T extends UserInfraction | ServerInfraction> {
@@ -48,11 +48,11 @@ export default class BlacklistManager<T extends UserInfraction | ServerInfractio
     return await this.infracManager.addInfraction('BLACKLIST', opts);
   }
 
-  public async removeBlacklist(hubId: string) {
+  public async removeBlacklist(hubId: string, status: Exclude<InfractionStatus, 'ACTIVE'> = 'REVOKED') {
     const exists = await this.fetchBlacklist(hubId);
     if (!exists) return null;
 
-    return await this.infracManager.revokeInfraction('BLACKLIST', hubId);
+    return await this.infracManager.revokeInfraction('BLACKLIST', hubId, status);
   }
 
   public async updateBlacklist(

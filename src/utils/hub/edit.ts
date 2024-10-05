@@ -11,7 +11,7 @@ export const actionsSelect = (hubId: string, userId: string, locale: supportedLo
     new StringSelectMenuBuilder()
       .setCustomId(
         new CustomID()
-          .setIdentifier('hub_manage', 'actions')
+          .setIdentifier('hub_edit', 'actions')
           .addArgs(userId)
           .addArgs(hubId)
           .toString(),
@@ -27,13 +27,19 @@ export const actionsSelect = (hubId: string, userId: string, locale: supportedLo
           label: t({ phrase: 'hub.manage.visibility.selects.label', locale }),
           value: 'visibility',
           description: t({ phrase: 'hub.manage.visibility.selects.description', locale }),
-          emoji: '🔒',
+          emoji: '🔎',
         },
         {
           label: t({ phrase: 'hub.manage.icon.selects.label', locale }),
           value: 'icon',
           description: t({ phrase: 'hub.manage.icon.selects.description', locale }),
           emoji: '🖼️',
+        },
+        {
+          label: 'Lock/Unlock Hub',
+          value: 'toggle_lock',
+          description: 'Lock or unlock the hub chats',
+          emoji: '🔒',
         },
         {
           label: t({ phrase: 'hub.manage.banner.selects.label', locale }),
@@ -58,7 +64,11 @@ export const hubEmbed = async (hub: Hub & { connections: connectedList[] }) => {
     .setDescription(
       stripIndents`
     ${hub.description}
-    __**Public:**__ ${hub.private ? emojis.no : emojis.yes}
+
+    ${emojis.dotBlue} __**Visibility:**__ ${hub.private ? 'Private' : 'Public'}
+    ${emojis.dotBlue} __**Connections**__: ${hub.connections.length}
+    ${emojis.dotBlue} __**Chats Locked:**__ ${hub.locked ? 'Yes' : 'No'}
+
   `,
     )
     .setThumbnail(hub.iconUrl)
@@ -78,7 +88,6 @@ export const hubEmbed = async (hub: Hub & { connections: connectedList[] }) => {
         name: 'Hub Stats',
         value: stripIndents`
           Moderators: ${hub.moderators.length.toString()}
-          Connected: ${hub.connections.length}
           Owner: <@${hub.ownerId}>
       `,
         inline: true,

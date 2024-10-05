@@ -11,11 +11,11 @@ import Scheduler from '#main/modules/SchedulerService.js';
 import parse from 'parse-duration';
 
 export type TopggEvents = {
-  vote: WebhookPayload[];
-  voteExpired: string[];
+  vote: WebhookPayload;
+  voteExpired: string;
 };
 
-export class VoteManager extends EventEmitter<TopggEvents> {
+export class VoteManager extends EventEmitter<{ [K in keyof TopggEvents]: TopggEvents[K][] }> {
   private scheduler: Scheduler;
   private cluster: ClusterManager;
 

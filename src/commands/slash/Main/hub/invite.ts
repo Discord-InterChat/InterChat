@@ -5,9 +5,9 @@ import Logger from '#main/utils/Logger.js';
 import { captureException } from '@sentry/node';
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import parse from 'parse-duration';
-import Hub from './index.js';
+import HubCommand from './index.js';
 
-export default class Invite extends Hub {
+export default class Invite extends HubCommand {
   readonly cooldown = 3000; // 3 seconds
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {

@@ -1,5 +1,5 @@
 // @ts-check
-import { REST, Routes } from 'discord.js';
+import { Collection, REST, Routes } from 'discord.js';
 import 'dotenv/config';
 
 const redText = (text) => `\x1b[0;31m${text}\x1b[0m`;
@@ -9,17 +9,18 @@ const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const SUPPORT_SERVER_ID = '770256165300338709';
 
-if (!TOKEN || !CLIENT_ID || !SUPPORT_SERVER_ID)
-  throw new Error('Missing TOKEN, CLIENT_ID or SUPPORT_SERVER_ID.');
+if (!TOKEN || !CLIENT_ID)
+  throw new Error('Missing TOKEN or CLIENT_ID.');
 
-const commandUtils = await import('../build/utils/CommandUtls.js').catch(() => {
-  console.error(`${redText('✘')} Code is not build yet. Use \`pnpm build\` first.`);
+const commandUtils = await import('../build/utils/CommandUtils.js').catch(() => {
+  console.error(`${redText('✘')} Code is not build yet. Run \`pnpm build\` first.`);
   process.exit();
 });
 
 const registerAllCommands = async (staffOnly = false) => {
   // make sure CommandsMap is not empty
-  const commandsMap = await commandUtils.loadCommandFiles();
+  const commandsMap = new Collection();
+  await commandUtils.loadCommandFiles(commandsMap, new Collection());
 
   const rest = new REST().setToken(TOKEN);
 

@@ -1,5 +1,3 @@
-import { fetchHub } from '#main/utils/hub/utils.js';
-import type { Hub, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   EmbedBuilder,
@@ -87,10 +85,10 @@ export const sendHubReport = async (
   client: Client,
   { userId, serverId, reason, reportedBy, evidence }: LogReportOpts,
 ) => {
-  const hub = await fetchHub(hubId);
-  if (!hub?.logChannels?.reports?.channelId) return;
+  const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
+  if (!hub?.logConfig[0]?.reports?.channelId) return;
 
-  const { channelId: reportsChannelId, roleId: reportsRoleId } = hub.logChannels.reports;
+  const { channelId: reportsChannelId, roleId: reportsRoleId } = hub?.logConfig[0]?.reports;
   const server = await client.fetchGuild(serverId);
   const jumpLink = await genJumpLink(hubId, client, evidence?.messageId, reportsChannelId);
 
@@ -119,50 +117,4 @@ export const sendHubReport = async (
 
   const mentionRole = reportsRoleId ? roleMention(reportsRoleId) : undefined;
   await sendLog(client.cluster, reportsChannelId, embed, mentionRole);
-};
-
-const updateLogChannels = async (
-  hubId: string,
-  logChannels: Prisma.HubLogChannelsCreateInput | Prisma.HubLogChannelsNullableUpdateEnvelopeInput,
-) => {
-  await db.hub.update({ where: { id: hubId }, data: { logChannels } });
-};
-
-export const removeReportsFrom = async (hubId: string) => {
-  await updateLogChannels(hubId, { upsert: { set: null, update: { reports: null } } });
-};
-
-export const setReportLogChannel = async (hubId: string, channelId: string) => {
-  const data = { channelId };
-
-  await updateLogChannels(hubId, {
-    upsert: {
-      set: { reports: data },
-      update: { reports: { upsert: { set: data, update: data } } },
-    },
-  });
-};
-
-export const setReportRole = async (hub: Hub, roleId: string) => {
-  if (!hub?.logChannels?.reports) {
-    throw new Error('Role ID can only be set if Channel ID is also set.');
-  }
-
-  await updateLogChannels(hub.id, {
-    ...hub.logChannels,
-    reports: { ...hub.logChannels.reports, roleId },
-  });
-};
-
-export const setReportChannelAndRole = async (hubId: string, channelId: string, roleId: string) => {
-  const data = { reports: { channelId, roleId } };
-  await updateLogChannels(hubId, { upsert: { set: data, update: data } });
-};
-
-export default {
-  sendHubReport,
-  setReportLogChannel,
-  setReportRole,
-  setReportChannelAndRole,
-  removeReportsFrom,
 };

@@ -229,7 +229,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     });
 
     // Notify server of blacklist
-    await sendBlacklistNotif('user', interaction.client, {
+    await sendBlacklistNotif('server', interaction.client, {
       target: { id: originalMsg.serverId },
       hubId: originalMsg.hubId,
       expiresAt,

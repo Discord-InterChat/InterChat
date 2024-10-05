@@ -1,34 +1,31 @@
-/* eslint-disable complexity */
+import Constants, { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { HubSettingsBitField } from '#main/modules/BitFields.js';
 import HubSettingsManager from '#main/modules/HubSettingsManager.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { addReaction, removeReaction, updateReactions } from '#main/utils/reaction/actions.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
+import { t } from '#main/utils/Locale.js';
+import { removeReaction, addReaction, updateReactions } from '#main/utils/reaction/actions.js';
 import { checkBlacklists } from '#main/utils/reaction/helpers.js';
 import sortReactions from '#main/utils/reaction/sortReactions.js';
+import { getEmojiId } from '#main/utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
-  ActionRowBuilder,
   ButtonInteraction,
-  EmbedBuilder,
+  AnySelectMenuInteraction,
+  Snowflake,
+  ActionRowBuilder,
   StringSelectMenuBuilder,
+  EmbedBuilder,
   time,
-  type AnySelectMenuInteraction,
-  type Snowflake,
 } from 'discord.js';
-import Constants, { emojis } from './config/Constants.js';
-import { HubSettingsBitField } from './modules/BitFields.js';
-import { fetchConnection, updateConnection } from './utils/ConnectedListUtils.js';
-import { CustomID } from './utils/CustomID.js';
-import db from './utils/Db.js';
-import { t } from './utils/Locale.js';
-import { getEmojiId } from './utils/Utils.js';
 
-export class RandomComponents {
-  /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
+export default class NetworkReactionInteraction {
   @RegisterInteractionHandler('reaction_')
   async listenForReactionButton(
     interaction: ButtonInteraction | AnySelectMenuInteraction,
   ): Promise<void> {
+    /** Listens for a reaction button or select menu interaction and updates the reactions accordingly. */
     await interaction.deferUpdate();
 
     if (!interaction.inCachedGuild()) return;
@@ -117,13 +114,13 @@ export class RandomComponents {
         .setThumbnail(interaction.client.user.displayAvatarURL())
         .setDescription(
           stripIndents`
-          ## ${emojis.clipart} Reactions
-
-          ${reactionString || 'No reactions yet!'}
-
-          **Total Reactions:**
-          __${totalReactions}__
-      `,
+            ## ${emojis.clipart} Reactions
+  
+            ${reactionString || 'No reactions yet!'}
+  
+            **Total Reactions:**
+            __${totalReactions}__
+        `,
         )
         .setColor(Constants.Colors.invisible);
 
@@ -194,34 +191,5 @@ export class RandomComponents {
       // reflect the changes in the message's buttons
       await updateReactions(messageInDb.originalMsg.broadcastMsgs, dbReactions);
     }
-  }
-
-  @RegisterInteractionHandler('inactiveConnect', 'toggle')
-  async inactiveConnect(interaction: ButtonInteraction): Promise<void> {
-    await interaction.deferUpdate();
-
-    const customId = CustomID.parseCustomId(interaction.customId);
-    const [channelId] = customId.args;
-
-    const connection = await fetchConnection(channelId);
-    if (!connection) {
-      const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
-      const notFoundEmbed = new InfoEmbed().setDescription(
-        t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no }),
-      );
-
-      await interaction.reply({ embeds: [notFoundEmbed], ephemeral: true });
-      return;
-    }
-
-    await updateConnection({ channelId }, { connected: true });
-
-    const embed = new InfoEmbed()
-      .removeTitle()
-      .setDescription(
-        `### ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`,
-      );
-
-    await interaction.editReply({ embeds: [embed], components: [] });
   }
 }

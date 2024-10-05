@@ -15,9 +15,9 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import Hub from './index.js';
+import HubCommand from './index.js';
 
-export default class Create extends Hub {
+export default class Create extends HubCommand {
   readonly cooldown = 10 * 60 * 1000; // 10 mins
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
@@ -163,7 +163,7 @@ export default class Create extends Hub {
       )
       .setTimestamp();
 
-    const command = Hub.subcommands.get('create');
+    const command = HubCommand.subcommands.get('create');
     command?.setUserCooldown(interaction);
 
     await interaction.editReply({ embeds: [successEmbed] });
