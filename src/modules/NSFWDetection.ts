@@ -1,5 +1,3 @@
-import 'dotenv/config';
-
 export declare type predictionType = {
   is_nsfw: boolean;
   confidence_percentage: number;
@@ -18,7 +16,7 @@ export const analyzeImageForNSFW = async (imageURL: string): Promise<predictionT
 
   const data = await res.json();
   if (res.status !== 200) throw new Error(`Failed to analyze image: ${data}`);
-  return data as predictionType[];
+  return data;
 };
 
 /**
@@ -26,5 +24,5 @@ export const analyzeImageForNSFW = async (imageURL: string): Promise<predictionT
  * @param predictions The predictions to check
  * @returns Whether the predictions are unsafe
  */
-export const isImageUnsafe = (prediction: predictionType, maxConfidence = 90): boolean =>
-  prediction.is_nsfw && prediction.confidence_percentage >= maxConfidence;
+export const isImageUnsafe = (prediction: predictionType, minConfidence = 90): boolean =>
+  prediction.is_nsfw && prediction.confidence_percentage >= minConfidence;
