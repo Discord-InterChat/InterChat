@@ -52,7 +52,7 @@ export const msToReadable = (milliseconds: number, short = true): string => {
   }
 
   // Limit to two most significant parts for readability
-  return parts.slice(0, 2).join(' ');
+  return parts.join(' ');
 };
 
 export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

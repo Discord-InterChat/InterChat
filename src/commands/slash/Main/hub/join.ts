@@ -129,7 +129,7 @@ export default class JoinSubCommand extends HubCommand {
 
     // bunch of checks to see if hub exists / invite is valid
     if (invite) {
-      const fetchedInvite = await db.hubInvites.findFirst({
+      const fetchedInvite = await db.hubInvite.findFirst({
         where: { code: invite },
         include: { hub: true },
       });

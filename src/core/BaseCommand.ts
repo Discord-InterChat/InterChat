@@ -1,25 +1,32 @@
 import { emojis } from '#main/config/Constants.js';
+import { MetadataHandler } from '#main/core/FileLoader.js';
 import { InteractionFunction } from '#main/decorators/Interaction.js';
+import { TranslationKeys } from '#main/types/locale.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import Logger from '#main/utils/Logger.js';
 import { getReplyMethod } from '#main/utils/Utils.js';
 import {
-  APIActionRowComponent,
+  type ActionRowData,
+  type APIActionRowComponent,
   type APIApplicationCommandSubcommandGroupOption,
   type APIApplicationCommandSubcommandOption,
-  APIMessageActionRowComponent,
+  type APIMessageActionRowComponent,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
-  Collection,
   type ColorResolvable,
   type ContextMenuCommandInteraction,
   type InteractionResponse,
+  type JSONEncodable,
   type Message,
+  type MessageActionRowComponentBuilder,
+  type MessageActionRowComponentData,
   type MessageComponentInteraction,
   type ModalSubmitInteraction,
   type RepliableInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  Collection,
   time,
 } from 'discord.js';
 
@@ -29,9 +36,6 @@ export type CmdData =
   | RESTPostAPIContextMenuApplicationCommandsJSONBody
   | APIApplicationCommandSubcommandGroupOption
   | APIApplicationCommandSubcommandOption;
-
-export const commandsMap = new Collection<string, BaseCommand>();
-export const interactionsMap = new Collection<string, InteractionFunction | undefined>();
 
 export default abstract class BaseCommand {
   abstract readonly data: CmdData;
@@ -123,12 +127,16 @@ export default abstract class BaseCommand {
 
   async replyEmbed(
     interaction: RepliableInteraction | MessageComponentInteraction,
-    desc: string,
+    desc: keyof TranslationKeys | (string & {}),
     opts?: {
       content?: string;
       title?: string;
       color?: ColorResolvable;
-      components?: APIActionRowComponent<APIMessageActionRowComponent>[];
+      components?: readonly (
+        | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
+        | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
+        | APIActionRowComponent<APIMessageActionRowComponent>
+      )[];
       ephemeral?: boolean;
       edit?: boolean;
     },
@@ -140,5 +148,33 @@ export default abstract class BaseCommand {
 
     const methodName = getReplyMethod(interaction);
     return await interaction[methodName]({ ...message, ephemeral: opts?.ephemeral });
+  }
+
+  async build(
+    fileName: string,
+    opts: {
+      commandsMap: Collection<string, BaseCommand>;
+      interactionsMap: Collection<string, InteractionFunction>;
+    },
+  ): Promise<void> {
+    if (Object.getPrototypeOf(this.constructor) === BaseCommand) {
+      opts.commandsMap.set(this.data.name, this);
+      this.loadCommandInteractions(this, opts.interactionsMap);
+    }
+
+    else {
+      const parentCommand = Object.getPrototypeOf(this.constructor) as typeof BaseCommand;
+      parentCommand.subcommands?.set(fileName.replace('.js', ''), this);
+      this.loadCommandInteractions(this, opts.interactionsMap);
+    }
+  }
+
+  private async loadCommandInteractions(
+    command: BaseCommand,
+    map: Collection<string, InteractionFunction>,
+  ): Promise<void> {
+    Logger.debug(`Adding interactions for command: ${command.data.name}`);
+    MetadataHandler.loadMetadata(command, map);
+    Logger.debug(`Finished adding interactions for command: ${command.data.name}`);
   }
 }

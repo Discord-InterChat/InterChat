@@ -51,7 +51,7 @@ export default class Invite extends HubCommand {
           return;
         }
 
-        const createdInvite = await db.hubInvites.create({
+        const createdInvite = await db.hubInvite.create({
           data: {
             hub: { connect: { name: hubName } },
             expires,
@@ -81,7 +81,7 @@ export default class Invite extends HubCommand {
 
       case 'revoke': {
         const code = interaction.options.getString('code', true);
-        const inviteInDb = await db.hubInvites.findFirst({
+        const inviteInDb = await db.hubInvite.findFirst({
           where: {
             code,
             hub: {
@@ -102,7 +102,7 @@ export default class Invite extends HubCommand {
         }
 
         try {
-          await db.hubInvites.delete({ where: { code } });
+          await db.hubInvite.delete({ where: { code } });
           await this.replyEmbed(
             interaction,
             t(
@@ -151,7 +151,7 @@ export default class Invite extends HubCommand {
           return;
         }
 
-        const invitesInDb = await db.hubInvites.findMany({ where: { hubId: hubInDb.id } });
+        const invitesInDb = await db.hubInvite.findMany({ where: { hubId: hubInDb.id } });
         if (invitesInDb.length === 0) {
           await this.replyEmbed(
             interaction,

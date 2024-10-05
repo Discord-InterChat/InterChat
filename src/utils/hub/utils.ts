@@ -43,7 +43,7 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
 export const deleteHubs = async (ids: string[]) => {
   // delete all relations first and then delete the hub
   await deleteConnections({ hubId: { in: ids } });
-  await db.hubInvites.deleteMany({ where: { hubId: { in: ids } } });
+  await db.hubInvite.deleteMany({ where: { hubId: { in: ids } } });
   await db.originalMessages
     .findMany({ where: { hubId: { in: ids } }, include: { broadcastMsgs: true } })
     .then((m) =>

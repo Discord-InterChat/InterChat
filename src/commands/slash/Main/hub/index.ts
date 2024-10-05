@@ -491,6 +491,19 @@ export default class HubCommand extends BaseCommand {
     });
   }
 
+  private async getInfractionSubcommandChoices(interaction: AutocompleteInteraction) {
+    const focused = interaction.options.getFocused(true);
+    if (focused.name === 'hub') {
+      return (await this.getModeratedHubs(focused.value, interaction.user.id)).map((hub) => ({
+        name: hub.name,
+        value: hub.name,
+      }));
+    }
+
+    // FIXME: Implement this
+    return [{ name: 'Not implemented, yet. Input user/server ID manually.', value: focused.value }];
+  }
+
   private async getLeaveSubcommandChoices(focusedValue: string, guild: Guild | null) {
     if (!guild) return null;
 
