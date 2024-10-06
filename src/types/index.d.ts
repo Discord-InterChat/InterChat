@@ -34,6 +34,5 @@ declare module 'discord.js' {
 
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;
-    isGuildTextBasedChannel(channel: Channel | null | undefined): channel is GuildTextBasedChannel;
   }
 }

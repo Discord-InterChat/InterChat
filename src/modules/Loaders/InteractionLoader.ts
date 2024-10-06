@@ -7,8 +7,8 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export class InteractionLoader implements ResourceLoader {
-  private map: Collection<string, InteractionFunction>;
-  private fileLoader: FileLoader;
+  private readonly map: Collection<string, InteractionFunction>;
+  private readonly fileLoader: FileLoader;
 
   constructor(map: Collection<string, InteractionFunction>) {
     this.map = map;
