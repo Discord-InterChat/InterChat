@@ -1,9 +1,9 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
-import BlacklistManager from '#main/modules/BlacklistManager.js';
-import BaseInfractionManager from '#main/modules/InfractionManager/BaseInfractionManager.js';
-import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
+import BaseInfractionManager from '#main/managers/InfractionManager/BaseInfractionManager.js';
+import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { ErrorEmbed, InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { fetchHub } from '#main/utils/hub/utils.js';

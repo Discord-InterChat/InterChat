@@ -1,7 +1,7 @@
 import Constants, { emojis } from '#main/config/Constants.js';
-import BlacklistManager from '#main/modules/BlacklistManager.js';
-import HubSettingsManager from '#main/modules/HubSettingsManager.js';
-import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
+import HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { analyzeImageForNSFW, isImageUnsafe } from '#main/modules/NSFWDetection.js';
 import db from '#main/utils/Db.js';
 import { isHubMod } from '#main/utils/hub/utils.js';

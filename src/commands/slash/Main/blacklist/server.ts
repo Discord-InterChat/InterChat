@@ -5,9 +5,9 @@ import { t } from '#main/utils/Locale.js';
 import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';
 import parse from 'parse-duration';
 import BlacklistCommand from './index.js';
-import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
+import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
-import BlacklistManager from '#main/modules/BlacklistManager.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {

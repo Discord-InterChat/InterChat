@@ -1,6 +1,6 @@
-import BlacklistManager from '#main/modules/BlacklistManager.js';
-import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
+import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { isBlacklisted } from '#main/utils/moderation/blacklistUtils.js';
 
 /**

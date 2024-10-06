@@ -2,7 +2,7 @@ import HubCommand from '#main/commands/slash/Main/hub/index.js';
 import { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { type HubSettingsString } from '#main/modules/BitFields.js';
-import HubSettingsManager from '#main/modules/HubSettingsManager.js';
+import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';

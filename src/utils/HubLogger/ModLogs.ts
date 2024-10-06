@@ -1,6 +1,6 @@
-import BlacklistManager from '#main/modules/BlacklistManager.js';
-import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
+import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import db from '#main/utils/Db.js';
 import type { Hub, HubLogConfig } from '@prisma/client';
 import { stripIndents } from 'common-tags';

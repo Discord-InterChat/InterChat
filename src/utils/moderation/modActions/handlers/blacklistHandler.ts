@@ -1,7 +1,7 @@
 import { emojis } from '#main/config/Constants.js';
-import BlacklistManager from '#main/modules/BlacklistManager.js';
-import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
+import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
