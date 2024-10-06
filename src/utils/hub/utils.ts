@@ -27,15 +27,19 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
 
     try {
       const webhook = new WebhookClient({ url: webhookURL });
-      return await webhook.send(payload);
+      await webhook.send(payload);
     }
     catch (e) {
-      // if the webhook is unknown, delete the connection
-      if (e.message.includes('Unknown Webhook')) await deleteConnection({ channelId });
+      const validErrors = [
+        'Unknown Webhook',
+        'Invalid Webhook Token',
+        'The provided webhook URL is not valid.',
+      ];
+
+      if (validErrors.includes(e.message)) await deleteConnection({ channelId });
 
       e.message = `For Connection: ${channelId} ${e.message}`;
       Logger.error(e);
-      return null;
     }
   });
 };
