@@ -53,7 +53,12 @@ export default async (
   }[] = [];
 
   const invalidWebhookURLs: string[] = [];
-  const validErrors = ['Unknown Webhook', 'Missing Permissions', 'Invalid Webhook'];
+  const validErrors = [
+    'Unknown Webhook',
+    'Missing Permissions',
+    'Invalid Webhook Token',
+    'The provided webhook URL is not valid.',
+  ];
 
   // loop through all results and extract message data and invalid webhook urls
   broadcastResults.forEach((res) => {

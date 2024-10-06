@@ -1,18 +1,18 @@
 // @ts-check
 
-import tseslint from 'typescript-eslint';
+import { config, configs, parser, plugin } from 'typescript-eslint';
 import stylistic from '@stylistic/eslint-plugin';
 
-export default tseslint.config({
+export default config({
   // @ts-ignore
   files: ['src/**/*.ts'],
-  ignores: ['build/**/*', 'locales/**', '**/node_modules/', '**/.*'],
+  ignores: ['build/**/*', '**/node_modules/', 'locales/**', '**/.*'],
 
-  extends: [...tseslint.configs.recommended],
-  plugins: { '@stylistic': stylistic, '@typescript-eslint': tseslint.plugin },
+  extends: [...configs.recommended],
+  plugins: { '@stylistic': stylistic, '@typescript-eslint': plugin },
 
   languageOptions: {
-    parser: tseslint.parser,
+    parser,
     parserOptions: { sourceType: 'module' },
     ecmaVersion: 2022,
   },

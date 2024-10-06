@@ -1,0 +1,387 @@
+rules: |-
+  ### 📜 Règles d'interchat
+
+   1. **Utilisez le bon sens:** Soyez prévenant des autres et de leurs opinions. Aucune insulte, un langage désobligeant extrême ou toute actions qui peuvent perturber le confort du chat.
+   2. **Pas de spam ou d'inondation:** Évitez les messages répétés, absurdes ou trop longs.
+   3. **Gardez les questions privées privées:** Évitez de partager des informations personnelles sur le réseau.
+   4. **Pas de harcèlement:** La pêche à la traîne, les insultes ou le harcèlement d'aucune sorte ne sont tolérés.
+   5. **Non Contenu NSFW / NSFL:** La publication du contenu explicite NSFW / NSFL entraînera une liste noire immédiate.
+   6. **Respectez les sujets sensibles:** Ne pas banaliser l'automutilation, le suicide, la violence ou d'autres sujets offensants.
+   7. **Signaler les préoccupations:** Si vous observez une violation de ces règles, signalez-la au modérateur de Hub approprié ou au personnel interchat pour une action supplémentaire.
+
+   Des questions? Rejoignez notre [Support Server]({support_invite}).
+vote:
+  description: En voté, vous nous soutenez en aidant à interdire un rang plus haut sur les recherches de botlist.
+  footer: Merci de vous soutenir!
+network:
+  accountTooNew: "{emoji} {user} Votre compte est trop nouveau pour envoyer des messages à l'aide d'interchat. Veuillez réessayer plus tard."
+  deleteSuccess: '{emoji} Le message par {user} a été supprimé de __**{deleted} / {total}**__ serveurs.'
+  editSuccess: '{emoji} Le message par {user} a été modifié dans __**{edited} / {total}**__ serveurs.'
+  welcome: |-
+    {emoji} {user} Bienvenue dans le hub **{hub}**! Votre message a été partagé à **{totalServers}** Autres serveurs!
+
+     Ce canal, {channel} a été configuré afin que vous puissiez discuter avec des gens d'autres serveurs! Vous pouvez partager des images, des GIF, ajouter des réactions, modifier des messages et plus encore. Devenez plus compétent pour utiliser Interchat en consultant notre simple [guide](https://docs.interchat.fun/messaging)!
+
+     * Remarque: ne partagez jamais aucune information personnelle et suivez le {rules_command}. N'oubliez pas que ce que vous partagez ici est votre responsabilité. Passez un bon moment! 🚀 *
+  onboarding:
+    embed:
+      title: 👋 Hé là, bienvenue à {hubName}!
+      description: |-
+        Pour garder les choses organisées, il est recommandé d'utiliser un canal séparé pour ce centre. Mais ne vous inquiétez pas, vous pouvez toujours changer cela plus tard.
+
+         **Comment cela fonctionne:** Le réseau Interchat est comme un pont magique qui relie les canaux sur différents serveurs qui sont avec nous dans ce centre. En savoir plus sur notre [guide]({docs_link}).
+      footer: Réseau interchat | Version {version}
+    inProgress: "{emoji} {channel} est déjà en train d'être configuré pour rejoindre un hub. Veuillez attendre que la configuration soit terminée ou annulée si vous êtes celui qui l'a initié."
+blacklist:
+  success: '{emoji} **{name}** a réussi à mener une liste noire!'
+  removed: '{emoji} **{name}** a été supprimé de la liste noire!'
+  modal:
+    reason:
+      label: Raison
+      placeholder: Raison de la liste noire
+    duration:
+      label: Durée
+      placeholder: 'Durée de la liste noire. Par exemple: 1d, 1w, 1m, 1y. Laissez vide pour permanent.'
+  user:
+    alreadyBlacklisted: '{emoji} Cet utilisateur est déjà sur liste noire.'
+    easterEggs:
+      blacklistBot: Vous ne pouvez pas me liste noire wtf.
+  server:
+    alreadyBlacklisted: '{emoji} Ce serveur est déjà sur liste noire.'
+    unknownError: Échec de la liste noire **{server}**. Renseignez-vous auprès des développeurs pour plus d'informations.
+  list:
+    user: |-
+      **utilisateur:** {id}
+       **Modérateur:** {moderator}
+       **Raison:** {reason}
+       **Expire:** {expires}
+    server: |-
+      **ServerId:** {id}
+       **Modérateur:** {moderator}
+       **Raison:** {reason}
+       **Expire:** {expires}
+msgInfo:
+  buttons:
+    message: Informations sur le message
+    server: Informations sur le serveur
+    user: Informations sur les utilisateurs
+    report: Rapport
+  message:
+    description: |-
+      ## {emoji} Informations sur le message
+
+       **Envoyé par:**
+       __{author}__
+
+       **Envoyé de:**
+       __{server}__
+
+       **ID de message:**
+       __{messageId}__
+
+       **Envoi (hub):**
+       __{hub}__
+
+       **Message créé:**
+       {createdAt}
+  server:
+    description: |-
+      ## {server}
+       {description}
+
+       **Propriétaire:**
+       __{owner}__
+
+       **Créé:**
+       __{createdAtFull} ({createdAt})__
+
+       **Compte de membres:**
+       __{memberCount}__
+
+       **Inviter:**
+       __{invite}__
+  user:
+    description: |-
+      ## {username}
+
+       **IDENTIFIANT:**
+       __{id}__
+
+       **Créé:**
+       {createdAtFull} ({createdAt})
+
+       **Nom d'affichage:**
+       __{globalName}__
+
+       **Hubs possédés:**
+       __{hubsOwned}__
+  report:
+    notEnabled: "{emoji} Le rapport n'est pas activé pour ce centre."
+    success: '{emoji} Rapport soumis avec succès. Merci!'
+invite: |-
+  Merci d'avoir choisi d'inviter Interchat! Si vous avez des questions ou avez besoin d'aide, nous sommes toujours là pour vous aider dans le serveur d'assistance!
+
+   **[{invite_emoji} `invite link`]({invite}) [{support_emoji}` support server`]({support})**
+connection:
+  notFound: "{emoji} connexion non valide. Vérifiez l'ID de canal ou sélectionnez parmi les options affichées."
+  channelNotFound: '{emoji} Impossible de trouver le canal connecté. Pour parler à nouveau, choisissez une nouvelle chaîne.'
+  alreadyConnected: '{emoji} canal {channel} est déjà connecté à un hub.'
+  switchChannel: "{emoji} Sélectionnez un canal pour passer à l'utilisation du menu Sélectionné ci-dessous:"
+  switchCalled: '{emoji} commutateur de canal appelé, utilisez à nouveau la commande pour afficher la nouvelle connexion.'
+  switchSuccess: '{emoji} Channel commandé. Vous êtes maintenant connecté à partir de **{channel}**.'
+  inviteRemoved: '{emoji} Server invite supprimé pour ce centre.'
+  inviteInvalid: "{emoji} invitation non valide. Veuillez vous assurer que vous avez entré un lien d'invitation valide."
+  inviteAdded: "{emoji} invitation ajoutée. D'autres peuvent désormais rejoindre ce serveur en utilisant la commande `apps> Message Info / Report`."
+  emColorInvalid: '{emoji} couleur non valide. Veuillez vous assurer que vous avez entré un code couleur hexadécimal valide.'
+  emColorChange: '{emoji} intégrer la couleur avec succès {action}'
+  embed:
+    title: Détails de la connexion
+    fields:
+      hub: Moyeu
+      channel: Canal
+      invite: Inviter
+      connected: Connecté
+      emColor: Incorporer la couleur
+      compact: Mode compact
+      profanity: Filtre de blasphème
+    footer: Utilisez le bouton et la liste déroulante ci-dessous pour gérer votre connexion.
+  selects:
+    placeholder: 🛠️ Sélectionnez une option pour modifier cette connexion
+  unpaused:
+    desc: |-
+      ### {tick_emoji} connexion non utilisée
+
+       Connexion non utilisée pour {channel}! Les messages du centre commenceront à entrer dans la chaîne et vous pouvez envoyer à nouveau des messages au centre.
+    tips: '**💡 Astuce:** Utilisez {pause_cmd} pour suspendre la connexion ou {customize_cmd} pour définir les couleurs intégrées, basculer le filtre de profanité, et plus encore.'
+  paused:
+    desc: |-
+      ### {clock_emoji} connexion en pause
+       Connexion en pause pour {channel}! Les messages du Hub ne viendront plus dans la chaîne et vos messages ne leur seront pas diffusés.
+    tips: '**💡 Astuce:** Utilisez {unpause_cmd} pour inébranler la connexion ou {leave_cmd} pour arrêter de façon permanente des messages.'
+hub:
+  notFound: '{emoji} Impossible de trouver Hub. Veuillez vous assurer que vous avez entré le nom du Hub correct.'
+  notFound_mod: '{emoji} Impossible de trouver Hub. Veuillez vous assurer que vous avez entré le nom du Hub correct et que vous êtes le propriétaire ou un modérateur du centre.'
+  alreadyJoined: '{emoji} Vous avez déjà rejoint **{hub}** de {channel}!'
+  invalidChannel: '{emoji} canal non valide. Seuls les canaux de texte et de thread sont pris en charge!'
+  invalidImgurUrl: "{emoji} URL d'image non valide pour l'icône ou la bannière. Veuillez vous assurer que vous avez entré une URL d'image Imgur valide qui n'est pas une galerie ou un album."
+  join:
+    success: |-
+      Hub a rejoint avec succès **{hub}** de {channel}! Vous pouvez maintenant discuter avec des membres d'autres serveurs de ce centre.
+       - Utilisez «/ connexion» pour explorer diverses personnalisations pour cette connexion.
+       - Utilisez `/ Hub Leave 'pour arrêter de recevoir des messages de ce centre.
+  servers:
+    total: 'Serveurs connectés actuels: {from} - {to} / **{total}**'
+    noConnections: "{emoji} Aucun serveur n'a encore rejoint ce hub. Utilisez `/ hub joind` pour rejoindre ce hub."
+    notConnected: '{emoji} Ce serveur ne fait pas partie de **{hub}**.'
+    connectionInfo: |-
+      Channel: # {channelName} `({channelId})`
+       Joint à: {joinedAt}
+       Inviter: {invite}
+       Connecté: {connected}
+  create:
+    modal:
+      title: Créer un hub
+      name:
+        label: Nom du centre
+        placeholder: Entrez un nom pour votre hub.
+      description:
+        label: Description
+        placeholder: Entrez une description de votre hub.
+      icon:
+        label: URL de l'icône
+        placeholder: Entrez une URL d'image IMGUR.
+      banner:
+        label: URL de bannière
+        placeholder: Entrez une URL d'image IMGUR.
+    maxHubs: "{emoji} Vous avez atteint le nombre maximal de hubs (3) que vous pouvez créer. Veuillez supprimer un centre avant d'en créer un autre."
+    invalidName: '{emoji} Nom du hub non valide. Il ne doit pas contenir `Discord`,` Clyde` ou \ `\` \ `. Veuillez choisir un autre nom.'
+    nameTaken: '{emoji} Ce nom de hub est déjà pris. Veuillez choisir un autre nom.'
+    success: |-
+      ### Hub Créé!
+
+       Félicitations! Votre hub privé, **{name}**, a été créé avec succès.
+       Pour rejoindre, créez une invitation à l'aide de `/ hub invite Create` et partagez le code généré. Ensuite, rejoignez à l'aide de `/ hub joind`.
+
+       - **Générer Invite:** `/ Hub Invite Create`
+       - **aller public:** `/ hub manage`
+       - **join hub:** `/ hub join`
+       - **Modifier le hub:** `/ hub manage`
+       - **Ajouter des modérateurs:** `/ Hub Modérateur Add`
+
+       En savoir plus sur les hubs dans notre [guide]({docs_link}). Rejoignez le [support Server]({support_invite}) pour obtenir de l'aide.
+  delete:
+    confirm: Êtes-vous sûr de vouloir supprimer **{hub}**? Cette action est irréversible. Tous les serveurs connectés, invitations et données de message seront supprimés de ce centre.
+    ownerOnly: '{emoji} Seul le propriétaire de ce centre peut le supprimer.'
+    success: '{emoji} hub **{hub}** a été supprimé.'
+    cancelled: '{emoji} La suppression du hub a été annulée.'
+  browse:
+    joinConfirm: |-
+      Êtes-vous sûr de souhaiter rejoindre {hub} de {channel}?
+
+       **Remarque:** Vous pouvez toujours changer cela plus tard en utilisant `/ connexion`.
+    joinFooter: Vous voulez utiliser un autre canal? Utilisez la liste déroulante ci-dessous.
+    noHubs: "{emoji} Il n'y a pas de hubs répertoriés ici pour le moment. Veuillez réessayer plus tard!"
+    rating:
+      invalid: Évaluation non valide. Vous devez saisir un nombre entre 1 et 5.
+      success: Note soumise! Merci pour vos commentaires.
+  invite:
+    create:
+      success: |-
+        ### invite créé!
+
+         Votre invitation a été créée avec succès. D'autres peuvent désormais rejoindre ce centre en utilisant la commande `/ hub joind`.
+
+         - **join en utilisant:** `/ hub join invite: {inviteCode}`
+         - **Afficher les invitations:** `/ Hub Invite List`
+         - **Expiration:** {expiry}
+         - **utilise**: ∞
+
+         __Les apporter plus sur les hubs dans notre [guide]({docs_link}) .__.
+    revoke:
+      invalidCode: "{emoji} Code d'invitation non valide. Veuillez vous assurer que vous avez entré un code d'invitation valide."
+      success: '{emoji} invite {inviteCode} révoqué.'
+    list:
+      title: '**Inviter les codes:**'
+      noInvites: "{emoji} Ce hub n'a pas encore d'invitations. Utilisez `/ Hub Invite Create 'pour en créer un."
+      notPrivate: '{emoji} Seuls les centres privés peuvent avoir des invitations. Utilisez «Hub Manage» pour rendre ce hub privé.'
+  joined:
+    noJoinedHubs: "{emoji} Ce serveur n'a encore rejoint aucun hub. Utilisez `/ Hub Browse` pour afficher une liste de hubs."
+    joinedHubs: Ce serveur fait partie de **{total}** hub (s). Utilisez «Hub Leave» pour quitter un hub.
+  leave:
+    noHub: "{emoji} Ce canal n'est pas valide ou n'a rejoint aucun centre."
+    confirm: Êtes-vous sûr de vouloir quitter **{hub}** de {channel}? Plus de messages ne seront envoyés à ce serveur à partir de ce centre.
+    confirmFooter: Confirmez l'utilisation du bouton ci-dessous dans les 10 secondes.
+    success: '{emoji} a quitté le hub de {channel}. Plus de messages ne seront envoyés à ce serveur à partir de ce centre. Vous pouvez rejoindre en utilisant `/ hub joind`.'
+  moderator:
+    noModerators: "{emoji} Ce hub n'a pas encore de modérateurs. Utilisez le modérateur `/ hub Add` pour ajouter un."
+    add:
+      success: '{emoji} **{user}** a été ajouté comme modérateur de position **{position}**.'
+      alreadyModerator: '{emoji} **{user}** est déjà un modérateur.'
+    remove:
+      success: '{emoji} **{user}** a été supprimé en tant que modérateur.'
+      notModerator: "{emoji} **{user}** n'est pas un modérateur."
+      notOwner: '{emoji} Seul le propriétaire de ce centre peut supprimer un gestionnaire.'
+    update:
+      success: '{emoji} **{user}** a été mis à jour à **{position}**.'
+      notModerator: "{emoji} **{user}** n'est pas un modérateur."
+      notAllowed: "{emoji} Seuls les gestionnaires de hub peuvent mettre à jour la position d'un modérateur."
+      notOwner: '{emoji} Seul le propriétaire de ce centre peut mettre à jour le poste de gestionnaire.'
+  manage:
+    enterImgurUrl: Entrez une URL d'image Imgur valide qui n'est pas une galerie ou un album.
+    icon:
+      changed: L'icône du hub a changé avec succès.
+      modal:
+        title: Changer l'icône
+        label: URL de l'icône
+      selects:
+        label: Changer l'icône
+        description: Changez l'icône de ce centre.
+    description:
+      changed: DESCRIPTION DE HUB CHANGÉSÉ AVEC.
+      modal:
+        title: Modification description
+        label: Description
+        placeholder: Entrez une description de ce centre.
+      selects:
+        label: Modification description
+        description: Modifiez la description de ce centre.
+    banner:
+      changed: Hub Banner a changé avec succès.
+      removed: Hub Banner a réussi à supprimer.
+      modal:
+        title: Bannière de changement
+        label: URL de bannière
+      selects:
+        label: Bannière de changement
+        description: Changez la bannière de ce hub.
+    visibility:
+      success: '{emoji} Hub La visibilité a réussi à **{visibility}**.'
+      selects:
+        label: Changer la visibilité
+        description: Rendre ce hub public ou privé.
+    logs:
+      title: Configurer les journaux
+      reset: '{emoji} Réinitialisez avec succès la configuration des journaux pour `{type}` journaux.'
+      roleSuccess: '{emoji} journaux de type `{type}` mentionnera maintenant {role}!'
+      channelSuccess: '{emoji} Les journaux de type `{type}` seront envoyés à {channel} à partir de maintenant!'
+      channelSelect: '# ️⃣ Sélectionnez un canal pour envoyer les journaux'
+      roleSelect: 🏓 Sélectionnez le rôle pour mentionner lorsqu'un journal est déclenché.
+      reportChannelFirst: "{emoji} Veuillez d'abord définir un canal de journal."
+      config:
+        title: Configurer `{type}` journaux
+        description: |-
+          {arrow} Sélectionnez un canal de journal et / ou un rôle à faire un ping dans la liste déroulante ci-dessous.
+           {arrow} Vous pouvez également désactiver la journalisation en utilisant le bouton ci-dessous.
+        fields:
+          channel: Canal
+          role: Mentionner le rôle
+      reports:
+        label: Rapports
+        description: Recevoir des rapports des utilisateurs.
+      modLogs:
+        label: Journaux de mod
+        description: Journal des actions de modération. (par exemple, liste noire, suppression de messages, etc.)
+      profanity:
+        label: Filtre de blasphème
+        description: Journal des messages capturés par le filtre de blasphèmes.
+      joinLeaves:
+        label: Rejoindre / partir
+        description: Enregistrez-vous lorsqu'un serveur rejoint ou quitte ce centre.
+      appeals:
+        label: Appel
+        description: Recevoir les appels des utilisateurs / serveurs sur liste noire.
+report:
+  modal:
+    title: Détails de rapport
+    other:
+      label: Détails de rapport
+      placeholder: Une description détaillée du rapport.
+    bug:
+      input1:
+        label: Détails du bug
+        placeholder: Par exemple, par exemple Échecs d'interaction fréquents pour / Aide Commande ...
+      input2:
+        label: Description détaillée (facultative)
+        placeholder: Étapes que vous avez prises. Par exemple, par exemple 1. Exécutez / Aide 2. Attendez 5 secondes ...
+  submitted: '{emoji} Rapport soumis avec succès. Rejoignez le {support_command} pour obtenir plus de détails. Merci!'
+  bug:
+    title: Rapport de bogue
+    affected: Composants affectés
+    description: Veuillez choisir le composant du bot avec lequel vous rencontrez des problèmes.
+language:
+  set: Ensemble de langues! Je vais maintenant vous répondre dans **{lang}**.
+errors:
+  messageNotSentOrExpired: " Ce message n'a pas été envoyé dans un hub, a expiré, ou vous manquez d'autorisations pour effectuer cette action."
+  notYourAction: '{emoji} Désolé, vous ne pouvez pas effectuer cette action. Veuillez exécuter la commande vous-même.'
+  notMessageAuthor: "{emoji} Vous n'êtes pas l'auteur de ce message."
+  commandError: |-
+    {emoji} Une erreur s'est produite lors de l'exécution de cette commande. Il a été enregistré à notre système. Si ce problème persiste, veuillez rejoindre notre [Support Server]({support_invite}) et signaler l'ID d'erreur!
+
+     **ID d'erreur:**
+     `` `{errorId}` ``
+  mustVote: S'il vous plaît [votez](https://top.gg/bot/769921109209907241/vote) Pour qu'Interchat utilise cette commande, votre support est très apprécié!
+  inviteLinks: "{emoji} Vous ne pouvez pas envoyer de liens d'invitation à ce centre. Définissez plutôt une invitation dans `/ connexion`! Hub Mods peut configurer cela à l'aide de paramètres `/ hub Manage '"
+  invalidLangCode: '{emoji} code de langue non valide. Veuillez vous assurer que vous avez entré un [code linguistique] correct (https://cloud.google.com/translate/docs/languages).'
+  unknownServer: '{emoji} serveur inconnu. Veuillez vous assurer que vous avez entré le bon **ID de serveur**.'
+  unknownNetworkMessage: "{emoji} Message inconnu. S'il a été envoyé au cours de la dernière minute, veuillez attendre quelques secondes de plus et réessayer."
+  userNotFound: '{emoji} utilisateur introuvable. Essayez de saisir leur ID à la place.'
+  blacklisted: '{emoji} vous ou ce serveur est mis sur liste noire à partir de ce centre.'
+  userBlacklisted: '{emoji} Vous êtes sur liste noire à partir de ce centre.'
+  serverBlacklisted: '{emoji} Ce serveur est sur liste noire à partir de ce centre.'
+  serverNotBlacklisted: "{emoji} Le serveur entré n'est pas sur liste noire."
+  userNotBlacklisted: "{emoji} L'utilisateur entré n'est pas sur liste noire."
+  missingPermissions: '{emoji} Vous manquez les autorisations suivantes pour effectuer cette action: **{permissions}**'
+  botMissingPermissions: "{emoji} Veuillez m'accorder les autorisations suivantes pour continuer: **{permissions}**"
+  unknown: "{emoji} Une erreur inconnue s'est produite. Veuillez réessayer plus tard ou nous contacter en rejoignant notre [Support Server]({support_invite})."
+  notUsable: "{emoji} Ce n'est plus utilisable."
+  cooldown: '{emoji} Vous êtes en recharge. Veuillez vous attendre à **{time}** avant de tenter à nouveau.'
+  banned: |-
+    {emoji} Vous avez été interdit d'utiliser InterChat pour raison **{reason}**
+     Si vous pensez qu'un appel est applicable, créez un billet dans le [support Server]({support_invite}).
+misc:
+  webhookNoLongerExists: "{emoji} Le webhook pour ce canal n'existe plus. Pour continuer à utiliser InterChat, veuillez recréer le webhook en utilisant `/ connexion inhabituel`."
+  noReason: Aucune raison fournie.
+  noDesc: Aucune description.
+  version: Interchat v {version}
+  loading: '{emoji} Veuillez patienter pendant que je traite votre demande ...'
+  reportOptionMoved: '{emoji} Cette option a déplacé! Pour signaler un message aux modérateurs HUB, utilisez la commande `applications> Message Info / Report`. Pour les rapports directs à InterChat Staff, sautez simplement dans le [Server de support]({support_invite}) et créez un billet avec une preuve.'

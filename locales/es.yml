@@ -1,0 +1,385 @@
+rules: |
+  ### 📜 Reglas del InterChat
+
+  1. **Usa el sentido común:** Sea considerado con los demás y sus puntos de vista. Sin insultos, lenguaje despectivo extremo o cualquier acción que pueda interrumpir la comodidad del chat.
+  2. **Sin spam ni flood:** Evite enviar mensajes repetidos, sin sentido o demasiado largos.
+  3. **Mantenga los asuntos privados, privados:** Evite compartir información personal en toda la red.
+  4. **Sin acoso:** Los trolleos, insultos o el acoso de cualquier tipo no son tolerados.
+  5. **Sin contenido NSFW/+18:** La publicación de contenido explícito, NSFW/+18 dará como resultado una lista negra inmediata.
+  6. **Respeta los temas sensibles:** No trivialice la autolesión, el suicidio, la violencia u otros temas ofensivos.
+  7. **Reporte los problemas:** Si observa una violación de estas reglas, repórtalo al moderador del centro apropiado o al personal de InterChat para nuevas acciones.
+
+  ¿Alguna pregunta? Únete a nuestro [servidor de soporte]({support_invite}).
+vote:
+  description: |
+    ## Vote por Interchat
+    Al votar, nos apoya ayudando a Interchat a clasificar más alto en las búsquedas. Solo toma un par de clics pero nos ayuda enormemente. ¡Apreciamos profundamente su voto, cada uno cuenta!
+  footer: ¡Gracias por apoyar!
+network:
+  accountTooNew: '{emoji} {user} Su cuenta es demasiado nueva para enviar mensajes usando InterChat. Por favor, inténtelo de nuevo más tarde.'
+  deleteSuccess: '{emoji} El mensaje de {user} se ha eliminado de __**{deleted} de {total}**__ servidores.'
+  editSuccess: '{emoji} El mensaje de {user} se ha editado en __**{edited} de {total}**__ servidores.'
+  welcome: |
+    {emoji} Bienvenido a **{user}**! {hub}
+
+    Los mensajes enviados en {totalServers} se compartirán con otros servidores, **habilitando la comunicación sin esfuerzo**. Puede compartir imágenes, GIF, responder, reaccionar e interactuar con los mensajes como lo haría normalmente. Solo recuerde evitar compartir información personal (revise {channel} para más). ¿Listo para entrar? ¡Envía tu primer mensaje y únete a la conversación!
+  onboarding:
+    embed:
+      title: 👋 ¡Hola, bienvenido a {hubName}!
+      description: |
+        Para mantener las cosas organizadas, se recomienda usar un canal separado solo para este centro. Pero no se preocupe, siempre puede cambiar esto más tarde.
+
+        **Cómo funciona:** La red InterChat es como un puente mágico que vincula los canales en diferentes servidores que están con nosotros en este centro. Obtenga más información en nuestra [Guía]({docs_link}).
+      footer: Red InterChat | Version {version}
+    inProgress: Ya ha habido un intento de unirse a un centro de {emoji}. Por favor, cancelelo o espere a que se complete.
+blacklist:
+  success: '{emoji} **{name}** ¡ha sido con éxito en la lista negra!'
+  removed: '{emoji} **{name}** ¡se ha eliminado de la lista negra!'
+  modal:
+    reason:
+      label: Razón
+      placeholder: Razón de la lista negra
+    duration:
+      label: Duración
+      placeholder: 'Duración de la lista negra. Por ejemplo: 1d, 1w, 1m, 1y. Deje en blanco para que sea permanente.'
+  user:
+    alreadyBlacklisted: '{emoji} Este usuario ya está en la lista negra.'
+    easterEggs:
+      blacklistBot: No puedes incluirme en la lista negra wtf.
+  server:
+    alreadyBlacklisted: '{emoji} Este servidor ya está en la lista negra.'
+    unknownError: Error al agregar a la lista negra a **{server}**. Consulte a los desarrolladores para obtener más información.
+  list:
+    user: |
+      **ID de usuario:** {id}
+      **Moderador:** {moderator}
+      **Razón:** {reason}
+      **Expira:** {expires}
+    server: |
+      **ID del servidor:** {id}
+      **Moderador:** {moderator}
+      **Razón:** {reason}
+      **Expira:** {expires}
+msgInfo:
+  buttons:
+    message: Información del mensaje
+    server: Información del servidor
+    user: Información del usuario
+    report: Reportar
+  message:
+    description: |
+      ## {emoji} Información del mensaje
+
+      **Enviado por:**
+      __{author}__
+
+      **Enviado desde:**
+      __{server}__
+
+      **ID de mensaje:**
+      __{messageId}__
+
+      **Enviado en (centro):**
+      __{hub}__
+
+      **Mensaje creado:**
+      {createdAt}
+  server:
+    description: |
+      ## {server}
+      {description}
+
+      **Dueño:**
+      __{owner}__
+
+      **Creado:**
+      __{createdAtFull} ({createdAt})__
+
+      **Número de miembros:**
+      __{memberCount}__
+
+      **Invitación:**
+      __{invite}__
+  user:
+    description: |
+      ## {username}
+      __{id}__
+
+      **Identificador:**
+      __{createdAtFull}__
+
+      **Creado:**
+      {createdAt} ({globalName})
+
+      **Nombre:**
+      __{hubsOwned}__
+
+      **Centros en propiedad:**
+      ____
+  report:
+    notEnabled: '{emoji} Este centro no tiene habilitado la acción de reportar.'
+    success: '{emoji} Reporte enviado correctamente. ¡Gracias!'
+invite: |
+  Gracias por elegir invitar a InterChat. ¡Haga clic en el botón de abajo para invitarme!
+
+  - **Servidor de soporte:** {invite_emoji}
+connection:
+  notFound: '{emoji} Conexión no válida. Verifique el ID del canal o seleccione de las opciones mostradas.'
+  channelNotFound: '{emoji} No se puede encontrar el canal conectado. Para hablar nuevamente, elija un nuevo canal.'
+  alreadyConnected: '{emoji} El canal {channel} ya está conectado a un centro.'
+  switchChannel: '{emoji} Seleccione un canal para cambiar a usar el menú Seleccionar a continuación:'
+  switchCalled: '{emoji} Interruptor de canal llamado, use el comando nuevamente para ver una nueva conexión.'
+  switchSuccess: '{emoji} El canal ha sido conmutado. Ahora está conectado desde **{channel}**.'
+  inviteRemoved: '{emoji} Invitación del servidor eliminada para este centro.'
+  inviteInvalid: '{emoji} La invitación es inválida. Asegúrese de haber ingresado un enlace de invitación válido.'
+  inviteAdded: "{emoji} Se ha agregado la invitación. Otros ahora pueden unirse a este servidor utilizando el comando `APPS> Información del mensaje/Informe '."
+  emColorInvalid: '{emoji} Color no válido. Asegúrese de haber ingresado un código de color hexadecimal válido.'
+  emColorChange: '{emoji} Se estableció el color exitosamente: {action}'
+  embed:
+    title: Detalles de la conexión
+    fields:
+      hub: Centro
+      channel: Canal
+      invite: Invitar
+      connected: Conectada
+      emColor: Color del embed
+      compact: Modo compacto
+      profanity: Filtro de blasfemias
+    footer: Use el botón y el menú desplegable a continuación para administrar su conexión.
+  selects:
+    placeholder: 🛠️ Seleccione una opción a continuación para administrar su conexión.
+  unpaused:
+    desc: |-
+      ### {tick_emoji} Conexión sin aliento
+
+       Conexión no puesta para {channel}! Los mensajes del Hub comenzarán a entrar al canal y puede enviar mensajes al Hub nuevamente.
+    tips: '**💡 Tip:** use {pause_cmd} para pausar la conexión o {customize_cmd} para configurar los colores de incrustación, alternar el filtro de blasfemias y más.'
+  paused:
+    desc: |-
+      ### {clock_emoji} Conexión pausada
+       Conexión pausada para {channel}! Los mensajes del centro ya no entrarán en el canal y sus mensajes no se les transmitirá.
+    tips: '**💡 consejo:** use {unpause_cmd} para impausar la conexión o {leave_cmd} para dejar de recibir mensajes permanentemente.'
+hub:
+  notFound: '{emoji} No se puede encontrar HUB. Asegúrese de haber ingresado el nombre correcto del concentrador.'
+  notFound_mod: '{emoji} No se puede encontrar HUB. Asegúrese de haber ingresado el nombre correcto del concentrador y de que usted sea el propietario o un moderador del Hub.'
+  alreadyJoined: '{emoji} Ya se ha unido a **{hub}** de {channel}!'
+  invalidChannel: '{emoji} El canal no es válido. ¡Solo se admiten los canales de texto y hilo!'
+  invalidImgurUrl: '{emoji} URL de imagen no válida para icono o banner. Asegúrese de haber ingresado una URL de imagen de Imgur válida que no es una galería o álbum.'
+  join:
+    success: ¡Hub **{hub}** de {channel}! Dé alrededor de **5 minutos** para que los mensajes comiencen a aparecer. Mientras tanto, puede usar `/Connection` para explorar varias personalizaciones para esta conexión. Use `/Hub Leave` para dejar el centro.
+  servers:
+    total: 'Servidores conectados actuales: {from}-{to} / **{total}**'
+    noConnections: '{emoji} Ningún servidor se ha unido a este centro todavía. Use `/Hub Join` para unirse a este centro.'
+    notConnected: '{emoji} Ese servidor no es parte de **{hub}**.'
+    connectionInfo: |
+      Canal: #{channelName} `({channelId})`
+      Unido a: {joinedAt}
+      Invitar: {invite}
+      Conectado: {connected}
+  create:
+    modal:
+      title: Crear centro
+      name:
+        label: Nombre
+        placeholder: Ingrese un nombre para su centro.
+      description:
+        label: Descripción
+        placeholder: Ingrese una descripción para su centro.
+      icon:
+        label: URL de icono
+        placeholder: Ingrese una URL de imagen Imgur.
+      banner:
+        label: URL de banner
+        placeholder: Ingrese una URL de imagen Imgur.
+    maxHubs: '{emoji} Has alcanzado el número máximo de centros (3) que puedes crear. Elimine un centro antes de crear otro.'
+    invalidName: '{emoji} Nombre de la concentración no válida. No debe contener `discord`,`clyde` o `/`. Elija otro nombre.'
+    nameTaken: '{emoji} Este nombre del centro ya está tomado. Elija otro nombre.'
+    success: |
+      ### Hub creado!
+
+      ¡Felicidades! Su centro privado, **{name}**, se ha creado con éxito.
+      Para unirse, cree una invitación usando `/Hub Invite Create` y comparta el código generado. Luego únete a usar `/Hub Join`.
+
+      - **Generar invitación:** `/Hub Invite Create`
+      - **Gestión del Hub:** `/Hub Management`
+      - **Unirse al Hub:** `/HUB Join`
+      - **Editar Hub:** `/Hub Management`
+      - **Agregar moderadores:** `/Hub Moderator Add`
+
+      Obtenga más información sobre los centros en nuestra [Guía]({docs_link}). Une el [servidor de soporte]({support_invite}) para obtener ayuda.
+  delete:
+    confirm: ¿Estás seguro de que desea eliminar **{hub}**? Esta acción es irreversible. Todos los servidores conectados, invitaciones y datos de mensajes se eliminarán de este centro.
+    ownerOnly: '{emoji} Solo el propietario de este centro puede eliminarlo.'
+    success: '{emoji} Hub **{hub}** ha sido eliminado.'
+    cancelled: '{emoji} La eliminación de concentración ha sido cancelada.'
+  browse:
+    joinConfirm: |
+      ¿Estás seguro de que deseas unirte {hub} de {channel}?
+
+      **Nota:** Siempre puede cambiar esto más tarde usando `/Connection`.
+    joinFooter: ¿Quieres usar un canal diferente? Use el menú desplegable a continuación.
+    noHubs: '{emoji} No hay centros enumerados aquí en este momento. ¡Por favor, inténtelo de nuevo más tarde!'
+    rating:
+      invalid: Calificación no válida. Debe ingresar un número entre 1 y 5.
+      success: Calificación presentada! Gracias por tus comentarios.
+  invite:
+    create:
+      success: |
+        ### Invitación creada!
+
+        Su invitación ha sido creada con éxito. Otros ahora pueden unirse a este centro utilizando el comando `/HUB Join`.
+
+        - **Únete usando:** `/HUB INVITE: {inviteCode}`
+        - **View Invites:** `/Hub Invited List`
+        - **Expiración:** {expiry}
+        - **Usos**: ∞
+
+        __Learn más sobre los centros en nuestra [Guía]({docs_link}) .__.
+    revoke:
+      invalidCode: '{emoji} Código de invitación no válido. Asegúrese de haber ingresado un código de invitación válido.'
+      success: '{emoji} Invitación {inviteCode} revocada.'
+    list:
+      title: '**Invitar códigos:**'
+      noInvites: '{emoji} Este centro aún no tiene invitaciones. Use `/Hub Invite Create` para crear uno.'
+      notPrivate: '{emoji} Solo los centros privados pueden tener invitaciones. Use `/Hub Management` para que este centro sea privado.'
+  joined:
+    noJoinedHubs: '{emoji} Este servidor aún no se ha unido a ningún centro. Use `/Hub Browse` para ver una lista de centros.'
+    joinedHubs: Este servidor es parte de **{total}** Hub(s). Use `/Hub Leave` para dejar un centro.
+  leave:
+    noHub: '{emoji} ese canal no es válido o no ha unido ningún centro.'
+    confirm: ¿Estás seguro de que deseas dejar **{hub}** de {channel}? No se enviarán más mensajes a este servidor desde este centro.
+    confirmFooter: Confirme usando el botón a continuación en 10 segundos.
+    success: '{emoji} dejó el concentrador de {channel}. No se enviarán más mensajes a este servidor desde este centro. Puede reunirse usando `/Hub Join`.'
+  moderator:
+    noModerators: '{emoji} Este centro todavía no tiene moderadores. Use el moderador `/Hub Add` para agregar uno.'
+    add:
+      success: '{emoji} **{user}** se ha agregado como moderador de posición **{position}**.'
+      alreadyModerator: '{emoji} **{user}** ya es un moderador.'
+    remove:
+      success: '{emoji} **{user}** se ha eliminado como moderador.'
+      notModerator: '{emoji} **{user}** no es un moderador.'
+      notOwner: '{emoji} Solo el propietario de este centro puede eliminar un administrador.'
+    update:
+      success: "{emoji} **{user}** 'La posición se ha actualizado a **{position}**."
+      notModerator: '{emoji} **{user}** no es un moderador.'
+      notAllowed: '{emoji} Solo los administradores de centros pueden actualizar la posición de un moderador.'
+      notOwner: '{emoji} Solo el propietario de este centro puede actualizar la posición de un administrador.'
+  manage:
+    enterImgurUrl: Ingrese una URL de imagen de Imgur válida que no sea una galería o álbum.
+    icon:
+      changed: El icono del centro cambió con éxito.
+      modal:
+        title: Cambiar el ícono
+        label: URL de icono
+      selects:
+        label: Cambiar el ícono
+        description: Cambie el icono de este centro.
+    description:
+      changed: La descripción del concentrador cambió con éxito.
+      modal:
+        title: Cambiar Descripción
+        label: Descripción
+        placeholder: Ingrese una descripción para este centro.
+      selects:
+        label: Cambiar Descripción
+        description: Cambie la descripción de este centro.
+    banner:
+      changed: Hub Banner cambió con éxito.
+      removed: Banner de concentrador eliminado con éxito.
+      modal:
+        title: Banner de cambio
+        label: URL de banner
+      selects:
+        label: Banner de cambio
+        description: Cambia la pancarta de este centro.
+    visibility:
+      success: '{emoji} La visibilidad del centro cambió correctamente a **{visibility}**.'
+      selects:
+        label: Cambiar la visibilidad
+        description: Haz este centro público o privado.
+    logs:
+      title: Configurar registros
+      reset: '{emoji} Se reinició con éxito la configuración de registros para `{type}`.'
+      roleSuccess: '{emoji} registros de tipo `{type}` ahora mencionará {role}!'
+      channelSuccess: '{emoji} registros de tipo `{type}` se enviará a {channel} de ahora!'
+      channelSelect: '#️⃣ Seleccione el tipo de registro para configurar.'
+      roleSelect: 🏓 Seleccione el papel a mencionar cuándo se activa un registro.
+      reportChannelFirst: '{emoji} Establezca primero un canal de registro.'
+      config:
+        title: Configurar `{type}` registra
+        description: |
+          {arrow} Seleccione un canal de registro y/o rol que se haga ping desde el menú desplegable a continuación.
+          {arrow} También puede deshabilitar el registro usando el botón a continuación.
+        fields:
+          channel: Canal
+          role: Mención de roles
+      reports:
+        label: Informes
+        description: Recibir informes de los usuarios.
+      modLogs:
+        label: Registros de mod
+        description: Acciones de moderación de registro. (por ejemplo, la lista negra, el mensaje elimina, etc.)
+      profanity:
+        label: Filtro de blasfemias
+        description: Mensajes de registro que son capturados por el filtro de blasfemias.
+      joinLeaves:
+        label: Unir/salir
+        description: Registre cuando un servidor se une o deja este centro.
+      appeals:
+        label: Apelaciones
+        description: Reciba apelaciones de usuarios/servidores en la lista negra.
+report:
+  modal:
+    title: Detalles del reporte
+    other:
+      label: Detalles del reporte
+      placeholder: Una descripción detallada del reporte.
+    bug:
+      input1:
+        label: Detalles del error
+        placeholder: P.ej. Fallas de interacción frecuentes para /Help Command ...
+      input2:
+        label: Descripción detallada (opcional)
+        placeholder: Pasos que tomaste. P.ej. 1. Corre /ayuda 2. espera 5 segundos ...
+  submitted: Informe enviado. Únase al **[Servidor de soporte]({emoji})** para obtener actualizaciones en su informe.
+  bug:
+    title: Informe de error
+    affected: Componentes afectados
+    description: Elija qué componente del bot con el que enfrenta problemas.
+language:
+  set: ¡Sé de idiomas! Ahora te responderé en **{lang}**.
+errors:
+  messageNotSentOrExpired: ' Este mensaje no se envió en un centro, ha expirado o le falta permisos para realizar esta acción.'
+  notYourAction: '{emoji} Lo siento, no puedes realizar esta acción. Por favor ejecute el comando usted mismo.'
+  notMessageAuthor: '{emoji} No eres el autor de este mensaje.'
+  commandError: |
+    {emoji} Se produjo un error al ejecutar este comando. Se ha registrado a nuestro sistema. Si este problema persiste, únase a nuestro [servidor de soporte]({support_invite}) y repórtelo.
+    ```JS
+    {errorId}
+    ```
+  mustVote: Por favor [vote](https://top.gg/bot/769921109209907241/vote) para que InterChat use este comando, ¡su apoyo es muy apreciado!
+  inviteLinks: '{emoji} No anuncie ni promueva servidores en la red. ¡Establezca una invitación en `/Connection` en su lugar!'
+  invalidLangCode: '{emoji} Código de lenguaje no válido. Asegúrese de haber ingresado un [código de idioma] correcto (https://cloud.google.com/translate/docs/languages).'
+  unknownServer: '{emoji} servidor desconocido. Asegúrese de haber ingresado la ID correcta del servidor.'
+  unknownNetworkMessage: '{emoji} Mensaje desconocido. Si se ha enviado en el último minuto, espere unos segundos más e intente nuevamente.'
+  userNotFound: '{emoji} usuario no encontrado. Intente ingresar su ID en su lugar.'
+  blacklisted: '{emoji} Usted o este servidor está en la lista negra de usar InterChat.'
+  userBlacklisted: '{emoji} Estás en la lista negra de este centro.'
+  serverBlacklisted: '{emoji} Este servidor está en la lista negra de este centro.'
+  serverNotBlacklisted: '{emoji} El servidor ingresado no está en la lista negra.'
+  userNotBlacklisted: '{emoji} El usuario ingresado no está en la lista negra.'
+  missingPermissions: '{emoji} Me falta los siguientes permisos para realizar esta acción: **{permissions}**'
+  botMissingPermissions: '{emoji} Por favor, otorgame los siguientes permisos para continuar: **{permissions}**'
+  unknown: '{emoji} Ocurrió un error desconocido. Vuelva a intentarlo más tarde o contáctenos uniéndose a nuestro [servidor de soporte]({support_invite}).'
+  notUsable: '{emoji} Esto ya no se puede usar.'
+  cooldown: '{emoji} Estás en el tiempo de reutilización. Espere **{time}** antes de intentarlo nuevamente.'
+  banned: |-
+    {emoji} se le ha prohibido usar Interchat por la razón **{reason}**
+     Si cree que es aplicable una apelación, cree un ticket en el [Servidor de soporte]({support_invite}).
+misc:
+  webhookNoLongerExists: '{emoji} El webhook para este canal ya no existe. Para continuar usando Interchat, vuelva a habilitar el webhook cambiando la conexión a otro canal usando `/Connection`.'
+  noReason: No se proporcionó ninguna razón.
+  noDesc: Sin descripción.
+  version: InterChat v{version}
+  loading: '{emoji} Por favor, espere mientras proceso su solicitud ...'
+  reportOptionMoved: "{emoji} ¡Esta opción se ha movido! Para informar un mensaje a los moderadores HUB, use el comando actualizado 'APPS> Información del mensaje/Informe'. Para informar directamente al personal de Interchat, simplemente suba al [Servidor de soporte]({support_invite}) y cree un boleto con prueba."
