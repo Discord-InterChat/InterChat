@@ -30,15 +30,11 @@ export default class extends BlacklistCommand {
       const user = interaction.options.getUser('user', true);
       const blacklistManager = new BlacklistManager(new UserInfractionManager(user.id));
 
-      const passedChecks = await this.runUserAddChecks(
-        interaction,
-        blacklistManager,
-        {
-          hubId: hub.id,
-          userId: user.id,
-          duration,
-        },
-      );
+      const passedChecks = await this.runUserAddChecks(interaction, blacklistManager, {
+        hubId: hub.id,
+        userId: user.id,
+        duration,
+      });
 
       if (!passedChecks) return;
 
@@ -50,7 +46,7 @@ export default class extends BlacklistCommand {
 
       await this.sendSuccessResponse(
         interaction,
-        t({ phrase: 'blacklist.success', locale }, { name: user.username, emoji: emojis.tick }),
+        t('blacklist.success', locale, { name: user.username, emoji: emojis.tick }),
         { reason, expires },
       );
 
@@ -74,7 +70,7 @@ export default class extends BlacklistCommand {
       if (!result) {
         await this.replyEmbed(
           interaction,
-          t({ phrase: 'errors.userNotBlacklisted', locale }, { emoji: emojis.no }),
+          t('errors.userNotBlacklisted', locale, { emoji: emojis.no }),
           { ephemeral: true },
         );
         return;
@@ -82,10 +78,7 @@ export default class extends BlacklistCommand {
 
       const user = await interaction.client.users.fetch(userId).catch(() => null);
       await interaction.followUp(
-        t(
-          { phrase: 'blacklist.removed', locale },
-          { emoji: emojis.delete, name: `${user?.username}` },
-        ),
+        t('blacklist.removed', locale, { emoji: emojis.delete, name: `${user?.username}` }),
       );
     }
   }
@@ -134,9 +127,9 @@ export default class extends BlacklistCommand {
     interaction: ChatInputCommandInteraction,
     blacklistManager: BlacklistManager<UserInfraction>,
     opts: {
-      userId: string,
-      hubId: string,
-      duration?: number
+      userId: string;
+      hubId: string;
+      duration?: number;
     },
   ) {
     const { userManager } = interaction.client;
@@ -145,7 +138,7 @@ export default class extends BlacklistCommand {
     if (opts.userId === interaction.client.user?.id) {
       await this.replyEmbed(
         interaction,
-        t({ phrase: 'blacklist.user.easterEggs.blacklistBot', locale }),
+        t('blacklist.user.easterEggs.blacklistBot', locale),
         hiddenOpt,
       );
       return false;
@@ -172,7 +165,7 @@ export default class extends BlacklistCommand {
     if (userInBlacklist) {
       await this.replyEmbed(
         interaction,
-        t({ phrase: 'blacklist.user.alreadyBlacklisted', locale }, { emoji: emojis.no }),
+        t('blacklist.user.alreadyBlacklisted', locale, { emoji: emojis.no }),
         hiddenOpt,
       );
       return false;

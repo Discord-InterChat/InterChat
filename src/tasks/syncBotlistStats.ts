@@ -33,7 +33,7 @@ export default async ({ serverCount, shardCount }: TopggStats) => {
     },
   })
     .then(async (res) => {
-      const data = await res.json() as TopggStats;
+      const data = (await res.json()) as TopggStats;
 
       if (res.status !== 200) {
         logPostError(data);

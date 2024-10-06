@@ -37,7 +37,7 @@ export default class JoinSubCommand extends HubCommand {
     const hub = await this.fetchHub(interaction, locale);
     if (!hub) {
       await interaction.reply({
-        content: t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
+        content: t('hub.notFound', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -67,7 +67,7 @@ export default class JoinSubCommand extends HubCommand {
     });
 
     await interaction.editReply({
-      content: t({ phrase: 'hub.join.success', locale }, { channel: `${channel}`, hub: hub.name }),
+      content: t('hub.join.success', locale, { channel: `${channel}`, hub: hub.name }),
       embeds: [],
       components: [],
     });
@@ -101,10 +101,10 @@ export default class JoinSubCommand extends HubCommand {
     if (!channel.permissionsFor(interaction.member).has('ManageMessages')) {
       await this.replyEmbed(
         interaction,
-        t(
-          { phrase: 'errors.missingPermissions', locale },
-          { permissions: 'Manage Messages', emoji: emojis.no },
-        ),
+        t('errors.missingPermissions', locale, {
+          permissions: 'Manage Messages',
+          emoji: emojis.no,
+        }),
         { ephemeral: true },
       );
       return false;
@@ -137,7 +137,7 @@ export default class JoinSubCommand extends HubCommand {
       if (!fetchedInvite) {
         await this.replyEmbed(
           interaction,
-          t({ phrase: 'hub.invite.revoke.invalidCode', locale }, { emoji: emojis.no }),
+          t('hub.invite.revoke.invalidCode', locale, { emoji: emojis.no }),
           { ephemeral: true },
         );
         return null;
@@ -159,10 +159,11 @@ export default class JoinSubCommand extends HubCommand {
       const otherHub = await db.hub.findFirst({ where: { id: channelInHub.hubId } });
       await this.replyEmbed(
         interaction,
-        t(
-          { phrase: 'hub.alreadyJoined', locale },
-          { channel: `<#${channelId}>`, hub: `${otherHub?.name}`, emoji: emojis.no },
-        ),
+        t('hub.alreadyJoined', locale, {
+          channel: `<#${channelId}>`,
+          hub: `${otherHub?.name}`,
+          emoji: emojis.no,
+        }),
         { ephemeral: true },
       );
       return true;
@@ -184,7 +185,7 @@ export default class JoinSubCommand extends HubCommand {
 
     if (userBlacklist || serverBlacklist) {
       await interaction.reply({
-        content: t({ phrase: 'errors.blacklisted', locale }, { emoji: emojis.no }),
+        content: t('errors.blacklisted', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return true;
@@ -207,10 +208,10 @@ export default class JoinSubCommand extends HubCommand {
     else if (onboardingCompleted === 'in-progress') {
       await this.replyEmbed(
         interaction,
-        t(
-          { phrase: 'network.onboarding.inProgress', locale: opts.locale },
-          { channel: `${opts.channel}`, emoji: emojis.dnd_anim },
-        ),
+        t('network.onboarding.inProgress', opts.locale, {
+          channel: `${opts.channel}`,
+          emoji: emojis.dnd_anim,
+        }),
         { ephemeral: true },
       );
       return false;
@@ -228,10 +229,10 @@ export default class JoinSubCommand extends HubCommand {
     if (!webhook) {
       await this.replyEmbed(
         interaction,
-        t(
-          { phrase: 'errors.botMissingPermissions', locale },
-          { permissions: 'Manage Webhooks', emoji: emojis.no },
-        ),
+        t('errors.botMissingPermissions', locale, {
+          permissions: 'Manage Webhooks',
+          emoji: emojis.no,
+        }),
         { components: [], edit: true },
       );
       return null;

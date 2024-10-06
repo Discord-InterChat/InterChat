@@ -65,7 +65,7 @@ export default class MessageInfo extends BaseCommand {
 
     if (!originalMsg?.hub) {
       await interaction.followUp({
-        content: t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
+        content: t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -168,7 +168,7 @@ export default class MessageInfo extends BaseCommand {
       !(await HubLogManager.create(originalMsg?.hubId)).config.reports?.channelId
     ) {
       const notEnabledEmbed = new InfoEmbed().setDescription(
-        t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no }),
+        t('msgInfo.report.notEnabled', locale, { emoji: emojis.no }),
       );
 
       await interaction.reply({ embeds: [notEnabledEmbed], ephemeral: true });
@@ -196,7 +196,7 @@ export default class MessageInfo extends BaseCommand {
     });
 
     const successEmbed = new InfoEmbed().setDescription(
-      t({ phrase: 'msgInfo.report.success', locale }, { emoji: emojis.yes }),
+      t('msgInfo.report.success', locale, { emoji: emojis.yes }),
     );
 
     await interaction.reply({ embeds: [successEmbed], ephemeral: true });
@@ -209,7 +209,7 @@ export default class MessageInfo extends BaseCommand {
   ) {
     if (!server) {
       await interaction.update({
-        content: t({ phrase: 'errors.unknownServer', locale }, { emoji: emojis.no }),
+        content: t('errors.unknownServer', locale, { emoji: emojis.no }),
         embeds: [],
         components: [],
       });
@@ -290,7 +290,7 @@ export default class MessageInfo extends BaseCommand {
 
     if (!message || !hub) {
       await interaction.update({
-        content: t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
+        content: t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
         embeds: [],
         components: [],
       });
@@ -321,7 +321,7 @@ export default class MessageInfo extends BaseCommand {
     if (!isValidDbMsgWithHubId(originalMsg)) return;
     if (!originalMsg.hub || !isStaffOrHubMod(interaction.user.id, originalMsg.hub)) {
       await interaction.reply({
-        content: t({ phrase: 'hub.notFound_mod', locale: 'en' }, { emoji: emojis.no }),
+        content: t('hub.notFound_mod', 'en', { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -337,7 +337,7 @@ export default class MessageInfo extends BaseCommand {
   ) {
     if (!hub || !(await HubLogManager.create(hub.id)).config.reports?.channelId) {
       const notEnabledEmbed = new InfoEmbed().setDescription(
-        t({ phrase: 'msgInfo.report.notEnabled', locale }, { emoji: emojis.no }),
+        t('msgInfo.report.notEnabled', locale, { emoji: emojis.no }),
       );
 
       await interaction.reply({ embeds: [notEnabledEmbed], ephemeral: true });
@@ -397,11 +397,9 @@ export default class MessageInfo extends BaseCommand {
   ) {
     const extras = [
       new ButtonBuilder()
-        .setLabel(t({ phrase: 'msgInfo.buttons.report', locale }))
+        .setLabel(t('msgInfo.buttons.report', locale))
         .setStyle(ButtonStyle.Danger)
-        .setCustomId(
-          new CustomID().setIdentifier('msgInfo', 'report').toString(),
-        ),
+        .setCustomId(new CustomID().setIdentifier('msgInfo', 'report').toString()),
     ];
 
     if (opts?.buildModActions) {
@@ -410,9 +408,7 @@ export default class MessageInfo extends BaseCommand {
           .setStyle(ButtonStyle.Secondary)
           .setEmoji('🛠️')
           .setLabel('Mod Actions')
-          .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'modActions').toString(),
-          ),
+          .setCustomId(new CustomID().setIdentifier('msgInfo', 'modActions').toString()),
       );
     }
     if (opts?.inviteButtonUrl) {
@@ -428,24 +424,18 @@ export default class MessageInfo extends BaseCommand {
     return [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-          .setLabel(t({ phrase: 'msgInfo.buttons.message', locale }))
+          .setLabel(t('msgInfo.buttons.message', locale))
           .setStyle(ButtonStyle.Secondary)
           .setDisabled(true)
-          .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'msgInfo').toString(),
-          ),
+          .setCustomId(new CustomID().setIdentifier('msgInfo', 'msgInfo').toString()),
         new ButtonBuilder()
-          .setLabel(t({ phrase: 'msgInfo.buttons.server', locale }))
+          .setLabel(t('msgInfo.buttons.server', locale))
           .setStyle(ButtonStyle.Secondary)
-          .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'serverInfo').toString(),
-          ),
+          .setCustomId(new CustomID().setIdentifier('msgInfo', 'serverInfo').toString()),
         new ButtonBuilder()
-          .setLabel(t({ phrase: 'msgInfo.buttons.user', locale }))
+          .setLabel(t('msgInfo.buttons.user', locale))
           .setStyle(ButtonStyle.Secondary)
-          .setCustomId(
-            new CustomID().setIdentifier('msgInfo', 'userInfo').toString(),
-          ),
+          .setCustomId(new CustomID().setIdentifier('msgInfo', 'userInfo').toString()),
       ),
       new ActionRowBuilder<ButtonBuilder>({ components: extras }),
     ];

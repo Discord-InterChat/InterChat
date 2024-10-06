@@ -36,9 +36,7 @@ export default class Ready extends BaseEventListener<'webhooksUpdate'> {
         : channel;
 
       if (isGuildTextBasedChannel(networkChannel)) {
-        await networkChannel.send(
-          t({ phrase: 'misc.webhookNoLongerExists', locale: 'en' }, { emoji: emojis.info }),
-        );
+        await networkChannel.send(t('misc.webhookNoLongerExists', 'en', { emoji: emojis.info }));
       }
     }
     catch (error) {

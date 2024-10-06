@@ -31,13 +31,13 @@ export default class Create extends HubCommand {
     }
 
     const modal = new ModalBuilder()
-      .setTitle(t({ phrase: 'hub.create.modal.title', locale }))
+      .setTitle(t('hub.create.modal.title', locale))
       .setCustomId(new CustomID('hub_create_modal').toString())
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
-            .setLabel(t({ phrase: 'hub.create.modal.name.label', locale }))
-            .setPlaceholder(t({ phrase: 'hub.create.modal.name.placeholder', locale }))
+            .setLabel(t('hub.create.modal.name.label', locale))
+            .setPlaceholder(t('hub.create.modal.name.placeholder', locale))
             .setMinLength(2)
             .setMaxLength(100)
             .setStyle(TextInputStyle.Short)
@@ -45,16 +45,16 @@ export default class Create extends HubCommand {
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
-            .setLabel(t({ phrase: 'hub.create.modal.description.label', locale }))
-            .setPlaceholder(t({ phrase: 'hub.create.modal.description.placeholder', locale }))
+            .setLabel(t('hub.create.modal.description.label', locale))
+            .setPlaceholder(t('hub.create.modal.description.placeholder', locale))
             .setMaxLength(1024)
             .setStyle(TextInputStyle.Paragraph)
             .setCustomId('description'),
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
-            .setLabel(t({ phrase: 'hub.create.modal.icon.label', locale }))
-            .setPlaceholder(t({ phrase: 'hub.create.modal.icon.placeholder', locale }))
+            .setLabel(t('hub.create.modal.icon.label', locale))
+            .setPlaceholder(t('hub.create.modal.icon.placeholder', locale))
             .setMaxLength(300)
             .setStyle(TextInputStyle.Short)
             .setRequired(false)
@@ -62,8 +62,8 @@ export default class Create extends HubCommand {
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
-            .setLabel(t({ phrase: 'hub.create.modal.banner.label', locale }))
-            .setPlaceholder(t({ phrase: 'hub.create.modal.banner.placeholder', locale }))
+            .setLabel(t('hub.create.modal.banner.label', locale))
+            .setPlaceholder(t('hub.create.modal.banner.placeholder', locale))
             .setMaxLength(300)
             .setStyle(TextInputStyle.Short)
             .setRequired(false)
@@ -95,7 +95,7 @@ export default class Create extends HubCommand {
     // if hubName contains "discord", "clyde" "```" then return
     if (Constants.Regex.BannedWebhookWords.test(name)) {
       await interaction.followUp({
-        content: t({ phrase: 'hub.create.invalidName', locale }, { emoji: emojis.no }),
+        content: t('hub.create.invalidName', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -107,7 +107,7 @@ export default class Create extends HubCommand {
 
     if (hubs.find((hub) => hub.name === name)) {
       await interaction.followUp({
-        content: t({ phrase: 'hub.create.nameTaken', locale }, { emoji: emojis.no }),
+        content: t('hub.create.nameTaken', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -116,7 +116,7 @@ export default class Create extends HubCommand {
       hubs.reduce((acc, hub) => (hub.ownerId === interaction.user.id ? acc + 1 : acc), 0) >= 3
     ) {
       await interaction.followUp({
-        content: t({ phrase: 'hub.create.maxHubs', locale }, { emoji: emojis.no }),
+        content: t('hub.create.maxHubs', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -128,7 +128,7 @@ export default class Create extends HubCommand {
     // TODO: create a gif showing how to get imgur links
     if (iconUrl === false || bannerUrl === false) {
       await interaction.followUp({
-        content: t({ phrase: 'hub.invalidImgurUrl', locale }, { emoji: emojis.no }),
+        content: t('hub.invalidImgurUrl', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -156,10 +156,11 @@ export default class Create extends HubCommand {
     const successEmbed = new EmbedBuilder()
       .setColor('Green')
       .setDescription(
-        t(
-          { phrase: 'hub.create.success', locale },
-          { name, support_invite: Constants.Links.SupportInvite, docs_link: Constants.Links.Docs },
-        ),
+        t('hub.create.success', locale, {
+          name,
+          support_invite: Constants.Links.SupportInvite,
+          docs_link: Constants.Links.Docs,
+        }),
       )
       .setTimestamp();
 

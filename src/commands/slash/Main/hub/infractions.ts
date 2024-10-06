@@ -29,10 +29,7 @@ export default class ViewInfractions extends HubCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (!hubInDb) {
-      await this.replyEmbed(
-        interaction,
-        t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
-      );
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
       return;
     }
 

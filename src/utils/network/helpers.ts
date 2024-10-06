@@ -133,7 +133,6 @@ const addReplyField = (normal: EmbedBuilder, censored: EmbedBuilder, referredCon
   censored.setFields({ name: 'Replying To:', value: `> ${censor(formattedReply)}` });
 };
 
-
 /**
  * Builds an embed for a network message.
  * @param message The network message to build the embed for.
@@ -195,17 +194,14 @@ export const sendWelcomeMsg = async (
 
   await message.channel
     .send({
-      content: t(
-        { phrase: 'network.welcome', locale },
-        {
-          user: message.author.toString(),
-          channel: message.channel.toString(),
-          emoji: emojis.wave_anim,
-          rules_command: '</rules:924659340898619395>',
-          hub: opts.hub,
-          totalServers: opts.totalServers,
-        },
-      ),
+      content: t('network.welcome', locale, {
+        user: message.author.toString(),
+        channel: message.channel.toString(),
+        emoji: emojis.wave_anim,
+        rules_command: '</rules:924659340898619395>',
+        hub: opts.hub,
+        totalServers: opts.totalServers,
+      }),
       components: [linkButtons],
     })
     .catch(() => null);

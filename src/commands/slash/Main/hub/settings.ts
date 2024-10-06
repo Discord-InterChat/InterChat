@@ -71,10 +71,10 @@ export default class Settings extends HubCommand {
     if (interaction.user.id !== userId) {
       await this.replyEmbed(
         interaction,
-        t({
-          phrase: 'errors.notYourAction',
-          locale: await interaction.client.userManager.getUserLocale(interaction.user.id),
-        }),
+        t(
+          'errors.notYourAction',
+          await interaction.client.userManager.getUserLocale(interaction.user.id),
+        ),
         { ephemeral: true },
       );
     }

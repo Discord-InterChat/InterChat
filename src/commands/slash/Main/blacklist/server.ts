@@ -36,9 +36,7 @@ export default class extends BlacklistCommand {
 
       const server = await interaction.client.fetchGuild(serverId).catch(() => null);
       if (!server) {
-        await interaction.followUp(
-          t({ phrase: 'errors.unknownServer', locale }, { emoji: emojis.no }),
-        );
+        await interaction.followUp(t('errors.unknownServer', locale, { emoji: emojis.no }));
         return;
       }
 
@@ -59,7 +57,7 @@ export default class extends BlacklistCommand {
 
       await this.sendSuccessResponse(
         interaction,
-        t({ phrase: 'blacklist.success', locale }, { name: server.name, emoji: emojis.tick }),
+        t('blacklist.success', locale, { name: server.name, emoji: emojis.tick }),
         { reason, expires },
       );
 
@@ -80,7 +78,7 @@ export default class extends BlacklistCommand {
       if (!result) {
         await this.replyEmbed(
           interaction,
-          t({ phrase: 'errors.serverNotBlacklisted', locale }, { emoji: emojis.no }),
+          t('errors.serverNotBlacklisted', locale, { emoji: emojis.no }),
         );
         return;
       }
@@ -88,10 +86,7 @@ export default class extends BlacklistCommand {
       // Using name from DB since the bot can't access server through API.
       await this.replyEmbed(
         interaction,
-        t(
-          { phrase: 'blacklist.removed', locale },
-          { emoji: emojis.delete, name: result.serverName },
-        ),
+        t('blacklist.removed', locale, { emoji: emojis.delete, name: result.serverName }),
       );
 
       // send log to hub's log channel
@@ -114,7 +109,7 @@ export default class extends BlacklistCommand {
     if (blacklist) {
       await this.replyEmbed(
         interaction,
-        t({ phrase: 'blacklist.server.alreadyBlacklisted' }, { emoji: emojis.no }),
+        t('blacklist.server.alreadyBlacklisted', 'en', { emoji: emojis.no }),
         hiddenOpt,
       );
       return false;

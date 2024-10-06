@@ -27,10 +27,7 @@ export default class ListBlacklists extends BlacklistCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (!hubInDb) {
-      await this.replyEmbed(
-        interaction,
-        t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
-      );
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
       return;
     }
 
@@ -89,22 +86,19 @@ export default class ListBlacklists extends BlacklistCommand {
       locale,
     }: {
       moderator: User | null;
-      locale?: supportedLocaleCodes;
+      locale: supportedLocaleCodes;
     },
   ) {
     return {
       name: (isServerType(data) ? data.serverName : data.userData.username) ?? 'Unknown User.',
-      value: t(
-        { phrase: `blacklist.list.${type}`, locale },
-        {
-          id: 'userId' in data ? data.userId : data.serverId,
-          moderator: moderator ? `@${moderator.username} (${moderator.id})` : 'Unknown',
-          reason: `${data?.reason}`,
-          expires: !data?.expiresAt
-            ? 'Never.'
-            : `${time(Math.round(data?.expiresAt.getTime() / 1000), 'R')}`,
-        },
-      ),
+      value: t(`blacklist.list.${type}`, locale, {
+        id: 'userId' in data ? data.userId : data.serverId,
+        moderator: moderator ? `@${moderator.username} (${moderator.id})` : 'Unknown',
+        reason: `${data?.reason}`,
+        expires: !data?.expiresAt
+          ? 'Never.'
+          : `${time(Math.round(data?.expiresAt.getTime() / 1000), 'R')}`,
+      }),
     };
   }
 }

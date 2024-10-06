@@ -40,7 +40,7 @@ export default class Unpause extends Connection {
     if (!channel?.isThread() && channel?.type !== ChannelType.GuildText) {
       await this.replyEmbed(
         interaction,
-        t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no }),
+        t('connection.channelNotFound', locale, { emoji: emojis.no }),
         { ephemeral: true },
       );
       return;
@@ -54,10 +54,10 @@ export default class Unpause extends Connection {
     if (!webhook) {
       await this.replyEmbed(
         interaction,
-        t(
-          { phrase: 'errors.botMissingPermissions', locale },
-          { emoji: emojis.no, permissions: 'Manage Webhooks' },
-        ),
+        t('errors.botMissingPermissions', locale, {
+          emoji: emojis.no,
+          permissions: 'Manage Webhooks',
+        }),
       );
       return;
     }
@@ -76,13 +76,13 @@ export default class Unpause extends Connection {
 
     await this.replyEmbed(
       interaction,
-      t(
-        { phrase: 'connection.unpaused.desc', locale },
-        { tick_emoji: emojis.tick, channel: channelMention(channelId) },
-      ),
+      t('connection.unpaused.desc', locale, {
+        tick_emoji: emojis.tick,
+        channel: channelMention(channelId),
+      }),
       {
         edit: true,
-        content: t({ phrase: 'connection.unpaused.tips', locale }, { pause_cmd, customize_cmd }),
+        content: t('connection.unpaused.tips', locale, { pause_cmd, customize_cmd }),
       },
     );
   }

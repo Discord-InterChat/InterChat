@@ -39,9 +39,7 @@ const processNextButton = async (
   );
 
   const rulesEmbed = new EmbedBuilder()
-    .setDescription(
-      t({ phrase: 'rules', locale }, { support_invite: Constants.Links.SupportInvite }),
-    )
+    .setDescription(t('rules', locale, { support_invite: Constants.Links.SupportInvite }))
     .setImage(Constants.Links.RulesBanner)
     .setColor(Constants.Colors.interchatBlue);
 
@@ -86,13 +84,11 @@ export const showOnboarding = async (
   const embedPhrase = 'network.onboarding.embed';
 
   const embed = new EmbedBuilder()
-    .setTitle(t({ phrase: `${embedPhrase}.title`, locale }, { hubName }))
-    .setDescription(
-      t({ phrase: `${embedPhrase}.description`, locale }, { docs_link: Constants.Links.Docs }),
-    )
+    .setTitle(t(`${embedPhrase}.title`, locale, { hubName }))
+    .setDescription(t(`${embedPhrase}.description`, locale, { docs_link: Constants.Links.Docs }))
     .setColor(Constants.Colors.interchatBlue)
     .setFooter({
-      text: t({ phrase: `${embedPhrase}.footer`, locale }, { version: interaction.client.version }),
+      text: t(`${embedPhrase}.footer`, locale, { version: interaction.client.version }),
     });
 
   const nextButton = new ActionRowBuilder<ButtonBuilder>().addComponents(

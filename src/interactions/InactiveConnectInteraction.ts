@@ -18,7 +18,7 @@ export default class InactiveConnectInteraction {
     if (!connection) {
       const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
       const notFoundEmbed = new InfoEmbed().setDescription(
-        t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no }),
+        t('connection.channelNotFound', locale, { emoji: emojis.no }),
       );
 
       await interaction.reply({ embeds: [notFoundEmbed], ephemeral: true });

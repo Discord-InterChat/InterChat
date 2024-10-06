@@ -32,7 +32,7 @@ export class CommandLoader implements ResourceLoader {
     const command = new imported.default();
     const fileName = filePath.replaceAll('\\', '/').split('/').pop() as string;
 
-    await command.build(fileName.replace('.js', ''), {
+    command.build(fileName.replace('.js', ''), {
       commandsMap: this.map,
       interactionsMap: this.interactionsMap,
     });

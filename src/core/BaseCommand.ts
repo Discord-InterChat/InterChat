@@ -72,10 +72,10 @@ export default abstract class BaseCommand {
     const waitUntil = Math.round((Date.now() + remainingCooldown) / 1000);
 
     await interaction.reply({
-      content: t(
-        { phrase: 'errors.cooldown', locale },
-        { time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`, emoji: emojis.no },
-      ),
+      content: t('errors.cooldown', locale, {
+        time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`,
+        emoji: emojis.no,
+      }),
       ephemeral: true,
     });
   }
@@ -149,13 +149,13 @@ export default abstract class BaseCommand {
     return await interaction[methodName]({ ...message, ephemeral: opts?.ephemeral });
   }
 
-  async build(
+  build(
     fileName: string,
     opts: {
       commandsMap: Collection<string, BaseCommand>;
       interactionsMap: Collection<string, InteractionFunction>;
     },
-  ): Promise<void> {
+  ): void {
     if (Object.getPrototypeOf(this.constructor) === BaseCommand) {
       opts.commandsMap.set(this.data.name, this);
       this.loadCommandInteractions(this, opts.interactionsMap);
@@ -167,10 +167,10 @@ export default abstract class BaseCommand {
     }
   }
 
-  private async loadCommandInteractions(
+  private loadCommandInteractions(
     command: BaseCommand,
     map: Collection<string, InteractionFunction>,
-  ): Promise<void> {
+  ): void {
     Logger.debug(`Adding interactions for command: ${command.data.name}`);
     MetadataHandler.loadMetadata(command, map);
     Logger.debug(`Finished adding interactions for command: ${command.data.name}`);

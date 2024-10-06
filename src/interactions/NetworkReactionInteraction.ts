@@ -21,7 +21,7 @@ import {
   time,
 } from 'discord.js';
 
-type OriginalMessageT = originalMessages & { hub: Hub, broadcastMsgs: broadcastedMessages[] };
+type OriginalMessageT = originalMessages & { hub: Hub; broadcastMsgs: broadcastedMessages[] };
 type DbMessageT = broadcastedMessages & { originalMsg: OriginalMessageT };
 
 export default class NetworkReactionInteraction {
@@ -63,7 +63,7 @@ export default class NetworkReactionInteraction {
   }
 
   private async fetchMessageFromDb(messageId: string) {
-    return db.broadcastedMessages.findFirst({
+    return await db.broadcastedMessages.findFirst({
       where: { messageId },
       include: {
         originalMsg: {
@@ -87,9 +87,9 @@ export default class NetworkReactionInteraction {
     messageInDb: DbMessageT,
     interaction: ButtonInteraction | AnySelectMenuInteraction,
   ) {
-    return checkBlacklists(
+    return await checkBlacklists(
       messageInDb.originalMsg.hub.id,
-      interaction.guild?.id ?? null,
+      interaction.guildId,
       interaction.user.id,
     );
   }
@@ -102,7 +102,7 @@ export default class NetworkReactionInteraction {
     const locale = await userManager.getUserLocale(interaction.user.id);
     const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
     await interaction.followUp({
-      content: t({ phrase, locale }, { emoji: emojis.no }),
+      content: t(phrase, locale, { emoji: emojis.no }),
       ephemeral: true,
     });
   }
@@ -151,7 +151,7 @@ export default class NetworkReactionInteraction {
   }
 
   private async fetchNetworkMessage(messageId: string) {
-    return db.broadcastedMessages.findFirst({
+    return await db.broadcastedMessages.findFirst({
       where: { messageId },
       include: {
         originalMsg: {
@@ -258,7 +258,7 @@ export default class NetworkReactionInteraction {
   ) {
     if (interaction.isStringSelectMenu()) {
       const action = emojiAlreadyReacted.includes(interaction.user.id) ? 'reacted' : 'unreacted';
-      interaction
+      await interaction
         .followUp({
           content: `You have ${action} with ${reactedEmoji}!`,
           ephemeral: true,

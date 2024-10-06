@@ -24,9 +24,9 @@ export default class Vote extends BaseCommand {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     const embed = new EmbedBuilder()
-      .setDescription(t({ phrase: 'vote.description', locale }))
+      .setDescription(t('vote.description', locale))
       .setFooter({
-        text: t({ phrase: 'vote.footer', locale }),
+        text: t('vote.footer', locale),
         iconURL: 'https://i.imgur.com/NKKmav5.gif',
       })
       .setFields(

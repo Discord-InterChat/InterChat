@@ -47,14 +47,14 @@ export default class Pause extends Connection {
     const leave_cmd = hubCmd ? slashCmdMention('hub', 'leave', hubCmd.id) : '`/hub leave`';
 
     const successEmbed = new InfoEmbed().setDescription(
-      t(
-        { phrase: 'connection.paused.desc', locale },
-        { clock_emoji: emojis.timeout, channel: channelMention(channelId) },
-      ),
+      t('connection.paused.desc', locale, {
+        clock_emoji: emojis.timeout,
+        channel: channelMention(channelId),
+      }),
     );
 
     await interaction.reply({
-      content: t({ phrase: 'connection.paused.tips', locale }, { unpause_cmd, leave_cmd }),
+      content: t('connection.paused.tips', locale, { unpause_cmd, leave_cmd }),
       embeds: [successEmbed],
     });
   }

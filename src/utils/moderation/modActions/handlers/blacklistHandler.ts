@@ -55,16 +55,16 @@ abstract class BaseBlacklistHandler implements ModAction {
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
             .setCustomId('reason')
-            .setLabel(t({ phrase: 'blacklist.modal.reason.label', locale }))
-            .setPlaceholder(t({ phrase: 'blacklist.modal.reason.placeholder', locale }))
+            .setLabel(t('blacklist.modal.reason.label', locale))
+            .setPlaceholder(t('blacklist.modal.reason.placeholder', locale))
             .setStyle(TextInputStyle.Paragraph)
             .setMaxLength(500),
         ),
         new ActionRowBuilder<TextInputBuilder>().addComponents(
           new TextInputBuilder()
             .setCustomId('duration')
-            .setLabel(t({ phrase: 'blacklist.modal.duration.label', locale }))
-            .setPlaceholder(t({ phrase: 'blacklist.modal.duration.placeholder', locale }))
+            .setLabel(t('blacklist.modal.duration.label', locale))
+            .setPlaceholder(t('blacklist.modal.duration.placeholder', locale))
             .setStyle(TextInputStyle.Short)
             .setMinLength(2)
             .setRequired(false),
@@ -88,11 +88,11 @@ abstract class BaseBlacklistHandler implements ModAction {
   ) {
     return new EmbedBuilder()
       .setColor('Green')
-      .setDescription(t({ phrase: 'blacklist.success', locale }, { name, emoji: emojis.tick }))
+      .setDescription(t('blacklist.success', locale, { name, emoji: emojis.tick }))
       .addFields(
         {
           name: 'Reason',
-          value: reason ?? t({ phrase: 'misc.noReason', locale }),
+          value: reason ?? t('misc.noReason', locale),
           inline: true,
         },
         {
@@ -130,7 +130,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
 
     if (!isValidDbMsgWithHubId(originalMsg)) {
       await interaction.reply({
-        content: t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
+        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -200,7 +200,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
   ) {
     if (!isValidDbMsgWithHubId(originalMsg)) {
       await interaction.reply({
-        content: t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
+        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -209,7 +209,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     const server = await interaction.client.fetchGuild(originalMsg.serverId);
     if (!server) {
       await interaction.reply({
-        content: t({ phrase: 'errors.unknownServer', locale }, { emoji: emojis.no }),
+        content: t('errors.unknownServer', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;

@@ -25,14 +25,14 @@ export default class Delete extends HubCommand {
 
     if (interaction.user.id !== hubInDb?.ownerId) {
       await interaction.reply({
-        content: t({ phrase: 'hub.delete.ownerOnly', locale }, { emoji: emojis.no }),
+        content: t('hub.delete.ownerOnly', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
     }
 
     const confirmEmbed = new EmbedBuilder()
-      .setDescription(t({ phrase: 'hub.delete.confirm', locale }, { hub: hubInDb.name }))
+      .setDescription(t('hub.delete.confirm', locale, { hub: hubInDb.name }))
       .setColor('Red');
     const confirmButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
@@ -74,7 +74,7 @@ export default class Delete extends HubCommand {
 
     if (interaction.user.id !== userId) {
       const infoEmbed = new InfoEmbed().setDescription(
-        t({ phrase: 'hub.delete.ownerOnly', locale }, { emoji: emojis.no }),
+        t('hub.delete.ownerOnly', locale, { emoji: emojis.no }),
       );
 
       await interaction.reply({ embeds: [infoEmbed], ephemeral: true });
@@ -83,7 +83,7 @@ export default class Delete extends HubCommand {
 
     if (customId.suffix === 'cancel') {
       const infoEmbed = new InfoEmbed().setDescription(
-        t({ phrase: 'hub.delete.cancelled', locale }, { emoji: emojis.no }),
+        t('hub.delete.cancelled', locale, { emoji: emojis.no }),
       );
 
       await interaction.update({ embeds: [infoEmbed], components: [] });
@@ -91,7 +91,7 @@ export default class Delete extends HubCommand {
     }
 
     const embed = new InfoEmbed().setDescription(
-      t({ phrase: 'misc.loading', locale }, { emoji: emojis.loading }),
+      t('misc.loading', locale, { emoji: emojis.loading }),
     );
 
     await interaction.update({ embeds: [embed], components: [] });
@@ -99,7 +99,7 @@ export default class Delete extends HubCommand {
     const hubInDb = await db.hub.findFirst({ where: { id: hubId, ownerId: interaction.user.id } });
     if (!hubInDb) {
       const infoEmbed = new InfoEmbed().setDescription(
-        t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
+        t('hub.notFound', locale, { emoji: emojis.no }),
       );
 
       await interaction.editReply({ embeds: [infoEmbed] });
@@ -109,10 +109,7 @@ export default class Delete extends HubCommand {
     await deleteHubs([hubInDb.id]);
 
     await interaction.editReply({
-      content: t(
-        { phrase: 'hub.delete.success', locale },
-        { emoji: emojis.tick, hub: hubInDb.name },
-      ),
+      content: t('hub.delete.success', locale, { emoji: emojis.tick, hub: hubInDb.name }),
     });
   }
 }

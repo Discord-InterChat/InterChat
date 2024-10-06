@@ -38,10 +38,7 @@ export default class Customize extends Connection {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!isInDb) {
-      await this.replyEmbed(
-        interaction,
-        t({ phrase: 'connection.notFound', locale }, { emoji: emojis.no }),
-      );
+      await this.replyEmbed(interaction, t('connection.notFound', locale, { emoji: emojis.no }));
       return;
     }
 
@@ -49,7 +46,7 @@ export default class Customize extends Connection {
     if (!channelExists) {
       await updateConnection({ channelId }, { connected: !isInDb.connected });
       await interaction.followUp({
-        content: t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no }),
+        content: t('connection.channelNotFound', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
     }
@@ -86,7 +83,7 @@ export default class Customize extends Connection {
       if (!invite) {
         await updateConnection({ channelId }, { invite: { unset: true } });
         await interaction.followUp({
-          content: t({ phrase: 'connection.inviteRemoved', locale }, { emoji: emojis.yes }),
+          content: t('connection.inviteRemoved', locale, { emoji: emojis.yes }),
           ephemeral: true,
         });
         return;
@@ -95,7 +92,7 @@ export default class Customize extends Connection {
       const fetchedInvite = await interaction.client?.fetchInvite(invite).catch(() => null);
       if (fetchedInvite?.guild?.id !== interaction.guildId) {
         await interaction.followUp({
-          content: t({ phrase: 'connection.inviteInvalid', locale }, { emoji: emojis.no }),
+          content: t('connection.inviteInvalid', locale, { emoji: emojis.no }),
           ephemeral: true,
         });
         return;
@@ -104,7 +101,7 @@ export default class Customize extends Connection {
       await updateConnection({ channelId }, { invite });
 
       await interaction.followUp({
-        content: t({ phrase: 'connection.inviteAdded', locale }, { emoji: emojis.yes }),
+        content: t('connection.inviteAdded', locale, { emoji: emojis.yes }),
         ephemeral: true,
       });
     }
@@ -113,7 +110,7 @@ export default class Customize extends Connection {
 
       if (!Constants.Regex.Hexcode.test(embedColor)) {
         await interaction.reply({
-          content: t({ phrase: 'connection.emColorInvalid', locale }, { emoji: emojis.no }),
+          content: t('connection.emColorInvalid', locale, { emoji: emojis.no }),
           ephemeral: true,
         });
         return;
@@ -125,10 +122,10 @@ export default class Customize extends Connection {
       );
 
       await interaction.reply({
-        content: t(
-          { phrase: 'connection.emColorChange', locale },
-          { action: embedColor ? `set to \`${embedColor}\`!` : 'unset', emoji: emojis.yes },
-        ),
+        content: t('connection.emColorChange', locale, {
+          action: embedColor ? `set to \`${embedColor}\`!` : 'unset',
+          emoji: emojis.yes,
+        }),
         ephemeral: true,
       });
     }
@@ -158,7 +155,7 @@ export default class Customize extends Connection {
 
     if (userIdFilter !== interaction.user.id) {
       const embed = new InfoEmbed().setDescription(
-        t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }),
+        t('errors.notYourAction', locale, { emoji: emojis.no }),
       );
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
@@ -167,7 +164,7 @@ export default class Customize extends Connection {
     const connection = await db.connectedList.findFirst({ where: { channelId } });
     if (!channelId || !connection) {
       await interaction.reply({
-        content: t({ phrase: 'connection.channelNotFound', locale }, { emoji: emojis.no }),
+        content: t('connection.channelNotFound', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -259,16 +256,14 @@ export default class Customize extends Connection {
 
     if (!isGuildTextBasedChannel(newChannel) || newChannel.isVoiceBased()) {
       await interaction.followUp({
-        content: t({ phrase: 'hub.invalidChannel', locale }, { emoji }),
+        content: t('hub.invalidChannel', locale, { emoji }),
         ephemeral: true,
       });
       return;
     }
 
     if (userIdFilter !== interaction.user.id) {
-      const embed = new InfoEmbed().setDescription(
-        t({ phrase: 'errors.notYourAction', locale }, { emoji }),
-      );
+      const embed = new InfoEmbed().setDescription(t('errors.notYourAction', locale, { emoji }));
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
@@ -280,7 +275,7 @@ export default class Customize extends Connection {
 
     if (alreadyConnected) {
       const embed = new InfoEmbed().setDescription(
-        t({ phrase: 'connection.alreadyConnected', locale }, { channel: `${newChannel}`, emoji }),
+        t('connection.alreadyConnected', locale, { channel: `${newChannel}`, emoji }),
       );
 
       await interaction.followUp({ embeds: [embed], ephemeral: true });

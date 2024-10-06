@@ -33,39 +33,39 @@ export const buildCustomizeEmbed = async (
 
   return new EmbedBuilder()
     .setAuthor({
-      name: t({ phrase: 'connection.embed.title', locale }),
+      name: t('connection.embed.title', locale),
       iconURL,
     })
     .setDescription(
       codeBlock(
         'ansi',
         stripIndents`
-      ${bold}${t({ phrase: 'connection.embed.fields.connected', locale })}${reset}: ${yesOrNoEmoji(networkData?.connected, '✅', '❌')}
-      ${bold}${t({ phrase: 'connection.embed.fields.compact', locale })}${reset}: ${yesOrNoEmoji(networkData?.compact, '✅', '❌')}
-      ${bold}${t({ phrase: 'connection.embed.fields.emColor', locale })}${reset}: ${networkData?.embedColor ? networkData?.embedColor : '❌'}
-      ${bold}${t({ phrase: 'connection.embed.fields.profanity', locale })}${reset}: ${yesOrNoEmoji(networkData?.profFilter, '✅', '❌')}
+      ${bold}${t('connection.embed.fields.connected', locale)}${reset}: ${yesOrNoEmoji(networkData?.connected, '✅', '❌')}
+      ${bold}${t('connection.embed.fields.compact', locale)}${reset}: ${yesOrNoEmoji(networkData?.compact, '✅', '❌')}
+      ${bold}${t('connection.embed.fields.emColor', locale)}${reset}: ${networkData?.embedColor ? networkData?.embedColor : '❌'}
+      ${bold}${t('connection.embed.fields.profanity', locale)}${reset}: ${yesOrNoEmoji(networkData?.profFilter, '✅', '❌')}
     `,
       ),
     )
     .addFields([
       {
-        name: `${emojis.globe_icon} ${t({ phrase: 'connection.embed.fields.hub', locale })}`,
+        name: `${emojis.globe_icon} ${t('connection.embed.fields.hub', locale)}`,
         value: `${networkData?.hub?.name}`,
         inline: true,
       },
       {
-        name: `${emojis.chat_icon} ${t({ phrase: 'connection.embed.fields.channel', locale })}`,
+        name: `${emojis.chat_icon} ${t('connection.embed.fields.channel', locale)}`,
         value: `<#${channelId}>`,
         inline: true,
       },
       {
-        name: `${emojis.add_icon} ${t({ phrase: 'connection.embed.fields.invite', locale })}`,
+        name: `${emojis.add_icon} ${t('connection.embed.fields.invite', locale)}`,
         value: invite,
         inline: true,
       },
     ])
     .setColor(Constants.Colors.invisible)
-    .setFooter({ text: t({ phrase: 'connection.embed.footer', locale }) });
+    .setFooter({ text: t('connection.embed.footer', locale) });
 };
 
 export const buildCustomizeSelect = (
@@ -82,7 +82,7 @@ export const buildCustomizeSelect = (
           .addArgs(userIdFilter)
           .toString(),
       )
-      .setPlaceholder(t({ phrase: 'connection.selects.placeholder', locale }))
+      .setPlaceholder(t('connection.selects.placeholder', locale))
       .addOptions(
         new StringSelectMenuOptionBuilder()
           .setLabel('Compact')

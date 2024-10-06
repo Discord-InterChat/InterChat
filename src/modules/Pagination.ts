@@ -95,7 +95,6 @@ export class Pagination {
       await i.update(newBody);
     });
 
-
     // bad code dont look
     col.on('end', async (interactions) => {
       const interaction = interactions.first();

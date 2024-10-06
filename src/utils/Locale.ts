@@ -6,7 +6,6 @@ import type { TranslationKeys } from '#types/locale.d.ts';
 
 const localesMap = new Map();
 
-
 export const supportedLocales = {
   bg: { name: 'Bulgarian', emoji: '🇧🇬' },
   cs: { name: 'Czech', emoji: '🇨🇿' },
@@ -38,12 +37,6 @@ export const supportedLocales = {
 
 export type supportedLocaleCodes = keyof typeof supportedLocales;
 
-
-export interface tParams<K extends keyof TranslationKeys> {
-  phrase: K;
-  locale?: supportedLocaleCodes;
-}
-
 export const loadLocales = (localesDirectory: string) => {
   const files = fs.readdirSync(localesDirectory);
 
@@ -63,7 +56,8 @@ export const loadLocales = (localesDirectory: string) => {
 /** Get the translated text with variable replacement */
 // skipcq: JS-C1002
 export const t = <K extends keyof TranslationKeys>(
-  { phrase, locale = 'en' }: tParams<K>,
+  phrase: K,
+  locale: supportedLocaleCodes,
   variables?: { [Key in TranslationKeys[K]]: string },
 ): string => {
   const localeFile = localesMap.get(locale) ?? localesMap.get('en');

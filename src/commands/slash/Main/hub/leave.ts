@@ -31,19 +31,16 @@ export default class Leave extends HubCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (!isChannelConnected) {
-      await this.replyEmbed(
-        interaction,
-        t({ phrase: 'hub.leave.noHub', locale }, { emoji: emojis.no }),
-      );
+      await this.replyEmbed(interaction, t('hub.leave.noHub', locale, { emoji: emojis.no }));
       return;
     }
     else if (!interaction.member.permissions.has('ManageChannels', true)) {
       await this.replyEmbed(
         interaction,
-        t(
-          { phrase: 'errors.missingPermissions', locale },
-          { permissions: 'Manage Channels', emoji: emojis.no },
-        ),
+        t('errors.missingPermissions', locale, {
+          permissions: 'Manage Channels',
+          emoji: emojis.no,
+        }),
       );
       return;
     }
@@ -63,14 +60,14 @@ export default class Leave extends HubCommand {
 
     const resetConfirmEmbed = new EmbedBuilder()
       .setDescription(
-        t(
-          { phrase: 'hub.leave.confirm', locale },
-          { channel: `<#${channelId}>`, hub: `${isChannelConnected.hub?.name}` },
-        ),
+        t('hub.leave.confirm', locale, {
+          channel: `<#${channelId}>`,
+          hub: `${isChannelConnected.hub?.name}`,
+        }),
       )
       .setColor('Red')
       .setFooter({
-        text: t({ phrase: 'hub.leave.confirmFooter', locale }),
+        text: t('hub.leave.confirmFooter', locale),
       });
 
     const reply = await interaction.editReply({
@@ -97,7 +94,7 @@ export default class Leave extends HubCommand {
     const validConnection = await db.connectedList.findFirst({ where: { channelId } });
     if (!validConnection) {
       await interaction.update({
-        content: t({ phrase: 'connection.notFound', locale }, { emoji: emojis.no }),
+        content: t('connection.notFound', locale, { emoji: emojis.no }),
         embeds: [],
         components: [],
       });
@@ -106,10 +103,7 @@ export default class Leave extends HubCommand {
 
     await deleteConnection({ channelId });
     await interaction.update({
-      content: t(
-        { phrase: 'hub.leave.success', locale },
-        { channel: `<#${channelId}>`, emoji: emojis.yes },
-      ),
+      content: t('hub.leave.success', locale, { channel: `<#${channelId}>`, emoji: emojis.yes }),
       embeds: [],
       components: [],
     });
