@@ -8,8 +8,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default class EventLoader {
   private readonly listeners: Map<string, BaseEventListener<keyof ClientEvents>> = new Collection();
-  private client: Client;
-  private fileLoader: FileLoader;
+  private readonly client: Client;
+  private readonly fileLoader: FileLoader;
   public readonly folderPath = join(__dirname, '..', '..', 'events');
 
   constructor(client: Client) {
@@ -19,7 +19,7 @@ export default class EventLoader {
 
   /** Loads all event listeners from the `events` directory. */
   public async load(): Promise<void> {
-    this.fileLoader.loadFiles(this.registerListener.bind(this));
+    await this.fileLoader.loadFiles(this.registerListener.bind(this));
   }
 
   private async registerListener(filePath: string) {

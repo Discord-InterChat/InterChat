@@ -18,7 +18,6 @@ import {
   ModAction,
   ModActionsDbMsgT,
 } from '#main/utils/moderation/modActions/utils.js';
-import { Hub } from '@prisma/client';
 import {
   ApplicationCommandType,
   type ButtonInteraction,
@@ -28,9 +27,7 @@ import {
   type RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
 
-type ValidDbMsg = ModActionsDbMsgT & { hubId: string; hub: Hub };
-
-export default class Blacklist extends BaseCommand {
+export default class BlacklistCtxMenu extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Moderation Actions',
@@ -63,12 +60,15 @@ export default class Blacklist extends BaseCommand {
       broadcastMsgs: true,
     });
 
-    if (!(await this.validateMessage(interaction, originalMsg, locale))) return;
+    if (
+      !BlacklistCtxMenu.dbMsgExists(originalMsg) ||
+      !(await this.validateMessage(interaction, originalMsg, locale))
+    ) {
+      return;
+    }
 
-    const { embed, buttons } = await modActionsPanel.buildMessage(
-      interaction,
-      originalMsg as ValidDbMsg,
-    );
+    // skipcq: JS-0339
+    const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
 
     await interaction.editReply({ embeds: [embed], components: buttons });
   }
@@ -96,21 +96,31 @@ export default class Blacklist extends BaseCommand {
     const originalMsg = await fetchMessageFromDb(originalMsgId, { hub: true });
     const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
 
-    if (!(await this.validateMessage(interaction, originalMsg, locale))) return;
-
+    if (
+      !BlacklistCtxMenu.dbMsgExists(originalMsg) ||
+      !(await this.validateMessage(interaction, originalMsg, locale))
+    ) {
+      return;
+    }
     const handlerId = customId.suffix === 'user' ? 'blacklistUser' : 'blacklistServer';
     const handler = this.modActionHandlers[handlerId];
     if (handler?.handleModal) {
-      await handler.handleModal(interaction, originalMsg!, locale);
+      await handler.handleModal(interaction, originalMsg, locale);
     }
+  }
+
+  private static dbMsgExists(
+    originalMsg: ModActionsDbMsgT | null,
+  ): originalMsg is ModActionsDbMsgT {
+    return Boolean(originalMsg);
   }
 
   private async validateMessage(
     interaction: RepliableInteraction,
-    originalMsg: ModActionsDbMsgT | null,
+    originalMsg: ModActionsDbMsgT,
     locale: supportedLocaleCodes,
   ) {
-    if (!originalMsg?.hub || !isStaffOrHubMod(interaction.user.id, originalMsg.hub)) {
+    if (!originalMsg.hub || !isStaffOrHubMod(interaction.user.id, originalMsg.hub)) {
       await this.replyEmbed(interaction, t('errors.messageNotSentOrExpired', locale), {
         ephemeral: true,
         edit: true,

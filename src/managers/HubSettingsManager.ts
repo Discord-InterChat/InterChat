@@ -9,12 +9,12 @@ import { Hub } from '@prisma/client';
 import { EmbedBuilder } from 'discord.js';
 
 export default class HubSettingsManager {
-  private hubId: string;
+  private readonly hubId: string;
   private settings: HubSettingsBitField;
 
   constructor(hubId: string, initialSettings?: number) {
     this.hubId = hubId;
-    this.settings = new HubSettingsBitField(initialSettings || 0);
+    this.settings = new HubSettingsBitField(initialSettings ?? 0);
   }
 
   static async create(hubId: string): Promise<HubSettingsManager> {

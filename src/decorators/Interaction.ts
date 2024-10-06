@@ -16,6 +16,5 @@ export function RegisterInteractionHandler(prefix: string, suffix = ''): MethodD
 
     const metadata = existing ? [...existing, ...newMeta] : newMeta;
     Reflect.defineMetadata('interactions', metadata, targetClass.constructor);
-    return;
   };
 }

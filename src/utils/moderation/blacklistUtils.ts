@@ -102,7 +102,7 @@ export const sendBlacklistNotif = async (
       await client.cluster.broadcastEval(
         async (_client, ctx) => {
           const channel = await _client.channels.fetch(ctx.channelId).catch(() => null);
-          if (!_client.isGuildTextBasedChannel(channel)) return;
+          if (!channel?.isSendable()) return;
 
           await channel.send({ embeds: [ctx.embed], components: ctx.components }).catch(() => null);
         },

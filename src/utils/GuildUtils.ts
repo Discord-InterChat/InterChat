@@ -29,7 +29,7 @@ export const getGuildOwnerOrFirstChannel = async (guild: Guild) => {
     .filter(
       (c) => c.type === ChannelType.GuildText && c.permissionsFor(guild.id)?.has('SendMessages'),
     )
-    .first() as TextChannel | undefined;
+    .first() as unknown as TextChannel;
 
   return { guildOwner, guildChannel };
 };
@@ -61,10 +61,7 @@ export const logGuildJoin = async (guild: Guild, channelId: string) => {
       const goalChannel = client.channels.cache.get(ctx.goalChannel);
       const inviteLogChannel = client.channels.cache.get(ctx.inviteLogs);
 
-      if (
-        !client.isGuildTextBasedChannel(goalChannel) ||
-        !client.isGuildTextBasedChannel(inviteLogChannel)
-      ) {
+      if (!goalChannel?.isSendable() || !inviteLogChannel?.isSendable()) {
         return;
       }
 
@@ -110,10 +107,7 @@ export const logGuildLeave = async (guild: Guild, channelId: string) => {
       const goalChannel = await client.channels.fetch(ctx.goalChannel).catch(() => null);
       const inviteLogChannel = client.channels.cache.get(ctx.inviteLogs);
 
-      if (
-        !client.isGuildTextBasedChannel(goalChannel) ||
-        !client.isGuildTextBasedChannel(inviteLogChannel)
-      ) {
+      if (!goalChannel?.isSendable() || !inviteLogChannel?.isSendable()) {
         return;
       }
 
