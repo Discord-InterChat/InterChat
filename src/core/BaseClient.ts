@@ -48,17 +48,6 @@ export default class InterChatClient extends Client {
         PresenceManager: 0,
         ReactionManager: 200,
       }),
-      sweepers: {
-        ...Options.DefaultSweeperSettings,
-        messages: {
-          interval: 3600, // Every hour...
-          lifetime: 1800, // Remove messages older than 30 minutes.
-        },
-        reactions: {
-          interval: 3600, // Every hour...
-          filter: () => () => true, // Remove all reactions...
-        },
-      },
       intents: [
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.Guilds,
@@ -89,7 +78,7 @@ export default class InterChatClient extends Client {
     InterChatClient.instance = this;
 
     // initialize i18n for localization
-    loadLocales('locales/locales');
+    loadLocales('locales');
 
     // load commands
     loadCommandFiles(this.commands, this.interactions);

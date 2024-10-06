@@ -1,7 +1,7 @@
 import Logger from '#main/utils/Logger.js';
 import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { load } from 'js-yaml';
 import type { TranslationKeys } from '#types/locale.d.ts';
 
 const localesMap = new Map();
@@ -45,7 +45,7 @@ export const loadLocales = (localesDirectory: string) => {
     const localeKey = path.basename(file, '.yml');
 
     const content = fs.readFileSync(filePath, 'utf8');
-    const parsedContent = yaml.load(content);
+    const parsedContent = load(content);
 
     localesMap.set(localeKey, parsedContent);
   });

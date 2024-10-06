@@ -30,7 +30,7 @@ Please refer to the [CONTRIBUTING.md](./CONTRIBUTING.md) file for guidelines on 
 
 Remind me to add stuff here
 
-### Tensorflow Errors
+## Tensorflow Errors
 
 Some Windows users face the following problem:
 
