@@ -51,8 +51,8 @@ export default class Report extends Support {
           ),
       );
       const bugEmbed = new EmbedBuilder()
-        .setTitle(t({ phrase: 'report.bug.affected', locale }))
-        .setDescription(t({ phrase: 'report.bug.description', locale }))
+        .setTitle(t('report.bug.affected', locale))
+        .setDescription(t('report.bug.description', locale))
         .setColor(Constants.Colors.interchatBlue);
 
       await interaction.reply({
@@ -63,14 +63,14 @@ export default class Report extends Support {
     }
     else {
       const modal = new ModalBuilder()
-        .setTitle(t({ phrase: 'report.modal.title', locale }))
+        .setTitle(t('report.modal.title', locale))
         .setCustomId(new CustomID().setIdentifier('report_modal', reportType).toString())
         .addComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('description')
-              .setLabel(t({ phrase: 'report.modal.other.label', locale }))
-              .setPlaceholder(t({ phrase: 'report.modal.other.placeholder', locale }))
+              .setLabel(t('report.modal.other.label', locale))
+              .setPlaceholder(t('report.modal.other.placeholder', locale))
               .setStyle(TextInputStyle.Paragraph)
               .setMinLength(10)
               .setMaxLength(950),
@@ -78,10 +78,10 @@ export default class Report extends Support {
         );
 
       if (reportType !== 'other') {
-        const content = t(
-          { phrase: 'misc.reportOptionMoved', locale },
-          { emoji: emojis.exclamation, support_invite: Constants.Links.SupportInvite },
-        );
+        const content = t('misc.reportOptionMoved', locale, {
+          emoji: emojis.exclamation,
+          support_invite: Constants.Links.SupportInvite,
+        });
 
         await interaction.reply({ content, ephemeral: true });
         return;
@@ -104,20 +104,20 @@ export default class Report extends Support {
             .addArgs(interaction.values.join(', '))
             .toString(),
         )
-        .setTitle(t({ phrase: 'report.bug.title', locale }))
+        .setTitle(t('report.bug.title', locale))
         .setComponents(
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('summary')
-              .setLabel(t({ phrase: 'report.modal.bug.input1.label', locale }))
-              .setPlaceholder(t({ phrase: 'report.modal.bug.input1.placeholder', locale }))
+              .setLabel(t('report.modal.bug.input1.label', locale))
+              .setPlaceholder(t('report.modal.bug.input1.placeholder', locale))
               .setStyle(TextInputStyle.Short),
           ),
           new ActionRowBuilder<TextInputBuilder>().addComponents(
             new TextInputBuilder()
               .setCustomId('description')
-              .setLabel(t({ phrase: 'report.modal.bug.input2.label', locale }))
-              .setPlaceholder(t({ phrase: 'report.modal.bug.input1.placeholder', locale }))
+              .setLabel(t('report.modal.bug.input2.label', locale))
+              .setPlaceholder(t('report.modal.bug.input1.placeholder', locale))
               .setStyle(TextInputStyle.Paragraph)
               .setRequired(false)
               .setMinLength(17),
@@ -193,10 +193,10 @@ export default class Report extends Support {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     await interaction.reply({
-      content: t(
-        { phrase: 'report.submitted', locale },
-        { emoji: emojis.yes, support_command: '</support server:924659341049626636>' },
-      ),
+      content: t('report.submitted', locale, {
+        emoji: emojis.yes,
+        support_command: '</support server:924659341049626636>',
+      }),
       ephemeral: true,
     });
   }

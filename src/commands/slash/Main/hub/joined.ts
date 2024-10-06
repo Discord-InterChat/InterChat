@@ -16,16 +16,11 @@ export default class Joined extends HubCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (connections.length === 0) {
-      await interaction.reply(
-        t({ phrase: 'hub.joined.noJoinedHubs', locale }, { emoji: emojis.no }),
-      );
+      await interaction.reply(t('hub.joined.noJoinedHubs', locale, { emoji: emojis.no }));
       return;
     }
 
-    const description = t(
-      { phrase: 'hub.joined.joinedHubs', locale },
-      { total: `${connections.length}` },
-    );
+    const description = t('hub.joined.joinedHubs', locale, { total: `${connections.length}` });
 
     if (connections.length <= 25) {
       const embed = this.getEmbed(connections.map(this.getField), description);

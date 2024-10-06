@@ -189,10 +189,10 @@ async function checkNewUser(message: Message<true>, opts: CheckFunctionOpts): Pr
   if (message.author.createdTimestamp > sevenDaysAgo) {
     return {
       passed: false,
-      reason: t(
-        { phrase: 'network.accountTooNew', locale: opts.locale },
-        { user: message.author.toString(), emoji: emojis.no },
-      ),
+      reason: t('network.accountTooNew', opts.locale, {
+        user: message.author.toString(),
+        emoji: emojis.no,
+      }),
     };
   }
   return { passed: true };
@@ -226,7 +226,7 @@ async function checkInviteLinks(
   if (settings.getSetting('BlockInvites') && containsInviteLinks(message.content)) {
     return {
       passed: false,
-      reason: t({ phrase: 'errors.inviteLinks', locale: opts.locale }, { emoji: emojis.no }),
+      reason: t('errors.inviteLinks', opts.locale, { emoji: emojis.no }),
     };
   }
   return { passed: true };

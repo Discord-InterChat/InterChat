@@ -38,7 +38,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
           const { userManager } = interaction.client;
           const locale = await userManager.getUserLocale(dbUser);
           const embed = new InfoEmbed({
-            description: t({ phrase: 'errors.notUsable', locale }, { emoji: emojis.slash }),
+            description: t('errors.notUsable', locale, { emoji: emojis.slash }),
           });
 
           await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -68,14 +68,11 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
         const { userManager } = interaction.client;
         const locale = await userManager.getUserLocale(dbUser);
         await interaction.reply({
-          content: t(
-            { phrase: 'errors.banned', locale },
-            {
-              emoji: emojis.no,
-              reason: dbUser.banMeta.reason,
-              support_invite: Constants.Links.SupportInvite,
-            },
-          ),
+          content: t('errors.banned', locale, {
+            emoji: emojis.no,
+            reason: dbUser.banMeta.reason,
+            support_invite: Constants.Links.SupportInvite,
+          }),
           ephemeral: true,
         });
       }

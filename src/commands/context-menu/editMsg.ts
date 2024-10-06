@@ -8,11 +8,7 @@ import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import { censor } from '#main/utils/ProfanityUtils.js';
-import {
-  containsInviteLinks,
-  handleError,
-  replaceLinks,
-} from '#main/utils/Utils.js';
+import { containsInviteLinks, handleError, replaceLinks } from '#main/utils/Utils.js';
 import { originalMessages } from '@prisma/client';
 import {
   ActionRowBuilder,
@@ -76,13 +72,13 @@ export default class EditMessage extends BaseCommand {
 
     if (!messageInDb) {
       await interaction.reply({
-        content: t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
+        content: t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
       });
       return;
     }
     else if (interaction.user.id !== messageInDb.authorId) {
       await interaction.reply({
-        content: t({ phrase: 'errors.notMessageAuthor', locale }, { emoji: emojis.no }),
+        content: t('errors.notMessageAuthor', locale, { emoji: emojis.no }),
       });
       return;
     }
@@ -120,9 +116,7 @@ export default class EditMessage extends BaseCommand {
 
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
-      await interaction.editReply(
-        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
-      );
+      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }));
       return;
     }
 
@@ -141,9 +135,7 @@ export default class EditMessage extends BaseCommand {
     }
 
     if (!targetMsgData?.hub) {
-      await interaction.editReply(
-        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
-      );
+      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }));
       return;
     }
 
@@ -156,9 +148,7 @@ export default class EditMessage extends BaseCommand {
     const messageToEdit = this.sanitizeMessage(userInput, settingsManager.getAllSettings());
 
     if (settingsManager.getSetting('BlockInvites') && containsInviteLinks(messageToEdit)) {
-      await interaction.editReply(
-        t({ phrase: 'errors.inviteLinks', locale }, { emoji: emojis.no }),
-      );
+      await interaction.editReply(t('errors.inviteLinks', locale, { emoji: emojis.no }));
       return;
     }
 
@@ -212,15 +202,12 @@ export default class EditMessage extends BaseCommand {
 
     await interaction
       .editReply(
-        t(
-          { phrase: 'network.editSuccess', locale },
-          {
-            edited,
-            total: resultsArray.length.toString(),
-            emoji: emojis.yes,
-            user: userMention(targetMsgData.authorId),
-          },
-        ),
+        t('network.editSuccess', locale, {
+          edited,
+          total: resultsArray.length.toString(),
+          emoji: emojis.yes,
+          user: userMention(targetMsgData.authorId),
+        }),
       )
       .catch(handleError);
 

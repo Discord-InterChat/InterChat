@@ -111,7 +111,7 @@ export default class Blacklist extends BaseCommand {
     locale: supportedLocaleCodes,
   ) {
     if (!originalMsg?.hub || !isStaffOrHubMod(interaction.user.id, originalMsg.hub)) {
-      await this.replyEmbed(interaction, t({ phrase: 'errors.messageNotSentOrExpired', locale }), {
+      await this.replyEmbed(interaction, t('errors.messageNotSentOrExpired', locale), {
         ephemeral: true,
         edit: true,
       });
@@ -127,11 +127,9 @@ export default class Blacklist extends BaseCommand {
     locale: supportedLocaleCodes,
   ) {
     if (interaction.user.id !== userId) {
-      await this.replyEmbed(
-        interaction,
-        t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }),
-        { ephemeral: true },
-      );
+      await this.replyEmbed(interaction, t('errors.notYourAction', locale, { emoji: emojis.no }), {
+        ephemeral: true,
+      });
       return false;
     }
 

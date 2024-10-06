@@ -53,10 +53,8 @@ export default class DeleteMessageHandler implements ModAction {
     await interaction
       .editReply(
         t(
-          {
-            phrase: 'network.deleteSuccess',
-            locale: await interaction.client.userManager.getUserLocale(interaction.user.id),
-          },
+          'network.deleteSuccess',
+          await interaction.client.userManager.getUserLocale(interaction.user.id),
           {
             emoji: emojis.yes,
             user: `<@${originalMsg.authorId}>`,

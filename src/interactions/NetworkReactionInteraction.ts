@@ -21,7 +21,7 @@ import {
   time,
 } from 'discord.js';
 
-type OriginalMessageT = originalMessages & { hub: Hub, broadcastMsgs: broadcastedMessages[] };
+type OriginalMessageT = originalMessages & { hub: Hub; broadcastMsgs: broadcastedMessages[] };
 type DbMessageT = broadcastedMessages & { originalMsg: OriginalMessageT };
 
 export default class NetworkReactionInteraction {
@@ -102,7 +102,7 @@ export default class NetworkReactionInteraction {
     const locale = await userManager.getUserLocale(interaction.user.id);
     const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
     await interaction.followUp({
-      content: t({ phrase, locale }, { emoji: emojis.no }),
+      content: t(phrase, locale, { emoji: emojis.no }),
       ephemeral: true,
     });
   }

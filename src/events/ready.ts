@@ -11,7 +11,7 @@ export default class Ready extends BaseEventListener<'ready'> {
     Logger.info(`Logged in as ${client.user.tag}!`);
 
     const shardId = client.guilds.cache.first()?.shardId;
-    const blacklistScheduled = await cacheClient.get('blacklistScheduled') ?? shardId?.toString();
+    const blacklistScheduled = (await cacheClient.get('blacklistScheduled')) ?? shardId?.toString();
 
     if (shardId === 0 && blacklistScheduled === '0') {
       updateBlacklists(client);

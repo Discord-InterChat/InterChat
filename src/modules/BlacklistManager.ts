@@ -48,7 +48,10 @@ export default class BlacklistManager<T extends UserInfraction | ServerInfractio
     return await this.infracManager.addInfraction('BLACKLIST', opts);
   }
 
-  public async removeBlacklist(hubId: string, status: Exclude<InfractionStatus, 'ACTIVE'> = 'REVOKED') {
+  public async removeBlacklist(
+    hubId: string,
+    status: Exclude<InfractionStatus, 'ACTIVE'> = 'REVOKED',
+  ) {
     const exists = await this.fetchBlacklist(hubId);
     if (!exists) return null;
 

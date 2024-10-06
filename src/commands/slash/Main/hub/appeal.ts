@@ -15,12 +15,8 @@ export default class AppealCommand extends HubCommand {
     const hub = await this.runHubChecks(interaction);
     if (!hub) return;
 
-    switch (subcommand) {
-      case 'set_cooldown':
-        await this.handleAppealCooldown(interaction, hub);
-        break;
-      default:
-        break;
+    if (subcommand === 'set_cooldown') {
+      await this.handleAppealCooldown(interaction, hub);
     }
   }
 
@@ -61,10 +57,8 @@ export default class AppealCommand extends HubCommand {
       await this.replyEmbed(
         interaction,
         t(
-          {
-            phrase: 'hub.notFound_mod',
-            locale: await interaction.client.userManager.getUserLocale(interaction.user.id),
-          },
+          'hub.notFound_mod',
+          await interaction.client.userManager.getUserLocale(interaction.user.id),
           { emoji: emojis.no },
         ),
         { ephemeral: true },

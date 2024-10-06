@@ -56,7 +56,7 @@ export async function replyWithUnknownMessage(
   edit = false,
 ) {
   const embed = new InfoEmbed().setDescription(
-    t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
+    t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
   );
 
   if (edit) await interaction.editReply({ embeds: [embed] });

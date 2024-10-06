@@ -104,9 +104,7 @@ export const sendBlacklistNotif = async (
           const channel = await _client.channels.fetch(ctx.channelId).catch(() => null);
           if (!_client.isGuildTextBasedChannel(channel)) return;
 
-          await channel
-            .send({ embeds: [ctx.embed], components: ctx.components })
-            .catch(() => null);
+          await channel.send({ embeds: [ctx.embed], components: ctx.components }).catch(() => null);
         },
         {
           context: {

@@ -9,7 +9,6 @@ export const HubSettingsBits = {
   BlockNSFW: 1 << 5,
 } as const;
 
-
 export type HubSettingsString = keyof typeof HubSettingsBits;
 export type SerializedHubSettings = Record<HubSettingsString, boolean>;
 

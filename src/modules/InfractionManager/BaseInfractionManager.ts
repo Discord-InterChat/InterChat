@@ -37,10 +37,7 @@ export default abstract class BaseInfractionManager<T extends UserInfraction | S
 
   protected abstract queryEntityInfractions(hubId: string): Promise<T[]>;
 
-  public async getHubInfractions(
-    hubId: string,
-    opts?: { type?: InfractionType; count?: number },
-  ) {
+  public async getHubInfractions(hubId: string, opts?: { type?: InfractionType; count?: number }) {
     const fetched = await getCachedData(
       `${this.modelName}:${this.targetId}:${hubId}`,
       async () => await this.queryEntityInfractions(hubId),

@@ -55,7 +55,7 @@ export default class UserInfractionManager extends BaseInfractionManager<UserInf
   }
 
   public async updateInfraction(
-    filter: { type: InfractionType; hubId: string; status?: InfractionStatus; },
+    filter: { type: InfractionType; hubId: string; status?: InfractionStatus },
     data: Prisma.UserInfractionUpdateInput,
   ) {
     const infraction = await this.fetchInfraction(filter.type, filter.hubId, filter.status);

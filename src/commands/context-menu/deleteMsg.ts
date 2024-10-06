@@ -73,15 +73,12 @@ export default class DeleteMessage extends BaseCommand {
 
     await interaction
       .editReply(
-        t(
-          { phrase: 'network.deleteSuccess', locale },
-          {
-            emoji: emojis.yes,
-            user: `<@${originalMsg.authorId}>`,
-            deleted: `${deletedCount}`,
-            total: `${originalMsg.broadcastMsgs.length}`,
-          },
-        ),
+        t('network.deleteSuccess', locale, {
+          emoji: emojis.yes,
+          user: `<@${originalMsg.authorId}>`,
+          deleted: `${deletedCount}`,
+          total: `${originalMsg.broadcastMsgs.length}`,
+        }),
       )
       .catch(() => null);
 
@@ -98,9 +95,7 @@ export default class DeleteMessage extends BaseCommand {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!originalMsg?.hub) {
-      await interaction.editReply(
-        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
-      );
+      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }));
       return false;
     }
 
@@ -117,9 +112,7 @@ export default class DeleteMessage extends BaseCommand {
       interaction.user.id !== originalMsg.authorId &&
       !isStaffOrHubMod(interaction.user.id, originalMsg.hub)
     ) {
-      await interaction.editReply(
-        t({ phrase: 'errors.notMessageAuthor', locale }, { emoji: emojis.no }),
-      );
+      await interaction.editReply(t('errors.notMessageAuthor', locale, { emoji: emojis.no }));
       return false;
     }
 

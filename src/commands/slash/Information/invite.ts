@@ -12,15 +12,12 @@ export default class Invite extends BaseCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     await interaction.reply({
-      content: t(
-        { phrase: 'invite', locale },
-        {
-          support: Constants.Links.SupportInvite,
-          invite: Constants.Links.AppDirectory,
-          invite_emoji: emojis.add_icon,
-          support_emoji: emojis.code_icon,
-        },
-      ),
+      content: t('invite', locale, {
+        support: Constants.Links.SupportInvite,
+        invite: Constants.Links.AppDirectory,
+        invite_emoji: emojis.add_icon,
+        support_emoji: emojis.code_icon,
+      }),
     });
   }
 }

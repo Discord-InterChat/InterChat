@@ -59,12 +59,16 @@ export const logAppeals = async (
 
   const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
-      .setCustomId(new CustomID('appealReview:approve', [type, hubId, opts.appealTargetId]).toString())
+      .setCustomId(
+        new CustomID('appealReview:approve', [type, hubId, opts.appealTargetId]).toString(),
+      )
       .setLabel('Approve')
       .setEmoji(emojis.yes)
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
-      .setCustomId(new CustomID('appealReview:reject', [type, hubId, opts.appealTargetId]).toString())
+      .setCustomId(
+        new CustomID('appealReview:reject', [type, hubId, opts.appealTargetId]).toString(),
+      )
       .setLabel('Reject')
       .setEmoji(emojis.no)
       .setStyle(ButtonStyle.Danger),

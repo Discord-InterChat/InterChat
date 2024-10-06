@@ -21,27 +21,21 @@ export default class Servers extends HubCommand {
     });
 
     if (!hub) {
-      await this.replyEmbed(
-        interaction,
-        t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
-      );
+      await this.replyEmbed(interaction, t('hub.notFound', locale, { emoji: emojis.no }));
       return;
     }
     else if (
       hub.ownerId !== interaction.user.id &&
       !hub.moderators.some((mod) => mod.userId === interaction.user.id)
     ) {
-      await this.replyEmbed(
-        interaction,
-        t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
-      );
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
       return;
     }
 
     if (hub.connections.length === 0) {
       await this.replyEmbed(
         interaction,
-        t({ phrase: 'hub.servers.noConnections', locale }, { emoji: emojis.no }),
+        t('hub.servers.noConnections', locale, { emoji: emojis.no }),
       );
       return;
     }
@@ -51,7 +45,7 @@ export default class Servers extends HubCommand {
       if (!connection) {
         await this.replyEmbed(
           interaction,
-          t({ phrase: 'hub.servers.notConnected', locale }, { hub: hub.name, emoji: emojis.no }),
+          t('hub.servers.notConnected', locale, { hub: hub.name, emoji: emojis.no }),
         );
         return;
       }
@@ -61,16 +55,13 @@ export default class Servers extends HubCommand {
         .setTitle(`${server?.name} \`(${connection.serverId})\``)
         .setColor(Constants.Colors.interchatBlue)
         .setDescription(
-          t(
-            { phrase: 'hub.servers.connectionInfo', locale },
-            {
-              channelName: `${channel?.name}`,
-              channelId: connection.channelId,
-              joinedAt: `<t:${Math.round(connection.date.getTime() / 1000)}:d>`,
-              invite: connection.invite ? connection.invite : 'Not Set.',
-              connected: connection.connected ? 'Yes' : 'No',
-            },
-          ),
+          t('hub.servers.connectionInfo', locale, {
+            channelName: `${channel?.name}`,
+            channelId: connection.channelId,
+            joinedAt: `<t:${Math.round(connection.date.getTime() / 1000)}:d>`,
+            invite: connection.invite ? connection.invite : 'Not Set.',
+            connected: connection.connected ? 'Yes' : 'No',
+          }),
         );
 
       await interaction.editReply({ embeds: [embed] });
@@ -105,16 +96,13 @@ export default class Servers extends HubCommand {
 
         const evalRes = resolveEval(evalArr);
 
-        const value = t(
-          { phrase: 'hub.servers.connectionInfo', locale },
-          {
-            channelName: `${evalRes?.channelName}`,
-            channelId: connection.channelId,
-            joinedAt: `<t:${Math.round(connection.date.getTime() / 1000)}:d>`,
-            invite: connection.invite ? connection.invite : 'Not Set.',
-            connected: connection.connected ? 'Yes' : 'No',
-          },
-        );
+        const value = t('hub.servers.connectionInfo', locale, {
+          channelName: `${evalRes?.channelName}`,
+          channelId: connection.channelId,
+          joinedAt: `<t:${Math.round(connection.date.getTime() / 1000)}:d>`,
+          invite: connection.invite ? connection.invite : 'Not Set.',
+          connected: connection.connected ? 'Yes' : 'No',
+        });
 
         return { name: `${++itemCounter}. ${evalRes?.serverName}`, value };
       });
@@ -123,14 +111,11 @@ export default class Servers extends HubCommand {
         embeds: [
           new EmbedBuilder()
             .setDescription(
-              t(
-                { phrase: 'hub.servers.total', locale },
-                {
-                  from: `${++embedFromIndex}`,
-                  to: `${itemCounter}`,
-                  total: `${hub.connections.length}`,
-                },
-              ),
+              t('hub.servers.total', locale, {
+                from: `${++embedFromIndex}`,
+                to: `${itemCounter}`,
+                total: `${hub.connections.length}`,
+              }),
             )
             .setColor(0x2f3136)
             .setFields(await Promise.all(fields)),

@@ -116,7 +116,6 @@ const buildMessage = async (
   const server = await interaction.client.fetchGuild(originalMsg.serverId);
   const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
 
-
   const { userManager } = interaction.client;
   const userBlManager = new BlacklistManager(new UserInfractionManager(originalMsg.authorId));
   const serverBlManager = new BlacklistManager(new ServerInfractionManager(originalMsg.serverId));

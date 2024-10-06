@@ -1,8 +1,4 @@
-import type {
-  BroadcastOpts,
-  CompactFormatOpts,
-  EmbedFormatOpts,
-} from './Types.d.ts';
+import type { BroadcastOpts, CompactFormatOpts, EmbedFormatOpts } from './Types.d.ts';
 import Constants from '#main/config/Constants.js';
 import { censor } from '#main/utils/ProfanityUtils.js';
 import type { connectedList, Hub, UserData } from '@prisma/client';

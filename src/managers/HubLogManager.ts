@@ -16,7 +16,7 @@ const channelMention = (channelId: string | null | undefined) =>
   channelId ? `<#${channelId}>` : emojis.no;
 
 export default class HubLogManager {
-  private hubId: string;
+  private readonly hubId: string;
   private logConfig: HubLogConfig;
   readonly logsWithRoleId = logsWithRoleId;
   readonly logTypes: LogConfigTypes[];
@@ -93,8 +93,8 @@ export default class HubLogManager {
   }
 
   public createEmbed(iconUrl: string | null, locale: supportedLocaleCodes = 'en') {
-    const channelStr = t({ phrase: 'hub.manage.logs.config.fields.channel', locale });
-    const roleStr = t({ phrase: 'hub.manage.logs.config.fields.role', locale });
+    const channelStr = t('hub.manage.logs.config.fields.channel', locale);
+    const roleStr = t('hub.manage.logs.config.fields.role', locale);
 
     const logDesc = this.logTypes
       .map((type) => {
@@ -105,7 +105,7 @@ export default class HubLogManager {
 
         return stripIndents`
           ${emojis.arrow} \`${type}:\`
-          ${emojis.divider} ${t({ phrase: `hub.manage.logs.${type}.description`, locale })}
+          ${emojis.divider} ${t(`hub.manage.logs.${type}.description`, locale)}
           ${roleInfo ? emojis.divider : emojis.dividerEnd} ${channelStr} ${channelMention(typeof configType === 'string' ? configType : configType?.channelId)}
           ${roleInfo}`;
       })
@@ -113,7 +113,7 @@ export default class HubLogManager {
 
     return new InfoEmbed()
       .removeTitle()
-      .setDescription(`## ${t({ phrase: 'hub.manage.logs.title', locale })}\n\n${logDesc}`)
+      .setDescription(`## ${t('hub.manage.logs.title', locale)}\n\n${logDesc}`)
       .setThumbnail(iconUrl);
   }
 
@@ -130,27 +130,27 @@ export default class HubLogManager {
         .setPlaceholder('Choose a log type to set a channel.')
         .addOptions([
           {
-            label: t({ phrase: 'hub.manage.logs.reports.label', locale }),
+            label: t('hub.manage.logs.reports.label', locale),
             value: 'reports',
-            description: t({ phrase: 'hub.manage.logs.reports.description', locale }),
+            description: t('hub.manage.logs.reports.description', locale),
             emoji: '📢',
           },
           {
-            label: t({ phrase: 'hub.manage.logs.modLogs.label', locale }),
+            label: t('hub.manage.logs.modLogs.label', locale),
             value: 'modLogs',
-            description: t({ phrase: 'hub.manage.logs.modLogs.description', locale }),
+            description: t('hub.manage.logs.modLogs.description', locale),
             emoji: '👮',
           },
           {
-            label: t({ phrase: 'hub.manage.logs.profanity.label', locale }),
+            label: t('hub.manage.logs.profanity.label', locale),
             value: 'profanity',
-            description: t({ phrase: 'hub.manage.logs.profanity.description', locale }),
+            description: t('hub.manage.logs.profanity.description', locale),
             emoji: '🤬',
           },
           {
-            label: t({ phrase: 'hub.manage.logs.joinLeaves.label', locale }),
+            label: t('hub.manage.logs.joinLeaves.label', locale),
             value: 'joinLeaves',
-            description: t({ phrase: 'hub.manage.logs.joinLeaves.description', locale }),
+            description: t('hub.manage.logs.joinLeaves.description', locale),
             emoji: '👋',
           },
           {

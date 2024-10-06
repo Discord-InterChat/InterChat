@@ -18,21 +18,21 @@ export const actionsSelect = (hubId: string, userId: string, locale: supportedLo
       )
       .addOptions([
         {
-          label: t({ phrase: 'hub.manage.description.selects.label', locale }),
+          label: t('hub.manage.description.selects.label', locale),
           value: 'description',
-          description: t({ phrase: 'hub.manage.description.selects.description', locale }),
+          description: t('hub.manage.description.selects.description', locale),
           emoji: '✏️',
         },
         {
-          label: t({ phrase: 'hub.manage.visibility.selects.label', locale }),
+          label: t('hub.manage.visibility.selects.label', locale),
           value: 'visibility',
-          description: t({ phrase: 'hub.manage.visibility.selects.description', locale }),
+          description: t('hub.manage.visibility.selects.description', locale),
           emoji: '🔎',
         },
         {
-          label: t({ phrase: 'hub.manage.icon.selects.label', locale }),
+          label: t('hub.manage.icon.selects.label', locale),
           value: 'icon',
-          description: t({ phrase: 'hub.manage.icon.selects.description', locale }),
+          description: t('hub.manage.icon.selects.description', locale),
           emoji: '🖼️',
         },
         {
@@ -42,9 +42,9 @@ export const actionsSelect = (hubId: string, userId: string, locale: supportedLo
           emoji: '🔒',
         },
         {
-          label: t({ phrase: 'hub.manage.banner.selects.label', locale }),
+          label: t('hub.manage.banner.selects.label', locale),
           value: 'banner',
-          description: t({ phrase: 'hub.manage.banner.selects.description', locale }),
+          description: t('hub.manage.banner.selects.description', locale),
           emoji: '🎨',
         },
       ]),

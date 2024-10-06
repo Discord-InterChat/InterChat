@@ -35,11 +35,9 @@ export default class Invite extends HubCommand {
         });
 
         if (!hubInDb) {
-          await this.replyEmbed(
-            interaction,
-            t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
-            { ephemeral: true },
-          );
+          await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), {
+            ephemeral: true,
+          });
           return;
         }
 
@@ -60,14 +58,11 @@ export default class Invite extends HubCommand {
 
         const embed = new EmbedBuilder()
           .setDescription(
-            t(
-              { phrase: 'hub.invite.create.success', locale },
-              {
-                inviteCode: createdInvite.code,
-                docs_link: Constants.Links.Docs,
-                expiry: `<t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>`,
-              },
-            ),
+            t('hub.invite.create.success', locale, {
+              inviteCode: createdInvite.code,
+              docs_link: Constants.Links.Docs,
+              expiry: `<t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>`,
+            }),
           )
           .setColor('Green')
           .setTimestamp();
@@ -95,7 +90,7 @@ export default class Invite extends HubCommand {
 
         if (!inviteInDb) {
           await interaction.reply({
-            content: t({ phrase: 'hub.invite.revoke.invalidCode', locale }, { emoji: emojis.no }),
+            content: t('hub.invite.revoke.invalidCode', locale, { emoji: emojis.no }),
             ephemeral: true,
           });
           return;
@@ -105,10 +100,7 @@ export default class Invite extends HubCommand {
           await db.hubInvite.delete({ where: { code } });
           await this.replyEmbed(
             interaction,
-            t(
-              { phrase: 'hub.invite.revoke.success', locale },
-              { emoji: emojis.yes, inviteCode: code },
-            ),
+            t('hub.invite.revoke.success', locale, { emoji: emojis.yes, inviteCode: code }),
             { ephemeral: true },
           );
         }
@@ -117,10 +109,10 @@ export default class Invite extends HubCommand {
           captureException(e);
           await this.replyEmbed(
             interaction,
-            t(
-              { phrase: 'errors.unknown', locale },
-              { emoji: emojis.no, support_invite: Constants.Links.SupportInvite },
-            ),
+            t('errors.unknown', locale, {
+              emoji: emojis.no,
+              support_invite: Constants.Links.SupportInvite,
+            }),
             {
               ephemeral: true,
             },
@@ -145,7 +137,7 @@ export default class Invite extends HubCommand {
         if (!hubInDb?.private) {
           await this.replyEmbed(
             interaction,
-            t({ phrase: 'hub.invite.list.notPrivate', locale }, { emoji: emojis.no }),
+            t('hub.invite.list.notPrivate', locale, { emoji: emojis.no }),
             { ephemeral: true },
           );
           return;
@@ -155,7 +147,7 @@ export default class Invite extends HubCommand {
         if (invitesInDb.length === 0) {
           await this.replyEmbed(
             interaction,
-            t({ phrase: 'hub.invite.list.noInvites', locale }, { emoji: emojis.no }),
+            t('hub.invite.list.noInvites', locale, { emoji: emojis.no }),
             { ephemeral: true },
           );
           return;
@@ -167,7 +159,7 @@ export default class Invite extends HubCommand {
         );
 
         const inviteEmbed = new EmbedBuilder()
-          .setTitle(t({ phrase: 'hub.invite.list.title', locale }))
+          .setTitle(t('hub.invite.list.title', locale))
           .setDescription(inviteArr.join('\n'))
           .setColor('Yellow')
           .setTimestamp();

@@ -35,7 +35,7 @@ export default class Translate extends BaseCommand {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!(await userManager.userVotedToday(interaction.user.id))) {
-      await interaction.editReply(t({ phrase: 'errors.mustVote', locale }, { emoji: emojis.no }));
+      await interaction.editReply(t('errors.mustVote', locale, { emoji: emojis.no }));
       return;
     }
 
@@ -49,9 +49,7 @@ export default class Translate extends BaseCommand {
     )?.originalMsg;
 
     if (!originalMsg) {
-      await interaction.editReply(
-        t({ phrase: 'errors.unknownNetworkMessage', locale }, { emoji: emojis.no }),
-      );
+      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }));
       return;
     }
 
@@ -138,7 +136,7 @@ export default class Translate extends BaseCommand {
     const from = interaction.fields.getTextInputValue('from');
     if (!isSupported(from) || !isSupported(to)) {
       await interaction.reply({
-        content: t({ phrase: 'errors.invalidLangCode', locale }, { emoji: emojis.no }),
+        content: t('errors.invalidLangCode', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;

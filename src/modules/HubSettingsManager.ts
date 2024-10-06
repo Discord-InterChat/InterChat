@@ -58,7 +58,11 @@ export default class HubSettingsManager {
       .setDescription('Current settings for this hub:');
 
     for (const [key, value] of Object.entries(this.getAllSettings())) {
-      embed.addFields({ name: key, value: value ? `${emojis.yes} Enabled` : `${emojis.no} Disabled`, inline: true });
+      embed.addFields({
+        name: key,
+        value: value ? `${emojis.yes} Enabled` : `${emojis.no} Disabled`,
+        inline: true,
+      });
     }
 
     return embed;

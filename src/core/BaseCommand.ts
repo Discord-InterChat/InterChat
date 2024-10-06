@@ -72,10 +72,10 @@ export default abstract class BaseCommand {
     const waitUntil = Math.round((Date.now() + remainingCooldown) / 1000);
 
     await interaction.reply({
-      content: t(
-        { phrase: 'errors.cooldown', locale },
-        { time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`, emoji: emojis.no },
-      ),
+      content: t('errors.cooldown', locale, {
+        time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`,
+        emoji: emojis.no,
+      }),
       ephemeral: true,
     });
   }

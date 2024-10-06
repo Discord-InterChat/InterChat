@@ -88,10 +88,7 @@ export default class HubEdit extends HubCommand {
     const hubInDb = await this.fetchHubFromDb(interaction.user.id, chosenHub);
 
     if (!hubInDb) {
-      await this.replyEmbed(
-        interaction,
-        t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
-      );
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
       return { hubInDb: null, locale };
     }
 
@@ -144,10 +141,10 @@ export default class HubEdit extends HubCommand {
   ) {
     const modal = new ModalBuilder()
       .setCustomId(new CustomID(`hub_edit_modal:${type}`, [hubId]).toString())
-      .setTitle(t({ phrase: `hub.manage.${type}.modal.title`, locale }));
+      .setTitle(t(`hub.manage.${type}.modal.title`, locale));
 
     const inputField = new TextInputBuilder()
-      .setLabel(t({ phrase: `hub.manage.${type}.modal.label`, locale }))
+      .setLabel(t(`hub.manage.${type}.modal.label`, locale))
       .setStyle(type === 'description' ? TextInputStyle.Paragraph : TextInputStyle.Short)
       .setCustomId(type);
 
@@ -155,7 +152,7 @@ export default class HubEdit extends HubCommand {
       inputField.setMaxLength(1024);
     }
     else {
-      inputField.setPlaceholder(t({ phrase: 'hub.manage.enterImgurUrl', locale }));
+      inputField.setPlaceholder(t('hub.manage.enterImgurUrl', locale));
     }
 
     if (type === 'banner') {
@@ -179,13 +176,10 @@ export default class HubEdit extends HubCommand {
     });
 
     await interaction.reply({
-      content: t(
-        { phrase: 'hub.manage.visibility.success', locale },
-        {
-          emoji: updatedHub.private ? '🔒' : '🔓',
-          visibility: updatedHub.private ? 'private' : 'public',
-        },
-      ),
+      content: t('hub.manage.visibility.success', locale, {
+        emoji: updatedHub.private ? '🔒' : '🔓',
+        visibility: updatedHub.private ? 'private' : 'public',
+      }),
       ephemeral: true,
     });
 
@@ -239,10 +233,11 @@ export default class HubEdit extends HubCommand {
     await interaction.followUp({
       embeds: [
         new InfoEmbed().setDescription(
-          t(
-            { phrase: 'hub.manage.logs.channelSuccess', locale },
-            { emoji: emojis.yes, type, channel: channelStr },
-          ),
+          t('hub.manage.logs.channelSuccess', locale, {
+            emoji: emojis.yes,
+            type,
+            channel: channelStr,
+          }),
         ),
       ],
       ephemeral: true,
@@ -261,7 +256,7 @@ export default class HubEdit extends HubCommand {
     });
 
     await interaction.reply({
-      content: t({ phrase: 'hub.manage.description.changed', locale }),
+      content: t('hub.manage.description.changed', locale),
       ephemeral: true,
     });
   }
@@ -276,7 +271,7 @@ export default class HubEdit extends HubCommand {
 
     if (!iconUrl) {
       await interaction.reply({
-        content: t({ phrase: 'hub.invalidImgurUrl', locale }, { emoji: emojis.no }),
+        content: t('hub.invalidImgurUrl', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return;
@@ -288,7 +283,7 @@ export default class HubEdit extends HubCommand {
     });
 
     await interaction.reply({
-      content: t({ phrase: 'hub.manage.icon.changed', locale }),
+      content: t('hub.manage.icon.changed', locale),
       ephemeral: true,
     });
   }
@@ -308,16 +303,14 @@ export default class HubEdit extends HubCommand {
         data: { bannerUrl: { unset: true } },
       });
 
-      await interaction.editReply(t({ phrase: 'hub.manage.banner.removed', locale }));
+      await interaction.editReply(t('hub.manage.banner.removed', locale));
       return;
     }
 
     const bannerUrl = await checkAndFetchImgurUrl(newBanner);
 
     if (!bannerUrl) {
-      await interaction.editReply(
-        t({ phrase: 'hub.invalidImgurUrl', locale }, { emoji: emojis.no }),
-      );
+      await interaction.editReply(t('hub.invalidImgurUrl', locale, { emoji: emojis.no }));
       return;
     }
 
@@ -326,7 +319,7 @@ export default class HubEdit extends HubCommand {
       data: { bannerUrl },
     });
 
-    await interaction.editReply(emojis.yes + t({ phrase: 'hub.manage.banner.changed', locale }));
+    await interaction.editReply(emojis.yes + t('hub.manage.banner.changed', locale));
   }
 
   private async updateOriginalMessage(interaction: ModalSubmitInteraction, hubId: string) {
@@ -347,7 +340,7 @@ export default class HubEdit extends HubCommand {
 
     if (customId.args[0] !== interaction.user.id) {
       const embed = new InfoEmbed().setDescription(
-        t({ phrase: 'errors.notYourAction', locale }, { emoji: emojis.no }),
+        t('errors.notYourAction', locale, { emoji: emojis.no }),
       );
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -360,9 +353,7 @@ export default class HubEdit extends HubCommand {
     });
 
     if (!hubInDb) {
-      const embed = new InfoEmbed().setDescription(
-        t({ phrase: 'hub.notFound', locale }, { emoji: emojis.no }),
-      );
+      const embed = new InfoEmbed().setDescription(t('hub.notFound', locale, { emoji: emojis.no }));
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return {};
@@ -390,7 +381,7 @@ export default class HubEdit extends HubCommand {
 
     if (!hubInDb) {
       await interaction.reply({
-        content: t({ phrase: 'hub.notFound_mod', locale }, { emoji: emojis.no }),
+        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return {};
