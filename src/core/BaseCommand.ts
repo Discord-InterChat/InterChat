@@ -149,13 +149,13 @@ export default abstract class BaseCommand {
     return await interaction[methodName]({ ...message, ephemeral: opts?.ephemeral });
   }
 
-  async build(
+  build(
     fileName: string,
     opts: {
       commandsMap: Collection<string, BaseCommand>;
       interactionsMap: Collection<string, InteractionFunction>;
     },
-  ): Promise<void> {
+  ): void {
     if (Object.getPrototypeOf(this.constructor) === BaseCommand) {
       opts.commandsMap.set(this.data.name, this);
       this.loadCommandInteractions(this, opts.interactionsMap);
@@ -167,10 +167,10 @@ export default abstract class BaseCommand {
     }
   }
 
-  private async loadCommandInteractions(
+  private loadCommandInteractions(
     command: BaseCommand,
     map: Collection<string, InteractionFunction>,
-  ): Promise<void> {
+  ): void {
     Logger.debug(`Adding interactions for command: ${command.data.name}`);
     MetadataHandler.loadMetadata(command, map);
     Logger.debug(`Finished adding interactions for command: ${command.data.name}`);
