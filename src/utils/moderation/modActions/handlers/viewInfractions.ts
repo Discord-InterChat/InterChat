@@ -1,4 +1,4 @@
-import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import type { supportedLocaleCodes } from '#main/utils/Locale.js';
 import { buildInfractionListEmbeds } from '#main/utils/moderation/infractionUtils.js';
