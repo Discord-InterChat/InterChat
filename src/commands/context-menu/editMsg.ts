@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import HubSettingsManager from '#main/modules/HubSettingsManager.js';
+import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
 import { SerializedHubSettings } from '#main/modules/BitFields.js';
 import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';

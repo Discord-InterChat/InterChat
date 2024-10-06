@@ -2,7 +2,7 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import { InteractionFunction } from '#main/decorators/Interaction.ts';
 import CooldownService from '#main/modules/CooldownService.js';
 import Scheduler from '#main/modules/SchedulerService.js';
-import UserDbManager from '#main/modules/UserDbManager.js';
+import UserDbManager from '#main/managers/UserDbManager.js';
 import { ClusterClient } from 'discord-hybrid-sharding';
 import {
   Collection,

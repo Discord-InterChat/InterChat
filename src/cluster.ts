@@ -8,7 +8,7 @@ import storeMsgTimestamps from '#main/tasks/storeMsgTimestamps.js';
 import syncBotlistStats from '#main/tasks/syncBotlistStats.js';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { startApi } from '#main/api/index.js';
-import { VoteManager } from '#main/modules/VoteManager.js';
+import { VoteManager } from '#main/managers/VoteManager.js';
 import { getUsername } from '#main/utils/Utils.js';
 
 const clusterManager = new ClusterManager('build/index.js', {

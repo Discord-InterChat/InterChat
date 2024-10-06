@@ -1,5 +1,5 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import HubSettingsManager from '#main/modules/HubSettingsManager.js';
+import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { getConnectionHubId, getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { ConnectionMode } from '#main/config/Constants.js';
 import db from '#main/utils/Db.js';

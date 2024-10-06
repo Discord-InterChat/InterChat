@@ -1,6 +1,6 @@
 import { emojis } from '#main/config/Constants.js';
-import BlacklistManager from '#main/modules/BlacklistManager.js';
-import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
+import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { logBlacklist, logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
 import { t } from '#main/utils/Locale.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';

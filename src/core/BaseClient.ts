@@ -4,7 +4,7 @@ import type { InteractionFunction } from '#main/decorators/Interaction.js';
 import CooldownService from '#main/modules/CooldownService.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import Scheduler from '#main/modules/SchedulerService.js';
-import UserDbManager from '#main/modules/UserDbManager.js';
+import UserDbManager from '#main/managers/UserDbManager.js';
 import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
 import { loadCommandFiles, loadInteractions } from '#main/utils/CommandUtils.js';
 import { loadLocales } from '#main/utils/Locale.js';

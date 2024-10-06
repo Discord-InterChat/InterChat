@@ -15,9 +15,9 @@ import {
   Snowflake,
 } from 'discord.js';
 import HubCommand from './index.js';
-import ServerInfractionManager from '#main/modules/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/modules/InfractionManager/UserInfractionManager.js';
-import BlacklistManager from '#main/modules/BlacklistManager.js';
+import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
 import { check } from '#main/utils/ProfanityUtils.js';
 
 export default class JoinSubCommand extends HubCommand {
