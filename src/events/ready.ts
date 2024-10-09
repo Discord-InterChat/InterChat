@@ -1,8 +1,8 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import updateBlacklists from '#main/tasks/updateBlacklists.js';
-import cacheClient from '#main/utils/cache/cacheClient.js';
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
+import getRedis from '#utils/Redis.js';
 import { Client } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'ready'> {
@@ -10,8 +10,9 @@ export default class Ready extends BaseEventListener<'ready'> {
   public async execute(client: Client<true>) {
     Logger.info(`Logged in as ${client.user.tag}!`);
 
+    const redisClient = getRedis();
     const shardId = client.guilds.cache.first()?.shardId;
-    const blacklistScheduled = (await cacheClient.get('blacklistScheduled')) ?? shardId?.toString();
+    const blacklistScheduled = (await redisClient.get('blacklistScheduled')) ?? shardId?.toString();
 
     if (shardId === 0 && blacklistScheduled === '0') {
       updateBlacklists(client);
@@ -23,7 +24,7 @@ export default class Ready extends BaseEventListener<'ready'> {
         updateBlacklists(client),
       );
 
-      cacheClient.set('blacklistScheduled', `${shardId}`);
+      redisClient.set('blacklistScheduled', `${shardId}`);
     }
   }
 }
