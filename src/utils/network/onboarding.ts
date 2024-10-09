@@ -1,6 +1,6 @@
 import Constants from '#main/config/Constants.js';
-import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { getReplyMethod } from '#main/utils/Utils.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { getReplyMethod } from '#utils/Utils.js';
 import {
   type ButtonInteraction,
   type RepliableInteraction,

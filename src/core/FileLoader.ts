@@ -1,5 +1,5 @@
 import { type InteractionFunction } from '#main/decorators/Interaction.js';
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
 import {
   Awaitable,
   Collection,

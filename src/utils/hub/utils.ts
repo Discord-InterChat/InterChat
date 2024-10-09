@@ -2,10 +2,10 @@ import {
   deleteConnection,
   deleteConnections,
   getHubConnections,
-} from '#main/utils/ConnectedListUtils.js';
-import db from '#main/utils/Db.js';
-import Logger from '#main/utils/Logger.js';
-import { deleteMsgsFromDb, checkIfStaff } from '#main/utils/Utils.js';
+} from '#utils/ConnectedListUtils.js';
+import db from '#utils/Db.js';
+import Logger from '#utils/Logger.js';
+import { deleteMsgsFromDb, checkIfStaff } from '#utils/Utils.js';
 import type { Hub } from '@prisma/client';
 import { type WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
 

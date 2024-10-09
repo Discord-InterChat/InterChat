@@ -1,18 +1,18 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
-import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
-import { updateConnection } from '#main/utils/ConnectedListUtils.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { t } from '#main/utils/Locale.js';
+import { isGuildTextBasedChannel } from '#utils/ChannelUtls.js';
+import { setComponentExpiry } from '#utils/ComponentUtils.js';
+import { updateConnection } from '#utils/ConnectedListUtils.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { t } from '#utils/Locale.js';
 import {
   buildChannelSelect,
   buildCustomizeEmbed,
   buildCustomizeSelect,
-} from '#main/utils/network/buildConnectionAssets.js';
-import { getOrCreateWebhook } from '#main/utils/Utils.js';
+} from '#utils/network/buildConnectionAssets.js';
+import { getOrCreateWebhook } from '#utils/Utils.js';
 import {
   ActionRowBuilder,
   ChannelSelectMenuInteraction,

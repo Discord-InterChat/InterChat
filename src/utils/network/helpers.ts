@@ -1,8 +1,8 @@
 import type { ReferredMsgData } from './Types.d.ts';
 import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { censor } from '#main/utils/ProfanityUtils.js';
+import db from '#utils/Db.js';
+import { supportedLocaleCodes, t } from '#utils/Locale.js';
+import { censor } from '#utils/ProfanityUtils.js';
 import {
   type HexColorString,
   type Message,
@@ -12,7 +12,7 @@ import {
   Collection,
   EmbedBuilder,
 } from 'discord.js';
-import { stripTenorLinks } from '#main/utils/ImageUtils.js';
+import { stripTenorLinks } from '#utils/ImageUtils.js';
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.

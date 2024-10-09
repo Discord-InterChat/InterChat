@@ -1,12 +1,12 @@
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
-import type { supportedLocaleCodes } from '#main/utils/Locale.js';
-import { buildInfractionListEmbeds } from '#main/utils/moderation/infractionUtils.js';
+import type { supportedLocaleCodes } from '#utils/Locale.js';
+import { buildInfractionListEmbeds } from '#utils/moderation/infractionUtils.js';
 import {
   type ModAction,
   fetchMessageFromDb,
   replyWithUnknownMessage,
-} from '#main/utils/moderation/modActions/utils.js';
+} from '#utils/moderation/modActions/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
 
 export default class ViewInfractionsHandler implements ModAction {

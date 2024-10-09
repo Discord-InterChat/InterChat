@@ -1,9 +1,9 @@
 import { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { fetchConnection, updateConnection } from '#main/utils/ConnectedListUtils.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { t } from '#main/utils/Locale.js';
+import { fetchConnection, updateConnection } from '#utils/ConnectedListUtils.js';
+import { CustomID } from '#utils/CustomID.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { t } from '#utils/Locale.js';
 import { type ButtonInteraction } from 'discord.js';
 
 export default class InactiveConnectInteraction {

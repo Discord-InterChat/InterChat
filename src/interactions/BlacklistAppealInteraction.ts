@@ -4,13 +4,13 @@ import BlacklistManager from '#main/managers/BlacklistManager.js';
 import BaseInfractionManager from '#main/managers/InfractionManager/BaseInfractionManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { ErrorEmbed, InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { fetchHub } from '#main/utils/hub/utils.js';
-import logAppeals from '#main/utils/HubLogger/Appeals.js';
-import Logger from '#main/utils/Logger.js';
-import { buildAppealSubmitModal } from '#main/utils/moderation/blacklistUtils.js';
-import { getReplyMethod, msToReadable } from '#main/utils/Utils.js';
+import { CustomID } from '#utils/CustomID.js';
+import { ErrorEmbed, InfoEmbed } from '#utils/EmbedUtils.js';
+import { fetchHub } from '#utils/hub/utils.js';
+import logAppeals from '#utils/HubLogger/Appeals.js';
+import Logger from '#utils/Logger.js';
+import { buildAppealSubmitModal } from '#utils/moderation/blacklistUtils.js';
+import { getReplyMethod, msToReadable } from '#utils/Utils.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,

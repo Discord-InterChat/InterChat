@@ -1,9 +1,9 @@
 import { emojis } from '#main/config/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import { logBlacklist, logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
-import { t } from '#main/utils/Locale.js';
-import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
+import { logBlacklist, logUserUnblacklist } from '#utils/HubLogger/ModLogs.js';
+import { t } from '#utils/Locale.js';
+import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import type { ChatInputCommandInteraction, User } from 'discord.js';
 import parse from 'parse-duration';
 import BlacklistCommand from './index.js';

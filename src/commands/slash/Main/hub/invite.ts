@@ -1,7 +1,7 @@
 import Constants, { emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
-import Logger from '#main/utils/Logger.js';
+import db from '#utils/Db.js';
+import { t } from '#utils/Locale.js';
+import Logger from '#utils/Logger.js';
 import { captureException } from '@sentry/node';
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import parse from 'parse-duration';

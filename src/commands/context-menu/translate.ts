@@ -1,8 +1,8 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
   ApplicationCommandType,

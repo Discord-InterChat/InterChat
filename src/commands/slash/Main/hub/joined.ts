@@ -1,7 +1,7 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import { Pagination } from '#main/modules/Pagination.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
+import db from '#utils/Db.js';
+import { t } from '#utils/Locale.js';
 import { connectedList, Hub } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import HubCommand from './index.js';

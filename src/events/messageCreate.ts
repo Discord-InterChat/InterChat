@@ -1,29 +1,29 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
-import { getConnectionHubId, getHubConnections } from '#main/utils/ConnectedListUtils.js';
+import { getConnectionHubId, getHubConnections } from '#utils/ConnectedListUtils.js';
 import { ConnectionMode } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
+import db from '#utils/Db.js';
 import {
   buildNetworkEmbed,
   getReferredContent,
   getReferredMsgData,
-} from '#main/utils/network/helpers.js';
+} from '#utils/network/helpers.js';
 import {
   getCompactMessageFormat,
   getEmbedMessageFormat,
   getReplyMention,
-} from '#main/utils/network/messageFormatters.js';
-import { runChecks } from '#main/utils/network/runChecks.js';
+} from '#utils/network/messageFormatters.js';
+import { runChecks } from '#utils/network/runChecks.js';
 import storeMessageData, {
   NetworkWebhookSendResult,
-} from '#main/utils/network/storeMessageData.js';
-import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
-import { censor } from '#main/utils/ProfanityUtils.js';
-import { isHumanMessage, trimAndCensorBannedWebhookWords } from '#main/utils/Utils.js';
+} from '#utils/network/storeMessageData.js';
+import type { BroadcastOpts, ReferredMsgData } from '#utils/network/Types.js';
+import { censor } from '#utils/ProfanityUtils.js';
+import { isHumanMessage, trimAndCensorBannedWebhookWords } from '#utils/Utils.js';
 import { connectedList, Hub } from '@prisma/client';
 import { HexColorString, Message, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
-import { generateJumpButton } from '#main/utils/ComponentUtils.js';
-import { getAttachmentURL } from '#main/utils/ImageUtils.js';
+import { generateJumpButton } from '#utils/ComponentUtils.js';
+import { getAttachmentURL } from '#utils/ImageUtils.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';

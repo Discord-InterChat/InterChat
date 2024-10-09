@@ -1,9 +1,9 @@
 import { emojis } from '#main/config/Constants.js';
-import { fetchCommands, findCommand } from '#main/utils/CommandUtils.js';
-import { updateConnection } from '#main/utils/ConnectedListUtils.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
-import { getOrCreateWebhook } from '#main/utils/Utils.js';
+import { fetchCommands, findCommand } from '#utils/CommandUtils.js';
+import { updateConnection } from '#utils/ConnectedListUtils.js';
+import db from '#utils/Db.js';
+import { t } from '#utils/Locale.js';
+import { getOrCreateWebhook } from '#utils/Utils.js';
 import {
   ChannelType,
   ChatInputCommandInteraction,

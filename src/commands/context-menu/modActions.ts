@@ -1,23 +1,23 @@
 import { emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
-import { t, type supportedLocaleCodes } from '#main/utils/Locale.js';
+import { CustomID } from '#utils/CustomID.js';
+import { isStaffOrHubMod } from '#utils/hub/utils.js';
+import { t, type supportedLocaleCodes } from '#utils/Locale.js';
 import {
   BlacklistServerHandler,
   BlacklistUserHandler,
-} from '#main/utils/moderation/modActions/handlers/blacklistHandler.js';
-import DeleteMessageHandler from '#main/utils/moderation/modActions/handlers/deleteMsgHandler.js';
-import RemoveReactionsHandler from '#main/utils/moderation/modActions/handlers/RemoveReactionsHandler.js';
-import UserBanHandler from '#main/utils/moderation/modActions/handlers/userBanHandler.js';
-import ViewInfractionsHandler from '#main/utils/moderation/modActions/handlers/viewInfractions.js';
-import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
+} from '#utils/moderation/modActions/handlers/blacklistHandler.js';
+import DeleteMessageHandler from '#utils/moderation/modActions/handlers/deleteMsgHandler.js';
+import RemoveReactionsHandler from '#utils/moderation/modActions/handlers/RemoveReactionsHandler.js';
+import UserBanHandler from '#utils/moderation/modActions/handlers/userBanHandler.js';
+import ViewInfractionsHandler from '#utils/moderation/modActions/handlers/viewInfractions.js';
+import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
 import {
   fetchMessageFromDb,
   ModAction,
   ModActionsDbMsgT,
-} from '#main/utils/moderation/modActions/utils.js';
+} from '#utils/moderation/modActions/utils.js';
 import {
   ApplicationCommandType,
   type ButtonInteraction,

@@ -1,11 +1,11 @@
 import { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { deleteHubs } from '#main/utils/hub/utils.js';
-import { t } from '#main/utils/Locale.js';
+import { setComponentExpiry } from '#utils/ComponentUtils.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { deleteHubs } from '#utils/hub/utils.js';
+import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,

@@ -1,8 +1,8 @@
 import Constants from '#main/config/Constants.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { ErrorEmbed } from '#main/utils/EmbedUtils.js';
-import Logger from '#main/utils/Logger.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { ErrorEmbed } from '#utils/EmbedUtils.js';
+import Logger from '#utils/Logger.js';
 import type { RemoveMethods, ThreadParentChannel } from '#types/index.d.ts';
 import { captureException } from '@sentry/node';
 import type { ClusterManager } from 'discord-hybrid-sharding';

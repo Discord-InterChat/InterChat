@@ -1,6 +1,6 @@
 import dblRouter from '#main/api/routes/dbl.js';
 import { VoteManager } from '#main/managers/VoteManager.js';
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
 import express from 'express';
 
 const app = express();

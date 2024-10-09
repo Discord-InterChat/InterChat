@@ -3,12 +3,12 @@ import { emojis } from '#main/config/Constants.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
+import db from '#utils/Db.js';
+import { t } from '#utils/Locale.js';
 import {
   buildInfractionListEmbeds,
   isServerInfraction,
-} from '#main/utils/moderation/infractionUtils.js';
+} from '#utils/moderation/infractionUtils.js';
 import { type ChatInputCommandInteraction } from 'discord.js';
 
 export default class ViewInfractions extends HubCommand {

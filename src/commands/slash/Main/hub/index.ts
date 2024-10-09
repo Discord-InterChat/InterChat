@@ -1,8 +1,8 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { logsWithRoleId } from '#main/managers/HubLogManager.js';
 import { HubSettingsBits } from '#main/modules/BitFields.js';
-import db from '#main/utils/Db.js';
-import { escapeRegexChars, handleError, toTitleCase } from '#main/utils/Utils.js';
+import db from '#utils/Db.js';
+import { escapeRegexChars, handleError, toTitleCase } from '#utils/Utils.js';
 import {
   APIApplicationCommandBasicOption,
   ApplicationCommandOptionType,

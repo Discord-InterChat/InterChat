@@ -1,5 +1,5 @@
-import db from '#main/utils/Db.js';
-import { logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
+import db from '#utils/Db.js';
+import { logUserUnblacklist } from '#utils/HubLogger/ModLogs.js';
 import type { InfractionStatus, InfractionType, Prisma, UserInfraction } from '@prisma/client';
 import { type Client, type Snowflake, type User } from 'discord.js';
 import BaseInfractionManager from './BaseInfractionManager.js';

@@ -1,6 +1,6 @@
 import Constants, { emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { toTitleCase } from '#main/utils/Utils.js';
+import db from '#utils/Db.js';
+import { toTitleCase } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder, GuildPremiumTier } from 'discord.js';
 import Find from './index.js';

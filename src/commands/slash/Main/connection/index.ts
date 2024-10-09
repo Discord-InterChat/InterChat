@@ -1,4 +1,4 @@
-import db from '#main/utils/Db.js';
+import db from '#utils/Db.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import {
   ApplicationCommandOptionType,
@@ -8,7 +8,7 @@ import {
   PermissionFlagsBits,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import { escapeRegexChars, handleError } from '#main/utils/Utils.js';
+import { escapeRegexChars, handleError } from '#utils/Utils.js';
 
 export default class Connection extends BaseCommand {
   // subcommand classes are added to this map in their respective files

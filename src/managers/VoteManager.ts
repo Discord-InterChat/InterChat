@@ -1,12 +1,12 @@
 import type { WebhookPayload } from '#types/topgg.d.ts';
-import { getCachedData } from '#main/utils/cache/cacheUtils.js';
+import { getCachedData } from '#utils/cache/cacheUtils.js';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { EmbedBuilder, time, userMention, WebhookClient } from 'discord.js';
 import EventEmitter from 'events';
 import Constants, { emojis, RedisKeys } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { getOrdinalSuffix, getUsername, modifyUserRole } from '#main/utils/Utils.js';
+import db from '#utils/Db.js';
+import { getOrdinalSuffix, getUsername, modifyUserRole } from '#utils/Utils.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import parse from 'parse-duration';
 

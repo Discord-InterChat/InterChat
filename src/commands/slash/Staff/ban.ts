@@ -1,5 +1,5 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import handleBan from '#main/utils/banUtls/handleBan.js';
+import handleBan from '#utils/banUtls/handleBan.js';
 import {
   type ChatInputCommandInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,

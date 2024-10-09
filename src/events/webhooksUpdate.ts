@@ -1,10 +1,10 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
-import { updateConnection } from '#main/utils/ConnectedListUtils.js';
+import { isGuildTextBasedChannel } from '#utils/ChannelUtls.js';
+import { updateConnection } from '#utils/ConnectedListUtils.js';
 import { emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
-import Logger from '#main/utils/Logger.js';
+import db from '#utils/Db.js';
+import { t } from '#utils/Locale.js';
+import Logger from '#utils/Logger.js';
 import { ForumChannel, MediaChannel, NewsChannel, TextChannel, VoiceChannel } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'webhooksUpdate'> {

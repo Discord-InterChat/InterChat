@@ -2,18 +2,18 @@ import { emojis } from '#main/config/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { logBlacklist } from '#main/utils/HubLogger/ModLogs.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import Logger from '#main/utils/Logger.js';
-import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
-import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
+import { deleteConnections } from '#utils/ConnectedListUtils.js';
+import { CustomID } from '#utils/CustomID.js';
+import { logBlacklist } from '#utils/HubLogger/ModLogs.js';
+import { supportedLocaleCodes, t } from '#utils/Locale.js';
+import Logger from '#utils/Logger.js';
+import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
+import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
 import {
   isValidDbMsgWithHubId,
   type ModAction,
   type ModActionsDbMsgT,
-} from '#main/utils/moderation/modActions/utils.js';
+} from '#utils/moderation/modActions/utils.js';
 import {
   ActionRowBuilder,
   type ButtonInteraction,
