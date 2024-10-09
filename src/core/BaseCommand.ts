@@ -1,10 +1,10 @@
 import { emojis } from '#main/config/Constants.js';
 import { MetadataHandler } from '#main/core/FileLoader.js';
 import { InteractionFunction } from '#main/decorators/Interaction.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import Logger from '#main/utils/Logger.js';
-import { getReplyMethod } from '#main/utils/Utils.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { supportedLocaleCodes, t } from '#utils/Locale.js';
+import Logger from '#utils/Logger.js';
+import { getReplyMethod } from '#utils/Utils.js';
 import {
   type ActionRowData,
   type APIActionRowComponent,

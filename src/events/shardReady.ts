@@ -1,5 +1,5 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
 
 export default class ShardReady extends BaseEventListener<'shardReady'> {
   readonly name = 'shardReady';

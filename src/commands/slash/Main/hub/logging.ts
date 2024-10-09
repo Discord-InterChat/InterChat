@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import HubCommand from './index.js';
-import db from '#main/utils/Db.js';
+import db from '#utils/Db.js';
 import HubLogManager, { LogConfigTypes, RoleIdLogConfigs } from '#main/managers/HubLogManager.js';
 import { Hub } from '@prisma/client';
 

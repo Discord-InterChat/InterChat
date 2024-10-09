@@ -69,7 +69,7 @@
   },
   "imports": {
     "#main/*.js": "./build/*.js",
-    "#utils/*": "./build/utils/*.js"
+    "#utils/*": "./build/utils/*"
   },
   "packageManager": "pnpm@9.6.0"
 }

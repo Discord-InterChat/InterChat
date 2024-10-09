@@ -1,6 +1,6 @@
 import Constants, { emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import db from '#utils/Db.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Find from './index.js';

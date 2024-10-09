@@ -1,9 +1,9 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { t } from '#main/utils/Locale.js';
-import { checkIfStaff, handleError } from '#main/utils/Utils.js';
+import { CustomID } from '#utils/CustomID.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { t } from '#utils/Locale.js';
+import { checkIfStaff, handleError } from '#utils/Utils.js';
 import { UserData } from '@prisma/client';
 import { CacheType, Interaction } from 'discord.js';
 

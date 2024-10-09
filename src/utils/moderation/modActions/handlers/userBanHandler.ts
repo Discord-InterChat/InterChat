@@ -1,12 +1,12 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import handleBan from '#main/utils/banUtls/handleBan.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import type { supportedLocaleCodes } from '#main/utils/Locale.js';
+import handleBan from '#utils/banUtls/handleBan.js';
+import { CustomID } from '#utils/CustomID.js';
+import type { supportedLocaleCodes } from '#utils/Locale.js';
 import {
   type ModAction,
   fetchMessageFromDb,
   replyWithUnknownMessage,
-} from '#main/utils/moderation/modActions/utils.js';
+} from '#utils/moderation/modActions/utils.js';
 import {
   type ButtonInteraction,
   type ModalSubmitInteraction,

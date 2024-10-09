@@ -1,5 +1,5 @@
 import { emojis } from '#main/config/Constants.js';
-import { getReplyMethod } from '#main/utils/Utils.js';
+import { getReplyMethod } from '#utils/Utils.js';
 import {
   type BaseMessageOptions,
   type RepliableInteraction,

@@ -1,7 +1,7 @@
 import { RedisKeys } from '#main/config/Constants.js';
-import { cacheData, getCachedData } from '#main/utils/cache/cacheUtils.js';
-import { updateConnection } from '#main/utils/ConnectedListUtils.js';
-import Logger from '#main/utils/Logger.js';
+import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
+import { updateConnection } from '#utils/ConnectedListUtils.js';
+import Logger from '#utils/Logger.js';
 
 const getTimestamps = async () => {
   const fetched = await getCachedData(`${RedisKeys.msgTimestamp}:all`);

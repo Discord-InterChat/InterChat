@@ -1,12 +1,12 @@
-import db from '#main/utils/Db.js';
+import db from '#utils/Db.js';
 import { Hub } from '@prisma/client';
 import { ChatInputCommandInteraction } from 'discord.js';
 import parse from 'parse-duration';
 import HubCommand from './index.js';
 import { emojis } from '#main/config/Constants.js';
-import { isHubMod } from '#main/utils/hub/utils.js';
-import { t } from '#main/utils/Locale.js';
-import { ErrorEmbed } from '#main/utils/EmbedUtils.js';
+import { isHubMod } from '#utils/hub/utils.js';
+import { t } from '#utils/Locale.js';
+import { ErrorEmbed } from '#utils/EmbedUtils.js';
 
 export default class AppealCommand extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {

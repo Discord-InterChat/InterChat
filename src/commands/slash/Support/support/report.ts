@@ -1,7 +1,7 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import Constants, { emojis } from '#main/config/Constants.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { t } from '#main/utils/Locale.js';
+import { CustomID } from '#utils/CustomID.js';
+import { t } from '#utils/Locale.js';
 import {
   APIEmbed,
   ActionRowBuilder,

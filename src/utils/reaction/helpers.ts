@@ -1,7 +1,7 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import { isBlacklisted } from '#main/utils/moderation/blacklistUtils.js';
+import { isBlacklisted } from '#utils/moderation/blacklistUtils.js';
 
 /**
  * Checks if a user or server is blacklisted in a given hub.

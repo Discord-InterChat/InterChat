@@ -1,8 +1,8 @@
 import Constants, { emojis } from '#main/config/Constants.js';
-import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import Logger from '#main/utils/Logger.js';
+import { getHubConnections } from '#utils/ConnectedListUtils.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import Logger from '#utils/Logger.js';
 import { ServerInfraction, UserInfraction } from '@prisma/client';
 import {
   ActionRowBuilder,

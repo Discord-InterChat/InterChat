@@ -1,14 +1,14 @@
 import { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import HubLogManager, { LogConfigTypes as HubConfigTypes } from '#main/managers/HubLogManager.js';
-import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { actionsSelect, hubEmbed } from '#main/utils/hub/edit.js';
-import { sendToHub } from '#main/utils/hub/utils.js';
-import { checkAndFetchImgurUrl } from '#main/utils/ImageUtils.js';
-import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { setComponentExpiry } from '#utils/ComponentUtils.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { actionsSelect, hubEmbed } from '#utils/hub/edit.js';
+import { sendToHub } from '#utils/hub/utils.js';
+import { checkAndFetchImgurUrl } from '#utils/ImageUtils.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import type { Hub } from '@prisma/client';
 import {
   ActionRowBuilder,

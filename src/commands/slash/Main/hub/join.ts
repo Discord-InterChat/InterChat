@@ -1,11 +1,11 @@
 import { emojis } from '#main/config/Constants.js';
-import { createConnection, getHubConnections } from '#main/utils/ConnectedListUtils.js';
-import db from '#main/utils/Db.js';
-import { sendToHub } from '#main/utils/hub/utils.js';
-import { logJoinToHub } from '#main/utils/HubLogger/JoinLeave.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { showOnboarding } from '#main/utils/network/onboarding.js';
-import { getOrCreateWebhook } from '#main/utils/Utils.js';
+import { createConnection, getHubConnections } from '#utils/ConnectedListUtils.js';
+import db from '#utils/Db.js';
+import { sendToHub } from '#utils/hub/utils.js';
+import { logJoinToHub } from '#utils/HubLogger/JoinLeave.js';
+import { supportedLocaleCodes, t } from '#utils/Locale.js';
+import { showOnboarding } from '#utils/network/onboarding.js';
+import { getOrCreateWebhook } from '#utils/Utils.js';
 import type { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
@@ -18,7 +18,7 @@ import HubCommand from './index.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import { check } from '#main/utils/ProfanityUtils.js';
+import { check } from '#utils/ProfanityUtils.js';
 
 export default class JoinSubCommand extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {

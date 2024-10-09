@@ -4,11 +4,11 @@ import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
 import { SerializedHubSettings } from '#main/modules/BitFields.js';
 import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
-import { censor } from '#main/utils/ProfanityUtils.js';
-import { containsInviteLinks, handleError, replaceLinks } from '#main/utils/Utils.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { t } from '#utils/Locale.js';
+import { censor } from '#utils/ProfanityUtils.js';
+import { containsInviteLinks, handleError, replaceLinks } from '#utils/Utils.js';
 import { originalMessages } from '@prisma/client';
 import {
   ActionRowBuilder,
@@ -24,7 +24,7 @@ import {
   User,
   userMention,
 } from 'discord.js';
-import { getAttachmentURL } from '#main/utils/ImageUtils.js';
+import { getAttachmentURL } from '#utils/ImageUtils.js';
 
 interface ImageUrls {
   oldURL?: string | null;

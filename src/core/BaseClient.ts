@@ -5,9 +5,9 @@ import UserDbManager from '#main/managers/UserDbManager.js';
 import CooldownService from '#main/modules/CooldownService.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import Scheduler from '#main/modules/SchedulerService.js';
-import { loadCommandFiles, loadInteractions } from '#main/utils/CommandUtils.js';
-import { loadLocales } from '#main/utils/Locale.js';
-import { resolveEval } from '#main/utils/Utils.js';
+import { loadCommandFiles, loadInteractions } from '#utils/CommandUtils.js';
+import { loadLocales } from '#utils/Locale.js';
+import { resolveEval } from '#utils/Utils.js';
 import type { RemoveMethods } from '#types/index.d.ts';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {

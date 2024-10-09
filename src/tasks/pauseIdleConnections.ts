@@ -1,9 +1,9 @@
 import { emojis } from '#main/config/Constants.js';
-import { updateConnection } from '#main/utils/ConnectedListUtils.js';
-import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import Logger from '#main/utils/Logger.js';
-import { buildConnectionButtons } from '#main/utils/network/components.js';
+import { updateConnection } from '#utils/ConnectedListUtils.js';
+import db from '#utils/Db.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import Logger from '#utils/Logger.js';
+import { buildConnectionButtons } from '#utils/network/components.js';
 import { stripIndents } from 'common-tags';
 import { ClusterManager } from 'discord-hybrid-sharding';
 import { type APIActionRowComponent, type APIButtonComponent, type Snowflake } from 'discord.js';

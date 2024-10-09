@@ -2,10 +2,10 @@ import Constants, { emojis } from '#main/config/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
-import { ModActionsDbMsgT } from '#main/utils/moderation/modActions/utils.js';
-import { checkIfStaff } from '#main/utils/Utils.js';
+import { CustomID } from '#utils/CustomID.js';
+import { isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
+import { ModActionsDbMsgT } from '#utils/moderation/modActions/utils.js';
+import { checkIfStaff } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   type Interaction,
