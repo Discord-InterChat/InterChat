@@ -1,9 +1,9 @@
 import { RedisKeys } from '#main/config/Constants.js';
-import Logger from '#main/utils/Logger.js';
-import cacheClient from '#main/utils/cache/cacheClient.js';
+import Logger from '#utils/Logger.js';
+import getRedis from '#utils/Redis.js';
 import type { connectedList, Prisma } from '@prisma/client';
-import db from '#main/utils/Db.js';
-import { cacheData, getCachedData } from '#main/utils/cache/cacheUtils.js';
+import db from '#utils/Db.js';
+import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
 
 type whereUniuqeInput = Prisma.connectedListWhereUniqueInput;
 type whereInput = Prisma.connectedListWhereInput;
@@ -11,7 +11,7 @@ type dataInput = Prisma.connectedListUpdateInput;
 type ConnectionOperation = 'create' | 'modify' | 'delete';
 
 const purgeConnectionCache = async (channelId: string) =>
-  await cacheClient.del(`${RedisKeys.connectionHubId}:${channelId}`);
+  await getRedis().del(`${RedisKeys.connectionHubId}:${channelId}`);
 
 const serializeConnection = (connection: ConvertDatesToString<connectedList>) => ({
   ...connection,
@@ -79,7 +79,7 @@ export const syncHubConnCache = async (
 
 const cacheConnectionHubId = async (connection: connectedList) => {
   if (!connection.connected) {
-    await cacheClient.del(`${RedisKeys.connectionHubId}:${connection.channelId}`);
+    await getRedis().del(`${RedisKeys.connectionHubId}:${connection.channelId}`);
   }
   else {
     await cacheData(
