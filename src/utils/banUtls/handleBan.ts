@@ -1,5 +1,5 @@
 import { emojis } from '#main/config/Constants.js';
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
 import type { RepliableInteraction, User } from 'discord.js';
 
 export default async (

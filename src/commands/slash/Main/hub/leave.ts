@@ -1,10 +1,10 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { deleteConnection } from '#main/utils/ConnectedListUtils.js';
+import { deleteConnection } from '#utils/ConnectedListUtils.js';
 import { emojis } from '#main/config/Constants.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { logGuildLeaveToHub } from '#main/utils/HubLogger/JoinLeave.js';
-import { t } from '#main/utils/Locale.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { logGuildLeaveToHub } from '#utils/HubLogger/JoinLeave.js';
+import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -15,7 +15,7 @@ import {
   MessageComponentInteraction,
 } from 'discord.js';
 import HubCommand from './index.js';
-import { setComponentExpiry } from '#main/utils/ComponentUtils.js';
+import { setComponentExpiry } from '#utils/ComponentUtils.js';
 
 export default class Leave extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {

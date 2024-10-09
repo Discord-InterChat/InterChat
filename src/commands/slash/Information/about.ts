@@ -1,7 +1,7 @@
 import Constants, { badgeEmojis, emojis } from '#main/config/Constants.js';
 import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { getCredits } from '#main/utils/Utils.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { getCredits } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,

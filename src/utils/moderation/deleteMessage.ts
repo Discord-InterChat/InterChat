@@ -1,7 +1,7 @@
 import { RedisKeys } from '#main/config/Constants.js';
-import cacheClient from '#main/utils/cache/cacheClient.js';
-import { cacheData, getCachedData } from '#main/utils/cache/cacheUtils.js';
-import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
+import getRedis from '#utils/Redis.js';
+import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
+import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { broadcastedMessages } from '@prisma/client';
 import { Snowflake, WebhookClient } from 'discord.js';
 
@@ -32,11 +32,11 @@ export const deleteMessageFromHub = async (
     deletedCount++;
   }
 
-  await cacheClient.del(`${RedisKeys.msgDeleteInProgress}:${originalMsgId}`);
+  await getRedis().del(`${RedisKeys.msgDeleteInProgress}:${originalMsgId}`);
   return { deletedCount };
 };
 
 export const isDeleteInProgress = async (originalMsgId: Snowflake) => {
-  const res = await cacheClient.get(`${RedisKeys.msgDeleteInProgress}:${originalMsgId}`);
+  const res = await getRedis().get(`${RedisKeys.msgDeleteInProgress}:${originalMsgId}`);
   return res === 't';
 };

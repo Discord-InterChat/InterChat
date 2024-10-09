@@ -1,8 +1,8 @@
 import Constants, { emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import db from '#utils/Db.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { Pagination } from '#main/modules/Pagination.js';
-import { toTitleCase } from '#main/utils/Utils.js';
+import { toTitleCase } from '#utils/Utils.js';
 import { type ChatInputCommandInteraction, EmbedBuilder, time, User } from 'discord.js';
 import BlacklistCommand from './index.js';
 import type { ServerInfraction, UserInfraction } from '@prisma/client';

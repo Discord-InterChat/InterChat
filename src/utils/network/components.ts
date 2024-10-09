@@ -1,5 +1,5 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle } from 'discord.js';
-import { CustomID } from '#main/utils/CustomID.js';
+import { CustomID } from '#utils/CustomID.js';
 import { emojis } from '#main/config/Constants.js';
 
 type extraOpts = {

@@ -1,10 +1,10 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { logGuildLeave } from '#main/utils/GuildUtils.js';
-import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
+import { logGuildLeave } from '#utils/GuildUtils.js';
+import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import Constants from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { logGuildLeaveToHub } from '#main/utils/HubLogger/JoinLeave.js';
-import Logger from '#main/utils/Logger.js';
+import db from '#utils/Db.js';
+import { logGuildLeaveToHub } from '#utils/HubLogger/JoinLeave.js';
+import Logger from '#utils/Logger.js';
 import { Guild } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'guildDelete'> {

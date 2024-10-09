@@ -1,8 +1,8 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { getGuildOwnerOrFirstChannel, logGuildJoin } from '#main/utils/GuildUtils.js';
-import Logger from '#main/utils/Logger.js';
-import { check } from '#main/utils/ProfanityUtils.js';
+import { getGuildOwnerOrFirstChannel, logGuildJoin } from '#utils/GuildUtils.js';
+import Logger from '#utils/Logger.js';
+import { check } from '#utils/ProfanityUtils.js';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Guild } from 'discord.js';
 

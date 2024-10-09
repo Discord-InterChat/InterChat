@@ -1,8 +1,8 @@
 import { emojis } from '#main/config/Constants.js';
 import { ReactionArray } from '#main/types/network.js';
-import { fetchMessageFromDb, ModAction } from '#main/utils/moderation/modActions/utils.js';
-import { updateReactions } from '#main/utils/reaction/actions.js';
-import sortReactions from '#main/utils/reaction/sortReactions.js';
+import { fetchMessageFromDb, ModAction } from '#utils/moderation/modActions/utils.js';
+import { updateReactions } from '#utils/reaction/actions.js';
+import sortReactions from '#utils/reaction/sortReactions.js';
 import { ButtonInteraction, Snowflake } from 'discord.js';
 
 export default class RemoveReactionsHandler implements ModAction {

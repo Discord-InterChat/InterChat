@@ -1,4 +1,4 @@
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
 import fs from 'fs';
 import path from 'path';
 import { load } from 'js-yaml';

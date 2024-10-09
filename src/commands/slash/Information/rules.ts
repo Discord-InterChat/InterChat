@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import Constants from '#main/config/Constants.js';
-import { t } from '#main/utils/Locale.js';
+import { t } from '#utils/Locale.js';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
 export default class Rules extends BaseCommand {

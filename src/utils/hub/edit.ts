@@ -1,7 +1,7 @@
 import Constants, { emojis } from '#main/config/Constants.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { connectedList, Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';

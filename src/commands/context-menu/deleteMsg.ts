@@ -1,15 +1,15 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import Constants, { emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { logMsgDelete } from '#main/utils/HubLogger/ModLogs.js';
-import { t } from '#main/utils/Locale.js';
+import db from '#utils/Db.js';
+import { logMsgDelete } from '#utils/HubLogger/ModLogs.js';
+import { t } from '#utils/Locale.js';
 import {
   ApplicationCommandType,
   MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
-import { deleteMessageFromHub, isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
+import { isStaffOrHubMod } from '#utils/hub/utils.js';
+import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
 import { originalMessages, Hub, broadcastedMessages, HubLogConfig } from '@prisma/client';
 
 type OriginalMsgT = originalMessages & {

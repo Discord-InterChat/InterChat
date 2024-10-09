@@ -1,5 +1,5 @@
 import Constants from '#main/config/Constants.js';
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
 
 type ImgurResponse = { data: { link: string; nsfw: boolean; cover: string } };
 

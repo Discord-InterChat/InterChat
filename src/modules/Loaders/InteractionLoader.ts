@@ -1,6 +1,6 @@
 import { Class, FileLoader, MetadataHandler, ResourceLoader } from '#main/core/FileLoader.js';
 import { InteractionFunction } from '#main/decorators/Interaction.js';
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
 import { Collection } from 'discord.js';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';

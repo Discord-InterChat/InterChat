@@ -1,9 +1,9 @@
 import { emojis, RedisKeys } from '#main/config/Constants.js';
-import { getCachedData } from '#main/utils/cache/cacheUtils.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { getCachedData } from '#utils/cache/cacheUtils.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { HubLogConfig, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, roleMention, Snowflake, StringSelectMenuBuilder } from 'discord.js';

@@ -1,11 +1,11 @@
-import { updateConnections } from '#main/utils/ConnectedListUtils.js';
+import { updateConnections } from '#utils/ConnectedListUtils.js';
 import { ConnectionMode, RedisKeys } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import Logger from '#main/utils/Logger.js';
-import cacheClient from '#main/utils/cache/cacheClient.js';
+import db from '#utils/Db.js';
+import Logger from '#utils/Logger.js';
+import getRedis from '#utils/Redis.js';
 import { originalMessages } from '@prisma/client';
 import { APIMessage, Message } from 'discord.js';
-import { getCachedData } from '#main/utils/cache/cacheUtils.js';
+import { getCachedData } from '#utils/cache/cacheUtils.js';
 
 interface ErrorResult {
   webhookURL: string;
@@ -30,7 +30,7 @@ const storeMessageTimestamp = async (message: Message) => {
     { channelId: message.channelId, timestamp: message.createdTimestamp },
   ]);
 
-  await cacheClient.set(`${RedisKeys.msgTimestamp}:all`, data);
+  await getRedis().set(`${RedisKeys.msgTimestamp}:all`, data);
 };
 
 /**

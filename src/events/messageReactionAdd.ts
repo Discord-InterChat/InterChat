@@ -1,8 +1,8 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { HubSettingsBitField } from '#main/modules/BitFields.js';
-import db from '#main/utils/Db.js';
-import { addReaction, updateReactions } from '#main/utils/reaction/actions.js';
-import { checkBlacklists } from '#main/utils/reaction/helpers.js';
+import db from '#utils/Db.js';
+import { addReaction, updateReactions } from '#utils/reaction/actions.js';
+import { checkBlacklists } from '#utils/reaction/helpers.js';
 import { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
 
 export default class ReadctionAdd extends BaseEventListener<'messageReactionAdd'> {

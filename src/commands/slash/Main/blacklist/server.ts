@@ -1,12 +1,12 @@
 import { emojis } from '#main/config/Constants.js';
-import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
-import { logBlacklist, logServerUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
-import { t } from '#main/utils/Locale.js';
+import { deleteConnections } from '#utils/ConnectedListUtils.js';
+import { logBlacklist, logServerUnblacklist } from '#utils/HubLogger/ModLogs.js';
+import { t } from '#utils/Locale.js';
 import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';
 import parse from 'parse-duration';
 import BlacklistCommand from './index.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
-import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
+import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 
 export default class extends BlacklistCommand {

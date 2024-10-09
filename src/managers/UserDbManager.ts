@@ -1,7 +1,7 @@
 import { RedisKeys } from '#main/config/Constants.js';
-import { cacheData, getCachedData } from '#main/utils/cache/cacheUtils.js';
-import db from '#main/utils/Db.js';
-import { supportedLocaleCodes } from '#main/utils/Locale.js';
+import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
+import db from '#utils/Db.js';
+import { supportedLocaleCodes } from '#utils/Locale.js';
 import { Prisma, UserData } from '@prisma/client';
 import { Snowflake } from 'discord.js';
 

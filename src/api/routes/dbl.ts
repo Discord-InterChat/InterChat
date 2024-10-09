@@ -1,7 +1,7 @@
 // express route boyeee
 import { VoteManager } from '#main/managers/VoteManager.js';
 import type { WebhookPayload } from '#types/topgg.d.ts';
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
 import { Router } from 'express';
 
 const isValidVotePayload = (payload: WebhookPayload) => {

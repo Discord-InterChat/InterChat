@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import Logger from '#main/utils/Logger.js';
+import Logger from '#utils/Logger.js';
 
 const logPostError = (error: unknown) => {
   Logger.error('[TopGGPostStats]: Error updating stats %O', error);

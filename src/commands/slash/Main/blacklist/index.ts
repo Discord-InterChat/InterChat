@@ -1,5 +1,5 @@
 import { emojis } from '#main/config/Constants.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { Hub } from '@prisma/client';
 import {
   type AutocompleteInteraction,
@@ -14,8 +14,8 @@ import {
   time,
 } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import db from '#main/utils/Db.js';
-import { checkIfStaff, escapeRegexChars, getReplyMethod, handleError } from '#main/utils/Utils.js';
+import db from '#utils/Db.js';
+import { checkIfStaff, escapeRegexChars, getReplyMethod, handleError } from '#utils/Utils.js';
 
 export default class BlacklistCommand extends BaseCommand {
   // TODO: Put this in readme

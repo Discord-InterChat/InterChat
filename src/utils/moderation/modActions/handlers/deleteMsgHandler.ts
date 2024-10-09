@@ -1,14 +1,14 @@
 import { emojis } from '#main/config/Constants.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { deleteMessageFromHub, isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
-import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
+import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
 import {
   type ModAction,
   fetchMessageFromDb,
   isValidDbMsgWithHubId,
   replyWithUnknownMessage,
-} from '#main/utils/moderation/modActions/utils.js';
+} from '#utils/moderation/modActions/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
 
 export default class DeleteMessageHandler implements ModAction {

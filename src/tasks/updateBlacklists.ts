@@ -1,10 +1,10 @@
-import db from '#main/utils/Db.js';
+import db from '#utils/Db.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { type ServerInfraction, type UserInfraction } from '@prisma/client';
 import type { Client } from 'discord.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import { logServerUnblacklist, logUserUnblacklist } from '#main/utils/HubLogger/ModLogs.js';
+import { logServerUnblacklist, logUserUnblacklist } from '#utils/HubLogger/ModLogs.js';
 
 type ExtractedEntityInfo = {
   id: string;

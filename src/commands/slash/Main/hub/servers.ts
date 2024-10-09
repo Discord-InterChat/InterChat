@@ -1,8 +1,8 @@
 import { Pagination } from '#main/modules/Pagination.js';
 import Constants, { emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { t } from '#main/utils/Locale.js';
-import { resolveEval } from '#main/utils/Utils.js';
+import db from '#utils/Db.js';
+import { t } from '#utils/Locale.js';
+import { resolveEval } from '#utils/Utils.js';
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import HubCommand from './index.js';
 

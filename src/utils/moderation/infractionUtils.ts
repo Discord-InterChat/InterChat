@@ -1,5 +1,5 @@
 import Constants from '#main/config/Constants.js';
-import { msToReadable, toTitleCase } from '#main/utils/Utils.js';
+import { msToReadable, toTitleCase } from '#utils/Utils.js';
 import { ServerInfraction, UserInfraction } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, User, Client, time } from 'discord.js';

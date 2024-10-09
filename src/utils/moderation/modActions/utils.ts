@@ -1,7 +1,7 @@
 import { emojis } from '#main/config/Constants.js';
-import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import db from '#utils/Db.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import type { broadcastedMessages, Hub, originalMessages, Prisma } from '@prisma/client';
 import type {
   ButtonInteraction,

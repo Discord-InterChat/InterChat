@@ -1,6 +1,6 @@
 import Constants, { emojis } from '#main/config/Constants.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { toTitleCase } from '#main/utils/Utils.js';
+import { CustomID } from '#utils/CustomID.js';
+import { toTitleCase } from '#utils/Utils.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,

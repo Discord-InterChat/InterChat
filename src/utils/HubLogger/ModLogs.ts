@@ -1,7 +1,7 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import db from '#main/utils/Db.js';
+import db from '#utils/Db.js';
 import type { Hub, HubLogConfig } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { type Client, codeBlock, EmbedBuilder, type Snowflake, User } from 'discord.js';
