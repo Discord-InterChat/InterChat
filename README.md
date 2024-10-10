@@ -82,7 +82,7 @@ InterChat is released under the [AGPL-3.0 License](LICENSE).
 If you need help or have any questions, join our [Discord support server](https://interchat.fun/support).
 
 
-## 🙏 Acknowledgements
+## ✨ Acknowledgements
 
 Thanks to all our contributors and the Discord community:
 
