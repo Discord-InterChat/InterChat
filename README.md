@@ -75,19 +75,26 @@ We're excited to participate in Hacktoberfest! Look for issues labeled `hacktobe
 
 ## 📜 License
 
-InterChat is released under the [`GPL-3.0 License`](LICENSE).
+InterChat is released under the [AGPL-3.0 License](LICENSE).
 
 ## 📞 Support
 
 If you need help or have any questions, join our [Discord support server](https://interchat.fun/support).
 
+
 ## 🙏 Acknowledgements
 
-Thanks to all our contributors and the Discord community for their support and feedback!
+Thanks to all our contributors and the Discord community:
+
+<a href="https://github.com/discord-interchat/interchat/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=discord-interchat/interchat" />
+</a>
 
 ---
 
-Made with ❤️ by [dev-737](https://github.com/dev-737) and each one of you contributors!
+<p align="center">
+Made with ❤️ by the InterChat Team!
+</p>
 
 <!-- 
 ## Tensorflow Errors
