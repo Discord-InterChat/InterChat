@@ -1,9 +1,9 @@
-<p align="center"><img src="https://github.com/user-attachments/assets/33f68c3a-67bc-4653-8578-2ab350ac3a75" alt="interchat logo" style="border-radius: 50%; width: 10rem; height: 10rem;"></p>
+<p align="center"><img src="https://github.com/user-attachments/assets/33f68c3a-67bc-4653-8578-2ab350ac3a75" alt="interchat logo" style="border-radius: 50%; width: 150px; height: 150px;"></p>
 
 <p align="center"><strong>InterChat</strong></p>
 
 <p align="center">
-Making chatting between servers on discord possible. Connect Worlds, Share Conversations
+A powerful Discord bot for easy and real-time chatting hubs across multiple Discord servers.
 </p>
 
 <p align="center">
@@ -19,30 +19,75 @@ Making chatting between servers on discord possible. Connect Worlds, Share Conve
 </a>
 </p>
 
-## Contributors Needed
+<p align="center"><a href="https://docs.interchat.fun">Documentation</a></p>
 
-We're on the lookout for contributors to help us take this project to the next level!
+## 🌟 Features
 
-### How You Can Help
+- 🔗 **Cross-Server Messaging**: Connect channels from different servers and allow users to chat in real-time.
+- 🕸️ **Flexible Webhooks**: Utilizes webhooks per channel to ensure uninterrupted communication.
+- ⛔ **Block Word Lists**: Set up custom block word lists to filter or block specific words and regex patterns in messages. (Coming Soon)
+- 🛠️ **Cross-Server Moderation**: Manage users with built-in NSFW detection and infraction system. Track blacklists, infractions, and appeal requests through modals.
+- 🆓 **Generous Free Tier**: Enjoy most features at no cost!
+- 🌱 **Mini-Communities**: Form your own "Hubs" by connecting specific channels across multiple servers for shared conversations.
 
-- **Feature Development:** Help us build new features that make cross-server communication even more seamless.
-- **Bug Fixes:** Assist in identifying and squashing bugs to enhance stability and performance.
-- **Documentation:** Improve our documentation to make it easier for others to get involved and use InterChat.
-- **Testing:** Contribute to testing new features and updates, ensuring everything works smoothly.
+## 🚀 Getting Started
 
-### I'm Interested! Where do I begin?
+1. Invite InterChat to your Discord server using [this link](https://interchat.fun/invite).
+2. Use the `/hub browse` command to configure your first hub.
+3. Connect a channel to a hub containing many other discord servers using the `/hub join` command.
+4. Start chatting across servers!
 
-- Explore our [todo roadmap](https://github.com/orgls/Discord-InterChat/projects/3) or  [issues](https://github.com/Discord-InterChat/InterChat/issues) and pick a task that catches your eye!
-- Interested in improving our documentation/guides? Check out our [docs repository](https://github.com/Discord-InterChat/docs)!
-- If you're interested in helping us localize InterChat, check out the localization files located in the [`locales`](./locales/) directory.
+For detailed instructions, check out our [Documentation](https://docs.interchat.fun).
 
-Please refer to the [`CONTRIBUTING.md`](./CONTRIBUTING.md) file for guidelines on how to contribute to this project. Thank you!
+## 💻 Self-Hosting
 
-# Getting Started
+While InterChat is available as a hosted bot, you can also self-host it. Follow these steps:
 
-This repo contains the source code for InterChat–a discord bot that allows you to chat with members of other servers whilst still being in your own server.
+1. Clone the repository:
+   ```
+   git clone https://github.com/discord-interchat/interchat.git
+   ```
+2. Install dependencies:
+   ```
+   pnpm install
+   ```
+3. Set up your `.env` file with your Discord bot token and other required environment variables.
+4. Run the bot:
+   ```
+   pnpm dev
+   ```
 
-=== Remind me to add stuff here ===
+## 🤝 Contributing
+
+We welcome contributions to InterChat! Here's how you can help:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and commit them with a clear commit message.
+4. Push your changes to your fork.
+5. Submit a pull request to the main repository.
+
+Please read our [Contributing Guidelines](CONTRIBUTING.md) for more details.
+
+## 🎃 Hacktoberfest
+
+We're excited to participate in Hacktoberfest! Look for issues labeled `hacktoberfest` to find tasks suitable for contribution. We appreciate all kinds of contributions, from code improvements to documentation updates.
+
+## 📜 License
+
+InterChat is released under the [MIT License](LICENSE).
+
+## 📞 Support
+
+If you need help or have any questions, join our [Discord support server](https://interchat.fun/support).
+
+## 🙏 Acknowledgements
+
+Thanks to all our contributors and the Discord community for their support and feedback!
+
+---
+
+Made with ❤️ by [dev-737](https://github.com/dev-737) and each one of you contributors!
 
 <!-- 
 ## Tensorflow Errors
