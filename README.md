@@ -75,7 +75,8 @@ We're excited to participate in Hacktoberfest! Look for issues labeled `hacktobe
 
 ## 📜 License
 
-InterChat is released under the [AGPL-3.0 License](LICENSE).
+InterChat is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0). This license requires that the software and any modifications remain free and open source and source code must be made available when the software is used as a network service.
+For full terms and conditions, see the [`LICENSE`](LICENSE) file in the repository.
 
 ## 📞 Support
 
