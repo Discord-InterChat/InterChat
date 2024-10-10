@@ -75,7 +75,7 @@ We're excited to participate in Hacktoberfest! Look for issues labeled `hacktobe
 
 ## 📜 License
 
-InterChat is released under the [MIT License](LICENSE).
+InterChat is released under the [`GPL-3.0 License`](LICENSE).
 
 ## 📞 Support
 
