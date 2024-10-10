@@ -2,9 +2,18 @@
 import { Collection, REST, Routes } from 'discord.js';
 import 'dotenv/config';
 
-const redText = (text) => `\x1b[0;31m${text}\x1b[0m`;
-const greenText = (text) => `\x1b[38;5;78m${text}\x1b[0m`;
-const greyText = (text) => `\x1b[38;5;246m${text}\x1b[0m`;
+const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+const redText = (/** @type {string} */ text) => `\x1b[0;31m${text}\x1b[0m`;
+const greenText = (/** @type {string} */ text) => `\x1b[38;5;78m${text}\x1b[0m`;
+const greyText = (/** @type {string} */ text) => `\x1b[38;5;246m${text}\x1b[0m`;
+const startSpinner = (/** @type {string} */ type, /** @type {string} */ totalCommands) => {
+  let i = 0;
+  return setInterval(() => {
+    process.stdout.write(`\r${greyText(frames[i])} Registering ${greyText(totalCommands)} ${type} application commands...`);
+    i = ++i % frames.length;
+  }, 80);
+}
+
 const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const SUPPORT_SERVER_ID = '770256165300338709';
@@ -13,8 +22,7 @@ if (!TOKEN || !CLIENT_ID)
   throw new Error('Missing TOKEN or CLIENT_ID.');
 
 const commandUtils = await import('../build/utils/CommandUtils.js').catch(() => {
-  console.error(`${redText('✘')} Code is not build yet. Run \`pnpm build\` first.`);
-  process.exit();
+  throw new Error(`${redText('✘')} Code is not build yet. Run \`pnpm build\` first.`);
 });
 
 const registerAllCommands = async (staffOnly = false) => {
@@ -22,12 +30,16 @@ const registerAllCommands = async (staffOnly = false) => {
   const commandsMap = new Collection();
   await commandUtils.loadCommandFiles(commandsMap, new Collection());
 
-  const rest = new REST().setToken(TOKEN);
-
+  
   const commands = commandsMap
-    .filter((command) => (staffOnly ? command.staffOnly : !command.staffOnly))
-    .map((command) => command.data);
+  .filter((command) => (staffOnly ? command.staffOnly : !command.staffOnly))
+  .map((command) => command.data);
+  
+  const type = staffOnly ? 'private' : 'public';
+  const totalCommands = commands.length.toString();
+  const spinner = startSpinner(type, totalCommands);
 
+  const rest = new REST().setToken(TOKEN);
   const route = staffOnly
     ? Routes.applicationGuildCommands(CLIENT_ID, SUPPORT_SERVER_ID)
     : Routes.applicationCommands(CLIENT_ID);
@@ -36,15 +48,13 @@ const registerAllCommands = async (staffOnly = false) => {
   /** @type {any} */
   const registerRes = await rest.put(route, { body: commands });
 
-  const type = staffOnly ? 'private' : 'public';
   const totalRegistered =
     registerRes.length === commands.length
       ? greenText(registerRes.length)
       : redText(registerRes.length);
 
-  console.log(
-    `${greenText('✓')} Registered ${totalRegistered}${greyText('/')}${greenText(commands.length)} ${type} application commands.`,
-  );
+  clearInterval(spinner);
+  console.log(`\r${greenText('✓')} Registered ${totalRegistered}${greyText('/')}${greenText(totalCommands)} ${type} application commands.`); // Clear the spinner line and print "Done!"
 };
 
 const logHelp = () =>
@@ -73,6 +83,4 @@ if (process.argv) {
 
   if (slicedArgs.length === 0) logHelp();
   else await parseAndRun(allArgs);
-
-  process.exit();
 }
