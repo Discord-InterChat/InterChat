@@ -53,7 +53,7 @@ export default class UserDbManager {
   }
 
   async ban(id: string, reason: string, username?: string) {
-    return await db.userData.upsert({
+    const user = await db.userData.upsert({
       where: { id },
       create: {
         id,
@@ -64,10 +64,12 @@ export default class UserDbManager {
       },
       update: { banMeta: { reason }, username },
     });
+
+    await this.addToCache(user);
   }
 
   async unban(id: string, username?: string) {
-    return await db.userData.upsert({
+    const user = await db.userData.upsert({
       where: { id },
       create: {
         id,
@@ -78,5 +80,7 @@ export default class UserDbManager {
       },
       update: { banMeta: { set: null }, username },
     });
+
+    await this.addToCache(user);
   }
 }
