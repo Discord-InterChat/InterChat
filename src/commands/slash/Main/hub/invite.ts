@@ -4,7 +4,7 @@ import { t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';
 import { captureException } from '@sentry/node';
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import parse from 'parse-duration';
+import ms from 'ms';
 import HubCommand from './index.js';
 
 export default class Invite extends HubCommand {
@@ -20,7 +20,7 @@ export default class Invite extends HubCommand {
       case 'create': {
         const hubName = interaction.options.getString('hub', true);
         const expiryStr = interaction.options.getString('expiry');
-        const duration = expiryStr ? parse(expiryStr) : undefined;
+        const duration = expiryStr ? ms(expiryStr) : undefined;
         const expires = new Date(Date.now() + (duration || 60 * 60 * 4000));
 
         const hubInDb = await db.hub.findFirst({

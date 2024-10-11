@@ -49,7 +49,7 @@ export default async (manager: ClusterManager) => {
     ### ${emojis.timeout} Paused Due to Inactivity
     Connection to this hub has been stopped to save resources because no messages were sent to this channel in the past day.
 
-    -# **Click the button** below or use  \`/connection unpause\` anytime to resume chatting.
+    -# Click the **button** below or use  **\`/connection unpause\`** to resume chatting.
     `,
     )
     .toJSON();

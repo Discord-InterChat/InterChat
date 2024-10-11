@@ -3,7 +3,7 @@ import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import { logBlacklist, logServerUnblacklist } from '#utils/HubLogger/ModLogs.js';
 import { t } from '#utils/Locale.js';
 import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';
-import parse from 'parse-duration';
+import ms from 'ms';
 import BlacklistCommand from './index.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
@@ -28,7 +28,7 @@ export default class extends BlacklistCommand {
 
     if (subCommandGroup === 'add') {
       const reason = interaction.options.getString('reason', true);
-      const duration = parse(`${interaction.options.getString('duration')}`);
+      const duration = ms(`${interaction.options.getString('duration')}`);
       const expires = duration ? new Date(Date.now() + duration) : null;
 
       const checksPassed = await this.runAddChecks(interaction, hub.id, serverId, { duration });

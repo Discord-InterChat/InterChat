@@ -1,12 +1,12 @@
-import db from '#utils/Db.js';
-import { Hub } from '@prisma/client';
-import { ChatInputCommandInteraction } from 'discord.js';
-import parse from 'parse-duration';
-import HubCommand from './index.js';
 import { emojis } from '#main/config/Constants.js';
+import db from '#utils/Db.js';
+import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import { isHubMod } from '#utils/hub/utils.js';
 import { t } from '#utils/Locale.js';
-import { ErrorEmbed } from '#utils/EmbedUtils.js';
+import { Hub } from '@prisma/client';
+import { ChatInputCommandInteraction } from 'discord.js';
+import ms from 'ms';
+import HubCommand from './index.js';
 
 export default class AppealCommand extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -22,7 +22,7 @@ export default class AppealCommand extends HubCommand {
 
   private async handleAppealCooldown(interaction: ChatInputCommandInteraction, hub: Hub) {
     const cooldown = interaction.options.getString('cooldown', true);
-    const appealCooldownHours = parse(cooldown, 'hour');
+    const appealCooldownHours = ms(cooldown) / 1000 / 60 / 60;
     if (!appealCooldownHours || appealCooldownHours < 1) {
       const embed = new ErrorEmbed().setDescription('Cooldown must be atleast **1 hour** long.');
       await interaction.reply({ embeds: [embed], ephemeral: true });

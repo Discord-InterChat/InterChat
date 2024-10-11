@@ -4,10 +4,10 @@ import UserInfractionManager from '#main/managers/InfractionManager/UserInfracti
 import { logBlacklist, logUserUnblacklist } from '#utils/HubLogger/ModLogs.js';
 import { t } from '#utils/Locale.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
-import type { ChatInputCommandInteraction, User } from 'discord.js';
-import parse from 'parse-duration';
-import BlacklistCommand from './index.js';
 import { UserInfraction } from '@prisma/client';
+import type { ChatInputCommandInteraction, User } from 'discord.js';
+import ms from 'ms';
+import BlacklistCommand from './index.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -22,7 +22,7 @@ export default class extends BlacklistCommand {
     if (!this.isValidHub(interaction, hub, locale)) return;
 
     const reason = interaction.options.getString('reason') ?? 'No reason provided.';
-    const duration = parse(`${interaction.options.getString('duration')}`);
+    const duration = ms(`${interaction.options.getString('duration')}`);
     const expires = duration ? new Date(Date.now() + duration) : null;
     const subcommandGroup = interaction.options.getSubcommandGroup();
 
