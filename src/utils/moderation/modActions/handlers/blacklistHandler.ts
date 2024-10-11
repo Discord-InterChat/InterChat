@@ -25,7 +25,7 @@ import {
   TextInputStyle,
   time,
 } from 'discord.js';
-import parse from 'parse-duration';
+import ms from 'ms';
 
 abstract class BaseBlacklistHandler implements ModAction {
   abstract handle(
@@ -74,7 +74,7 @@ abstract class BaseBlacklistHandler implements ModAction {
 
   protected getModalData(interaction: ModalSubmitInteraction) {
     const reason = interaction.fields.getTextInputValue('reason');
-    const duration = parse(interaction.fields.getTextInputValue('duration'));
+    const duration = ms(interaction.fields.getTextInputValue('duration'));
     const expiresAt = duration ? new Date(Date.now() + duration) : null;
 
     return { reason, expiresAt };
