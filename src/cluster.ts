@@ -1,21 +1,43 @@
-import 'dotenv/config';
-import Logger from '#utils/Logger.js';
-import Scheduler from '#main/modules/SchedulerService.js';
 import Constants from '#main/config/Constants.js';
+import Scheduler from '#main/modules/SchedulerService.js';
 import deleteExpiredInvites from '#main/tasks/deleteExpiredInvites.js';
 import pauseIdleConnections from '#main/tasks/pauseIdleConnections.js';
 import storeMsgTimestamps from '#main/tasks/storeMsgTimestamps.js';
 import syncBotlistStats from '#main/tasks/syncBotlistStats.js';
-import { ClusterManager } from 'discord-hybrid-sharding';
-import { startApi } from '#main/api/index.js';
-import { VoteManager } from '#main/managers/VoteManager.js';
-import { getUsername } from '#utils/Utils.js';
+import Logger from '#utils/Logger.js';
+import { ClusterManager, HeartbeatManager, ReClusterManager } from 'discord-hybrid-sharding';
+import 'dotenv/config';
 
+const shardsPerClusters = 5;
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.DISCORD_TOKEN,
-  shardsPerClusters: 5,
   totalClusters: 'auto',
+  shardsPerClusters,
 });
+
+clusterManager.extend(new HeartbeatManager({ interval: 60 * 1000, maxMissedHeartbeats: 2 }));
+clusterManager.extend(new ReClusterManager());
+
+clusterManager.on('clusterReady', (cluster) => {
+  cluster.on('message', async (message) => {
+    if (message === 'recluster') {
+      Logger.info('Recluster requested, starting recluster...');
+      const recluster = await clusterManager.recluster?.start({
+        restartMode: 'rolling',
+        totalShards: 'auto',
+        shardsPerClusters,
+      });
+
+      if (recluster?.success) Logger.info('Recluster completed successfully.');
+      else Logger.error('Failed to recluster!');
+    }
+  });
+});
+
+
+// clusterManager.on('clientRequest', (n) => {
+//   cons
+// })
 
 // spawn clusters and start the api that handles nsfw filter and votes
 clusterManager
@@ -47,16 +69,3 @@ clusterManager
     );
   })
   .catch(Logger.error);
-
-const voteManager = new VoteManager(clusterManager);
-voteManager.on('vote', async (vote) => {
-  if (vote.type === 'upvote') {
-    const username = (await getUsername(clusterManager, vote.user)) ?? undefined;
-    await voteManager.incrementUserVote(vote.user, username);
-    await voteManager.addVoterRole(vote.user);
-  }
-
-  await voteManager.announceVote(vote);
-});
-
-startApi(voteManager);

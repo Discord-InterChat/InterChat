@@ -6,23 +6,16 @@ import { isDev } from '#utils/Utils.js';
 export default class Respawn extends BaseCommand {
   readonly staffOnly = true;
   readonly data = {
-    name: 'respawn',
-    description: 'Respawn all shards',
+    name: 'recluster',
+    description: 'Reboot the bot',
   };
   async execute(interaction: ChatInputCommandInteraction) {
     if (!isDev(interaction.user.id)) {
-      await interaction.reply({
-        content: 'No u',
-        ephemeral: true,
-      });
+      await interaction.reply({ content: 'No u', ephemeral: true });
       return;
     }
 
-    await interaction.reply({
-      content: `${emojis.tick} Respawning all shards. I'll be back!`,
-      ephemeral: true,
-    });
-
-    interaction.client.cluster.respawnAll();
+    await interaction.reply({ content: `${emojis.tick} I'll be back!`, ephemeral: true });
+    interaction.client.cluster.send('recluster');
   }
 }

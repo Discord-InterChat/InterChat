@@ -190,6 +190,7 @@ export const getEmojiId = (emoji: string | undefined) => {
   const res = parseEmoji(emoji || '');
   return res?.id ?? emoji;
 };
+
 // get ordinal suffix for a number
 export const getOrdinalSuffix = (num: number) => {
   const j = num % 10;
@@ -215,31 +216,6 @@ export const getUsername = async (client: ClusterManager, userId: Snowflake) => 
   );
 
   return username;
-};
-
-export const modifyUserRole = async (
-  cluster: ClusterManager,
-  action: 'add' | 'remove',
-  {
-    userId,
-    roleId,
-    guildId = Constants.SupportServerId,
-  }: { userId: Snowflake; roleId: Snowflake; guildId?: Snowflake },
-) => {
-  await cluster.broadcastEval(
-    async (client, ctx) => {
-      const guild = client.guilds.cache.get(ctx.guildId);
-      if (!guild) return;
-
-      const role = await guild.roles.fetch(ctx.roleId);
-      if (!role) return;
-
-      // add or remove role
-      const member = await guild.members.fetch(ctx.userId);
-      await member?.roles[ctx.action](role);
-    },
-    { context: { userId, roleId, guildId, action } },
-  );
 };
 
 export const containsInviteLinks = (str: string) => {
