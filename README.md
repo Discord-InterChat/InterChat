@@ -19,7 +19,14 @@ A powerful Discord bot for easy and real-time chatting hubs across multiple Disc
 </a>
 </p>
 
-<p align="center"><a href="https://docs.interchat.fun">Documentation</a></p>
+<br />
+
+<div align="center">
+  <a href="https://docs.interchat.fun"><kbd> <br> Documentation <br> </kbd></a>&ensp;&ensp;
+  <a href="#-getting-started"><kbd> <br> Invite InterChat&ensp;<br> </kbd></a>&ensp;&ensp;
+  <a href="#-support"><kbd> <br> Support Server&ensp;<br> </kbd></a>&ensp;&ensp;
+</div>
+
 
 ## 🌟 Features
 
@@ -85,7 +92,7 @@ If you need help or have any questions, join our [Discord support server](https:
 
 ## ✨ Acknowledgements
 
-Thanks to all our contributors and the Discord community:
+Thanks to the Discord community and all our contributors:
 
 <a href="https://github.com/discord-interchat/interchat/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=discord-interchat/interchat" />
@@ -94,7 +101,7 @@ Thanks to all our contributors and the Discord community:
 ---
 
 <p align="center">
-Made with ❤️ by the InterChat Team!
+Made with ❤️ by the <a href="https://github.com/orgs/Discord-InterChat/people">InterChat Team</a>!
 </p>
 
 <!-- 
