@@ -12,20 +12,24 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
 
   async execute(interaction: Interaction<CacheType>) {
     try {
+      if (interaction.client.cluster.maintenance) {
+        if (interaction.isRepliable()) {
+          await interaction.reply({
+            content: `${emojis.slash} The bot is currently undergoing maintenance. Please try again later.`,
+            ephemeral: true,
+          });
+        }
+
+        return;
+      }
+
       const { commands, interactions } = interaction.client;
       const dbUser = await interaction.client.userManager.getUser(interaction.user.id);
       const isBanned = await this.handleUserBan(interaction, dbUser);
       if (isBanned) return;
 
       if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
-        const ignoreList = ['page_', 'onboarding_', 'shardStats'];
         const customId = CustomID.parseCustomId(interaction.customId);
-        if (
-          ignoreList.includes(customId.prefix) ||
-          ignoreList.some((i) => interaction.customId.includes(i))
-        ) {
-          return;
-        } // for components have own component collector
 
         // component decorator stuff
         const customIdSuffix = customId.suffix ? `:${customId.suffix}` : '';
