@@ -1,14 +1,10 @@
 import { emojis } from '#main/config/Constants.js';
+import { getBroadcasts, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
 import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
-import {
-  type ModAction,
-  fetchMessageFromDb,
-  isValidDbMsgWithHubId,
-  replyWithUnknownMessage,
-} from '#utils/moderation/modActions/utils.js';
+import { type ModAction, replyWithUnknownMessage } from '#utils/moderation/modActions/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
 
 export default class DeleteMessageHandler implements ModAction {
@@ -17,11 +13,9 @@ export default class DeleteMessageHandler implements ModAction {
     originalMsgId: Snowflake,
     locale: supportedLocaleCodes,
   ) {
-    const originalMsg = await fetchMessageFromDb(originalMsgId, {
-      broadcastMsgs: true,
-    });
+    const originalMsg = await getOriginalMessage(originalMsgId);
 
-    if (!originalMsg?.broadcastMsgs || !isValidDbMsgWithHubId(originalMsg)) {
+    if (!originalMsg) {
       await replyWithUnknownMessage(interaction, locale);
       return;
     }
@@ -44,10 +38,14 @@ export default class DeleteMessageHandler implements ModAction {
       ephemeral: true,
     });
 
+    const broadcastMsgs = Object.values(
+      await getBroadcasts(originalMsg.messageId, originalMsg.hubId),
+    );
+
     const { deletedCount } = await deleteMessageFromHub(
       originalMsg.hubId,
       originalMsg.messageId,
-      originalMsg.broadcastMsgs,
+      broadcastMsgs,
     );
 
     await interaction
@@ -59,7 +57,7 @@ export default class DeleteMessageHandler implements ModAction {
             emoji: emojis.yes,
             user: `<@${originalMsg.authorId}>`,
             deleted: `${deletedCount}`,
-            total: `${originalMsg.broadcastMsgs.length}`,
+            total: `${broadcastMsgs.length}`,
           },
         ),
       )

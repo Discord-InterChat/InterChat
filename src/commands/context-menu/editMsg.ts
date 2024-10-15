@@ -1,15 +1,22 @@
+import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
-import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
 import { SerializedHubSettings } from '#main/modules/BitFields.js';
-import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
+import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
+import { fetchHub } from '#main/utils/hub/utils.js';
+import {
+  findOriginalMessage,
+  getBroadcasts,
+  getOriginalMessage,
+  OriginalMessage,
+} from '#main/utils/network/messageUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
+import { getAttachmentURL } from '#utils/ImageUtils.js';
 import { t } from '#utils/Locale.js';
 import { censor } from '#utils/ProfanityUtils.js';
 import { containsInviteLinks, handleError, replaceLinks } from '#utils/Utils.js';
-import { originalMessages } from '@prisma/client';
 import {
   ActionRowBuilder,
   ApplicationCommandType,
@@ -24,7 +31,6 @@ import {
   User,
   userMention,
 } from 'discord.js';
-import { getAttachmentURL } from '#utils/ImageUtils.js';
 
 interface ImageUrls {
   oldURL?: string | null;
@@ -56,19 +62,9 @@ export default class EditMessage extends BaseCommand {
       return;
     }
 
-    let messageInDb = await db.originalMessages.findFirst({
-      where: { messageId: interaction.targetId },
-      include: { hub: true, broadcastMsgs: true },
-    });
-
-    if (!messageInDb) {
-      const broadcastedMsg = await db.broadcastedMessages.findFirst({
-        where: { messageId: interaction.targetId },
-        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
-      });
-
-      messageInDb = broadcastedMsg?.originalMsg ?? null;
-    }
+    const messageInDb =
+      (await getOriginalMessage(interaction.targetId)) ??
+      (await findOriginalMessage(interaction.targetId));
 
     if (!messageInDb) {
       await interaction.reply({
@@ -120,31 +116,23 @@ export default class EditMessage extends BaseCommand {
       return;
     }
 
-    let targetMsgData = await db.originalMessages.findFirst({
-      where: { messageId: target.id },
-      include: { hub: true, broadcastMsgs: true },
-    });
+    const targetMsgData =
+      (await getOriginalMessage(target.id)) ?? (await findOriginalMessage(target.id));
 
-    if (!targetMsgData) {
-      const broadcastedMsg = await db.broadcastedMessages.findFirst({
-        where: { messageId: target.id },
-        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
-      });
-
-      targetMsgData = broadcastedMsg?.originalMsg ?? null;
+    const unknownMsgErr = t('errors.unknownNetworkMessage', locale, { emoji: emojis.no });
+    if (!targetMsgData?.hubId) {
+      await interaction.editReply(unknownMsgErr);
+      return;
     }
-
-    if (!targetMsgData?.hub) {
-      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }));
+    const hub = await fetchHub(targetMsgData.hubId);
+    if (!hub) {
+      await interaction.editReply(unknownMsgErr);
       return;
     }
 
     // get the new message input by user
     const userInput = interaction.fields.getTextInputValue('newMessage');
-    const settingsManager = new HubSettingsManager(
-      targetMsgData.hub.id,
-      targetMsgData.hub.settings,
-    );
+    const settingsManager = new HubSettingsManager(targetMsgData.hubId, hub.settings);
     const messageToEdit = this.sanitizeMessage(userInput, settingsManager.getAllSettings());
 
     if (settingsManager.getSetting('BlockInvites') && containsInviteLinks(messageToEdit)) {
@@ -155,17 +143,18 @@ export default class EditMessage extends BaseCommand {
     const imageURLs = await this.getImageURLs(target, targetMsgData.mode, messageToEdit);
     const newContents = this.getCompactContents(messageToEdit, imageURLs);
     const newEmbeds = await this.buildEmbeds(target, targetMsgData, messageToEdit, {
-      serverId: targetMsgData.serverId,
+      guildId: targetMsgData.guildId,
       user: interaction.user,
       imageURLs,
     });
 
     // find all the messages through the network
+    const broadcastedMsgs = Object.values(await getBroadcasts(target.id, targetMsgData.hubId));
     const channelSettingsArr = await db.connectedList.findMany({
-      where: { channelId: { in: targetMsgData.broadcastMsgs.map((c) => c.channelId) } },
+      where: { channelId: { in: broadcastedMsgs.map((c) => c.channelId) } },
     });
 
-    const results = targetMsgData.broadcastMsgs.map(async (msg) => {
+    const results = broadcastedMsgs.map(async (msg) => {
       const connection = channelSettingsArr.find((c) => c.channelId === msg.channelId);
       if (!connection) return false;
 
@@ -232,9 +221,9 @@ export default class EditMessage extends BaseCommand {
 
   private async buildEmbeds(
     target: Message,
-    targetMsgData: originalMessages,
+    targetMsgData: OriginalMessage,
     messageToEdit: string,
-    opts: { user: User; serverId: string; imageURLs?: ImageUrls },
+    opts: { user: User; guildId: string; imageURLs?: ImageUrls },
   ) {
     let embedContent = messageToEdit;
     let embedImage = null;
@@ -257,7 +246,7 @@ export default class EditMessage extends BaseCommand {
       embed = EmbedBuilder.from(target.embeds[0]).setDescription(embedContent).setImage(embedImage);
     }
     else {
-      const guild = await target.client.fetchGuild(opts.serverId);
+      const guild = await target.client.fetchGuild(opts.guildId);
 
       // create a new embed if the message being edited is in compact mode
       embed = new EmbedBuilder()

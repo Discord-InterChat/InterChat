@@ -1,10 +1,10 @@
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
+import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';
 import { buildInfractionListEmbeds } from '#utils/moderation/infractionUtils.js';
 import {
   type ModAction,
-  fetchMessageFromDb,
   replyWithUnknownMessage,
 } from '#utils/moderation/modActions/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
@@ -17,7 +17,7 @@ export default class ViewInfractionsHandler implements ModAction {
   ) {
     await interaction.deferReply({ ephemeral: true });
 
-    const originalMsg = await fetchMessageFromDb(originalMsgId);
+    const originalMsg = await getOriginalMessage(originalMsgId);
 
     if (!originalMsg) {
       await replyWithUnknownMessage(interaction, locale);

@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis, RedisKeys } from '#main/config/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { msToReadable } from '#utils/Utils.js';
@@ -16,6 +16,7 @@ import {
   time,
 } from 'discord.js';
 import { cpus, totalmem } from 'os';
+import getRedis from '#main/utils/Redis.js';
 
 export default class Stats extends BaseCommand {
   override readonly data = {
@@ -29,7 +30,7 @@ export default class Stats extends BaseCommand {
     await interaction.deferReply();
 
     const totalHubs = await db.hub.count();
-    const totalNetworkMessages = await db.originalMessages.count();
+    const totalNetworkMessages = await getRedis().hkeys(RedisKeys.message);
 
     const guildCount: number[] =
       await interaction.client.cluster.fetchClientValues('guilds.cache.size');
@@ -72,7 +73,7 @@ export default class Stats extends BaseCommand {
           name: 'Hub Stats',
           value: stripIndents`
             Total Hubs: ${totalHubs}
-            Messages (Today): ${totalNetworkMessages}`,
+            Messages (Today): ${totalNetworkMessages.length}`,
           inline: false,
         },
       ]);

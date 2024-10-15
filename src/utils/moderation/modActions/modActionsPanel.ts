@@ -2,9 +2,9 @@ import Constants, { emojis } from '#main/config/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import { isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
-import { ModActionsDbMsgT } from '#utils/moderation/modActions/utils.js';
 import { checkIfStaff } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
@@ -108,17 +108,14 @@ const buildInfoEmbed = (username: string, servername: string, opts: BuilderOpts)
     `);
 };
 
-const buildMessage = async (
-  interaction: Interaction,
-  originalMsg: ModActionsDbMsgT & { hubId: string },
-) => {
+const buildMessage = async (interaction: Interaction, originalMsg: OriginalMessage) => {
   const user = await interaction.client.users.fetch(originalMsg.authorId);
-  const server = await interaction.client.fetchGuild(originalMsg.serverId);
+  const server = await interaction.client.fetchGuild(originalMsg.guildId);
   const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
 
   const { userManager } = interaction.client;
   const userBlManager = new BlacklistManager(new UserInfractionManager(originalMsg.authorId));
-  const serverBlManager = new BlacklistManager(new ServerInfractionManager(originalMsg.serverId));
+  const serverBlManager = new BlacklistManager(new ServerInfractionManager(originalMsg.guildId));
 
   const isUserBlacklisted = Boolean(await userBlManager.fetchBlacklist(originalMsg.hubId));
   const isServerBlacklisted = Boolean(await serverBlManager.fetchBlacklist(originalMsg.hubId));

@@ -1,7 +1,8 @@
+import { emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import { CustomID } from '#utils/CustomID.js';
-import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
@@ -18,7 +19,6 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { emojis } from '#main/config/Constants.js';
 import { isSupported, translate } from 'google-translate-api-x';
 
 export default class Translate extends BaseCommand {
@@ -41,12 +41,8 @@ export default class Translate extends BaseCommand {
 
     const target = interaction.targetMessage;
 
-    const originalMsg = (
-      await db.broadcastedMessages.findFirst({
-        where: { messageId: target.id },
-        include: { originalMsg: true },
-      })
-    )?.originalMsg;
+    const originalMsg =
+      (await getOriginalMessage(target.id)) ?? (await findOriginalMessage(target.id));
 
     if (!originalMsg) {
       await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }));

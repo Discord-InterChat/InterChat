@@ -2,6 +2,7 @@ import { emojis } from '#main/config/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import { logBlacklist } from '#utils/HubLogger/ModLogs.js';
@@ -9,11 +10,7 @@ import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
-import {
-  isValidDbMsgWithHubId,
-  type ModAction,
-  type ModActionsDbMsgT,
-} from '#utils/moderation/modActions/utils.js';
+import { type ModAction } from '#utils/moderation/modActions/utils.js';
 import {
   ActionRowBuilder,
   type ButtonInteraction,
@@ -36,7 +33,7 @@ abstract class BaseBlacklistHandler implements ModAction {
 
   abstract handleModal(
     interaction: ModalSubmitInteraction,
-    originalMsg: ModActionsDbMsgT,
+    originalMsg: OriginalMessage,
     locale: supportedLocaleCodes,
   ): Promise<void>;
 
@@ -115,7 +112,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
 
   async handleModal(
     interaction: ModalSubmitInteraction,
-    originalMsg: ModActionsDbMsgT,
+    originalMsg: OriginalMessage,
     locale: supportedLocaleCodes,
   ) {
     const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
@@ -128,7 +125,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
       return;
     }
 
-    if (!isValidDbMsgWithHubId(originalMsg)) {
+    if (!originalMsg.hubId) {
       await interaction.reply({
         content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
         ephemeral: true,
@@ -171,7 +168,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     }
 
     Logger.info(
-      `User ${user?.username} blacklisted by ${interaction.user.username} in ${originalMsg.hub?.name}`,
+      `User ${user?.username} blacklisted by ${interaction.user.username} in ${originalMsg.hubId}`,
     );
 
     const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
@@ -195,10 +192,10 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
 
   async handleModal(
     interaction: ModalSubmitInteraction,
-    originalMsg: ModActionsDbMsgT,
+    originalMsg: OriginalMessage,
     locale: supportedLocaleCodes,
   ) {
-    if (!isValidDbMsgWithHubId(originalMsg)) {
+    if (!originalMsg.hubId) {
       await interaction.reply({
         content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
         ephemeral: true,
@@ -206,7 +203,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
       return;
     }
 
-    const server = await interaction.client.fetchGuild(originalMsg.serverId);
+    const server = await interaction.client.fetchGuild(originalMsg.guildId);
     if (!server) {
       await interaction.reply({
         content: t('errors.unknownServer', locale, { emoji: emojis.no }),
@@ -216,9 +213,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     }
 
     const { reason, expiresAt } = this.getModalData(interaction);
-    const blacklistManager = new BlacklistManager(
-      new ServerInfractionManager(originalMsg.serverId),
-    );
+    const blacklistManager = new BlacklistManager(new ServerInfractionManager(originalMsg.guildId));
 
     await blacklistManager.addBlacklist({
       reason,
@@ -230,13 +225,13 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
 
     // Notify server of blacklist
     await sendBlacklistNotif('server', interaction.client, {
-      target: { id: originalMsg.serverId },
+      target: { id: originalMsg.guildId },
       hubId: originalMsg.hubId,
       expiresAt,
       reason,
     });
 
-    await deleteConnections({ serverId: originalMsg.serverId, hubId: originalMsg.hubId });
+    await deleteConnections({ serverId: originalMsg.guildId, hubId: originalMsg.hubId });
 
     if (server) {
       await logBlacklist(originalMsg.hubId, interaction.client, {

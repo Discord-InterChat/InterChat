@@ -1,10 +1,10 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import handleBan from '#utils/banUtls/handleBan.js';
 import { CustomID } from '#utils/CustomID.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';
 import {
   type ModAction,
-  fetchMessageFromDb,
   replyWithUnknownMessage,
 } from '#utils/moderation/modActions/utils.js';
 import {
@@ -23,7 +23,7 @@ export default class UserBanHandler implements ModAction {
     originalMsgId: Snowflake,
     locale: supportedLocaleCodes,
   ) {
-    const originalMsg = await fetchMessageFromDb(originalMsgId);
+    const originalMsg = await getOriginalMessage(originalMsgId);
 
     if (!originalMsg) {
       await replyWithUnknownMessage(interaction, locale);

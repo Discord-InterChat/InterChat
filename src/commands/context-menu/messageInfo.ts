@@ -2,18 +2,22 @@ import Constants, { emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
+import {
+  findOriginalMessage,
+  getOriginalMessage,
+  OriginalMessage,
+} from '#main/utils/network/messageUtils.js';
+import type { RemoveMethods } from '#types/index.d.ts';
 import { greyOutButton, greyOutButtons } from '#utils/ComponentUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { isStaffOrHubMod } from '#utils/hub/utils.js';
+import { fetchHub, isStaffOrHubMod } from '#utils/hub/utils.js';
 import { sendHubReport } from '#utils/HubLogger/Report.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
-import { isValidDbMsgWithHubId } from '#utils/moderation/modActions/utils.js';
-import type { RemoveMethods } from '#types/index.d.ts';
-import type { connectedList, Hub, originalMessages } from '@prisma/client';
+import type { connectedList, Hub } from '@prisma/client';
 import {
   ActionRow,
   ActionRowBuilder,
@@ -23,6 +27,7 @@ import {
   ButtonInteraction,
   ButtonStyle,
   CacheType,
+  codeBlock,
   ComponentType,
   EmbedBuilder,
   Guild,
@@ -32,9 +37,8 @@ import {
   RESTPostAPIApplicationCommandsJSONBody,
   TextInputBuilder,
   TextInputStyle,
-  User,
-  codeBlock,
   time,
+  User,
 } from 'discord.js';
 
 type LocaleInfo = { locale: supportedLocaleCodes };
@@ -46,7 +50,7 @@ type MsgInfo = { messageId: string };
 type UserInfoOpts = LocaleInfo & AuthorInfo;
 type MsgInfoOpts = AuthorInfo & ServerInfo & LocaleInfo & HubInfo & MsgInfo;
 type ReportOpts = LocaleInfo & HubInfo & MsgInfo;
-type ModActionsOpts = { originalMsg: originalMessages };
+type ModActionsOpts = { originalMsg: OriginalMessage };
 type ServerInfoOpts = LocaleInfo & ServerInfo & { connection: connectedList | undefined };
 
 export default class MessageInfo extends BaseCommand {
@@ -61,9 +65,9 @@ export default class MessageInfo extends BaseCommand {
 
     const target = interaction.targetMessage;
 
-    const { locale, originalMsg } = await this.getMessageInfo(interaction);
+    const { locale, originalMsg, hub } = await this.getMessageInfo(interaction);
 
-    if (!originalMsg?.hub) {
+    if (!hub || !originalMsg) {
       await interaction.followUp({
         content: t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
         ephemeral: true,
@@ -72,25 +76,25 @@ export default class MessageInfo extends BaseCommand {
     }
 
     const author = await interaction.client.users.fetch(originalMsg.authorId);
-    const server = await interaction.client.fetchGuild(originalMsg.serverId);
+    const server = await interaction.client.fetchGuild(originalMsg.guildId);
 
     const embed = new EmbedBuilder()
       .setDescription(`### ${emojis.info} Message Info`)
       .addFields([
         { name: 'Sender', value: codeBlock(author.username), inline: true },
         { name: 'From Server', value: codeBlock(`${server?.name}`), inline: true },
-        { name: 'Which Hub?', value: codeBlock(originalMsg.hub.name), inline: true },
+        { name: 'Which Hub?', value: codeBlock(hub.name), inline: true },
         { name: 'Message ID', value: codeBlock(originalMsg.messageId), inline: true },
-        { name: 'Sent At', value: time(originalMsg.createdAt, 't'), inline: true },
+        { name: 'Sent At', value: time(new Date(originalMsg.timestamp), 't'), inline: true },
       ])
       .setThumbnail(author.displayAvatarURL())
       .setColor(Constants.Colors.invisible);
 
-    const connection = (await getHubConnections(originalMsg.hub.id))?.find(
-      (c) => c.connected && c.serverId === originalMsg.serverId,
+    const connection = (await getHubConnections(hub.id))?.find(
+      (c) => c.connected && c.serverId === originalMsg.guildId,
     );
     const components = this.buildButtons(locale, {
-      buildModActions: isStaffOrHubMod(interaction.user.id, originalMsg.hub),
+      buildModActions: isStaffOrHubMod(interaction.user.id, hub),
       inviteButtonUrl: connection?.invite,
     });
 
@@ -135,13 +139,13 @@ export default class MessageInfo extends BaseCommand {
             author,
             server,
             locale,
-            hub: originalMsg.hub,
+            hub,
             messageId: target.id,
           });
           break;
 
         case 'report':
-          this.handleReportButton(i, { hub: originalMsg.hub, locale, messageId: target.id });
+          this.handleReportButton(i, { hub, locale, messageId: target.id });
           break;
 
         case 'modActions':
@@ -175,7 +179,7 @@ export default class MessageInfo extends BaseCommand {
       return;
     }
 
-    const { authorId, serverId } = originalMsg;
+    const { authorId, guildId } = originalMsg;
 
     const reason = interaction.fields.getTextInputValue('reason');
     const message = await interaction.channel?.messages.fetch(messageId).catch(() => null);
@@ -183,9 +187,9 @@ export default class MessageInfo extends BaseCommand {
     const attachmentUrl =
       content?.match(Constants.Regex.StaticImageUrl)?.at(0) ?? message?.embeds[0]?.image?.url;
 
-    await sendHubReport(originalMsg.hub.id, interaction.client, {
+    await sendHubReport(originalMsg.hubId, interaction.client, {
       userId: authorId,
-      serverId,
+      serverId: guildId,
       reason,
       reportedBy: interaction.user,
       evidence: {
@@ -318,8 +322,8 @@ export default class MessageInfo extends BaseCommand {
     interaction: ButtonInteraction,
     { originalMsg }: ModActionsOpts,
   ) {
-    if (!isValidDbMsgWithHubId(originalMsg)) return;
-    if (!originalMsg.hub || !isStaffOrHubMod(interaction.user.id, originalMsg.hub)) {
+    const hub = await fetchHub(originalMsg.hubId);
+    if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
       await interaction.reply({
         content: t('hub.notFound_mod', 'en', { emoji: emojis.no }),
         ephemeral: true,
@@ -362,29 +366,28 @@ export default class MessageInfo extends BaseCommand {
   }
 
   // utils
+  private async fetchHub(hubId: string | undefined) {
+    return hubId ? await fetchHub(hubId) : null;
+  }
+
   private async getMessageInfo(interaction: MessageContextMenuCommandInteraction) {
-    const target = interaction.targetMessage;
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
-    const originalMsg = (
-      await db.broadcastedMessages.findFirst({
-        where: { messageId: target.id },
-        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
-      })
-    )?.originalMsg;
+    const target = interaction.targetMessage;
+    const originalMsg =
+      (await getOriginalMessage(target.id)) ?? (await findOriginalMessage(target.id));
+    console.log(originalMsg);
+    const hub = await this.fetchHub(originalMsg?.hubId);
 
-    return { target, locale, originalMsg };
+    return { target, locale, originalMsg, hub };
   }
 
   private async getModalMessageInfo(interaction: ModalSubmitInteraction<CacheType>) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [messageId] = customId.args;
-    const originalMsg = (
-      await db.broadcastedMessages.findFirst({
-        where: { messageId },
-        include: { originalMsg: { include: { hub: true } } },
-      })
-    )?.originalMsg;
+    const originalMsg =
+      (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId));
+
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 

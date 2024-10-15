@@ -1,7 +1,10 @@
+import {
+  getBroadcasts,
+  OriginalMessage,
+} from '#main/utils/network/messageUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { getEmojiId } from '#utils/Utils.js';
-import { broadcastedMessages } from '@prisma/client';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -9,8 +12,8 @@ import {
   ComponentType,
   WebhookClient,
 } from 'discord.js';
-import sortReactions from './sortReactions.js';
 import type { ReactionArray } from '../../types/network.d.ts';
+import sortReactions from './sortReactions.js';
 
 export const addReaction = (reactionArr: ReactionArray, userId: string, emoji: string): void => {
   reactionArr[emoji] = reactionArr[emoji] || [];
@@ -91,12 +94,15 @@ const updateMessageComponents = async (
 };
 
 export const updateReactions = async (
-  channelAndMessageIds: broadcastedMessages[],
+  originalMessage: OriginalMessage,
   reactions: { [key: string]: string[] },
 ): Promise<void> => {
+  const broadcastedMessages = Object.values(
+    await getBroadcasts(originalMessage.messageId, originalMessage.hubId),
+  );
   const connections = await db.connectedList.findMany({
     where: {
-      channelId: { in: channelAndMessageIds.map((c) => c.channelId) },
+      channelId: { in: broadcastedMessages.map((c) => c.channelId) },
       connected: true,
     },
   });
@@ -105,12 +111,11 @@ export const updateReactions = async (
   const reactionBtn = createReactionButtons(sortedReactions);
 
   for (const connection of connections) {
-    const dbMsg = channelAndMessageIds.find((e) => e.channelId === connection.channelId);
+    const dbMsg = broadcastedMessages.find((e) => e.channelId === connection.channelId);
     if (!dbMsg) continue;
 
-    const webhook = new WebhookClient({ url: connection.webhookURL });
     await updateMessageComponents(
-      webhook,
+      new WebhookClient({ url: connection.webhookURL }),
       dbMsg.messageId,
       connection.parentId ? connection.channelId : undefined,
       reactionBtn,

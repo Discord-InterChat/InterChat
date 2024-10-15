@@ -1,3 +1,4 @@
+import { getBroadcast, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import { stripIndents } from 'common-tags';
 import {
   EmbedBuilder,
@@ -42,11 +43,8 @@ const genJumpLink = async (
 ) => {
   if (!messageId) return null;
 
-  const messageInDb = await db.broadcastedMessages.findFirst({
-    where: { messageId },
-    include: { originalMsg: { include: { broadcastMsgs: true } } },
-  });
-  if (!messageInDb) return null;
+  const originalMsg = await getOriginalMessage(messageId);
+  if (!originalMsg) return null;
 
   // fetch the reports server ID from the log channel's ID
   const reportsServerId = resolveEval(
@@ -64,11 +62,14 @@ const genJumpLink = async (
   const networkChannel = await db.connectedList.findFirst({
     where: { serverId: reportsServerId, hubId },
   });
-  const reportsServerMsg = messageInDb.originalMsg.broadcastMsgs.find(
-    (msg) => msg.channelId === networkChannel?.channelId,
-  );
 
-  if (!networkChannel || !reportsServerMsg) return null;
+  if (!networkChannel) return null;
+
+  const reportsServerMsg = await getBroadcast(originalMsg.messageId, originalMsg.hubId, {
+    channelId: networkChannel.channelId,
+  });
+  if (!reportsServerMsg) return null;
+
   return messageLink(networkChannel.channelId, reportsServerMsg.messageId, networkChannel.serverId);
 };
 

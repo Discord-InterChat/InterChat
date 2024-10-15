@@ -5,7 +5,7 @@ import {
 } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
 import Logger from '#utils/Logger.js';
-import { deleteMsgsFromDb, checkIfStaff } from '#utils/Utils.js';
+import { checkIfStaff } from '#utils/Utils.js';
 import type { Hub } from '@prisma/client';
 import { type WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
 
@@ -48,13 +48,6 @@ export const deleteHubs = async (ids: string[]) => {
   // delete all relations first and then delete the hub
   await deleteConnections({ hubId: { in: ids } });
   await db.hubInvite.deleteMany({ where: { hubId: { in: ids } } });
-  await db.originalMessages
-    .findMany({ where: { hubId: { in: ids } }, include: { broadcastMsgs: true } })
-    .then((m) =>
-      deleteMsgsFromDb(
-        m.map(({ broadcastMsgs }) => broadcastMsgs.map(({ messageId }) => messageId)).flat(),
-      ),
-    );
 
   // finally, delete the hub
   await db.hub.deleteMany({ where: { id: { in: ids } } });

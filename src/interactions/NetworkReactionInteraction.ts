@@ -1,15 +1,21 @@
 import Constants, { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import { HubSettingsBitField } from '#main/modules/BitFields.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import { HubSettingsBitField } from '#main/modules/BitFields.js';
+import { fetchHub } from '#main/utils/hub/utils.js';
+import {
+  findOriginalMessage,
+  getOriginalMessage,
+  OriginalMessage,
+  storeMessage,
+} from '#main/utils/network/messageUtils.js';
 import { CustomID, ParsedCustomId } from '#utils/CustomID.js';
-import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import { addReaction, removeReaction, updateReactions } from '#utils/reaction/actions.js';
 import { checkBlacklists } from '#utils/reaction/helpers.js';
 import sortReactions from '#utils/reaction/sortReactions.js';
 import { getEmojiId } from '#utils/Utils.js';
-import { broadcastedMessages, Hub, originalMessages } from '@prisma/client';
+import { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -21,9 +27,6 @@ import {
   time,
 } from 'discord.js';
 
-type OriginalMessageT = originalMessages & { hub: Hub; broadcastMsgs: broadcastedMessages[] };
-type DbMessageT = broadcastedMessages & { originalMsg: OriginalMessageT };
-
 export default class NetworkReactionInteraction {
   @RegisterInteractionHandler('reaction_')
   async listenForReactionButton(
@@ -33,12 +36,14 @@ export default class NetworkReactionInteraction {
     if (!interaction.inCachedGuild()) return;
 
     const { customId, messageId } = this.getInteractionDetails(interaction);
-    const messageInDb = await this.fetchMessageFromDb(messageId);
+    const originalMessage =
+      (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId));
+    const hub = originalMessage ? await fetchHub(originalMessage?.hubId) : null;
 
-    if (!this.isReactionAllowed(messageInDb)) return;
+    if (!originalMessage || !this.isReactionAllowed(hub)) return;
 
     const { userBlacklisted, serverBlacklisted } = await this.checkUserPermissions(
-      messageInDb,
+      hub,
       interaction,
     );
     if (userBlacklisted || serverBlacklisted) {
@@ -49,10 +54,10 @@ export default class NetworkReactionInteraction {
     if (await this.isUserOnCooldown(interaction)) return;
 
     if (customId.suffix === 'view_all') {
-      await this.handleViewAllReactions(interaction, messageId);
+      await this.handleViewAllReactions(interaction, messageId, hub);
     }
     else {
-      await this.handleReactionToggle(interaction, messageInDb, customId);
+      await this.handleReactionToggle(interaction, originalMessage, customId);
     }
   }
 
@@ -62,36 +67,15 @@ export default class NetworkReactionInteraction {
     return { customId, messageId };
   }
 
-  private async fetchMessageFromDb(messageId: string) {
-    return await db.broadcastedMessages.findFirst({
-      where: { messageId },
-      include: {
-        originalMsg: {
-          include: {
-            hub: { include: { connections: { where: { connected: true } } } },
-            broadcastMsgs: true,
-          },
-        },
-      },
-    });
-  }
-
-  private isReactionAllowed(messageInDb: DbMessageT | null): messageInDb is DbMessageT {
-    return Boolean(
-      messageInDb?.originalMsg.hub &&
-        new HubSettingsBitField(messageInDb.originalMsg.hub.settings).has('Reactions'),
-    );
+  private isReactionAllowed(hub: Hub | null): hub is Hub {
+    return Boolean(hub && new HubSettingsBitField(hub.settings).has('Reactions'));
   }
 
   private async checkUserPermissions(
-    messageInDb: DbMessageT,
+    hub: Hub,
     interaction: ButtonInteraction | AnySelectMenuInteraction,
   ) {
-    return await checkBlacklists(
-      messageInDb.originalMsg.hub.id,
-      interaction.guildId,
-      interaction.user.id,
-    );
+    return await checkBlacklists(hub.id, interaction.guildId, interaction.user.id);
   }
 
   private async handleBlacklistedUser(
@@ -124,9 +108,11 @@ export default class NetworkReactionInteraction {
   private async handleViewAllReactions(
     interaction: ButtonInteraction | AnySelectMenuInteraction,
     messageId: string,
+    hub: Hub,
   ) {
-    const networkMessage = await this.fetchNetworkMessage(messageId);
-    if (!networkMessage?.originalMsg.reactions || !networkMessage?.originalMsg.hub) {
+    const originalMessage =
+      (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId));
+    if (!originalMessage?.reactions || !originalMessage.hubId) {
       await interaction.followUp({
         content: 'There are no more reactions to view.',
         ephemeral: true,
@@ -134,11 +120,11 @@ export default class NetworkReactionInteraction {
       return;
     }
 
-    const dbReactions = networkMessage.originalMsg.reactions as { [key: string]: Snowflake[] };
+    const dbReactions = originalMessage.reactions as { [key: string]: Snowflake[] };
     const { reactionMenu, reactionString, totalReactions } = this.buildReactionMenu(
       dbReactions,
       interaction,
-      networkMessage.originalMsg.hub,
+      hub,
     );
 
     const embed = this.buildReactionEmbed(reactionString, totalReactions);
@@ -147,17 +133,6 @@ export default class NetworkReactionInteraction {
       embeds: [embed],
       components: [reactionMenu],
       ephemeral: true,
-    });
-  }
-
-  private async fetchNetworkMessage(messageId: string) {
-    return await db.broadcastedMessages.findFirst({
-      where: { messageId },
-      include: {
-        originalMsg: {
-          include: { hub: { include: { connections: { where: { connected: true } } } } },
-        },
-      },
     });
   }
 
@@ -211,10 +186,10 @@ export default class NetworkReactionInteraction {
 
   private async handleReactionToggle(
     interaction: ButtonInteraction | AnySelectMenuInteraction,
-    messageInDb: DbMessageT,
+    originalMessage: OriginalMessage,
     customId: ParsedCustomId,
   ) {
-    const dbReactions = (messageInDb.originalMsg.reactions?.valueOf() ?? {}) as {
+    const dbReactions = (originalMessage.reactions?.valueOf() ?? {}) as {
       [key: string]: Snowflake[];
     };
 
@@ -236,19 +211,17 @@ export default class NetworkReactionInteraction {
       addReaction(dbReactions, interaction.user.id, reactedEmoji);
     }
 
-    await this.updateReactionsInDb(messageInDb, dbReactions);
+    await this.updateReactionsInDb(originalMessage, dbReactions);
     await this.sendReactionConfirmation(interaction, emojiAlreadyReacted, reactedEmoji);
-    await updateReactions(messageInDb.originalMsg.broadcastMsgs, dbReactions);
+
+    await updateReactions(originalMessage, dbReactions);
   }
 
   private async updateReactionsInDb(
-    messageInDb: DbMessageT,
-    dbReactions: { [key: string]: Snowflake[] },
+    originalMessage: OriginalMessage,
+    reactions: { [key: string]: Snowflake[] },
   ) {
-    await db.originalMessages.update({
-      where: { messageId: messageInDb.originalMsgId },
-      data: { reactions: dbReactions },
-    });
+    await storeMessage(originalMessage.messageId, { ...originalMessage, reactions });
   }
 
   private async sendReactionConfirmation(
