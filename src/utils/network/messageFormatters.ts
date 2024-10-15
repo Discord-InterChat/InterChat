@@ -23,7 +23,7 @@ const getReplyContent = (content: string | undefined, profFilter: boolean) => {
 };
 
 export const getReplyMention = (dbReferredAuthor: UserData | null) => {
-  if (!dbReferredAuthor?.mentionOnReply) return null;
+  if (!dbReferredAuthor?.mentionOnReply) return '';
   return userMention(dbReferredAuthor.id);
 };
 

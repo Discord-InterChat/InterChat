@@ -1,7 +1,6 @@
-import BaseEventListener from '#main/core/BaseEventListener.js';
-import { isGuildTextBasedChannel } from '#utils/ChannelUtls.js';
-import { updateConnection } from '#utils/ConnectedListUtils.js';
 import { emojis } from '#main/config/Constants.js';
+import BaseEventListener from '#main/core/BaseEventListener.js';
+import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';
@@ -35,7 +34,7 @@ export default class Ready extends BaseEventListener<'webhooksUpdate'> {
         ? await channel.client.channels.fetch(connection.channelId)
         : channel;
 
-      if (isGuildTextBasedChannel(networkChannel)) {
+      if (networkChannel?.isSendable()) {
         await networkChannel.send(t('misc.webhookNoLongerExists', 'en', { emoji: emojis.info }));
       }
     }

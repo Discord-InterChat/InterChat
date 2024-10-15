@@ -12,10 +12,11 @@ import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import { sendWelcomeMsg } from '#utils/network/helpers.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';
 import { containsInviteLinks, replaceLinks } from '#utils/Utils.js';
-import { Hub } from '@prisma/client';
+import { Hub, MessageBlockList } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { EmbedBuilder, Message } from 'discord.js';
+import { Awaitable, EmbedBuilder, Message } from 'discord.js';
 import { runAntiSpam } from './antiSpam.js';
+import { createRegexFromWords } from '#utils/moderation/blockedWords.js';
 
 interface CheckResult {
   passed: boolean;
@@ -27,10 +28,10 @@ interface CheckFunctionOpts {
   totalHubConnections: number;
   attachmentURL?: string | null;
   locale: supportedLocaleCodes;
-  hub: Hub;
+  hub: Hub & { msgBlockList: MessageBlockList[] };
 }
 
-type CheckFunction = (message: Message<true>, opts: CheckFunctionOpts) => Promise<CheckResult>;
+type CheckFunction = (message: Message<true>, opts: CheckFunctionOpts) => Awaitable<CheckResult>;
 
 const checks: CheckFunction[] = [
   checkBanAndBlacklist,
@@ -44,6 +45,7 @@ const checks: CheckFunction[] = [
   checkAttachments,
   checkNSFW,
   checkLinks,
+  checkBlockedWords,
 ];
 
 const replyToMsg = async (
@@ -62,7 +64,7 @@ const replyToMsg = async (
 
 export const runChecks = async (
   message: Message<true>,
-  hub: Hub,
+  hub: Hub & { msgBlockList: MessageBlockList[] },
   opts: {
     settings: HubSettingsManager;
     totalHubConnections: number;
@@ -118,10 +120,7 @@ async function checkBanAndBlacklist(
   return { passed: true };
 }
 
-async function checkHubLock(
-  message: Message<true>,
-  { hub }: CheckFunctionOpts,
-): Promise<CheckResult> {
+function checkHubLock(message: Message<true>, { hub }: CheckFunctionOpts): CheckResult {
   if (hub.locked && !isHubMod(message.author.id, hub)) {
     return { passed: false, reason: 'This hub is currently locked.' };
   }
@@ -133,7 +132,7 @@ const containsLinks = (message: Message, settings: HubSettingsManager) =>
   !Constants.Regex.StaticImageUrl.test(message.content) &&
   Constants.Regex.Links.test(message.content);
 
-async function checkLinks(message: Message<true>, opts: CheckFunctionOpts): Promise<CheckResult> {
+function checkLinks(message: Message<true>, opts: CheckFunctionOpts): CheckResult {
   const { settings } = opts;
   if (containsLinks(message, settings)) {
     message.content = replaceLinks(message.content);
@@ -144,7 +143,7 @@ async function checkLinks(message: Message<true>, opts: CheckFunctionOpts): Prom
 async function checkSpam(message: Message<true>, opts: CheckFunctionOpts): Promise<CheckResult> {
   const { settings, hub } = opts;
   const antiSpamResult = runAntiSpam(message.author, 3);
-  if (antiSpamResult && settings.getSetting('SpamFilter') && antiSpamResult.infractions >= 3) {
+  if (settings.getSetting('SpamFilter') && antiSpamResult && antiSpamResult.infractions >= 3) {
     const expiresAt = new Date(Date.now() + 60 * 5000);
     const reason = 'Auto-blacklisted for spamming.';
     const target = message.author;
@@ -170,21 +169,31 @@ async function checkSpam(message: Message<true>, opts: CheckFunctionOpts): Promi
   return { passed: true };
 }
 
-async function checkProfanityAndSlurs(
-  message: Message<true>,
-  { hub }: CheckFunctionOpts,
-): Promise<CheckResult> {
+function checkProfanityAndSlurs(message: Message<true>, { hub }: CheckFunctionOpts): CheckResult {
   const { hasProfanity, hasSlurs } = checkProfanity(message.content);
   if (hasProfanity || hasSlurs) {
     logProfanity(hub.id, message.content, message.author, message.guild);
   }
-  if (hasSlurs) {
-    return { passed: false };
-  }
+
+  if (hasSlurs) return { passed: false };
   return { passed: true };
 }
 
-async function checkNewUser(message: Message<true>, opts: CheckFunctionOpts): Promise<CheckResult> {
+function checkBlockedWords(message: Message<true>, { hub }: CheckFunctionOpts): CheckResult {
+  if (hub.msgBlockList.length === 0) return { passed: true };
+  const regex = createRegexFromWords(hub.msgBlockList.map((r) => r.words));
+  if (regex.test(message.content)) {
+    logProfanity(hub.id, message.content, message.author, message.guild);
+    return {
+      passed: false,
+      reason: 'Your message contains blocked words.',
+    };
+  }
+
+  return { passed: true };
+}
+
+function checkNewUser(message: Message<true>, opts: CheckFunctionOpts): CheckResult {
   const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
   if (message.author.createdTimestamp > sevenDaysAgo) {
     return {
@@ -198,7 +207,7 @@ async function checkNewUser(message: Message<true>, opts: CheckFunctionOpts): Pr
   return { passed: true };
 }
 
-async function checkMessageLength(message: Message<true>): Promise<CheckResult> {
+function checkMessageLength(message: Message<true>): CheckResult {
   if (message.content.length > 1000) {
     return {
       passed: false,
@@ -208,7 +217,7 @@ async function checkMessageLength(message: Message<true>): Promise<CheckResult> 
   return { passed: true };
 }
 
-async function checkStickers(message: Message<true>): Promise<CheckResult> {
+function checkStickers(message: Message<true>): CheckResult {
   if (message.stickers.size > 0 && !message.content) {
     return {
       passed: false,
@@ -218,10 +227,7 @@ async function checkStickers(message: Message<true>): Promise<CheckResult> {
   return { passed: true };
 }
 
-async function checkInviteLinks(
-  message: Message<true>,
-  opts: CheckFunctionOpts,
-): Promise<CheckResult> {
+function checkInviteLinks(message: Message<true>, opts: CheckFunctionOpts): CheckResult {
   const { settings } = opts;
   if (settings.getSetting('BlockInvites') && containsInviteLinks(message.content)) {
     return {
@@ -232,7 +238,7 @@ async function checkInviteLinks(
   return { passed: true };
 }
 
-async function checkAttachments(message: Message<true>): Promise<CheckResult> {
+function checkAttachments(message: Message<true>): CheckResult {
   const attachment = message.attachments.first();
   const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
 
