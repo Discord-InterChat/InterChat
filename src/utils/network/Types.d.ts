@@ -1,4 +1,5 @@
-import type { originalMessages, broadcastedMessages, userData } from '@prisma/client';
+import type { Broadcast, OriginalMessage } from '#main/utils/network/messageUtils.js';
+import type { UserData } from '@prisma/client';
 import type {
   User,
   Message,
@@ -10,11 +11,9 @@ import type {
 } from 'discord.js';
 
 export interface ReferredMsgData {
-  dbReferrence:
-    | (originalMessages & { broadcastMsgs: Collection<string, broadcastedMessages> })
-    | null;
+  dbReferrence: (OriginalMessage & { broadcastMsgs: Collection<string, Broadcast> }) | null;
   referredAuthor: User | null;
-  dbReferredAuthor: userData | null;
+  dbReferredAuthor: UserData | null;
   referredMessage?: Message;
 }
 

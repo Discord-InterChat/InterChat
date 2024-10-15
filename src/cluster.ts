@@ -11,14 +11,21 @@ import 'dotenv/config';
 const shardsPerClusters = 5;
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.DISCORD_TOKEN,
+  totalShards: 'auto',
   totalClusters: 'auto',
   shardsPerClusters,
 });
 
-clusterManager.extend(new HeartbeatManager({ interval: 60 * 1000, maxMissedHeartbeats: 2 }));
+clusterManager.extend(new HeartbeatManager({ interval: 10 * 1000, maxMissedHeartbeats: 2 }));
 clusterManager.extend(new ReClusterManager());
 
 clusterManager.on('clusterReady', (cluster) => {
+  Logger.info(
+    `Cluster ${cluster.id} is ready with shards ${cluster.shardList[0]}...${cluster.shardList.at(-1)}.`,
+  );
+
+  if (cluster.id === clusterManager.totalClusters - 1) startTasks();
+
   cluster.on('message', async (message) => {
     if (message === 'recluster') {
       Logger.info('Recluster requested, starting recluster...');
@@ -34,38 +41,28 @@ clusterManager.on('clusterReady', (cluster) => {
   });
 });
 
-
-// clusterManager.on('clientRequest', (n) => {
-//   cons
-// })
-
 // spawn clusters and start the api that handles nsfw filter and votes
-clusterManager
-  .spawn({ timeout: -1 })
-  .then(() => {
-    const scheduler = new Scheduler();
+clusterManager.spawn({ timeout: -1 });
 
+function startTasks() {
+  pauseIdleConnections(clusterManager).catch(Logger.error);
+  deleteExpiredInvites().catch(Logger.error);
+
+  const scheduler = new Scheduler();
+
+  // store network message timestamps to connectedList every minute
+  scheduler.addRecurringTask('storeMsgTimestamps', 10 * 60 * 1000, storeMsgTimestamps);
+  scheduler.addRecurringTask('cleanupTasks', 60 * 60 * 1000, () => {
     deleteExpiredInvites().catch(Logger.error);
-
-    // store network message timestamps to connectedList every minute
-    scheduler.addRecurringTask('storeMsgTimestamps', 10 * 60 * 1000, storeMsgTimestamps);
-    scheduler.addRecurringTask('deleteExpiredInvites', 60 * 60 * 1000, deleteExpiredInvites);
-
-    // production only tasks
-    if (Constants.isDevBuild) return;
-
     pauseIdleConnections(clusterManager).catch(Logger.error);
+  });
 
+  // production only tasks
+  if (!Constants.isDevBuild) {
     scheduler.addRecurringTask('syncBotlistStats', 10 * 60 * 10_000, async () => {
-      // perform start up tasks
-      const serverCount = (await clusterManager.fetchClientValues('guilds.cache.size')).reduce(
-        (p: number, n: number) => p + n,
-        0,
-      );
+      const servers = await clusterManager.fetchClientValues('guilds.cache.size');
+      const serverCount = servers.reduce((p: number, n: number) => p + n, 0);
       syncBotlistStats({ serverCount, shardCount: clusterManager.totalShards });
     });
-    scheduler.addRecurringTask('pauseIdleConnections', 60 * 60 * 1000, () =>
-      pauseIdleConnections(clusterManager),
-    );
-  })
-  .catch(Logger.error);
+  }
+}

@@ -32,6 +32,8 @@ export class CustomID {
    * @param values - The value to add as an argument.
    * @returns CustomID - The CustomID instance for method chaining.
    */
+
+  // TODO: Rename this to set args and add a new method for adding args
   addArgs(...values: string[]): CustomID {
     if (!values) return this;
 
