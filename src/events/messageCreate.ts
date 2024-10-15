@@ -1,8 +1,10 @@
+import { ConnectionMode } from '#main/config/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import { generateJumpButton as getJumpButton } from '#utils/ComponentUtils.js';
 import { getConnectionHubId, getHubConnections } from '#utils/ConnectedListUtils.js';
-import { ConnectionMode } from '#main/config/Constants.js';
 import db from '#utils/Db.js';
+import { getAttachmentURL } from '#utils/ImageUtils.js';
 import {
   buildNetworkEmbed,
   getReferredContent,

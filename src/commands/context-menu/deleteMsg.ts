@@ -1,21 +1,22 @@
-import BaseCommand from '#main/core/BaseCommand.js';
 import Constants, { emojis } from '#main/config/Constants.js';
-import db from '#utils/Db.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import db from '#main/utils/Db.js';
+import {
+  findOriginalMessage,
+  getBroadcasts,
+  getOriginalMessage,
+  OriginalMessage,
+} from '#main/utils/network/messageUtils.js';
+import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { logMsgDelete } from '#utils/HubLogger/ModLogs.js';
 import { t } from '#utils/Locale.js';
+import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
+import { Hub, HubLogConfig } from '@prisma/client';
 import {
   ApplicationCommandType,
   MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
-import { isStaffOrHubMod } from '#utils/hub/utils.js';
-import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
-import { originalMessages, Hub, broadcastedMessages, HubLogConfig } from '@prisma/client';
-
-type OriginalMsgT = originalMessages & {
-  hub: Hub & { logConfig: HubLogConfig[] };
-  broadcastMsgs: broadcastedMessages[];
-};
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -32,32 +33,25 @@ export default class DeleteMessage extends BaseCommand {
     await interaction.deferReply({ ephemeral: true });
 
     const originalMsg = await this.getOriginalMessage(interaction.targetId);
-    if (!(await this.validateMessage(interaction, originalMsg))) return;
+    const hub = await this.fetchHub(originalMsg?.hubId);
 
-    await this.processMessageDeletion(interaction, originalMsg as OriginalMsgT);
+    const validation = await this.validateMessage(interaction, originalMsg, hub);
+    if (!validation) return;
+
+    await this.processMessageDeletion(interaction, originalMsg!, validation.hub);
   }
 
   private async getOriginalMessage(messageId: string) {
-    const originalMsg = await db.originalMessages.findFirst({
-      where: { messageId },
-      include: { hub: { include: { logConfig: true } }, broadcastMsgs: true },
-    });
-
-    if (originalMsg) return originalMsg;
-
-    const broadcastedMsg = await db.broadcastedMessages.findFirst({
-      where: { messageId },
-      include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
-    });
-
-    return broadcastedMsg?.originalMsg ?? null;
+    const originalMsg =
+      (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId));
+    return originalMsg;
   }
 
   private async processMessageDeletion(
     interaction: MessageContextMenuCommandInteraction,
-    originalMsg: OriginalMsgT,
+    originalMsg: OriginalMessage,
+    hub: Hub & { logConfig: HubLogConfig[] },
   ): Promise<void> {
-    const { hub } = originalMsg;
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
@@ -65,10 +59,11 @@ export default class DeleteMessage extends BaseCommand {
       `${emojis.yes} Your request has been queued. Messages will be deleted shortly...`,
     );
 
+    const broadcasts = await getBroadcasts(originalMsg.messageId, originalMsg.hubId);
     const { deletedCount } = await deleteMessageFromHub(
       hub.id,
       originalMsg.messageId,
-      originalMsg.broadcastMsgs,
+      Object.values(broadcasts),
     );
 
     await interaction
@@ -77,7 +72,7 @@ export default class DeleteMessage extends BaseCommand {
           emoji: emojis.yes,
           user: `<@${originalMsg.authorId}>`,
           deleted: `${deletedCount}`,
-          total: `${originalMsg.broadcastMsgs.length}`,
+          total: `${broadcasts.length}`,
         }),
       )
       .catch(() => null);
@@ -85,16 +80,20 @@ export default class DeleteMessage extends BaseCommand {
     await this.logDeletion(interaction, hub, originalMsg);
   }
 
+  private async fetchHub(hubId?: string) {
+    if (!hubId) return null;
+    return await db.hub.findUnique({ where: { id: hubId }, include: { logConfig: true } });
+  }
+
   private async validateMessage(
     interaction: MessageContextMenuCommandInteraction,
-    originalMsg:
-      | (originalMessages & { hub: Hub | null; broadcastMsgs: broadcastedMessages[] })
-      | null,
-  ): Promise<boolean> {
+    originalMsg: OriginalMessage | null,
+    hub: (Hub & { logConfig: HubLogConfig[] }) | null,
+  ) {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    if (!originalMsg?.hub) {
+    if (!originalMsg || !hub) {
       await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }));
       return false;
     }
@@ -110,19 +109,19 @@ export default class DeleteMessage extends BaseCommand {
 
     if (
       interaction.user.id !== originalMsg.authorId &&
-      !isStaffOrHubMod(interaction.user.id, originalMsg.hub)
+      !isStaffOrHubMod(interaction.user.id, hub)
     ) {
       await interaction.editReply(t('errors.notMessageAuthor', locale, { emoji: emojis.no }));
       return false;
     }
 
-    return true;
+    return { hub };
   }
 
   private async logDeletion(
     interaction: MessageContextMenuCommandInteraction,
     hub: Hub & { logConfig: HubLogConfig[] },
-    originalMsg: OriginalMsgT,
+    originalMsg: OriginalMessage,
   ): Promise<void> {
     if (!isStaffOrHubMod(interaction.user.id, hub)) return;
 
@@ -138,7 +137,7 @@ export default class DeleteMessage extends BaseCommand {
 
     await logMsgDelete(interaction.client, messageContent, hub, {
       userId: originalMsg.authorId,
-      serverId: originalMsg.serverId,
+      serverId: originalMsg.guildId,
       modName: interaction.user.username,
       imageUrl,
     });

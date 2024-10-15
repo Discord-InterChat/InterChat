@@ -1,8 +1,13 @@
 import { emojis } from '#main/config/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import {
+  findOriginalMessage,
+  getOriginalMessage,
+  OriginalMessage,
+} from '#main/utils/network/messageUtils.js';
 import { CustomID } from '#utils/CustomID.js';
-import { isStaffOrHubMod } from '#utils/hub/utils.js';
+import { fetchHub, isStaffOrHubMod } from '#utils/hub/utils.js';
 import { t, type supportedLocaleCodes } from '#utils/Locale.js';
 import {
   BlacklistServerHandler,
@@ -13,11 +18,7 @@ import RemoveReactionsHandler from '#utils/moderation/modActions/handlers/Remove
 import UserBanHandler from '#utils/moderation/modActions/handlers/userBanHandler.js';
 import ViewInfractionsHandler from '#utils/moderation/modActions/handlers/viewInfractions.js';
 import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
-import {
-  fetchMessageFromDb,
-  ModAction,
-  ModActionsDbMsgT,
-} from '#utils/moderation/modActions/utils.js';
+import { ModAction } from '#utils/moderation/modActions/utils.js';
 import {
   ApplicationCommandType,
   type ButtonInteraction,
@@ -55,10 +56,9 @@ export default class BlacklistCtxMenu extends BaseCommand {
     const dbUser = await userManager.getUser(interaction.user.id);
     const locale = await userManager.getUserLocale(dbUser);
 
-    const originalMsg = await fetchMessageFromDb(interaction.targetId, {
-      hub: true,
-      broadcastMsgs: true,
-    });
+    const originalMsg =
+      (await getOriginalMessage(interaction.targetId)) ??
+      (await findOriginalMessage(interaction.targetId));
 
     if (
       !BlacklistCtxMenu.dbMsgExists(originalMsg) ||
@@ -67,7 +67,7 @@ export default class BlacklistCtxMenu extends BaseCommand {
       return;
     }
 
-    // skipcq: JS-0339
+    console.log(originalMsg);
     const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
 
     await interaction.editReply({ embeds: [embed], components: buttons });
@@ -93,7 +93,7 @@ export default class BlacklistCtxMenu extends BaseCommand {
 
     const customId = CustomID.parseCustomId(interaction.customId);
     const [originalMsgId] = customId.args;
-    const originalMsg = await fetchMessageFromDb(originalMsgId, { hub: true });
+    const originalMsg = await getOriginalMessage(originalMsgId);
     const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
 
     if (
@@ -109,18 +109,17 @@ export default class BlacklistCtxMenu extends BaseCommand {
     }
   }
 
-  private static dbMsgExists(
-    originalMsg: ModActionsDbMsgT | null,
-  ): originalMsg is ModActionsDbMsgT {
+  private static dbMsgExists(originalMsg: OriginalMessage | null): originalMsg is OriginalMessage {
     return Boolean(originalMsg);
   }
 
   private async validateMessage(
     interaction: RepliableInteraction,
-    originalMsg: ModActionsDbMsgT,
+    originalMsg: OriginalMessage,
     locale: supportedLocaleCodes,
   ) {
-    if (!originalMsg.hub || !isStaffOrHubMod(interaction.user.id, originalMsg.hub)) {
+    const hub = await fetchHub(originalMsg.hubId);
+    if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
       await this.replyEmbed(interaction, t('errors.messageNotSentOrExpired', locale), {
         ephemeral: true,
         edit: true,

@@ -1,6 +1,11 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { HubSettingsBitField } from '#main/modules/BitFields.js';
-import db from '#utils/Db.js';
+import { fetchHub } from '#main/utils/hub/utils.js';
+import {
+  findOriginalMessage,
+  getOriginalMessage,
+  storeMessage,
+} from '#main/utils/network/messageUtils.js';
 import { addReaction, updateReactions } from '#utils/reaction/actions.js';
 import { checkBlacklists } from '#utils/reaction/helpers.js';
 import { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
@@ -19,19 +24,17 @@ export default class ReadctionAdd extends BaseEventListener<'messageReactionAdd'
     // add user to cooldown list
     user.client.reactionCooldowns.set(user.id, Date.now() + 3000);
 
-    const originalMsg = (
-      await db.broadcastedMessages.findFirst({
-        where: { messageId: reaction.message.id },
-        include: { originalMsg: { include: { hub: true, broadcastMsgs: true } } },
-      })
-    )?.originalMsg;
+    const originalMsg =
+      (await getOriginalMessage(reaction.message.id)) ??
+      (await findOriginalMessage(reaction.message.id));
+    const hub = originalMsg ? await fetchHub(originalMsg?.hubId) : null;
 
-    if (!originalMsg?.hub || !new HubSettingsBitField(originalMsg.hub.settings).has('Reactions')) {
+    if (!originalMsg || !hub || !new HubSettingsBitField(hub.settings).has('Reactions')) {
       return;
     }
 
     const { userBlacklisted, serverBlacklisted } = await checkBlacklists(
-      originalMsg.hub.id,
+      hub.id,
       reaction.message.guildId,
       user.id,
     );
@@ -50,12 +53,9 @@ export default class ReadctionAdd extends BaseEventListener<'messageReactionAdd'
     // update the data with a new arr containing userId
     else dbReactions[reactedEmoji] = emojiAlreadyReacted;
 
-    await db.originalMessages.update({
-      where: { messageId: originalMsg.messageId },
-      data: { reactions: dbReactions },
-    });
+    await storeMessage(originalMsg.messageId, { ...originalMsg, reactions: dbReactions });
 
     reaction.users.remove(user.id).catch(() => null);
-    await updateReactions(originalMsg.broadcastMsgs, dbReactions);
+    await updateReactions(originalMsg, dbReactions);
   }
 }

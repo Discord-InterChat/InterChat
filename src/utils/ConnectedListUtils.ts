@@ -77,20 +77,26 @@ export const syncHubConnCache = async (
   );
 };
 
-const cacheConnectionHubId = async (connection: connectedList) => {
-  if (!connection.connected) {
-    await getRedis().del(`${RedisKeys.connectionHubId}:${connection.channelId}`);
-  }
-  else {
-    await cacheData(
-      `${RedisKeys.connectionHubId}:${connection.channelId}`,
-      JSON.stringify({ id: connection.hubId }),
+const cacheConnectionHubId = async (
+  ...args: {
+    connected: boolean;
+    channelId: string;
+    hubId: string;
+  }[]
+) => {
+  const notConnectedArgs = args.filter((arg) => !arg.connected);
+  if (notConnectedArgs.length > 0) {
+    await getRedis().del(
+      notConnectedArgs.map((arg) => `${RedisKeys.connectionHubId}:${arg.channelId}`),
     );
   }
-
-  Logger.debug(
-    `Cached connection hubId for ${connection.connected ? 'connected' : 'disconnected'} channel ${connection.channelId}.`,
-  );
+  else {
+    args
+      .filter((arg) => Boolean(arg.connected))
+      .forEach(async ({ channelId, hubId }) => {
+        await cacheData(`${RedisKeys.connectionHubId}:${channelId}`, JSON.stringify({ id: hubId }));
+      });
+  }
 };
 
 export const fetchConnection = async (channelId: string) => {
@@ -104,10 +110,12 @@ export const fetchConnection = async (channelId: string) => {
 };
 
 export const getConnectionHubId = async (channelId: string) => {
+  const start = performance.now();
   const { data } = await getCachedData(`${RedisKeys.connectionHubId}:${channelId}`, async () => {
     const connection = await fetchConnection(channelId);
     return connection ? { id: connection.hubId } : null;
   });
+  console.log(`Took ${performance.now() - start}ms to fetch connection`);
 
   return data?.id ?? null;
 };
@@ -160,11 +168,9 @@ export const updateConnections = async (where: whereInput, data: dataInput) => {
   // Update in database
   const updated = await db.connectedList.updateMany({ where, data });
 
-  db.connectedList.findMany({ where }).then((connections) => {
-    connections.forEach(async (connection) => {
-      await cacheConnectionHubId(connection);
-      await syncHubConnCache(connection, 'modify');
-    });
+  db.connectedList.findMany({ where }).then(async (connections) => {
+    await cacheConnectionHubId(...connections);
+    connections.forEach(async (connection) => await syncHubConnCache(connection, 'modify'));
   });
 
   return updated;

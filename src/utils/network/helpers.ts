@@ -1,6 +1,10 @@
-import type { ReferredMsgData } from './Types.d.ts';
 import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
-import db from '#utils/Db.js';
+import {
+  findOriginalMessage,
+  getBroadcasts,
+  getOriginalMessage,
+} from '#main/utils/network/messageUtils.js';
+import { stripTenorLinks } from '#utils/ImageUtils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { censor } from '#utils/ProfanityUtils.js';
 import {
@@ -12,7 +16,7 @@ import {
   Collection,
   EmbedBuilder,
 } from 'discord.js';
-import { stripTenorLinks } from '#utils/ImageUtils.js';
+import type { ReferredMsgData } from './Types.d.ts';
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
@@ -52,19 +56,9 @@ export const getReferredMsgData = async (
   const { client } = referredMessage;
 
   // check if it was sent in the network
-  let dbReferrenceRaw = await db.originalMessages.findFirst({
-    where: { messageId: referredMessage.id },
-    include: { broadcastMsgs: true },
-  });
-
-  if (!dbReferrenceRaw) {
-    const broadcastedMsg = await db.broadcastedMessages.findFirst({
-      where: { messageId: referredMessage.id },
-      include: { originalMsg: { include: { broadcastMsgs: true } } },
-    });
-
-    dbReferrenceRaw = broadcastedMsg?.originalMsg ?? null;
-  }
+  const dbReferrenceRaw =
+    (await getOriginalMessage(referredMessage.id)) ??
+    (await findOriginalMessage(referredMessage.id));
 
   if (!dbReferrenceRaw) {
     return {
@@ -77,10 +71,11 @@ export const getReferredMsgData = async (
   // fetch the acttual user ("referredMessage" is a webhook message)
   const referredAuthor = await client.users.fetch(dbReferrenceRaw.authorId).catch(() => null);
   const dbReferredAuthor = await client.userManager.getUser(dbReferrenceRaw.authorId);
+  const broadcastedMessages = await getBroadcasts(referredMessage.id, dbReferrenceRaw.hubId);
 
   const dbReferrence = {
     ...dbReferrenceRaw,
-    broadcastMsgs: new Collection(dbReferrenceRaw.broadcastMsgs.map((m) => [m.channelId, m])),
+    broadcastMsgs: new Collection(Object.values(broadcastedMessages).map((m) => [m.channelId, m])),
   };
 
   return { dbReferrence, referredAuthor, dbReferredAuthor, referredMessage };

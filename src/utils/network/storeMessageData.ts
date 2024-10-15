@@ -1,11 +1,13 @@
+import { ConnectionMode } from '#main/config/Constants.js';
+import {
+  addBroadcasts,
+  Broadcast,
+  OriginalMessage,
+  storeMessage,
+  storeMessageTimestamp,
+} from '#main/utils/network/messageUtils.js';
 import { updateConnections } from '#utils/ConnectedListUtils.js';
-import { ConnectionMode, RedisKeys } from '#main/config/Constants.js';
-import db from '#utils/Db.js';
-import Logger from '#utils/Logger.js';
-import getRedis from '#utils/Redis.js';
-import { originalMessages } from '@prisma/client';
-import { APIMessage, Message } from 'discord.js';
-import { getCachedData } from '#utils/cache/cacheUtils.js';
+import { type APIMessage, type Message } from 'discord.js';
 
 interface ErrorResult {
   webhookURL: string;
@@ -20,19 +22,6 @@ interface SendResult {
 
 export type NetworkWebhookSendResult = ErrorResult | SendResult;
 
-const storeMessageTimestamp = async (message: Message) => {
-  const { data: msgTimestampArr } = await getCachedData<{ channelId: string; timestamp: number }[]>(
-    `${RedisKeys.msgTimestamp}:all`,
-  );
-
-  const data = JSON.stringify([
-    ...(msgTimestampArr ?? []),
-    { channelId: message.channelId, timestamp: message.createdTimestamp },
-  ]);
-
-  await getRedis().set(`${RedisKeys.msgTimestamp}:all`, data);
-};
-
 /**
  * Stores message data in the database and updates the connectedList based on the webhook status.
  * @param channelAndMessageIds The result of sending the message to multiple channels.
@@ -43,16 +32,22 @@ export default async (
   broadcastResults: NetworkWebhookSendResult[],
   hubId: string,
   mode: ConnectionMode,
-  dbReference?: originalMessages | null,
+  dbReference?: OriginalMessage | null,
 ) => {
-  const messageDataObj: {
-    channelId: string;
-    messageId: string;
-    createdAt: Date;
-    mode: ConnectionMode;
-  }[] = [];
+  if (!message.inGuild()) return;
+
+  await storeMessage(message.id, {
+    mode,
+    hubId,
+    messageId: message.id,
+    authorId: message.author.id,
+    guildId: message.guildId,
+    referredMessageId: dbReference?.messageId,
+    timestamp: message.createdTimestamp,
+  });
 
   const invalidWebhookURLs: string[] = [];
+  const validBroadcasts: Broadcast[] = [];
   const validErrors = [
     'Unknown Webhook',
     'Missing Permissions',
@@ -63,40 +58,18 @@ export default async (
   // loop through all results and extract message data and invalid webhook urls
   broadcastResults.forEach((res) => {
     if ('error' in res) {
-      if (!validErrors.some((e) => res.error.includes(e))) return;
-
-      Logger.info('%O', res.error); // TODO Remove dis
-      invalidWebhookURLs.push(res.webhookURL);
+      if (validErrors.some((e) => res.error.includes(e))) invalidWebhookURLs.push(res.webhookURL);
       return;
     }
-
-    messageDataObj.push({
-      channelId: res.messageRes.channel_id,
+    validBroadcasts.push({
+      mode,
       messageId: res.messageRes.id,
-      createdAt: new Date(res.messageRes.timestamp),
-      mode: res.mode,
+      channelId: res.messageRes.channel_id,
+      originalMsgId: message.id,
     });
   });
 
-  if (hubId && messageDataObj.length > 0) {
-    if (!message.inGuild()) return;
-
-    // store message data in db
-    await db.originalMessages.create({
-      data: {
-        mode,
-        messageId: message.id,
-        authorId: message.author.id,
-        serverId: message.guildId,
-        messageReference: dbReference?.messageId,
-        createdAt: message.createdAt,
-        reactions: {},
-        broadcastMsgs: { createMany: { data: messageDataObj } },
-        hub: { connect: { id: hubId } },
-      },
-    });
-  }
-
+  await addBroadcasts(hubId, message.id, ...validBroadcasts);
   await storeMessageTimestamp(message);
 
   // disconnect network if, webhook does not exist/bot cannot access webhook

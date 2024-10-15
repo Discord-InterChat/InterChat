@@ -1,5 +1,5 @@
 import { emojis } from '#main/config/Constants.js';
-import { updateConnection } from '#utils/ConnectedListUtils.js';
+import { updateConnections } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
@@ -24,11 +24,15 @@ export default async (manager: ClusterManager) => {
     button: APIActionRowComponent<APIButtonComponent>;
   }[] = [];
 
+  const channelIds: string[] = [];
+
   // Loop through the data
-  connections.forEach(async ({ channelId, lastActive }) => {
+  connections.forEach(({ channelId, lastActive }) => {
     Logger.info(
       `[InterChat]: Pausing inactive connection ${channelId} due to inactivity since ${lastActive?.toLocaleString()} - ${new Date().toLocaleString()}`,
     );
+
+    channelIds.push(channelId);
 
     // Create the button
     reconnectButtonArr.push({
@@ -37,10 +41,10 @@ export default async (manager: ClusterManager) => {
         customCustomId: 'inactiveConnect',
       }).toJSON(),
     });
-
-    // disconnect the channel
-    await updateConnection({ channelId }, { connected: false });
   });
+
+  // disconnect the channel
+  await updateConnections({ channelId: { in: channelIds } }, { connected: false });
 
   const embed = new InfoEmbed()
     .removeTitle()

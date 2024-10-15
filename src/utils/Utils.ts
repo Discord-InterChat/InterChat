@@ -1,9 +1,8 @@
 import Constants from '#main/config/Constants.js';
+import type { RemoveMethods, ThreadParentChannel } from '#types/index.d.ts';
 import { CustomID } from '#utils/CustomID.js';
-import db from '#utils/Db.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
-import type { RemoveMethods, ThreadParentChannel } from '#types/index.d.ts';
 import { captureException } from '@sentry/node';
 import type { ClusterManager } from 'discord-hybrid-sharding';
 import {
@@ -100,25 +99,6 @@ export const getCredits = () => [
 export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
   const staffMembers = [...Constants.DeveloperIds, ...(onlyCheckForDev ? [] : Constants.StaffIds)];
   return staffMembers.includes(userId);
-};
-
-export const deleteMsgsFromDb = async (broadcastMsgs: string[]) => {
-  // delete all relations first and then delete the hub
-  const msgsToDelete = await db.broadcastedMessages.findMany({
-    where: { messageId: { in: broadcastMsgs } },
-  });
-  if (!msgsToDelete) return null;
-
-  const originalMsgIds = msgsToDelete.map(({ originalMsgId }) => originalMsgId);
-
-  const childrenBatch = db.broadcastedMessages.deleteMany({
-    where: { originalMsgId: { in: originalMsgIds } },
-  });
-  const originalBatch = db.originalMessages.deleteMany({
-    where: { messageId: { in: originalMsgIds } },
-  });
-
-  return await db.$transaction([childrenBatch, originalBatch]);
 };
 
 export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') =>

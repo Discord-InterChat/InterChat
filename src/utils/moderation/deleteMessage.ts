@@ -2,8 +2,8 @@ import { RedisKeys } from '#main/config/Constants.js';
 import getRedis from '#utils/Redis.js';
 import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
-import { broadcastedMessages } from '@prisma/client';
 import { Snowflake, WebhookClient } from 'discord.js';
+import { Broadcast } from '#main/utils/network/messageUtils.js';
 
 export const setDeleteLock = async (messageId: string) => {
   const key = `${RedisKeys.msgDeleteInProgress}:${messageId}` as const;
@@ -14,7 +14,7 @@ export const setDeleteLock = async (messageId: string) => {
 export const deleteMessageFromHub = async (
   hubId: string,
   originalMsgId: string,
-  dbMessagesToDelete: broadcastedMessages[],
+  dbMessagesToDelete: Broadcast[],
 ) => {
   await setDeleteLock(originalMsgId);
 
@@ -22,7 +22,7 @@ export const deleteMessageFromHub = async (
   const hubConnections = await getHubConnections(hubId);
   const hubConnectionsMap = new Map(hubConnections?.map((c) => [c.channelId, c]));
 
-  for await (const dbMsg of dbMessagesToDelete) {
+  for await (const dbMsg of Object.values(dbMessagesToDelete)) {
     const connection = hubConnectionsMap.get(dbMsg.channelId);
     if (!connection) continue;
 

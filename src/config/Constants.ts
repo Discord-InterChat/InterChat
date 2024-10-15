@@ -26,12 +26,18 @@ export const enum RedisKeys {
   userInfraction = 'UserInfraction',
   serverInfraction = 'ServerInfraction',
   hubLogConfig = 'hubLogConfig',
+  message = 'message',
+  broadcasts = 'broadcasts',
+  messageReverse = 'messageReverse',
 }
 
 export const enum ConnectionMode {
   Compact = 0,
   Embed = 1,
 }
+
+/** Unicode emojis for numbers */
+export const numberEmojis = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
 
 export default {
   isDevBuild: process.env.NODE_ENV === 'development',
