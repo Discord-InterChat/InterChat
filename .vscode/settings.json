@@ -10,5 +10,6 @@
   "sonarlint.connectedMode.project": {
     "connectionId": "discord-interchat",
     "projectKey": "Discord-InterChat_InterChat"
-  }
+  },
+  "codescene.previewCodeHealthMonitoring": true
 }

@@ -401,6 +401,25 @@ export default class HubCommand extends BaseCommand {
           },
         ],
       },
+      {
+        type: ApplicationCommandOptionType.SubcommandGroup,
+        name: 'blockwords',
+        description: 'Manage blocked words in your hub.',
+        options: [
+          {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: 'create',
+            description: 'Create a new blocked word rule to your hub.',
+            options: [hubOption],
+          },
+          {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: 'modify',
+            description: 'Modify an existing blocked word rule in your hub.',
+            options: [hubOption],
+          },
+        ],
+      },
     ],
   };
 
@@ -416,7 +435,7 @@ export default class HubCommand extends BaseCommand {
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const managerCmds = ['edit', 'settings', 'invite', 'moderator', 'logging', 'appeal'];
+    const managerCmds = ['edit', 'settings', 'invite', 'moderator', 'logging', 'appeal', 'blockwords'];
     const modCmds = ['servers'];
 
     const subcommand = interaction.options.getSubcommand();

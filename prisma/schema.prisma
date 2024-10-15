@@ -89,18 +89,18 @@ model ServerInfraction {
   @@index([serverId, hubId, status])
 }
 
+// TODO: major refactor needed for mode and profFilter thing
 model connectedList {
   id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  mode       Int       @default(0) // 0 = compact, 1 = embed
   channelId  String    @unique // channel can be thread, or a normal channel
-  parentId   String? // ID of the parent channel, if it's a thread @map("parentChannelId")
+  parentId   String? // ID of the parent channel, if it's a thread
   serverId   String
-  connected  Boolean
-  compact    Boolean
   invite     String?
-  profFilter Boolean
   embedColor String?
   webhookURL String
   lastActive DateTime? @default(now())
+  // TODO: rename to createdAt
   date       DateTime  @default(now())
   hub        Hub?      @relation(fields: [hubId], references: [id])
   hubId      String    @db.ObjectId
@@ -121,16 +121,30 @@ model Hub {
   appealCooldownHours Int                @default(168) // 7 days
   createdAt           DateTime           @default(now())
   settings            Int // each bit is a setting
-  // all the stuff below is relations to other collections
+  // relations
   invites             HubInvite[]
   moderators          HubModerator[]
   connections         connectedList[]
   logConfig           HubLogConfig[]
+  msgBlockList        MessageBlockList[]
   originalMessages    originalMessages[]
   userInfractions     UserInfraction[]
   serverInfractions   ServerInfraction[]
 
   @@index([id, name, ownerId])
+}
+
+model MessageBlockList {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  words     String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  hub       Hub      @relation(fields: [hubId], references: [id])
+  hubId     String   @db.ObjectId
+
+  @@index([id, words])
 }
 
 model HubLogConfig {
@@ -147,7 +161,7 @@ model HubLogConfig {
 }
 
 model HubInvite {
-  code      String   @id @default(nanoid(10)) @map("_id")
+  code    String   @id @default(nanoid(10)) @map("_id")
   expires DateTime
   hub     Hub      @relation(fields: [hubId], references: [id])
   hubId   String   @db.ObjectId

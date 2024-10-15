@@ -26,6 +26,7 @@ import {
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
   Collection,
+  Interaction,
   time,
 } from 'discord.js';
 
@@ -174,5 +175,10 @@ export default abstract class BaseCommand {
     Logger.debug(`Adding interactions for command: ${command.data.name}`);
     MetadataHandler.loadMetadata(command, map);
     Logger.debug(`Finished adding interactions for command: ${command.data.name}`);
+  }
+
+  protected async getLocale(interaction: Interaction): Promise<supportedLocaleCodes> {
+    const { userManager } = interaction.client;
+    return await userManager.getUserLocale(interaction.user.id);
   }
 }
