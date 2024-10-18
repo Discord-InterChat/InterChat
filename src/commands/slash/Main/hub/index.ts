@@ -414,8 +414,20 @@ export default class HubCommand extends BaseCommand {
           },
           {
             type: ApplicationCommandOptionType.Subcommand,
-            name: 'modify',
-            description: 'Modify an existing blocked word rule in your hub.',
+            name: 'edit',
+            description: 'Edit an existing blocked word rule in your hub.',
+            options: [hubOption, {
+              type: ApplicationCommandOptionType.String,
+              name: 'rule',
+              description: 'The name of the rule you want to edit.',
+              required: true,
+              autocomplete: true,
+            }],
+          },
+          {
+            type: ApplicationCommandOptionType.Subcommand,
+            name: 'list',
+            description: 'View all blocked word rules for a hub.',
             options: [hubOption],
           },
         ],
