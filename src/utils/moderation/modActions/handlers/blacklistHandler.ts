@@ -5,7 +5,6 @@ import UserInfractionManager from '#main/managers/InfractionManager/UserInfracti
 import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
-import { logBlacklist } from '#utils/HubLogger/ModLogs.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
@@ -159,8 +158,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
         reason,
       }).catch(() => null);
 
-      await logBlacklist(originalMsg.hubId, interaction.client, {
-        target: user,
+      await blacklistManager.log(originalMsg.hubId, interaction.client, {
         mod: interaction.user,
         reason,
         expiresAt,
@@ -234,8 +232,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     await deleteConnections({ serverId: originalMsg.guildId, hubId: originalMsg.hubId });
 
     if (server) {
-      await logBlacklist(originalMsg.hubId, interaction.client, {
-        target: server.id,
+      await blacklistManager.log(originalMsg.hubId, interaction.client, {
         mod: interaction.user,
         reason,
         expiresAt,

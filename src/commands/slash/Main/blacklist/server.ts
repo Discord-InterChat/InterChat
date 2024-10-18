@@ -1,13 +1,13 @@
 import { emojis } from '#main/config/Constants.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
+import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
-import { logBlacklist, logServerUnblacklist } from '#utils/HubLogger/ModLogs.js';
+import { logServerUnblacklist } from '#utils/HubLogger/ModLogs.js';
 import { t } from '#utils/Locale.js';
+import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';
 import ms from 'ms';
 import BlacklistCommand from './index.js';
-import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
-import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
-import BlacklistManager from '#main/managers/BlacklistManager.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -65,10 +65,9 @@ export default class extends BlacklistCommand {
       await deleteConnections({ serverId, hubId: hub.id });
 
       // send log to hub's log channel
-      await logBlacklist(hub.id, interaction.client, {
-        target: serverId,
-        mod: interaction.user,
+      await blacklistManager.log(hub.id, interaction.client, {
         reason,
+        mod: interaction.user,
         expiresAt: expires,
       });
     }

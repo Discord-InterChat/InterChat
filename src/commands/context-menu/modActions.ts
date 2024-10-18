@@ -67,7 +67,6 @@ export default class BlacklistCtxMenu extends BaseCommand {
       return;
     }
 
-    console.log(originalMsg);
     const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
 
     await interaction.editReply({ embeds: [embed], components: buttons });

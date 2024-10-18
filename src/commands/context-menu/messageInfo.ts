@@ -376,7 +376,6 @@ export default class MessageInfo extends BaseCommand {
     const target = interaction.targetMessage;
     const originalMsg =
       (await getOriginalMessage(target.id)) ?? (await findOriginalMessage(target.id));
-    console.log(originalMsg);
     const hub = await this.fetchHub(originalMsg?.hubId);
 
     return { target, locale, originalMsg, hub };

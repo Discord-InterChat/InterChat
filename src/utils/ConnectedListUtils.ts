@@ -110,12 +110,10 @@ export const fetchConnection = async (channelId: string) => {
 };
 
 export const getConnectionHubId = async (channelId: string) => {
-  const start = performance.now();
   const { data } = await getCachedData(`${RedisKeys.connectionHubId}:${channelId}`, async () => {
     const connection = await fetchConnection(channelId);
     return connection ? { id: connection.hubId } : null;
   });
-  console.log(`Took ${performance.now() - start}ms to fetch connection`);
 
   return data?.id ?? null;
 };

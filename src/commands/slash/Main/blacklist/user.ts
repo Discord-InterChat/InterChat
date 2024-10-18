@@ -1,7 +1,7 @@
 import { emojis } from '#main/config/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import { logBlacklist, logUserUnblacklist } from '#utils/HubLogger/ModLogs.js';
+import { logUserUnblacklist } from '#utils/HubLogger/ModLogs.js';
 import { t } from '#utils/Locale.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import { UserInfraction } from '@prisma/client';
@@ -51,8 +51,7 @@ export default class extends BlacklistCommand {
       );
 
       // send log to hub's log channel
-      await logBlacklist(hub.id, interaction.client, {
-        target: user,
+      await blacklistManager.log(hub.id, interaction.client, {
         mod: interaction.user,
         reason,
         expiresAt: expires,
