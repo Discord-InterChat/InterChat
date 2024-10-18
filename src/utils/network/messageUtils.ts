@@ -118,3 +118,17 @@ export const findOriginalMessage = async (broadcastedMessageId: string) => {
 export const storeMessageTimestamp = async (message: Message) => {
   await getRedis().hset(`${RedisKeys.msgTimestamp}`, message.channelId, message.createdTimestamp);
 };
+
+export const deleteMessageCache = async (originalMsgId: Snowflake) => {
+  const redis = getRedis();
+  const original = await getOriginalMessage(originalMsgId);
+  if (!original) return 0;
+
+  // delete broadcats, reverse lookups and original message
+  const broadcats = Object.values(await getBroadcasts(originalMsgId, original.hubId));
+  await redis.del(`${RedisKeys.broadcasts}:${originalMsgId}:${original.hubId}`);
+  await redis.del(broadcats.map((b) => `${RedisKeys.messageReverse}:${b.messageId}`)); // multi delete
+  const count = await redis.del(`${RedisKeys.message}:${originalMsgId}`);
+
+  return count;
+};
