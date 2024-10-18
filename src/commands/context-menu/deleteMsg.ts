@@ -59,12 +59,8 @@ export default class DeleteMessage extends BaseCommand {
       `${emojis.yes} Your request has been queued. Messages will be deleted shortly...`,
     );
 
-    const broadcasts = await getBroadcasts(originalMsg.messageId, originalMsg.hubId);
-    const { deletedCount } = await deleteMessageFromHub(
-      hub.id,
-      originalMsg.messageId,
-      Object.values(broadcasts),
-    );
+    const broadcasts = Object.values(await getBroadcasts(originalMsg.messageId, originalMsg.hubId));
+    const { deletedCount } = await deleteMessageFromHub(hub.id, originalMsg.messageId, broadcasts);
 
     await interaction
       .editReply(

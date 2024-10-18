@@ -3,7 +3,7 @@ import getRedis from '#utils/Redis.js';
 import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { Snowflake, WebhookClient } from 'discord.js';
-import { Broadcast } from '#main/utils/network/messageUtils.js';
+import { Broadcast, deleteMessageCache } from '#main/utils/network/messageUtils.js';
 
 export const setDeleteLock = async (messageId: string) => {
   const key = `${RedisKeys.msgDeleteInProgress}:${messageId}` as const;
@@ -33,6 +33,7 @@ export const deleteMessageFromHub = async (
   }
 
   await getRedis().del(`${RedisKeys.msgDeleteInProgress}:${originalMsgId}`);
+  deleteMessageCache(originalMsgId);
   return { deletedCount };
 };
 
