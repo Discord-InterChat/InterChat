@@ -152,7 +152,7 @@ connection:
       ### {tick_emoji} Papasız Bağlantı
 
        {channel} için Papasız Bağlantı! Hub'dan gelen mesajlar kanala gelmeye başlayacak ve hub'a tekrar mesaj gönderebilirsiniz.
-    tips: '**💡 İPUCU:** Bağlantıyı duraklatmak için {pause_cmd} kullanın veya gömme renkleri ayarlamak, küfür filtresini ve daha fazlasını ayarlamak için {customize_cmd}.'
+    tips: '**💡 İPUCU:** Bağlantıyı duraklatmak için {pause_cmd} kullanın veya gömme renkleri ayarlamak, küfür filtresini ve daha fazlasını ayarlamak için {edit_cmd}.'
   paused:
     desc: |-
       ### {clock_emoji} duraklatılmış bağlantı

@@ -154,7 +154,7 @@ connection:
 
       Unpaused connection for {channel}! Messages from the hub will start coming into the channel and you can send messages to the hub again.
     tips: |
-      **💡 Tip:** Use {pause_cmd} to pause the connection or {customize_cmd} to set embed colors, toggle profanity filter, and more.
+      **💡 Tip:** Use {pause_cmd} to pause the connection or {edit_cmd} to set embed colors, toggle profanity filter, and more.
   paused:
     desc: |
       ### {clock_emoji} Paused Connection

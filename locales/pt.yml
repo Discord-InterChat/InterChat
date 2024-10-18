@@ -152,7 +152,7 @@ connection:
       ### {tick_emoji} Conexão ativada
 
        Conexão ativada para {channel}! As mensagens do hub começarão a aparecer no canal, e você poderá enviar mensagens para o hub novamente.
-    tips: '**💡 Dica:** Use {pause_cmd} para pausar a conexão ou {customize_cmd} para definir cores, ativar/desativar o filtro de palavrões e muito mais.'
+    tips: '**💡 Dica:** Use {pause_cmd} para pausar a conexão ou {edit_cmd} para definir cores, ativar/desativar o filtro de palavrões e muito mais.'
   paused:
     desc: |-
       ### {clock_emoji} Conexão pausada

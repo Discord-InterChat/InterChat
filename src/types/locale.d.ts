@@ -72,7 +72,7 @@ export type TranslationKeys = {
   'connection.embed.footer': never;
   'connection.selects.placeholder': never;
   'connection.unpaused.desc': 'tick_emoji' | 'channel';
-  'connection.unpaused.tips': 'pause_cmd' | 'customize_cmd';
+  'connection.unpaused.tips': 'pause_cmd' | 'edit_cmd';
   'connection.paused.desc': 'clock_emoji' | 'channel';
   'connection.paused.tips': 'unpause_cmd' | 'leave_cmd';
   'hub.notFound': 'emoji';
