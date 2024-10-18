@@ -38,23 +38,6 @@ export const getOriginalMessage = async (originalMsgId: string) => {
   return res;
 };
 
-/** Deletes original messages, broadcasted messages and reverse lookups.
- * This is a single method as keeping any one of the three lingering will cause data inconsistencies.
- *
- */
-export const deleteMessageCache = async (originalMsgId: Snowflake) => {
-  const redis = getRedis();
-  const original = await getOriginalMessage(originalMsgId);
-  if (!original) return 0;
-
-  await redis.del(`${RedisKeys.message}:${originalMsgId}`);
-
-  // delete broadcats and reverse lookups
-  const broadcats = Object.values(await getBroadcasts(originalMsgId, original.hubId));
-  await redis.del(`${RedisKeys.broadcasts}:${originalMsgId}:${original.hubId}`);
-  await redis.del(broadcats.map((b) => `${RedisKeys.messageReverse}:${b.messageId}`));
-};
-
 export const addBroadcasts = async (
   hubId: string,
   originalMsgId: Snowflake,
