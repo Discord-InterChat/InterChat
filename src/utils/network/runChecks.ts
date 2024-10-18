@@ -3,20 +3,18 @@ import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { analyzeImageForNSFW, isImageUnsafe } from '#main/modules/NSFWDetection.js';
+import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import db from '#utils/Db.js';
 import { isHubMod } from '#utils/hub/utils.js';
-import { logBlacklist } from '#utils/HubLogger/ModLogs.js';
 import logProfanity from '#utils/HubLogger/Profanity.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
+import { createRegexFromWords } from '#utils/moderation/blockedWords.js';
 import { sendWelcomeMsg } from '#utils/network/helpers.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';
 import { containsInviteLinks, replaceLinks } from '#utils/Utils.js';
 import { Hub, MessageBlockList } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { Awaitable, EmbedBuilder, Message } from 'discord.js';
-import { runAntiSpam } from './antiSpam.js';
-import { createRegexFromWords } from '#utils/moderation/blockedWords.js';
 
 interface CheckResult {
   passed: boolean;
@@ -142,26 +140,30 @@ function checkLinks(message: Message<true>, opts: CheckFunctionOpts): CheckResul
 
 async function checkSpam(message: Message<true>, opts: CheckFunctionOpts): Promise<CheckResult> {
   const { settings, hub } = opts;
-  const antiSpamResult = runAntiSpam(message.author, 3);
-  if (settings.getSetting('SpamFilter') && antiSpamResult && antiSpamResult.infractions >= 3) {
-    const expiresAt = new Date(Date.now() + 60 * 5000);
-    const reason = 'Auto-blacklisted for spamming.';
-    const target = message.author;
-    const mod = message.client.user;
+  const result = await message.client.antiSpamManager.handleMessage(message);
+  if (settings.getSetting('SpamFilter') && result) {
+    if (result.messageCount >= 6) {
+      const expiresAt = new Date(Date.now() + 60 * 5000);
+      const reason = 'Auto-blacklisted for spamminag.';
+      const target = message.author;
+      const mod = message.client.user;
 
-    const blacklistManager = new BlacklistManager(new UserInfractionManager(target.id));
-    await blacklistManager.addBlacklist({ hubId: hub.id, reason, expiresAt, moderatorId: mod.id });
+      const blacklistManager = new BlacklistManager(new UserInfractionManager(target.id));
+      await blacklistManager.addBlacklist({
+        hubId: hub.id,
+        reason,
+        expiresAt,
+        moderatorId: mod.id,
+      });
 
-    await logBlacklist(hub.id, message.client, { target, mod, reason, expiresAt }).catch(
-      () => null,
-    );
-
-    await sendBlacklistNotif('user', message.client, {
-      target,
-      hubId: hub.id,
-      expiresAt,
-      reason,
-    }).catch(() => null);
+      await blacklistManager.log(hub.id, message.client, { mod, reason, expiresAt });
+      await sendBlacklistNotif('user', message.client, {
+        target,
+        hubId: hub.id,
+        expiresAt,
+        reason,
+      }).catch(() => null);
+    }
 
     await message.react(emojis.timeout).catch(() => null);
     return { passed: false };
@@ -260,7 +262,7 @@ async function checkNSFW(message: Message<true>, opts: CheckFunctionOpts): Promi
   const { attachmentURL } = opts;
   if (attachmentURL && Constants.Regex.StaticImageUrl.test(attachmentURL)) {
     const predictions = await analyzeImageForNSFW(attachmentURL);
-    if (predictions.length > 0 && isImageUnsafe(predictions[0])) {
+    if (isImageUnsafe(predictions.at(0))) {
       const nsfwEmbed = new EmbedBuilder()
         .setColor(Constants.Colors.invisible)
         .setDescription(
