@@ -16,13 +16,13 @@ export default class Connection extends BaseCommand {
 
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'connection',
-    description: 'Pause, unpause or customize your connections to other hubs for this server.',
+    description: 'Pause, unpause or edit your connections to hubs in this server.',
     default_member_permissions: PermissionFlagsBits.ManageMessages.toString(),
     dm_permission: false,
     options: [
       {
         type: ApplicationCommandOptionType.Subcommand,
-        name: 'customize',
+        name: 'edit',
         description: 'Set embed colors, profanity filter, compact mode and more!',
         options: [
           {

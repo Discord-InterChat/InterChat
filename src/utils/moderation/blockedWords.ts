@@ -47,12 +47,12 @@ export const buildBlockWordsListEmbed = (rules: MessageBlockList[]) =>
     )
     .setFooter({ text: 'Click the button below to add more words' });
 
-export const buildModifyBlockedWordsBtn = (hubId: string, rules: MessageBlockList[]) =>
+export const buildEditBlockedWordsBtn = (hubId: string, rules: MessageBlockList[]) =>
   new ActionRowBuilder<ButtonBuilder>().addComponents(
     rules.map(({ id, name }, index) =>
       new ButtonBuilder()
-        .setCustomId(new CustomID('blockwordsButton:modify', [hubId, id]).toString())
-        .setLabel(`Modify ${name}`)
+        .setCustomId(new CustomID('blockwordsButton:edit', [hubId, id]).toString())
+        .setLabel(`Edit ${name}`)
         .setEmoji(numberEmojis[index + 1])
         .setStyle(ButtonStyle.Secondary),
     ),

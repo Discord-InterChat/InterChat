@@ -9,8 +9,8 @@ import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
 import {
   buildChannelSelect,
-  buildCustomizeEmbed,
-  buildCustomizeSelect,
+  buildEditEmbed,
+  buildEditSelect,
 } from '#utils/network/buildConnectionAssets.js';
 import { getOrCreateWebhook } from '#utils/Utils.js';
 import {
@@ -25,7 +25,7 @@ import {
 } from 'discord.js';
 import Connection from './index.js';
 
-export default class Customize extends Connection {
+export default class ConnectionEditCommand extends Connection {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply();
 
@@ -53,13 +53,13 @@ export default class Customize extends Connection {
 
     const iconURL = interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString();
 
-    const embed = await buildCustomizeEmbed(channelId, iconURL, locale);
-    const customizeSelect = buildCustomizeSelect(channelId, interaction.user.id, locale);
+    const embed = await buildEditEmbed(channelId, iconURL, locale);
+    const editSelect = buildEditSelect(channelId, interaction.user.id, locale);
     const channelSelect = buildChannelSelect(channelId, interaction.user.id);
 
     await interaction.editReply({
       embeds: [embed],
-      components: [channelSelect, customizeSelect],
+      components: [channelSelect, editSelect],
     });
 
     setComponentExpiry(
@@ -133,7 +133,7 @@ export default class Customize extends Connection {
     await interaction.message
       ?.edit({
         embeds: [
-          await buildCustomizeEmbed(
+          await buildEditEmbed(
             customId.args[0],
             interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
             locale,
@@ -228,7 +228,7 @@ export default class Customize extends Connection {
         break;
     }
 
-    const newEmbeds = await buildCustomizeEmbed(
+    const newEmbeds = await buildEditEmbed(
       channelId,
       interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
       locale,
@@ -288,18 +288,18 @@ export default class Customize extends Connection {
       { channelId: newChannel.id, webhookURL: newWebhook?.url },
     );
 
-    const customizeSelect = buildCustomizeSelect(newChannel.id, interaction.user.id, locale);
+    const editSelect = buildEditSelect(newChannel.id, interaction.user.id, locale);
     const channelSelect = buildChannelSelect(newChannel.id, interaction.user.id);
 
     await interaction.editReply({
       embeds: [
-        await buildCustomizeEmbed(
+        await buildEditEmbed(
           newChannel.id,
           interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
           locale,
         ),
       ],
-      components: [channelSelect, customizeSelect],
+      components: [channelSelect, editSelect],
     });
   }
 }

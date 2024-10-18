@@ -8,11 +8,12 @@ import { t } from '#utils/Locale.js';
 import {
   buildBlockWordsListEmbed,
   buildBlockWordsModal,
-  buildModifyBlockedWordsBtn,
+  buildEditBlockedWordsBtn,
   sanitizeWords,
 } from '#utils/moderation/blockedWords.js';
 import { Hub, MessageBlockList } from '@prisma/client';
 import {
+  RepliableInteraction,
   type ButtonInteraction,
   type ChatInputCommandInteraction,
   type ModalSubmitInteraction,
@@ -32,8 +33,12 @@ export default class BlockWordCommand extends HubCommand {
     }
 
     switch (interaction.options.getSubcommand()) {
-      case 'modify':
-        await this.handleModifySubcommand(interaction, hub);
+      case 'edit':
+        // TODO: add actions lul
+        await this.handleEditSubcommand(interaction, hub);
+        break;
+      case 'list':
+        await this.handleList(interaction, hub);
         break;
       case 'create':
         await this.handleAdd(interaction, hub);
@@ -43,8 +48,8 @@ export default class BlockWordCommand extends HubCommand {
     }
   }
 
-  @RegisterInteractionHandler('blockwordsButton', 'modify')
-  async handleModifyButtons(interaction: ButtonInteraction) {
+  @RegisterInteractionHandler('blockwordsButton', 'edit')
+  async handleEditButtons(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId, ruleId] = customId.args;
 
@@ -106,24 +111,33 @@ export default class BlockWordCommand extends HubCommand {
     }
   }
 
-  private async handleModifySubcommand(
+  private async handleEditSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: Hub & { msgBlockList: MessageBlockList[] },
   ) {
     const blockWords = hub.msgBlockList;
 
     if (!blockWords.length) {
-      await this.replyEmbed(
-        interaction,
-        'No block word rules are in this hub yet. Use `/hub blockwords add` to add some.',
-        { ephemeral: true },
-      );
+      await this.replyWithNotFound(interaction);
       return;
     }
 
     const embed = buildBlockWordsListEmbed(blockWords);
-    const buttons = buildModifyBlockedWordsBtn(hub.id, blockWords);
+    const buttons = buildEditBlockedWordsBtn(hub.id, blockWords);
     await interaction.reply({ embeds: [embed], components: [buttons] });
+  }
+
+  private async handleList(
+    interaction: ChatInputCommandInteraction,
+    hub: Hub & { msgBlockList: MessageBlockList[] },
+  ) {
+    if (!hub.msgBlockList) {
+      await this.replyWithNotFound(interaction);
+      return;
+    }
+
+    const embed = buildBlockWordsListEmbed(hub.msgBlockList);
+    await interaction.reply({ embeds: [embed] });
   }
 
   private async handleAdd(interaction: ChatInputCommandInteraction | ButtonInteraction, hub: Hub) {
@@ -133,5 +147,14 @@ export default class BlockWordCommand extends HubCommand {
 
   private async fetchHub({ id, name }: { id?: string; name?: string }) {
     return await db.hub.findFirst({ where: { id, name }, include: { msgBlockList: true } });
+  }
+
+  private async replyWithNotFound(interaction: RepliableInteraction) {
+    await this.replyEmbed(
+      interaction,
+      'No block word rules are in this hub yet. Use `/hub blockwords add` to add some.',
+      { ephemeral: true },
+    );
+    return;
   }
 }
