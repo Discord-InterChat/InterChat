@@ -118,7 +118,7 @@ export default class ConnectionEditCommand extends Connection {
 
       await updateConnection(
         { channelId: customId.args[0] },
-        { embedColor: embedColor ? embedColor : { unset: true } },
+        { embedColor: embedColor ?? { unset: true } },
       );
 
       await interaction.reply({

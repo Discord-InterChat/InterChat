@@ -155,6 +155,5 @@ export default class BlockWordCommand extends HubCommand {
       'No block word rules are in this hub yet. Use `/hub blockwords add` to add some.',
       { ephemeral: true },
     );
-    return;
   }
 }
