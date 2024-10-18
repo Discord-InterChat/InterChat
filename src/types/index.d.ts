@@ -1,8 +1,9 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { InteractionFunction } from '#main/decorators/Interaction.ts';
+import AntiSpamManager from '#main/managers/AntiSpamManager.js';
+import UserDbManager from '#main/managers/UserDbManager.js';
 import CooldownService from '#main/modules/CooldownService.js';
 import Scheduler from '#main/modules/SchedulerService.js';
-import UserDbManager from '#main/managers/UserDbManager.js';
 import { ClusterClient } from 'discord-hybrid-sharding';
 import {
   Collection,
@@ -31,6 +32,7 @@ declare module 'discord.js' {
     readonly reactionCooldowns: Collection<string, number>;
     readonly cluster: ClusterClient<Client>;
     readonly userManager: UserDbManager;
+    readonly antiSpamManager: AntiSpamManager;
 
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;

@@ -15,7 +15,7 @@ export const analyzeImageForNSFW = async (imageURL: string): Promise<predictionT
   });
 
   const data = await res.json();
-  if (res.status !== 200) throw new Error(`Failed to analyze image: ${data}`);
+  if (res.status !== 200) throw new Error('Failed to analyze image:', data);
   return data;
 };
 
@@ -24,5 +24,7 @@ export const analyzeImageForNSFW = async (imageURL: string): Promise<predictionT
  * @param predictions The predictions to check
  * @returns Whether the predictions are unsafe
  */
-export const isImageUnsafe = (prediction: predictionType, minConfidence = 90): boolean =>
-  prediction.is_nsfw && prediction.confidence_percentage >= minConfidence;
+export const isImageUnsafe = (
+  prediction: predictionType | undefined,
+  minConfidence = 80,
+): boolean => Boolean(prediction?.is_nsfw && prediction.confidence_percentage >= minConfidence);

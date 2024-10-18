@@ -1,14 +1,15 @@
 import Constants from '#main/config/Constants.js';
 import type BaseCommand from '#main/core/BaseCommand.js';
 import type { InteractionFunction } from '#main/decorators/Interaction.js';
+import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import CooldownService from '#main/modules/CooldownService.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import Scheduler from '#main/modules/SchedulerService.js';
+import type { RemoveMethods } from '#types/index.d.ts';
 import { loadCommandFiles, loadInteractions } from '#utils/CommandUtils.js';
 import { loadLocales } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
-import type { RemoveMethods } from '#types/index.d.ts';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {
   type Guild,
@@ -38,6 +39,11 @@ export default class InterChatClient extends Client {
   readonly commandCooldowns = new CooldownService();
   public readonly commands = new Collection<string, BaseCommand>();
   public readonly interactions = new Collection<string, InteractionFunction>();
+  public readonly antiSpamManager = new AntiSpamManager({
+    spamThreshold: 4,
+    timeWindow: 5000,
+    spamCountExpirySecs: 60,
+  });
 
   constructor() {
     super({
