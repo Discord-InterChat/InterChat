@@ -62,8 +62,8 @@ export default class Help extends BaseCommand {
       - </hub join:1107639810014847049>・Join a public or private hub using its name or invite.
       - </hub browse:1107639810014847049>・Find public hubs and join them.
       - </hub create:1107639810014847049>・Make your own hub and invite others to join.
-      - </hub manage:1107639810014847049>・Customize and manage your hubs.
-      - </connection:1170719616872501300>・Manage your connections. You can choose an embed color, customize hub icons, switch to a compact mode and more.
+      - </hub edit:1107639810014847049> Edit your hub configuration.
+      - </connection:1170719616872501300>・Manage your connections. You can choose an embed color, edit hub icons, switch to a compact mode and more.
 
       ${emojis.info} You can view other commands aside from these by typing  /.
     `);

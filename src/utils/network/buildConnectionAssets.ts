@@ -15,7 +15,7 @@ import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { stripIndents } from 'common-tags';
 import { CustomID } from '#utils/CustomID.js';
 
-export const buildCustomizeEmbed = async (
+export const buildEditEmbed = async (
   channelId: string,
   iconURL: string | undefined,
   locale: supportedLocaleCodes = 'en',
@@ -68,7 +68,7 @@ export const buildCustomizeEmbed = async (
     .setFooter({ text: t('connection.embed.footer', locale) });
 };
 
-export const buildCustomizeSelect = (
+export const buildEditSelect = (
   channelId: Snowflake,
   userIdFilter: Snowflake,
   locale: supportedLocaleCodes = 'en',

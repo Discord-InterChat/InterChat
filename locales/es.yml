@@ -153,7 +153,7 @@ connection:
       ### {tick_emoji} Conexión sin aliento
 
        Conexión no puesta para {channel}! Los mensajes del Hub comenzarán a entrar al canal y puede enviar mensajes al Hub nuevamente.
-    tips: '**💡 Tip:** use {pause_cmd} para pausar la conexión o {customize_cmd} para configurar los colores de incrustación, alternar el filtro de blasfemias y más.'
+    tips: '**💡 Tip:** use {pause_cmd} para pausar la conexión o {edit_cmd} para configurar los colores de incrustación, alternar el filtro de blasfemias y más.'
   paused:
     desc: |-
       ### {clock_emoji} Conexión pausada

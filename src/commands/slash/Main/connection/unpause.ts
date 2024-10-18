@@ -66,12 +66,12 @@ export default class Unpause extends Connection {
     await updateConnection({ channelId }, { connected: true, webhookURL: webhook.url });
 
     let pause_cmd = '`/connection pause`';
-    let customize_cmd = '`/connection customize`';
+    let edit_cmd = '`/connection edit`';
 
     const command = findCommand('connection', await fetchCommands(interaction.client));
     if (command) {
       pause_cmd = slashCmdMention('connection', 'pause', command.id);
-      customize_cmd = slashCmdMention('connection', 'customize', command.id);
+      edit_cmd = slashCmdMention('connection', 'edit', command.id);
     }
 
     await this.replyEmbed(
@@ -82,7 +82,7 @@ export default class Unpause extends Connection {
       }),
       {
         edit: true,
-        content: t('connection.unpaused.tips', locale, { pause_cmd, customize_cmd }),
+        content: t('connection.unpaused.tips', locale, { pause_cmd, edit_cmd }),
       },
     );
   }

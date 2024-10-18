@@ -152,7 +152,7 @@ connection:
       ### {tick_emoji} connexion non utilisée
 
        Connexion non utilisée pour {channel}! Les messages du centre commenceront à entrer dans la chaîne et vous pouvez envoyer à nouveau des messages au centre.
-    tips: '**💡 Astuce:** Utilisez {pause_cmd} pour suspendre la connexion ou {customize_cmd} pour définir les couleurs intégrées, basculer le filtre de profanité, et plus encore.'
+    tips: '**💡 Astuce:** Utilisez {pause_cmd} pour suspendre la connexion ou {edit_cmd} pour définir les couleurs intégrées, basculer le filtre de profanité, et plus encore.'
   paused:
     desc: |-
       ### {clock_emoji} connexion en pause
