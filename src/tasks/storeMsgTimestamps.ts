@@ -9,7 +9,6 @@ export default async () => {
   const timestampsObj = await getRedis().hgetall(`${RedisKeys.msgTimestamp}`);
 
   Object.entries(timestampsObj).forEach(async ([channelId, timestamp]) => {
-    console.log(timestamp);
     await updateConnection({ channelId }, { lastActive: new Date(parseInt(timestamp)) });
     Logger.debug(`Stored message timestamps for channel ${channelId} from cache to db.`);
     await getRedis().hdel(`${RedisKeys.msgTimestamp}`, channelId);

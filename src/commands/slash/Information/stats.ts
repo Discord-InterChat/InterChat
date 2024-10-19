@@ -21,7 +21,7 @@ import getRedis from '#main/utils/Redis.js';
 export default class Stats extends BaseCommand {
   override readonly data = {
     name: 'stats',
-    description: 'View InterChat\'s statistics.',
+    description: '📊 View InterChat\'s statistics.',
     integration_types: [0, 1], // 0 = GUILD_INSTALL, 1 = USER_INSTALL
     contexts: [0, 1, 2], // 0 = GUILD, 1 = BOT_DM, 2 = PRIVATE_CHANNEL
   };

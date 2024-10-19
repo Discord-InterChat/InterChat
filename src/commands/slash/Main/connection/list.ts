@@ -4,9 +4,9 @@ import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import { connectedList, Hub } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
-import HubCommand from './index.js';
+import ConnectionCommand from './index.js';
 
-export default class Joined extends HubCommand {
+export default class extends ConnectionCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const connections = await db.connectedList.findMany({
       where: { serverId: interaction.guild?.id },

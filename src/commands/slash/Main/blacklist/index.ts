@@ -50,7 +50,7 @@ export default class BlacklistCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'user',
-            description: 'Blacklist a user from using your hub.',
+            description: '🚫👤 Blacklist a user from using your hub.',
             options: [
               {
                 type: ApplicationCommandOptionType.User,
@@ -70,7 +70,7 @@ export default class BlacklistCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'server',
-            description: 'Blacklist a server from using your hub.',
+            description: '🚫🏠 Blacklist a server from using your hub.',
             options: [
               {
                 type: ApplicationCommandOptionType.String,
@@ -97,7 +97,7 @@ export default class BlacklistCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'user',
-            description: 'Remove a user from the blacklist.',
+            description: '🧹🚫 Remove a user from the blacklist.',
             options: [
               { ...this.hubOpt, required: true },
               {
@@ -112,7 +112,7 @@ export default class BlacklistCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'server',
-            description: 'Remove a server from the blacklist.',
+            description: '🧹🚫 Remove a server from the blacklist.',
             options: [
               { ...this.hubOpt, required: true },
               {
@@ -129,7 +129,7 @@ export default class BlacklistCommand extends BaseCommand {
       {
         type: ApplicationCommandOptionType.Subcommand,
         name: 'list',
-        description: 'List all blacklists for your hub.',
+        description: '📝 List all blacklists for your hub.',
         options: [
           {
             type: ApplicationCommandOptionType.String,

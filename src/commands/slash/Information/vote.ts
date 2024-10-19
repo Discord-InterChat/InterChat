@@ -14,7 +14,7 @@ import {
 export default class Vote extends BaseCommand {
   readonly data = {
     name: 'vote',
-    description: 'Voting perks and vote link.',
+    description: '✨ Voting perks and vote link.',
   };
   async execute(interaction: ChatInputCommandInteraction) {
     const { id } = interaction.user;

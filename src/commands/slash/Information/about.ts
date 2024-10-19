@@ -14,7 +14,7 @@ import {
 export default class About extends BaseCommand {
   public readonly data: CmdData = {
     name: 'about',
-    description: 'Learn more about the InterChat team and project.',
+    description: '🚀 Learn more about the InterChat team and project.',
   };
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();

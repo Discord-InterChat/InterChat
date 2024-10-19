@@ -6,7 +6,7 @@ import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 export default class Rules extends BaseCommand {
   readonly data = {
     name: 'rules',
-    description: 'Sends the network rules for InterChat.',
+    description: '📋 Sends the network rules for InterChat.',
   };
   async execute(interaction: ChatInputCommandInteraction) {
     const { userManager } = interaction.client;

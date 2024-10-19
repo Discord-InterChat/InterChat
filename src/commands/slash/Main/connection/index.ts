@@ -23,7 +23,7 @@ export default class Connection extends BaseCommand {
       {
         type: ApplicationCommandOptionType.Subcommand,
         name: 'edit',
-        description: 'Set embed colors, profanity filter, compact mode and more!',
+        description: '📝 Set embed colors, profanity filter, compact mode and more!',
         options: [
           {
             type: ApplicationCommandOptionType.String,
@@ -37,7 +37,7 @@ export default class Connection extends BaseCommand {
       {
         type: ApplicationCommandOptionType.Subcommand,
         name: 'unpause',
-        description: 'Unpause the connection to a joined hub.',
+        description: '▶️ Unpause the connection to a joined hub.',
         options: [
           {
             type: ApplicationCommandOptionType.String,
@@ -51,7 +51,7 @@ export default class Connection extends BaseCommand {
       {
         type: ApplicationCommandOptionType.Subcommand,
         name: 'pause',
-        description: 'Temporarily stop messages from coming into any channel connected to a hub.',
+        description: '⏸️ Temporarily stop messages from coming into any channel connected to a hub.',
         options: [
           {
             type: ApplicationCommandOptionType.String,
@@ -61,6 +61,11 @@ export default class Connection extends BaseCommand {
             autocomplete: true,
           },
         ],
+      },
+      {
+        type: ApplicationCommandOptionType.Subcommand,
+        name: 'list',
+        description: '📜 List all hubs you have joined/are connected to in this server.',
       },
     ],
   };

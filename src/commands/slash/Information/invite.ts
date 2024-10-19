@@ -6,7 +6,7 @@ import { t } from '#utils/Locale.js';
 export default class Invite extends BaseCommand {
   readonly data = {
     name: 'invite',
-    description: 'Invite me to your server!',
+    description: '👋 Invite me to your server!',
   };
   async execute(interaction: ChatInputCommandInteraction) {
     const { userManager } = interaction.client;
