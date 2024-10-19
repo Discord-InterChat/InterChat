@@ -139,7 +139,7 @@ export default class HubCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'add',
-            description: 'Add a new hub moderator',
+            description: '👮 Add a new hub moderator',
             options: [
               {
                 type: ApplicationCommandOptionType.String,
@@ -169,7 +169,7 @@ export default class HubCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'remove',
-            description: 'Remove a user from moderator position in your hub',
+            description: '🧹 Remove a user from moderator position in your hub',
             options: [
               hubOption,
               {
@@ -182,20 +182,20 @@ export default class HubCommand extends BaseCommand {
           },
           {
             type: ApplicationCommandOptionType.Subcommand,
-            name: 'update',
-            description: 'Update the position of a hub moderator',
+            name: 'edit',
+            description: '📝 Update the position of a hub moderator',
             options: [
               hubOption,
               {
                 type: ApplicationCommandOptionType.User,
                 name: 'user',
-                description: 'The moderator you wish the change',
+                description: 'The mod you want to edit.',
                 required: true,
               },
               {
                 type: ApplicationCommandOptionType.String,
                 name: 'position',
-                description: 'The moderator position to update',
+                description: 'The moderator position to change.',
                 required: true,
                 choices: [
                   { name: 'Network Moderator', value: 'network_mod' },
@@ -207,7 +207,7 @@ export default class HubCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'list',
-            description: 'List all moderators on a hub',
+            description: '📜 List all moderators on a hub',
             options: [{ ...hubOption }],
           },
         ],
@@ -253,7 +253,7 @@ export default class HubCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'list',
-            description: 'List all moderators on a hub',
+            description: '📜 List all moderators on a hub',
             options: [
               {
                 type: ApplicationCommandOptionType.String,
@@ -267,11 +267,6 @@ export default class HubCommand extends BaseCommand {
         ],
       },
       {
-        type: ApplicationCommandOptionType.Subcommand,
-        name: 'joined',
-        description: '📜 List all hubs you have joined from this server.',
-      },
-      {
         name: 'settings',
         description:
           'Manage the toggleable settings of the hub. (eg. Reactions, Spam filter, etc.)',
@@ -279,13 +274,13 @@ export default class HubCommand extends BaseCommand {
         options: [
           {
             name: 'list',
-            description: 'List all the settings of the hub.',
+            description: '🔎 List all the settings of the hub.',
             type: ApplicationCommandOptionType.Subcommand,
             options: [{ ...hubOption, required: false }],
           },
           {
             name: 'toggle',
-            description: 'Toggle a setting of the hub.',
+            description: '⚡⚙️ Toggle a setting of the hub.',
             type: ApplicationCommandOptionType.Subcommand,
             options: [
               {
@@ -308,12 +303,12 @@ export default class HubCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'view',
-            description: 'View the current log channel & role configuration.',
+            description: '🔎 View the current log channel & role configuration.',
             options: [{ ...hubOption, required: false }],
           },
           {
             name: 'set_channel',
-            description: 'Set a channel for a log type.',
+            description: '💾 Set a channel for a log type.',
             type: ApplicationCommandOptionType.Subcommand,
             options: [
               {
@@ -334,7 +329,7 @@ export default class HubCommand extends BaseCommand {
           },
           {
             name: 'set_role',
-            description: 'Set a role for a log type.',
+            description: '🏷️ Set a role for a log type.',
             type: ApplicationCommandOptionType.Subcommand,
             options: [
               {
@@ -358,12 +353,12 @@ export default class HubCommand extends BaseCommand {
       {
         type: ApplicationCommandOptionType.SubcommandGroup,
         name: 'appeal',
-        description: 'Manage appeal settings for your hub.',
+        description: '⚖️ Manage appeal settings for your hub.',
         options: [
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'set_cooldown',
-            description: 'Set the duration a user must wait before appealing a blacklist again.',
+            description: '⌛ Set the duration a user must wait before appealing a blacklist again.',
             options: [
               {
                 type: ApplicationCommandOptionType.String,
@@ -379,7 +374,7 @@ export default class HubCommand extends BaseCommand {
       {
         type: ApplicationCommandOptionType.Subcommand,
         name: 'infractions',
-        description: 'View infractions for a user or server in a hub.',
+        description: '🚩 View infractions for a user or server in a hub.',
         options: [
           hubOption,
           {
@@ -409,13 +404,13 @@ export default class HubCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'create',
-            description: 'Create a new blocked word rule to your hub.',
+            description: '🧱 Create a new blocked word rule to your hub.',
             options: [hubOption],
           },
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'edit',
-            description: 'Edit an existing blocked word rule in your hub.',
+            description: '📝 Edit an existing blocked word rule in your hub.',
             options: [hubOption, {
               type: ApplicationCommandOptionType.String,
               name: 'rule',
@@ -427,7 +422,7 @@ export default class HubCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'list',
-            description: 'View all blocked word rules for a hub.',
+            description: '📜 View all blocked word rules for a hub.',
             options: [hubOption],
           },
         ],

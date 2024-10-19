@@ -19,7 +19,7 @@ export default class Set extends BaseCommand {
     options: [
       {
         name: 'language',
-        description: 'Set the language in which I should respond to you',
+        description: '🈂️ Set the language in which I should respond to you',
         type: ApplicationCommandOptionType.Subcommand,
         options: [
           {
@@ -39,7 +39,7 @@ export default class Set extends BaseCommand {
       },
       {
         name: 'reply_mentions',
-        description: 'Get pinged when someone replies to your messages.',
+        description: '🔔 Get pinged when someone replies to your messages.',
         type: ApplicationCommandOptionType.Subcommand,
         options: [
           {

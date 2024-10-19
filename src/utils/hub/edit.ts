@@ -21,7 +21,7 @@ export const actionsSelect = (hubId: string, userId: string, locale: supportedLo
           label: t('hub.manage.description.selects.label', locale),
           value: 'description',
           description: t('hub.manage.description.selects.description', locale),
-          emoji: '✏️',
+          emoji: '📝',
         },
         {
           label: t('hub.manage.visibility.selects.label', locale),

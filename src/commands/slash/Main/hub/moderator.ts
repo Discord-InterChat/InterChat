@@ -33,8 +33,8 @@ export default class Moderator extends HubCommand {
       case 'remove':
         await this.handleRemoveSubcommand(interaction, hub, locale);
         break;
-      case 'update':
-        await this.handleUpdateSubcommand(interaction, hub, locale);
+      case 'edit':
+        await this.handleEditSubcommand(interaction, hub, locale);
         break;
       case 'list':
         await this.handleListSubcommand(interaction, hub, locale);
@@ -90,7 +90,7 @@ export default class Moderator extends HubCommand {
     );
   }
 
-  private async handleUpdateSubcommand(
+  private async handleEditSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: Hub,
     locale: supportedLocaleCodes,

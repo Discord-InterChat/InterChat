@@ -7,7 +7,7 @@ import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 export default class Help extends BaseCommand {
   readonly data = {
     name: 'help',
-    description: 'Shows the help menu for InterChat.',
+    description: '💡 Shows the help menu for InterChat.',
   };
 
   async execute(interaction: ChatInputCommandInteraction) {
