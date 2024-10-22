@@ -4,7 +4,7 @@
 */
 
 export type TranslationKeys = {
-  rules: 'support_invite';
+  rules: never;
   'vote.description': never;
   'vote.footer': never;
   'network.accountTooNew': 'emoji' | 'user';
@@ -31,22 +31,6 @@ export type TranslationKeys = {
   'msgInfo.buttons.server': never;
   'msgInfo.buttons.user': never;
   'msgInfo.buttons.report': never;
-  'msgInfo.message.description': 'emoji' | 'author' | 'server' | 'messageId' | 'hub' | 'createdAt';
-  'msgInfo.server.description':
-    | 'server'
-    | 'description'
-    | 'owner'
-    | 'createdAtFull'
-    | 'createdAt'
-    | 'memberCount'
-    | 'invite';
-  'msgInfo.user.description':
-    | 'username'
-    | 'id'
-    | 'createdAtFull'
-    | 'createdAt'
-    | 'globalName'
-    | 'hubsOwned';
   'msgInfo.report.notEnabled': 'emoji';
   'msgInfo.report.success': 'emoji';
   invite: 'invite_emoji' | 'invite' | 'support_emoji' | 'support';

@@ -14,7 +14,7 @@ import Connection from './index.js';
 
 export default class Unpause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    const channelId = interaction.options.getString('channel', true);
+    const channelId = interaction.options.getString('channel') ?? interaction.channelId;
     const connected = await db.connectedList.findFirst({ where: { channelId } });
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
@@ -74,16 +74,10 @@ export default class Unpause extends Connection {
       edit_cmd = slashCmdMention('connection', 'edit', command.id);
     }
 
-    await this.replyEmbed(
-      interaction,
-      t('connection.unpaused.desc', locale, {
-        tick_emoji: emojis.tick,
-        channel: channelMention(channelId),
-      }),
-      {
-        edit: true,
-        content: t('connection.unpaused.tips', locale, { pause_cmd, edit_cmd }),
-      },
-    );
+    await this.replyEmbed(interaction, 'connection.unpaused.desc', {
+      t: { tick_emoji: emojis.tick, channel: channelMention(channelId) },
+      edit: true,
+      content: `-# ${t('connection.unpaused.tips', locale, { pause_cmd, edit_cmd })}`,
+    });
   }
 }

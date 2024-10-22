@@ -17,9 +17,10 @@ import { type WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
  */
 export const sendToHub = async (hubId: string, message: string | WebhookMessageCreateOptions) => {
   const connections = await getHubConnections(hubId);
+  if (!connections?.length) return;
 
-  connections?.forEach(async ({ channelId, webhookURL, parentId, connected }) => {
-    if (!connected) return;
+  for (const { channelId, webhookURL, parentId, connected } of connections) {
+    if (!connected) continue;
 
     const threadId = parentId ? channelId : undefined;
     const payload =
@@ -27,7 +28,7 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
 
     try {
       const webhook = new WebhookClient({ url: webhookURL });
-      await webhook.send(payload);
+      await webhook.send({ ...payload, allowedMentions: { parse: [] } });
     }
     catch (e) {
       const validErrors = [
@@ -41,7 +42,7 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
       e.message = `For Connection: ${channelId} ${e.message}`;
       Logger.error(e);
     }
-  });
+  };
 };
 
 export const deleteHubs = async (ids: string[]) => {
@@ -58,3 +59,7 @@ export const isHubMod = (userId: string, hub: Hub) =>
 
 export const isStaffOrHubMod = (userId: string, hub: Hub) =>
   checkIfStaff(userId) || isHubMod(userId, hub);
+
+export const isHubManager = (userId: string, hub: Hub) =>
+  hub.ownerId === userId ||
+  hub.moderators.find((mod) => mod.userId === userId && mod.position === 'manager');
