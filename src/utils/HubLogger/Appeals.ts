@@ -24,7 +24,7 @@ export const logAppeals = async (
     fields: {
       blacklistedFor: string;
       unblacklistReason: string;
-      extras?: string;
+      extras: string;
     };
   },
 ) => {
@@ -47,7 +47,7 @@ export const logAppeals = async (
       },
       {
         name: 'Anything else you would like to add?',
-        value: codeBlock(opts.fields.extras ?? 'N/A'),
+        value: codeBlock(opts.fields.extras.length < 1 ? 'N/A' : opts.fields.extras),
         inline: false,
       },
     )

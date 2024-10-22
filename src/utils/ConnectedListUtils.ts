@@ -1,110 +1,89 @@
 import { RedisKeys } from '#main/config/Constants.js';
-import Logger from '#utils/Logger.js';
 import getRedis from '#utils/Redis.js';
 import type { connectedList, Prisma } from '@prisma/client';
 import db from '#utils/Db.js';
-import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
+import { cacheData, getCachedData } from '#utils/CacheUtils.js';
+import isEmpty from 'lodash/isEmpty.js';
 
 type whereUniuqeInput = Prisma.connectedListWhereUniqueInput;
 type whereInput = Prisma.connectedListWhereInput;
 type dataInput = Prisma.connectedListUpdateInput;
-type ConnectionOperation = 'create' | 'modify' | 'delete';
+type CachedConnection = ConvertDatesToString<connectedList>;
 
-const purgeConnectionCache = async (channelId: string) =>
-  await getRedis().del(`${RedisKeys.connectionHubId}:${channelId}`);
-
-const serializeConnection = (connection: ConvertDatesToString<connectedList>) => ({
+const convertToConnectedList = (connection: CachedConnection): connectedList => ({
   ...connection,
   date: new Date(connection.date),
   lastActive: connection.lastActive ? new Date(connection.lastActive) : null,
 });
 
 /**
- * @param where Specify filter to force fetch from the db
+ * This includes both connected and disconnected connections
  */
-export const getHubConnections = async (hubId: string) => {
-  const connections =
-    (await getCachedData(
-      `${RedisKeys.hubConnections}:${hubId}`,
-      async () => await db.connectedList.findMany({ where: { hubId } }),
-      5 * 60, // 5 mins
-    )) ?? [];
+export const getHubConnections = async (hubId: string): Promise<connectedList[]> => {
+  const redis = getRedis();
+  const key = `${RedisKeys.hubConnections}:${hubId}`;
+  const cached = await redis.hgetall(key);
 
-  return connections.data?.map(serializeConnection) || null;
+  if (!isEmpty(cached)) {
+    const cachedData = Object.values(cached).map((c) => convertToConnectedList(JSON.parse(c)));
+    return cachedData;
+  }
+
+  const fromDb = await db.connectedList.findMany({ where: { hubId } });
+  const keyValuePairs = fromDb.flatMap((c) => [c.id, JSON.stringify(c)]);
+  await redis.hset(key, keyValuePairs);
+  await redis.expire(key, 10 * 60 * 1000); // 10 minutes
+
+  return fromDb;
 };
 
-export const syncHubConnCache = async (
-  connection: connectedList,
-  operation: ConnectionOperation,
-) => {
-  const start = performance.now();
-  const hubConnections = await getHubConnections(connection.hubId);
+export const cacheHubConnection = async (connection: connectedList) => {
+  const redis = getRedis();
+  const cached = await redis.hlen(`${RedisKeys.hubConnections}:${connection.hubId}`);
 
-  const totalConnections = hubConnections?.length ?? 0;
-  Logger.debug(
-    `[HubConnectionSync]: Started syncing ${totalConnections} hub connections with operation: ${operation}...`,
+  if (!cached) {
+    await getHubConnections(connection.hubId);
+    return;
+  }
+
+  await getRedis().hset(
+    `${RedisKeys.hubConnections}:${connection.hubId}`,
+    connection.id,
+    JSON.stringify(connection),
   );
+};
 
-  if (hubConnections && hubConnections?.length > 0) {
-    let updatedConnections = hubConnections;
-    switch (operation) {
-      case 'create':
-        updatedConnections = updatedConnections.concat(connection);
-        break;
-      case 'modify': {
-        const index = updatedConnections.findIndex((c) => c.id === connection.id);
+const purgeConnectionCache = async (channelId: string) =>
+  await getRedis().del(`${RedisKeys.connectionHubId}:${channelId}`);
 
-        if (index !== -1) updatedConnections[index] = connection;
-        else updatedConnections = updatedConnections.concat(connection);
+const cacheConnectionHubId = async (...connections: connectedList[]) => {
+  const keysToDelete: string[] = [];
+  const cachePromises: Promise<void>[] = [];
 
-        break;
-      }
-      case 'delete':
-        updatedConnections = updatedConnections.filter((conn) => conn.id !== connection.id);
-        break;
-      default:
-        return;
+  // Single pass through the data
+  for (const { connected, channelId, hubId } of connections) {
+    const key = `${RedisKeys.connectionHubId}:${channelId}`;
+
+    if (!connected) {
+      keysToDelete.push(key);
     }
-
-    await cacheData(
-      `${RedisKeys.hubConnections}:${connection.hubId}`,
-      JSON.stringify(updatedConnections),
-    );
+    else {
+      cachePromises.push(cacheData(key, JSON.stringify({ id: hubId })));
+    }
   }
 
-  Logger.debug(
-    `[HubConnectionSync]: Finished syncing ${totalConnections} hub connections with operation ${operation} in ${performance.now() - start}ms`,
-  );
-};
-
-const cacheConnectionHubId = async (
-  ...args: {
-    connected: boolean;
-    channelId: string;
-    hubId: string;
-  }[]
-) => {
-  const notConnectedArgs = args.filter((arg) => !arg.connected);
-  if (notConnectedArgs.length > 0) {
-    await getRedis().del(
-      notConnectedArgs.map((arg) => `${RedisKeys.connectionHubId}:${arg.channelId}`),
-    );
-  }
-  else {
-    args
-      .filter((arg) => Boolean(arg.connected))
-      .forEach(async ({ channelId, hubId }) => {
-        await cacheData(`${RedisKeys.connectionHubId}:${channelId}`, JSON.stringify({ id: hubId }));
-      });
-  }
+  // Execute operations in parallel
+  const deletePromise = keysToDelete.length > 0 ? getRedis().del(keysToDelete) : undefined;
+  const promises = deletePromise ? [...cachePromises, deletePromise] : cachePromises;
+  await Promise.all(promises);
 };
 
 export const fetchConnection = async (channelId: string) => {
   const connection = await db.connectedList.findFirst({ where: { channelId } });
   if (!connection) return null;
 
-  cacheConnectionHubId(connection);
-  syncHubConnCache(connection, 'modify');
+  await cacheConnectionHubId(connection);
+  await cacheHubConnection(connection);
 
   return connection;
 };
@@ -126,8 +105,8 @@ export const deleteConnection = async (where: whereUniuqeInput) => {
 
 export const createConnection = async (data: Prisma.connectedListCreateInput) => {
   const connection = await db.connectedList.create({ data });
-  cacheConnectionHubId(connection);
-  syncHubConnCache(connection, 'create');
+  await cacheConnectionHubId(connection);
+  await cacheHubConnection(connection);
 
   return connection;
 };
@@ -141,11 +120,14 @@ export const deleteConnections = async (where: whereInput) => {
     where: { id: { in: connections.map((i) => i.id) } },
   });
 
-  // TODO: Make a way to bulk update hubConnCache
   // repopulate cache
   connections.forEach(async (connection) => {
     await purgeConnectionCache(connection.channelId);
-    await syncHubConnCache(connection, 'delete');
+    await getRedis().hdel(
+      `${RedisKeys.hubConnections}:${connection.hubId}`,
+      connection.id,
+      JSON.stringify(connection),
+    );
   });
 
   return deletedCounts;
@@ -157,7 +139,7 @@ export const updateConnection = async (where: whereUniuqeInput, data: dataInput)
 
   // Update cache
   await cacheConnectionHubId(connection);
-  await syncHubConnCache(connection, 'modify');
+  await cacheHubConnection(connection);
 
   return connection;
 };
@@ -168,7 +150,7 @@ export const updateConnections = async (where: whereInput, data: dataInput) => {
 
   db.connectedList.findMany({ where }).then(async (connections) => {
     await cacheConnectionHubId(...connections);
-    connections.forEach(async (connection) => await syncHubConnCache(connection, 'modify'));
+    connections.forEach(cacheHubConnection);
   });
 
   return updated;
