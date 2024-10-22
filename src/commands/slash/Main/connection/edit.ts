@@ -29,9 +29,9 @@ export default class ConnectionEditCommand extends Connection {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply();
 
-    const channelId = interaction.options
-      .getString('channel', true)
-      .replace(Constants.Regex.ChannelMention, '');
+    const channelId =
+      interaction.options.getString('channel')?.replace(Constants.Regex.ChannelMention, '') ??
+      interaction.channelId;
 
     const isInDb = await db.connectedList.findFirst({ where: { channelId } });
     const { userManager } = interaction.client;
