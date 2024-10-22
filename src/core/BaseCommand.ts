@@ -1,6 +1,7 @@
 import { emojis } from '#main/config/Constants.js';
 import { MetadataHandler } from '#main/core/FileLoader.js';
 import { InteractionFunction } from '#main/decorators/Interaction.js';
+import { TranslationKeys } from '#main/types/locale.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';
@@ -125,10 +126,11 @@ export default abstract class BaseCommand {
     }
   }
 
-  async replyEmbed(
+  async replyEmbed<K extends keyof TranslationKeys>(
     interaction: RepliableInteraction | MessageComponentInteraction,
-    desc: string,
+    desc: K | (string & {}),
     opts?: {
+      t?: { [Key in TranslationKeys[K]]: string };
       content?: string;
       title?: string;
       color?: ColorResolvable;
@@ -141,7 +143,14 @@ export default abstract class BaseCommand {
       edit?: boolean;
     },
   ): Promise<InteractionResponse | Message> {
-    const embed = new InfoEmbed().setDescription(desc).setTitle(opts?.title);
+    let description = desc as string;
+
+    if (t(desc as K, 'en', opts?.t)) {
+      const locale = await this.getLocale(interaction);
+      description = t(desc as keyof TranslationKeys, locale);
+    }
+
+    const embed = new InfoEmbed().setDescription(description).setTitle(opts?.title);
     const message = { content: opts?.content, embeds: [embed], components: opts?.components };
 
     if (opts?.edit) return await interaction.editReply(message);
@@ -177,7 +186,9 @@ export default abstract class BaseCommand {
     Logger.debug(`Finished adding interactions for command: ${command.data.name}`);
   }
 
-  protected async getLocale(interaction: Interaction): Promise<supportedLocaleCodes> {
+  protected async getLocale(
+    interaction: Interaction | MessageComponentInteraction,
+  ): Promise<supportedLocaleCodes> {
     const { userManager } = interaction.client;
     return await userManager.getUserLocale(interaction.user.id);
   }
