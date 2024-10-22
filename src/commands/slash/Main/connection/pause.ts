@@ -13,7 +13,7 @@ import Connection from './index.js';
 
 export default class Pause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    const channelId = interaction.options.getString('channel', true);
+    const channelId = interaction.options.getString('channel') ?? interaction.channelId;
     const connected = await db.connectedList.findFirst({ where: { channelId } });
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
@@ -46,7 +46,7 @@ export default class Pause extends Connection {
       : '`/connection unpause`';
     const leave_cmd = hubCmd ? slashCmdMention('hub', 'leave', hubCmd.id) : '`/hub leave`';
 
-    const successEmbed = new InfoEmbed().setDescription(
+    const successEmbed = new InfoEmbed().removeTitle().setDescription(
       t('connection.paused.desc', locale, {
         clock_emoji: emojis.timeout,
         channel: channelMention(channelId),
