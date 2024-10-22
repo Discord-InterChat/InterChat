@@ -128,7 +128,7 @@ export default abstract class BaseCommand {
 
   async replyEmbed<K extends keyof TranslationKeys>(
     interaction: RepliableInteraction | MessageComponentInteraction,
-    desc: K | (string & {}),
+    desc: K | (string & NonNullable<unknown>),
     opts?: {
       t?: { [Key in TranslationKeys[K]]: string };
       content?: string;
