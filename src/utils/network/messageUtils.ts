@@ -69,9 +69,9 @@ export const addBroadcasts = async (
   // Add all broadcasts to the hash in a single operation
   await redis
     .multi()
-    .hset(broadcastsKey, ...broadcastEntries)
+    .hset(broadcastsKey, broadcastEntries)
     .expire(broadcastsKey, 86400)
-    .mset(...reverseLookups)
+    .mset(reverseLookups)
     .exec();
 
   reverseLookups
