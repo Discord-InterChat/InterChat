@@ -1,6 +1,6 @@
 import { RedisKeys } from '#main/config/Constants.js';
 import getRedis from '#utils/Redis.js';
-import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
+import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { Snowflake, WebhookClient } from 'discord.js';
 import { Broadcast, deleteMessageCache } from '#main/utils/network/messageUtils.js';
