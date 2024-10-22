@@ -43,15 +43,8 @@ export default class AppealCommand extends HubCommand {
   }
 
   private async runHubChecks(interaction: ChatInputCommandInteraction) {
-    const hubName = interaction.options.getString('hub') ?? undefined;
-    const hub = await db.hub.findFirst({
-      where: {
-        OR: [
-          { name: hubName },
-          { moderators: { some: { OR: [{ position: 'manager' }, { position: 'network_mod' }] } } },
-        ],
-      },
-    });
+    const hubName = interaction.options.getString('hub', true);
+    const hub = await db.hub.findFirst({ where: { name: hubName } });
 
     if (!hub || !isHubMod(interaction.user.id, hub)) {
       await this.replyEmbed(

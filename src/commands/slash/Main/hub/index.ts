@@ -42,13 +42,7 @@ export default class HubCommand extends BaseCommand {
         name: 'browse',
         description: '🔍 Browse public hubs and join them!',
         options: [
-          {
-            type: ApplicationCommandOptionType.String,
-            name: 'hub',
-            description: 'Search for a hub.',
-            required: false,
-            autocomplete: true,
-          },
+          { ...hubOption, required: false },
           {
             type: ApplicationCommandOptionType.String,
             name: 'sort',
@@ -85,7 +79,7 @@ export default class HubCommand extends BaseCommand {
               ChannelType.PrivateThread,
             ],
           },
-          { ...hubOption, required: false },
+          { ...hubOption },
           {
             type: ApplicationCommandOptionType.String,
             name: 'invite',
@@ -276,7 +270,7 @@ export default class HubCommand extends BaseCommand {
             name: 'list',
             description: '🔎 List all the settings of the hub.',
             type: ApplicationCommandOptionType.Subcommand,
-            options: [{ ...hubOption, required: false }],
+            options: [{ ...hubOption }],
           },
           {
             name: 'toggle',
@@ -290,7 +284,7 @@ export default class HubCommand extends BaseCommand {
                 required: true,
                 choices: Object.keys(HubSettingsBits).map((s) => ({ name: s, value: s })),
               },
-              { ...hubOption, required: false },
+              { ...hubOption },
             ],
           },
         ],
@@ -304,7 +298,7 @@ export default class HubCommand extends BaseCommand {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'view',
             description: '🔎 View the current log channel & role configuration.',
-            options: [{ ...hubOption, required: false }],
+            options: [{ ...hubOption }],
           },
           {
             name: 'set_channel',
@@ -324,7 +318,7 @@ export default class HubCommand extends BaseCommand {
                 type: ApplicationCommandOptionType.Channel,
                 required: true,
               },
-              { ...hubOption, required: false },
+              { ...hubOption },
             ],
           },
           {
@@ -345,7 +339,7 @@ export default class HubCommand extends BaseCommand {
                 type: ApplicationCommandOptionType.Role,
                 required: true,
               },
-              { ...hubOption, required: false },
+              { ...hubOption },
             ],
           },
         ],
@@ -366,7 +360,7 @@ export default class HubCommand extends BaseCommand {
                 description: 'The duration. Eg. 1h, 1d, 1w, 1mo',
                 required: true,
               },
-              { ...hubOption, required: false },
+              { ...hubOption },
             ],
           },
         ],
@@ -411,13 +405,16 @@ export default class HubCommand extends BaseCommand {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'edit',
             description: '📝 Edit an existing blocked word rule in your hub.',
-            options: [hubOption, {
-              type: ApplicationCommandOptionType.String,
-              name: 'rule',
-              description: 'The name of the rule you want to edit.',
-              required: true,
-              autocomplete: true,
-            }],
+            options: [
+              hubOption,
+              {
+                type: ApplicationCommandOptionType.String,
+                name: 'rule',
+                description: 'The name of the rule you want to edit.',
+                required: true,
+                autocomplete: true,
+              },
+            ],
           },
           {
             type: ApplicationCommandOptionType.Subcommand,
@@ -426,6 +423,12 @@ export default class HubCommand extends BaseCommand {
             options: [hubOption],
           },
         ],
+      },
+      {
+        type: ApplicationCommandOptionType.Subcommand,
+        name: 'announce',
+        description: '📢 Send an announcement to a hub you moderate.',
+        options: [hubOption],
       },
     ],
   };
@@ -442,7 +445,16 @@ export default class HubCommand extends BaseCommand {
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const managerCmds = ['edit', 'settings', 'invite', 'moderator', 'logging', 'appeal', 'blockwords'];
+    const managerCmds = [
+      'edit',
+      'settings',
+      'invite',
+      'moderator',
+      'logging',
+      'appeal',
+      'blockwords',
+      'announce',
+    ];
     const modCmds = ['servers'];
 
     const subcommand = interaction.options.getSubcommand();
