@@ -61,8 +61,7 @@ const cacheConnectionHubId = async (...connections: connectedList[]) => {
   const cachePromises: Promise<void>[] = [];
 
   // Single pass through the data
-  for (let i = 0; i < connections.length; i++) {
-    const { connected, channelId, hubId } = connections[i];
+  for (const { connected, channelId, hubId } of connections) {
     const key = `${RedisKeys.connectionHubId}:${channelId}`;
 
     if (!connected) {
