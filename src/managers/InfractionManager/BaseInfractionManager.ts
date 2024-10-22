@@ -1,4 +1,4 @@
-import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
+import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import {
   InfractionStatus,
   InfractionType,

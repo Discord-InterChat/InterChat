@@ -1,5 +1,5 @@
 import { RedisKeys } from '#main/config/Constants.js';
-import { cacheData, getCachedData } from '#utils/cache/cacheUtils.js';
+import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import db from '#utils/Db.js';
 import { supportedLocaleCodes } from '#utils/Locale.js';
 import { Prisma, UserData } from '@prisma/client';

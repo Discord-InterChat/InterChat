@@ -1,6 +1,6 @@
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
-import handleBan from '#utils/banUtls/handleBan.js';
+import { handleBan } from '#utils/BanUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';
 import {
