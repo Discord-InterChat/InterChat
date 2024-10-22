@@ -2,7 +2,7 @@ import { emojis } from '#main/config/Constants.js';
 import Logger from '#utils/Logger.js';
 import type { RepliableInteraction, User } from 'discord.js';
 
-export default async (
+export const handleBan = async (
   interaction: RepliableInteraction,
   targetId: string,
   target: User | null,
