@@ -1,15 +1,15 @@
 rules: |
-  ### 📜 InterChat Rules
+  ## Rules:
 
-  1. **Use Common Sense:** Be considerate of others and their views. No slurs, extreme derogatory language or any actions that can disrupt the chat's comfort.
-  2. **No Spamming or Flooding:** Avoid repeated, nonsensical, or overly lengthy messages.
-  3. **Keep Private Matters Private:** Avoid sharing personal information across the network.
-  4. **No Harassment:** Trolling, insults, or harassment of any kind are not tolerated.
-  5. **No NSFW/NSFL Content:** Posting explicit NSFW/NSFL content will result in immediate blacklist.
-  6. **Respect Sensitive Topics:** Do not trivialize self-harm, suicide, violence, or other offensive topics.
-  7. **Report Concerns:** If you observe a violation of these rules, report it to the appropriate hub moderator or InterChat staff for further action.
+  * No NSFW or gore content  
+  * No sexual topics (this includes suggestive jokes)  
+  * Avoid using slurs  
+  * No advertising  
+  * No harassment, doxxing, encouraging self-harm, or initiating offensive topics  
+  * Avoid spamming, as it slows down the bot and may lead to stricter enforcement  
+  * No political discussions
 
-  Any questions? Join our [support server]({support_invite}).
+  Basically, just **use common sense**. If you're unsure whether something is allowed, it's best not to do it. Also abide by Discord's [ToS](https://discord.com/terms) and [Guidelines](https://discord.com/guidelines).
 vote:
   description: |
     By voting you support us by helping InterChat rank higher on botlist searches.
@@ -67,55 +67,6 @@ msgInfo:
     server: Server Info
     user: User Info
     report: Report
-  message:
-    description: |
-      ## {emoji} Message Info
-
-      **Sent By:**
-      __{author}__
-
-      **Sent From:**
-      __{server}__
-
-      **Message ID:**
-      __{messageId}__
-
-      **Sent In (Hub):**
-      __{hub}__
-
-      **Message Created:**
-      {createdAt}
-  server:
-    description: |
-      ## {server}
-      {description}
-
-      **Owner:**
-      __{owner}__
-
-      **Created:**
-      __{createdAtFull} ({createdAt})__
-
-      **Member Count:**
-      __{memberCount}__
-
-      **Invite:**
-      __{invite}__
-  user:
-    description: |
-      ## {username}
-
-      **ID:**
-      __{id}__
-
-      **Created:**
-      {createdAtFull} ({createdAt})
-
-      **Display Name:**
-      __{globalName}__
-
-      **Hubs Owned:**
-      __{hubsOwned}__
   report:
     notEnabled: '{emoji} Reporting is not enabled for this hub.'
     success: '{emoji} Report submitted successfully. Thank you!'

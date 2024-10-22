@@ -1,15 +1,3 @@
-rules: |-
-  ### 📜 Regras do InterChat
-
-   1. **Senso comum:** Respeite os outros e seus pontos de vista. Sem insultos, linguagem depreciativa extrema ou quaisquer ações que possam prejudicar o conforto do bate-papo.
-   2. **Sem spam ou flooding:** Evite mensagens repetidas, absurdas ou excessivamente longas.
-   3. **Mantenha informações pessoais privadas:** Evite compartilhar informações pessoais pela rede.
-   4. **Sem assédio:** Trollagens, insultos ou assédio de qualquer tipo não são tolerados.
-   5. **Sem Conteúdo NSFW/NSFL:** Postar conteúdo NSFW/NSFL explícito o colocará na lista negra de forma imediata.
-   6. **Respeite assuntos sensíveis:** Não banalize auto-mutilação, suicídio, violência ou outros assuntos que possam ser ofensivos.
-   7. **Denuncie violações:** Se você ver uma violação dessas regras, denuncie-a ao moderador apropriado do hub ou à equipe do InterChat para que sejam tomadas as medidas cabíveis.
-
-   Alguma dúvida? Entre em nosso [servidor de suporte]({support_invite}).
 vote:
   description: Ao votar, você nos apoia ajudando o InterChat a alcançar posições maiores nas listas de bots.
   footer: Obrigado(a) pelo apoio!
