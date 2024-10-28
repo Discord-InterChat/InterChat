@@ -1,18 +1,30 @@
 rules: |
-  ## Rules:
+  ### Rules:
+  These rules are in place to make a safe and enjoyable experience for everyone. Read and follow them carefully:
 
-  * No NSFW or gore content  
-  * No sexual topics (this includes suggestive jokes)  
-  * Avoid using slurs  
-  * No advertising  
-  * No harassment, doxxing, encouraging self-harm, or initiating offensive topics  
-  * Avoid spamming, as it slows down the bot and may lead to stricter enforcement  
-  * No political discussions
+  1. **No NSFW, NSFL, or Gore Content**  
+    -# Applies to profile images, usernames, explicit images, videos, and text.
+  2. **No Racism or Discrimination**  
+    -# Treat everyone respectfully and kindly. Hate speech and slurs are prohibited.
+  3. **No Sexual Content**  
+    -# This includes suggestive jokes, gifs, and any other form of innuendo. Keep it friendly for everyone.
+  4. **No Advertising or Self-Promotion**  
+    -# Avoid sharing links to personal servers, social media, or other bots on InterChat.
+  5. **No Harassment or Doxxing**  
+    -# Respect everyone’s privacy and well-being. Harassment, doxxing, and encouraging self-harm are strictly forbidden.
+  6. **No Spam or Flooding**  
+    -# Don’t send repetitive messages or flood the chat. Excessive spamming may result in harsher penalties and impacts bot performance.
+  7. **No Controversial Discussions**  
+    -# Maintain a friendly, welcoming environment for everyone. Avoid discussing politics, religion, or other controversial topics.
+  8. **Use Common Sense**  
+    -# If you think something might not be appropriate, avoid it.
+  9. **Report Violations**  
+    -# Use the `Apps > Message Info/Report` command to notify moderators of any rule-breaking content.
 
-  Basically, just **use common sense**. If you're unsure whether something is allowed, it's best not to do it. Also abide by Discord's [ToS](https://discord.com/terms) and [Guidelines](https://discord.com/guidelines).
+  And remember to follow [Discord's Terms of Service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines).
+
 vote:
-  description: |
-    By voting you support us by helping InterChat rank higher on botlist searches.
+  description: By voting you support us by helping InterChat rank higher on botlist searches.
   footer: Thank you for supporting!
 network:
   accountTooNew: '{emoji} {user} Your account is too new to send messages using InterChat. Please try again later.'
@@ -157,9 +169,9 @@ hub:
       To join, create an invite using `/hub invite create` and share the generated code. Then join using `/hub join`.
 
       - **Generate invite:** `/hub invite create`
-      - **Go public:** `/hub manage`
+      - **Make private:** `/hub visibility`
       - **Join hub:** `/hub join`
-      - **Edit hub:** `/hub manage`
+      - **Edit hub:** `/hub edit`
       - **Add moderators:** `/hub moderator add`
 
       Learn more about hubs in our [guide]({docs_link}). Join the [support server]({support_invite}) for help.
@@ -329,6 +341,7 @@ errors:
   unknown: '{emoji} An unknown error occurred. Please try again later or contact us by joining our [support server]({support_invite}).'
   notUsable: '{emoji} This is no longer usable.'
   cooldown: '{emoji} You are on cooldown. Please wait until **{time}** before attempting again.'
+  serverNameInappropriate: '{emoji} Your server name contains inappropriate words. Please change it before joining the hub.'
   banned: |
     {emoji} You have been banned from using InterChat for reason **{reason}**
     If you think an appeal is applicable create a ticket in the [support server]( {support_invite} ).
