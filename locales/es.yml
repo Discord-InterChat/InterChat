@@ -1,15 +1,3 @@
-rules: |
-  ### 📜 Reglas del InterChat
-
-  1. **Usa el sentido común:** Sea considerado con los demás y sus puntos de vista. Sin insultos, lenguaje despectivo extremo o cualquier acción que pueda interrumpir la comodidad del chat.
-  2. **Sin spam ni flood:** Evite enviar mensajes repetidos, sin sentido o demasiado largos.
-  3. **Mantenga los asuntos privados, privados:** Evite compartir información personal en toda la red.
-  4. **Sin acoso:** Los trolleos, insultos o el acoso de cualquier tipo no son tolerados.
-  5. **Sin contenido NSFW/+18:** La publicación de contenido explícito, NSFW/+18 dará como resultado una lista negra inmediata.
-  6. **Respeta los temas sensibles:** No trivialice la autolesión, el suicidio, la violencia u otros temas ofensivos.
-  7. **Reporte los problemas:** Si observa una violación de estas reglas, repórtalo al moderador del centro apropiado o al personal de InterChat para nuevas acciones.
-
-  ¿Alguna pregunta? Únete a nuestro [servidor de soporte]({support_invite}).
 vote:
   description: |
     ## Vote por Interchat
@@ -66,56 +54,6 @@ msgInfo:
     server: Información del servidor
     user: Información del usuario
     report: Reportar
-  message:
-    description: |
-      ## {emoji} Información del mensaje
-
-      **Enviado por:**
-      __{author}__
-
-      **Enviado desde:**
-      __{server}__
-
-      **ID de mensaje:**
-      __{messageId}__
-
-      **Enviado en (centro):**
-      __{hub}__
-
-      **Mensaje creado:**
-      {createdAt}
-  server:
-    description: |
-      ## {server}
-      {description}
-
-      **Dueño:**
-      __{owner}__
-
-      **Creado:**
-      __{createdAtFull} ({createdAt})__
-
-      **Número de miembros:**
-      __{memberCount}__
-
-      **Invitación:**
-      __{invite}__
-  user:
-    description: |
-      ## {username}
-      __{id}__
-
-      **Identificador:**
-      __{createdAtFull}__
-
-      **Creado:**
-      {createdAt} ({globalName})
-
-      **Nombre:**
-      __{hubsOwned}__
-
-      **Centros en propiedad:**
-      ____
   report:
     notEnabled: '{emoji} Este centro no tiene habilitado la acción de reportar.'
     success: '{emoji} Reporte enviado correctamente. ¡Gracias!'
