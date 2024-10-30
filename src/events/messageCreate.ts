@@ -1,6 +1,7 @@
 import { ConnectionMode } from '#main/config/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
 import { generateJumpButton as getJumpButton } from '#utils/ComponentUtils.js';
 import { getConnectionHubId, getHubConnections } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
@@ -20,7 +21,7 @@ import storeMessageData, { NetworkWebhookSendResult } from '#utils/network/store
 import type { BroadcastOpts, ReferredMsgData } from '#utils/network/Types.js';
 import { censor } from '#utils/ProfanityUtils.js';
 import { isHumanMessage, trimAndCensorBannedWebhookWords } from '#utils/Utils.js';
-import { connectedList, Hub } from '@prisma/client';
+import { connectedList, Hub, MessageBlockList } from '@prisma/client';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -34,7 +35,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
 
   async execute(message: Message) {
-    if (!this.isValidMessage(message)) return;
+    if (!message.inGuild() || !isHumanMessage(message)) return;
 
     const { connection, hubConnections } = await this.getConnectionAndHubConnections(message);
     if (!connection?.connected || !hubConnections) return;
@@ -58,10 +59,6 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     await this.processMessage(message, hub, hubConnections, settings, connection, attachmentURL);
   }
 
-  private isValidMessage(message: Message): message is Message<true> {
-    return message.inGuild() && isHumanMessage(message);
-  }
-
   private async getHub(hubId: string) {
     return await db.hub.findFirst({
       where: { id: hubId },
@@ -71,13 +68,16 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
   private async processMessage(
     message: Message<true>,
-    hub: Hub,
+    hub: Hub & { msgBlockList: MessageBlockList[] },
     hubConnections: connectedList[],
     settings: HubSettingsManager,
     connection: connectedList,
     attachmentURL: string | undefined,
   ) {
     message.channel.sendTyping().catch(() => null);
+
+    const { passed } = await checkBlockedWords(message, hub.msgBlockList);
+    if (!passed) return;
 
     const referredMessage = await this.fetchReferredMessage(message);
     const referredMsgData = await getReferredMsgData(referredMessage);
@@ -240,7 +240,6 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     connection: connectedList,
     referredMsgData?: ReferredMsgData,
   ): WebhookMessageCreateOptions {
-
     if (referredMsgData && connection.serverId === referredMsgData.dbReferrence?.guildId) {
       const { dbReferredAuthor, dbReferrence } = referredMsgData;
       const replyMention = `${getReplyMention(dbReferredAuthor)}`;
@@ -277,10 +276,9 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     const connectionHubId = await getConnectionHubId(message.channelId);
     if (!connectionHubId) return { connection: null, hubConnections: null };
 
-    const hubConnections = await getHubConnections(connectionHubId);
-
     let connection: connectedList | null = null;
     const filteredHubConnections: connectedList[] = [];
+    const hubConnections = await getHubConnections(connectionHubId);
 
     hubConnections?.forEach((conn) => {
       if (conn.channelId === message.channelId) connection = conn;

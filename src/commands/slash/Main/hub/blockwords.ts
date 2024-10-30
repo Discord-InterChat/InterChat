@@ -1,19 +1,22 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
 import { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { ACTION_LABELS, buildBlockWordsListEmbed } from '#main/utils/moderation/blockWords.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { t } from '#utils/Locale.js';
 import {
-  buildBlockWordsListEmbed,
+  buildBlockWordsActionsSelect,
+  buildBWRuleEmbed,
   buildBlockWordsModal,
-  buildEditBlockedWordsBtn,
+  buildBlockedWordsBtns,
   sanitizeWords,
-} from '#utils/moderation/blockedWords.js';
-import { Hub, MessageBlockList } from '@prisma/client';
+} from '#utils/moderation/blockWords.js';
+import { BlockWordAction, Hub, MessageBlockList } from '@prisma/client';
 import {
   RepliableInteraction,
+  StringSelectMenuInteraction,
   type ButtonInteraction,
   type ChatInputCommandInteraction,
   type ModalSubmitInteraction,
@@ -34,7 +37,6 @@ export default class BlockWordCommand extends HubCommand {
 
     switch (interaction.options.getSubcommand()) {
       case 'edit':
-        // TODO: add actions lul
         await this.handleEditSubcommand(interaction, hub);
         break;
       case 'list':
@@ -48,7 +50,7 @@ export default class BlockWordCommand extends HubCommand {
     }
   }
 
-  @RegisterInteractionHandler('blockwordsButton', 'edit')
+  @RegisterInteractionHandler('blockwordsButton', 'editWords')
   async handleEditButtons(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId, ruleId] = customId.args;
@@ -96,10 +98,17 @@ export default class BlockWordCommand extends HubCommand {
         return;
       }
 
-      await db.messageBlockList.create({
+      const rule = await db.messageBlockList.create({
         data: { hubId, name, createdBy: interaction.user.id, words: newWords },
       });
-      await interaction.editReply(`${emojis.yes} Rule added.`);
+
+      const embed = buildBWRuleEmbed(rule);
+      const buttons = buildBlockedWordsBtns(hub.id, rule.id);
+      await interaction.editReply({
+        content: `${emojis.yes} Rule added.`,
+        embeds: [embed],
+        components: [buttons],
+      });
     }
     else if (newWords.length === 0) {
       await db.messageBlockList.delete({ where: { id: ruleId } });
@@ -111,19 +120,66 @@ export default class BlockWordCommand extends HubCommand {
     }
   }
 
+  @RegisterInteractionHandler('blockwordsButton', 'configActions')
+  async handleConfigureActions(interaction: ButtonInteraction) {
+    const customId = CustomID.parseCustomId(interaction.customId);
+    const [hubId, ruleId] = customId.args;
+
+    const hub = await this.fetchHub({ id: hubId });
+    if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
+      const locale = await this.getLocale(interaction);
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), {
+        ephemeral: true,
+      });
+      return;
+    }
+
+    const rule = hub.msgBlockList.find((r) => r.id === ruleId);
+    if (!rule) {
+      await interaction.reply({ content: 'Rule not found', ephemeral: true });
+      return;
+    }
+
+    const selectMenu = buildBlockWordsActionsSelect(hubId, ruleId, rule.actions || []);
+    await interaction.reply({
+      content: `Configure actions for rule: ${rule.name}`,
+      components: [selectMenu],
+      ephemeral: true,
+    });
+  }
+
+  @RegisterInteractionHandler('blockwordsSelect', 'actions')
+  async handleActionSelection(interaction: StringSelectMenuInteraction) {
+    const customId = CustomID.parseCustomId(interaction.customId);
+    const ruleId = customId.args[1];
+    const selectedActions = interaction.values as BlockWordAction[];
+
+    await db.messageBlockList.update({
+      where: { id: ruleId },
+      data: { actions: selectedActions },
+    });
+
+    const actionLabels = selectedActions.map((action) => ACTION_LABELS[action]).join(', ');
+    await interaction.update({
+      content: `✅ Actions updated for rule: ${actionLabels}`,
+      components: [],
+    });
+  }
+
   private async handleEditSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: Hub & { msgBlockList: MessageBlockList[] },
   ) {
-    const blockWords = hub.msgBlockList;
+    const ruleName = interaction.options.getString('rule', true);
+    const rule = hub.msgBlockList.find((r) => r.name === ruleName);
 
-    if (!blockWords.length) {
+    if (!rule) {
       await this.replyWithNotFound(interaction);
       return;
     }
 
-    const embed = buildBlockWordsListEmbed(blockWords);
-    const buttons = buildEditBlockedWordsBtn(hub.id, blockWords);
+    const embed = buildBWRuleEmbed(rule);
+    const buttons = buildBlockedWordsBtns(hub.id, rule.id);
     await interaction.reply({ embeds: [embed], components: [buttons] });
   }
 
@@ -152,7 +208,7 @@ export default class BlockWordCommand extends HubCommand {
   private async replyWithNotFound(interaction: RepliableInteraction) {
     await this.replyEmbed(
       interaction,
-      'No block word rules are in this hub yet. Use `/hub blockwords add` to add some.',
+      'No block word rules are in this hub yet or selected rule name is invalid. Use `/hub blockwords add` to add some or `/hub blockwords list` to list all created rules.',
       { ephemeral: true },
     );
   }

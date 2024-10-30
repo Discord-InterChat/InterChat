@@ -8,7 +8,6 @@ import db from '#utils/Db.js';
 import { isHubMod } from '#utils/hub/utils.js';
 import logProfanity from '#utils/HubLogger/Profanity.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { createRegexFromWords } from '#utils/moderation/blockedWords.js';
 import { sendWelcomeMsg } from '#utils/network/helpers.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';
 import { containsInviteLinks, replaceLinks } from '#utils/Utils.js';
@@ -43,7 +42,6 @@ const checks: CheckFunction[] = [
   checkAttachments,
   checkNSFW,
   checkLinks,
-  checkBlockedWords,
 ];
 
 const replyToMsg = async (
@@ -178,20 +176,6 @@ function checkProfanityAndSlurs(message: Message<true>, { hub }: CheckFunctionOp
   }
 
   if (hasSlurs) return { passed: false };
-  return { passed: true };
-}
-
-function checkBlockedWords(message: Message<true>, { hub }: CheckFunctionOpts): CheckResult {
-  if (hub.msgBlockList.length === 0) return { passed: true };
-  const regex = createRegexFromWords(hub.msgBlockList.map((r) => r.words));
-  if (regex.test(message.content)) {
-    logProfanity(hub.id, message.content, message.author, message.guild);
-    return {
-      passed: false,
-      reason: 'Your message contains blocked words.',
-    };
-  }
-
   return { passed: true };
 }
 

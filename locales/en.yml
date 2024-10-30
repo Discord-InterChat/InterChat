@@ -296,6 +296,9 @@ hub:
       appeals:
         label: Appeals
         description: Recieve appeals from blacklisted users/servers.
+      networkAlerts:
+        label: Network Alerts
+        description: Recieve alerts about automatically blocked messages.
 report:
   modal:
     title: Report Details

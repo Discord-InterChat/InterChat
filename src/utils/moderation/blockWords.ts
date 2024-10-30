@@ -1,7 +1,8 @@
+// utils/moderation/blockedWords.ts
 import { emojis, numberEmojis } from '#main/config/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { MessageBlockList } from '@prisma/client';
+import { BlockWordAction, MessageBlockList } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   codeBlock,
@@ -11,7 +12,14 @@ import {
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
+  StringSelectMenuBuilder,
 } from 'discord.js';
+
+export const ACTION_LABELS = {
+  [BlockWordAction.BLOCK_MESSAGE]: '🚫 Block Message',
+  [BlockWordAction.SEND_ALERT]: '🔔 Send Alert',
+  [BlockWordAction.BLACKLIST]: '⛔ Blacklist User/Server',
+} as const;
 
 export function createRegexFromWords(words: string | string[]) {
   if (Array.isArray(words)) return createRegexFromWords(words.join(','));
@@ -44,18 +52,31 @@ export const buildBlockWordsListEmbed = (rules: MessageBlockList[]) =>
         name: `${numberEmojis[index + 1]}: ${name}`,
         value: codeBlock(words.replace(/\.\*/g, '*')),
       })),
-    )
-    .setFooter({ text: 'Click the button below to add more words' });
+    );
 
-export const buildEditBlockedWordsBtn = (hubId: string, rules: MessageBlockList[]) =>
+export const buildBWRuleEmbed = (rule: MessageBlockList) => {
+  const actions = rule.actions.map((a) => ACTION_LABELS[a]).join(', ');
+  return new InfoEmbed()
+    .removeTitle()
+    .setDescription(
+      stripIndents`
+          ### ${emojis.exclamation} Editing Rule: ${rule.name}
+          ${rule.words ? `**Blocked Words:**\n${codeBlock(rule.words.replace(/\.\*/g, '*'))}` : ''}
+          -# Configured Actions: **${actions.length > 0 ? actions : 'None. Configure using the button below.'}**
+          `,
+    )
+    .setFooter({ text: 'Click the button below to edit' });
+};
+export const buildBlockedWordsBtns = (hubId: string, ruleId: string) =>
   new ActionRowBuilder<ButtonBuilder>().addComponents(
-    rules.map(({ id, name }, index) =>
-      new ButtonBuilder()
-        .setCustomId(new CustomID('blockwordsButton:edit', [hubId, id]).toString())
-        .setLabel(`Edit ${name}`)
-        .setEmoji(numberEmojis[index + 1])
-        .setStyle(ButtonStyle.Secondary),
-    ),
+    new ButtonBuilder()
+      .setCustomId(new CustomID('blockwordsButton:configActions', [hubId, ruleId]).toString())
+      .setLabel('Configure Actions')
+      .setStyle(ButtonStyle.Secondary),
+    new ButtonBuilder()
+      .setCustomId(new CustomID('blockwordsButton:editWords', [hubId, ruleId]).toString())
+      .setLabel('Edit Words')
+      .setStyle(ButtonStyle.Secondary),
   );
 
 export const buildBlockWordsModal = (hubId: string, opts?: { presetRule: MessageBlockList }) => {
@@ -96,3 +117,23 @@ export const buildBlockWordsModal = (hubId: string, opts?: { presetRule: Message
 
   return modal;
 };
+
+export const buildBlockWordsActionsSelect = (
+  hubId: string,
+  ruleId: string,
+  currentActions: BlockWordAction[],
+) =>
+  new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId(new CustomID('blockwordsSelect:actions', [hubId, ruleId]).toString())
+      .setPlaceholder('Select actions for this rule')
+      .setMinValues(1)
+      .setMaxValues(Object.keys(BlockWordAction).length)
+      .setOptions(
+        Object.entries(ACTION_LABELS).map(([value, label]) => ({
+          label,
+          value,
+          default: currentActions.includes(value as BlockWordAction),
+        })),
+      ),
+  );
