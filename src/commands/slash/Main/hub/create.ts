@@ -3,7 +3,6 @@ import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import { HubSettingsBits } from '#main/modules/BitFields.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
-import { checkAndFetchImgurUrl } from '#utils/ImageUtils.js';
 import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
@@ -122,8 +121,9 @@ export default class Create extends HubCommand {
       return;
     }
 
-    const iconUrl = icon ? await checkAndFetchImgurUrl(icon) : undefined;
-    const bannerUrl = banner ? await checkAndFetchImgurUrl(banner) : undefined;
+    const imgurRegex = Constants.Regex.ImgurImage;
+    const iconUrl = icon.length > 0 ? icon.match(imgurRegex)?.[0] : false;
+    const bannerUrl = banner.length > 0 ? banner.match(imgurRegex)?.[0] : false;
 
     // TODO: create a gif showing how to get imgur links
     if (iconUrl === false || bannerUrl === false) {

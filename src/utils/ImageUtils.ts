@@ -1,34 +1,6 @@
 import Constants from '#main/config/Constants.js';
 import Logger from '#utils/Logger.js';
 
-type ImgurResponse = { data: { link: string; nsfw: boolean; cover: string } };
-
-export const checkAndFetchImgurUrl = async (url: string): Promise<string | false> => {
-  const regex = Constants.Regex.ImgurLinks;
-  const match = url.match(regex);
-
-  if (!match?.[1]) return false;
-
-  const type = match[0].includes('/a/') || match[0].includes('/gallery/') ? 'gallery' : 'image';
-  const response = await fetch(`https://api.imgur.com/3/${type}/${match[1]}`, {
-    headers: {
-      Authorization: `Client-ID ${process.env.IMGUR_CLIENT_ID}`,
-    },
-  });
-
-  const res = (await response.json().catch(() => null)) as ImgurResponse;
-
-  if (!res || res.data?.nsfw) {
-    return false;
-  }
-  else if (res.data.cover) {
-    // refetch the cover image for albuns/galleries
-    return await checkAndFetchImgurUrl(`https://imgur.com/${res.data.cover}`);
-  }
-
-  return res.data.link;
-};
-
 /**
  * Returns the URL of an attachment in a message, if it exists.
  * @param message The message to search for an attachment URL.
