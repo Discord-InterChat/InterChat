@@ -179,7 +179,7 @@ export type TranslationKeys = {
   'errors.unknownServer': 'emoji';
   'errors.unknownNetworkMessage': 'emoji';
   'errors.userNotFound': 'emoji';
-  'errors.blacklisted': 'emoji';
+  'errors.blacklisted': 'emoji' | 'hub';
   'errors.userBlacklisted': 'emoji';
   'errors.serverBlacklisted': 'emoji';
   'errors.serverNotBlacklisted': 'emoji';

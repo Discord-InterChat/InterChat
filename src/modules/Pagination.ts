@@ -136,7 +136,13 @@ export class Pagination {
       return pageNumber - 1; // Convert to 0-based index
     }
     catch (error) {
-      Logger.error('Page selection error:', error);
+      if (
+        !error.message.includes(
+          'Collector received no interactions before ending with reason: time',
+        )
+      ) {
+        Logger.error('Page selection error:', error);
+      }
       return null;
     }
   }

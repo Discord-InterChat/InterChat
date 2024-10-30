@@ -39,6 +39,7 @@ export default class ListBlacklists extends BlacklistCommand {
         ? await db.serverInfraction.findMany(query)
         : await db.userInfraction.findMany({
           where: query.where,
+          orderBy: { expiresAt: 'asc' },
           include: { userData: { select: { username: true } } },
         });
 
