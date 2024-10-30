@@ -21,7 +21,7 @@ export default class InactiveConnectInteraction {
         t('connection.channelNotFound', locale, { emoji: emojis.no }),
       );
 
-      await interaction.reply({ embeds: [notFoundEmbed], ephemeral: true });
+      await interaction.followUp({ embeds: [notFoundEmbed], ephemeral: true });
       return;
     }
 

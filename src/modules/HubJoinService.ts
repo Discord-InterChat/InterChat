@@ -17,7 +17,6 @@ import {
   ChatInputCommandInteraction,
   GuildTextBasedChannel,
   MessageComponentInteraction,
-  Snowflake,
 } from 'discord.js';
 
 export class HubJoinService {
@@ -58,7 +57,9 @@ export class HubJoinService {
       return false;
     }
 
-    if ((await this.isAlreadyInHub(channel.id)) || (await this.isBlacklisted(hub))) return false;
+    if ((await this.isAlreadyInHub(channel, hub.id)) || (await this.isBlacklisted(hub))) {
+      return false;
+    }
 
     const onboardingSuccess = await this.processOnboarding(hub, channel);
     if (!onboardingSuccess) return false;
@@ -119,13 +120,16 @@ export class HubJoinService {
     });
   }
 
-  private async isAlreadyInHub(channelId: Snowflake) {
-    const channelInHub = await db.connectedList.findFirst({ where: { channelId } });
+  private async isAlreadyInHub(channel: GuildTextBasedChannel, hubId: string) {
+    const channelInHub = await db.connectedList.findFirst({
+      where: { OR: [{ channelId: channel.id }, { serverId: channel.guildId, hubId }] },
+      include: { hub: { select: { name: true } } },
+    });
+
     if (channelInHub) {
-      const otherHub = await db.hub.findFirst({ where: { id: channelInHub.hubId } });
       await this.replyError('hub.alreadyJoined', {
-        channel: `<#${channelId}>`,
-        hub: `${otherHub?.name}`,
+        channel: `<#${channelInHub.channelId}>`,
+        hub: `${channelInHub.hub?.name}`,
         emoji: emojis.no,
       });
       return true;

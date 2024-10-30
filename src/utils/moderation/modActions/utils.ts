@@ -1,5 +1,6 @@
 import { emojis } from '#main/config/Constants.js';
 import { OriginalMessage } from '#main/utils/network/messageUtils.js';
+import { getReplyMethod } from '#main/utils/Utils.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import type {
@@ -31,6 +32,8 @@ export async function replyWithUnknownMessage(
     t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
   );
 
+  const replyMethod = getReplyMethod(interaction);
+
   if (edit) await interaction.editReply({ embeds: [embed] });
-  else await interaction.reply({ embeds: [embed] });
+  else await interaction[replyMethod]({ embeds: [embed], ephemeral: true });
 }

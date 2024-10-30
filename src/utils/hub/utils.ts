@@ -62,4 +62,4 @@ export const isStaffOrHubMod = (userId: string, hub: Hub) =>
 
 export const isHubManager = (userId: string, hub: Hub) =>
   hub.ownerId === userId ||
-  hub.moderators.find((mod) => mod.userId === userId && mod.position === 'manager');
+  hub.moderators.some((mod) => mod.userId === userId && mod.position === 'manager');

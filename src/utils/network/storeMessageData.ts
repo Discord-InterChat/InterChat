@@ -50,6 +50,7 @@ export default async (
   const validBroadcasts: Broadcast[] = [];
   const validErrors = [
     'Unknown Webhook',
+    'Unknown Channel',
     'Missing Permissions',
     'Invalid Webhook Token',
     'The provided webhook URL is not valid.',
@@ -69,7 +70,7 @@ export default async (
     });
   });
 
-  await addBroadcasts(hubId, message.id, ...validBroadcasts);
+  if (validBroadcasts.length > 0) await addBroadcasts(hubId, message.id, ...validBroadcasts);
   await storeMessageTimestamp(message);
 
   // disconnect network if, webhook does not exist/bot cannot access webhook
