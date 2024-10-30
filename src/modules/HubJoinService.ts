@@ -34,6 +34,17 @@ export class HubJoinService {
     this.locale = locale;
   }
 
+  async joinRandomHub(channel: GuildTextBasedChannel) {
+    const hub = await db.hub.findMany({
+      where: { private: false },
+      orderBy: { connections: { _count: 'asc' } },
+      take: 10,
+    });
+
+    const randomHub = hub[Math.floor(Math.random() * hub.length)];
+    return await this.joinHub(channel, randomHub.name);
+  }
+
   async joinHub(channel: GuildTextBasedChannel, hubInviteOrName: string | undefined) {
     const checksPassed = await this.runChecks(channel);
     if (!checksPassed) return false;

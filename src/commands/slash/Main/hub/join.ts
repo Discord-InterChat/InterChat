@@ -8,6 +8,7 @@ export default class JoinSubCommand extends HubCommand {
 
     const hubInviteOrName =
       interaction.options.getString('invite') ?? interaction.options.getString('hub') ?? undefined;
+
     const channel = interaction.options.getChannel('channel', true, [
       ChannelType.GuildText,
       ChannelType.PublicThread,
