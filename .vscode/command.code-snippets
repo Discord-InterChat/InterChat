@@ -22,9 +22,8 @@
     "scope": "javascript,typescript",
     "prefix": ["subcommand", "discord subcommand"],
     "body": [
-      "import $1 from '#commands/$2';",
-      "import { ChatInputCommandInteraction } from 'discord.js';",
-
+      "import $1 from './index.js';",
+      "import { ChatInputCommandInteraction } from 'discord.js';\n",
       "export default class $3 extends $1 {",
       "\tasync execute(interaction: ChatInputCommandInteraction) {",
       "\t\t$4",
