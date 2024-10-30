@@ -54,6 +54,12 @@ enum InfractionStatus {
   APPEALED
 }
 
+enum BlockWordAction {
+  BLOCK_MESSAGE
+  BLACKLIST
+  SEND_ALERT
+}
+
 model UserInfraction {
   id          String           @id @default(nanoid(10)) @map("_id")
   userId      String           @db.String
@@ -91,8 +97,8 @@ model ServerInfraction {
 
 // TODO: major refactor needed for mode and profFilter thing
 model connectedList {
-  id         String    @id @default(auto()) @map("_id") @db.ObjectId
-  channelId  String    @unique // channel can be thread, or a normal channel
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  channelId  String   @unique // channel can be thread, or a normal channel
   parentId   String? // ID of the parent channel, if it's a thread @map("parentChannelId")
   serverId   String
   connected  Boolean
@@ -101,10 +107,10 @@ model connectedList {
   profFilter Boolean
   embedColor String?
   webhookURL String
-  lastActive DateTime? @default(now())
-  date       DateTime  @default(now())
-  hub        Hub?      @relation(fields: [hubId], references: [id])
-  hubId      String    @db.ObjectId
+  lastActive DateTime @default(now())
+  date       DateTime @default(now())
+  hub        Hub?     @relation(fields: [hubId], references: [id])
+  hubId      String   @db.ObjectId
 
   @@index(fields: [channelId, serverId])
 }
@@ -135,27 +141,29 @@ model Hub {
 }
 
 model MessageBlockList {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String            @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   words     String
   createdBy String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  hub       Hub      @relation(fields: [hubId], references: [id])
-  hubId     String   @db.ObjectId
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  actions   BlockWordAction[] @default([])
+  hub       Hub               @relation(fields: [hubId], references: [id])
+  hubId     String            @db.ObjectId
 
   @@index([id, words])
 }
 
 model HubLogConfig {
-  id         String                @id @default(auto()) @map("_id") @db.ObjectId
-  modLogs    String?
-  joinLeaves String?
-  profanity  String?
-  appeals    hubLogChannelAndRole?
-  reports    hubLogChannelAndRole?
-  hub        Hub                   @relation(fields: [hubId], references: [id])
-  hubId      String                @unique @db.ObjectId
+  id            String                @id @default(auto()) @map("_id") @db.ObjectId
+  modLogs       String?
+  joinLeaves    String?
+  profanity     String?
+  appeals       hubLogChannelAndRole?
+  reports       hubLogChannelAndRole?
+  networkAlerts hubLogChannelAndRole?
+  hub           Hub                   @relation(fields: [hubId], references: [id])
+  hubId         String                @unique @db.ObjectId
 
   @@index([id, hubId])
 }
