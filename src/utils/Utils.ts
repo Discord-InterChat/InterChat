@@ -104,7 +104,7 @@ export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
 export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') =>
   string.replaceAll(Constants.Regex.Links, replaceText);
 
-export const calculateAverageRating = (ratings: number[]): number => {
+export const calculateRating = (ratings: number[]): number => {
   if (ratings.length === 0) return 0;
 
   const sum = ratings.reduce((acc, cur) => acc + cur, 0);
@@ -220,3 +220,8 @@ export const simpleEmbed = (
     .setTitle(opts?.title ?? null)
     .setColor(opts?.color ?? Constants.Colors.invisible)
     .setDescription(description.toString());
+
+export const getStars = (rating: number, emoji = '\\⭐') => {
+  const stars = Math.round(rating);
+  return emoji.repeat(stars);
+};
