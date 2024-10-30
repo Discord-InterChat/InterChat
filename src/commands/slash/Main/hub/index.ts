@@ -485,7 +485,6 @@ export default class HubCommand extends BaseCommand {
       hubChoices = await this.getPublicHubs(focusedValue);
     }
     else if (subcommand === 'edit' && subcommandGroup === 'blockwords') {
-      console.log('here');
       const choices = await this.getBlockWordsRules(interaction);
       await interaction.respond(choices ?? []);
       return;
@@ -517,7 +516,6 @@ export default class HubCommand extends BaseCommand {
   private async getBlockWordsRules(interaction: AutocompleteInteraction) {
     const focused = interaction.options.getFocused(true);
     const hubName = interaction.options.getString('hub');
-    console.log(focused, hubName);
 
     if (focused.name === 'rule') {
       if (!hubName) return [{ name: 'Please select a hub first.', value: '' }];
