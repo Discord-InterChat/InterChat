@@ -72,15 +72,16 @@ export default class BrowseCommand extends HubCommand {
   }
 
   private buildButtons(guildId: string, hub: Hub, connections: connectedList[]) {
+    const disabled = connections.some((c) => c.serverId === guildId);
     const joinButton = new ButtonBuilder()
       .setCustomId(new CustomID('hub_browse:join', [hub.id]).toString())
-      .setDisabled(connections.some((c) => c.serverId === guildId))
+      .setDisabled(disabled)
       .setLabel(`Join ${hub.name}`)
       .setStyle(ButtonStyle.Success)
       .setEmoji(emojis.join);
     const rateButton = new ButtonBuilder()
       .setCustomId(new CustomID('hub_browse:rate', [hub.id]).toString())
-      .setDisabled(connections.some((c) => c.serverId === guildId))
+      .setDisabled(disabled)
       .setLabel(`Rate ${hub.name}`)
       .setStyle(ButtonStyle.Secondary)
       .setEmoji('⭐');
