@@ -285,7 +285,11 @@ export default class ConnectionEditCommand extends Connection {
     const newWebhook = await getOrCreateWebhook(newChannel);
     await updateConnection(
       { channelId },
-      { channelId: newChannel.id, webhookURL: newWebhook?.url },
+      {
+        channelId: newChannel.id,
+        webhookURL: newWebhook?.url,
+        parentId: newChannel.isThread() ? newChannel.parentId : null,
+      },
     );
 
     const editSelect = buildEditSelect(newChannel.id, interaction.user.id, locale);
