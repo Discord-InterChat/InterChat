@@ -16,6 +16,11 @@ export default class JoinSubCommand extends HubCommand {
     ]);
     const locale = await this.getLocale(interaction);
 
-    await new HubJoinService(interaction, locale).joinHub(channel, hubInviteOrName);
+    // get random hub if no invite or name is provided
+
+    const hubJoinService = new HubJoinService(interaction, locale);
+
+    if (hubInviteOrName) await hubJoinService.joinHub(channel, hubInviteOrName);
+    else await hubJoinService.joinRandomHub(channel);
   }
 }

@@ -143,7 +143,7 @@ export class HubJoinService {
     const serverBlacklist = await serverBlManager.fetchBlacklist(hub.id);
 
     if (userBlacklist || serverBlacklist) {
-      await this.replyError('errors.blacklisted');
+      await this.replyError('errors.blacklisted', { emoji: emojis.no, hub: hub.name });
       return true;
     }
 
