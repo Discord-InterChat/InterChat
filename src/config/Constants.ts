@@ -37,7 +37,19 @@ export const enum ConnectionMode {
 }
 
 /** Unicode emojis for numbers */
-export const numberEmojis = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
+export const numberEmojis = [
+  '0️⃣',
+  '1️⃣',
+  '2️⃣',
+  '3️⃣',
+  '4️⃣',
+  '5️⃣',
+  '6️⃣',
+  '7️⃣',
+  '8️⃣',
+  '9️⃣',
+  '🔟',
+] as const;
 
 export default {
   isDevBuild: process.env.NODE_ENV === 'development',
@@ -57,9 +69,6 @@ export default {
     StaticImageUrl: /\bhttps?:\/\/\S+?\.(?:png|jpe?g|webp)(?:\?\S+)?\b/,
     /** ignores giphy and tenor */
     Links: /https?:\/\/(?!tenor\.com|giphy\.com)\S+/g,
-    /** matches imgur urls */
-    ImgurLinks:
-      /(?:https?:\/\/)?(?:www\.)?imgur\.com\/(?:a\/|gallery\/)?([a-zA-Z0-9]+)(?:\.[a-zA-Z]+)?/i,
     /** matches profanity words */
     Profanity: new RegExp(profanity.map((word) => `\\b${word}\\b`).join('|'), 'gi'),
     /** matches slurs */
@@ -72,6 +81,7 @@ export default {
     SplitWords: /\b/,
     Hexcode: /^#[0-9A-F]{6}$/i,
     ChannelMention: /<#|!|>/g,
+    ImgurImage: /(https?:\/\/)?(www\.)?(i\.)?imgur\.com\/(a|gallery)\/[a-zA-Z0-9]{5,7}/,
   },
 
   Links: {
