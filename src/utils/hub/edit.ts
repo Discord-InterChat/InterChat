@@ -6,7 +6,7 @@ import { connectedList, Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 
-export const actionsSelect = (hubId: string, userId: string, locale: supportedLocaleCodes = 'en') =>
+export const hubEditSelects = (hubId: string, userId: string, locale: supportedLocaleCodes = 'en') =>
   new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId(
@@ -22,12 +22,6 @@ export const actionsSelect = (hubId: string, userId: string, locale: supportedLo
           value: 'description',
           description: t('hub.manage.description.selects.description', locale),
           emoji: '📝',
-        },
-        {
-          label: t('hub.manage.visibility.selects.label', locale),
-          value: 'visibility',
-          description: t('hub.manage.visibility.selects.description', locale),
-          emoji: '🔎',
         },
         {
           label: t('hub.manage.icon.selects.label', locale),

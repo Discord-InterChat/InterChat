@@ -1,13 +1,12 @@
-import { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#main/config/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
 import HubLogManager, { LogConfigTypes as HubConfigTypes } from '#main/managers/HubLogManager.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { actionsSelect, hubEmbed } from '#utils/hub/edit.js';
+import { hubEditSelects, hubEmbed } from '#utils/hub/edit.js';
 import { sendToHub } from '#utils/hub/utils.js';
-import { checkAndFetchImgurUrl } from '#utils/ImageUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import type { Hub } from '@prisma/client';
 import {
@@ -28,7 +27,7 @@ export default class HubEdit extends HubCommand {
 
     await interaction.reply({
       embeds: [await hubEmbed(hubInDb)],
-      components: [actionsSelect(hubInDb.id, interaction.user.id, locale)],
+      components: [hubEditSelects(hubInDb.id, interaction.user.id, locale)],
     });
 
     await this.setComponentExpiry(interaction);
@@ -122,9 +121,6 @@ export default class HubEdit extends HubCommand {
       case 'banner':
         await this.showModal(interaction, hubInDb.id, action, locale);
         break;
-      case 'visibility':
-        await this.toggleVisibility(interaction, hubInDb, locale);
-        break;
       case 'toggle_lock':
         await this.toggleLock(interaction, hubInDb);
         break;
@@ -162,28 +158,6 @@ export default class HubEdit extends HubCommand {
     modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(inputField));
 
     await interaction.showModal(modal);
-  }
-
-  private async toggleVisibility(
-    interaction: MessageComponentInteraction,
-    hubInDb: Hub,
-    locale: supportedLocaleCodes,
-  ) {
-    const updatedHub = await db.hub.update({
-      where: { id: hubInDb?.id },
-      data: { private: !hubInDb?.private },
-      include: { connections: true },
-    });
-
-    await interaction.reply({
-      content: t('hub.manage.visibility.success', locale, {
-        emoji: updatedHub.private ? '🔒' : '🔓',
-        visibility: updatedHub.private ? 'private' : 'public',
-      }),
-      ephemeral: true,
-    });
-
-    await interaction.message.edit({ embeds: [await hubEmbed(updatedHub)] }).catch(() => null);
   }
 
   private async toggleLock(interaction: MessageComponentInteraction, hubInDb: Hub) {
@@ -266,21 +240,15 @@ export default class HubEdit extends HubCommand {
     hubId: string,
     locale: supportedLocaleCodes,
   ) {
-    const newIcon = interaction.fields.getTextInputValue('icon');
-    const iconUrl = await checkAndFetchImgurUrl(newIcon);
+    const iconUrl = interaction.fields.getTextInputValue('icon');
 
-    if (!iconUrl) {
-      await interaction.reply({
-        content: t('hub.invalidImgurUrl', locale, { emoji: emojis.no }),
-        ephemeral: true,
-      });
+    const regex = Constants.Regex.ImageURL;
+    if (!regex.test(iconUrl)) {
+      await interaction.editReply(t('hub.invalidImgurUrl', locale, { emoji: emojis.no }));
       return;
     }
 
-    await db.hub.update({
-      where: { id: hubId },
-      data: { iconUrl },
-    });
+    await db.hub.update({ where: { id: hubId }, data: { iconUrl } });
 
     await interaction.reply({
       content: t('hub.manage.icon.changed', locale),
@@ -295,9 +263,9 @@ export default class HubEdit extends HubCommand {
   ) {
     await interaction.deferReply({ ephemeral: true });
 
-    const newBanner = interaction.fields.getTextInputValue('banner');
+    const bannerUrl = interaction.fields.getTextInputValue('banner');
 
-    if (!newBanner) {
+    if (!bannerUrl) {
       await db.hub.update({
         where: { id: hubId },
         data: { bannerUrl: { unset: true } },
@@ -307,9 +275,9 @@ export default class HubEdit extends HubCommand {
       return;
     }
 
-    const bannerUrl = await checkAndFetchImgurUrl(newBanner);
-
-    if (!bannerUrl) {
+    // check if imgur url is a valid jpg, png, jpeg or gif and NOT a gallery or album link
+    const regex = Constants.Regex.ImageURL;
+    if (!regex.test(bannerUrl)) {
       await interaction.editReply(t('hub.invalidImgurUrl', locale, { emoji: emojis.no }));
       return;
     }
