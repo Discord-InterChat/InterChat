@@ -29,6 +29,7 @@ const logTypeOpt = [
   { name: 'Profanity', value: 'profanity' },
   { name: 'Join/Leave', value: 'joinLeaves' },
   { name: 'Appeals', value: 'appeals' },
+  { name: 'Network Alerts', value: 'networkAlerts' },
 ];
 
 export default class HubCommand extends BaseCommand {
@@ -430,6 +431,24 @@ export default class HubCommand extends BaseCommand {
         description: '📢 Send an announcement to a hub you moderate.',
         options: [hubOption],
       },
+      {
+        type: ApplicationCommandOptionType.Subcommand,
+        name: 'visibility',
+        description: '👀 Toggle the visibility of a hub (Public/Private).',
+        options: [
+          hubOption,
+          {
+            type: ApplicationCommandOptionType.String,
+            name: 'visibility',
+            description: 'The visibility of the hub.',
+            required: true,
+            choices: [
+              { name: 'Public', value: 'public' },
+              { name: 'Private', value: 'private' },
+            ],
+          },
+        ],
+      },
     ],
   };
 
@@ -447,15 +466,15 @@ export default class HubCommand extends BaseCommand {
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const managerCmds = [
       'edit',
+      'visibility',
       'settings',
-      'invite',
       'moderator',
       'logging',
       'appeal',
       'blockwords',
       'announce',
     ];
-    const modCmds = ['servers'];
+    const modCmds = ['servers', 'invite'];
 
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
@@ -464,6 +483,11 @@ export default class HubCommand extends BaseCommand {
 
     if (subcommand === 'browse' || subcommand === 'join') {
       hubChoices = await this.getPublicHubs(focusedValue);
+    }
+    else if (subcommand === 'edit' && subcommandGroup === 'blockwords') {
+      const choices = await this.getBlockWordsRules(interaction);
+      await interaction.respond(choices ?? []);
+      return;
     }
     else if (modCmds.includes(subcommandGroup || subcommand)) {
       hubChoices = await this.getModeratedHubs(focusedValue, interaction.user.id);
@@ -487,6 +511,23 @@ export default class HubCommand extends BaseCommand {
 
     const choices = hubChoices?.map((hub) => ({ name: hub.name, value: hub.name }));
     await interaction.respond(choices ?? []);
+  }
+
+  private async getBlockWordsRules(interaction: AutocompleteInteraction) {
+    const focused = interaction.options.getFocused(true);
+    const hubName = interaction.options.getString('hub');
+
+    if (focused.name === 'rule') {
+      if (!hubName) return [{ name: 'Please select a hub first.', value: '' }];
+
+      const rules = await db.messageBlockList.findMany({
+        where: { hub: { name: hubName } },
+        select: { id: true, name: true },
+      });
+
+      return rules.map((rule) => ({ name: rule.name, value: rule.name }));
+    }
+    return null;
   }
 
   private async getPublicHubs(focusedValue: string) {
