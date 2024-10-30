@@ -1,4 +1,5 @@
 import type BaseCommand from '#main/core/BaseCommand.js';
+import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import { type InteractionFunction } from '#main/decorators/Interaction.js';
 import { CommandLoader } from '#main/modules/Loaders/CommandLoader.js';
 import { InteractionLoader } from '#main/modules/Loaders/InteractionLoader.js';
@@ -23,11 +24,12 @@ export const loadInteractions = async (map: Collection<string, InteractionFuncti
  * Recursively loads all command files from the given directory and its subdirectories.
  * @param commandDir The directory to load command files from.
  */
-export const loadCommandFiles = async (
-  map: Collection<string, BaseCommand>,
+export const loadCommands = async (
+  commandsMap: Collection<string, BaseCommand>,
+  prefixMap: Collection<string, BasePrefixCommand>,
   interactionsMap: Collection<string, InteractionFunction>,
 ) => {
-  const loader = new CommandLoader(map, interactionsMap);
+  const loader = new CommandLoader(commandsMap, prefixMap, interactionsMap);
   await loader.load();
 };
 

@@ -14,6 +14,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   EmbedBuilder,
+  Message,
 } from 'discord.js';
 
 type BuilderOpts = {
@@ -23,42 +24,47 @@ type BuilderOpts = {
   isBanned: boolean;
 };
 
-const buildButtons = (interaction: Interaction, messageId: Snowflake, opts: BuilderOpts) => {
+const buildButtons = (
+  interaction: Interaction | Message,
+  messageId: Snowflake,
+  opts: BuilderOpts,
+) => {
+  const author = interaction instanceof Message ? interaction.author : interaction.user;
   const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(
-        new CustomID('modActions:blacklistUser', [interaction.user.id, messageId]).toString(),
+        new CustomID('modActions:blacklistUser', [author.id, messageId]).toString(),
       )
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.user_icon)
       .setDisabled(opts.isUserBlacklisted),
     new ButtonBuilder()
       .setCustomId(
-        new CustomID('modActions:blacklistServer', [interaction.user.id, messageId]).toString(),
+        new CustomID('modActions:blacklistServer', [author.id, messageId]).toString(),
       )
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.globe_icon)
       .setDisabled(opts.isServerBlacklisted),
     new ButtonBuilder()
       .setCustomId(
-        new CustomID('modActions:removeAllReactions', [interaction.user.id, messageId]).toString(),
+        new CustomID('modActions:removeAllReactions', [author.id, messageId]).toString(),
       )
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.add_icon),
     new ButtonBuilder()
       .setCustomId(
-        new CustomID('modActions:deleteMsg', [interaction.user.id, messageId]).toString(),
+        new CustomID('modActions:deleteMsg', [author.id, messageId]).toString(),
       )
       .setStyle(ButtonStyle.Secondary)
       .setEmoji(emojis.deleteDanger_icon)
       .setDisabled(opts.isDeleteInProgress),
   );
 
-  if (checkIfStaff(interaction.user.id)) {
+  if (checkIfStaff(author.id)) {
     buttons.addComponents(
       new ButtonBuilder()
         .setCustomId(
-          new CustomID('modActions:banUser', [interaction.user.id, messageId]).toString(),
+          new CustomID('modActions:banUser', [author.id, messageId]).toString(),
         )
         .setStyle(ButtonStyle.Secondary)
         .setEmoji(emojis.blobFastBan)
@@ -69,7 +75,7 @@ const buildButtons = (interaction: Interaction, messageId: Snowflake, opts: Buil
   const extras = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(
-        new CustomID('modActions:viewInfractions', [interaction.user.id, messageId]).toString(),
+        new CustomID('modActions:viewInfractions', [author.id, messageId]).toString(),
       )
       .setLabel('View Infractions')
       .setStyle(ButtonStyle.Secondary)
@@ -108,7 +114,7 @@ const buildInfoEmbed = (username: string, servername: string, opts: BuilderOpts)
     `);
 };
 
-const buildMessage = async (interaction: Interaction, originalMsg: OriginalMessage) => {
+const buildMessage = async (interaction: Interaction | Message, originalMsg: OriginalMessage) => {
   const user = await interaction.client.users.fetch(originalMsg.authorId);
   const server = await interaction.client.fetchGuild(originalMsg.guildId);
   const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);

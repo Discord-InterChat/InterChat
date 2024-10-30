@@ -82,6 +82,7 @@ export default {
     Hexcode: /^#[0-9A-F]{6}$/i,
     ChannelMention: /<#|!|>/g,
     ImgurImage: /https?:\/\/i\.imgur\.com\/[a-zA-Z0-9]+\.((jpg)|(jpeg)|(png)|(gif))/g,
+    MessageLink: /https:\/\/discord.com\/channels\/(\d{17,19})\/(\d{17,19})\/(\d{17,19})/g,
   },
 
   Links: {

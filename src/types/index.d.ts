@@ -1,4 +1,5 @@
 import BaseCommand from '#main/core/BaseCommand.js';
+import BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import { InteractionFunction } from '#main/decorators/Interaction.ts';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
@@ -27,6 +28,7 @@ declare module 'discord.js' {
     readonly description: string;
     readonly commands: Collection<string, BaseCommand>;
     readonly interactions: Collection<string, InteractionFunction | undefined>;
+    readonly prefixCommands: Collection<string, BasePrefixCommand>;
 
     readonly commandCooldowns: CooldownService;
     readonly reactionCooldowns: Collection<string, number>;

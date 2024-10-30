@@ -1,5 +1,6 @@
 import Constants from '#main/config/Constants.js';
 import type BaseCommand from '#main/core/BaseCommand.js';
+import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import type { InteractionFunction } from '#main/decorators/Interaction.js';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
@@ -7,7 +8,7 @@ import CooldownService from '#main/modules/CooldownService.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import type { RemoveMethods } from '#types/index.d.ts';
-import { loadCommandFiles, loadInteractions } from '#utils/CommandUtils.js';
+import { loadCommands, loadInteractions } from '#utils/CommandUtils.js';
 import { loadLocales } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
@@ -37,8 +38,11 @@ export default class InterChatClient extends Client {
   readonly cluster = new ClusterClient(this);
   readonly eventLoader = new EventLoader(this);
   readonly commandCooldowns = new CooldownService();
+
   public readonly commands = new Collection<string, BaseCommand>();
   public readonly interactions = new Collection<string, InteractionFunction>();
+  public readonly prefixCommands = new Collection<string, BasePrefixCommand>();
+
   public readonly antiSpamManager = new AntiSpamManager({
     spamThreshold: 4,
     timeWindow: 5000,
@@ -87,7 +91,7 @@ export default class InterChatClient extends Client {
     loadLocales('locales');
 
     // load commands
-    loadCommandFiles(this.commands, this.interactions);
+    loadCommands(this.commands, this.prefixCommands, this.interactions);
     loadInteractions(this.interactions);
     this.eventLoader.load();
 

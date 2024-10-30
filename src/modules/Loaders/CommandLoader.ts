@@ -1,4 +1,5 @@
 import BaseCommand from '#main/core/BaseCommand.js';
+import BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import { type Class, FileLoader, type ResourceLoader } from '#main/core/FileLoader.js';
 import { InteractionFunction } from '#main/decorators/Interaction.js';
 import Logger from '#utils/Logger.js';
@@ -9,15 +10,18 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export class CommandLoader implements ResourceLoader {
-  private readonly map: Collection<string, BaseCommand>;
+  private readonly commandMap: Collection<string, BaseCommand>;
+  private readonly prefixMap: Collection<string, BasePrefixCommand>;
   private readonly interactionsMap: Collection<string, InteractionFunction>;
   private readonly fileLoader: FileLoader;
 
   constructor(
-    map: Collection<string, BaseCommand>,
+    commandMap: Collection<string, BaseCommand>,
+    prefixMap: Collection<string, BasePrefixCommand>,
     interactionsMap: Collection<string, InteractionFunction>,
   ) {
-    this.map = map;
+    this.prefixMap = prefixMap;
+    this.commandMap = commandMap;
     this.interactionsMap = interactionsMap;
     this.fileLoader = new FileLoader(join(__dirname, '..', '..', 'commands'), { recursive: true });
   }
@@ -28,14 +32,31 @@ export class CommandLoader implements ResourceLoader {
 
   private async processFile(filePath: string): Promise<void> {
     Logger.debug(`Importing command file: ${filePath}`);
-    const imported = await FileLoader.import<{ default: Class<BaseCommand> }>(filePath);
+    const imported = await FileLoader.import<{ default: Class<BaseCommand | BasePrefixCommand> }>(
+      filePath,
+    );
     const command = new imported.default();
     const fileName = filePath.replaceAll('\\', '/').split('/').pop() as string;
 
-    command.build(fileName.replace('.js', ''), {
-      commandsMap: this.map,
-      interactionsMap: this.interactionsMap,
-    });
+    // FIXME: do smth about this
+    if (command instanceof BasePrefixCommand) {
+      this.prefixMap.set(command.data.name, command);
+    }
+    else {
+      command.build(fileName.replace('.js', ''), {
+        commandsMap: this.commandMap,
+        interactionsMap: this.interactionsMap,
+      });
+    }
     Logger.debug(`Finished loading command: ${command.data.name}`);
   }
+}
+
+export interface ICommand {
+  readonly name: string;
+  readonly description: string;
+  readonly category: string;
+  readonly cooldown?: number;
+  readonly staffOnly?: boolean;
+  readonly type: 'prefix' | 'slash' | 'context';
 }

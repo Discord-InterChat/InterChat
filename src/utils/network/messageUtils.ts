@@ -1,4 +1,4 @@
-import { RedisKeys } from '#main/config/Constants.js';
+import Constants, { RedisKeys } from '#main/config/Constants.js';
 import getRedis from '#main/utils/Redis.js';
 import type { Message, Snowflake } from 'discord.js';
 import isEmpty from 'lodash/isEmpty.js';
@@ -67,12 +67,9 @@ export const addBroadcasts = async (
   );
 
   // Add all broadcasts to the hash in a single operation
-  await redis
-    .multi()
-    .hset(broadcastsKey, broadcastEntries)
-    .expire(broadcastsKey, 86400)
-    .mset(reverseLookups)
-    .exec();
+  await redis.hset(broadcastsKey, broadcastEntries);
+  await redis.expire(broadcastsKey, 86400);
+  await redis.mset(reverseLookups);
 
   reverseLookups
     .filter((_, i) => i % 2 === 0)
@@ -131,4 +128,9 @@ export const deleteMessageCache = async (originalMsgId: Snowflake) => {
   const count = await redis.del(`${RedisKeys.message}:${originalMsgId}`);
 
   return count;
+};
+
+export const getMessageIdFromStr = (str: string) => {
+  const match = str.match(Constants.Regex.MessageLink)?.[3] ?? str.match(/(\d{17,19})/)?.[0];
+  return match;
 };

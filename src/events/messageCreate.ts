@@ -1,7 +1,9 @@
 import { ConnectionMode } from '#main/config/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import Logger from '#main/utils/Logger.js';
 import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
+import handlePrefixCommand from '#main/utils/PrefixCmdHandler.js';
 import { generateJumpButton as getJumpButton } from '#utils/ComponentUtils.js';
 import { getConnectionHubId, getHubConnections } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
@@ -36,6 +38,11 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
   async execute(message: Message) {
     if (!message.inGuild() || !isHumanMessage(message)) return;
+
+    if (message.content.startsWith('c!')) {
+      await handlePrefixCommand(message, 'c!');
+      return;
+    }
 
     const { connection, hubConnections } = await this.getConnectionAndHubConnections(message);
     if (!connection?.connected || !hubConnections) return;
@@ -88,19 +95,6 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       embedColor: connection.embedColor as HexColorString,
     });
 
-    await this.storeMessage(message, sendResult, connection, referredMsgData);
-  }
-
-  private async fetchReferredMessage(message: Message<true>): Promise<Message | null> {
-    return message.reference ? await message.fetchReference().catch(() => null) : null;
-  }
-
-  private async storeMessage(
-    message: Message<true>,
-    sendResult: NetworkWebhookSendResult[],
-    connection: connectedList,
-    referredMsgData: ReferredMsgData,
-  ) {
     await storeMessageData(
       message,
       sendResult,
@@ -108,6 +102,10 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       connection.compact ? ConnectionMode.Compact : ConnectionMode.Embed,
       referredMsgData.dbReferrence,
     );
+  }
+
+  private async fetchReferredMessage(message: Message<true>): Promise<Message | null> {
+    return message.reference ? await message.fetchReference().catch(() => null) : null;
   }
 
   private async broadcastMessage(
@@ -152,6 +150,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       return { messageRes, webhookURL: connection.webhookURL, mode };
     }
     catch (e) {
+      Logger.error(`Failed to send message to ${connection.channelId}`, e);
       return { error: e.message, webhookURL: connection.webhookURL };
     }
   }
