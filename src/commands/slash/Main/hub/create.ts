@@ -121,7 +121,7 @@ export default class Create extends HubCommand {
       return;
     }
 
-    const imgurRegex = Constants.Regex.Links;
+    const imgurRegex = Constants.Regex.ImgurImage;
     const iconUrl = icon.length > 0 ? icon.match(imgurRegex)?.[0] : false;
     const bannerUrl = banner.length > 0 ? banner.match(imgurRegex)?.[0] : false;
 

@@ -81,7 +81,7 @@ export default {
     SplitWords: /\b/,
     Hexcode: /^#[0-9A-F]{6}$/i,
     ChannelMention: /<#|!|>/g,
-    ImgurImage: /(https?:\/\/)?(www\.)?(i\.)?imgur\.com\/(a|gallery)\/[a-zA-Z0-9]{5,7}/,
+    ImgurImage: /https?:\/\/i\.imgur\.com\/[a-zA-Z0-9]+\.((jpg)|(jpeg)|(png)|(gif))/g,
   },
 
   Links: {
