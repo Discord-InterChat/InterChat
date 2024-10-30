@@ -145,9 +145,9 @@ export default abstract class BaseCommand {
   ): Promise<InteractionResponse | Message> {
     let description = desc as string;
 
-    if (t(desc as K, 'en', opts?.t)) {
+    if (t(desc as K, 'en')) {
       const locale = await this.getLocale(interaction);
-      description = t(desc as keyof TranslationKeys, locale);
+      description = t(desc as K, locale, opts?.t);
     }
 
     const embed = new InfoEmbed().setDescription(description).setTitle(opts?.title);
