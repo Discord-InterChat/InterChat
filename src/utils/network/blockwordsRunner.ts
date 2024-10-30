@@ -5,7 +5,7 @@ import Logger from '#main/utils/Logger.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import { createRegexFromWords } from '#main/utils/moderation/blockWords.js';
 import { BlockWordAction, MessageBlockList } from '@prisma/client';
-import { ActionRowBuilder, ButtonBuilder, Message } from 'discord.js';
+import { ActionRowBuilder, Awaitable, ButtonBuilder, Message } from 'discord.js';
 
 // Interface for action handler results
 interface ActionResult {
@@ -16,11 +16,11 @@ interface ActionResult {
 }
 
 // Action handler type
-type ActionHandler = (message: Message<true>, rule: MessageBlockList) => Promise<ActionResult>;
+type ActionHandler = (message: Message<true>, rule: MessageBlockList) => Awaitable<ActionResult>;
 
 // Map of action handlers
 const actionHandlers: Record<BlockWordAction, ActionHandler> = {
-  [BlockWordAction.BLOCK_MESSAGE]: async () => ({
+  [BlockWordAction.BLOCK_MESSAGE]: () => ({
     success: true,
     shouldBlock: true,
     message: 'Message blocked due to containing prohibited words.',
