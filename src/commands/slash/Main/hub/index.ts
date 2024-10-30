@@ -527,6 +527,7 @@ export default class HubCommand extends BaseCommand {
 
       return rules.map((rule) => ({ name: rule.name, value: rule.name }));
     }
+    return null;
   }
 
   private async getPublicHubs(focusedValue: string) {
