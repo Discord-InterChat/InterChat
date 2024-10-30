@@ -36,11 +36,10 @@ type userBan {
   reason String
 }
 
-type hubBlacklist {
-  reason      String
-  expires     DateTime?
-  moderatorId String?
-  hubId       String    @db.ObjectId
+enum BlockWordAction {
+  BLOCK_MESSAGE
+  BLACKLIST
+  SEND_ALERT
 }
 
 enum InfractionType {
@@ -53,13 +52,6 @@ enum InfractionStatus {
   REVOKED
   APPEALED
 }
-
-enum BlockWordAction {
-  BLOCK_MESSAGE
-  BLACKLIST
-  SEND_ALERT
-}
-
 model UserInfraction {
   id          String           @id @default(nanoid(10)) @map("_id")
   userId      String           @db.String
