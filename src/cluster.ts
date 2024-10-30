@@ -1,3 +1,4 @@
+import { startApi } from '#main/api/index.js';
 import Constants from '#main/config/Constants.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import deleteExpiredInvites from '#main/tasks/deleteExpiredInvites.js';
@@ -45,6 +46,8 @@ clusterManager.on('clusterReady', (cluster) => {
 clusterManager.spawn({ timeout: -1 });
 
 function startTasks() {
+  startApi();
+
   pauseIdleConnections(clusterManager).catch(Logger.error);
   deleteExpiredInvites().catch(Logger.error);
 
