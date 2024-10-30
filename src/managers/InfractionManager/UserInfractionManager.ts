@@ -36,7 +36,16 @@ export default class UserInfractionManager extends BaseInfractionManager<UserInf
   ) {
     // if already blacklisted, override it, otherwise add a new one
     const infraction = await db.userInfraction.create({
-      data: { userId: this.targetId, type, expiresAt, reason, moderatorId, hubId },
+      data: {
+        userData: {
+          connectOrCreate: { where: { id: this.targetId }, create: { id: this.targetId } },
+        },
+        hub: { connect: { id: hubId } },
+        type,
+        expiresAt,
+        reason,
+        moderatorId,
+      },
     });
 
     this.refreshCache(hubId);
