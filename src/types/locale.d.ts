@@ -155,6 +155,8 @@ export type TranslationKeys = {
   'hub.manage.logs.joinLeaves.description': never;
   'hub.manage.logs.appeals.label': never;
   'hub.manage.logs.appeals.description': never;
+  'hub.manage.logs.networkAlerts.label': never;
+  'hub.manage.logs.networkAlerts.description': never;
   'report.modal.title': never;
   'report.modal.other.label': never;
   'report.modal.other.placeholder': never;
@@ -187,6 +189,7 @@ export type TranslationKeys = {
   'errors.unknown': 'emoji' | 'support_invite';
   'errors.notUsable': 'emoji';
   'errors.cooldown': 'emoji' | 'time';
+  'errors.serverNameInappropriate': 'emoji';
   'errors.banned': 'emoji' | 'reason' | 'support_invite';
   'misc.webhookNoLongerExists': 'emoji';
   'misc.noReason': never;

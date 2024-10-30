@@ -8,9 +8,9 @@ import { HubLogConfig, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, roleMention, Snowflake, StringSelectMenuBuilder } from 'discord.js';
 
-export type RoleIdLogConfigs = 'appeals' | 'reports';
+export type RoleIdLogConfigs = 'appeals' | 'reports' | 'networkAlerts';
 export type LogConfigTypes = keyof Omit<Omit<HubLogConfig, 'hubId'>, 'id'>;
-export const logsWithRoleId = ['appeals', 'reports'];
+export const logsWithRoleId = ['appeals', 'reports', 'networkAlerts'];
 
 const channelMention = (channelId: string | null | undefined) =>
   channelId ? `<#${channelId}>` : emojis.no;
