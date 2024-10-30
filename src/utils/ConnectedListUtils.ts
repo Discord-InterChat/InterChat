@@ -13,7 +13,7 @@ type CachedConnection = ConvertDatesToString<connectedList>;
 const convertToConnectedList = (connection: CachedConnection): connectedList => ({
   ...connection,
   date: new Date(connection.date),
-  lastActive: connection.lastActive ? new Date(connection.lastActive) : null,
+  lastActive: new Date(connection.lastActive),
 });
 
 /**

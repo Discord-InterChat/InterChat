@@ -11,10 +11,7 @@ import 'dotenv/config';
 
 export default async (manager: ClusterManager) => {
   const connections = await db.connectedList.findMany({
-    where: {
-      connected: true,
-      lastActive: { not: null, lte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-    },
+    where: { connected: true, lastActive: { lte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
   });
 
   if (!connections || connections.length === 0) return;
