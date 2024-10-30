@@ -334,7 +334,7 @@ errors:
   unknownServer: '{emoji} Unknown server. Please make sure you have entered the correct **Server ID**.'
   unknownNetworkMessage: '{emoji} Unknown Message. If it has been sent in the past minute, please wait few more seconds and try again.'
   userNotFound: '{emoji} User not found. Try inputting their ID instead.'
-  blacklisted: '{emoji} You or this server is blacklisted from this hub.'
+  blacklisted: '{emoji} You or this server is blacklisted from this hub called {hub}.'
   userBlacklisted: '{emoji} You are blacklisted from this hub.'
   serverBlacklisted: '{emoji} This server is blacklisted from this hub.'
   serverNotBlacklisted: '{emoji} The inputted server is not blacklisted.'

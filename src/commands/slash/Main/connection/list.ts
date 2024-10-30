@@ -52,7 +52,7 @@ export default class extends ConnectionCommand {
 
   private getField(connection: connectedList & { hub: Hub | null }) {
     return {
-      name: `${connection.hub?.name}`,
+      name: `${connection.hub?.name} ${connection.connected ? emojis.connect : emojis.disconnect}`,
       value: `<#${connection.channelId}>`,
       inline: true,
     };

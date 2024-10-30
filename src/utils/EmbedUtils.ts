@@ -6,7 +6,6 @@ export class InfoEmbed extends EmbedBuilder {
   constructor(data?: EmbedData | APIEmbed) {
     super({
       color: resolveColor(Constants.Colors.invisible),
-      title: `${emojis.info} INFO:`,
       ...data,
     });
   }

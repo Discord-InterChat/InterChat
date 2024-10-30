@@ -10,6 +10,7 @@ import {
   Collection,
   ComponentType,
   EmbedBuilder,
+  MessageComponentInteraction,
 } from 'discord.js';
 
 const onboardingInProgress = new Collection<string, string>();
@@ -69,13 +70,15 @@ const processNextButton = async (
  * @returns A Promise that resolves to `true` if the user accepts the onboarding message, `false` if they cancel it, or `'in-progress'` if onboarding is already in progress for the channel.
  */
 export const showOnboarding = async (
-  interaction: RepliableInteraction,
+  interaction: RepliableInteraction | MessageComponentInteraction,
   hubName: string,
   channelId: string,
   ephemeral = false,
 ): Promise<boolean | 'in-progress'> => {
   // Check if server is already attempting to join a hub
   if (onboardingInProgress.has(channelId)) return 'in-progress';
+  setTimeout(() => onboardingInProgress.delete(channelId), 60_000 * 2); // remove in-progress marker after 2 minutes
+
   // Mark this as in-progress so server can't join twice
   onboardingInProgress.set(channelId, channelId);
 
