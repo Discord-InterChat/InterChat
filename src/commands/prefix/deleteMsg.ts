@@ -16,18 +16,19 @@ export default class DeleteMsgCommand extends BasePrefixCommand {
     name: 'deletemsg',
     description: 'Delete a message',
     category: 'Network',
-    usage: 'deletemsg <message ID or link>',
+    usage: 'deletemsg ` message ID or link `',
     examples: [
       'deletemsg 123456789012345678',
       'deletemsg https://discord.com/channels/123456789012345678/123456789012345678/123456789012345678',
     ],
     aliases: ['delmsg', 'dmsg', 'delete', 'del'],
     dbPermission: false,
+    totalArgs: 1,
   };
 
-  public async execute(message: Message<true>, args: string[]): Promise<void> {
-    const originalMsgId = message.reference?.messageId ?? getMessageIdFromStr(args[0]);
-    const originalMsg = originalMsgId ? await this.getOriginalMessage(originalMsgId) : null;
+  protected async run(message: Message<true>, args: string[]): Promise<void> {
+    const msgId = message.reference?.messageId ?? getMessageIdFromStr(args[0]);
+    const originalMsg = msgId ? await this.getOriginalMessage(msgId) : null;
 
     if (!originalMsg) {
       await message.channel.send('Please provide a valid message ID or link to delete.');
@@ -35,8 +36,12 @@ export default class DeleteMsgCommand extends BasePrefixCommand {
     }
 
     const hub = await fetchHub(originalMsg.hubId);
-    if (!hub || !isStaffOrHubMod(message.author.id, hub)) {
-      await message.channel.send('You do not have permission to use this command.');
+    if (
+      !hub ||
+      !isStaffOrHubMod(message.author.id, hub) ||
+      originalMsg.authorId !== message.author.id
+    ) {
+      await message.channel.send('You do not have permission to use this command on that message.');
       return;
     }
 

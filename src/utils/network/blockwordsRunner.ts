@@ -33,7 +33,7 @@ const actionHandlers: Record<BlockWordAction, ActionHandler> = {
   },
 
   [BlockWordAction.BLACKLIST]: async (message, rule) => {
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hour blacklist
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     const reason = `Auto-blacklisted for using blocked words (Rule: ${rule.name})`;
     const target = message.author;
     const mod = message.client.user;

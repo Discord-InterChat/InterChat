@@ -3,7 +3,6 @@ import BaseEventListener from '#main/core/BaseEventListener.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import Logger from '#main/utils/Logger.js';
 import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
-import handlePrefixCommand from '#main/utils/PrefixCmdHandler.js';
 import { generateJumpButton as getJumpButton } from '#utils/ComponentUtils.js';
 import { getConnectionHubId, getHubConnections } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
@@ -40,7 +39,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     if (!message.inGuild() || !isHumanMessage(message)) return;
 
     if (message.content.startsWith('c!')) {
-      await handlePrefixCommand(message, 'c!');
+      await this.handlePrefixCommand(message, 'c!');
       return;
     }
 
@@ -64,6 +63,23 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     }
 
     await this.processMessage(message, hub, hubConnections, settings, connection, attachmentURL);
+  }
+
+  private async handlePrefixCommand(message: Message, prefix: string) {
+    // Split message into command and arguments
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    const commandName = args.shift()?.toLowerCase();
+
+    if (!commandName) return;
+
+    // Find command by name or alias
+    const command =
+      message.client.prefixCommands.get(commandName) ||
+      message.client.prefixCommands.find((cmd) => cmd.data.aliases?.includes(commandName));
+
+    if (!command) return;
+
+    await command.execute(message, args);
   }
 
   private async getHub(hubId: string) {

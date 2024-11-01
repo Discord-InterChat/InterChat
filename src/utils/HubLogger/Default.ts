@@ -1,5 +1,11 @@
 import type { ClusterClient } from 'discord-hybrid-sharding';
-import type { Channel, Client, EmbedBuilder } from 'discord.js';
+import type {
+  APIActionRowComponent,
+  APIMessageActionRowComponent,
+  Channel,
+  Client,
+  EmbedBuilder,
+} from 'discord.js';
 
 /**
  * Sends a log message to the specified channel with the provided embed.
@@ -10,7 +16,10 @@ export const sendLog = async (
   cluster: ClusterClient<Client>,
   channelId: string,
   embed: EmbedBuilder,
-  content?: string,
+  opts?: {
+    content?: string;
+    components: APIActionRowComponent<APIMessageActionRowComponent>[];
+  },
 ) => {
   await cluster.broadcastEval(
     async (shardClient, ctx) => {
@@ -19,9 +28,11 @@ export const sendLog = async (
         .catch(() => null)) as Channel | null;
 
       if (channel?.isSendable()) {
-        await channel.send({ content: ctx.content, embeds: [ctx.embed] }).catch(() => null);
+        await channel
+          .send({ content: ctx.content, embeds: [ctx.embed], components: ctx.components })
+          .catch(() => null);
       }
     },
-    { context: { channelId, embed, content } },
+    { context: { channelId, embed, content: opts?.content, components: opts?.components } },
   );
 };
