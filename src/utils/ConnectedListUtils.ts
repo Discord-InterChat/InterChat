@@ -4,6 +4,7 @@ import type { connectedList, Prisma } from '@prisma/client';
 import db from '#utils/Db.js';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import isEmpty from 'lodash/isEmpty.js';
+import Logger from '#main/utils/Logger.js';
 
 type whereUniuqeInput = Prisma.connectedListWhereUniqueInput;
 type whereInput = Prisma.connectedListWhereInput;
@@ -31,8 +32,13 @@ export const getHubConnections = async (hubId: string): Promise<connectedList[]>
 
   const fromDb = await db.connectedList.findMany({ where: { hubId } });
   const keyValuePairs = fromDb.flatMap((c) => [c.id, JSON.stringify(c)]);
+
+  Logger.debug(`Caching ${fromDb.length} connections for hub ${hubId}`);
+
   await redis.hset(key, keyValuePairs);
   await redis.expire(key, 10 * 60 * 1000); // 10 minutes
+
+  Logger.debug(`Cached ${fromDb.length} connections for hub ${hubId}`);
 
   return fromDb;
 };
@@ -41,8 +47,12 @@ export const cacheHubConnection = async (connection: connectedList) => {
   const redis = getRedis();
   const cached = await redis.hlen(`${RedisKeys.hubConnections}:${connection.hubId}`);
 
+  Logger.debug(`Caching connection ${connection.id} for hub ${connection.hubId}`);
+
   if (!cached) {
+    Logger.debug(`No cached connections for hub ${connection.hubId}, fetching from database`);
     await getHubConnections(connection.hubId);
+    Logger.debug(`Fetched connections for hub ${connection.hubId}`);
     return;
   }
 
@@ -51,6 +61,8 @@ export const cacheHubConnection = async (connection: connectedList) => {
     connection.id,
     JSON.stringify(connection),
   );
+
+  Logger.debug(`Cached connection ${connection.id} for hub ${connection.hubId}`);
 };
 
 const purgeConnectionCache = async (channelId: string) =>

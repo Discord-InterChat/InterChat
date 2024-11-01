@@ -1,4 +1,5 @@
 import Constants, { RedisKeys } from '#main/config/Constants.js';
+import Logger from '#main/utils/Logger.js';
 import getRedis from '#main/utils/Redis.js';
 import type { Message, Snowflake } from 'discord.js';
 import isEmpty from 'lodash/isEmpty.js';
@@ -24,6 +25,8 @@ export interface Broadcast {
 export const storeMessage = async (originalMsgId: string, messageData: OriginalMessage) => {
   const key = `${RedisKeys.message}:${originalMsgId}`;
   const redis = getRedis();
+
+  Logger.debug(`Storing message ${originalMsgId} in cache`);
 
   await redis.hset(key, messageData);
   await redis.expire(key, 86400); // 1 day in seconds
@@ -66,10 +69,14 @@ export const addBroadcasts = async (
     { broadcastEntries: [] as string[], reverseLookups: [] as string[] },
   );
 
+  Logger.debug(`Adding ${broadcasts.length} broadcasts for message ${originalMsgId}`);
+
   // Add all broadcasts to the hash in a single operation
   await redis.hset(broadcastsKey, broadcastEntries);
   await redis.expire(broadcastsKey, 86400);
   await redis.mset(reverseLookups);
+
+  Logger.debug(`Added ${broadcasts.length} broadcasts for message ${originalMsgId}`);
 
   reverseLookups
     .filter((_, i) => i % 2 === 0)
@@ -113,7 +120,9 @@ export const findOriginalMessage = async (broadcastedMessageId: string) => {
 };
 
 export const storeMessageTimestamp = async (message: Message) => {
+  Logger.debug(`Storing message timestamp for channel ${message.channelId}`);
   await getRedis().hset(`${RedisKeys.msgTimestamp}`, message.channelId, message.createdTimestamp);
+  Logger.debug(`Stored message timestamp for channel ${message.channelId}`);
 };
 
 export const deleteMessageCache = async (originalMsgId: Snowflake) => {
