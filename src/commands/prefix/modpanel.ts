@@ -13,7 +13,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     name: 'modpanel',
     description: 'Blacklist a user or server from using the bot',
     category: 'Moderation',
-    usage: 'blacklist <user ID or server ID>',
+    usage: 'blacklist ` user ID or server ID `',
     examples: [
       'blacklist 123456789012345678',
       'blacklist 123456789012345678',
@@ -21,13 +21,12 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     ],
     aliases: ['bl', 'modactions', 'modpanel', 'mod', 'ban'],
     dbPermission: false,
+    totalArgs: 1,
   };
 
-  public async execute(message: Message<true>, args: string[]) {
-    const originalMessageId = message.reference?.messageId ?? getMessageIdFromStr(args[0]);
-    const originalMessage = originalMessageId
-      ? await this.getOriginalMessage(originalMessageId)
-      : null;
+  protected async run(message: Message<true>, args: string[]) {
+    const msgId = message.reference?.messageId ?? getMessageIdFromStr(args[0]);
+    const originalMessage = msgId ? await this.getOriginalMessage(msgId) : null;
 
     if (!originalMessage) {
       await message.channel.send('Please provide a valid message ID or link.');

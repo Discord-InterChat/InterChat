@@ -1,6 +1,14 @@
-import { getBroadcast, getOriginalMessage } from '#main/utils/network/messageUtils.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import {
+  findOriginalMessage,
+  getBroadcast,
+  getOriginalMessage,
+} from '#main/utils/network/messageUtils.js';
 import { stripIndents } from 'common-tags';
 import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
   EmbedBuilder,
   messageLink,
   roleMention,
@@ -43,7 +51,8 @@ const genJumpLink = async (
 ) => {
   if (!messageId) return null;
 
-  const originalMsg = await getOriginalMessage(messageId);
+  const originalMsg =
+    (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId));
   if (!originalMsg) return null;
 
   // fetch the reports server ID from the log channel's ID
@@ -89,6 +98,8 @@ export const sendHubReport = async (
   const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
   if (!hub?.logConfig[0]?.reports?.channelId) return;
 
+  if (!evidence?.messageId) return;
+
   const { channelId: reportsChannelId, roleId: reportsRoleId } = hub.logConfig[0].reports;
   const server = await client.fetchGuild(serverId);
   const jumpLink = await genJumpLink(hubId, client, evidence?.messageId, reportsChannelId);
@@ -117,5 +128,20 @@ export const sendHubReport = async (
     });
 
   const mentionRole = reportsRoleId ? roleMention(reportsRoleId) : undefined;
-  await sendLog(client.cluster, reportsChannelId, embed, mentionRole);
+  const button = new ActionRowBuilder<ButtonBuilder>()
+    .addComponents(
+      new ButtonBuilder()
+        .setCustomId(
+          new CustomID().setIdentifier('showModPanel').addArgs(evidence.messageId).toString(),
+        )
+        .setStyle(ButtonStyle.Danger)
+        .setLabel('Take Action')
+        .setEmoji(emojis.blobFastBan),
+    )
+    .toJSON();
+
+  await sendLog(client.cluster, reportsChannelId, embed, {
+    content: mentionRole,
+    components: [button],
+  });
 };
