@@ -7,6 +7,7 @@ import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import { fetchHub } from '#main/utils/hub/utils.js';
 import { calculateRating, getStars } from '#main/utils/Utils.js';
 import { connectedList, Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
@@ -40,15 +41,28 @@ export default class BrowseCommand extends HubCommand {
 
     // make paginated embed with 4 hubs in each page as a field
     await new Pagination()
-      .addPages(this.getPages(interaction.guildId, hubs, connections))
+      .addPages(
+        this.getPages(
+          interaction.guildId,
+          hubs,
+          connections,
+          interaction.client.user.displayAvatarURL(),
+        ),
+      )
       .run(interaction);
   }
 
-  private buildEmbed(totalHubs: number, fields: EmbedField[]) {
-    return new InfoEmbed().addFields(fields).setDescription(
-      stripIndents`### Discoverable Hubs
+  private buildEmbed(totalHubs: number, fields: EmbedField[], thumbnail: string) {
+    return new InfoEmbed()
+      .addFields(fields)
+      .setThumbnail(thumbnail)
+      .setDescription(
+        stripIndents`### Discoverable Hubs
           There are **${totalHubs}** hubs currently available for you to join.`,
-    );
+      )
+      .setFooter({
+        text: 'Use /hub join <hub name> or use the button below to join any one of these!',
+      });
   }
 
   @RegisterInteractionHandler('hub_browse', 'join')
@@ -57,16 +71,30 @@ export default class BrowseCommand extends HubCommand {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId] = customId.args;
 
+    if (!interaction.memberPermissions.has('ManageMessages')) return await interaction.deferUpdate();
+
+    const hub = await fetchHub(hubId);
+    if (!hub) {
+      await interaction.reply({ content: 'Hub not found.', ephemeral: true });
+      return;
+    }
+
     const joinService = new HubJoinService(interaction, await this.getLocale(interaction));
-    await joinService.joinHub(interaction.channel, hubId);
+    await joinService.joinHub(interaction.channel, hub.name);
   }
 
   private buildField(hub: Hub, connections: connectedList[]) {
     const lastActiveConnection = connections.filter((c) => c.hubId === hub.id).at(0);
 
+    const stars = getStars(calculateRating(hub.rating.map((r) => r.rating)));
+
     return {
-      name: `${hub.name} (${getStars(calculateRating(hub.rating.map((r) => r.rating)))})`,
-      value: `${emojis.user_icon} ${connections.length} ・ ${emojis.chat_icon} ${time(lastActiveConnection?.lastActive ?? new Date(), 'R')}\n\n${hub.description}`,
+      name: `${hub.name} (${stars || '`0`'})`,
+      value:
+        `${emojis.user_icon} ${connections.length} ・ ${emojis.chat_icon} ${time(lastActiveConnection?.lastActive ?? new Date(), 'R')}\n\n${hub.description}`.slice(
+          0,
+          300,
+        ),
       inline: true,
     };
   }
@@ -79,47 +107,48 @@ export default class BrowseCommand extends HubCommand {
       .setLabel(`Join ${hub.name}`)
       .setStyle(ButtonStyle.Success)
       .setEmoji(emojis.join);
-    const rateButton = new ButtonBuilder()
-      .setCustomId(new CustomID('hub_browse:rate', [hub.id]).toString())
-      .setDisabled(disabled)
-      .setLabel(`Rate ${hub.name}`)
-      .setStyle(ButtonStyle.Secondary)
-      .setEmoji('⭐');
+    // const rateButton = new ButtonBuilder()
+    //   .setCustomId(new CustomID('hub_browse:rate', [hub.id]).toString())
+    //   .setDisabled(disabled)
+    //   .setLabel(`Rate ${hub.name}`)
+    //   .setStyle(ButtonStyle.Secondary)
+    //   .setEmoji('⭐');
 
-    return { joinButton, rateButton };
+    return { joinButton };
   }
 
-  private getPages(guildId: string, hubs: Hub[], connections: connectedList[][]) {
-    // using foreach loop
+  private getPages(
+    guildId: string,
+    hubs: Hub[],
+    connections: connectedList[][],
+    thumbnail: string,
+  ) {
     const pages: BaseMessageOptions[] = [];
     let fields: EmbedField[] = [];
-    let buttons = {
-      join: new ActionRowBuilder<ButtonBuilder>(),
-      rate: new ActionRowBuilder<ButtonBuilder>(),
-    };
+    let buttons = { join: new ActionRowBuilder<ButtonBuilder>() };
 
     hubs.forEach((hub, index) => {
-      if (index === hubs.length - 1 || fields.length === 4) {
+      if (fields.length === 2 || fields.length === 5) {
+        fields.push({ name: '\u200b', value: '\u200b', inline: true });
+      }
+
+      if (index === hubs.length - 1 || fields.length === 6) {
         pages.push({
           content:
             '**✨ NEW**: View and join hubs directly from the website, with a much better experience! - https://interchat.fun/hubs',
-          embeds: [this.buildEmbed(hubs.length, fields)],
-          components: [buttons.join.toJSON(), buttons.rate.toJSON()],
+          embeds: [this.buildEmbed(hubs.length, fields, thumbnail)],
+          components: [buttons.join.toJSON()],
         });
 
         fields = [];
-        buttons = {
-          join: new ActionRowBuilder<ButtonBuilder>(),
-          rate: new ActionRowBuilder<ButtonBuilder>(),
-        };
+        buttons = { join: new ActionRowBuilder<ButtonBuilder>() };
       }
 
       const hubConnections = connections[index];
       fields.push(this.buildField(hub, hubConnections));
 
-      const { joinButton, rateButton } = this.buildButtons(guildId, hub, hubConnections);
+      const { joinButton } = this.buildButtons(guildId, hub, hubConnections);
       buttons.join.addComponents(joinButton);
-      buttons.rate.addComponents(rateButton);
     });
 
     return pages;
