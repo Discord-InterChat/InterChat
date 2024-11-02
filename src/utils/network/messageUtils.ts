@@ -5,7 +5,6 @@ import type { Message, Snowflake } from 'discord.js';
 import isEmpty from 'lodash/isEmpty.js';
 
 export interface OriginalMessage {
-  mode: number;
   hubId: string;
   messageId: string;
   guildId: string;
@@ -38,11 +37,7 @@ export const getOriginalMessage = async (originalMsgId: string) => {
 
   if (isEmpty(res)) return null;
 
-  return {
-    ...res,
-    mode: parseInt(res.mode),
-    timestamp: parseInt(res.timestamp),
-  } as OriginalMessage;
+  return { ...res, timestamp: parseInt(res.timestamp) } as OriginalMessage;
 };
 
 export const addBroadcasts = async (

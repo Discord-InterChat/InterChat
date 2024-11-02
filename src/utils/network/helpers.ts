@@ -71,7 +71,7 @@ export const getReferredMsgData = async (
   // fetch the acttual user ("referredMessage" is a webhook message)
   const referredAuthor = await client.users.fetch(dbReferrenceRaw.authorId).catch(() => null);
   const dbReferredAuthor = await client.userManager.getUser(dbReferrenceRaw.authorId);
-  const broadcastedMessages = await getBroadcasts(referredMessage.id, dbReferrenceRaw.hubId);
+  const broadcastedMessages = await getBroadcasts(dbReferrenceRaw.messageId, dbReferrenceRaw.hubId);
 
   const dbReferrence = {
     ...dbReferrenceRaw,
