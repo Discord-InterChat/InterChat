@@ -71,7 +71,10 @@ export default class BrowseCommand extends HubCommand {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId] = customId.args;
 
-    if (!interaction.memberPermissions.has('ManageMessages')) return await interaction.deferUpdate();
+    if (!interaction.memberPermissions.has('ManageMessages')) {
+      await interaction.deferUpdate();
+      return;
+    }
 
     const hub = await fetchHub(hubId);
     if (!hub) {
