@@ -28,7 +28,7 @@ const commandUtils = await import('../build/utils/CommandUtils.js').catch(() => 
 const registerAllCommands = async (staffOnly = false) => {
   // make sure CommandsMap is not empty
   const commandsMap = new Collection();
-  await commandUtils.loadCommandFiles(commandsMap, new Collection());
+  await commandUtils.loadCommands(commandsMap, new Collection(), new Collection());
 
   
   const commands = commandsMap
