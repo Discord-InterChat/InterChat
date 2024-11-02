@@ -33,6 +33,8 @@ export const getHubConnections = async (hubId: string): Promise<connectedList[]>
   const fromDb = await db.connectedList.findMany({ where: { hubId } });
   const keyValuePairs = fromDb.flatMap((c) => [c.id, JSON.stringify(c)]);
 
+  if (keyValuePairs.length === 0) return [];
+
   Logger.debug(`Caching ${fromDb.length} connections for hub ${hubId}`);
 
   await redis.hset(key, keyValuePairs);
