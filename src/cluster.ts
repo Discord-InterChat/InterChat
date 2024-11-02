@@ -9,7 +9,7 @@ import Logger from '#utils/Logger.js';
 import { ClusterManager, HeartbeatManager, ReClusterManager } from 'discord-hybrid-sharding';
 import 'dotenv/config';
 
-const shardsPerClusters = 5;
+const shardsPerClusters = 6;
 const clusterManager = new ClusterManager('build/index.js', {
   token: process.env.DISCORD_TOKEN,
   totalShards: 'auto',
