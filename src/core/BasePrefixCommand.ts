@@ -36,7 +36,9 @@ export default abstract class BasePrefixCommand {
         requiredUserPermissions &&
         message.member?.permissions.missing(requiredUserPermissions, true);
       if (missingPerms?.length) {
-        await message.reply(`${emojis.neutral} You're missing the following permissions: ${missingPerms.join(', ')}`);
+        await message.reply(
+          `${emojis.neutral} You're missing the following permissions: ${missingPerms.join(', ')}`,
+        );
         return;
       }
 
@@ -44,7 +46,9 @@ export default abstract class BasePrefixCommand {
         requiredBotPermissions &&
         message.guild?.members.me?.permissions.missing(requiredBotPermissions, true);
       if (botMissingPerms?.length) {
-        await message.reply(`${emojis.no} I'm missing the following permissions: ${botMissingPerms.join(', ')}`);
+        await message.reply(
+          `${emojis.no} I'm missing the following permissions: ${botMissingPerms.join(', ')}`,
+        );
         return;
       }
 
@@ -54,11 +58,16 @@ export default abstract class BasePrefixCommand {
       }
 
       if (this.data.totalArgs > args.length) {
+        const prefix = 'c!';
         const examplesStr =
-          this.data.examples.length > 0 ? `\n**Examples**: ${this.data.examples.join('\n')}` : '';
-        await message.reply(
-          `${emojis.neutral} One or more args missing.\n**Usage**: ${this.data.usage}\n${examplesStr}`,
-        );
+          this.data.examples.length > 0
+            ? `\n**Examples**:\n${this.data.examples.map((e) => `${prefix}${e}`).join('\n')}`
+            : '';
+
+        await message.reply({
+          content: `${emojis.neutral} One or more args missing.\n**Usage**: ${this.data.usage}${examplesStr}`,
+          allowedMentions: { repliedUser: false },
+        });
         return;
       }
 

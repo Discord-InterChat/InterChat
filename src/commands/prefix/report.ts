@@ -1,3 +1,4 @@
+import { emojis } from '#main/config/Constants.js';
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
 import { sendHubReport } from '#main/utils/HubLogger/Report.js';
 import {
@@ -56,6 +57,10 @@ export default class ReportPrefixCommand extends BasePrefixCommand {
       reportedBy: message.author,
       evidence: { messageId: broadcastMsg.messageId, content: fetchedMsg?.content },
     });
+
+    await message
+      .react(emojis.tick)
+      .catch(() => message.reply(`${emojis.tick} Sent the report.`).catch(() => null));
   }
   private async getOriginalMessage(messageId: string) {
     return (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId)) ?? null;
