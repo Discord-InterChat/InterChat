@@ -34,11 +34,15 @@ export const storeMessage = async (originalMsgId: string, messageData: OriginalM
 
 export const getOriginalMessage = async (originalMsgId: string) => {
   const key = `${RedisKeys.message}:${originalMsgId}`;
-  const res = (await getRedis().hgetall(key)) as unknown as OriginalMessage;
+  const res = await getRedis().hgetall(key);
 
   if (isEmpty(res)) return null;
 
-  return res;
+  return {
+    ...res,
+    mode: parseInt(res.mode),
+    timestamp: parseInt(res.timestamp),
+  } as OriginalMessage;
 };
 
 export const addBroadcasts = async (
