@@ -111,13 +111,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       embedColor: connection.embedColor as HexColorString,
     });
 
-    await storeMessageData(
-      message,
-      sendResult,
-      connection.hubId,
-      connection.compact ? ConnectionMode.Compact : ConnectionMode.Embed,
-      referredMsgData.dbReferrence,
-    );
+    await storeMessageData(message, sendResult, connection.hubId, referredMsgData.dbReferrence);
   }
 
   private async fetchReferredMessage(message: Message<true>): Promise<Message | null> {
@@ -277,10 +271,11 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
   private getReferredContent(data: ReferredMsgData) {
     if (data.referredMessage && data.dbReferrence) {
-      const messagesRepliedTo =
-        data.dbReferrence.broadcastMsgs.get(data.referredMessage.channelId) ?? data.dbReferrence;
+      const mode =
+        data.dbReferrence.broadcastMsgs.get(data.referredMessage.channelId)?.mode ??
+        ConnectionMode.Compact; // message is an OriginalMessage (user message)
 
-      return getReferredContent(data.referredMessage, messagesRepliedTo.mode);
+      return getReferredContent(data.referredMessage, mode);
     }
   }
 

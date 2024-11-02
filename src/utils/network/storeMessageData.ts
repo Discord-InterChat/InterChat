@@ -31,13 +31,11 @@ export default async (
   message: Message,
   broadcastResults: NetworkWebhookSendResult[],
   hubId: string,
-  mode: ConnectionMode,
   dbReference?: OriginalMessage | null,
 ) => {
   if (!message.inGuild()) return;
 
   await storeMessage(message.id, {
-    mode,
     hubId,
     messageId: message.id,
     authorId: message.author.id,
@@ -63,7 +61,7 @@ export default async (
       return;
     }
     validBroadcasts.push({
-      mode,
+      mode: res.mode,
       messageId: res.messageRes.id,
       channelId: res.messageRes.channel_id,
       originalMsgId: message.id,
