@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
 import { fetchHub, isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { deleteMessageFromHub } from '#main/utils/moderation/deleteMessage.js';

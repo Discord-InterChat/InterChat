@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import BaseCommand, { type CmdData } from '#main/core/BaseCommand.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type ChatInputCommandInteraction, ApplicationCommandOptionType } from 'discord.js';

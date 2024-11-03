@@ -1,8 +1,8 @@
+import type { TranslationKeys } from '#types/TranslationKeys.d.ts';
 import Logger from '#utils/Logger.js';
 import fs from 'fs';
-import path from 'path';
 import { load } from 'js-yaml';
-import type { TranslationKeys } from '#types/locale.d.ts';
+import path from 'path';
 
 const localesMap = new Map();
 

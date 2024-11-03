@@ -1,3 +1,5 @@
+import { Snowflake } from 'discord.js';
+
 export interface WebhookPayload {
   /** If webhook is a bot: ID of the bot that received a vote */
   bot?: Snowflake;

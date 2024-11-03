@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { isHubManager, sendToHub } from '#main/utils/hub/utils.js';
@@ -12,7 +12,7 @@ import {
 } from 'discord.js';
 import HubCommand from './index.js';
 import { CustomID } from '#main/utils/CustomID.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 
 export default class AnnounceCommand extends HubCommand {
   readonly cooldown = 1 * 60 * 1000;

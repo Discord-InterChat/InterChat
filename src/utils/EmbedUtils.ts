@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { APIEmbed, codeBlock, Colors, EmbedBuilder, EmbedData, resolveColor } from 'discord.js';
 

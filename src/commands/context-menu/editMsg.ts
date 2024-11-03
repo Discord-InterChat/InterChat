@@ -1,7 +1,7 @@
 /* eslint-disable complexity */
-import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
+import Constants, { ConnectionMode, emojis } from '#utils/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { SerializedHubSettings } from '#main/modules/BitFields.js';
 import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';

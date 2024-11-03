@@ -1,16 +1,16 @@
 import type { Colors, HexColorString, Snowflake } from 'discord.js';
 import { createRequire } from 'module';
-import type jsonEmotes from './emojis.json';
-import type badwordsType from './profanity.json';
+import type jsonEmotes from './JSON/emojis.json';
+import type badwordsType from './JSON/profanity.json';
 
 // create a require as ESM doesn't support importing JSON
 const require = createRequire(import.meta.url);
-export const { slurs, profanity } = require('./profanity.json') as typeof badwordsType;
+export const { slurs, profanity } = require('./JSON/profanity.json') as typeof badwordsType;
 export const {
   normal: emojis,
   mascot: mascotEmojis,
   badge: badgeEmojis,
-} = require('./emojis.json') as typeof jsonEmotes;
+} = require('./JSON/emojis.json') as typeof jsonEmotes;
 
 export const enum RedisKeys {
   msgTimestamp = 'msgTimestamp',
@@ -83,6 +83,8 @@ export default {
     ChannelMention: /<#|!|>/g,
     ImgurImage: /https?:\/\/i\.imgur\.com\/[a-zA-Z0-9]+\.((jpg)|(jpeg)|(png)|(gif))/g,
     MessageLink: /https:\/\/discord.com\/channels\/(\d{17,19})\/(\d{17,19})\/(\d{17,19})/g,
+    SimpleRegexEscape: /[.*+?^${}()|[\]\\]/g,
+    RegexChars: /[-[\]{}()*+?.,\\^$|#\s]/g,
   },
 
   Links: {

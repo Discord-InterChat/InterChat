@@ -1,13 +1,13 @@
-import Constants from '#main/config/Constants.js';
+import Constants from '#utils/Constants.js';
 import type BaseCommand from '#main/core/BaseCommand.js';
 import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
-import type { InteractionFunction } from '#main/decorators/Interaction.js';
+import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import CooldownService from '#main/modules/CooldownService.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import Scheduler from '#main/modules/SchedulerService.js';
-import type { RemoveMethods } from '#types/index.d.ts';
+import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import { loadCommands, loadInteractions } from '#utils/CommandUtils.js';
 import { loadLocales } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';

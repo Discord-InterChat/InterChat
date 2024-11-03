@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';

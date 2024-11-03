@@ -1,8 +1,8 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
-import { logServerUnblacklist } from '#utils/HubLogger/ModLogs.js';
+import { logServerUnblacklist } from '#utils/hub/logger/ModLogs.js';
 import { t } from '#utils/Locale.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';

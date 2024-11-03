@@ -1,4 +1,4 @@
-import Constants from '#main/config/Constants.js';
+import Constants from '#utils/Constants.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { getReplyMethod } from '#utils/Utils.js';
 import {

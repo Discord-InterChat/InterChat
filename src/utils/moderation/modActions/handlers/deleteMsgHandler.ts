@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import { getBroadcasts, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';

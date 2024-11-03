@@ -1,7 +1,7 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import { MetadataHandler } from '#main/core/FileLoader.js';
-import { InteractionFunction } from '#main/decorators/Interaction.js';
-import { TranslationKeys } from '#main/types/locale.js';
+import { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
+import type { TranslationKeys } from '#types/TranslationKeys.d.ts';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';

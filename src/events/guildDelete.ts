@@ -1,8 +1,8 @@
-import Constants from '#main/config/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
+import Constants from '#utils/Constants.js';
 import { logGuildLeave } from '#utils/GuildUtils.js';
-import { logGuildLeaveToHub } from '#utils/HubLogger/JoinLeave.js';
+import { logGuildLeaveToHub } from '#utils/hub/logger/JoinLeave.js';
 import Logger from '#utils/Logger.js';
 import { Guild } from 'discord.js';
 

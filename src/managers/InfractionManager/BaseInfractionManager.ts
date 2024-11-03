@@ -1,3 +1,4 @@
+import type { ConvertDatesToString } from '#types/Utils.d.ts';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import {
   InfractionStatus,

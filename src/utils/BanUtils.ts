@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import Logger from '#utils/Logger.js';
 import type { RepliableInteraction, User } from 'discord.js';
 

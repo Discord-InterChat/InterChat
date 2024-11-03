@@ -1,20 +1,20 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import {
   findOriginalMessage,
   getOriginalMessage,
   OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import type { RemoveMethods } from '#types/index.d.ts';
+import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import { greyOutButton, greyOutButtons } from '#utils/ComponentUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { fetchHub, isStaffOrHubMod } from '#utils/hub/utils.js';
-import { sendHubReport } from '#utils/HubLogger/Report.js';
+import { sendHubReport } from '#utils/hub/logger/Report.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
 import type { connectedList, Hub } from '@prisma/client';

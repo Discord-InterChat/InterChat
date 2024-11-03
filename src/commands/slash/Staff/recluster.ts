@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import { isDev } from '#utils/Utils.js';
 
 export default class Respawn extends BaseCommand {

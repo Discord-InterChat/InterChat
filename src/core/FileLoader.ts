@@ -1,4 +1,4 @@
-import { type InteractionFunction } from '#main/decorators/Interaction.js';
+import { type InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import Logger from '#utils/Logger.js';
 import {
   Awaitable,

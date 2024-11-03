@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "Launch Program",
-      "program": "${workspaceFolder}/src/cluster.ts",
+      "program": "${workspaceFolder}/src/index.ts",
       "preLaunchTask": "tsc: build - tsconfig.json",
       "autoAttachChildProcesses": true,
       "outFiles": ["${workspaceFolder}/build/**/*.js"]

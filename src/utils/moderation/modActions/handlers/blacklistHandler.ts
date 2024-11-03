@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';

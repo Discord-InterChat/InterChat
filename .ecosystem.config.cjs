@@ -2,8 +2,8 @@ module.exports = {
   apps: [
     {
       name: 'interchat',
-      script: 'build/cluster.js',
-      node_args: '--max-old-space-size=4096 --import ./build/instrument.js',
+      script: 'build/index.js',
+      node_args: '--import ./build/instrument.js',
       env_production: {
         NODE_ENV: 'production',
       },

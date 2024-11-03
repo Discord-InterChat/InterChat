@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { toTitleCase } from '#utils/Utils.js';
 import {

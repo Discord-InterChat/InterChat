@@ -1,6 +1,6 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
-import { emojis } from '#main/config/Constants.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { emojis } from '#utils/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { HubJoinService } from '#main/modules/HubJoinService.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { getHubConnections } from '#main/utils/ConnectedListUtils.js';

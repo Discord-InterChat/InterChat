@@ -1,5 +1,5 @@
-import Constants, { emojis } from '#main/config/Constants.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import Constants, { emojis } from '#utils/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { HubSettingsBitField } from '#main/modules/BitFields.js';
 import { fetchHub } from '#main/utils/hub/utils.js';

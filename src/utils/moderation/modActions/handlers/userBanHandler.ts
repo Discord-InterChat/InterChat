@@ -1,4 +1,4 @@
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import { handleBan } from '#utils/BanUtils.js';
 import { CustomID } from '#utils/CustomID.js';

@@ -29,7 +29,7 @@ export default class Connection extends BaseCommand {
             type: ApplicationCommandOptionType.String,
             name: 'channel',
             description: 'Choose a connection to manage.',
-            required: true,
+            required: false,
             autocomplete: true,
           },
         ],

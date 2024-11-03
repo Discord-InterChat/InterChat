@@ -1,4 +1,4 @@
-import Constants from '#main/config/Constants.js';
+import Constants from '#utils/Constants.js';
 import { msToReadable, toTitleCase } from '#utils/Utils.js';
 import { ServerInfraction, UserInfraction } from '@prisma/client';
 import { stripIndents } from 'common-tags';

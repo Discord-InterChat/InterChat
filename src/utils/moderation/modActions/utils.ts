@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { getReplyMethod } from '#main/utils/Utils.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';

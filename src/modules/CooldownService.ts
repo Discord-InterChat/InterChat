@@ -1,5 +1,5 @@
 import getRedis from '#utils/Redis.js';
-import { RedisKeys } from '#main/config/Constants.js';
+import { RedisKeys } from '#utils/Constants.js';
 
 /** Manage and store individual cooldowns */
 export default class CooldownService {

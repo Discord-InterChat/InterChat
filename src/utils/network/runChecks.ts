@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
@@ -6,7 +6,7 @@ import { analyzeImageForNSFW, isImageUnsafe } from '#main/modules/NSFWDetection.
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import db from '#utils/Db.js';
 import { isHubMod } from '#utils/hub/utils.js';
-import logProfanity from '#utils/HubLogger/Profanity.js';
+import logProfanity from '#utils/hub/logger/Profanity.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { sendWelcomeMsg } from '#utils/network/helpers.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';

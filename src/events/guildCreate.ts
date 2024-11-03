@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { getGuildOwnerOrFirstChannel, logGuildJoin } from '#utils/GuildUtils.js';
 import Logger from '#utils/Logger.js';

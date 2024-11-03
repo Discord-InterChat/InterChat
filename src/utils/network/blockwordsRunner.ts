@@ -1,6 +1,6 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import { logBlockwordAlert } from '#main/utils/HubLogger/BlockWordAlert.js';
+import { logBlockwordAlert } from '#main/utils/hub/logger/BlockWordAlert.js';
 import Logger from '#main/utils/Logger.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import { createRegexFromWords } from '#main/utils/moderation/blockWords.js';

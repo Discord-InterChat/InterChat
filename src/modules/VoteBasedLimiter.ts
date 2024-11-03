@@ -1,6 +1,6 @@
 import UserDbManager from '#main/managers/UserDbManager.js';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
-import { RedisKeys } from '#main/config/Constants.js';
+import { RedisKeys } from '#utils/Constants.js';
 
 export default class VoteLimitManager {
   private readonly userManager;

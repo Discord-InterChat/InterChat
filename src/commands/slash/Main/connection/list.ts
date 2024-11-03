@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';

@@ -1,4 +1,4 @@
-import Constants, { mascotEmojis } from '#main/config/Constants.js';
+import Constants, { mascotEmojis } from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import {
   AuditLogEvent,

@@ -1,4 +1,4 @@
-import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
+import Constants, { ConnectionMode, emojis } from '#utils/Constants.js';
 import {
   findOriginalMessage,
   getBroadcasts,

@@ -1,5 +1,5 @@
-import Constants from '#main/config/Constants.js';
-import type { RemoveMethods, ThreadParentChannel } from '#types/index.d.ts';
+import Constants from '#utils/Constants.js';
+import type { RemoveMethods, ThreadParentChannel } from '#types/CustomClientProps.d.ts';
 import { CustomID } from '#utils/CustomID.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
@@ -155,8 +155,11 @@ export const handleError = (e: Error, interaction?: Interaction) => {
 
 export const isDev = (userId: Snowflake) => Constants.DeveloperIds.includes(userId);
 
-export const escapeRegexChars = (input: string): string =>
-  input.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+export const escapeRegexChars = (input: string, type: 'simple' | 'full' = 'simple'): string =>
+  input.replace(
+    type === 'simple' ? Constants.Regex.SimpleRegexEscape : Constants.Regex.RegexChars,
+    '\\$&',
+  );
 
 export const parseEmoji = (emoji: string) => {
   const match = emoji.match(Constants.Regex.Emoji);
@@ -171,7 +174,6 @@ export const getEmojiId = (emoji: string | undefined) => {
   return res?.id ?? emoji;
 };
 
-// get ordinal suffix for a number
 export const getOrdinalSuffix = (num: number) => {
   const j = num % 10;
   const k = num % 100;

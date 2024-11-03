@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import { fetchCommands, findCommand } from '#utils/CommandUtils.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';

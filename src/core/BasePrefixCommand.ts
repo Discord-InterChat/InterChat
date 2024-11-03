@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import Logger from '#main/utils/Logger.js';
 import { isDev } from '#main/utils/Utils.js';
 import { Message, PermissionsBitField } from 'discord.js';

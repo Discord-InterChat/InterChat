@@ -1,8 +1,8 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import BaseInfractionManager from '#main/managers/InfractionManager/BaseInfractionManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import db from '#main/utils/Db.js';
-import { sendLog } from '#main/utils/HubLogger/Default.js';
+import { sendLog } from '#main/utils/hub/logger/Default.js';
 import { resolveEval } from '#main/utils/Utils.js';
 import { InfractionStatus, Prisma, ServerInfraction, UserInfraction } from '@prisma/client';
 import { stripIndents } from 'common-tags';

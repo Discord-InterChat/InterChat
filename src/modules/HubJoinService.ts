@@ -1,12 +1,12 @@
-import { emojis } from '#main/config/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import { TranslationKeys } from '#main/types/locale.js';
+import { TranslationKeys } from '#types/TranslationKeys.d.ts';
 import { createConnection, getHubConnections } from '#utils/ConnectedListUtils.js';
+import { emojis } from '#utils/Constants.js';
 import db from '#utils/Db.js';
+import { logJoinToHub } from '#utils/hub/logger/JoinLeave.js';
 import { sendToHub } from '#utils/hub/utils.js';
-import { logJoinToHub } from '#utils/HubLogger/JoinLeave.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { showOnboarding } from '#utils/network/onboarding.js';
 import { check } from '#utils/ProfanityUtils.js';

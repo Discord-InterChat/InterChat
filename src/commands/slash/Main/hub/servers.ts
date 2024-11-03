@@ -1,5 +1,5 @@
 import { Pagination } from '#main/modules/Pagination.js';
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';

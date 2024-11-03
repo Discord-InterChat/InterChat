@@ -1,6 +1,6 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import Scheduler from '#main/modules/SchedulerService.js';
-import updateBlacklists from '#main/tasks/updateBlacklists.js';
+import updateBlacklists from '#main/scheduled/tasks/updateBlacklists.js';
 import Logger from '#utils/Logger.js';
 import getRedis from '#utils/Redis.js';
 import { Client } from 'discord.js';

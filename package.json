@@ -3,8 +3,8 @@
   "private": true,
   "version": "4.0.1",
   "description": "A growing Discord bot which provides inter-server chat!",
-  "main": "build/cluster.js",
-  "license": "GPL-3.0-or-later",
+  "main": "build/index.js",
+  "license": "AGPL-3.0-only",
   "scripts": {
     "start": "node --import ./build/instrument.js .",
     "start:prod": "pm2 start .ecosystem.config.js",

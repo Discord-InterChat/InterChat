@@ -1,5 +1,5 @@
-import { emojis } from '#main/config/Constants.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { emojis } from '#utils/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';

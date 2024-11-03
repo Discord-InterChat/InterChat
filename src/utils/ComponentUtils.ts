@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import { randomBytes } from 'crypto';
 import {

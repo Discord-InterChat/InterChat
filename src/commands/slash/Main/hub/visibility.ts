@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import db from '#main/utils/Db.js';
 import { isHubManager } from '#main/utils/hub/utils.js';

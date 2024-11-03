@@ -1,5 +1,5 @@
-import Constants, { emojis } from '#main/config/Constants.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import Constants, { emojis } from '#utils/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { isGuildTextBasedChannel } from '#utils/ChannelUtls.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
@@ -34,8 +34,7 @@ export default class ConnectionEditCommand extends Connection {
       interaction.channelId;
 
     const isInDb = await db.connectedList.findFirst({ where: { channelId } });
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await this.getLocale(interaction);
 
     if (!isInDb) {
       await this.replyEmbed(interaction, t('connection.notFound', locale, { emoji: emojis.no }));
@@ -72,8 +71,8 @@ export default class ConnectionEditCommand extends Connection {
   @RegisterInteractionHandler('connectionModal')
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await this.getLocale(interaction);
+
     if (customId.suffix === 'invite') {
       await interaction.deferReply({ ephemeral: true });
 

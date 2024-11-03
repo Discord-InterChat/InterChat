@@ -6,7 +6,7 @@ import {
 } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { isDev, resolveEval } from '#utils/Utils.js';
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 
 export default class Respawn extends BaseCommand {
   readonly staffOnly = true;

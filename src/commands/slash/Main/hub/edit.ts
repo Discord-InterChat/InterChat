@@ -1,5 +1,5 @@
-import Constants, { emojis } from '#main/config/Constants.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import Constants, { emojis } from '#utils/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import HubLogManager, { LogConfigTypes as HubConfigTypes } from '#main/managers/HubLogManager.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
 import { CustomID } from '#utils/CustomID.js';

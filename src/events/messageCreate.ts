@@ -1,4 +1,4 @@
-import { ConnectionMode } from '#main/config/Constants.js';
+import { ConnectionMode } from '#utils/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import Logger from '#main/utils/Logger.js';
