@@ -1,5 +1,5 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
-import { emojis } from '#utils/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { HubJoinService } from '#main/modules/HubJoinService.js';
 import { Pagination } from '#main/modules/Pagination.js';
@@ -137,8 +137,7 @@ export default class BrowseCommand extends HubCommand {
 
       if (index === hubs.length - 1 || fields.length === 6) {
         pages.push({
-          content:
-            '**✨ NEW**: View and join hubs directly from the website, with a much better experience! - https://interchat.fun/hubs',
+          content: `**✨ NEW**: View and join hubs directly from the website, with a much better experience! - ${Constants.Links.Website}/hubs`,
           embeds: [this.buildEmbed(hubs.length, fields, thumbnail)],
           components: [buttons.join.toJSON()],
         });

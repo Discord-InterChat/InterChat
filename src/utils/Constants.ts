@@ -54,9 +54,9 @@ export const numberEmojis = [
 export default {
   isDevBuild: process.env.NODE_ENV === 'development',
 
-  StaffIds: ['442653948630007808', '885241933927161896', '597265261665714186'] as Snowflake[],
-  DeveloperIds: ['828492978716409856', '701727675311587358', '456961943505338369'] as Snowflake[],
-  SupporterIds: ['880978672037802014'] as Snowflake[],
+  StaffIds: ['1160735837940617336', '982656475979710524', '899447572614225930', '853178500193583104', '597265261665714186'] as Snowflake[],
+  DeveloperIds: ['701727675311587358'] as Snowflake[],
+  SupporterIds: ['880978672037802014', '786348225341947986'] as Snowflake[],
 
   ProjectVersion: require('../../package.json').version ?? 'Unknown',
   SupportServerId: '770256165300338709',
@@ -88,6 +88,7 @@ export default {
   },
 
   Links: {
+    Website: 'https://interchat.fun',
     TopggApi: 'https://top.gg/api/bots/769921109209907241',
     Vote: 'https://top.gg/bot/769921109209907241/vote',
     Docs: 'https://docs.interchat.fun',

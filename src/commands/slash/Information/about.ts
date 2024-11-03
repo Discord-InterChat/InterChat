@@ -1,4 +1,4 @@
-import Constants, { badgeEmojis, emojis } from '#utils/Constants.js';
+import Constants, { badgeEmojis, emojis, mascotEmojis } from '#utils/Constants.js';
 import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { getCredits } from '#utils/Utils.js';
@@ -6,10 +6,13 @@ import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   ButtonBuilder,
+  ButtonInteraction,
   ButtonStyle,
   ChatInputCommandInteraction,
   Client,
 } from 'discord.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 
 export default class About extends BaseCommand {
   public readonly data: CmdData = {
@@ -17,35 +20,30 @@ export default class About extends BaseCommand {
     description: '🚀 Learn more about the InterChat team and project.',
   };
   async execute(interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply();
+    const creditsEmbed = new InfoEmbed()
+      .setDescription(
+        stripIndents`
+        ### ${emojis.wand} About InterChat
 
-    const usernames = await this.getUsernames(interaction.client);
-    const linksDivider = `${emojis.blueLine.repeat(9)} **LINKS** ${emojis.blueLine.repeat(9)}`;
-    const creditsDivider = `${emojis.blueLine.repeat(9)} **TEAM** ${emojis.blueLine.repeat(9)}`;
+        InterChat is a bot which provides cross-server chats that allows users to talk across different servers. Using webhooks, InterChat broadcasts messages to all connected channels in real time, making server connections seamless.
 
-    // TODO: Make this an actual about command, not only credits
-    const creditsEmbed = new InfoEmbed().setTitle(`${emojis.wand} About Us`)
-      .setDescription(stripIndents`
-      
-      InterChat is a project driven by a passionate team dedicated to enhancing the Discord experience. We welcome new members to join our team; if you're interested, please join our [support server](${Constants.Links.SupportInvite}).
 
-      ${creditsDivider}
-      ✨ **Design:**
-      ${emojis.dotBlue} @${usernames[6]} (Mascot)
-
-      ${badgeEmojis.Developer} **Developers:**
-      ${emojis.dotBlue} @${usernames[0]}
-      ${emojis.dotBlue} @${usernames[1]}
-      ${emojis.dotBlue} @${usernames[2]}
-
-      ${badgeEmojis.Staff} **Staff: ([Recruiting!](https://forms.gle/8zu7cxx4XPbEmMXJ9))**
-      ${emojis.dotBlue} @${usernames[3]}
-      ${emojis.dotBlue} @${usernames[4]}
-      ${emojis.dotBlue} @${usernames[5]}
-
-      ${linksDivider}
-      [Guide](${Constants.Links.Docs}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${Constants.Links.SupportInvite}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${Constants.Links.Docs}/legal/privacy) • [Terms](${Constants.Links.Docs}/legal/terms)
-    `);
+        #### Notable Features:
+        - Cross-server messaging
+        - Customizable block words and filters
+        - Advanced hub moderation tools
+        - Webhook management for smoother message handling
+        - [And more](${Constants.Links.Website}/features)! 🚀
+    `,
+      )
+      .addFields({
+        name: '\u200b',
+        value:
+          `[Guide](${Constants.Links.Docs}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${Constants.Links.SupportInvite}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${Constants.Links.Docs}/legal/privacy) • [Terms](${Constants.Links.Docs}/legal/terms)`,
+      })
+      .setFooter({
+        text: ` InterChat v${Constants.ProjectVersion} • Made with ❤️ by the InterChat Team`,
+      });
 
     const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
@@ -67,12 +65,59 @@ export default class About extends BaseCommand {
         .setStyle(ButtonStyle.Link)
         .setLabel('Vote!')
         // NOTE emoji is from official top.gg server
-        .setEmoji('<:topgg_voter:1065977698058506290>')
+        .setEmoji(emojis.topggSparkles)
         .setURL('https://top.gg/bot/769921109209907241/vote'),
     );
 
-    await interaction.editReply({ embeds: [creditsEmbed], components: [linkButtons] });
+    const normalButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      new ButtonBuilder()
+        .setCustomId(new CustomID('about:credits').toString())
+        .setStyle(ButtonStyle.Primary)
+        .setLabel('Credits & Team')
+        .setEmoji(`${emojis.ghost_heart}`),
+    );
+
+    await interaction.reply({
+      embeds: [creditsEmbed],
+      components: [linkButtons, normalButtons],
+    });
   }
+
+  @RegisterInteractionHandler('about', 'credits')
+  public async handleCreditsButton(interaction: ButtonInteraction) {
+    await interaction.deferReply({ ephemeral: true });
+
+    const usernames = await this.getUsernames(interaction.client);
+    const creditsDivider = `${emojis.blueLine.repeat(9)} **CREDITS** ${emojis.blueLine.repeat(9)}`;
+
+    const creditsEmbed = new InfoEmbed()
+      .setDescription(
+        stripIndents`
+      
+        ${creditsDivider}
+        ✨ **Deserving Mentions:**
+        ${emojis.dotBlue} @${usernames[6]} (for our cute mascot chipi ${mascotEmojis.flushed})
+        ${emojis.dotBlue} @${usernames[7]} (top [voter](${Constants.Links.Vote}) of all time ${emojis.topggSparkles})
+
+        ${badgeEmojis.Developer} **Developers:**
+        ${emojis.dotBlue} @${usernames[0]}
+
+        ${badgeEmojis.Staff} **Staff: ([Recruiting!](${Constants.Links.Website}/apply))**
+        ${emojis.dotBlue} @${usernames[1]}
+        ${emojis.dotBlue} @${usernames[2]}
+        ${emojis.dotBlue} @${usernames[3]}
+        ${emojis.dotBlue} @${usernames[4]}
+        ${emojis.dotBlue} @${usernames[5]}
+        ${creditsDivider}
+    `,
+      )
+      .setFooter({
+        text: ` InterChat v${Constants.ProjectVersion} • Made with ❤️ by the InterChat Team`,
+      });
+
+    await interaction.editReply({ embeds: [creditsEmbed] });
+  }
+
   private async getUsernames(client: Client): Promise<string[]> {
     const members: string[] = [];
 
