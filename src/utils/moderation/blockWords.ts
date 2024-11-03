@@ -1,5 +1,5 @@
 // utils/moderation/blockedWords.ts
-import { emojis, numberEmojis } from '#main/config/Constants.js';
+import { emojis, numberEmojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { BlockWordAction, MessageBlockList } from '@prisma/client';

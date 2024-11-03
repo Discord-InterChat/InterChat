@@ -1,5 +1,5 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';

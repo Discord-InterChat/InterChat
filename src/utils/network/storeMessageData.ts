@@ -1,4 +1,4 @@
-import { ConnectionMode } from '#main/config/Constants.js';
+import { ConnectionMode } from '#utils/Constants.js';
 import {
   addBroadcasts,
   Broadcast,

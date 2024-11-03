@@ -1,7 +1,7 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import { type Class, FileLoader, type ResourceLoader } from '#main/core/FileLoader.js';
-import { InteractionFunction } from '#main/decorators/Interaction.js';
+import { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import Logger from '#utils/Logger.js';
 import { Collection } from 'discord.js';
 import { dirname, join } from 'path';

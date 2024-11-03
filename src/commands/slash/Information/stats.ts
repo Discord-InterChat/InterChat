@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
-import Constants, { emojis, RedisKeys } from '#main/config/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import Constants, { emojis, RedisKeys } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { msToReadable } from '#utils/Utils.js';

@@ -1,6 +1,6 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import {
   findOriginalMessage,
   getOriginalMessage,

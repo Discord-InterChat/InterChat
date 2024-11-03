@@ -1,4 +1,4 @@
-import Constants, { RedisKeys } from '#main/config/Constants.js';
+import Constants, { RedisKeys } from '#utils/Constants.js';
 import Logger from '#main/utils/Logger.js';
 import getRedis from '#main/utils/Redis.js';
 import type { Message, Snowflake } from 'discord.js';

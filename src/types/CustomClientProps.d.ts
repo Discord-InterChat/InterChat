@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import BasePrefixCommand from '#main/core/BasePrefixCommand.js';
-import { InteractionFunction } from '#main/decorators/Interaction.ts';
+import { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import CooldownService from '#main/modules/CooldownService.js';

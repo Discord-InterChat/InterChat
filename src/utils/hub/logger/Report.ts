@@ -4,6 +4,9 @@ import {
   getBroadcast,
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
+import { emojis } from '#utils/Constants.js';
+import db from '#utils/Db.js';
+import { resolveEval } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -16,9 +19,6 @@ import {
   type GuildTextBasedChannel,
   type User,
 } from 'discord.js';
-import { emojis } from '../../config/Constants.js';
-import db from '../Db.js';
-import { resolveEval } from '../Utils.js';
 import { sendLog } from './Default.js';
 
 export type ReportEvidenceOpts = {

@@ -1,4 +1,4 @@
-import Constants from '#main/config/Constants.js';
+import Constants from '#utils/Constants.js';
 import * as Sentry from '@sentry/node';
 import 'dotenv/config';
 

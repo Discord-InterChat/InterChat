@@ -1,5 +1,5 @@
-import { emojis } from '#main/config/Constants.js';
-import { ReactionArray } from '#main/types/network.js';
+import { emojis } from '#utils/Constants.js';
+import type { ReactionArray } from '#types/Utils.d.ts';
 import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import { ModAction, replyWithUnknownMessage } from '#utils/moderation/modActions/utils.js';
 import { updateReactions } from '#utils/reaction/actions.js';

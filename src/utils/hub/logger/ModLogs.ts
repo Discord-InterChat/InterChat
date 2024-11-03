@@ -5,7 +5,7 @@ import db from '#utils/Db.js';
 import type { Hub, HubLogConfig } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { type Client, codeBlock, EmbedBuilder, type Snowflake, User } from 'discord.js';
-import Constants, { emojis } from '../../config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { sendLog } from './Default.js';
 
 const getUnblacklistEmbed = (

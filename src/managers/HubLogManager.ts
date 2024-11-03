@@ -1,4 +1,4 @@
-import { emojis, RedisKeys } from '#main/config/Constants.js';
+import { emojis, RedisKeys } from '#utils/Constants.js';
 import { getCachedData } from '#utils/CacheUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';

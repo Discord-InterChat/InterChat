@@ -1,6 +1,6 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
-import { sendHubReport } from '#main/utils/HubLogger/Report.js';
+import { sendHubReport } from '#main/utils/hub/logger/Report.js';
 import {
   findOriginalMessage,
   getBroadcasts,

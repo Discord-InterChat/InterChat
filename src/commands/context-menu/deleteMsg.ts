@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import db from '#main/utils/Db.js';
 import {
@@ -8,7 +8,7 @@ import {
   OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
-import { logMsgDelete } from '#utils/HubLogger/ModLogs.js';
+import { logMsgDelete } from '#utils/hub/logger/ModLogs.js';
 import { t } from '#utils/Locale.js';
 import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
 import { Hub, HubLogConfig } from '@prisma/client';

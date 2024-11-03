@@ -1,4 +1,4 @@
-import Constants from '#main/config/Constants.js';
+import Constants from '#utils/Constants.js';
 import Logger from '#utils/Logger.js';
 
 /**

@@ -1,8 +1,8 @@
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import Scheduler from '#main/modules/SchedulerService.js';
 import Logger from '#utils/Logger.js';
-import type { WebhookPayload } from '#types/topgg.d.ts';
+import type { WebhookPayload } from '#types/TopGGPayload.d.ts';
 import db from '#utils/Db.js';
 import { getOrdinalSuffix } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';

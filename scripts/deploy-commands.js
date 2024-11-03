@@ -2,6 +2,8 @@
 import { Collection, REST, Routes } from 'discord.js';
 import 'dotenv/config';
 
+process.env.DEBUG = 'false'; // disable command loader logging
+
 const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 const redText = (/** @type {string} */ text) => `\x1b[0;31m${text}\x1b[0m`;
 const greenText = (/** @type {string} */ text) => `\x1b[38;5;78m${text}\x1b[0m`;

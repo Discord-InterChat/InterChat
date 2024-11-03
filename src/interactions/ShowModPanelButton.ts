@@ -1,5 +1,5 @@
-import { emojis } from '#main/config/Constants.js';
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { emojis } from '#utils/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { fetchHub, isStaffOrHubMod } from '#main/utils/hub/utils.js';

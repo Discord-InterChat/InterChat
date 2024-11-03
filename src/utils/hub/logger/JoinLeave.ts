@@ -1,8 +1,8 @@
 import HubLogManager from '#main/managers/HubLogManager.js';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, Guild } from 'discord.js';
-import Constants, { emojis } from '../../config/Constants.js';
-import { getHubConnections } from '../ConnectedListUtils.js';
+import Constants, { emojis } from '#utils/Constants.js';
+import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { sendLog } from './Default.js';
 
 export const logJoinToHub = async (

@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { Hub } from '@prisma/client';
 import {

@@ -1,4 +1,4 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import { isHubMod } from '#utils/hub/utils.js';

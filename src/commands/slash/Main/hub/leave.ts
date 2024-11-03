@@ -1,9 +1,9 @@
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { deleteConnection } from '#utils/ConnectedListUtils.js';
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
-import { logGuildLeaveToHub } from '#utils/HubLogger/JoinLeave.js';
+import { logGuildLeaveToHub } from '#utils/hub/logger/JoinLeave.js';
 import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,

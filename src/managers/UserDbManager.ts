@@ -1,9 +1,10 @@
-import { RedisKeys } from '#main/config/Constants.js';
+import { RedisKeys } from '#utils/Constants.js';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import db from '#utils/Db.js';
 import { supportedLocaleCodes } from '#utils/Locale.js';
 import { Prisma, UserData } from '@prisma/client';
 import { Snowflake } from 'discord.js';
+import type { ConvertDatesToString } from '#types/Utils.d.ts';
 
 export default class UserDbManager {
   private async addToCache(entity: ConvertDatesToString<UserData> | UserData, expirySecs?: number) {
@@ -46,6 +47,16 @@ export default class UserDbManager {
     return updatedUser;
   }
 
+  async upsertUser(id: Snowflake, data: Omit<Prisma.UserDataUpsertArgs['create'], 'id'>) {
+    const upsertedUser = await db.userData.upsert({
+      where: { id },
+      create: { ...data, id },
+      update: data,
+    });
+    await this.addToCache(upsertedUser);
+    return upsertedUser;
+  }
+
   async userVotedToday(id: Snowflake): Promise<boolean> {
     const user = await this.getUser(id);
     const twenty4HoursAgo = new Date(Date.now() - 60 * 60 * 24 * 1000);
@@ -53,32 +64,20 @@ export default class UserDbManager {
   }
 
   async ban(id: string, reason: string, username?: string) {
-    const user = await db.userData.upsert({
-      where: { id },
-      create: {
-        id,
-        username,
-        viewedNetworkWelcome: false,
-        voteCount: 0,
-        banMeta: { reason },
-      },
-      update: { banMeta: { reason }, username },
+    const user = await this.upsertUser(id, {
+      username,
+      voteCount: 0,
+      banMeta: { reason },
     });
 
     await this.addToCache(user);
   }
 
   async unban(id: string, username?: string) {
-    const user = await db.userData.upsert({
-      where: { id },
-      create: {
-        id,
-        username,
-        viewedNetworkWelcome: false,
-        voteCount: 0,
-        banMeta: { set: null },
-      },
-      update: { banMeta: { set: null }, username },
+    const user = await this.upsertUser(id, {
+      username,
+      voteCount: 0,
+      banMeta: { set: null },
     });
 
     await this.addToCache(user);

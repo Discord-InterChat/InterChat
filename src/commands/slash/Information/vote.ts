@@ -1,5 +1,5 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import Constants, { emojis } from '#main/config/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,

@@ -1,6 +1,6 @@
-import { emojis } from '#main/config/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
-import { sendLog } from '#main/utils/HubLogger/Default.js';
+import { sendLog } from '#main/utils/hub/logger/Default.js';
 import { ACTION_LABELS } from '#main/utils/moderation/blockWords.js';
 import { MessageBlockList } from '@prisma/client';
 import { stripIndents } from 'common-tags';

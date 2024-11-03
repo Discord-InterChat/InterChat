@@ -1,4 +1,4 @@
-import { RegisterInteractionHandler } from '#main/decorators/Interaction.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import BaseInfractionManager from '#main/managers/InfractionManager/BaseInfractionManager.js';
@@ -7,7 +7,7 @@ import UserInfractionManager from '#main/managers/InfractionManager/UserInfracti
 import { CustomID } from '#utils/CustomID.js';
 import { ErrorEmbed, InfoEmbed } from '#utils/EmbedUtils.js';
 import { fetchHub } from '#utils/hub/utils.js';
-import logAppeals from '#utils/HubLogger/Appeals.js';
+import logAppeals from '#utils/hub/logger/Appeals.js';
 import Logger from '#utils/Logger.js';
 import { buildAppealSubmitModal } from '#utils/moderation/blacklistUtils.js';
 import { getReplyMethod, msToReadable } from '#utils/Utils.js';

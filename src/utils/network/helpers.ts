@@ -1,18 +1,14 @@
-import Constants, { ConnectionMode, emojis } from '#main/config/Constants.js';
 import {
   findOriginalMessage,
   getBroadcasts,
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
+import Constants, { ConnectionMode } from '#utils/Constants.js';
 import { stripTenorLinks } from '#utils/ImageUtils.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { censor } from '#utils/ProfanityUtils.js';
 import {
   type HexColorString,
   type Message,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   Collection,
   EmbedBuilder,
 } from 'discord.js';
@@ -162,42 +158,4 @@ export const buildNetworkEmbed = (
   }
 
   return { normal, censored };
-};
-
-export const sendWelcomeMsg = async (
-  message: Message<true>,
-  locale: supportedLocaleCodes,
-  opts: { totalServers: string; hub: string },
-) => {
-  const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setStyle(ButtonStyle.Link)
-      .setEmoji(emojis.add_icon)
-      .setLabel('Invite Me!')
-      .setURL(Constants.Links.AppDirectory),
-    new ButtonBuilder()
-      .setStyle(ButtonStyle.Link)
-      .setEmoji(emojis.code_icon)
-      .setLabel('Support Server')
-      .setURL(Constants.Links.SupportInvite),
-    new ButtonBuilder()
-      .setStyle(ButtonStyle.Link)
-      .setEmoji(emojis.docs_icon)
-      .setLabel('How-To Guide')
-      .setURL(Constants.Links.Docs),
-  );
-
-  await message.channel
-    .send({
-      content: t('network.welcome', locale, {
-        user: message.author.toString(),
-        channel: message.channel.toString(),
-        emoji: emojis.wave_anim,
-        rules_command: '</rules:924659340898619395>',
-        hub: opts.hub,
-        totalServers: opts.totalServers,
-      }),
-      components: [linkButtons],
-    })
-    .catch(() => null);
 };
