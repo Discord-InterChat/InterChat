@@ -128,9 +128,9 @@ export const createConnection = async (data: Prisma.connectedListCreateInput) =>
 export const deleteConnections = async (where: whereInput) => {
   const connections = await db.connectedList.findMany({ where });
   if (connections.length === 0) return [];
-  else if (connections.length === 1) return await deleteConnection({ id: connections[0].id });
+  else if (connections.length === 1) return [await deleteConnection({ id: connections[0].id })];
 
-  const deletedCounts = await db.connectedList.deleteMany({
+  await db.connectedList.deleteMany({
     where: { id: { in: connections.map((i) => i.id) } },
   });
 
@@ -144,7 +144,7 @@ export const deleteConnections = async (where: whereInput) => {
     );
   });
 
-  return deletedCounts;
+  return connections;
 };
 
 export const updateConnection = async (where: whereUniuqeInput, data: dataInput) => {
