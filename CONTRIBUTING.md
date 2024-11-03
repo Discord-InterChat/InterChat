@@ -35,6 +35,14 @@ If you encounter any issues or bugs, please report them by creating a [new issue
 
 ## Extras
 
+### Contributing to Translations / Localization
+
+To contribute to translations, please visit our [Crowdin project](https://crowdin.com/project/interchat) and submit translations for your language. If your language is not listed, please contact on the [support server][support] us to have it added.
+
+### Contributing to Documentation
+
+To contribute to the documentation, please make changes to the [`Discord-InterChat/docs`](https://github.com/Discord-InterChat/docs) repository and submit a pull request. The documentation is hosted on [docs.interchat.fun](https://docs.interchat.fun).
+
 ### Commitizen Friendly
 
 To make our lives easier by not having to remember the commit messages at all times, this repository is [commitizen](https://www.npmjs.com/package/commitizen) friendly! Commitizen is a commandline tool that guides you through the process of choosing your desired commit type.
@@ -70,6 +78,8 @@ These are comments to show the state of a piece of code. Install the `Todo Tree`
 
 ## Community
 
-Join our [Discord server](https://interchat.fun/support) to connect with other contributors and discuss the project. Please be respectful and follow our community guidelines.
+Join our [Discord server][support] to connect with other contributors and discuss the project. Please be respectful and follow our community guidelines.
 
 Thank you for contributing to InterChat!
+
+[support]: https://interchat.fun/support
