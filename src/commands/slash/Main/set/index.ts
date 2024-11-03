@@ -4,11 +4,11 @@ import {
   Collection,
   ChatInputCommandInteraction,
 } from 'discord.js';
-import BaseCommand from '../../../../core/BaseCommand.js';
-import { handleError } from '../../../../utils/Utils.js';
-import { supportedLocales } from '../../../../utils/Locale.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import { handleError } from '#main/utils/Utils.js';
+import { supportedLocales } from '#main/utils/Locale.js';
 
-const nonMtlLangs = ['en', 'hi', 'es'];
+const currSupportedLangs = ['en', 'hi', 'es'] as const;
 
 export default class Set extends BaseCommand {
   static readonly subcommands = new Collection<string, BaseCommand>();
@@ -27,13 +27,7 @@ export default class Set extends BaseCommand {
             description: 'The language to set',
             type: ApplicationCommandOptionType.String,
             required: true,
-            choices: Object.entries(supportedLocales).map(([key, { name, emoji }]) => {
-              const mtl = nonMtlLangs.includes(key) ? '' : ' (MTL)';
-              return {
-                name: `${emoji} ${name} ${mtl}`,
-                value: key,
-              };
-            }),
+            choices: currSupportedLangs.map((l) => ({ name: supportedLocales[l].name, value: l })),
           },
         ],
       },
