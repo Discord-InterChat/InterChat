@@ -73,6 +73,8 @@ export default class HubEdit extends HubCommand {
       case 'banner':
         await this.updateBanner(interaction, hubInDb.id, locale);
         break;
+      default:
+        break;
     }
 
     await this.updateOriginalMessage(interaction, hubInDb.id);

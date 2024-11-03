@@ -189,7 +189,6 @@ export default class EditMessage extends BaseCommand {
         .catch(() => null);
 
       if (webhook?.owner?.id !== interaction.client.user.id) continue;
-      console.log(msg.mode, msg.mode === ConnectionMode.Embed);
 
       let content;
       let embeds;
