@@ -8,7 +8,6 @@ import db from '#utils/Db.js';
 import { logJoinToHub } from '#utils/hub/logger/JoinLeave.js';
 import { sendToHub } from '#utils/hub/utils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { showOnboarding } from '#utils/network/onboarding.js';
 import { check } from '#utils/ProfanityUtils.js';
 import { getOrCreateWebhook } from '#utils/Utils.js';
 import { Hub } from '@prisma/client';
@@ -60,9 +59,6 @@ export class HubJoinService {
     if ((await this.isAlreadyInHub(channel, hub.id)) || (await this.isBlacklisted(hub))) {
       return false;
     }
-
-    const onboardingSuccess = await this.processOnboarding(hub, channel);
-    if (!onboardingSuccess) return false;
 
     const webhook = await this.createWebhook(channel);
     if (!webhook) return false;
@@ -152,24 +148,6 @@ export class HubJoinService {
     }
 
     return false;
-  }
-
-  private async processOnboarding(hub: Hub, channel: GuildTextBasedChannel) {
-    const onboardingCompleted = await showOnboarding(this.interaction, hub.name, channel.id);
-
-    if (!onboardingCompleted) {
-      await this.interaction.deleteReply().catch(() => null);
-      return false;
-    }
-    else if (onboardingCompleted === 'in-progress') {
-      await this.replyError('network.onboarding.inProgress', {
-        channel: `${channel}`,
-        emoji: emojis.dnd_anim,
-      });
-      return false;
-    }
-
-    return true;
   }
 
   private async createWebhook(channel: GuildTextBasedChannel) {

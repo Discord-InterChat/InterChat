@@ -1,7 +1,6 @@
-import { ChatInputCommandInteraction } from 'discord.js';
 import { emojis } from '#utils/Constants.js';
-import db from '#utils/Db.js';
 import { supportedLocaleCodes, supportedLocales, t } from '#utils/Locale.js';
+import { ChatInputCommandInteraction } from 'discord.js';
 import Set from './index.js';
 
 export default class SetLanguage extends Set {
@@ -21,11 +20,7 @@ export default class SetLanguage extends Set {
     }
 
     const { id, username } = interaction.user;
-    await db.userData.upsert({
-      where: { id },
-      create: { id, locale, username },
-      update: { locale, username },
-    });
+    await interaction.client.userManager.upsertUser(id, { locale, username });
 
     const langInfo = supportedLocales[locale];
     const lang = `${langInfo.emoji} ${langInfo.name}`;

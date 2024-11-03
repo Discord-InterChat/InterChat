@@ -5,68 +5,92 @@ import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
 import { checkIfStaff, handleError } from '#utils/Utils.js';
 import { UserData } from '@prisma/client';
-import { CacheType, Interaction } from 'discord.js';
+import {
+  CacheType,
+  Interaction,
+  MessageComponentInteraction,
+  ModalSubmitInteraction,
+} from 'discord.js';
+import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 
 export default class InteractionCreate extends BaseEventListener<'interactionCreate'> {
   readonly name = 'interactionCreate';
 
   async execute(interaction: Interaction<CacheType>) {
     try {
-      if (interaction.client.cluster.maintenance) {
-        if (interaction.isRepliable()) {
-          await interaction.reply({
-            content: `${emojis.slash} The bot is currently undergoing maintenance. Please try again later.`,
-            ephemeral: true,
-          });
-        }
+      if (this.isInMaintenance(interaction)) return;
 
-        return;
-      }
-
-      const { commands, interactions } = interaction.client;
-      const dbUser = await interaction.client.userManager.getUser(interaction.user.id);
-      const isBanned = await this.handleUserBan(interaction, dbUser);
-      if (isBanned) return;
+      const dbUser = await interaction.client.userManager.getUser(interaction.user.id) ?? null;
+      if (await this.isUserBanned(interaction, dbUser)) return;
+      if (this.shouldShowRules(interaction)) return await showRulesScreening(interaction, dbUser);
 
       if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
-        const customId = CustomID.parseCustomId(interaction.customId);
-
-        // component decorator stuff
-        const customIdSuffix = customId.suffix ? `:${customId.suffix}` : '';
-        const interactionHandler =
-          interactions.get(`${customId.prefix}${customIdSuffix}`) ??
-          interactions.get(customId.prefix);
-        const isExpiredInteraction = customId.expiry && customId.expiry < Date.now();
-
-        if (isExpiredInteraction) {
-          const { userManager } = interaction.client;
-          const locale = await userManager.getUserLocale(dbUser);
-          const embed = new InfoEmbed({
-            description: t('errors.notUsable', locale, { emoji: emojis.slash }),
-          });
-
-          await interaction.reply({ embeds: [embed], ephemeral: true });
-          return;
-        }
-
-        if (interactionHandler) await interactionHandler(interaction);
-        return;
+        await this.handleModalsAndComponents(interaction, dbUser);
       }
+      else {
+        const { commands } = interaction.client;
+        const command = commands.get(interaction.commandName);
+        if (command?.staffOnly && !checkIfStaff(interaction.user.id)) return;
 
-      const command = commands.get(interaction.commandName);
-      if (command?.staffOnly && !checkIfStaff(interaction.user.id)) return;
-
-      // slash commands
-      if (!interaction.isAutocomplete()) await command?.execute(interaction);
-      // autocompletes
-      else if (command?.autocomplete) await command.autocomplete(interaction);
+        if (interaction.isAutocomplete()) {
+          if (command?.autocomplete) await command.autocomplete(interaction);
+        }
+        else {
+          await command?.execute(interaction);
+        }
+      }
     }
     catch (e) {
       handleError(e, interaction);
     }
   }
 
-  private async handleUserBan(interaction: Interaction, dbUser: UserData | undefined | null) {
+  private shouldShowRules(interaction: Interaction) {
+    // don't show rules again if user is clicking on the rules screen buttons
+    return (interaction.isButton() && CustomID.parseCustomId(interaction.customId).prefix === 'rulesScreen') === false;
+  }
+
+  private async handleModalsAndComponents(
+    interaction: ModalSubmitInteraction | MessageComponentInteraction,
+    dbUser: UserData | null,
+  ) {
+    const customId = CustomID.parseCustomId(interaction.customId);
+
+    // component decorator stuff
+    const { interactions } = interaction.client;
+    const customIdSuffix = customId.suffix ? `:${customId.suffix}` : '';
+    const interactionHandler =
+      interactions.get(`${customId.prefix}${customIdSuffix}`) ?? interactions.get(customId.prefix);
+    const isExpiredInteraction = customId.expiry && customId.expiry < Date.now();
+
+    if (isExpiredInteraction) {
+      const { userManager } = interaction.client;
+      const locale = await userManager.getUserLocale(dbUser);
+      const embed = new InfoEmbed({
+        description: t('errors.notUsable', locale, { emoji: emojis.slash }),
+      });
+
+      await interaction.reply({ embeds: [embed], ephemeral: true });
+      return;
+    }
+
+    if (interactionHandler) await interactionHandler(interaction);
+  }
+
+  private isInMaintenance(interaction: Interaction) {
+    if (interaction.client.cluster.maintenance && interaction.isRepliable()) {
+      interaction
+        .reply({
+          content: `${emojis.slash} The bot is currently undergoing maintenance. Please try again later.`,
+          ephemeral: true,
+        })
+        .catch(() => null);
+      return true;
+    }
+    return false;
+  }
+
+  private async isUserBanned(interaction: Interaction, dbUser: UserData | undefined | null) {
     if (dbUser?.banMeta?.reason) {
       if (interaction.isRepliable()) {
         const { userManager } = interaction.client;

@@ -4,13 +4,15 @@
 */
 
 export type TranslationKeys = {
-  rules: never;
+  'rules.rules': never;
+  'rules.welcome': 'emoji' | 'user';
+  'rules.accepted': 'emoji' | 'guide';
+  'rules.alreadyAccepted': 'emoji';
   'vote.description': never;
   'vote.footer': never;
   'network.accountTooNew': 'emoji' | 'user';
   'network.deleteSuccess': 'emoji' | 'user' | 'deleted' | 'total';
   'network.editSuccess': 'emoji' | 'user' | 'edited' | 'total';
-  'network.welcome': 'emoji' | 'user' | 'hub' | 'totalServers' | 'channel' | 'rules_command';
   'network.onboarding.embed.title': 'hubName';
   'network.onboarding.embed.description': 'docs_link';
   'network.onboarding.embed.footer': 'version';

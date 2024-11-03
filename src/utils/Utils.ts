@@ -1,5 +1,5 @@
-import Constants from '#utils/Constants.js';
 import type { RemoveMethods, ThreadParentChannel } from '#types/CustomClientProps.d.ts';
+import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
@@ -7,11 +7,11 @@ import { captureException } from '@sentry/node';
 import type { ClusterManager } from 'discord-hybrid-sharding';
 import {
   EmbedBuilder,
+  Message,
   type ColorResolvable,
   type CommandInteraction,
   type GuildTextBasedChannel,
   type Interaction,
-  type Message,
   type MessageComponentInteraction,
   type RepliableInteraction,
   type Snowflake,

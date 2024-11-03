@@ -1,10 +1,11 @@
-import { ConnectionMode } from '#utils/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
+import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import Logger from '#main/utils/Logger.js';
 import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
 import { generateJumpButton as getJumpButton } from '#utils/ComponentUtils.js';
 import { getConnectionHubId, getHubConnections } from '#utils/ConnectedListUtils.js';
+import { ConnectionMode } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { getAttachmentURL } from '#utils/ImageUtils.js';
 import {
@@ -49,11 +50,17 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     const hub = await this.getHub(connection.hubId);
     if (!hub) return;
 
+    const { userManager } = message.client;
+
+    const userData = await userManager.getUser(message.author.id);
+    if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
+
     const settings = new HubSettingsManager(hub.id, hub.settings);
     const attachmentURL = await this.resolveAttachmentURL(message);
 
     if (
       !(await runChecks(message, hub, {
+        userData,
         settings,
         attachmentURL,
         totalHubConnections: hubConnections.length,
@@ -66,6 +73,9 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   }
 
   private async handlePrefixCommand(message: Message, prefix: string) {
+    const userData = await message.client.userManager.getUser(message.author.id);
+    if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
+
     // Split message into command and arguments
     const args = message.content.slice(prefix.length).trim().split(/ +/);
     const commandName = args.shift()?.toLowerCase();

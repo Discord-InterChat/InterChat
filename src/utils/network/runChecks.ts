@@ -1,17 +1,15 @@
-import Constants, { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { analyzeImageForNSFW, isImageUnsafe } from '#main/modules/NSFWDetection.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
-import db from '#utils/Db.js';
-import { isHubMod } from '#utils/hub/utils.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import logProfanity from '#utils/hub/logger/Profanity.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { sendWelcomeMsg } from '#utils/network/helpers.js';
+import { isHubMod } from '#utils/hub/utils.js';
+import { t } from '#utils/Locale.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';
 import { containsInviteLinks, replaceLinks } from '#utils/Utils.js';
-import { Hub, MessageBlockList } from '@prisma/client';
+import { Hub, MessageBlockList, UserData } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { Awaitable, EmbedBuilder, Message } from 'discord.js';
 
@@ -21,11 +19,11 @@ interface CheckResult {
 }
 
 interface CheckFunctionOpts {
+  userData: UserData;
   settings: HubSettingsManager;
   totalHubConnections: number;
-  attachmentURL?: string | null;
-  locale: supportedLocaleCodes;
   hub: Hub & { msgBlockList: MessageBlockList[] };
+  attachmentURL?: string | null;
 }
 
 type CheckFunction = (message: Message<true>, opts: CheckFunctionOpts) => Awaitable<CheckResult>;
@@ -62,36 +60,14 @@ export const runChecks = async (
   message: Message<true>,
   hub: Hub & { msgBlockList: MessageBlockList[] },
   opts: {
+    userData: UserData;
     settings: HubSettingsManager;
     totalHubConnections: number;
     attachmentURL?: string | null;
   },
 ): Promise<boolean> => {
-  const { userManager } = message.client;
-
-  let userData = await userManager.getUser(message.author.id);
-  let locale = await userManager.getUserLocale(userData);
-  if (!userData?.viewedNetworkWelcome) {
-    userData = await db.userData.upsert({
-      where: { id: message.author.id },
-      create: {
-        id: message.author.id,
-        username: message.author.username,
-        viewedNetworkWelcome: true,
-      },
-      update: { viewedNetworkWelcome: true },
-    });
-
-    locale = await userManager.getUserLocale(userData);
-
-    await sendWelcomeMsg(message, locale, {
-      hub: hub.name,
-      totalServers: opts.totalHubConnections.toString(),
-    });
-  }
-
   for (const check of checks) {
-    const result = await check(message, { ...opts, hub, locale });
+    const result = await check(message, { ...opts, hub });
     if (!result.passed) {
       if (result.reason) await replyToMsg(message, { content: result.reason });
       return false;
@@ -179,17 +155,20 @@ function checkProfanityAndSlurs(message: Message<true>, { hub }: CheckFunctionOp
   return { passed: true };
 }
 
-function checkNewUser(message: Message<true>, opts: CheckFunctionOpts): CheckResult {
+async function checkNewUser(message: Message<true>, opts: CheckFunctionOpts): Promise<CheckResult> {
   const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
+
   if (message.author.createdTimestamp > sevenDaysAgo) {
+    const locale = await message.client.userManager.getUserLocale(opts.userData);
     return {
       passed: false,
-      reason: t('network.accountTooNew', opts.locale, {
+      reason: t('network.accountTooNew', locale, {
         user: message.author.toString(),
         emoji: emojis.no,
       }),
     };
   }
+
   return { passed: true };
 }
 
@@ -213,13 +192,15 @@ function checkStickers(message: Message<true>): CheckResult {
   return { passed: true };
 }
 
-function checkInviteLinks(message: Message<true>, opts: CheckFunctionOpts): CheckResult {
-  const { settings } = opts;
+async function checkInviteLinks(
+  message: Message<true>,
+  opts: CheckFunctionOpts,
+): Promise<CheckResult> {
+  const { settings, userData } = opts;
+
   if (settings.getSetting('BlockInvites') && containsInviteLinks(message.content)) {
-    return {
-      passed: false,
-      reason: t('errors.inviteLinks', opts.locale, { emoji: emojis.no }),
-    };
+    const locale = await message.client.userManager.getUserLocale(userData);
+    return { passed: false, reason: t('errors.inviteLinks', locale, { emoji: emojis.no }) };
   }
   return { passed: true };
 }

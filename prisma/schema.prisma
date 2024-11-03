@@ -52,6 +52,7 @@ enum InfractionStatus {
   REVOKED
   APPEALED
 }
+
 model UserInfraction {
   id          String           @id @default(nanoid(10)) @map("_id")
   userId      String           @db.String
@@ -170,13 +171,13 @@ model HubInvite {
 }
 
 model UserData {
-  id                   String           @id @map("_id") @db.String
-  voteCount            Int              @default(0)
-  username             String?
-  locale               String?
-  lastVoted            DateTime?
-  banMeta              userBan?
-  mentionOnReply       Boolean?         @default(false)
-  viewedNetworkWelcome Boolean          @default(false)
-  infractions          UserInfraction[]
+  id             String           @id @map("_id") @db.String
+  voteCount      Int              @default(0)
+  username       String?
+  locale         String?
+  lastVoted      DateTime?
+  banMeta        userBan?
+  mentionOnReply Boolean?         @default(false)
+  acceptedRules  Boolean          @default(false)
+  infractions    UserInfraction[]
 }
