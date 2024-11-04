@@ -1,5 +1,5 @@
 import { emojis, RedisKeys } from '#utils/Constants.js';
-import { getCachedData } from '#utils/CacheUtils.js';
+import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -7,6 +7,7 @@ import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { HubLogConfig, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, roleMention, Snowflake, StringSelectMenuBuilder } from 'discord.js';
+import { handleError } from '#main/utils/Utils.js';
 
 export type RoleIdLogConfigs = 'appeals' | 'reports' | 'networkAlerts';
 export type LogConfigTypes = keyof Omit<Omit<HubLogConfig, 'hubId'>, 'id'>;
@@ -50,7 +51,13 @@ export default class HubLogManager {
   protected async updateLogConfig(data: Prisma.HubLogConfigUpdateInput) {
     const updated = await db.hubLogConfig.update({ where: { hubId: this.hubId }, data });
     this.logConfig = updated;
+    this.refreshCache().catch(handleError);
   }
+
+  private async refreshCache() {
+    await cacheData(`${RedisKeys.hubLogConfig}:${this.hubId}`, JSON.stringify(this.logConfig));
+  }
+
 
   async setLogChannel(type: LogConfigTypes, channelId: string) {
     if (this.logsWithRoleId.includes(type)) {

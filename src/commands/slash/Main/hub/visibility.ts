@@ -52,7 +52,7 @@ export default class VisibilityCommnd extends HubCommand {
     const requirements = [
       { name: 'Hub is older than 24 hours', check: hub.createdAt < new Date(Date.now() + 24 * 60 * 60 * 1000) },
       { name: 'Hub has more than 2 moderators', check: hub.moderators.length >= 2 },
-      { name: 'Hub has users reports & report log channel setup', check: logConfig.config.reports !== null },
+      { name: 'Hub has accepts user-reports by setting a log channel for reports', check: logConfig.config.reports !== null },
     ];
 
     const passed = requirements.every((r) => r.check);
