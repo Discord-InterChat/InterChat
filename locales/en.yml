@@ -1,29 +1,28 @@
-rules: 
+rules:
   rules: |
     ### Rules:
     These rules are in place to make a safe and enjoyable experience for everyone. Read and follow them carefully:
 
-    1. **No NSFW, NSFL, or Gore Content**  
+    1. **No NSFW, NSFL, or Gore Content**
       -# Applies to profile images, usernames, explicit images, videos, and text.
-    2. **No Racism or Discrimination**  
+    2. **No Racism or Discrimination**
       -# Treat everyone respectfully and kindly. Hate speech and slurs are prohibited.
-    3. **No Sexual Content**  
+    3. **No Sexual Content**
       -# This includes suggestive jokes, gifs, and any other form of innuendo. Keep it friendly for everyone.
-    4. **No Advertising or Self-Promotion**  
+    4. **No Advertising or Self-Promotion**
       -# Avoid sharing links to personal servers, social media, or other bots on InterChat.
-    5. **No Harassment or Doxxing**  
+    5. **No Harassment or Doxxing**
       -# Respect everyone’s privacy and well-being. Harassment, doxxing, and encouraging self-harm are strictly forbidden.
-    6. **No Spam or Flooding**  
+    6. **No Spam or Flooding**
       -# Don’t send repetitive messages or flood the chat. Excessive spamming may result in harsher penalties and impacts bot performance.
-    7. **No Controversial Discussions**  
+    7. **No Controversial Discussions**
       -# Maintain a friendly, welcoming environment for everyone. Avoid discussing politics, religion, or other controversial topics.
-    8. **Use Common Sense**  
+    8. **Use Common Sense**
       -# If you think something might not be appropriate, avoid it.
-    9. **Report Violations**  
+    9. **Report Violations**
       -# Use the `Apps > Message Info/Report` command to notify moderators of any rule-breaking content.
 
     And remember to follow [Discord's Terms of Service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines).
-
   welcome: |
     {emoji} Hey {user}, welcome to InterChat!
     To use InterChat you need to accept the guidelines. Please read and accept them by clicking next.
@@ -31,7 +30,6 @@ rules:
     {emoji} Welcome to InterChat! You have accepted the rules and are now ready to chat with members from other servers!
     If you are not already in a hub, use `/hub browse` to join one and start chatting. We have a simple [wiki and guide]({guide}) for more tips and tricks. Good luck!
   alreadyAccepted: '{emoji} You have already accepted the rules. You can now use InterChat to its full extent.'
-
 vote:
   description: By voting you support us by helping InterChat rank higher on topgg searches.
   footer: Thank you for supporting!
@@ -39,10 +37,9 @@ network:
   accountTooNew: '{emoji} {user} Your account is too new to send messages using InterChat. Please try again later.'
   deleteSuccess: '{emoji} Message by {user} has been deleted from __**{deleted}/{total}**__ servers.'
   editSuccess: '{emoji} Message by {user} has been edited in __**{edited}/{total}**__ servers.'
-
   onboarding:
     embed:
-      title: 👋 Hey there, welcome to {hubName}!
+      title: '👋 Hey there, welcome to {hubName}!'
       description: |
         To keep things organized, it's recommended to use a separate channel for just for this hub. But don't worry, you can always change this later.
 
@@ -114,7 +111,7 @@ connection:
       profanity: Profanity Filter
     footer: Use the button & dropdown below to manage your connection.
   selects:
-    placeholder: 🛠️ Select an option to edit this connection
+    placeholder: '🛠️ Select an option to edit this connection'
   unpaused:
     desc: |
       ### {tick_emoji} Unpaused Connection
@@ -275,7 +272,7 @@ hub:
       roleSuccess: '{emoji} Logs of type `{type}` will now mention {role}!'
       channelSuccess: '{emoji} Logs of type `{type}` will be sent to  {channel} from now!'
       channelSelect: '#️⃣ Select a channel to send the logs'
-      roleSelect: 🏓 Select the role to mention when a log is triggered.
+      roleSelect: '🏓 Select the role to mention when a log is triggered.'
       reportChannelFirst: '{emoji} Please set a log channel first.'
       config:
         title: Configure `{type}` Logs
