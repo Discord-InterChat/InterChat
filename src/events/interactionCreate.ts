@@ -20,9 +20,12 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     try {
       if (this.isInMaintenance(interaction)) return;
 
-      const dbUser = await interaction.client.userManager.getUser(interaction.user.id) ?? null;
+      const dbUser = (await interaction.client.userManager.getUser(interaction.user.id)) ?? null;
+
       if (await this.isUserBanned(interaction, dbUser)) return;
-      if (this.shouldShowRules(interaction)) return await showRulesScreening(interaction, dbUser);
+      if (this.shouldShowRules(interaction, dbUser)) {
+        return await showRulesScreening(interaction, dbUser);
+      }
 
       if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
         await this.handleModalsAndComponents(interaction, dbUser);
@@ -45,9 +48,13 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     }
   }
 
-  private shouldShowRules(interaction: Interaction) {
+  private shouldShowRules(interaction: Interaction, dbUser: UserData | null) {
     // don't show rules again if user is clicking on the rules screen buttons
-    return (interaction.isButton() && CustomID.parseCustomId(interaction.customId).prefix === 'rulesScreen') === false;
+    return (
+      dbUser?.acceptedRules === false &&
+      (interaction.isButton() &&
+        CustomID.parseCustomId(interaction.customId).prefix === 'rulesScreen') === false
+    );
   }
 
   private async handleModalsAndComponents(
