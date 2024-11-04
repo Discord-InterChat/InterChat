@@ -96,7 +96,7 @@ export default class About extends BaseCommand {
       
         ${creditsDivider}
         ✨ **Deserving Mentions:**
-        ${emojis.dotBlue} @${usernames[6]} (for our cute mascot chipi ${mascotEmojis.flushed})
+        ${emojis.dotBlue} @${usernames[6]} (made our cute mascot chipi ${mascotEmojis.flushed})
         ${emojis.dotBlue} @${usernames[7]} (top [voter](${Constants.Links.Vote}) of all time ${emojis.topggSparkles})
 
         ${badgeEmojis.Developer} **Developers:**
