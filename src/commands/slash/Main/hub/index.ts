@@ -384,10 +384,9 @@ export default class HubCommand extends BaseCommand {
           },
           {
             name: 'target',
-            description: 'The user or server to view infractions for.',
+            description: 'The userId or serverId to view infractions for.',
             type: ApplicationCommandOptionType.String,
-            autocomplete: true,
-            required: true,
+            required: false,
           },
         ],
       },
@@ -399,7 +398,7 @@ export default class HubCommand extends BaseCommand {
           {
             type: ApplicationCommandOptionType.Subcommand,
             name: 'create',
-            description: '🧱 Create a new blocked word rule to your hub.',
+            description: '🧱 Add a new block word rule to your hub.',
             options: [hubOption],
           },
           {
@@ -578,9 +577,6 @@ export default class HubCommand extends BaseCommand {
         value: hub.name,
       }));
     }
-
-    // FIXME: Implement this
-    return [{ name: 'Not implemented, yet. Input user/server ID manually.', value: focused.value }];
   }
 
   private async getLeaveSubcommandChoices(focusedValue: string, guild: Guild | null) {
