@@ -38,7 +38,6 @@ export class CommandLoader implements ResourceLoader {
     const command = new imported.default();
     const fileName = filePath.replaceAll('\\', '/').split('/').pop() as string;
 
-    // FIXME: do smth about this
     if (command instanceof BasePrefixCommand) {
       this.prefixMap.set(command.data.name, command);
     }

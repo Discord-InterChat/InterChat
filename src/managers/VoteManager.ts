@@ -1,6 +1,6 @@
 import Constants, { emojis } from '#utils/Constants.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
-import Scheduler from '#main/modules/SchedulerService.js';
+import Scheduler from '#main/services/SchedulerService.js';
 import Logger from '#utils/Logger.js';
 import type { WebhookPayload } from '#types/TopGGPayload.d.ts';
 import db from '#utils/Db.js';
@@ -60,10 +60,7 @@ export class VoteManager {
   async incrementUserVote(userId: string, username?: string) {
     const lastVoted = new Date();
     const user = await this.userDbManager.getUser(userId);
-    if (!user) {
-      return await this.userDbManager.createUser({ id: userId, username, lastVoted, voteCount: 1 });
-    }
-    return await this.userDbManager.updateUser(userId, { lastVoted, voteCount: { increment: 1 } });
+    return await this.userDbManager.upsertUser(userId, { username, lastVoted, voteCount: user?.voteCount ? user.voteCount + 1 : 1 });
   }
 
   async getAPIUser(userId: string) {

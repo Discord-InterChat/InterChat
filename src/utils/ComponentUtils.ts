@@ -1,5 +1,5 @@
 import { emojis } from '#utils/Constants.js';
-import Scheduler from '#main/modules/SchedulerService.js';
+import Scheduler from '#main/services/SchedulerService.js';
 import { randomBytes } from 'crypto';
 import {
   ActionRowBuilder,

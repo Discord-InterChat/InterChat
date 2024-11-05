@@ -1,10 +1,9 @@
-import { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import { emojis } from '#utils/Constants.js';
 import { logUserUnblacklist } from '#utils/hub/logger/ModLogs.js';
 import { t } from '#utils/Locale.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
-import { UserInfraction } from '@prisma/client';
 import type { ChatInputCommandInteraction, User } from 'discord.js';
 import ms from 'ms';
 import BlacklistCommand from './index.js';
@@ -84,7 +83,7 @@ export default class extends BlacklistCommand {
 
   private async addUserBlacklist(
     interaction: ChatInputCommandInteraction,
-    blacklistManager: BlacklistManager<UserInfraction>,
+    blacklistManager: BlacklistManager,
     user: User,
     { expiresAt, hubId, reason }: { expiresAt: Date | null; reason: string; hubId: string },
   ) {
@@ -105,7 +104,7 @@ export default class extends BlacklistCommand {
 
   private async removeUserBlacklist(
     interaction: ChatInputCommandInteraction,
-    blacklistManager: BlacklistManager<UserInfraction>,
+    blacklistManager: BlacklistManager,
     userId: string,
     opts: { hubId: string; reason: string },
   ) {
@@ -124,7 +123,7 @@ export default class extends BlacklistCommand {
 
   private async runUserAddChecks(
     interaction: ChatInputCommandInteraction,
-    blacklistManager: BlacklistManager<UserInfraction>,
+    blacklistManager: BlacklistManager,
     opts: {
       userId: string;
       hubId: string;

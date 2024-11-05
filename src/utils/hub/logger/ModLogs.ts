@@ -56,7 +56,7 @@ export const logServerUnblacklist = async (
   const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
   const blacklistManager = new BlacklistManager(new ServerInfractionManager(opts.id));
   const blacklist = await blacklistManager.fetchBlacklist(hubId);
-  if (!blacklist || !hub?.logConfig[0].modLogs) return;
+  if (!BlacklistManager.isServerBlacklist(blacklist) || !hub?.logConfig[0].modLogs) return;
 
   const embed = getUnblacklistEmbed('Server', {
     id: opts.id,

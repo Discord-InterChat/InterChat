@@ -74,7 +74,7 @@ export default class extends BlacklistCommand {
     else if (subCommandGroup === 'remove') {
       const result = await blacklistManager.removeBlacklist(hub.id);
 
-      if (!result) {
+      if (!result || !BlacklistManager.isServerBlacklist(result)) {
         await this.replyEmbed(
           interaction,
           t('errors.serverNotBlacklisted', locale, { emoji: emojis.no }),

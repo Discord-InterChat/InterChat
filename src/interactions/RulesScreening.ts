@@ -126,7 +126,7 @@ export default class RulesScreeningInteraction {
 
     if (this.hasAlreadyAccepted(interaction, userData, locale)) return { success: false };
 
-    await userManager.updateUser(interaction.user.id, { acceptedRules: true });
+    await userManager.upsertUser(interaction.user.id, { acceptedRules: true });
 
     return { success: true };
   }

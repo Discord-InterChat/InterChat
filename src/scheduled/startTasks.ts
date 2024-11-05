@@ -1,5 +1,5 @@
 import { startApi } from '#main/api/index.js';
-import Scheduler from '#main/modules/SchedulerService.js';
+import Scheduler from '#main/services/SchedulerService.js';
 import deleteExpiredInvites from '#main/scheduled/tasks/deleteExpiredInvites.js';
 import pauseIdleConnections from '#main/scheduled/tasks/pauseIdleConnections.js';
 import storeMsgTimestamps from '#main/scheduled/tasks/storeMsgTimestamps.js';

@@ -1,7 +1,7 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import { analyzeImageForNSFW, isImageUnsafe } from '#main/modules/NSFWDetection.js';
+import NSFWDetector from '#main/modules/NSFWDetection.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import logProfanity from '#utils/hub/logger/Profanity.js';
@@ -226,8 +226,8 @@ function checkAttachments(message: Message<true>): CheckResult {
 async function checkNSFW(message: Message<true>, opts: CheckFunctionOpts): Promise<CheckResult> {
   const { attachmentURL } = opts;
   if (attachmentURL && Constants.Regex.StaticImageUrl.test(attachmentURL)) {
-    const predictions = await analyzeImageForNSFW(attachmentURL);
-    if (isImageUnsafe(predictions.at(0))) {
+    const predictions = await new NSFWDetector(attachmentURL).analyze();
+    if (predictions.isNSFW && predictions.exceedsSafeThresh()) {
       const nsfwEmbed = new EmbedBuilder()
         .setColor(Constants.Colors.invisible)
         .setDescription(
