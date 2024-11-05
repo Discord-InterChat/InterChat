@@ -133,7 +133,10 @@ hub:
   invalidImgurUrl: '{emoji} URL de imagen no válida para icono o banner. Asegúrese de haber ingresado una URL de imagen de Imgur válida que no es una galería o álbum.'
   join:
     success: |
-      ¡Hub **{hub}** de {channel}! Dé alrededor de **5 minutos** para que los mensajes comiencen a aparecer. Mientras tanto, puede usar `/Connection` para explorar varias personalizaciones para esta conexión. Use `/Hub Leave` para dejar el centro.
+      Successfully joined hub **{hub}** from {channel}! You can now chat with members from other servers in this hub.
+      - Use `/connection` to explore various customizations for this connection.
+      - Use `/hub leave` to stop receiving messages from this hub.
+      - Use **`/connection edit`** to change channels.
   servers:
     total: 'Servidores conectados actuales: {from}-{to} / **{total}**'
     noConnections: '{emoji} Ningún servidor se ha unido a este centro todavía. Use `/Hub Join` para unirse a este centro.'
