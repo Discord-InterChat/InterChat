@@ -136,6 +136,7 @@ hub:
       Successfully joined hub **{hub}** from {channel}! You can now chat with members from other servers in this hub.
       - Use `/connection` to explore various customizations for this connection.
       - Use `/hub leave` to stop receiving messages from this hub.
+      - Use **`/connection edit`** to change channels.
   servers:
     total: 'Current connected servers: {from}-{to} / **{total}**'
     noConnections: '{emoji} No server has joined this hub yet. Use `/hub join` to join this hub.'
