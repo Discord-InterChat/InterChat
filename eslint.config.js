@@ -38,7 +38,7 @@ export default config({
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/no-shadow': ['error', { allow: ['err', 'resolve', 'reject'] }],
 
-    // 'class-methods-use-this': 'warn', // TODO: Turn this into error soon
+    // 'class-methods-use-this': 'warn', 
     'no-nested-ternary': 'error',
 
     'object-shorthand': 'error',

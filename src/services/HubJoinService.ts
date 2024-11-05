@@ -9,7 +9,7 @@ import { logJoinToHub } from '#utils/hub/logger/JoinLeave.js';
 import { sendToHub } from '#utils/hub/utils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { check } from '#utils/ProfanityUtils.js';
-import { getOrCreateWebhook } from '#utils/Utils.js';
+import { getOrCreateWebhook, getReplyMethod } from '#utils/Utils.js';
 import { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
@@ -49,7 +49,8 @@ export class HubJoinService {
 
     const hub = await this.fetchHub(hubInviteOrName);
     if (!hub) {
-      await this.interaction.reply({
+      const replyMethod = getReplyMethod(this.interaction);
+      await this.interaction[replyMethod]({
         content: t('hub.notFound', this.locale, { emoji: emojis.no }),
         ephemeral: true,
       });
@@ -163,7 +164,8 @@ export class HubJoinService {
   }
 
   private async sendSuccessMessages(hub: Hub, channel: GuildTextBasedChannel) {
-    await this.interaction.editReply({
+    const replyMethod = getReplyMethod(this.interaction);
+    await this.interaction[replyMethod]({
       content: t('hub.join.success', this.locale, {
         channel: `${channel}`,
         hub: hub.name,
@@ -201,7 +203,9 @@ export class HubJoinService {
     options?: { [key in TranslationKeys[K]]: string },
   ) {
     const content = t(key, this.locale, options);
-    await this.interaction.reply({
+    const replyMethod = getReplyMethod(this.interaction);
+
+    await this.interaction[replyMethod]({
       content,
       ephemeral: true,
     });

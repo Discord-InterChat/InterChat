@@ -18,7 +18,6 @@ import db from '#utils/Db.js';
 import { checkIfStaff, escapeRegexChars, getReplyMethod, handleError } from '#utils/Utils.js';
 
 export default class BlacklistCommand extends BaseCommand {
-  // TODO: Put this in readme
   static readonly subcommands = new Collection<string, BaseCommand>();
   private readonly hubOpt: APIApplicationCommandBasicOption = {
     type: ApplicationCommandOptionType.String,

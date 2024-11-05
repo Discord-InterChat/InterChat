@@ -1,7 +1,7 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { HubJoinService } from '#main/modules/HubJoinService.js';
+import { HubJoinService } from '#main/services/HubJoinService.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
@@ -75,6 +75,8 @@ export default class BrowseCommand extends HubCommand {
       await interaction.deferUpdate();
       return;
     }
+
+    await interaction.deferReply();
 
     const hub = await fetchHub(hubId);
     if (!hub) {

@@ -1,10 +1,5 @@
-// TODO: for infractions, i guess it needs one that is active and one that isnt
-// because when you remove blacklist, now you can't because if u do, u dont preseve the infraction
-// yeah
-
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["tracing"]
 }
 
 datasource db {
@@ -88,7 +83,6 @@ model ServerInfraction {
   @@index([serverId, hubId, status])
 }
 
-// TODO: major refactor needed for mode and profFilter thing
 model connectedList {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   channelId  String   @unique // channel can be thread, or a normal channel
