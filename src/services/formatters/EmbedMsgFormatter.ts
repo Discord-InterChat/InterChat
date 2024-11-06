@@ -1,7 +1,7 @@
 import { connectedList } from '@prisma/client';
 import { Message, WebhookMessageCreateOptions } from 'discord.js';
 import { DefaultFormaterOpts, MessageFormatterStrategy } from '../MessageFormattingService.js';
-import { buildNetworkEmbed } from '#main/utils/network/helpers.js';
+import { buildNetworkEmbed } from '#main/utils/network/utils.js';
 
 export class EmbedMessageFormatter implements MessageFormatterStrategy {
   format(

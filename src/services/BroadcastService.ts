@@ -3,7 +3,7 @@ import { Message, WebhookClient, WebhookMessageCreateOptions, HexColorString } f
 import { Hub, connectedList } from '@prisma/client';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { getAttachmentURL } from '#utils/ImageUtils.js';
-import { getReferredContent, getReferredMsgData } from '#utils/network/helpers.js';
+import { getReferredContent, getReferredMsgData } from '#utils/network/utils.js';
 import storeMessageData, { NetworkWebhookSendResult } from '#utils/network/storeMessageData.js';
 import MessageFormattingService from '#main/services/MessageFormattingService.js';
 import Logger from '#main/utils/Logger.js';
