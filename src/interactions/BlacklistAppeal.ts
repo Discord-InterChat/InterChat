@@ -65,8 +65,10 @@ export default class AppealInteraction {
     const [type, hubId] = customId.args as ['user' | 'server', string];
 
     const appealsConfig = await this.validateBlacklistAppealLogConfig(interaction, hubId);
+    if (!appealsConfig) return;
+
     const { passedCheck } = await this.checkBlacklistOrSendError(interaction, hubId, type);
-    if (!appealsConfig || !passedCheck) return;
+    if (!passedCheck) return;
 
     const { channelId: appealsChannelId, roleId: appealsRoleId } = appealsConfig;
 
@@ -218,7 +220,7 @@ export default class AppealInteraction {
       const embed = new ErrorEmbed().setDescription(
         `You can only appeal once every **${msToReadable(appealCooldown, false)}**.`,
       );
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.followUp({ embeds: [embed], ephemeral: true });
       return { passedCheck: false };
     }
 
