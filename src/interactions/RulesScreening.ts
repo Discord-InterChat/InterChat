@@ -1,5 +1,5 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { handleError } from '#main/utils/Utils.js';
+import { getReplyMethod, handleError } from '#main/utils/Utils.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -141,7 +141,9 @@ export default class RulesScreeningInteraction {
     const embed = new InfoEmbed().setDescription(
       t('rules.alreadyAccepted', locale, { emoji: emojis.yes }),
     );
-    interaction.reply({ embeds: [embed], ephemeral: true }).catch(handleError);
+
+    const replyMethod = getReplyMethod(interaction);
+    interaction[replyMethod]({ embeds: [embed], ephemeral: true }).catch(handleError);
 
     return true;
   }

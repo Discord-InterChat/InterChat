@@ -21,6 +21,16 @@ import {
   Snowflake,
 } from 'discord.js';
 
+export const buildAppealSubmitButton = (type: 'user' | 'server', hubId: string) =>
+  new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(new CustomID('appealSubmit:button', [type, hubId]).toString())
+      .setLabel('Appeal Blacklist')
+      .setEmoji('📝')
+      .setStyle(ButtonStyle.Primary),
+  );
+
+
 export default class AppealInteraction {
   @RegisterInteractionHandler('appealSubmit', 'button')
   async appealSubmitButton(interaction: ButtonInteraction): Promise<void> {

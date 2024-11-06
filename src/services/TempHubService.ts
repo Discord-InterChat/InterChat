@@ -7,7 +7,7 @@ export const IDLE_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
 export const ACTIVITY_CHECK_INTERVAL = 60 * 1000; // Check every minute
 
 export class TempHubService {
-  private manager: TempHubManager;
+  private readonly manager: TempHubManager;
 
   constructor() {
     this.manager = new TempHubManager();

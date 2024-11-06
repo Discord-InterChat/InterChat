@@ -22,7 +22,7 @@ export default class ReportPrefixCommand extends BasePrefixCommand {
       'report 123456789012345678 Spamming',
     ],
     aliases: ['r'],
-    totalArgs: 1,
+    requiredArgs: 1,
     cooldown: ms('30s'),
   };
 

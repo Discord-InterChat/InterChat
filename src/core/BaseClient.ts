@@ -22,6 +22,7 @@ import {
   GatewayIntentBits,
   Options,
 } from 'discord.js';
+import { TempHubService } from '#main/services/TempHubService.js';
 
 export default class InterChatClient extends Client {
   static instance: InterChatClient;
@@ -38,6 +39,8 @@ export default class InterChatClient extends Client {
   readonly cluster = new ClusterClient(this);
   readonly eventLoader = new EventLoader(this);
   readonly commandCooldowns = new CooldownService();
+  readonly chatService = new TempHubService();
+
 
   public readonly commands = new Collection<string, BaseCommand>();
   public readonly interactions = new Collection<string, InteractionFunction>();
