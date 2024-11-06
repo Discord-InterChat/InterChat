@@ -7,7 +7,7 @@ import { ActivityType, Client } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'ready'> {
   readonly name = 'ready';
-  public async execute(client: Client<true>) {
+  public execute(client: Client<true>) {
     Logger.info(`Logged in as ${client.user.tag}!`);
 
     const redisClient = getRedis();
