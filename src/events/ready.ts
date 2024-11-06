@@ -3,7 +3,7 @@ import Scheduler from '#main/services/SchedulerService.js';
 import updateBlacklists from '#main/scheduled/tasks/updateBlacklists.js';
 import Logger from '#utils/Logger.js';
 import getRedis from '#utils/Redis.js';
-import { Client } from 'discord.js';
+import { ActivityType, Client } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'ready'> {
   readonly name = 'ready';
@@ -11,10 +11,10 @@ export default class Ready extends BaseEventListener<'ready'> {
     Logger.info(`Logged in as ${client.user.tag}!`);
 
     const redisClient = getRedis();
+    const blacklistScheduled = await redisClient.get('blacklistScheduled');
     const shardId = client.guilds.cache.first()?.shardId;
-    const blacklistScheduled = (await redisClient.get('blacklistScheduled')) ?? shardId?.toString();
 
-    if (shardId === 0 && blacklistScheduled === '0') {
+    if (!blacklistScheduled) {
       updateBlacklists(client);
 
       const scheduler = new Scheduler();
@@ -26,5 +26,10 @@ export default class Ready extends BaseEventListener<'ready'> {
 
       redisClient.set('blacklistScheduled', `${shardId}`);
     }
+
+    client.user.setActivity({
+      name: `🎉 InterChat v4 | Shard ${shardId}`,
+      type: ActivityType.Watching,
+    });
   }
 }
