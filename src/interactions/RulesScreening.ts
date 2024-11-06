@@ -45,7 +45,7 @@ export const showRulesScreening = async (
     }
   }
   catch (e) {
-    handleError(e, e instanceof Message ? undefined : e);
+    handleError(e, repliable instanceof Message ? undefined : repliable);
   }
 };
 

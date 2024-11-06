@@ -80,7 +80,7 @@ export default class HubCommand extends BaseCommand {
               ChannelType.PrivateThread,
             ],
           },
-          { ...hubOption },
+          { ...hubOption, required: false },
           {
             type: ApplicationCommandOptionType.String,
             name: 'invite',

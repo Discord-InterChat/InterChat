@@ -7,14 +7,13 @@ import { ActivityType, Client } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'ready'> {
   readonly name = 'ready';
-  public async execute(client: Client<true>) {
+  public execute(client: Client<true>) {
     Logger.info(`Logged in as ${client.user.tag}!`);
 
     const redisClient = getRedis();
-    const blacklistScheduled = await redisClient.get('blacklistScheduled');
     const shardId = client.guilds.cache.first()?.shardId;
 
-    if (!blacklistScheduled) {
+    if (shardId === 0) {
       updateBlacklists(client);
 
       const scheduler = new Scheduler();
