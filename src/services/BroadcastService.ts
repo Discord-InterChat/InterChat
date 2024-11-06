@@ -110,7 +110,7 @@ export class BroadcastService {
     const { dbReferrence } = opts.referredMsgData;
     const author = { username: opts.username, avatarURL: message.author.displayAvatarURL() };
     const jumpButton = this.getJumpButton(author.username, connection, dbReferrence);
-    const servername = trimAndCensorBannedWebhookWords(hub.name);
+    const servername = trimAndCensorBannedWebhookWords(message.guild.name);
 
     const messageFormatter = new MessageFormattingService(connection);
     return messageFormatter.format(message, {
