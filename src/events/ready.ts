@@ -11,10 +11,9 @@ export default class Ready extends BaseEventListener<'ready'> {
     Logger.info(`Logged in as ${client.user.tag}!`);
 
     const redisClient = getRedis();
-    const blacklistScheduled = await redisClient.get('blacklistScheduled');
     const shardId = client.guilds.cache.first()?.shardId;
 
-    if (!blacklistScheduled) {
+    if (shardId === 0) {
       updateBlacklists(client);
 
       const scheduler = new Scheduler();
