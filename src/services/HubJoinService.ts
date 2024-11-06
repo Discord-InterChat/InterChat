@@ -44,13 +44,14 @@ export class HubJoinService {
   }
 
   async joinHub(channel: GuildTextBasedChannel, hubInviteOrName: string | undefined) {
+    if (!this.interaction.deferred) await this.interaction.deferReply({ ephemeral: true });
+
     const checksPassed = await this.runChecks(channel);
     if (!checksPassed) return false;
 
     const hub = await this.fetchHub(hubInviteOrName);
     if (!hub) {
-      const replyMethod = getReplyMethod(this.interaction);
-      await this.interaction[replyMethod]({
+      await this.interaction.followUp({
         content: t('hub.notFound', this.locale, { emoji: emojis.no }),
         ephemeral: true,
       });
