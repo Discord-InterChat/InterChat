@@ -19,10 +19,10 @@ import {
 } from 'discord.js';
 
 export class HubJoinService {
-  private interaction:
+  private readonly interaction:
     | ChatInputCommandInteraction<'cached'>
     | MessageComponentInteraction<'cached'>;
-  private locale: supportedLocaleCodes;
+  private readonly locale: supportedLocaleCodes;
 
   constructor(
     interaction: ChatInputCommandInteraction<'cached'> | MessageComponentInteraction<'cached'>,

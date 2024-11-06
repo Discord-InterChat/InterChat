@@ -7,8 +7,8 @@ import { Message } from 'discord.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
-  private messageProcessor: MessageProcessor;
-  private connectionService: ConnectionService;
+  private readonly messageProcessor: MessageProcessor;
+  private readonly connectionService: ConnectionService;
 
   constructor() {
     super();

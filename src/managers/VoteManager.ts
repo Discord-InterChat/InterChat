@@ -60,7 +60,11 @@ export class VoteManager {
   async incrementUserVote(userId: string, username?: string) {
     const lastVoted = new Date();
     const user = await this.userDbManager.getUser(userId);
-    return await this.userDbManager.upsertUser(userId, { username, lastVoted, voteCount: user?.voteCount ? user.voteCount + 1 : 1 });
+    return await this.userDbManager.upsertUser(userId, {
+      username,
+      lastVoted,
+      voteCount: user?.voteCount ? user.voteCount + 1 : 1,
+    });
   }
 
   async getAPIUser(userId: string) {

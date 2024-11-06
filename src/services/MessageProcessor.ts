@@ -8,7 +8,7 @@ import { runChecks } from '#main/utils/network/runChecks.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 
 export class MessageProcessor {
-  private broadcastService: BroadcastService;
+  private readonly broadcastService: BroadcastService;
 
   constructor() {
     this.broadcastService = new BroadcastService();

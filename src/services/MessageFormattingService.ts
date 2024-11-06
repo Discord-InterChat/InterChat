@@ -26,8 +26,8 @@ export type DefaultFormaterOpts = BroadcastOpts & {
 };
 
 export default class MessageFormattingService {
-  private strategy: MessageFormatterStrategy;
-  private connection: connectedList;
+  private readonly strategy: MessageFormatterStrategy;
+  private readonly connection: connectedList;
 
   constructor(connection: connectedList) {
     this.strategy = connection.compact

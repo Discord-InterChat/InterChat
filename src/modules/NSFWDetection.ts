@@ -1,7 +1,7 @@
 export interface NSFWPrediction {
   is_nsfw: boolean;
   confidence_percentage: number;
-};
+}
 
 export default class NSFWDetector {
   readonly imageURL: string;
@@ -34,7 +34,10 @@ class NSFWResult {
   }
 
   get confidence(): number {
-    return this.rawResults.reduce((acc, result) => acc + result.confidence_percentage, 0) / this.rawResults.length;
+    return (
+      this.rawResults.reduce((acc, result) => acc + result.confidence_percentage, 0) /
+      this.rawResults.length
+    );
   }
 
   public exceedsSafeThresh(minConfidence = 80): boolean {
@@ -44,4 +47,3 @@ class NSFWResult {
     return Boolean(prediction.confidence_percentage >= minConfidence);
   }
 }
-
