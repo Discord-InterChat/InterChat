@@ -91,7 +91,7 @@ export class BroadcastService {
       return { messageRes, webhookURL: connection.webhookURL, mode };
     }
     catch (e) {
-      Logger.error(`Failed to send message to ${connection.channelId}`, e);
+      Logger.error(`Failed to send message to ${connection.channelId} in server ${connection.serverId}`, e);
       return { error: e.message, webhookURL: connection.webhookURL };
     }
   }
