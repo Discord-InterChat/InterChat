@@ -113,6 +113,9 @@ export const getConnectionHubId = async (channelId: string) => {
 };
 
 export const deleteConnection = async (where: whereUniuqeInput) => {
+  const connection = await db.connectedList.findFirst({ where });
+  if (!connection) return null;
+
   const deleted = await db.connectedList.delete({ where });
   await purgeConnectionCache(deleted.channelId);
   return deleted;
@@ -149,6 +152,9 @@ export const deleteConnections = async (where: whereInput) => {
 };
 
 export const updateConnection = async (where: whereUniuqeInput, data: dataInput) => {
+  const conn = await db.connectedList.findFirst({ where });
+  if (!conn) return null;
+
   // Update in database
   const connection = await db.connectedList.update({ where, data });
 
