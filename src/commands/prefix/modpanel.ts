@@ -21,7 +21,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     ],
     aliases: ['bl', 'modactions', 'modpanel', 'mod', 'ban'],
     dbPermission: false,
-    totalArgs: 1,
+    requiredArgs: 1,
   };
 
   protected async run(message: Message<true>, args: string[]) {
