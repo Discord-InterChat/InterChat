@@ -220,7 +220,9 @@ export default class AppealInteraction {
       const embed = new ErrorEmbed().setDescription(
         `You can only appeal once every **${msToReadable(appealCooldown, false)}**.`,
       );
-      await interaction.followUp({ embeds: [embed], ephemeral: true });
+
+      const replyMethod = getReplyMethod(interaction);
+      await interaction[replyMethod]({ embeds: [embed], ephemeral: true });
       return { passedCheck: false };
     }
 

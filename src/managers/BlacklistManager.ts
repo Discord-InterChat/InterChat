@@ -96,7 +96,8 @@ export default class BlacklistManager {
     const { mod, reason, expiresAt } = opts;
 
     const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
-    if (!hub?.logConfig[0].modLogs) return;
+    const { modLogs } = hub?.logConfig.at(0) ?? {};
+    if (!modLogs) return;
 
     let name;
     let iconURL;
@@ -148,7 +149,7 @@ export default class BlacklistManager {
       .setColor(Constants.Colors.interchatBlue)
       .setFooter({ text: `Blacklisted by: ${mod.username}`, iconURL: mod.displayAvatarURL() });
 
-    await sendLog(opts.mod.client.cluster, hub?.logConfig[0].modLogs, embed);
+    await sendLog(opts.mod.client.cluster, modLogs, embed);
   }
 
   public static isServerBlacklist(
