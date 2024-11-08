@@ -5,7 +5,18 @@ import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { fetchHub, isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
-import { ButtonInteraction } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js';
+
+export const modPanelButton = (targetMsgId: string, label = 'Take Action') => new ActionRowBuilder<ButtonBuilder>()
+  .addComponents(
+    new ButtonBuilder()
+      .setCustomId(
+        new CustomID().setIdentifier('showModPanel').addArgs(targetMsgId).toString(),
+      )
+      .setStyle(ButtonStyle.Danger)
+      .setLabel(label)
+      .setEmoji(emojis.blobFastBan),
+  );
 
 export default class ModActionsButton {
   @RegisterInteractionHandler('showModPanel')
