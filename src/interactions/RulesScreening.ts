@@ -1,4 +1,5 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import Logger from '#main/utils/Logger.js';
 import { getReplyMethod, handleError } from '#main/utils/Utils.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
@@ -45,7 +46,7 @@ export const showRulesScreening = async (
     }
   }
   catch (e) {
-    handleError(e, repliable instanceof Message ? undefined : repliable);
+    Logger.error(e);
   }
 };
 

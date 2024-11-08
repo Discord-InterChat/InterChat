@@ -54,7 +54,7 @@ export const numberEmojis = [
 export default {
   isDevBuild: process.env.NODE_ENV === 'development',
 
-  StaffIds: ['1160735837940617336', '982656475979710524', '899447572614225930', '853178500193583104', '597265261665714186'] as Snowflake[],
+  StaffIds: ['1160735837940617336', '982656475979710524', '597265261665714186'] as Snowflake[],
   DeveloperIds: ['701727675311587358'] as Snowflake[],
   SupporterIds: ['880978672037802014', '786348225341947986'] as Snowflake[],
 

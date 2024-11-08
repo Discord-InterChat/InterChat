@@ -21,7 +21,7 @@ export default class AnnounceCommand extends HubCommand {
     const hub = await db.hub.findFirst({ where: { name: hubName } });
 
     if (!hub || !isHubManager(interaction.user.id, hub)) {
-      await this.replyEmbed(interaction, 'hub.notFound_mod', { ephemeral: true });
+      await this.replyEmbed(interaction, 'hub.notFound_mod', { ephemeral: true, t: { emoji: emojis.no } });
       return;
     }
 

@@ -6,7 +6,16 @@ import type { WebhookPayload } from '#types/TopGGPayload.d.ts';
 import db from '#utils/Db.js';
 import { getOrdinalSuffix } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import { APIUser, EmbedBuilder, REST, Routes, time, userMention, WebhookClient } from 'discord.js';
+import {
+  APIGuildMember,
+  APIUser,
+  EmbedBuilder,
+  REST,
+  Routes,
+  time,
+  userMention,
+  WebhookClient,
+} from 'discord.js';
 import type { NextFunction, Request, Response } from 'express';
 import ms from 'ms';
 
@@ -111,10 +120,17 @@ export class VoteManager {
     type: 'add' | 'remove',
     { userId, roleId }: { userId: string; roleId: string },
   ) {
+    const userInGuild = (await this.rest
+      .get(Routes.guildMember(Constants.SupportServerId, userId))
+      .catch(() => null)) as APIGuildMember | null;
+
+    if (!userInGuild?.roles.includes(roleId)) return;
+
     const method = type === 'add' ? 'put' : 'delete';
-    return await this.rest[method](
+    await this.rest[method](
       Routes.guildMemberRole(Constants.SupportServerId, userId, roleId),
     );
+    return;
   }
 
   async addVoterRole(userId: string) {

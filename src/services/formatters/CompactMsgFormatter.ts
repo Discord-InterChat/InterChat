@@ -41,7 +41,8 @@ export class CompactMessageFormatter implements MessageFormatterStrategy {
 
     // compact mode doesn't need new attachment url for tenor and direct image links
     // we can just slap them right in the content without any problems
-    const attachmentURL = message.attachments.size > 0 ? `\n[.](${opts.attachmentURL})` : '';
+    // [] has an empty char in between its not magic kthxbye
+    const attachmentURL = message.attachments.size > 0 ? `\n[⁥](${opts.attachmentURL})` : '';
     const messageContent = `${connection.profFilter ? contents.censored : contents.normal} ${attachmentURL}`;
 
     return {

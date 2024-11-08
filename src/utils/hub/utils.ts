@@ -49,6 +49,7 @@ export const deleteHubs = async (ids: string[]) => {
   // delete all relations first and then delete the hub
   await deleteConnections({ hubId: { in: ids } });
   await db.hubInvite.deleteMany({ where: { hubId: { in: ids } } });
+  await db.hubLogConfig.deleteMany({ where: { hubId: { in: ids } } });
 
   // finally, delete the hub
   await db.hub.deleteMany({ where: { id: { in: ids } } });

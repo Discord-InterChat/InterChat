@@ -24,6 +24,7 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import Connection from './index.js';
+import Logger from '#main/utils/Logger.js';
 
 export default class ConnectionEditCommand extends Connection {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -234,8 +235,13 @@ export default class ConnectionEditCommand extends Connection {
     );
     const msgBody = { embeds: [newEmbeds] };
 
-    if (interaction.replied || interaction.deferred) await interaction.message.edit(msgBody);
-    else await interaction.update(msgBody);
+    try {
+      if (interaction.replied || interaction.deferred) await interaction.message.edit(msgBody);
+      else await interaction.update(msgBody);
+    }
+    catch (e) {
+      Logger.error('[/connection edit] Error updating message', e);
+    }
   }
 
   @RegisterInteractionHandler('connection', 'change_channel')

@@ -5,8 +5,8 @@ import { logUserUnblacklist } from '#utils/hub/logger/ModLogs.js';
 import { t } from '#utils/Locale.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import type { ChatInputCommandInteraction, User } from 'discord.js';
-import ms from 'ms';
 import BlacklistCommand from './index.js';
+import ms from 'ms';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
