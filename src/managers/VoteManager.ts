@@ -127,9 +127,10 @@ export class VoteManager {
     if (!userInGuild?.roles.includes(roleId)) return;
 
     const method = type === 'add' ? 'put' : 'delete';
-    return await this.rest[method](
+    await this.rest[method](
       Routes.guildMemberRole(Constants.SupportServerId, userId, roleId),
     );
+    return;
   }
 
   async addVoterRole(userId: string) {

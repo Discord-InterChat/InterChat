@@ -9,6 +9,8 @@ import db from '#utils/Db.js';
 import { resolveEval } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
+  ActionRowBuilder,
+  ButtonBuilder,
   EmbedBuilder,
   messageLink,
   roleMention,
@@ -126,11 +128,12 @@ export const sendHubReport = async (
     });
 
   const mentionRole = reportsRoleId ? roleMention(reportsRoleId) : undefined;
-  const button = modPanelButton(evidence.messageId).toJSON();
-  const resolveButton = markResolvedButton().toJSON(); // anyone can use this button, it's on mods to set proper permissions for reports channel
+  const button = modPanelButton(evidence.messageId);
+  const resolveButton = markResolvedButton(); // anyone can use this button, it's on mods to set proper permissions for reports channel
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button, resolveButton);
 
   await sendLog(client.cluster, reportsChannelId, embed, {
     content: mentionRole,
-    components: [button, resolveButton],
+    components: [row.toJSON()],
   });
 };
