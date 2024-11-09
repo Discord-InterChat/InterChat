@@ -348,9 +348,8 @@ errors:
   cooldown: '{emoji} You are on cooldown. Please wait until **{time}** before attempting again.'
   serverNameInappropriate: '{emoji} Your server name contains inappropriate words. Please change it before joining the hub.'
   banned: |
-    {emoji} You have been banned from using InterChat for violating our [guidelines](https://interchat.fun/guidelines). 
+    {emoji} You have been banned from using InterChat for violating our [guidelines](https://interchat.fun/guidelines).
     If you think an appeal is applicable create a ticket in the [support server]( {support_invite} ).
-
 misc:
   webhookNoLongerExists: '{emoji} The webhook for this channel no longer exists. To continue using InterChat, please re-create the webhook by using `/connection unpause`.'
   noReason: No reason provided.
