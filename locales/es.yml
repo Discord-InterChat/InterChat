@@ -25,7 +25,7 @@ rules:
     And remember to follow [Discord's Terms of Service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines).
   welcome: |
     {emoji} Hey {user}, welcome to InterChat!
-    To use InterChat you need to accept the guidelines. Please read and accept them by clicking continue.
+    To use InterChat you need to accept the guidelines. Please read and accept them by clicking next.
   accepted: |
     {emoji} Welcome to InterChat! You have accepted the rules and are now ready to chat with members from other servers!
     If you are not already in a hub, use `/hub browse` to join one and start chatting. We have a simple [wiki and guide]({guide}) for more tips and tricks. Good luck!
@@ -133,10 +133,7 @@ hub:
   invalidImgurUrl: '{emoji} URL de imagen no válida para icono o banner. Asegúrese de haber ingresado una URL de imagen de Imgur válida que no es una galería o álbum.'
   join:
     success: |
-      Successfully joined hub **{hub}** from {channel}! You can now chat with members from other servers in this hub.
-      - Use `/connection` to explore various customizations for this connection.
-      - Use `/hub leave` to stop receiving messages from this hub.
-      - Use **`/connection edit`** to change channels.
+      ¡Hub **{hub}** de {channel}! Dé alrededor de **5 minutos** para que los mensajes comiencen a aparecer. Mientras tanto, puede usar `/Connection` para explorar varias personalizaciones para esta conexión. Use `/Hub Leave` para dejar el centro.
   servers:
     total: 'Servidores conectados actuales: {from}-{to} / **{total}**'
     noConnections: '{emoji} Ningún servidor se ha unido a este centro todavía. Use `/Hub Join` para unirse a este centro.'
@@ -348,8 +345,8 @@ errors:
   cooldown: '{emoji} Estás en el tiempo de reutilización. Espere **{time}** antes de intentarlo nuevamente.'
   serverNameInappropriate: '{emoji} Your server name contains inappropriate words. Please change it before joining the hub.'
   banned: |
-    {emoji} You have been banned from using InterChat for violating our [guidelines](https://interchat.fun/guidelines).
-    If you think an appeal is applicable create a ticket in the [support server]( {support_invite} ).
+    {emoji} se le ha prohibido usar Interchat por la razón **{reason}**
+    Si cree que es aplicable una apelación, cree un ticket en el [Servidor de soporte]({support_invite}).
 misc:
   webhookNoLongerExists: '{emoji} El webhook para este canal ya no existe. Para continuar usando Interchat, vuelva a habilitar el webhook cambiando la conexión a otro canal usando `/Connection`.'
   noReason: No se proporcionó ninguna razón.
