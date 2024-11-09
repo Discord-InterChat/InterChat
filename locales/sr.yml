@@ -25,7 +25,7 @@ rules:
     And remember to follow [Discord's Terms of Service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines).
   welcome: |
     {emoji} Hey {user}, welcome to InterChat!
-    To use InterChat you need to accept the guidelines. Please read and accept them by clicking next.
+    To use InterChat you need to accept the guidelines. Please read and accept them by clicking continue.
   accepted: |
     {emoji} Welcome to InterChat! You have accepted the rules and are now ready to chat with members from other servers!
     If you are not already in a hub, use `/hub browse` to join one and start chatting. We have a simple [wiki and guide]({guide}) for more tips and tricks. Good luck!
@@ -348,7 +348,7 @@ errors:
   cooldown: '{emoji} You are on cooldown. Please wait until **{time}** before attempting again.'
   serverNameInappropriate: '{emoji} Your server name contains inappropriate words. Please change it before joining the hub.'
   banned: |
-    {emoji} You have been banned from using InterChat for reason **{reason}**
+    {emoji} You have been banned from using InterChat for violating our [guidelines](https://interchat.fun/guidelines).
     If you think an appeal is applicable create a ticket in the [support server]( {support_invite} ).
 misc:
   webhookNoLongerExists: '{emoji} The webhook for this channel no longer exists. To continue using InterChat, please re-create the webhook by using `/connection unpause`.'
