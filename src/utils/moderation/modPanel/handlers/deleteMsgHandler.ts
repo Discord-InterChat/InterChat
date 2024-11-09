@@ -1,10 +1,10 @@
-import { emojis } from '#utils/Constants.js';
+import { buildModPanel } from '#main/interactions/ModPanel.js';
+import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
 import { getBroadcasts, getOriginalMessage } from '#main/utils/network/messageUtils.js';
+import { emojis } from '#utils/Constants.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
-import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
-import { type ModAction, replyWithUnknownMessage } from '#utils/moderation/modActions/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
 
 export default class DeleteMessageHandler implements ModAction {
@@ -22,7 +22,7 @@ export default class DeleteMessageHandler implements ModAction {
 
     const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
     if (deleteInProgress) {
-      const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
+      const { embed, buttons } = await buildModPanel(interaction, originalMsg);
       await interaction.update({ embeds: [embed], components: buttons });
 
       const errorEmbed = new InfoEmbed().setDescription(
@@ -47,6 +47,24 @@ export default class DeleteMessageHandler implements ModAction {
       originalMsg.messageId,
       broadcastMsgs,
     );
+
+    // log the deletion to the hub's mod log channel
+    // FIXME: store message content for easier access
+    // if (interaction.message.reference?.messageId) {
+    //   const hub = await fetchHub(originalMsg.hubId);
+    //   const msgContent = originalMsg.content;
+    //   await logMsgDelete(
+    //     interaction.client,
+    //     interaction.message.reference?.messageId,
+    //     await fetchHub(originalMsg.hubId),
+    //     {
+    //       modName: interaction.user.id,
+    //       serverId: originalMsg.guildId,
+    //       userId: originalMsg.authorId,
+    //       imageUrl,
+    //     },
+    //   );
+    // }
 
     await interaction
       .editReply(

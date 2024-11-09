@@ -1,6 +1,6 @@
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
+import { buildModPanel } from '#main/interactions/ModPanel.js';
 import { fetchHub, isStaffOrHubMod } from '#main/utils/hub/utils.js';
-import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import {
   findOriginalMessage,
   getMessageIdFromStr,
@@ -13,13 +13,9 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     name: 'modpanel',
     description: 'Blacklist a user or server from using the bot',
     category: 'Moderation',
-    usage: 'blacklist ` user ID or server ID `',
-    examples: [
-      'blacklist 123456789012345678',
-      'blacklist 123456789012345678',
-      '> Reply to a message with `blacklist` to blacklist the user who sent the message',
-    ],
-    aliases: ['bl', 'modactions', 'modpanel', 'mod', 'ban'],
+    usage: 'modpanel user ID or server ID `',
+    examples: ['mp 123456789012345678', 'mod 123456789012345678'],
+    aliases: ['bl', 'mp', 'moderate', 'modactions', 'modpanel', 'mod'],
     dbPermission: false,
     requiredArgs: 1,
   };
@@ -39,7 +35,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
       return;
     }
 
-    const modPanel = await modActionsPanel.buildMessage(message, originalMessage);
+    const modPanel = await buildModPanel(message, originalMessage);
     await message.reply({ embeds: [modPanel.embed], components: modPanel.buttons });
   }
   private async getOriginalMessage(messageId: string) {

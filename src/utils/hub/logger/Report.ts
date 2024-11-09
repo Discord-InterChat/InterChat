@@ -1,4 +1,4 @@
-import { modPanelButton } from '#main/interactions/ShowModPanelButton.js';
+import { modPanelButton } from '#main/interactions/ShowModPanel.js';
 import {
   findOriginalMessage,
   getBroadcast,
