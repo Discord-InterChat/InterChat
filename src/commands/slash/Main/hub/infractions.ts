@@ -1,6 +1,7 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
 import { InfractionManagerFactory } from '#main/managers/InfractionManager/InfractionManagerFactory.js';
 import { Pagination } from '#main/modules/Pagination.js';
+import { RemoveMethods } from '#main/types/Utils.js';
 import { msToReadable } from '#main/utils/Utils.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import db from '#utils/Db.js';
@@ -16,6 +17,7 @@ import {
   Client,
   Collection,
   EmbedBuilder,
+  Guild,
   time,
   User,
   type ChatInputCommandInteraction,
@@ -122,7 +124,11 @@ export default class ViewInfractions extends HubCommand {
     type: InfractionType,
   ) {
     const groupedInfractions = await this.getGroupedInfractions(hub.id, type);
-    const embeds = await this.buildAllInfractionsEmbed(interaction.client, groupedInfractions);
+    const embeds = await this.buildAllInfractionsEmbed(
+      interaction.client,
+      groupedInfractions,
+      type,
+    );
     await this.displayPagination(interaction, embeds);
   }
 
@@ -130,52 +136,128 @@ export default class ViewInfractions extends HubCommand {
     hubId: string,
     type: InfractionType,
   ): Promise<Collection<string, GroupedInfraction>> {
-    const groupedInfractions: Collection<string, GroupedInfraction> = new Collection();
+    // Fetch all infractions in a single query with included relations
+    const infractions = await (type === 'server'
+      ? db.serverInfraction.findMany({
+        where: { hubId },
+        orderBy: { dateIssued: 'desc' },
+      })
+      : db.userInfraction.findMany({
+        where: { hubId },
+        orderBy: { dateIssued: 'desc' },
+      }));
 
-    const infractions = await this.fetchInfractions(hubId, type);
-
-    infractions.forEach((infraction) => {
+    // Group infractions by target ID
+    return infractions.reduce((grouped, infraction) => {
       const targetId = this.getTargetId(infraction);
-      const existing = groupedInfractions.get(targetId);
-      const count = existing ? existing.count + 1 : 1;
+      const existing = grouped.get(targetId);
 
-      groupedInfractions.set(targetId, { ...infraction, count });
-    });
+      if (!existing) {
+        grouped.set(targetId, { ...infraction, count: 1 });
+      }
+      else {
+        // Only update count since we're already sorted by date
+        grouped.set(targetId, { ...existing, count: existing.count + 1 });
+      }
 
-    return groupedInfractions;
-  }
-
-  private async fetchInfractions(hubId: string, type: InfractionType) {
-    return type === 'server'
-      ? await db.serverInfraction.findMany({ where: { hubId } })
-      : await db.userInfraction.findMany({ where: { hubId } });
-  }
-
-  private getTargetId(infraction: UserInfraction | ServerInfraction): string {
-    return 'userId' in infraction ? infraction.userId : infraction.serverId;
+      return grouped;
+    }, new Collection<string, GroupedInfraction>());
   }
 
   private async buildAllInfractionsEmbed(
     client: Client,
     groupedInfractions: Collection<string, GroupedInfraction>,
+    type: InfractionType,
   ) {
-    const pages = [];
-    let fields: { name: string; value: string }[] = [];
+    const pages: BaseMessageOptions[] = [];
+    const targetIds = [...groupedInfractions.keys()];
+
+    // Batch fetch all users/servers at once
+    const [targets, moderators] = await Promise.all([
+      this.batchFetchTargets(client, targetIds, type),
+      this.batchFetchModerators(client, [
+        ...new Set(groupedInfractions.map((i) => i.moderatorId).filter(Boolean) as string[]),
+      ]),
+    ]);
+
+    let currentFields: { name: string; value: string }[] = [];
     let counter = 0;
 
-    for (const infraction of groupedInfractions.values()) {
-      const field = await this.createInfractionField(client, infraction);
-      fields.push(field);
+    for (const [targetId, infraction] of groupedInfractions) {
+      const target = targets.get(targetId);
+      const moderator = moderators.get(infraction.moderatorId ?? '') ?? null;
 
+      const field = {
+        name: `${this.getTargetName(target, infraction)} (${targetId}) (${time(infraction.dateIssued, 'R')})`,
+        value: this.formatInfractionDetails(
+          infraction,
+          moderator,
+          this.formatExpirationTime(infraction.expiresAt),
+        ),
+      };
+
+      currentFields.push(field);
       counter++;
-      if (this.shouldCreateNewPage(counter, fields.length, groupedInfractions.size)) {
-        pages.push(this.createPageEmbed(fields));
+
+      if (this.shouldCreateNewPage(counter, currentFields.length, groupedInfractions.size)) {
+        pages.push(this.createPageEmbed(currentFields));
+        currentFields = [];
         counter = 0;
-        fields = [];
       }
     }
 
     return pages;
+  }
+
+  private async batchFetchTargets(client: Client, targetIds: string[], type: InfractionType) {
+    const targets = new Collection<string, User | RemoveMethods<Guild>>();
+
+    if (type === 'user') {
+      const users = await Promise.all(
+        targetIds.map((id) => client.users.fetch(id).catch(() => null)),
+      );
+      users.forEach((user, index) => {
+        if (user) targets.set(targetIds[index], user);
+      });
+    }
+    else {
+      const guilds = await Promise.all(
+        targetIds.map((id) => client.fetchGuild(id).catch(() => null)),
+      );
+      guilds.forEach((guild, index) => {
+        if (guild) targets.set(targetIds[index], guild);
+      });
+    }
+
+    return targets;
+  }
+
+  private async batchFetchModerators(client: Client, moderatorIds: string[]) {
+    const moderators = new Collection<string, User>();
+
+    const users = await Promise.all(
+      moderatorIds.map((id) => client.users.fetch(id).catch(() => null)),
+    );
+
+    users.forEach((user, index) => {
+      if (user) moderators.set(moderatorIds[index], user);
+    });
+
+    return moderators;
+  }
+
+  private getTargetName(
+    target: User | RemoveMethods<Guild> | undefined,
+    infraction: GroupedInfraction,
+  ): string {
+    if (!target) {
+      return 'userId' in infraction ? 'Unknown User' : (infraction.serverName ?? 'Unknown Server');
+    }
+    return target instanceof User ? target.username : target.name;
+  }
+
+  private getTargetId(infraction: UserInfraction | ServerInfraction): string {
+    return 'userId' in infraction ? infraction.userId : infraction.serverId;
   }
 
   private async createInfractionField(client: Client, infraction: GroupedInfraction) {
