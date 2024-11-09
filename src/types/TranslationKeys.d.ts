@@ -192,7 +192,7 @@ export type TranslationKeys = {
   'errors.notUsable': 'emoji';
   'errors.cooldown': 'emoji' | 'time';
   'errors.serverNameInappropriate': 'emoji';
-  'errors.banned': 'emoji' | 'reason' | 'support_invite';
+  'errors.banned': 'emoji' | 'support_invite';
   'misc.webhookNoLongerExists': 'emoji';
   'misc.noReason': never;
   'misc.noDesc': never;
