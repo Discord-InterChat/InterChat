@@ -105,7 +105,6 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
         await interaction.reply({
           content: t('errors.banned', locale, {
             emoji: emojis.no,
-            reason: dbUser.banMeta.reason,
             support_invite: Constants.Links.SupportInvite,
           }),
           ephemeral: true,

@@ -2,7 +2,9 @@ import BaseEventListener from '#main/core/BaseEventListener.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { ConnectionService } from '#main/services/ConnectionService.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
+import Constants from '#main/utils/Constants.js';
 import { isHumanMessage } from '#utils/Utils.js';
+import { stripIndents } from 'common-tags';
 import { Message } from 'discord.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
@@ -22,6 +24,15 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     if (message.content.startsWith('c!')) {
       await this.handlePrefixCommand(message, 'c!');
       return;
+    }
+    else if (message.content === `<@${message.client.user.id}>` || message.content === `<@!${message.client.user.id}>`) {
+      await message.channel.send(stripIndents`
+        ### Hey there! I'm InterChat, the cross-server chatting bot! 🎉
+        - To get started, use  \`/help\` for a easy guide on how to use me.
+        - If you're new here, please read the rules by typing \`/rules\`.
+        - You can type \`c!connect\` to connect to a random lobby. (Coming Soon) Or use \`/hub join\` to join a cross-server community.
+        -# **Need help?** Join our [support server](<${Constants.Links.SupportInvite}>).
+      `);
     }
 
     await this.handleChatMessage(message);

@@ -6,7 +6,7 @@ import type { supportedLocaleCodes } from '#utils/Locale.js';
 import {
   type ModAction,
   replyWithUnknownMessage,
-} from '#utils/moderation/modActions/utils.js';
+} from '#main/utils/moderation/modPanel/utils.js';
 import {
   type ButtonInteraction,
   type ModalSubmitInteraction,

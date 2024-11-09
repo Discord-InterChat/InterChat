@@ -6,7 +6,7 @@ import { buildInfractionListEmbeds } from '#utils/moderation/infractionUtils.js'
 import {
   type ModAction,
   replyWithUnknownMessage,
-} from '#utils/moderation/modActions/utils.js';
+} from '#main/utils/moderation/modPanel/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
 
 export default class ViewInfractionsHandler implements ModAction {
