@@ -1,4 +1,4 @@
-import { HubJoinService } from '#main/modules/HubJoinService.js';
+import { HubJoinService } from '#main/services/HubJoinService.js';
 import { ChannelType, ChatInputCommandInteraction } from 'discord.js';
 import HubCommand from './index.js';
 

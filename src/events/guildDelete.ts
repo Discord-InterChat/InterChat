@@ -16,7 +16,9 @@ export default class Ready extends BaseEventListener<'guildDelete'> {
     const deletedConnections = await deleteConnections({ serverId: guild.id });
 
     deletedConnections.forEach(
-      async (connection) => await logGuildLeaveToHub(connection.hubId, guild),
+      async (connection) => {
+        if (connection) await logGuildLeaveToHub(connection.hubId, guild);
+      },
     );
 
     await logGuildLeave(guild, Constants.Channels.goal);

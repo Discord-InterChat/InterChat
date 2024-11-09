@@ -1,12 +1,21 @@
 import Constants, { emojis } from '#utils/Constants.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
-import Scheduler from '#main/modules/SchedulerService.js';
+import Scheduler from '#main/services/SchedulerService.js';
 import Logger from '#utils/Logger.js';
 import type { WebhookPayload } from '#types/TopGGPayload.d.ts';
 import db from '#utils/Db.js';
 import { getOrdinalSuffix } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import { APIUser, EmbedBuilder, REST, Routes, time, userMention, WebhookClient } from 'discord.js';
+import {
+  APIGuildMember,
+  APIUser,
+  EmbedBuilder,
+  REST,
+  Routes,
+  time,
+  userMention,
+  WebhookClient,
+} from 'discord.js';
 import type { NextFunction, Request, Response } from 'express';
 import ms from 'ms';
 
@@ -60,10 +69,11 @@ export class VoteManager {
   async incrementUserVote(userId: string, username?: string) {
     const lastVoted = new Date();
     const user = await this.userDbManager.getUser(userId);
-    if (!user) {
-      return await this.userDbManager.createUser({ id: userId, username, lastVoted, voteCount: 1 });
-    }
-    return await this.userDbManager.updateUser(userId, { lastVoted, voteCount: { increment: 1 } });
+    return await this.userDbManager.upsertUser(userId, {
+      username,
+      lastVoted,
+      voteCount: user?.voteCount ? user.voteCount + 1 : 1,
+    });
   }
 
   async getAPIUser(userId: string) {
@@ -110,10 +120,17 @@ export class VoteManager {
     type: 'add' | 'remove',
     { userId, roleId }: { userId: string; roleId: string },
   ) {
+    const userInGuild = (await this.rest
+      .get(Routes.guildMember(Constants.SupportServerId, userId))
+      .catch(() => null)) as APIGuildMember | null;
+
+    if (!userInGuild?.roles.includes(roleId)) return;
+
     const method = type === 'add' ? 'put' : 'delete';
-    return await this.rest[method](
+    await this.rest[method](
       Routes.guildMemberRole(Constants.SupportServerId, userId, roleId),
     );
+    return;
   }
 
   async addVoterRole(userId: string) {

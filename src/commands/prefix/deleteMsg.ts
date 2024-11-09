@@ -23,7 +23,7 @@ export default class DeleteMsgCommand extends BasePrefixCommand {
     ],
     aliases: ['delmsg', 'dmsg', 'delete', 'del'],
     dbPermission: false,
-    totalArgs: 1,
+    requiredArgs: 1,
   };
 
   protected async run(message: Message<true>, args: string[]): Promise<void> {

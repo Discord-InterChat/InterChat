@@ -12,7 +12,7 @@ import {
   Collection,
   EmbedBuilder,
 } from 'discord.js';
-import type { ReferredMsgData } from './Types.d.ts';
+import type { ReferredMsgData } from './Types.js';
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.

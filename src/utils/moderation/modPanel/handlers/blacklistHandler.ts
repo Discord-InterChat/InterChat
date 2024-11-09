@@ -8,8 +8,7 @@ import { CustomID } from '#utils/CustomID.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
-import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
-import { type ModAction } from '#utils/moderation/modActions/utils.js';
+import { type ModAction } from '#main/utils/moderation/modPanel/utils.js';
 import {
   ActionRowBuilder,
   type ButtonInteraction,
@@ -22,6 +21,7 @@ import {
   time,
 } from 'discord.js';
 import ms from 'ms';
+import { buildModPanel } from '#main/interactions/ModPanel.js';
 
 abstract class BaseBlacklistHandler implements ModAction {
   abstract handle(
@@ -70,7 +70,8 @@ abstract class BaseBlacklistHandler implements ModAction {
 
   protected getModalData(interaction: ModalSubmitInteraction) {
     const reason = interaction.fields.getTextInputValue('reason');
-    const duration = ms(interaction.fields.getTextInputValue('duration'));
+    // NOTE: ms() doesn't accept empty string, so we use this hack instead
+    const duration = ms(interaction.fields.getTextInputValue('duration') || ' ');
     const expiresAt = duration ? new Date(Date.now() + duration) : null;
 
     return { reason, expiresAt };
@@ -169,7 +170,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
       `User ${user?.username} blacklisted by ${interaction.user.username} in ${originalMsg.hubId}`,
     );
 
-    const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
+    const { embed, buttons } = await buildModPanel(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: buttons });
 
     const successEmbed = this.buildSuccessEmbed(user.username, reason, expiresAt, locale);
@@ -241,7 +242,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
 
     const successEmbed = this.buildSuccessEmbed(server.name, reason, expiresAt, locale);
 
-    const { embed, buttons } = await modActionsPanel.buildMessage(interaction, originalMsg);
+    const { embed, buttons } = await buildModPanel(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: buttons });
     await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
   }

@@ -11,7 +11,7 @@ export interface CommandData {
   examples: string[];
   aliases: string[];
   dbPermission?: boolean;
-  totalArgs: number;
+  requiredArgs: number;
   cooldown?: number;
   ownerOnly?: boolean;
   requiredBotPermissions?: PermissionsBitField;
@@ -57,7 +57,7 @@ export default abstract class BasePrefixCommand {
         return;
       }
 
-      if (this.data.totalArgs > args.length) {
+      if (this.data.requiredArgs > args.length) {
         const prefix = 'c!';
         const examplesStr =
           this.data.examples.length > 0

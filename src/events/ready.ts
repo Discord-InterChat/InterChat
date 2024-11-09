@@ -1,30 +1,30 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import Scheduler from '#main/modules/SchedulerService.js';
+import Scheduler from '#main/services/SchedulerService.js';
 import updateBlacklists from '#main/scheduled/tasks/updateBlacklists.js';
 import Logger from '#utils/Logger.js';
-import getRedis from '#utils/Redis.js';
-import { Client } from 'discord.js';
+import { ActivityType, Client } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'ready'> {
   readonly name = 'ready';
-  public async execute(client: Client<true>) {
+  public execute(client: Client<true>) {
     Logger.info(`Logged in as ${client.user.tag}!`);
 
-    const redisClient = getRedis();
-    const shardId = client.guilds.cache.first()?.shardId;
-    const blacklistScheduled = (await redisClient.get('blacklistScheduled')) ?? shardId?.toString();
+    if (client.cluster.id === 0) {
+      Logger.debug(`Cluster ${client.cluster.id} is updating blacklists...`);
+      updateBlacklists(client).then(() => Logger.debug(`Cluster ${client.cluster.id} has finished updating blacklists!`));
 
-    if (shardId === 0 && blacklistScheduled === '0') {
-      updateBlacklists(client);
-
+      Logger.debug(`Cluster ${client.cluster.id} is setting up recurring tasks...`);
       const scheduler = new Scheduler();
       scheduler.stopTask('deleteExpiredBlacklists');
-
       scheduler.addRecurringTask('deleteExpiredBlacklists', 30 * 1000, () =>
         updateBlacklists(client),
       );
-
-      redisClient.set('blacklistScheduled', `${shardId}`);
+      Logger.debug(`Cluster ${client.cluster.id} has set up recurring tasks!`);
     }
+
+    client.user.setActivity({
+      name: `🎉 InterChat v4 | Cluster ${client.cluster.id}`,
+      type: ActivityType.Watching,
+    });
   }
 }

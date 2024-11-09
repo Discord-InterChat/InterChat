@@ -4,9 +4,9 @@ import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
-import CooldownService from '#main/modules/CooldownService.js';
+import CooldownService from '#main/services/CooldownService.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
-import Scheduler from '#main/modules/SchedulerService.js';
+import Scheduler from '#main/services/SchedulerService.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import { loadCommands, loadInteractions } from '#utils/CommandUtils.js';
 import { loadLocales } from '#utils/Locale.js';
@@ -22,6 +22,7 @@ import {
   GatewayIntentBits,
   Options,
 } from 'discord.js';
+import { TempHubService } from '#main/services/TempHubService.js';
 
 export default class InterChatClient extends Client {
   static instance: InterChatClient;
@@ -38,6 +39,8 @@ export default class InterChatClient extends Client {
   readonly cluster = new ClusterClient(this);
   readonly eventLoader = new EventLoader(this);
   readonly commandCooldowns = new CooldownService();
+  readonly chatService = new TempHubService();
+
 
   public readonly commands = new Collection<string, BaseCommand>();
   public readonly interactions = new Collection<string, InteractionFunction>();
@@ -79,10 +82,6 @@ export default class InterChatClient extends Client {
     });
   }
 
-  /**
-   * Initializes the SuperClient instance.
-   * Sets the instance to the current object and initializes Sentry error monitoring and handling if not in development mode.
-   */
   async start() {
     // initialize the client
     InterChatClient.instance = this;
@@ -100,7 +99,7 @@ export default class InterChatClient extends Client {
   }
 
   /**
-   * Fetches a guild by its ID from the cache.
+   * Fetches a guild by its ID from the cache of one of the clusters.
    * @param guildId The ID of the guild to fetch.
    * @returns The fetched guild **without any methods**, or undefined if the guild is not found.
    */

@@ -1,4 +1,4 @@
-import { CustomID } from '#main/utils/CustomID.js';
+import { modPanelButton } from '#main/interactions/ShowModPanel.js';
 import {
   findOriginalMessage,
   getBroadcast,
@@ -11,7 +11,6 @@ import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonStyle,
   EmbedBuilder,
   messageLink,
   roleMention,
@@ -20,6 +19,7 @@ import {
   type User,
 } from 'discord.js';
 import { sendLog } from './Default.js';
+import { markResolvedButton } from '#main/interactions/MarkResolvedButton.js';
 
 export type ReportEvidenceOpts = {
   // the message content
@@ -128,20 +128,12 @@ export const sendHubReport = async (
     });
 
   const mentionRole = reportsRoleId ? roleMention(reportsRoleId) : undefined;
-  const button = new ActionRowBuilder<ButtonBuilder>()
-    .addComponents(
-      new ButtonBuilder()
-        .setCustomId(
-          new CustomID().setIdentifier('showModPanel').addArgs(evidence.messageId).toString(),
-        )
-        .setStyle(ButtonStyle.Danger)
-        .setLabel('Take Action')
-        .setEmoji(emojis.blobFastBan),
-    )
-    .toJSON();
+  const button = modPanelButton(evidence.messageId);
+  const resolveButton = markResolvedButton(); // anyone can use this button, it's on mods to set proper permissions for reports channel
+  const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button, resolveButton);
 
   await sendLog(client.cluster, reportsChannelId, embed, {
     content: mentionRole,
-    components: [button],
+    components: [row.toJSON()],
   });
 };

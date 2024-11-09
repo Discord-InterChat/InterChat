@@ -8,8 +8,6 @@ import {
   ActionRowBuilder,
   APIActionRowComponent,
   APIButtonComponent,
-  ButtonBuilder,
-  ButtonStyle,
   Client,
   EmbedBuilder,
   ModalActionRowComponentBuilder,
@@ -19,6 +17,7 @@ import {
   TextInputStyle,
   User,
 } from 'discord.js';
+import { buildAppealSubmitButton } from '#main/interactions/BlacklistAppeal.js';
 
 export const isBlacklisted = <T extends UserInfraction | ServerInfraction>(
   infraction: T | null,
@@ -59,15 +58,6 @@ interface BlacklistOpts {
   expiresAt: Date | null;
   reason?: string;
 }
-
-export const buildAppealSubmitButton = (type: 'user' | 'server', hubId: string) =>
-  new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(new CustomID('appealSubmit:button', [type, hubId]).toString())
-      .setLabel('Appeal Blacklist')
-      .setEmoji('📝')
-      .setStyle(ButtonStyle.Primary),
-  );
 
 /** * Notify a user or server that they have been blacklisted. */
 export const sendBlacklistNotif = async (

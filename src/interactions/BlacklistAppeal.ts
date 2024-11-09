@@ -1,13 +1,12 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import HubLogManager from '#main/managers/HubLogManager.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import BaseInfractionManager from '#main/managers/InfractionManager/BaseInfractionManager.js';
+import HubLogManager from '#main/managers/HubLogManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { CustomID } from '#utils/CustomID.js';
 import { ErrorEmbed, InfoEmbed } from '#utils/EmbedUtils.js';
-import { fetchHub } from '#utils/hub/utils.js';
 import logAppeals from '#utils/hub/logger/Appeals.js';
+import { fetchHub } from '#utils/hub/utils.js';
 import Logger from '#utils/Logger.js';
 import { buildAppealSubmitModal } from '#utils/moderation/blacklistUtils.js';
 import { getReplyMethod, msToReadable } from '#utils/Utils.js';
@@ -21,6 +20,16 @@ import {
   RepliableInteraction,
   Snowflake,
 } from 'discord.js';
+
+export const buildAppealSubmitButton = (type: 'user' | 'server', hubId: string) =>
+  new ActionRowBuilder<ButtonBuilder>().addComponents(
+    new ButtonBuilder()
+      .setCustomId(new CustomID('appealSubmit:button', [type, hubId]).toString())
+      .setLabel('Appeal Blacklist')
+      .setEmoji('📝')
+      .setStyle(ButtonStyle.Primary),
+  );
+
 
 export default class AppealInteraction {
   @RegisterInteractionHandler('appealSubmit', 'button')
@@ -56,8 +65,10 @@ export default class AppealInteraction {
     const [type, hubId] = customId.args as ['user' | 'server', string];
 
     const appealsConfig = await this.validateBlacklistAppealLogConfig(interaction, hubId);
+    if (!appealsConfig) return;
+
     const { passedCheck } = await this.checkBlacklistOrSendError(interaction, hubId, type);
-    if (!appealsConfig || !passedCheck) return;
+    if (!passedCheck) return;
 
     const { channelId: appealsChannelId, roleId: appealsRoleId } = appealsConfig;
 
@@ -190,8 +201,8 @@ export default class AppealInteraction {
         ? new UserInfractionManager(interaction.user.id)
         : new ServerInfractionManager(interaction.guildId as string);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const blacklistManager = new BlacklistManager(infractionManager as BaseInfractionManager<any>);
+
+    const blacklistManager = new BlacklistManager(infractionManager);
 
     const hub = await fetchHub(hubId);
     const allInfractions = await infractionManager.getHubInfractions(hubId, { type: 'BLACKLIST' });
@@ -209,7 +220,9 @@ export default class AppealInteraction {
       const embed = new ErrorEmbed().setDescription(
         `You can only appeal once every **${msToReadable(appealCooldown, false)}**.`,
       );
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+
+      const replyMethod = getReplyMethod(interaction);
+      await interaction[replyMethod]({ embeds: [embed], ephemeral: true });
       return { passedCheck: false };
     }
 

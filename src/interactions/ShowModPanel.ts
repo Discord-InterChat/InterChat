@@ -3,9 +3,16 @@ import { RegisterInteractionHandler } from '#main/decorators/RegisterInteraction
 import { CustomID } from '#main/utils/CustomID.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { fetchHub, isStaffOrHubMod } from '#main/utils/hub/utils.js';
-import modActionsPanel from '#main/utils/moderation/modActions/modActionsPanel.js';
 import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
-import { ButtonInteraction } from 'discord.js';
+import { ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js';
+import { buildModPanel } from '#main/interactions/ModPanel.js';
+
+export const modPanelButton = (targetMsgId: string, opts?: { label?: string; emoji?: string }) =>
+  new ButtonBuilder()
+    .setCustomId(new CustomID().setIdentifier('showModPanel').addArgs(targetMsgId).toString())
+    .setStyle(ButtonStyle.Danger)
+    .setLabel(opts?.label ?? 'Mod Panel')
+    .setEmoji(emojis.blobFastBan);
 
 export default class ModActionsButton {
   @RegisterInteractionHandler('showModPanel')
@@ -30,7 +37,7 @@ export default class ModActionsButton {
 
     if (!isStaffOrHubMod(interaction.user.id, hub)) return;
 
-    const panel = await modActionsPanel.buildMessage(interaction, originalMessage);
+    const panel = await buildModPanel(interaction, originalMessage);
     await interaction.followUp({
       embeds: [panel.embed],
       components: panel.buttons,

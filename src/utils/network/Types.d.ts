@@ -4,9 +4,6 @@ import type {
   User,
   Message,
   HexColorString,
-  ActionRowBuilder,
-  ButtonBuilder,
-  EmbedBuilder,
   Collection,
 } from 'discord.js';
 
@@ -23,22 +20,3 @@ export interface BroadcastOpts {
   attachmentURL?: string | null;
 }
 
-export type CompactFormatOpts = {
-  servername: string;
-  totalAttachments: number;
-  author: {
-    username: string;
-    avatarURL: string;
-  };
-  contents: {
-    normal: string;
-    censored: string;
-    referred: string | undefined;
-  };
-  jumpButton?: ActionRowBuilder<ButtonBuilder>[];
-};
-
-export type EmbedFormatOpts = {
-  embeds: { normal: EmbedBuilder; censored: EmbedBuilder };
-  jumpButton?: ActionRowBuilder<ButtonBuilder>[];
-};

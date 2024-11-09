@@ -7,6 +7,7 @@ import {
 import db from '#utils/Db.js';
 import { Hub } from '@prisma/client';
 import { EmbedBuilder } from 'discord.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 
 export default class HubSettingsManager {
   private readonly hubId: string;
@@ -52,7 +53,7 @@ export default class HubSettingsManager {
   }
 
   get settingsEmbed(): EmbedBuilder {
-    const embed = new EmbedBuilder()
+    const embed = new InfoEmbed()
       .setTitle('Hub Settings')
       .setColor('#0099ff')
       .setDescription('Current settings for this hub:');

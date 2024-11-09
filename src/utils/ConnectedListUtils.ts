@@ -68,8 +68,13 @@ export const cacheHubConnection = async (connection: connectedList) => {
   Logger.debug(`Cached connection ${connection.id} for hub ${connection.hubId}`);
 };
 
-const purgeConnectionCache = async (channelId: string) =>
+export const removeFromHubConnections = async (connId: string, hubId: string) => {
+  await getRedis().hdel(`${RedisKeys.hubConnections}:${hubId}`, connId).then(console.log);
+};
+
+const purgeConnectionCache = async (channelId: string) => {
   await getRedis().del(`${RedisKeys.connectionHubId}:${channelId}`);
+};
 
 const cacheConnectionHubId = async (...connections: connectedList[]) => {
   const keysToDelete: string[] = [];
@@ -113,7 +118,11 @@ export const getConnectionHubId = async (channelId: string) => {
 };
 
 export const deleteConnection = async (where: whereUniuqeInput) => {
+  const connection = await db.connectedList.findFirst({ where });
+  if (!connection) return null;
+
   const deleted = await db.connectedList.delete({ where });
+  await removeFromHubConnections(deleted.id, deleted.hubId);
   await purgeConnectionCache(deleted.channelId);
   return deleted;
 };
@@ -137,18 +146,17 @@ export const deleteConnections = async (where: whereInput) => {
 
   // repopulate cache
   connections.forEach(async (connection) => {
+    await removeFromHubConnections(connection.id, connection.hubId);
     await purgeConnectionCache(connection.channelId);
-    await getRedis().hdel(
-      `${RedisKeys.hubConnections}:${connection.hubId}`,
-      connection.id,
-      JSON.stringify(connection),
-    );
   });
 
   return connections;
 };
 
 export const updateConnection = async (where: whereUniuqeInput, data: dataInput) => {
+  const conn = await db.connectedList.findFirst({ where });
+  if (!conn) return null;
+
   // Update in database
   const connection = await db.connectedList.update({ where, data });
 

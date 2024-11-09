@@ -1,18 +1,18 @@
-import Constants, { emojis } from '#utils/Constants.js';
-import BaseInfractionManager from '#main/managers/InfractionManager/BaseInfractionManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
+import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { sendLog } from '#main/utils/hub/logger/Default.js';
 import { resolveEval } from '#main/utils/Utils.js';
 import { InfractionStatus, Prisma, ServerInfraction, UserInfraction } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { type Client, EmbedBuilder, type Snowflake, type User } from 'discord.js';
+import { Client, EmbedBuilder, User, type Snowflake } from 'discord.js';
 
-export default class BlacklistManager<T extends UserInfraction | ServerInfraction> {
+export default class BlacklistManager {
   readonly targetId: Snowflake;
   readonly infracManager;
 
-  constructor(infracManager: BaseInfractionManager<T>) {
+  constructor(infracManager: UserInfractionManager | ServerInfractionManager) {
     this.targetId = infracManager.targetId;
     this.infracManager = infracManager;
   }
@@ -96,7 +96,8 @@ export default class BlacklistManager<T extends UserInfraction | ServerInfractio
     const { mod, reason, expiresAt } = opts;
 
     const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
-    if (!hub?.logConfig[0].modLogs) return;
+    const { modLogs } = hub?.logConfig.at(0) ?? {};
+    if (!modLogs) return;
 
     let name;
     let iconURL;
@@ -148,6 +149,12 @@ export default class BlacklistManager<T extends UserInfraction | ServerInfractio
       .setColor(Constants.Colors.interchatBlue)
       .setFooter({ text: `Blacklisted by: ${mod.username}`, iconURL: mod.displayAvatarURL() });
 
-    await sendLog(opts.mod.client.cluster, hub?.logConfig[0].modLogs, embed);
+    await sendLog(opts.mod.client.cluster, modLogs, embed);
+  }
+
+  public static isServerBlacklist(
+    data: UserInfraction | ServerInfraction | null,
+  ): data is ServerInfraction {
+    return Boolean(data && 'serverId' in data);
   }
 }

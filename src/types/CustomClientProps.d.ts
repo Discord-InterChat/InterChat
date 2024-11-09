@@ -3,8 +3,9 @@ import BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
-import CooldownService from '#main/modules/CooldownService.js';
-import Scheduler from '#main/modules/SchedulerService.js';
+import CooldownService from '#main/services/CooldownService.js';
+import Scheduler from '#main/services/SchedulerService.js';
+import { TempHubService } from '#main/services/TempHubService.js';
 import { ClusterClient } from 'discord-hybrid-sharding';
 import {
   Collection,
@@ -29,6 +30,7 @@ declare module 'discord.js' {
     readonly commands: Collection<string, BaseCommand>;
     readonly interactions: Collection<string, InteractionFunction | undefined>;
     readonly prefixCommands: Collection<string, BasePrefixCommand>;
+    readonly chatService: TempHubService;
 
     readonly commandCooldowns: CooldownService;
     readonly reactionCooldowns: Collection<string, number>;

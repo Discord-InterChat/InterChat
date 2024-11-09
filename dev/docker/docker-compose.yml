@@ -1,4 +1,3 @@
-version: '3.7'
 services:
   mongodb_container:
     # This image automatically creates a replica set required for transactions

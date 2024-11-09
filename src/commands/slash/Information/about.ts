@@ -24,23 +24,17 @@ export default class About extends BaseCommand {
       .setDescription(
         stripIndents`
         ### ${emojis.wand} About InterChat
-
         InterChat is a bot which provides cross-server chats that allows users to talk across different servers. Using webhooks, InterChat broadcasts messages to all connected channels in real time, making server connections seamless.
-
-
-        #### Notable Features:
+        ### Notable Features:
         - Cross-server messaging
         - Customizable block words and filters
         - Advanced hub moderation tools
         - Webhook management for smoother message handling
         - [And more](${Constants.Links.Website}/features)! 🚀
-    `,
+        ### Quick Links:
+       [Guide](${Constants.Links.Docs}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${Constants.Links.SupportInvite}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${Constants.Links.Docs}/legal/privacy) • [Terms](${Constants.Links.Docs}/legal/terms)
+      `,
       )
-      .addFields({
-        name: '\u200b',
-        value:
-          `[Guide](${Constants.Links.Docs}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${Constants.Links.SupportInvite}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${Constants.Links.Docs}/legal/privacy) • [Terms](${Constants.Links.Docs}/legal/terms)`,
-      })
       .setFooter({
         text: ` InterChat v${Constants.ProjectVersion} • Made with ❤️ by the InterChat Team`,
       });
@@ -72,7 +66,7 @@ export default class About extends BaseCommand {
     const normalButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(new CustomID('about:credits').toString())
-        .setStyle(ButtonStyle.Primary)
+        .setStyle(ButtonStyle.Success)
         .setLabel('Credits & Team')
         .setEmoji(`${emojis.ghost_heart}`),
     );

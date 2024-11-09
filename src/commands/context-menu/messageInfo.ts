@@ -1,22 +1,18 @@
-import Constants, { emojis } from '#utils/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { modPanelButton } from '#main/interactions/ShowModPanel.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
-import {
-  findOriginalMessage,
-  getOriginalMessage,
-  OriginalMessage,
-} from '#main/utils/network/messageUtils.js';
+import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import { greyOutButton, greyOutButtons } from '#utils/ComponentUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { fetchHub, isStaffOrHubMod } from '#utils/hub/utils.js';
 import { sendHubReport } from '#utils/hub/logger/Report.js';
+import { fetchHub, isStaffOrHubMod } from '#utils/hub/utils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import modActionsPanel from '#utils/moderation/modActions/modActionsPanel.js';
 import type { connectedList, Hub } from '@prisma/client';
 import {
   ActionRow,
@@ -50,7 +46,6 @@ type MsgInfo = { messageId: string };
 type UserInfoOpts = LocaleInfo & AuthorInfo;
 type MsgInfoOpts = AuthorInfo & ServerInfo & LocaleInfo & HubInfo & MsgInfo;
 type ReportOpts = LocaleInfo & HubInfo & MsgInfo;
-type ModActionsOpts = { originalMsg: OriginalMessage };
 type ServerInfoOpts = LocaleInfo & ServerInfo & { connection: connectedList | undefined };
 
 export default class MessageInfo extends BaseCommand {
@@ -93,17 +88,12 @@ export default class MessageInfo extends BaseCommand {
     const connection = (await getHubConnections(hub.id))?.find(
       (c) => c.connected && c.serverId === originalMsg.guildId,
     );
-    const components = this.buildButtons(locale, {
+    const components = this.buildButtons(target.id, locale, {
       buildModActions: isStaffOrHubMod(interaction.user.id, hub),
       inviteButtonUrl: connection?.invite,
     });
 
-    const reply = await interaction.followUp({
-      embeds: [embed],
-      components,
-      ephemeral: true,
-    });
-
+    const reply = await interaction.followUp({ embeds: [embed], components, ephemeral: true });
     const collector = reply.createMessageComponentCollector({
       idle: 60_000,
       componentType: ComponentType.Button,
@@ -146,10 +136,6 @@ export default class MessageInfo extends BaseCommand {
 
         case 'report':
           this.handleReportButton(i, { hub, locale, messageId: target.id });
-          break;
-
-        case 'modActions':
-          this.handleModActionsButton(i, { originalMsg });
           break;
 
         default:
@@ -318,23 +304,6 @@ export default class MessageInfo extends BaseCommand {
     await interaction.update({ embeds: [embed], components, files: [] });
   }
 
-  private async handleModActionsButton(
-    interaction: ButtonInteraction,
-    { originalMsg }: ModActionsOpts,
-  ) {
-    const hub = await fetchHub(originalMsg.hubId);
-    if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
-      await interaction.reply({
-        content: t('hub.notFound_mod', 'en', { emoji: emojis.no }),
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const { buttons, embed } = await modActionsPanel.buildMessage(interaction, originalMsg);
-    await interaction.reply({ embeds: [embed], components: buttons, ephemeral: true });
-  }
-
   private async handleReportButton(
     interaction: ButtonInteraction,
     { hub, locale, messageId }: ReportOpts,
@@ -394,6 +363,7 @@ export default class MessageInfo extends BaseCommand {
   }
 
   private buildButtons(
+    targetMsgId: string,
     locale: supportedLocaleCodes = 'en',
     opts?: { buildModActions?: boolean; inviteButtonUrl?: string | null },
   ) {
@@ -404,15 +374,7 @@ export default class MessageInfo extends BaseCommand {
         .setCustomId(new CustomID().setIdentifier('msgInfo', 'report').toString()),
     ];
 
-    if (opts?.buildModActions) {
-      extras.push(
-        new ButtonBuilder()
-          .setStyle(ButtonStyle.Secondary)
-          .setEmoji('🛠️')
-          .setLabel('Mod Actions')
-          .setCustomId(new CustomID().setIdentifier('msgInfo', 'modActions').toString()),
-      );
-    }
+    if (opts?.buildModActions) extras.push(modPanelButton(targetMsgId));
     if (opts?.inviteButtonUrl) {
       extras.push(
         new ButtonBuilder()

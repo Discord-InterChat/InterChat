@@ -36,7 +36,7 @@ export default class Scheduler {
     const ms = _ms instanceof Date ? _ms.getTime() - Date.now() : _ms;
 
     // do not set big timeouts (usually bigints mean the timeout is as long as 1y)
-    // FIXME: do not set loong timeouts throughout the code, only set timeouts that end in like a week or smth!
+    // NOTE: do not set loong timeouts throughout the code, only set timeouts that end in like a week or smth!
     if (ms > 2147483647) return;
 
     const timeout = setTimeout(callback, ms);
