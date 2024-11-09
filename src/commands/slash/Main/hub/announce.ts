@@ -1,10 +1,10 @@
 import { emojis } from '#utils/Constants.js';
 import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { isHubManager, sendToHub } from '#main/utils/hub/utils.js';
+import { fetchHub, isHubManager, sendToHub } from '#main/utils/hub/utils.js';
 import {
   ActionRowBuilder,
   ChatInputCommandInteraction,
+  EmbedBuilder,
   ModalBuilder,
   ModalSubmitInteraction,
   TextInputBuilder,
@@ -51,12 +51,15 @@ export default class AnnounceCommand extends HubCommand {
     await interaction.reply(`${emojis.loading} Sending announcement to all connected servers...`);
     const [hubId] = CustomID.parseCustomId(interaction.customId).args;
     const announcement = interaction.fields.getTextInputValue('announcement');
+    const hub = await fetchHub(hubId);
 
     await sendToHub(hubId, {
+      avatarURL: hub?.iconUrl,
       embeds: [
-        new InfoEmbed()
+        new EmbedBuilder()
           .setTitle('📢 Official Hub Announcement')
           .setDescription(announcement)
+          .setColor('#3b82f6')
           .setTimestamp(),
       ],
     });
