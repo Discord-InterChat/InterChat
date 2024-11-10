@@ -101,18 +101,19 @@ export const sendHubReport = async (
   if (!evidence?.messageId) return;
 
   const { channelId: reportsChannelId, roleId: reportsRoleId } = hub.logConfig[0].reports;
+  const user = await client.users.fetch(userId).catch(() => null);
   const server = await client.fetchGuild(serverId);
   const jumpLink = await genJumpLink(hubId, client, evidence?.messageId, reportsChannelId);
 
-  // TODO: make it mandatory for hubs to set a report channel and support server
   const embed = new EmbedBuilder()
     .setTitle('New Report')
     .setColor('Red')
     .setImage(evidence?.attachmentUrl ?? null)
     .setDescription(
       stripIndents`
-        ${emojis.dotRed} **Reported User:** <@${userId}> (${userId})
+        ${emojis.dotRed} **Reported User:** @${user?.username} (${userId})
         ${emojis.dotRed} **Reported Server:** ${server?.name} (${serverId})
+        ${emojis.dotRed} **Reported MessageID:** ${evidence.messageId}
 
         ${emojis.info} **Message Content:**
         \`\`\`${evidence?.content?.replaceAll('`', '\\`')}\`\`\`
@@ -128,7 +129,7 @@ export const sendHubReport = async (
     });
 
   const mentionRole = reportsRoleId ? roleMention(reportsRoleId) : undefined;
-  const button = modPanelButton(evidence.messageId);
+  const button = modPanelButton(evidence.messageId).setLabel('Take Action');
   const resolveButton = markResolvedButton(); // anyone can use this button, it's on mods to set proper permissions for reports channel
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button, resolveButton);
 

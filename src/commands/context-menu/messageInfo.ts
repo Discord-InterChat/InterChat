@@ -374,7 +374,9 @@ export default class MessageInfo extends BaseCommand {
         .setCustomId(new CustomID().setIdentifier('msgInfo', 'report').toString()),
     ];
 
-    if (opts?.buildModActions) extras.push(modPanelButton(targetMsgId));
+    if (opts?.buildModActions) {
+      extras.push(modPanelButton(targetMsgId).setStyle(ButtonStyle.Secondary));
+    }
     if (opts?.inviteButtonUrl) {
       extras.push(
         new ButtonBuilder()
