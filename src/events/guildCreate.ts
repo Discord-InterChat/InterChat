@@ -24,7 +24,8 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
             Take your first step into the world of cross-server chatting with InterChat! 🚀 Explore public hubs, connect with multiple servers, and add a splash of excitement to your server experience. ${emojis.clipart}
             ### Getting Started
             - Simply run </help:924659340898619398> to see an easy to follow setup guide.
-            - Or visit our in-depth [web guide](${Constants.Links.Docs}/setup) for more information.
+            - If you prefer a more userphone-like experience, run \`c!connect\` to connect to a lobby with 1-3 servers.
+            - Visit our in-depth [wiki](${Constants.Links.Docs}) for more information.
 
             If you need help, join our [support server](${Constants.Links.SupportInvite}) and we'll be happy to help you out!
         `,

@@ -20,10 +20,19 @@ export class MessageProcessor {
     for (const server of lobby.connections) {
       if (server.channelId === message.channelId) continue;
 
-      const channel = await message.client.channels.fetch(server.channelId);
-      if (channel?.isSendable()) {
-        await channel.send(`**${message.author.username}**: ${message.content}`);
-      }
+      await message.client.cluster.broadcastEval(
+        async (c, { channelId, content }) => {
+          const channel = await c.channels.fetch(channelId);
+          if (channel?.isSendable()) await channel.send(content);
+        },
+        {
+          context: {
+            channelId: server.channelId,
+            content: `**${message.author.username}**: ${message.content}`,
+          },
+          guildId: server.serverId,
+        },
+      );
     }
   }
 

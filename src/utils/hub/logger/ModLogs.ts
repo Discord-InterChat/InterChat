@@ -56,7 +56,8 @@ export const logServerUnblacklist = async (
   const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
   const blacklistManager = new BlacklistManager(new ServerInfractionManager(opts.id));
   const blacklist = await blacklistManager.fetchBlacklist(hubId);
-  if (!BlacklistManager.isServerBlacklist(blacklist) || !hub?.logConfig[0].modLogs) return;
+  const modLogs = hub?.logConfig.at(0)?.modLogs;
+  if (!BlacklistManager.isServerBlacklist(blacklist) || !modLogs) return;
 
   const embed = getUnblacklistEmbed('Server', {
     id: opts.id,
@@ -67,14 +68,15 @@ export const logServerUnblacklist = async (
     originalReason: blacklist.reason,
   });
 
-  await sendLog(client.cluster, hub.logConfig[0].modLogs, embed);
+  await sendLog(client.cluster, modLogs, embed);
 };
 
 export const logUserUnblacklist = async (client: Client, hubId: string, opts: UnblacklistOpts) => {
   const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
   const blacklistManager = new BlacklistManager(new UserInfractionManager(opts.id));
   const blacklist = await blacklistManager.fetchBlacklist(hubId);
-  if (!blacklist || !hub?.logConfig[0].modLogs) return;
+  const modLogs = hub?.logConfig.at(0)?.modLogs;
+  if (!blacklist || !modLogs) return;
 
   const user = await client.users.fetch(opts.id).catch(() => null);
   const name = `${user?.username}`;
@@ -88,7 +90,7 @@ export const logUserUnblacklist = async (client: Client, hubId: string, opts: Un
     originalReason: blacklist.reason,
   });
 
-  await sendLog(client.cluster, hub.logConfig[0].modLogs, embed);
+  await sendLog(client.cluster, modLogs, embed);
 };
 
 export const logMsgDelete = async (
@@ -97,7 +99,8 @@ export const logMsgDelete = async (
   hub: Hub & { logConfig: HubLogConfig[] },
   opts: { userId: string; serverId: string; modName: string; imageUrl?: string },
 ) => {
-  if (!hub?.logConfig[0].modLogs) return;
+  const modLogs = hub?.logConfig.at(0)?.modLogs;
+  if (!modLogs) return;
 
   const { userId, serverId } = opts;
   const user = await client.users.fetch(userId).catch(() => null);
@@ -120,5 +123,5 @@ export const logMsgDelete = async (
     ])
     .setFooter({ text: `Deleted by: ${opts.modName}` });
 
-  await sendLog(client.cluster, hub?.logConfig[0].modLogs, embed);
+  await sendLog(client.cluster, modLogs, embed);
 };
