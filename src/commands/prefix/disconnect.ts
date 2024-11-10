@@ -9,7 +9,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     category: 'Moderation',
     usage: 'disconnect',
     examples: ['leavelobby', 'll', 'disconnect', 'dc', 'hangup'],
-    aliases: ['hangup', 'dc', 'disconn'],
+    aliases: ['hangup', 'dc', 'disconn', 'leave'],
     dbPermission: false,
     requiredArgs: 0,
   };

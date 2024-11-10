@@ -36,6 +36,7 @@ export default class LobbyNotifier {
         `${emojis.join} A server connected to lobby. ${lobby.connections.length} server(s) in total.`,
       );
     });
+    Logger.info(`Channel ${channelId} connected to lobby.`);
   }
 
   public async notifychannelDisconnect(lobby: ChatLobby, channelId: string) {
@@ -53,6 +54,7 @@ export default class LobbyNotifier {
         -# Messages in this channel will be shared with other servers.
       `,
     );
+    Logger.info(`New lobby created. ${lobby.connections.length} servers connected.`);
   }
   public async notifyLobbyDelete(channelId: string) {
     await this.sendToChannel(

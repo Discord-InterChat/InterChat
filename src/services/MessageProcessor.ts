@@ -23,7 +23,9 @@ export class MessageProcessor {
       await message.client.cluster.broadcastEval(
         async (c, { channelId, content }) => {
           const channel = await c.channels.fetch(channelId);
-          if (channel?.isSendable()) await channel.send(content);
+          if (channel?.isSendable()) {
+            await channel.send({ content, allowedMentions: { parse: [] } });
+          }
         },
         {
           context: {
