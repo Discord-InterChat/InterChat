@@ -107,9 +107,9 @@ export class BroadcastService {
       referredMsgData: ReferredMsgData;
     },
   ): WebhookMessageCreateOptions {
-    const { dbReferrence } = opts.referredMsgData;
+    const { dbReferrence, referredAuthor } = opts.referredMsgData;
     const author = { username: opts.username, avatarURL: message.author.displayAvatarURL() };
-    const jumpButton = this.getJumpButton(author.username, connection, dbReferrence);
+    const jumpButton = this.getJumpButton(referredAuthor?.username ?? 'Unknown', connection, dbReferrence);
     const servername = trimAndCensorBannedWebhookWords(message.guild.name);
 
     const messageFormatter = new MessageFormattingService(connection);

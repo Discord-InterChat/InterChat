@@ -1,51 +1,47 @@
-import Constants from '#utils/Constants.js';
 import type BaseCommand from '#main/core/BaseCommand.js';
 import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
-import CooldownService from '#main/services/CooldownService.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
+import LobbyNotifier from '#main/modules/LobbyNotifier.js';
+import ChatLobbyService from '#main/services/ChatLobbyService.js';
+import CooldownService from '#main/services/CooldownService.js';
 import Scheduler from '#main/services/SchedulerService.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import { loadCommands, loadInteractions } from '#utils/CommandUtils.js';
+import Constants from '#utils/Constants.js';
 import { loadLocales } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {
   type Guild,
   type Snowflake,
-  type WebhookClient,
   ActivityType,
   Client,
   Collection,
   GatewayIntentBits,
   Options,
 } from 'discord.js';
-import { TempHubService } from '#main/services/TempHubService.js';
 
 export default class InterChatClient extends Client {
   static instance: InterChatClient;
 
   private readonly scheduler = new Scheduler();
 
-  readonly description = 'The only cross-server chatting bot you\'ll ever need.';
-  readonly version = Constants.ProjectVersion;
+  public readonly description = 'The only cross-server chatting bot you\'ll ever need.';
+  public readonly version = Constants.ProjectVersion;
 
-  readonly webhooks = new Collection<string, WebhookClient>();
-  readonly reactionCooldowns = new Collection<string, number>();
-
-  readonly userManager = new UserDbManager();
-  readonly cluster = new ClusterClient(this);
-  readonly eventLoader = new EventLoader(this);
-  readonly commandCooldowns = new CooldownService();
-  readonly chatService = new TempHubService();
-
-
+  public readonly reactionCooldowns = new Collection<string, number>();
   public readonly commands = new Collection<string, BaseCommand>();
   public readonly interactions = new Collection<string, InteractionFunction>();
   public readonly prefixCommands = new Collection<string, BasePrefixCommand>();
 
+  public readonly userManager = new UserDbManager();
+  public readonly cluster = new ClusterClient(this);
+  public readonly eventLoader = new EventLoader(this);
+  public readonly commandCooldowns = new CooldownService();
+  public readonly lobbyService = new ChatLobbyService(new LobbyNotifier(this.cluster));
   public readonly antiSpamManager = new AntiSpamManager({
     spamThreshold: 4,
     timeWindow: 5000,

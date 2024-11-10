@@ -1,5 +1,5 @@
 import { Message } from 'discord.js';
-import type { ChatGroup } from '#types/ChatTypes.d.ts';
+import type { ChatLobby } from '#types/ChatLobby.d.ts';
 import type { ConnectionData } from '#types/ConnectionTypes.d.ts';
 import { BroadcastService } from './BroadcastService.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
@@ -14,10 +14,10 @@ export class MessageProcessor {
     this.broadcastService = new BroadcastService();
   }
 
-  async processGroupMessage(message: Message, group: ChatGroup) {
-    await this.updateGroupActivity(message, group);
+  async processLobbyMessage(message: Message<true>, lobby: ChatLobby) {
+    await this.updateLobbyActivity(message, lobby);
 
-    for (const server of group.connections) {
+    for (const server of lobby.connections) {
       if (server.channelId === message.channelId) continue;
 
       const channel = await message.client.channels.fetch(server.channelId);
@@ -62,8 +62,11 @@ export class MessageProcessor {
     );
   }
 
-  private async updateGroupActivity(message: Message, group: ChatGroup) {
-    const { chatService } = message.client;
-    await chatService.updateActivity(group.id, message.channelId);
+  private async updateLobbyActivity(message: Message<true>, lobby: ChatLobby) {
+    const { lobbyService } = message.client;
+    await lobbyService.updateActivity(lobby.id, message.channelId);
+    await lobbyService.storeChatHistory(lobby.id, message.guildId, message.channelId, [
+      message.author.id,
+    ]);
   }
 }

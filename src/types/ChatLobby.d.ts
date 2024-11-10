@@ -1,4 +1,4 @@
-export interface ChatGroup {
+export interface ChatLobby {
   id: string;
   connections: ServerConnection[];
   lastActivity: number; // timestamp of last message
@@ -12,7 +12,9 @@ export interface ServerConnection {
 }
 
 export interface ChannelPreferences {
-  serverId?: string;
   minActivityLevel?: number; // minimum messages per 5 minutes
   maxServers?: number; // maximum servers in group (1-3)
+  premium?: boolean;
+  maxWaitTime?: number; // maximum time to wait for a group
+  idealLobbySize?: number; // ideal number of servers in group
 }
