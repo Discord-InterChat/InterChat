@@ -175,3 +175,14 @@ model UserData {
   acceptedRules  Boolean          @default(false)
   infractions    UserInfraction[]
 }
+
+model LobbyChatHistory {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  serverId  String
+  channelId String
+  users     String[]
+  lobbyId   String
+  date      DateTime @default(now())
+
+  @@index([serverId, channelId, lobbyId])
+}

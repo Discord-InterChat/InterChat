@@ -7,7 +7,6 @@ import {
   getBroadcasts,
   getMessageIdFromStr,
   getOriginalMessage,
-  OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 import { Message } from 'discord.js';
 
@@ -62,15 +61,5 @@ export default class DeleteMsgCommand extends BasePrefixCommand {
     const originalMsg =
       (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId));
     return originalMsg;
-  }
-
-  private async getOriginalMsgs(args: string[]): Promise<OriginalMessage[]> {
-    const promises = args.map(async (arg) => {
-      const messageId = getMessageIdFromStr(arg);
-      return messageId ? await this.getOriginalMessage(messageId) : null;
-    });
-
-    const results = await Promise.all(promises);
-    return results.filter((id): id is OriginalMessage => id !== null);
   }
 }

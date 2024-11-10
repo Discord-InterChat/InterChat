@@ -3,7 +3,7 @@ import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { ConnectionService } from '#main/services/ConnectionService.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
 import Constants from '#main/utils/Constants.js';
-import { isHumanMessage } from '#utils/Utils.js';
+import { handleError, isHumanMessage } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import { Message } from 'discord.js';
 
@@ -19,23 +19,35 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   }
 
   async execute(message: Message) {
-    if (!message.inGuild() || !isHumanMessage(message)) return;
+    try {
+      if (!message.inGuild() || !isHumanMessage(message)) return;
 
-    if (message.content.startsWith('c!')) {
-      await this.handlePrefixCommand(message, 'c!');
-      return;
-    }
-    else if (message.content === `<@${message.client.user.id}>` || message.content === `<@!${message.client.user.id}>`) {
-      await message.channel.send(stripIndents`
-        ### Hey there! I'm InterChat, the cross-server chatting bot! 🎉
-        - To get started, use  \`/help\` for a easy guide on how to use me.
-        - If you're new here, please read the rules by typing \`/rules\`.
-        - You can type \`c!connect\` to connect to a random lobby. (Coming Soon) Or use \`/hub join\` to join a cross-server community.
-        -# **Need help?** Join our [support server](<${Constants.Links.SupportInvite}>).
-      `);
-    }
+      if (message.content.startsWith('c!')) {
+        await this.handlePrefixCommand(message, 'c!');
+        return;
+      }
+      else if (
+        message.content === `<@${message.client.user.id}>` ||
+        message.content === `<@!${message.client.user.id}>`
+      ) {
+        await message.channel
+          .send(
+            stripIndents`
+            ### Hey there! I'm InterChat, the cross-server chatting bot! 🎉
+            - To get started, use  \`/help\` for a easy guide on how to use me.
+            - If you're new here, please read the rules by typing \`/rules\`.
+            - You can type \`c!connect\` to connect to a random lobby. Or use \`/hub join\` to join a cross-server community.
+            -# **Need help?** Join our [support server](<${Constants.Links.SupportInvite}>).
+      `,
+          )
+          .catch(() => null);
+      }
 
-    await this.handleChatMessage(message);
+      await this.handleLobbyMessage(message);
+    }
+    catch (e) {
+      handleError(e, message);
+    }
   }
 
   private async handlePrefixCommand(message: Message, prefix: string) {
@@ -48,21 +60,21 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     if (!commandName) return;
 
     const command =
-        message.client.prefixCommands.get(commandName) ||
-        message.client.prefixCommands.find((cmd) => cmd.data.aliases?.includes(commandName));
+      message.client.prefixCommands.get(commandName) ||
+      message.client.prefixCommands.find((cmd) => cmd.data.aliases?.includes(commandName));
 
     if (!command) return;
 
     await command.execute(message, args);
   }
 
-  private async handleChatMessage(message: Message<true>) {
-    // Handle chat group messages
-    const { chatService } = message.client;
-    const group = await chatService.getChannelGroup(message.channelId);
+  private async handleLobbyMessage(message: Message<true>) {
+    // Handle lobby messages
+    const { lobbyService } = message.client;
+    const lobby = await lobbyService.getChannelLobby(message.channelId);
 
-    if (group) {
-      await this.messageProcessor.processGroupMessage(message, group);
+    if (lobby) {
+      await this.messageProcessor.processLobbyMessage(message, lobby);
       return;
     }
 

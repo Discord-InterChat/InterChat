@@ -7,6 +7,8 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
+  InteractionReplyOptions,
+  Message,
   ModalBuilder,
   TextInputBuilder,
   TextInputStyle,
@@ -212,26 +214,25 @@ export class Pagination {
     }
   }
 
-  public async run(ctx: PaginationInteraction, options?: RunOptions) {
-    const replyMethod = getReplyMethod(ctx);
+  public async run(ctx: PaginationInteraction | Message, options?: RunOptions) {
     if (this.pages.length < 1) {
-      await ctx[replyMethod]({
-        content: `${emojis.tick} No results to display!`,
-        ephemeral: true,
-      });
+      await this.sendReply(
+        ctx,
+        { content: `${emojis.tick} No results to display!` },
+        { ephemeral: true },
+      );
       return;
     }
 
     let index = 0;
     const row = this.createButtons(index, this.pages.length);
     const resp = this.formatMessage(row, this.pages[index]);
-    const listMessage = await ctx[replyMethod]({
-      ...resp,
-      content: resp.content ?? undefined,
-      ephemeral: options?.ephemeral,
-      fetchReply: true,
-      flags: [],
-    });
+
+    const listMessage = await this.sendReply(
+      ctx,
+      { ...resp, content: resp.content },
+      { ephemeral: options?.ephemeral, flags: [] },
+    );
 
     const col = listMessage.createMessageComponentCollector({
       idle: options?.idle || 60000,
@@ -295,6 +296,21 @@ export class Pagination {
 
       if (options?.deleteOnEnd) await interaction.deleteReply();
       else if (ackd === false) await interaction.editReply({ components: [] });
+    });
+  }
+
+  private async sendReply(
+    ctx: PaginationInteraction | Message,
+    opts: BaseMessageOptions,
+    interactionOpts?: { ephemeral?: boolean; flags?: InteractionReplyOptions['flags'] },
+  ) {
+    if (ctx instanceof Message) return await ctx.reply(opts);
+
+    const replyMethod = getReplyMethod(ctx);
+    return await ctx[replyMethod]({
+      ...opts,
+      ephemeral: interactionOpts?.ephemeral,
+      flags: interactionOpts?.flags,
     });
   }
 

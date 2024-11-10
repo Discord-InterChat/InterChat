@@ -6,7 +6,7 @@ import { Message, PermissionsBitField } from 'discord.js';
 export interface CommandData {
   name: string;
   description: string;
-  category: 'Moderation' | 'Network' | 'Utility'; // add more categories as needed
+  category: 'Moderation' | 'Network' | 'Utility' | 'Fun'; // add more categories as needed
   usage: string;
   examples: string[];
   aliases: string[];

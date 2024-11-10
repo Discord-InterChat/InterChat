@@ -1,6 +1,5 @@
 import type { RemoveMethods, ThreadParentChannel } from '#types/CustomClientProps.d.ts';
 import Constants from '#utils/Constants.js';
-import { CustomID } from '#utils/CustomID.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
 import { captureException } from '@sentry/node';
@@ -122,35 +121,51 @@ export const getReplyMethod = (
     Invoke this method to handle errors that occur during command execution.
     It will send an error message to the user and log the error to the system.
   */
-export const sendErrorEmbed = async (interaction: RepliableInteraction, errorCode: string) => {
-  const method = getReplyMethod(interaction);
+export const sendErrorEmbed = async (
+  repliable: RepliableInteraction | Message,
+  errorCode: string,
+) => {
   const errorEmbed = new ErrorEmbed({ errorCode });
+  if (repliable instanceof Message) {
+    return await repliable.reply({
+      embeds: [errorEmbed],
+      allowedMentions: { repliedUser: false },
+    });
+  }
 
-  return await interaction[method]({ embeds: [errorEmbed], ephemeral: true }).catch(() => null);
+  const method = getReplyMethod(repliable);
+  return await repliable[method]({
+    embeds: [errorEmbed],
+    ephemeral: true,
+  });
 };
 
-export const handleError = (e: Error, interaction?: Interaction) => {
+export const handleError = (e: Error, repliable?: Interaction | Message) => {
   // log the error to the system
   Logger.error(e);
 
-  const extra = interaction
-    ? {
-      user: { id: interaction.user.id, username: interaction.user.username },
-      extra: {
-        type: interaction.type,
-        identifier:
-            interaction.isCommand() || interaction.isAutocomplete()
-              ? interaction.commandName
-              : CustomID.parseCustomId(interaction.customId),
-      },
-    }
-    : undefined;
+  let extra = {};
+
+  if (repliable instanceof Message) {
+    extra = { user: { id: repliable.author.id, username: repliable.author.username } };
+  }
+  else if (repliable) {
+    const identifier =
+      repliable.isCommand() || repliable.isAutocomplete()
+        ? repliable.commandName
+        : repliable.customId;
+
+    extra = {
+      user: { id: repliable.user.id, username: repliable.user.username },
+      extra: { type: repliable.type, identifier },
+    };
+  }
 
   // capture the error to Sentry.io with additional information
   const errorCode = captureException(e, extra);
 
   // reply with an error message to the user
-  if (interaction?.isRepliable()) sendErrorEmbed(interaction, errorCode).catch(Logger.error);
+  if (repliable && 'reply' in repliable) sendErrorEmbed(repliable, errorCode).catch(Logger.error);
 };
 
 export const isDev = (userId: Snowflake) => Constants.DeveloperIds.includes(userId);
