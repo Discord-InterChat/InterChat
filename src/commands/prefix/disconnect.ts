@@ -1,6 +1,6 @@
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
 import { emojis } from '#main/utils/Constants.js';
-import { Message } from 'discord.js';
+import { Message, PermissionsBitField } from 'discord.js';
 
 export default class BlacklistPrefixCommand extends BasePrefixCommand {
   public readonly data: CommandData = {
@@ -10,6 +10,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     usage: 'disconnect',
     examples: ['leavelobby', 'll', 'disconnect', 'dc', 'hangup'],
     aliases: ['hangup', 'dc', 'disconn', 'leave'],
+    requiredBotPermissions: new PermissionsBitField(['SendMessages', 'EmbedLinks', 'ReadMessageHistory']),
     dbPermission: false,
     requiredArgs: 0,
   };

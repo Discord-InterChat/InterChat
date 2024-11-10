@@ -103,7 +103,7 @@ Thanks to the Discord community and all our contributors:
 Made with ❤️ by the <a href="https://github.com/orgs/Discord-InterChat/people">InterChat Team</a>!
 </p>
 
-<!-- 
+<!--
 ## Tensorflow Errors
 
 Some Windows users face the following problem:

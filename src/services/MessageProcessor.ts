@@ -6,6 +6,8 @@ import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
 import { runChecks } from '#main/utils/network/runChecks.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
+import storeLobbyMessageData from '#main/utils/lobby/storeLobbyMessageData.js';
+import { handleError } from '#main/utils/Utils.js';
 
 export class MessageProcessor {
   private readonly broadcastService: BroadcastService;
@@ -20,21 +22,30 @@ export class MessageProcessor {
     for (const server of lobby.connections) {
       if (server.channelId === message.channelId) continue;
 
-      await message.client.cluster.broadcastEval(
-        async (c, { channelId, content }) => {
-          const channel = await c.channels.fetch(channelId);
-          if (channel?.isSendable()) {
-            await channel.send({ content, allowedMentions: { parse: [] } });
-          }
-        },
-        {
-          context: {
-            channelId: server.channelId,
-            content: `**${message.author.username}**: ${message.content}`,
+      try {
+        await message.client.cluster.broadcastEval(
+          async (c, { channelId, content }) => {
+            const channel = await c.channels.fetch(channelId);
+            if (channel?.isSendable()) {
+              await channel.send({ content, allowedMentions: { parse: [] } });
+            }
           },
-          guildId: server.serverId,
-        },
-      );
+          {
+            context: {
+              channelId: server.channelId,
+              content: `**${message.author.username}**: ${message.content}`,
+            },
+            guildId: server.serverId,
+          },
+        );
+      }
+      catch (err) {
+        err.message = `Failed to send message to ${server.channelId}: ${err.message}`;
+        handleError(err);
+      }
+
+      await storeLobbyMessageData(lobby, message);
+
     }
   }
 
@@ -76,8 +87,5 @@ export class MessageProcessor {
   private async updateLobbyActivity(message: Message<true>, lobby: ChatLobby) {
     const { lobbyService } = message.client;
     await lobbyService.updateActivity(lobby.id, message.channelId);
-    await lobbyService.storeChatHistory(lobby.id, message.guildId, message.channelId, [
-      message.author.id,
-    ]);
   }
 }

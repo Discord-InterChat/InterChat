@@ -43,7 +43,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
           .catch(() => null);
       }
 
-      await this.handleLobbyMessage(message);
+      await this.handleChatMessage(message);
     }
     catch (e) {
       handleError(e, message);
@@ -68,7 +68,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     await command.execute(message, args);
   }
 
-  private async handleLobbyMessage(message: Message<true>) {
+  private async handleChatMessage(message: Message<true>) {
     // Handle lobby messages
     const { lobbyService } = message.client;
     const lobby = await lobbyService.getChannelLobby(message.channelId);
