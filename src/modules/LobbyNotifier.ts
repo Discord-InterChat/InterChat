@@ -54,7 +54,7 @@ export default class LobbyNotifier {
         -# Messages in this channel will be shared with other servers.
       `,
     );
-    Logger.info(`New lobby created. ${lobby.connections.length} servers connected.`);
+    Logger.info(`New lobby ${lobby.id} created for ${lobby.connections.map((c) => c.serverId)}`);
   }
   public async notifyLobbyDelete(channelId: string) {
     await this.sendToChannel(
