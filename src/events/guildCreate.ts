@@ -1,5 +1,5 @@
-import Constants, { emojis } from '#utils/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { getGuildOwnerOrFirstChannel, logGuildJoin } from '#utils/GuildUtils.js';
 import Logger from '#utils/Logger.js';
 import { check } from '#utils/ProfanityUtils.js';
@@ -23,15 +23,15 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
         stripIndents`
             Take your first step into the world of cross-server chatting with InterChat! 🚀 Explore public hubs, connect with multiple servers, and add a splash of excitement to your server experience. ${emojis.clipart}
             ### Getting Started
-            - Simply run </help:924659340898619398> to see an easy to follow setup guide.
-            - If you prefer a more userphone-like experience, run \`c!connect\` to connect to a lobby with 1-3 servers.
+            - Simply run \`/setup\` to see an easy to follow setup guide.
+            - For a more userphone-like experience, type \`c!connect\` to try out our brand new chat lobbies.
             - Visit our in-depth [wiki](${Constants.Links.Docs}) for more information.
 
-            If you need help, join our [support server](${Constants.Links.SupportInvite}) and we'll be happy to help you out!
+            If you need help, join our [support server](${Constants.Links.SupportInvite}) and we'll be happy to assist!
         `,
       )
       .setColor(Constants.Colors.interchatBlue)
-      .setFooter({ text: `Sent for: ${guild.name}`, iconURL: guild.iconURL() ?? undefined });
+      .setFooter({ text: `Sent for server: ${guild.name}`, iconURL: guild.iconURL() ?? undefined });
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
@@ -51,10 +51,9 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
         .setStyle(ButtonStyle.Link),
     );
 
-    const channelToSend = guildOwner ?? guildChannel;
-    const message = { embeds: [embed], components: [buttons] };
-
-    channelToSend?.send(message).catch(() => guildChannel?.send(message).catch(() => null));
+    const welcomeMsg = { embeds: [embed], components: [buttons] };
+    guildOwner?.send(welcomeMsg).catch(() => null);
+    guildChannel?.send(welcomeMsg).catch(() => null);
 
     const { hasProfanity, hasSlurs } = check(guild.name);
     if (!hasProfanity && !hasSlurs) return;
@@ -68,8 +67,9 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
       .setFooter({ text: `Sent for: ${guild.name}`, iconURL: guild.iconURL() ?? undefined });
 
     const leaveMsg = { embeds: [profaneErrorEmbed] };
+    guildOwner?.send(leaveMsg).catch(() => null);
+    guildChannel?.send(leaveMsg).catch(() => null);
 
-    channelToSend?.send(leaveMsg).catch(() => guildChannel?.send(leaveMsg).catch(() => null));
     await guild.leave();
   }
 }

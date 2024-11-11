@@ -58,12 +58,13 @@ export default class SetupCommand extends BaseCommand {
     const embed = new InfoEmbed().setTitle('Lobby Setup').setDescription(stripIndents`
         The lobby is a userphone-like chat system where you can chat with random people. What makes it different from other userphone bots is that you can have upto 3 servers in a lobby at once.
         ### How to setup:
-        1. Run \`c!connect\` or \`c!call\`. 
+        1. Type \`c!connect\` or \`c!call\`. 
         2. Wait for someone to to join.
-        3. Have fun!
+        3. Have fun! 🎉
+        ### Want something more? 
+        Try out our multi-server hub chatting using </setup interchat:1305504885315207259>
 
-        -# Note: You must follow our [guidelines](${Constants.Links.Website}/guidelines). If you are found breaking the guidelines, you will be banned from using the bot.
-        -# Want something more? Try out our multi-server hub chatting using \`/setup interchat\`.
+        -# Note: You are expected to follow our [guidelines](${Constants.Links.Website}/guidelines). If you are found breaking the guidelines, you will be banned from using the bot.
       `);
 
     await interaction.reply({ embeds: [embed] });
@@ -80,11 +81,15 @@ export default class SetupCommand extends BaseCommand {
     const components = [
       new ActionRowBuilder<ButtonBuilder>().addComponents(
         new ButtonBuilder()
-          .setCustomId(new CustomID('setupHub:official', [interaction.user.id, channel.id]).toString())
+          .setCustomId(
+            new CustomID('setupHub:official', [interaction.user.id, channel.id]).toString(),
+          )
           .setLabel('Official Hub')
           .setStyle(ButtonStyle.Primary),
         new ButtonBuilder()
-          .setCustomId(new CustomID('setupHub:random', [interaction.user.id, channel.id]).toString())
+          .setCustomId(
+            new CustomID('setupHub:random', [interaction.user.id, channel.id]).toString(),
+          )
           .setLabel('Random Hub')
           .setStyle(ButtonStyle.Secondary),
       ),
@@ -131,7 +136,6 @@ export default class SetupCommand extends BaseCommand {
     if (!interaction.inCachedGuild()) return;
 
     const hubJoinService = new HubJoinService(interaction, await this.getLocale(interaction));
-
     const customId = CustomID.parseCustomId(interaction.customId);
     const [userId, channelId] = customId.args;
 
@@ -143,6 +147,15 @@ export default class SetupCommand extends BaseCommand {
     const channel = await interaction.guild.channels.fetch(channelId);
     if (!channel?.isTextBased()) {
       await interaction.reply({ content: 'The channel does not exist.', ephemeral: true });
+      return;
+    }
+
+    if (!interaction.member.permissionsIn(channel).has('ManageMessages')) {
+      await interaction.reply({
+        content:
+          'You cannot setup the bot in a channel where you do not have `Manage Messages` permission.',
+        ephemeral: true,
+      });
       return;
     }
 
