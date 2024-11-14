@@ -59,11 +59,11 @@ async function findInactiveConnections(): Promise<connectedList[]> {
   const hubsWithInactiveConnections = await db.hub.findMany({
     where: {
       connections: {
-        some: { lastActive: { lte: twentyFourHoursAgo } }, // Ensures the hub has at least one connection
+        some: { connected: true, lastActive: { lte: twentyFourHoursAgo } }, // Ensures the hub has at least one connection
       },
     },
     include: {
-      connections: { where: { lastActive: { lte: twentyFourHoursAgo } } },
+      connections: { where: { connected: true, lastActive: { lte: twentyFourHoursAgo } } },
     },
   });
 
