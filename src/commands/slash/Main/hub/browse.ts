@@ -91,7 +91,7 @@ export default class BrowseCommand extends HubCommand {
   private buildField(hub: Hub, connections: connectedList[]) {
     const lastActiveConnection = connections.filter((c) => c.hubId === hub.id).at(0);
 
-    const stars = getStars(calculateRating(hub.rating.map((r) => r.rating)));
+    const stars = `\`${getStars(calculateRating(hub.rating.map((r) => r.rating)))}\``;
 
     return {
       name: `${hub.name} (${stars || '`0`'})`,
