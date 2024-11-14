@@ -69,7 +69,7 @@ export const cacheHubConnection = async (connection: connectedList) => {
 };
 
 export const removeFromHubConnections = async (connId: string, hubId: string) => {
-  await getRedis().hdel(`${RedisKeys.hubConnections}:${hubId}`, connId).then(console.log);
+  await getRedis().hdel(`${RedisKeys.hubConnections}:${hubId}`, connId);
 };
 
 const purgeConnectionCache = async (channelId: string) => {
