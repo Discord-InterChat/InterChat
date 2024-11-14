@@ -35,7 +35,8 @@ type RunOptions = {
 };
 
 export class Pagination {
-  private pages: BaseMessageOptions[] = [];
+  private readonly pages: BaseMessageOptions[] = [];
+  private readonly hiddenButtons: Partial<Record<keyof ButtonEmojis, boolean>> = {};
   private emojis: ButtonEmojis = {
     back: emojis.previous,
     exit: emojis.delete,
@@ -44,8 +45,14 @@ export class Pagination {
     select: '#️⃣',
   };
 
-  constructor(opts?: { emojis?: ButtonEmojis }) {
-    if (opts?.emojis) this.emojis = opts.emojis;
+  constructor(
+    opts: {
+      emojis?: ButtonEmojis;
+      hideButtons?: Partial<Record<keyof ButtonEmojis, boolean>>;
+    } = {},
+  ) {
+    if (opts.emojis) this.emojis = opts.emojis;
+    else if (opts.hideButtons) this.hiddenButtons = opts.hideButtons;
   }
 
   public addPage(page: BaseMessageOptions) {
@@ -328,30 +335,44 @@ export class Pagination {
   }
 
   private createButtons(index: number, totalPages: number) {
-    return new ActionRowBuilder<ButtonBuilder>().addComponents([
-      new ButtonBuilder()
-        .setEmoji(this.emojis.select)
-        .setCustomId('page_:select')
-        .setStyle(ButtonStyle.Secondary),
-      new ButtonBuilder()
-        .setEmoji(this.emojis.back)
-        .setCustomId('page_:back')
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(index === 0),
-      new ButtonBuilder()
-        .setEmoji(this.emojis.exit)
-        .setCustomId('page_:exit')
-        .setLabel(`Page ${index + 1} of ${totalPages}`)
-        .setStyle(ButtonStyle.Danger),
-      new ButtonBuilder()
-        .setEmoji(this.emojis.next)
-        .setCustomId('page_:next')
-        .setStyle(ButtonStyle.Secondary)
-        .setDisabled(totalPages <= index + 1),
-      new ButtonBuilder()
-        .setEmoji(this.emojis.search)
-        .setCustomId('page_:search')
-        .setStyle(ButtonStyle.Secondary),
-    ]);
+    const { back, exit, next, search, select } = this.hiddenButtons;
+
+    return new ActionRowBuilder<ButtonBuilder>().addComponents(
+      [
+        select
+          ? null
+          : new ButtonBuilder()
+            .setEmoji(this.emojis.select)
+            .setCustomId('page_:select')
+            .setStyle(ButtonStyle.Secondary),
+        back
+          ? null
+          : new ButtonBuilder()
+            .setEmoji(this.emojis.back)
+            .setCustomId('page_:back')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(index === 0),
+        exit
+          ? null
+          : new ButtonBuilder()
+            .setEmoji(this.emojis.exit)
+            .setCustomId('page_:exit')
+            .setLabel(`Page ${index + 1} of ${totalPages}`)
+            .setStyle(ButtonStyle.Danger),
+        next
+          ? null
+          : new ButtonBuilder()
+            .setEmoji(this.emojis.next)
+            .setCustomId('page_:next')
+            .setStyle(ButtonStyle.Secondary)
+            .setDisabled(totalPages <= index + 1),
+        search
+          ? null
+          : new ButtonBuilder()
+            .setEmoji(this.emojis.search)
+            .setCustomId('page_:search')
+            .setStyle(ButtonStyle.Secondary),
+      ].filter(Boolean) as ButtonBuilder[],
+    );
   }
 }

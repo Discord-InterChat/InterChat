@@ -26,7 +26,7 @@ export const getHubConnections = async (hubId: string): Promise<connectedList[]>
   const key = `${RedisKeys.hubConnections}:${hubId}`;
   const cached = await redis.hgetall(key);
 
-  if (!isEmpty(cached)) {
+  if (isEmpty(cached) === false) {
     const cachedData = Object.values(cached).map((c) => convertToConnectedList(JSON.parse(c)));
     return cachedData;
   }
@@ -69,7 +69,7 @@ export const cacheHubConnection = async (connection: connectedList) => {
 };
 
 export const removeFromHubConnections = async (connId: string, hubId: string) => {
-  await getRedis().hdel(`${RedisKeys.hubConnections}:${hubId}`, connId).then(console.log);
+  await getRedis().hdel(`${RedisKeys.hubConnections}:${hubId}`, connId);
 };
 
 const purgeConnectionCache = async (channelId: string) => {

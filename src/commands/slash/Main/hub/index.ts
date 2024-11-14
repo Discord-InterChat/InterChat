@@ -73,7 +73,7 @@ export default class HubCommand extends BaseCommand {
             type: ApplicationCommandOptionType.Channel,
             name: 'channel',
             description: 'The channel you want to use connect to a hub.',
-            required: true,
+            required: false,
             channel_types: [
               ChannelType.GuildText,
               ChannelType.PublicThread,

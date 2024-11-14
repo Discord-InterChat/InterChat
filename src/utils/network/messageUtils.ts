@@ -45,43 +45,54 @@ export const addBroadcasts = async (
   originalMsgId: Snowflake,
   ...broadcasts: Broadcast[]
 ) => {
-  const redis = getRedis();
-  const broadcastsKey = `${RedisKeys.broadcasts}:${originalMsgId}:${hubId}`;
+  try {
+    const redis = getRedis();
+    const broadcastsKey = `${RedisKeys.broadcasts}:${originalMsgId}:${hubId}`;
+    const pipeline = redis.pipeline();
 
-  // Single loop to process all broadcast data
-  const { broadcastEntries, reverseLookups } = broadcasts.reduce(
-    (acc, broadcast) => {
-      const { messageId, channelId, mode } = broadcast;
-      const broadcastInfo = JSON.stringify({ mode, messageId, channelId, originalMsgId });
+    // Prepare all operations in a single reduce to minimize iterations
+    const { broadcastEntries, reverseLookupKeys } = broadcasts.reduce(
+      (acc, broadcast) => {
+        const { messageId, channelId, mode } = broadcast;
+        const broadcastInfo = JSON.stringify({ mode, messageId, channelId, originalMsgId });
 
-      // Add to broadcasts hash
-      acc.broadcastEntries.push(channelId, broadcastInfo);
+        // Add to broadcasts entries
+        acc.broadcastEntries.push(channelId, broadcastInfo);
 
-      // Prepare reverse lookup
-      acc.reverseLookups.push(
-        `${RedisKeys.messageReverse}:${messageId}`,
-        `${originalMsgId}:${hubId}`,
-      );
+        // Store reverse lookup key for later expiry setting
+        const reverseKey = `${RedisKeys.messageReverse}:${messageId}`;
+        acc.reverseLookupKeys.push(reverseKey);
 
-      return acc;
-    },
-    { broadcastEntries: [] as string[], reverseLookups: [] as string[] },
-  );
+        // Add reverse lookup to pipeline
+        pipeline.set(reverseKey, `${originalMsgId}:${hubId}`);
 
-  Logger.debug(`Adding ${broadcasts.length} broadcasts for message ${originalMsgId}`);
+        return acc;
+      },
+      {
+        broadcastEntries: [] as string[],
+        reverseLookupKeys: [] as string[],
+      },
+    );
 
-  // Add all broadcasts to the hash in a single operation
-  await redis.hset(broadcastsKey, broadcastEntries);
-  await redis.expire(broadcastsKey, 86400);
-  await redis.mset(reverseLookups);
+    Logger.debug(`Adding ${broadcasts.length} broadcasts for message ${originalMsgId}`);
 
-  Logger.debug(`Added ${broadcasts.length} broadcasts for message ${originalMsgId}`);
+    // Add main broadcast hash
+    pipeline.hset(broadcastsKey, broadcastEntries);
+    pipeline.expire(broadcastsKey, 86400);
 
-  reverseLookups
-    .filter((_, i) => i % 2 === 0)
-    .forEach(async (key) => {
-      await redis.expire(key, 86400);
+    // Set expiry for all reverse lookups in the same pipeline
+    reverseLookupKeys.forEach((key) => {
+      pipeline.expire(key, 86400);
     });
+
+    // Execute all Redis operations in a single pipeline
+    await pipeline.exec();
+
+    Logger.debug(`Added ${broadcasts.length} broadcasts for message ${originalMsgId}`);
+  }
+  catch (error) {
+    Logger.error('Failed to add broadcasts', error);
+  }
 };
 
 export const getBroadcasts = async (originalMsgId: string, hubId: string) => {

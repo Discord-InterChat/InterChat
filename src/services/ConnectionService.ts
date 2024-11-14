@@ -29,7 +29,10 @@ export class ConnectionService {
     });
   }
 
-  private async getConnectionAndHubConnections(channelId: string, connectionHubId: string) {
+  private async getConnectionAndHubConnections(
+    channelId: string,
+    connectionHubId: string,
+  ): Promise<{ connection: connectedList | null; hubConnections: connectedList[] | null }> {
     let connection: connectedList | null = null;
     const filteredHubConnections: connectedList[] = [];
     const hubConnections = await getHubConnections(connectionHubId);
@@ -37,7 +40,6 @@ export class ConnectionService {
     for (const conn of hubConnections) {
       if (conn.channelId === channelId) connection = conn;
       else if (conn.connected) filteredHubConnections.push(conn);
-
     }
 
     return {

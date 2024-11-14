@@ -31,7 +31,7 @@ A powerful Discord bot for easy and real-time chatting hubs across multiple Disc
 
 - 🔗 **Cross-Server Messaging**: Connect channels from different servers and allow users to chat in real-time.
 - 🕸️ **Flexible Webhooks**: Utilizes webhooks per channel to ensure uninterrupted communication.
-- ⛔ **Block Word Lists**: Set up custom block word lists to filter or block specific words and regex patterns in messages. (Coming Soon)
+- ⛔ **Block Word Lists**: Set up custom block word lists to filter or block specific words and regex patterns in messages.
 - 🛠️ **Cross-Server Moderation**: Manage users with built-in NSFW detection and infraction system. Track blacklists, infractions, and appeal requests through modals.
 - 🆓 **Generous Free Tier**: Enjoy most features at no cost!
 - 🌱 **Mini-Communities**: Form your own "Hubs" by connecting specific channels across multiple servers for shared conversations.
@@ -103,7 +103,7 @@ Thanks to the Discord community and all our contributors:
 Made with ❤️ by the <a href="https://github.com/orgs/Discord-InterChat/people">InterChat Team</a>!
 </p>
 
-<!-- 
+<!--
 ## Tensorflow Errors
 
 Some Windows users face the following problem:

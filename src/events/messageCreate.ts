@@ -19,56 +19,56 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   }
 
   async execute(message: Message) {
-    try {
-      if (!message.inGuild() || !isHumanMessage(message)) return;
+    if (!message.inGuild() || !isHumanMessage(message)) return;
 
-      if (message.content.startsWith('c!')) {
-        await this.handlePrefixCommand(message, 'c!');
-        return;
-      }
-      else if (
-        message.content === `<@${message.client.user.id}>` ||
+    if (message.content.startsWith('c!')) {
+      await this.handlePrefixCommand(message, 'c!');
+      return;
+    }
+    else if (
+      message.content === `<@${message.client.user.id}>` ||
         message.content === `<@!${message.client.user.id}>`
-      ) {
-        await message.channel
-          .send(
-            stripIndents`
+    ) {
+      await message.channel
+        .send(
+          stripIndents`
             ### Hey there! I'm InterChat, the cross-server chatting bot! 🎉
             - To get started, use  \`/help\` for a easy guide on how to use me.
             - If you're new here, please read the rules by typing \`/rules\`.
             - You can type \`c!connect\` to connect to a random lobby. Or use \`/hub join\` to join a cross-server community.
             -# **Need help?** Join our [support server](<${Constants.Links.SupportInvite}>).
       `,
-          )
-          .catch(() => null);
-      }
+        )
+        .catch(() => null);
+    }
 
-      await this.handleLobbyMessage(message);
+    await this.handleChatMessage(message).catch((e) => handleError(e, message));
+  }
+
+  private async handlePrefixCommand(message: Message, prefix: string) {
+    try {
+      const userData = await message.client.userManager.getUser(message.author.id);
+      if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
+
+      const args = message.content.slice(prefix.length).trim().split(/ +/);
+      const commandName = args.shift()?.toLowerCase();
+
+      if (!commandName) return;
+
+      const command =
+      message.client.prefixCommands.get(commandName) ||
+      message.client.prefixCommands.find((cmd) => cmd.data.aliases?.includes(commandName));
+
+      if (!command) return;
+
+      await command.execute(message, args);
     }
     catch (e) {
       handleError(e, message);
     }
   }
 
-  private async handlePrefixCommand(message: Message, prefix: string) {
-    const userData = await message.client.userManager.getUser(message.author.id);
-    if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
-
-    const args = message.content.slice(prefix.length).trim().split(/ +/);
-    const commandName = args.shift()?.toLowerCase();
-
-    if (!commandName) return;
-
-    const command =
-      message.client.prefixCommands.get(commandName) ||
-      message.client.prefixCommands.find((cmd) => cmd.data.aliases?.includes(commandName));
-
-    if (!command) return;
-
-    await command.execute(message, args);
-  }
-
-  private async handleLobbyMessage(message: Message<true>) {
+  private async handleChatMessage(message: Message<true>) {
     // Handle lobby messages
     const { lobbyService } = message.client;
     const lobby = await lobbyService.getChannelLobby(message.channelId);

@@ -4,7 +4,43 @@ import { fetchConnection, updateConnection } from '#utils/ConnectedListUtils.js'
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
-import { type ButtonInteraction } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, type ButtonInteraction } from 'discord.js';
+
+type extraOpts = {
+  disconnectEmoji?: string;
+  connectEmoji?: string;
+  userId?: string;
+  /** set custom prefix for customId and handle it urself, eg: `epik_reconnect`  */
+  customCustomId?: string;
+};
+
+/**
+ * @param channelId The channel ID of the connection.
+ */
+export const buildConnectionButtons = (
+  connected: boolean | undefined,
+  channelId: string,
+  opts: extraOpts = {},
+) => {
+  if (!opts?.disconnectEmoji || !opts.connectEmoji) {
+    opts.disconnectEmoji = emojis.disconnect;
+    opts.connectEmoji = emojis.connect;
+  }
+
+  return new ActionRowBuilder<ButtonBuilder>().addComponents([
+    new ButtonBuilder()
+      .setCustomId(
+        new CustomID()
+          .setIdentifier(opts.customCustomId ?? 'connection', 'toggle')
+          .addArgs(channelId)
+          .addArgs(opts?.userId ?? '')
+          .toString(),
+      )
+      .setLabel(connected ? 'Disconnect' : 'Reconnect')
+      .setStyle(connected ? ButtonStyle.Danger : ButtonStyle.Success)
+      .setEmoji(connected ? opts.disconnectEmoji : opts.connectEmoji),
+  ]);
+};
 
 export default class InactiveConnectInteraction {
   @RegisterInteractionHandler('inactiveConnect', 'toggle')

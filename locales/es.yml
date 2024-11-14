@@ -25,7 +25,7 @@ rules:
     And remember to follow [Discord's Terms of Service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines).
   welcome: |
     {emoji} Hey {user}, welcome to InterChat!
-    To use InterChat you need to accept the guidelines. Please read and accept them by clicking next.
+    To use InterChat you need to accept the guidelines. Please read and accept them by clicking continue.
   accepted: |
     {emoji} Welcome to InterChat! You have accepted the rules and are now ready to chat with members from other servers!
     If you are not already in a hub, use `/hub browse` to join one and start chatting. We have a simple [wiki and guide]({guide}) for more tips and tricks. Good luck!

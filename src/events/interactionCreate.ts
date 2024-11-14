@@ -1,5 +1,6 @@
-import Constants, { emojis } from '#utils/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
+import { showRulesScreening } from '#main/interactions/RulesScreening.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
@@ -11,7 +12,6 @@ import {
   MessageComponentInteraction,
   ModalSubmitInteraction,
 } from 'discord.js';
-import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 
 export default class InteractionCreate extends BaseEventListener<'interactionCreate'> {
   readonly name = 'interactionCreate';

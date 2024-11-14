@@ -238,7 +238,7 @@ export const simpleEmbed = (
     .setColor(opts?.color ?? Constants.Colors.invisible)
     .setDescription(description.toString());
 
-export const getStars = (rating: number, emoji = '\\⭐') => {
+export const getStars = (rating: number, emoji = '⭐') => {
   const stars = Math.round(rating);
   return emoji.repeat(stars);
 };
