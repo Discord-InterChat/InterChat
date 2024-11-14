@@ -30,7 +30,7 @@ export default class About extends BaseCommand {
         - Customizable block words and filters
         - Advanced hub moderation tools
         - Webhook management for smoother message handling
-        - [And more](${Constants.Links.Website}/features)! 🚀
+        - [And more](${Constants.Links.Website}/#features)! 🚀
         ### Quick Links:
        [Guide](${Constants.Links.Docs}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${Constants.Links.SupportInvite}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${Constants.Links.Docs}/legal/privacy) • [Terms](${Constants.Links.Docs}/legal/terms)
       `,
