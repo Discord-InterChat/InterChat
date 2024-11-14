@@ -34,7 +34,7 @@ export default createLogger({
       ),
     }),
     new transports.File({
-      filename: 'logs/discord.log',
+      filename: 'logs/info.log',
       format: format.combine(
         format((info) => (info.level === 'INFO' ? info : false))(),
         combinedFormat,
