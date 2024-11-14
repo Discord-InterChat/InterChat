@@ -11,7 +11,7 @@ import { ClusterManager } from 'discord-hybrid-sharding';
 export default function startTasks(clusterManager: ClusterManager) {
   startApi();
 
-  pauseIdleConnections(clusterManager).catch(Logger.error);
+  pauseIdleConnections().catch(Logger.error);
   deleteExpiredInvites().catch(Logger.error);
 
   const scheduler = new Scheduler();
@@ -20,7 +20,7 @@ export default function startTasks(clusterManager: ClusterManager) {
   scheduler.addRecurringTask('storeMsgTimestamps', 10 * 60 * 1000, storeMsgTimestamps);
   scheduler.addRecurringTask('cleanupTasks', 60 * 60 * 1000, () => {
     deleteExpiredInvites().catch(Logger.error);
-    pauseIdleConnections(clusterManager).catch(Logger.error);
+    pauseIdleConnections().catch(Logger.error);
   });
 
   // production only tasks

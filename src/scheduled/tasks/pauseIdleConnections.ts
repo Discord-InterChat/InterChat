@@ -1,74 +1,79 @@
-import { emojis } from '#utils/Constants.js';
+import { buildConnectionButtons } from '#main/interactions/InactiveConnect.js';
 import { updateConnections } from '#utils/ConnectedListUtils.js';
+import { emojis } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
-import { buildConnectionButtons } from '#utils/network/components.js';
+import { connectedList } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { ClusterManager } from 'discord-hybrid-sharding';
-import { type APIActionRowComponent, type APIButtonComponent, type Snowflake } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, Collection, WebhookClient } from 'discord.js';
 import 'dotenv/config';
 
-export default async (manager: ClusterManager) => {
-  const connections = await db.connectedList.findMany({
-    where: { connected: true, lastActive: { lte: new Date(Date.now() - 24 * 60 * 60 * 1000) } },
-  });
+export default async () => {
+  const connections = await findInactiveConnections();
+  if (!connections.length) return;
 
-  if (!connections || connections.length === 0) return;
-
-  const reconnectButtonArr: {
-    channelId: Snowflake;
-    button: APIActionRowComponent<APIButtonComponent>;
-  }[] = [];
-
-  const channelIds: string[] = [];
-
-  // Loop through the data
-  connections.forEach(({ channelId, lastActive }) => {
-    Logger.info(
-      `[InterChat]: Pausing inactive connection ${channelId} due to inactivity since ${lastActive?.toLocaleString()} - ${new Date().toLocaleString()}`,
-    );
-
-    channelIds.push(channelId);
-
-    // Create the button
-    reconnectButtonArr.push({
-      channelId,
-      button: buildConnectionButtons(false, channelId, {
-        customCustomId: 'inactiveConnect',
-      }).toJSON(),
-    });
-  });
+  const reconnectButtonMap = new Collection<string, ActionRowBuilder<ButtonBuilder>>(
+    connections.map((c) => [
+      c.channelId,
+      buildConnectionButtons(false, c.channelId, { customCustomId: 'inactiveConnect' }),
+    ]),
+  );
 
   // disconnect the channel
-  await updateConnections({ channelId: { in: channelIds } }, { connected: false });
+  await updateConnections(
+    { channelId: { in: connections.map((c) => c.channelId) } },
+    { connected: false },
+  );
 
   const embed = new InfoEmbed()
     .removeTitle()
     .setDescription(
       stripIndents`
-    ### ${emojis.timeout} Paused Due to Inactivity
-    Connection to this hub has been stopped to save resources because no messages were sent to this channel in the past day.
+      ### ${emojis.timeout} Paused Due to Inactivity
+      Messages will not be sent to this channel until you reconnect because it has been inactive for over 24 hours.
 
-    -# Click the **button** below or use  **\`/connection unpause\`** to resume chatting.
+      -# Click the **button** below or use  **\`/connection unpause\`** to resume chatting.
     `,
     )
     .toJSON();
 
-  await manager.broadcastEval(
-    (client, { _connections, _embed, buttons }) => {
-      _connections.forEach(async (connection) => {
-        const channel = await client.channels.fetch(connection.channelId).catch(() => null);
-        const button = buttons.find((b) => b.channelId === connection.channelId)?.button;
+  connections.forEach(async (connection) => {
+    Logger.debug(
+      `[InterChat]: Paused connection ${connection.channelId}. Last message at: ${connection.lastActive.toLocaleString()}.`,
+    );
 
-        if (!channel?.isTextBased() || channel.isDMBased() || !button) return;
+    const webhook = new WebhookClient({ url: connection.webhookURL });
+    const button = reconnectButtonMap.get(connection.channelId);
+    const components = button ? [button] : [];
 
-        // remove it since we are done with it
-        _connections.splice(_connections.indexOf(connection), 1);
-
-        await channel.send({ embeds: [_embed], components: [button] }).catch(() => null);
-      });
-    },
-    { context: { _connections: connections, _embed: embed, buttons: reconnectButtonArr } },
-  );
+    await webhook.send({ embeds: [embed], components }).catch(() => null);
+  });
 };
+
+async function findInactiveConnections(): Promise<connectedList[]> {
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+  // Find all hubs with at least 50 connections
+  const start = performance.now();
+  const hubsWithInactiveConnections = await db.hub.findMany({
+    where: {
+      connections: {
+        some: { lastActive: { lte: twentyFourHoursAgo } }, // Ensures the hub has at least one connection
+      },
+    },
+    include: {
+      connections: { where: { lastActive: { lte: twentyFourHoursAgo } } },
+    },
+  });
+
+  const inactiveConnections = hubsWithInactiveConnections
+    .filter((hub) => hub.connections.length >= 50) // small hubs will die out if we pause it
+    .flatMap((hub) => hub.connections);
+
+  Logger.info(
+    `Found ${inactiveConnections.length} inactive connections in ${performance.now() - start}ms.`,
+  );
+
+  return inactiveConnections;
+}

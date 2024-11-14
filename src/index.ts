@@ -19,7 +19,9 @@ clusterManager.on('clusterReady', (cluster) => {
     `Cluster ${cluster.id} is ready with shards ${cluster.shardList[0]}...${cluster.shardList.at(-1)}.`,
   );
 
-  if (cluster.id === clusterManager.totalClusters - 1) startTasks(clusterManager);
+  if (cluster.id === clusterManager.totalClusters - 1) {
+    startTasks(clusterManager);
+  }
 
   cluster.on('message', async (message) => {
     if (message === 'recluster') {
