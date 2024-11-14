@@ -28,6 +28,7 @@ interface CheckFunctionOpts {
 
 type CheckFunction = (message: Message<true>, opts: CheckFunctionOpts) => Awaitable<CheckResult>;
 
+// ordering is important - always check blacklists first (or they can bypass)
 const checks: CheckFunction[] = [
   checkBanAndBlacklist,
   checkHubLock,
@@ -118,7 +119,7 @@ async function checkSpam(message: Message<true>, opts: CheckFunctionOpts): Promi
   if (settings.getSetting('SpamFilter') && result) {
     if (result.messageCount >= 6) {
       const expiresAt = new Date(Date.now() + 60 * 5000);
-      const reason = 'Auto-blacklisted for spamminag.';
+      const reason = 'Auto-blacklisted for spamming.';
       const target = message.author;
       const mod = message.client.user;
 
