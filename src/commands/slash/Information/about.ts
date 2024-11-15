@@ -36,7 +36,7 @@ export default class About extends BaseCommand {
       `,
       )
       .setFooter({
-        text: ` InterChat v${Constants.ProjectVersion} • Made with ❤️ by the InterChat Team`,
+        text: ` InterChat v${interaction.client.version} • Made with ❤️ by the InterChat Team`,
       });
 
     const linkButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -106,7 +106,7 @@ export default class About extends BaseCommand {
     `,
       )
       .setFooter({
-        text: ` InterChat v${Constants.ProjectVersion} • Made with ❤️ by the InterChat Team`,
+        text: ` InterChat v${interaction.client.version} • Made with ❤️ by the InterChat Team`,
       });
 
     await interaction.editReply({ embeds: [creditsEmbed] });

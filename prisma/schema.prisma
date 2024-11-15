@@ -1,5 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -29,6 +29,11 @@ type hubLogChannelAndRole {
 
 type userBan {
   reason String
+}
+
+type RecentLobbyData {
+  lobbyId   String
+  timestamp Int
 }
 
 enum BlockWordAction {
@@ -171,7 +176,7 @@ model UserData {
   locale         String?
   lastVoted      DateTime?
   banMeta        userBan?
-  mentionOnReply Boolean?         @default(false)
+  mentionOnReply Boolean          @default(true)
   acceptedRules  Boolean          @default(false)
   infractions    UserInfraction[]
 }
@@ -185,4 +190,21 @@ model LobbyChatHistory {
   date      DateTime @default(now())
 
   @@index([serverId, channelId, lobbyId])
+}
+
+model ServerHistory {
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  serverId      String            @unique
+  recentLobbies RecentLobbyData[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model ServerPreference {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  serverId          String   @unique
+  premiumStatus     Boolean  @default(false)
+  maxServersInLobby Int      @default(3)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

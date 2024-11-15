@@ -39,7 +39,7 @@ export default class LobbyNotifier {
     Logger.info(`Channel ${channelId} connected to lobby.`);
   }
 
-  public async notifychannelDisconnect(lobby: ChatLobby, channelId: string) {
+  public notifychannelDisconnect(lobby: ChatLobby, channelId: string) {
     lobby.connections.forEach(async (connection) => {
       if (connection.channelId === channelId) return;
       await this.sendToChannel(connection.channelId, `-# ${emojis.info} A server disconnected from lobby.`);

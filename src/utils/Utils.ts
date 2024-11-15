@@ -70,10 +70,14 @@ const findExistingWebhook = async (channel: ThreadParentChannel | VoiceBasedChan
   return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
 };
 
-const createWebhook = async (channel: ThreadParentChannel | VoiceBasedChannel, avatar: string) =>
+const createWebhook = async (
+  channel: ThreadParentChannel | VoiceBasedChannel,
+  avatar: string,
+  name: string,
+) =>
   await channel
     ?.createWebhook({
-      name: 'InterChat Network',
+      name,
       avatar,
     })
     .catch(() => undefined);
@@ -81,12 +85,13 @@ const createWebhook = async (channel: ThreadParentChannel | VoiceBasedChannel, a
 export const getOrCreateWebhook = async (
   channel: GuildTextBasedChannel,
   avatar = Constants.Links.EasterAvatar,
+  name = 'InterChat Network',
 ) => {
   const channelOrParent = channel.isThread() ? channel.parent : channel;
   if (!channelOrParent) return null;
 
   const existingWebhook = await findExistingWebhook(channelOrParent);
-  return existingWebhook || (await createWebhook(channelOrParent, avatar));
+  return existingWebhook || (await createWebhook(channelOrParent, avatar, name));
 };
 
 export const getCredits = () => [
