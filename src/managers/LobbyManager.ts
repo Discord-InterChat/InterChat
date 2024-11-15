@@ -34,11 +34,11 @@ export class LobbyManager {
     return null;
   }
 
-  async removeFromWaitingPool(serverId: string): Promise<void> {
+  async removeChannelFromPool(channelId: string): Promise<void> {
     const members = await this.redis.zrange('waiting_pool', 0, -1);
     for (const member of members) {
       const data: QueuedChannel = JSON.parse(member);
-      if (data.serverId === serverId) {
+      if (data.channelId === channelId) {
         await this.redis.zrem('waiting_pool', member);
         break;
       }
@@ -85,6 +85,9 @@ export class LobbyManager {
 
     // Create channel to lobby mapping for each channel
     for (const server of servers) {
+      // remove from pool
+      await this.removeChannelFromPool(server.channelId);
+
       await this.redis.set(`channel:${server.channelId}:lobby`, lobbyId);
       this.notifier.notifyLobbyCreate(server.channelId, lobbyData);
     }

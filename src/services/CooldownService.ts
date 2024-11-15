@@ -3,7 +3,7 @@ import { RedisKeys } from '#utils/Constants.js';
 
 /** Manage and store individual cooldowns */
 export default class CooldownService {
-  private redisClient = getRedis();
+  private readonly redisClient = getRedis();
   private readonly prefix = RedisKeys.cooldown;
 
   private getKey(id: string) {
