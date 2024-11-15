@@ -6,19 +6,12 @@ import { InfoEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
 import { connectedList } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { ActionRowBuilder, ButtonBuilder, Collection, WebhookClient } from 'discord.js';
+import { WebhookClient } from 'discord.js';
 import 'dotenv/config';
 
 export default async () => {
   const connections = await findInactiveConnections();
   if (!connections.length) return;
-
-  const reconnectButtonMap = new Collection<string, ActionRowBuilder<ButtonBuilder>>(
-    connections.map((c) => [
-      c.channelId,
-      buildConnectionButtons(false, c.channelId, { customCustomId: 'inactiveConnect' }),
-    ]),
-  );
 
   // disconnect the channel
   await updateConnections(
@@ -35,8 +28,7 @@ export default async () => {
 
       -# Click the **button** below or use  **\`/connection unpause\`** to resume chatting.
     `,
-    )
-    .toJSON();
+    );
 
   connections.forEach(async (connection) => {
     Logger.debug(
@@ -44,7 +36,7 @@ export default async () => {
     );
 
     const webhook = new WebhookClient({ url: connection.webhookURL });
-    const button = reconnectButtonMap.get(connection.channelId);
+    const button = buildConnectionButtons(false, connection.channelId, { customCustomId: 'inactiveConnect' });
     const components = button ? [button] : [];
 
     await webhook.send({ embeds: [embed], components }).catch(() => null);

@@ -25,7 +25,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
       await this.lobbyManager.removeServerFromLobby(alreadyConnected.id, message.guildId);
     }
     else {
-      await this.lobbyManager.removeFromWaitingPool(message.guildId);
+      await this.lobbyManager.removeChannelFromPool(message.channelId);
       await message.reply(`${emojis.disconnect} Not connected to any lobby. Removed from waiting pool if exists.`);
       return;
     }

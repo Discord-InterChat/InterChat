@@ -13,7 +13,7 @@ export type HubSettingsString = keyof typeof HubSettingsBits;
 export type SerializedHubSettings = Record<HubSettingsString, boolean>;
 
 export class HubSettingsBitField extends BitField<HubSettingsString> {
-  public static Flags = HubSettingsBits;
+  public static readonly Flags = HubSettingsBits;
 
   /**
    * Toggles the specified hub settings.

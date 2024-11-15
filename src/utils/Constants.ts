@@ -33,6 +33,7 @@ export const enum RedisKeys {
   ChannelMap = 'channelMap',
   ChannelPrefs = 'channelPrefs',
   MatchingPool = 'matchingPool',
+  LobbyMessages = 'lobbyMessages',
 }
 
 export const enum ConnectionMode {

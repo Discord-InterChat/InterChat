@@ -83,7 +83,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     // Set timeout for 5 minutes
     setTimeout(
       async () => {
-        await this.lobbyManager.removeFromWaitingPool(serverId);
+        await this.lobbyManager.removeChannelFromPool(channelId);
         await message.reply('Please try again later. No lobbies were found for this server.');
       },
       5 * 60 * 1000, // 5 minutes
