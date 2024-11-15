@@ -15,7 +15,6 @@ import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {
   type Guild,
   type Snowflake,
-  ActivityType,
   Client,
   Collection,
   GatewayIntentBits,
