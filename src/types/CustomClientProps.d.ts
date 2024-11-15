@@ -5,7 +5,6 @@ import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import CooldownService from '#main/services/CooldownService.js';
 import Scheduler from '#main/services/SchedulerService.js';
-import ChatLobbyService from '#main/services/ChatLobbyService.js';
 import { ClusterClient } from 'discord-hybrid-sharding';
 import {
   Collection,
@@ -30,7 +29,6 @@ declare module 'discord.js' {
     readonly commands: Collection<string, BaseCommand>;
     readonly interactions: Collection<string, InteractionFunction | undefined>;
     readonly prefixCommands: Collection<string, BasePrefixCommand>;
-    readonly lobbyService: ChatLobbyService;
 
     readonly commandCooldowns: CooldownService;
     readonly reactionCooldowns: Collection<string, number>;

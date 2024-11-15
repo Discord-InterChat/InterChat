@@ -1,45 +1,149 @@
-import type { ChannelPreferences, ChatLobby } from '#types/ChatLobby.d.ts';
-import { RedisKeys } from '#main/utils/Constants.js';
+import { EncryptionService } from '#main/services/EncryptionService.js';
+import LobbyNotifier from '#main/services/LobbyNotifierService.js';
 import getRedis from '#main/utils/Redis.js';
+import type { LobbyData, LobbyServer, QueuedChannel, ServerPreferences } from '#types/ChatLobby.d.ts';
+import crypto from 'crypto';
 import { Redis } from 'ioredis';
 
-export default class LobbyManager {
+export class LobbyManager {
   private readonly redis: Redis;
-  private readonly CHAT_LOBBY_KEY = RedisKeys.ChatLobby;
-  private readonly CHANNEL_MAP_KEY = RedisKeys.ChannelMap;
-  private readonly PREFS_KEY = RedisKeys.ChannelPrefs;
-
-  constructor(redis = getRedis()) {
-    this.redis = redis;
+  private readonly encryption: EncryptionService;
+  private readonly notifier: LobbyNotifier;
+  constructor() {
+    this.redis = getRedis();
+    this.notifier = new LobbyNotifier(this);
+    this.encryption = new EncryptionService();
   }
 
-  async getChatLobby(): Promise<ChatLobby[]> {
-    const groups = await this.redis.get(this.CHAT_LOBBY_KEY);
-    return groups ? JSON.parse(groups) : [];
+  async addToWaitingPool(
+    server: Omit<LobbyServer, 'lastMessageTimestamp'>,
+    preferences: ServerPreferences,
+  ): Promise<void> {
+    const data = JSON.stringify({ ...server, preferences, timestamp: Date.now() });
+    await this.redis.zadd('waiting_pool', Date.now(), data);
   }
 
-  async setChatLobbies(lobbies: ChatLobby[]): Promise<void> {
-    await this.redis.set(this.CHAT_LOBBY_KEY, JSON.stringify(lobbies));
+  async getChannelFromWaitingPool(serverId: string): Promise<QueuedChannel | null> {
+    const members = await this.redis.zrange('waiting_pool', 0, -1);
+    for (const member of members) {
+      const data: QueuedChannel = JSON.parse(member);
+      if (data.serverId === serverId) {
+        return data;
+      }
+    }
+    return null;
   }
 
-  async getChannelLobbyId(channelId: string): Promise<string | null> {
-    return await this.redis.hget(this.CHANNEL_MAP_KEY, channelId);
+  async removeFromWaitingPool(serverId: string): Promise<void> {
+    const members = await this.redis.zrange('waiting_pool', 0, -1);
+    for (const member of members) {
+      const data: QueuedChannel = JSON.parse(member);
+      if (data.serverId === serverId) {
+        await this.redis.zrem('waiting_pool', member);
+        break;
+      }
+    }
   }
 
-  async setChannelLobby(channelId: string, groupId: string): Promise<void> {
-    await this.redis.hset(this.CHANNEL_MAP_KEY, channelId, groupId);
+  async storeLobbyMessage(lobbyId: string, serverId: string, message: string): Promise<void> {
+    const messageData = {
+      serverId,
+      content: message,
+      timestamp: Date.now(),
+    };
+    const encrypted = this.encryption.encrypt(JSON.stringify(messageData));
+    await this.redis.rpush(`lobby:${lobbyId}:messages`, encrypted);
+    await this.redis.expire(`lobby:${lobbyId}:messages`, 86400); // 24 hours retention
   }
 
-  async removeChannelFromLobby(channelId: string): Promise<void> {
-    await this.redis.hdel(this.CHANNEL_MAP_KEY, channelId);
+  async updateLastMessageTimestamp(lobbyId: string, serverId: string): Promise<void> {
+    const lobby = await this.getLobby(lobbyId);
+    if (lobby) {
+      const serverIndex = lobby.servers.findIndex((s) => s.serverId === serverId);
+      if (serverIndex !== -1) {
+        lobby.servers[serverIndex].lastMessageTimestamp = Date.now();
+        await this.redis.set(`lobby:${lobbyId}`, JSON.stringify(lobby));
+      }
+    }
   }
 
-  async getServerPreferences(channelId: string): Promise<ChannelPreferences> {
-    const prefs = await this.redis.hget(this.PREFS_KEY, channelId);
-    return prefs ? JSON.parse(prefs) : {};
+  async getLobby(lobbyId: string): Promise<LobbyData | null> {
+    const data = await this.redis.get(`lobby:${lobbyId}`);
+    return data ? JSON.parse(data) : null;
   }
 
-  async setChannelPreferences(channelId: string, prefs: ChannelPreferences): Promise<void> {
-    await this.redis.hset(this.PREFS_KEY, channelId, JSON.stringify(prefs));
+  async createLobby(servers: Omit<LobbyServer, 'lastMessageTimestamp'>[]): Promise<string> {
+    const lobbyId = crypto.randomBytes(16).toString('hex');
+    const lobbyData: LobbyData = {
+      id: lobbyId,
+      servers: servers.map((s) => ({ ...s, lastMessageTimestamp: Date.now() })),
+      createdAt: Date.now(),
+    };
+
+    // Store the lobby data
+    await this.redis.set(`lobby:${lobbyId}`, JSON.stringify(lobbyData));
+
+    // Create channel to lobby mapping for each channel
+    for (const server of servers) {
+      await this.redis.set(`channel:${server.channelId}:lobby`, lobbyId);
+      this.notifier.notifyLobbyCreate(server.channelId, lobbyData);
+    }
+
+    return lobbyId;
+  }
+
+  async getLobbyByChannelId(channelId: string): Promise<LobbyData | null> {
+    // Get the lobby ID associated with this channel
+    const lobbyId = await this.redis.get(`channel:${channelId}:lobby`);
+    if (!lobbyId) return null;
+
+    // Get the actual lobby data
+    return this.getLobby(lobbyId);
+  }
+
+  async removeLobby(lobbyId: string): Promise<void> {
+    const lobby = await this.getLobby(lobbyId);
+    if (lobby) {
+      // Remove channel to lobby mappings
+      for (const server of lobby.servers) {
+        await this.redis.del(`channel:${server.channelId}:lobby`);
+        this.notifier.notifyLobbyDelete(server.channelId);
+      }
+
+      // Remove the lobby itself
+      await this.redis.del(`lobby:${lobbyId}`);
+      // Remove lobby messages
+      // TODO: This should be done in a background job
+      // await this.redis.del(`lobby:${lobbyId}:messages`);
+    }
+  }
+
+  async removeServerFromLobby(lobbyId: string, serverId: string): Promise<void> {
+    const lobby = await this.getLobby(lobbyId);
+    if (!lobby) return;
+
+    const serverToRemove = lobby.servers.find((s) => s.serverId === serverId);
+    if (!serverToRemove) return;
+
+    // Remove the channel to lobby mapping
+    await this.redis.del(`channel:${serverToRemove.channelId}:lobby`);
+
+    // Update the lobby with remaining servers
+    const remainingServers = lobby.servers.filter((s) => s.serverId !== serverId);
+
+    if (remainingServers.length <= 1) {
+      // If only one or no servers remain, remove the entire lobby
+      await this.removeLobby(lobbyId);
+    }
+    else {
+      // Update the lobby with remaining servers
+      lobby.servers = remainingServers;
+      await this.redis.set(`lobby:${lobbyId}`, JSON.stringify(lobby));
+
+      // Notify other servers in the lobby
+      remainingServers.forEach((server) => {
+        this.notifier.notifyChannelDisconnect(lobby, server.channelId);
+      });
+    }
   }
 }

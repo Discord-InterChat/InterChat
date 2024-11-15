@@ -50,8 +50,8 @@ export default class SetupCommand extends BaseCommand {
 
   public async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = interaction.options.getSubcommand(true);
-    if (subcommand === 'lobby') return this.setupLobby(interaction);
-    else if (subcommand === 'interchat') return this.setupHub(interaction);
+    if (subcommand === 'lobby') await this.setupLobby(interaction);
+    else if (subcommand === 'interchat') await this.setupHub(interaction);
   }
 
   private async setupLobby(interaction: ChatInputCommandInteraction): Promise<void> {

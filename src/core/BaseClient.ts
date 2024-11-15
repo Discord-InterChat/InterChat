@@ -4,8 +4,6 @@ import type { InteractionFunction } from '#main/decorators/RegisterInteractionHa
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
-import LobbyNotifier from '#main/modules/LobbyNotifier.js';
-import ChatLobbyService from '#main/services/ChatLobbyService.js';
 import CooldownService from '#main/services/CooldownService.js';
 import Scheduler from '#main/services/SchedulerService.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
@@ -22,6 +20,7 @@ import {
   Collection,
   GatewayIntentBits,
   Options,
+  Sweepers,
 } from 'discord.js';
 
 export default class InterChatClient extends Client {
@@ -29,22 +28,19 @@ export default class InterChatClient extends Client {
 
   private readonly scheduler = new Scheduler();
 
-  public readonly description = 'The only cross-server chatting bot you\'ll ever need.';
-  public readonly version = Constants.ProjectVersion;
-
-  public readonly reactionCooldowns = new Collection<string, number>();
   public readonly commands = new Collection<string, BaseCommand>();
   public readonly interactions = new Collection<string, InteractionFunction>();
   public readonly prefixCommands = new Collection<string, BasePrefixCommand>();
 
+  public readonly version = Constants.ProjectVersion;
+  public readonly reactionCooldowns = new Collection<string, number>();
   public readonly userManager = new UserDbManager();
   public readonly cluster = new ClusterClient(this);
   public readonly eventLoader = new EventLoader(this);
   public readonly commandCooldowns = new CooldownService();
-  public readonly lobbyService = new ChatLobbyService(new LobbyNotifier(this.cluster));
   public readonly antiSpamManager = new AntiSpamManager({
     spamThreshold: 4,
-    timeWindow: 5000,
+    timeWindow: 3000,
     spamCountExpirySecs: 60,
   });
 
@@ -53,10 +49,36 @@ export default class InterChatClient extends Client {
       shards: getInfo().SHARD_LIST, // An array of shards that will get spawned
       shardCount: getInfo().TOTAL_SHARDS, // Total number of shards
       makeCache: Options.cacheWithLimits({
-        MessageManager: 200,
-        PresenceManager: 0,
+        ThreadManager: {
+          maxSize: 1000,
+        },
         ReactionManager: 200,
+        PresenceManager: 0,
+        AutoModerationRuleManager: 0,
+        VoiceStateManager: 0,
+        GuildScheduledEventManager: 0,
+        ApplicationCommandManager: 0,
+        BaseGuildEmojiManager: 0,
+        StageInstanceManager: 0,
+        GuildStickerManager: 0,
+        ThreadMemberManager: 0,
+        GuildInviteManager: 0,
+        GuildEmojiManager: 0,
+        GuildBanManager: 0,
       }),
+      sweepers: {
+        messages: {
+          interval: 60,
+          filter: Sweepers.filterByLifetime({
+            lifetime: 150,
+            getComparisonTimestamp: (message) => message.createdTimestamp,
+          }),
+        },
+        threads: {
+          interval: 60,
+          filter: () => (thread) => Boolean(thread.archived),
+        },
+      },
       intents: [
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.Guilds,
@@ -65,15 +87,8 @@ export default class InterChatClient extends Client {
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.GuildWebhooks,
       ],
-      presence: {
-        status: 'online',
-        activities: [
-          {
-            state: '🔗 Watching over 700+ cross-server chats',
-            name: 'custom',
-            type: ActivityType.Custom,
-          },
-        ],
+      allowedMentions: {
+        repliedUser: false,
       },
     });
   }
