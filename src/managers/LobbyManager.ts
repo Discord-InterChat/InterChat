@@ -114,7 +114,7 @@ export class LobbyManager {
       await this.redis.del(`lobby:${lobbyId}`);
       // Remove lobby messages
       // TODO: This should be done in a background job
-      // await this.redis.del(`lobby:${lobbyId}:messages`);
+      await this.redis.del(`lobby:${lobbyId}:messages`);
     }
   }
 

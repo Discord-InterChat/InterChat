@@ -13,8 +13,8 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     name: 'connect',
     description: 'Connect to a random lobby',
     category: 'Moderation',
-    usage: 'connect',
-    examples: ['c', 'call'],
+    usage: 'connect ` [minimum number of servers] `',
+    examples: ['c', 'call', 'call 3'],
     aliases: ['call', 'c', 'conn', 'joinlobby', 'jl'],
     requiredBotPermissions: new PermissionsBitField([
       'SendMessages',
@@ -28,7 +28,9 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
   private readonly lobbyManager = new LobbyManager();
   private readonly matching = new MatchingService();
 
-  protected async run(message: Message<true>) {
+  protected async run(message: Message<true>, args: string[]) {
+    const minServers = parseInt(args[0], 10) || 2;
+
     const alreadyInLobby = await this.lobbyManager.getLobbyByChannelId(message.channelId);
     if (alreadyInLobby) {
       await message.reply('You are already chatting in a lobby. Please leave it first.');
@@ -62,13 +64,14 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     const serverId = message.guildId;
     const channelId = message.channelId;
 
+    // TODO: a way to modify this
     const serverPrefs = await db.serverPreference.findUnique({
       where: { serverId },
     });
 
     const preferences = {
       premiumStatus: serverPrefs?.premiumStatus ?? false,
-      maxServersInLobby: serverPrefs?.maxServersInLobby ?? 3,
+      maxServersInLobby: minServers ?? 2,
     };
 
     // Add server to waiting pool for matching
@@ -100,6 +103,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     else {
       await message.reply(
         stripIndents`
+        -# **💡 Did you know?** You can change the minimum number of servers required to find a match: \`c!call 2\`. It can be faster sometimes!
         Finding a lobby for this server... Hang tight!
         -# You will be notified once a lobby is found.
       `,
