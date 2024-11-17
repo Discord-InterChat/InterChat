@@ -22,7 +22,9 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
 
   protected async run(message: Message<true>, args: string[]) {
     const msgId = message.reference?.messageId ?? getMessageIdFromStr(args[0]);
-    const originalMessage = msgId ? await this.getOriginalMessage(msgId) : null;
+    const originalMessage = msgId
+      ? ((await this.getOriginalMessage(msgId)) ?? (await findOriginalMessage(msgId)))
+      : null;
 
     if (!originalMessage) {
       await message.channel.send('Please provide a valid message ID or link.');

@@ -40,12 +40,6 @@ export class MatchingService {
       );
 
       if (!hasRecentInteraction) {
-        // Check premium status and preferences
-        if (preferences.premiumStatus || data.preferences.premium) {
-          // Premium users get priority matching
-          return data;
-        }
-
         // Regular matching
         if (preferences.maxServersInLobby === data.preferences.maxServersInLobby) {
           // TODO: make it possible for servers to join already created lobbies later if they don't match immediately

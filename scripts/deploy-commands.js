@@ -85,4 +85,5 @@ if (process.argv) {
 
   if (slicedArgs.length === 0) logHelp();
   else await parseAndRun(allArgs);
+  process.exit(0);
 }

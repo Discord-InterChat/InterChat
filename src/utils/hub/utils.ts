@@ -1,3 +1,4 @@
+import Constants from '#main/utils/Constants.js';
 import {
   deleteConnection,
   deleteConnections,
@@ -15,7 +16,11 @@ import { type WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
  * @param message The message to send. Can be a string or a MessageCreateOptions object.
  * @returns A array of the responses from each connection's webhook.
  */
-export const sendToHub = async (hubId: string, message: string | WebhookMessageCreateOptions) => {
+export const sendToHub = async (
+  hubId: string,
+  message: string | WebhookMessageCreateOptions,
+  avatarURL = Constants.Links.EasterAvatar,
+) => {
   const connections = await getHubConnections(hubId);
   if (!connections?.length) return;
 
@@ -28,7 +33,7 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
 
     try {
       const webhook = new WebhookClient({ url: webhookURL });
-      await webhook.send({ ...payload, allowedMentions: { parse: [] } });
+      await webhook.send({ ...payload, avatarURL, allowedMentions: { parse: [] } });
     }
     catch (e) {
       const validErrors = [
@@ -42,7 +47,7 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
       e.message = `For Connection: ${channelId} ${e.message}`;
       Logger.error(e);
     }
-  };
+  }
 };
 
 export const deleteHubs = async (ids: string[]) => {

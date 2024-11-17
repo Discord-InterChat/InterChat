@@ -142,11 +142,11 @@ export class LobbyManager {
       // Update the lobby with remaining servers
       lobby.servers = remainingServers;
       await this.redis.set(`lobby:${lobbyId}`, JSON.stringify(lobby));
-
-      // Notify other servers in the lobby
-      remainingServers.forEach((server) => {
-        this.notifier.notifyChannelDisconnect(lobby, server.channelId);
-      });
     }
+
+    // Notify other servers in the lobby
+    remainingServers.forEach((server) => {
+      this.notifier.notifyChannelDisconnect(lobby, server.channelId);
+    });
   }
 }
