@@ -98,6 +98,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     else {
       await message.reply(
         stripIndents`
+        **💡 Tip:** ${this.tips[Math.floor(Math.random() * this.tips.length)]}
         Finding a lobby for this server... Hang tight!
         -# You will be notified once a lobby is found.
       `,
