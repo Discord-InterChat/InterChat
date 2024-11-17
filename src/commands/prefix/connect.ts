@@ -1,7 +1,7 @@
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
 import { LobbyManager } from '#main/managers/LobbyManager.js';
 import { MatchingService } from '#main/services/LobbyMatchingService.js';
-import { emojis } from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import { getOrCreateWebhook } from '#main/utils/Utils.js';
@@ -27,6 +27,10 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
 
   private readonly lobbyManager = new LobbyManager();
   private readonly matching = new MatchingService();
+  private readonly tips = [
+    'You can change the minimum number of servers required to find a match: `c!call 2`. It can be faster sometimes!',
+    'Can\'t find a lobby? Try `/setup interchat` instead!',
+  ];
 
   protected async run(message: Message<true>, args: string[]) {
     const minServers = parseInt(args[0], 10) || 2;
@@ -41,8 +45,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     if (inWaitingPool) {
       await message.reply(
         stripIndents`
-        -# **💡 Did you know?** You can change the minimum number of servers required to find a match: \`c!call 2\`. It can be faster sometimes!
-        You are already in the waiting pool for a lobby.
+        ${emojis.slash} You are already in the waiting pool for a lobby.
         -# You will be notified once a lobby is found.
       `,
       );
@@ -51,7 +54,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
 
     const webhook = await getOrCreateWebhook(
       message.channel,
-      'https://i.imgur.com/80nqtSg.png',
+      Constants.Links.EasterAvatar,
       'InterChat Lobby',
     );
     if (!webhook) {
@@ -80,15 +83,6 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
       preferences,
     );
 
-    // Set timeout for 5 minutes
-    setTimeout(
-      async () => {
-        await this.lobbyManager.removeChannelFromPool(channelId);
-        await message.reply('Please try again later. No lobbies were found for this server.');
-      },
-      5 * 60 * 1000, // 5 minutes
-    );
-
     const match = await this.matching.findMatch(serverId, preferences);
     if (match) {
       const lobbyId = await this.lobbyManager.createLobby([
@@ -99,14 +93,28 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
       // Update server histories
       await this.updateServerHistory(serverId, lobbyId);
       await this.updateServerHistory(match.serverId, lobbyId);
+      await this.lobbyManager.removeChannelFromPool(channelId);
     }
     else {
       await message.reply(
         stripIndents`
-        -# **💡 Did you know?** You can change the minimum number of servers required to find a match: \`c!call 2\`. It can be faster sometimes!
         Finding a lobby for this server... Hang tight!
         -# You will be notified once a lobby is found.
       `,
+      );
+
+      // Set timeout for 5 minutes
+      setTimeout(
+        async () => {
+          const stillInWaitingPool = await this.lobbyManager.getChannelFromWaitingPool(
+            message.guildId,
+          );
+          if (stillInWaitingPool && stillInWaitingPool?.timestamp < Date.now() - 5 * 60 * 1000) {
+            await this.lobbyManager.removeChannelFromPool(channelId);
+            await message.reply('No lobbies were found for this server. Please try again.');
+          }
+        },
+        5 * 60 * 1000, // 5 minutes
       );
     }
   }
