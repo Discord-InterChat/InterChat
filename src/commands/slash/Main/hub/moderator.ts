@@ -98,13 +98,13 @@ export default class Moderator extends HubCommand {
     const user = interaction.options.getUser('user', true);
     const position = interaction.options.getString('position', true) as HubModeratorPosition;
     const isUserMod = hub.moderators.find((mod) => mod.userId === user.id);
-    const isExecutorMod = hub.moderators.find(
+    const isExecutorManager = hub.moderators.find(
       (mod) =>
         (mod.userId === interaction.user.id && mod.position === 'manager') ||
         hub.ownerId === interaction.user.id,
     );
 
-    if (!isExecutorMod) {
+    if (!isExecutorManager) {
       await this.replyEmbed(
         interaction,
         t('hub.moderator.update.notAllowed', locale, { emoji: emojis.no }),
@@ -120,7 +120,7 @@ export default class Moderator extends HubCommand {
       );
       return;
     }
-    else if (user.id === interaction.user.id || isUserMod.position === 'manager') {
+    else if (isUserMod.position === 'manager' && hub.ownerId !== interaction.user.id) {
       await this.replyEmbed(
         interaction,
         t('hub.moderator.update.notOwner', locale, { emoji: emojis.no }),
