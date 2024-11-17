@@ -23,7 +23,7 @@
   "type": "module",
   "dependencies": {
     "@prisma/client": "^5.22.0",
-    "@sentry/node": "^8.37.1",
+    "@sentry/node": "^8.38.0",
     "common-tags": "^1.8.2",
     "discord-hybrid-sharding": "^2.2.3",
     "discord.js": "^14.16.3",
@@ -39,8 +39,8 @@
     "parse-duration": "^1.1.0",
     "reflect-metadata": "^0.2.2",
     "source-map-support": "^0.5.21",
-    "uuid": "^11.0.2",
-    "winston": "^3.16.0"
+    "uuid": "^11.0.3",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.10.1",
@@ -57,9 +57,9 @@
     "prettier": "^3.3.3",
     "prisma": "^5.22.0",
     "release-it": "^17.10.0",
-    "tsc-watch": "^6.2.0",
+    "tsc-watch": "^6.2.1",
     "typescript": "^5.6.3",
-    "typescript-eslint": "^8.13.0"
+    "typescript-eslint": "^8.14.0"
   },
   "config": {
     "commitizen": {
