@@ -7,7 +7,6 @@ import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { fetchHub } from '#main/utils/hub/utils.js';
 import { calculateRating, getStars } from '#main/utils/Utils.js';
 import { connectedList, Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
@@ -21,6 +20,7 @@ import {
   EmbedField,
   time,
 } from 'discord.js';
+import { HubService } from '#main/services/HubService.js';
 
 export default class BrowseCommand extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -71,14 +71,15 @@ export default class BrowseCommand extends HubCommand {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId] = customId.args;
 
-    if (!interaction.memberPermissions.has('ManageMessages')) {
+    if (!interaction.memberPermissions.has('ManageMessages', true)) {
       await interaction.deferUpdate();
       return;
     }
 
     await interaction.deferReply();
 
-    const hub = await fetchHub(hubId);
+    const hubService = new HubService(db);
+    const hub = await hubService.fetchHub(hubId);
     if (!hub) {
       await interaction.reply({ content: 'Hub not found.', ephemeral: true });
       return;

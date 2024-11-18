@@ -165,15 +165,15 @@ hub:
     invalidName: '{emoji} Invalid hub name. It must not contain `discord`, `clyde` or \`\`\` . Please choose another name.'
     nameTaken: '{emoji} This hub name is already taken. Please choose another name.'
     success: |
-      ### Hub Created!
-
-      Congratulations! Your private hub, **{name}**, has been successfully created.
+      ### Your __private__ hub, **{name}**, has been successfully created.
       To join, create an invite using `/hub invite create` and share the generated code. Then join using `/hub join`.
 
+      - **Edit hub:** `/hub edit`
       - **Generate invite:** `/hub invite create`
-      - **Make private:** `/hub visibility`
+      - **Make public:** `/hub visibility`
       - **Join hub:** `/hub join`
       - **Edit hub:** `/hub edit`
+      - **Set report channel:** `/hub logging set_channe;`
       - **Add moderators:** `/hub moderator add`
 
       Learn more about hubs in our [guide]({docs_link}). Join the [support server]({support_invite}) for help.
@@ -211,7 +211,7 @@ hub:
     list:
       title: '**Invite Codes:**'
       noInvites: '{emoji} This hub has no invites yet. Use `/hub invite create` to create one.'
-      notPrivate: '{emoji} Only private hubs can have invites. Use `/hub manage` to make this hub private.'
+      notPrivate: '{emoji} Only private hubs can have invites. Use `/hub edit` to make this hub private.'
   joined:
     noJoinedHubs: '{emoji} This server has not joined any hubs yet. Use `/hub browse` to view a list of hubs.'
     joinedHubs: This server is a part of **{total}** hub(s). Use `/hub leave` to leave a hub.
@@ -331,7 +331,7 @@ errors:
     **Error ID:**
     ```{errorId}```
   mustVote: Please [vote](https://top.gg/bot/769921109209907241/vote) for InterChat to use this command, your support is very much appreciated!
-  inviteLinks: '{emoji} You may not send invite links to this hub. Set an invite in `/connection` instead! Hub mods can configure this using `/hub manage settings`'
+  inviteLinks: '{emoji} You may not send invite links to this hub. Set an invite in `/connection` instead! Hub mods can configure this using `/hub edit settings`'
   invalidLangCode: '{emoji} Invalid language code. Please make sure you have entered a correct [language code](https://cloud.google.com/translate/docs/languages).'
   unknownServer: '{emoji} Unknown server. Please make sure you have entered the correct **Server ID**.'
   unknownNetworkMessage: '{emoji} Unknown Message. If it has been sent in the past minute, please wait few more seconds and try again.'
