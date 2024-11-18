@@ -1,10 +1,10 @@
-import { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { HubService } from '#main/services/HubService.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
+import { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { deleteHubs } from '#utils/hub/utils.js';
 import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
@@ -96,8 +96,11 @@ export default class Delete extends HubCommand {
 
     await interaction.update({ embeds: [embed], components: [] });
 
-    const hubInDb = await db.hub.findFirst({ where: { id: hubId, ownerId: interaction.user.id } });
-    if (!hubInDb) {
+    const hubService = new HubService(db);
+    const hubInDb = await hubService.fetchHub(hubId);
+
+    // only the owner can delete the hub
+    if (hubInDb?.ownerId !== interaction.user.id) {
       const infoEmbed = new InfoEmbed().setDescription(
         t('hub.notFound', locale, { emoji: emojis.no }),
       );
@@ -106,10 +109,12 @@ export default class Delete extends HubCommand {
       return;
     }
 
-    await deleteHubs([hubInDb.id]);
+    // Delete the hub and all related data
+    await hubService.deleteHub(hubInDb.id);
 
     await interaction.editReply({
       content: t('hub.delete.success', locale, { emoji: emojis.tick, hub: hubInDb.name }),
+      embeds: [],
     });
   }
 }
