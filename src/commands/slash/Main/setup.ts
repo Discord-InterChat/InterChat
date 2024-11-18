@@ -150,7 +150,7 @@ export default class SetupCommand extends BaseCommand {
       return;
     }
 
-    if (!interaction.member.permissionsIn(channel).has('ManageMessages')) {
+    if (!interaction.member.permissionsIn(channel).has('ManageMessages', true)) {
       await interaction.reply({
         content:
           'You cannot setup the bot in a channel where you do not have `Manage Messages` permission.',

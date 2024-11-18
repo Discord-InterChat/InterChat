@@ -16,7 +16,11 @@ interface ActionResult {
 }
 
 // Action handler type
-type ActionHandler = (message: Message<true>, rule: MessageBlockList) => Awaitable<ActionResult>;
+type ActionHandler = (
+  message: Message<true>,
+  rule: MessageBlockList,
+  matches: string[],
+) => Awaitable<ActionResult>;
 
 // Map of action handlers
 const actionHandlers: Record<BlockWordAction, ActionHandler> = {
@@ -26,9 +30,9 @@ const actionHandlers: Record<BlockWordAction, ActionHandler> = {
     message: 'Message blocked due to containing prohibited words.',
   }),
 
-  [BlockWordAction.SEND_ALERT]: async (message, rule) => {
+  [BlockWordAction.SEND_ALERT]: async (message, rule, matches) => {
     // Send alert to moderators
-    await logBlockwordAlert(message, rule);
+    await logBlockwordAlert(message, rule, matches);
     return { success: true, shouldBlock: false };
   },
 
@@ -67,7 +71,9 @@ export async function checkBlockedWords(message: Message<true>, msgBlockList: Me
 
   for (const rule of msgBlockList) {
     const regex = createRegexFromWords(rule.words);
-    if (regex.test(message.content)) {
+    const matches = message.content.match(regex);
+
+    if (matches) {
       let shouldBlock = false;
       let blockReason: string | undefined;
 
@@ -76,7 +82,7 @@ export async function checkBlockedWords(message: Message<true>, msgBlockList: Me
         const handler = actionHandlers[action];
         if (handler) {
           try {
-            const result = await handler(message, rule);
+            const result = await handler(message, rule, matches);
             if (result.success && result.shouldBlock) {
               shouldBlock = true;
               blockReason = result.message;

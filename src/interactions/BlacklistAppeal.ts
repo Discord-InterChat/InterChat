@@ -3,10 +3,11 @@ import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import { HubService } from '#main/services/HubService.js';
+import db from '#main/utils/Db.js';
 import { CustomID } from '#utils/CustomID.js';
 import { ErrorEmbed, InfoEmbed } from '#utils/EmbedUtils.js';
 import logAppeals from '#utils/hub/logger/Appeals.js';
-import { fetchHub } from '#utils/hub/utils.js';
 import Logger from '#utils/Logger.js';
 import { buildAppealSubmitModal } from '#utils/moderation/blacklistUtils.js';
 import { getReplyMethod, msToReadable } from '#utils/Utils.js';
@@ -144,7 +145,8 @@ export default class AppealInteraction {
     if (!blacklist) return;
 
     if (customId.suffix === 'approve') await blacklistManager.removeBlacklist(hubId);
-    const hub = await fetchHub(hubId);
+    const hubService = new HubService(db);
+    const hub = await hubService.fetchHub(hubId);
 
     let appealer;
     let appealTarget;
@@ -204,7 +206,8 @@ export default class AppealInteraction {
 
     const blacklistManager = new BlacklistManager(infractionManager);
 
-    const hub = await fetchHub(hubId);
+    const hubService = new HubService(db);
+    const hub = await hubService.fetchHub(hubId);
     const allInfractions = await infractionManager.getHubInfractions(hubId, { type: 'BLACKLIST' });
 
     const sevenDays = 60 * 60 * 24 * 7 * 1000;
