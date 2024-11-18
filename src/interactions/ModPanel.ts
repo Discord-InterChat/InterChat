@@ -2,9 +2,11 @@ import { RegisterInteractionHandler } from '#main/decorators/RegisterInteraction
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
 import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import { HubService } from '#main/services/HubService.js';
 import { CustomID } from '#main/utils/CustomID.js';
+import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { fetchHub, isStaffOrHubMod } from '#main/utils/hub/utils.js';
+import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
 import {
@@ -102,7 +104,8 @@ export default class ModPanelHandler {
     originalMsg: OriginalMessage,
     locale: supportedLocaleCodes,
   ) {
-    const hub = await fetchHub(originalMsg.hubId);
+    const hubService = new HubService(db);
+    const hub = await hubService.fetchHub(originalMsg.hubId);
     if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
       const embed = new InfoEmbed().setDescription(t('errors.messageNotSentOrExpired', locale));
       await interaction.editReply({ embeds: [embed] });

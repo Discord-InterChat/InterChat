@@ -1,11 +1,13 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { buildModPanel } from '#main/interactions/ModPanel.js';
+import { HubService } from '#main/services/HubService.js';
+import db from '#main/utils/Db.js';
 import {
   findOriginalMessage,
   getOriginalMessage,
   OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import { fetchHub, isStaffOrHubMod } from '#utils/hub/utils.js';
+import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { t, type supportedLocaleCodes } from '#utils/Locale.js';
 import {
   ApplicationCommandType,
@@ -52,7 +54,8 @@ export default class BlacklistCtxMenu extends BaseCommand {
     originalMsg: OriginalMessage,
     locale: supportedLocaleCodes,
   ) {
-    const hub = await fetchHub(originalMsg.hubId);
+    const hubService = new HubService(db);
+    const hub = await hubService.fetchHub(originalMsg.hubId);
     if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
       await this.replyEmbed(interaction, t('errors.messageNotSentOrExpired', locale), {
         ephemeral: true,

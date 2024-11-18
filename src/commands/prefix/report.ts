@@ -15,7 +15,7 @@ export default class ReportPrefixCommand extends BasePrefixCommand {
     name: 'report',
     description: 'Report a message',
     category: 'Utility',
-    usage: 'report ` [message ID or link] ` ` reason ` ',
+    usage: 'report ` [messageId | messageLink] ` ` reason ` ',
     examples: [
       'report 123456789012345678',
       'report https://discord.com/channels/123456789012345678/123456789012345678/123456789012345678',

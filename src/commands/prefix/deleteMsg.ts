@@ -1,6 +1,6 @@
 import { emojis } from '#utils/Constants.js';
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
-import { fetchHub, isStaffOrHubMod } from '#main/utils/hub/utils.js';
+import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { deleteMessageFromHub } from '#main/utils/moderation/deleteMessage.js';
 import {
   findOriginalMessage,
@@ -8,7 +8,9 @@ import {
   getMessageIdFromStr,
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import { Message } from 'discord.js';
+import { EmbedBuilder, Message } from 'discord.js';
+import { HubService } from '#main/services/HubService.js';
+import db from '#main/utils/Db.js';
 
 export default class DeleteMsgCommand extends BasePrefixCommand {
   public readonly data: CommandData = {
@@ -34,13 +36,17 @@ export default class DeleteMsgCommand extends BasePrefixCommand {
       return;
     }
 
-    const hub = await fetchHub(originalMsg.hubId);
+    const hubService = new HubService(db);
+    const hub = await hubService.fetchHub(originalMsg.hubId);
     if (
-      !hub ||
-      !isStaffOrHubMod(message.author.id, hub) ||
-      originalMsg.authorId !== message.author.id
+      !hub || // Check if the hub exists
+      !isStaffOrHubMod(message.author.id, hub) || // Check if the user is a staff or hub mod
+      originalMsg.authorId !== message.author.id // Only then check if the user is the author of the message
     ) {
-      await message.channel.send('You do not have permission to use this command on that message.');
+      const embed = new EmbedBuilder()
+        .setColor('Red')
+        .setDescription(`${emojis.no} You do not have permission to use this command.`);
+      await message.reply({ embeds: [embed] });
       return;
     }
 

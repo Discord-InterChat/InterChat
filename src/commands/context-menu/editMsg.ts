@@ -1,17 +1,17 @@
 /* eslint-disable complexity */
-import Constants, { ConnectionMode, emojis } from '#utils/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { SerializedHubSettings } from '#main/modules/BitFields.js';
 import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
-import { fetchHub } from '#main/utils/hub/utils.js';
+import { HubService } from '#main/services/HubService.js';
 import {
   findOriginalMessage,
   getBroadcast,
   getBroadcasts,
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
+import Constants, { ConnectionMode, emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { getAttachmentURL } from '#utils/ImageUtils.js';
@@ -132,7 +132,8 @@ export default class EditMessage extends BaseCommand {
     }
 
     // Fetch the hub information
-    const hub = await fetchHub(originalMsgData.hubId);
+    const hubService = new HubService(db);
+    const hub = await hubService.fetchHub(originalMsgData.hubId);
     if (!hub) {
       await interaction.editReply(
         t('errors.unknownNetworkMessage', await this.getLocale(interaction), {

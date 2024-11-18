@@ -82,7 +82,7 @@ export class HubJoinService {
   }
 
   private async runChecks(channel: GuildTextBasedChannel) {
-    if (!channel.permissionsFor(this.interaction.member).has('ManageMessages')) {
+    if (!channel.permissionsFor(this.interaction.member).has('ManageMessages', true)) {
       await this.replyError('errors.missingPermissions', {
         permissions: 'Manage Messages',
         emoji: emojis.no,

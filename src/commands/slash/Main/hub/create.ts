@@ -1,9 +1,11 @@
-import Constants, { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { HubSettingsBits } from '#main/modules/BitFields.js';
-import { CustomID } from '#utils/CustomID.js';
+import { HubValidator } from '#main/modules/HubValidator.js';
+import { HubCreationData, HubService } from '#main/services/HubService.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import { handleError } from '#main/utils/Utils.js';
+import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
-import { t } from '#utils/Locale.js';
+import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
   CacheType,
@@ -17,17 +19,19 @@ import {
 import HubCommand from './index.js';
 
 export default class Create extends HubCommand {
+  private readonly hubService: HubService;
   readonly cooldown = 10 * 60 * 1000; // 10 mins
+
+  constructor() {
+    super();
+    this.hubService = new HubService(db);
+  }
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    const isOnCooldown = await this.getRemainingCooldown(interaction);
-    if (isOnCooldown) {
-      await this.sendCooldownError(interaction, isOnCooldown, locale);
-      return;
-    }
+    if (await this.isOnCooldown(interaction, locale)) return;
 
     const modal = new ModalBuilder()
       .setTitle(t('hub.create.modal.title', locale))
@@ -80,93 +84,93 @@ export default class Create extends HubCommand {
     await interaction.showModal(modal);
   }
 
+  private async isOnCooldown(
+    interaction: ChatInputCommandInteraction<CacheType>,
+    locale: supportedLocaleCodes,
+  ): Promise<boolean> {
+    const remainingCooldown = await this.getRemainingCooldown(interaction);
+    if (remainingCooldown) {
+      await this.sendCooldownError(interaction, remainingCooldown, locale);
+      return true;
+    }
+    return false;
+  }
+
   @RegisterInteractionHandler('hub_create_modal')
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferReply({ ephemeral: true });
 
-    const name = interaction.fields.getTextInputValue('name');
-    const description = interaction.fields.getTextInputValue('description');
-    const icon = interaction.fields.getTextInputValue('icon');
-    const banner = interaction.fields.getTextInputValue('banner');
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    // if hubName contains "discord", "clyde" "```" then return
-    if (Constants.Regex.BannedWebhookWords.test(name)) {
+    try {
+      const hubData = this.extractHubData(interaction);
+      await this.processHubCreation(interaction, hubData, locale);
+    }
+    catch (error) {
+      handleError(error, interaction);
+    }
+  }
+
+  private extractHubData(interaction: ModalSubmitInteraction): HubCreationData {
+    return {
+      name: interaction.fields.getTextInputValue('name'),
+      description: interaction.fields.getTextInputValue('description'),
+      iconUrl: interaction.fields.getTextInputValue('icon'),
+      bannerUrl: interaction.fields.getTextInputValue('banner'),
+      ownerId: interaction.user.id,
+    };
+  }
+
+  private async processHubCreation(
+    interaction: ModalSubmitInteraction,
+    hubData: HubCreationData,
+    locale: supportedLocaleCodes,
+  ): Promise<void> {
+    const validator = new HubValidator(locale);
+    const existingHubs = await this.hubService.getExistingHubs(hubData.ownerId, hubData.name);
+
+    const validationResult = await validator.validateNewHub(hubData, existingHubs);
+    if (!validationResult.isValid) {
       await interaction.followUp({
-        content: t('hub.create.invalidName', locale, { emoji: emojis.no }),
+        content: validationResult.error,
         ephemeral: true,
       });
       return;
     }
 
-    const hubs = await db.hub.findMany({
-      where: { OR: [{ ownerId: interaction.user.id }, { name }] },
-    });
+    await this.hubService.createHub(hubData);
+    await this.handleSuccessfulCreation(interaction, hubData.name, locale);
+  }
 
-    if (hubs.find((hub) => hub.name === name)) {
-      await interaction.followUp({
-        content: t('hub.create.nameTaken', locale, { emoji: emojis.no }),
-        ephemeral: true,
-      });
-      return;
-    }
-    else if (
-      hubs.reduce((acc, hub) => (hub.ownerId === interaction.user.id ? acc + 1 : acc), 0) >= 3
-    ) {
-      await interaction.followUp({
-        content: t('hub.create.maxHubs', locale, { emoji: emojis.no }),
-        ephemeral: true,
-      });
-      return;
-    }
-
-    const imgurRegex = Constants.Regex.ImgurImage;
-    const iconUrl = icon.length > 0 ? icon.match(imgurRegex)?.[0] : false;
-    const bannerUrl = banner.length > 0 ? banner.match(imgurRegex)?.[0] : false;
-
-    // TODO: create a gif showing how to get imgur links
-    if (iconUrl === false || bannerUrl === false) {
-      await interaction.followUp({
-        content: t('hub.invalidImgurUrl', locale, { emoji: emojis.no }),
-        ephemeral: true,
-      });
-      return;
-    }
-
-    await db.hub.create({
-      data: {
-        name,
-        description,
-        private: true,
-        ownerId: interaction.user.id,
-        iconUrl: iconUrl ?? Constants.Links.EasterAvatar,
-        bannerUrl,
-        settings:
-          HubSettingsBits.SpamFilter | HubSettingsBits.Reactions | HubSettingsBits.BlockNSFW,
-      },
-    });
-
-    // set cooldown after creating a hub (because a failed hub creation should not trigger the cooldown)
-    interaction.client.commandCooldowns.setCooldown(
-      `${interaction.user.id}-hub-create`,
-      60 * 60 * 1000,
-    ); // 1 hour
+  private async handleSuccessfulCreation(
+    interaction: ModalSubmitInteraction,
+    hubName: string,
+    locale: supportedLocaleCodes,
+  ): Promise<void> {
+    this.setCooldowns(interaction);
 
     const successEmbed = new EmbedBuilder()
       .setColor('Green')
       .setDescription(
         t('hub.create.success', locale, {
-          name,
+          name: hubName,
           support_invite: Constants.Links.SupportInvite,
           docs_link: Constants.Links.Docs,
         }),
       )
       .setTimestamp();
 
+    await interaction.editReply({ embeds: [successEmbed] });
+  }
+
+  private setCooldowns(interaction: ModalSubmitInteraction): void {
+    interaction.client.commandCooldowns.setCooldown(
+      `${interaction.user.id}-hub-create`,
+      60 * 60 * 1000, // 1 hour
+    );
+
     const command = HubCommand.subcommands.get('create');
     command?.setUserCooldown(interaction);
-
-    await interaction.editReply({ embeds: [successEmbed] });
   }
 }

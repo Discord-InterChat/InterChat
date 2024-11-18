@@ -1,10 +1,8 @@
 import Constants from '#main/utils/Constants.js';
 import {
   deleteConnection,
-  deleteConnections,
   getHubConnections,
 } from '#utils/ConnectedListUtils.js';
-import db from '#utils/Db.js';
 import Logger from '#utils/Logger.js';
 import { checkIfStaff } from '#utils/Utils.js';
 import type { Hub } from '@prisma/client';
@@ -50,16 +48,6 @@ export const sendToHub = async (
   }
 };
 
-export const deleteHubs = async (ids: string[]) => {
-  // delete all relations first and then delete the hub
-  await deleteConnections({ hubId: { in: ids } });
-  await db.hubInvite.deleteMany({ where: { hubId: { in: ids } } });
-  await db.hubLogConfig.deleteMany({ where: { hubId: { in: ids } } });
-
-  // finally, delete the hub
-  await db.hub.deleteMany({ where: { id: { in: ids } } });
-};
-export const fetchHub = async (id: string) => await db.hub.findFirst({ where: { id } });
 export const isHubMod = (userId: string, hub: Hub) =>
   Boolean(hub.ownerId === userId || hub.moderators.find((mod) => mod.userId === userId));
 

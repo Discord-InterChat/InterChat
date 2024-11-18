@@ -2,6 +2,7 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { modPanelButton } from '#main/interactions/ShowModPanel.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
+import { HubService } from '#main/services/HubService.js';
 import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import { greyOutButton, greyOutButtons } from '#utils/ComponentUtils.js';
@@ -11,7 +12,7 @@ import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { sendHubReport } from '#utils/hub/logger/Report.js';
-import { fetchHub, isStaffOrHubMod } from '#utils/hub/utils.js';
+import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import type { connectedList, Hub } from '@prisma/client';
 import {
@@ -336,7 +337,8 @@ export default class MessageInfo extends BaseCommand {
 
   // utils
   private async fetchHub(hubId: string | undefined) {
-    return hubId ? await fetchHub(hubId) : null;
+    const hubService = new HubService(db);
+    return hubId ? await hubService.fetchHub(hubId) : null;
   }
 
   private async getMessageInfo(interaction: MessageContextMenuCommandInteraction) {

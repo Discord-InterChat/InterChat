@@ -2,7 +2,6 @@ import Constants, { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { HubSettingsBitField } from '#main/modules/BitFields.js';
-import { fetchHub } from '#main/utils/hub/utils.js';
 import {
   findOriginalMessage,
   getOriginalMessage,
@@ -26,6 +25,8 @@ import {
   StringSelectMenuBuilder,
   time,
 } from 'discord.js';
+import db from '#main/utils/Db.js';
+import { HubService } from '#main/services/HubService.js';
 
 export default class NetworkReactionInteraction {
   @RegisterInteractionHandler('reaction_')
@@ -38,7 +39,9 @@ export default class NetworkReactionInteraction {
     const { customId, messageId } = this.getInteractionDetails(interaction);
     const originalMessage =
       (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId));
-    const hub = originalMessage ? await fetchHub(originalMessage?.hubId) : null;
+
+    const hubService = new HubService(db);
+    const hub = originalMessage ? await hubService.fetchHub(originalMessage?.hubId) : null;
 
     if (!originalMessage || !this.isReactionAllowed(hub)) return;
 

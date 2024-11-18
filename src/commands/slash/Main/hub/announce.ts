@@ -1,6 +1,6 @@
 import { emojis } from '#utils/Constants.js';
 import db from '#main/utils/Db.js';
-import { fetchHub, isHubManager, sendToHub } from '#main/utils/hub/utils.js';
+import { isHubManager, sendToHub } from '#main/utils/hub/utils.js';
 import {
   ActionRowBuilder,
   ChatInputCommandInteraction,
@@ -13,6 +13,7 @@ import {
 import HubCommand from './index.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { HubService } from '#main/services/HubService.js';
 
 export default class AnnounceCommand extends HubCommand {
   readonly cooldown = 1 * 60 * 1000;
@@ -51,7 +52,8 @@ export default class AnnounceCommand extends HubCommand {
     await interaction.reply(`${emojis.loading} Sending announcement to all connected servers...`);
     const [hubId] = CustomID.parseCustomId(interaction.customId).args;
     const announcement = interaction.fields.getTextInputValue('announcement');
-    const hub = await fetchHub(hubId);
+    const hubService = new HubService(db);
+    const hub = await hubService.fetchHub(hubId);
 
     await sendToHub(hubId, {
       avatarURL: hub?.iconUrl,
