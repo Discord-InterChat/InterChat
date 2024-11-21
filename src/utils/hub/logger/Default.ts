@@ -29,7 +29,12 @@ export const sendLog = async (
 
       if (channel?.isSendable()) {
         await channel
-          .send({ content: ctx.content, embeds: [ctx.embed], components: ctx.components })
+          .send({
+            content: ctx.content,
+            embeds: [ctx.embed],
+            components: ctx.components,
+            allowedMentions: { parse: ['roles'] },
+          })
           .catch(() => null);
       }
     },
