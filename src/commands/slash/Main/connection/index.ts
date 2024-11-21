@@ -5,6 +5,7 @@ import {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
   Collection,
+  InteractionContextType,
   PermissionFlagsBits,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
@@ -18,7 +19,7 @@ export default class Connection extends BaseCommand {
     name: 'connection',
     description: 'Pause, unpause or edit your connections to hubs in this server.',
     default_member_permissions: PermissionFlagsBits.ManageMessages.toString(),
-    dm_permission: false,
+    contexts: [InteractionContextType.Guild],
     options: [
       {
         type: ApplicationCommandOptionType.Subcommand,

@@ -11,6 +11,7 @@ import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { t, type supportedLocaleCodes } from '#utils/Locale.js';
 import {
   ApplicationCommandType,
+  InteractionContextType,
   type MessageContextMenuCommandInteraction,
   type RepliableInteraction,
   type RESTPostAPIApplicationCommandsJSONBody,
@@ -20,7 +21,7 @@ export default class BlacklistCtxMenu extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Moderation Actions',
-    dm_permission: false,
+    contexts: [InteractionContextType.Guild],
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
