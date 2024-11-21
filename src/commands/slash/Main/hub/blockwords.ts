@@ -35,19 +35,14 @@ export default class BlockWordCommand extends HubCommand {
       return;
     }
 
-    switch (interaction.options.getSubcommand()) {
-      case 'edit':
-        await this.handleEditSubcommand(interaction, hub);
-        break;
-      case 'list':
-        await this.handleList(interaction, hub);
-        break;
-      case 'create':
-        await this.handleAdd(interaction, hub);
-        break;
-      default:
-        break;
-    }
+    const handlers = {
+      edit: () => this.handleEditSubcommand(interaction, hub),
+      list: () => this.handleList(interaction, hub),
+      create: () => this.handleAdd(interaction, hub),
+    };
+
+    const subcommand = interaction.options.getSubcommand(true) as keyof typeof handlers;
+    await handlers[subcommand]?.();
   }
 
   @RegisterInteractionHandler('blockwordsButton', 'editWords')
@@ -92,6 +87,8 @@ export default class BlockWordCommand extends HubCommand {
 
     const name = interaction.fields.getTextInputValue('name');
     const newWords = sanitizeWords(interaction.fields.getTextInputValue('words'));
+
+    // new rule
     if (!ruleId) {
       if (hub.msgBlockList.length >= 2) {
         await interaction.editReply('You can only have 2 block word rules per hub.');
@@ -110,10 +107,13 @@ export default class BlockWordCommand extends HubCommand {
         components: [buttons],
       });
     }
+    // remove rule
     else if (newWords.length === 0) {
       await db.messageBlockList.delete({ where: { id: ruleId } });
       await interaction.editReply(`${emojis.yes} Rule removed.`);
     }
+
+    // update rule
     else {
       await db.messageBlockList.update({ where: { id: ruleId }, data: { words: newWords, name } });
       await interaction.editReply(`${emojis.yes} Rule updated.`);

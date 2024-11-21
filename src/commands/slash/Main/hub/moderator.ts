@@ -26,24 +26,17 @@ export default class Moderator extends HubCommand {
       return;
     }
 
-    switch (interaction.options.getSubcommand()) {
-      case 'add':
-        await this.handleAddSubcommand(interaction, hub, locale);
-        break;
-      case 'remove':
-        await this.handleRemoveSubcommand(interaction, hub, locale);
-        break;
-      case 'edit':
-        await this.handleEditSubcommand(interaction, hub, locale);
-        break;
-      case 'list':
-        await this.handleListSubcommand(interaction, hub, locale);
-        break;
+    const handlers = {
+      add: () => this.handleAddSubcommand(interaction, hub, locale),
+      remove: () => this.handleRemoveSubcommand(interaction, hub, locale),
+      edit: () => this.handleEditSubcommand(interaction, hub, locale),
+      list: () => this.handleListSubcommand(interaction, hub, locale),
+    };
 
-      default:
-        break;
-    }
+    const subcommand = interaction.options.getSubcommand(true) as keyof typeof handlers;
+    await handlers[subcommand]?.();
   }
+
   private async handleRemoveSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: Hub,
