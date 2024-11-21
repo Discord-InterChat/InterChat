@@ -6,7 +6,7 @@ import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { hubEditSelects, hubEmbed } from '#utils/hub/edit.js';
-import { sendToHub } from '#utils/hub/utils.js';
+import { isHubManager, sendToHub } from '#utils/hub/utils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import type { Hub } from '@prisma/client';
 import {
@@ -19,8 +19,11 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import HubCommand from './index.js';
+import { HubService } from '#main/services/HubService.js';
 
 export default class HubEdit extends HubCommand {
+  private readonly hubService = new HubService(db);
+
   async execute(interaction: ChatInputCommandInteraction) {
     const { hubInDb, locale } = await this.getInitialData(interaction);
     if (!hubInDb) return;
@@ -317,14 +320,9 @@ export default class HubEdit extends HubCommand {
       return {};
     }
 
-    const hubInDb = await db.hub.findFirst({
-      where: { id: customId.args[1] },
-      include: { connections: true },
-    });
-
+    const hubInDb = await this.hubService.fetchHub(customId.args[1], { connections: true });
     if (!hubInDb) {
       const embed = new InfoEmbed().setDescription(t('hub.notFound', locale, { emoji: emojis.no }));
-
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return {};
     }
@@ -338,18 +336,8 @@ export default class HubEdit extends HubCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    const hubInDb = await db.hub.findFirst({
-      where: {
-        id: hubId,
-        OR: [
-          { ownerId: interaction.user.id },
-          { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
-        ],
-      },
-      include: { connections: true },
-    });
-
-    if (!hubInDb) {
+    const hubInDb = await this.hubService.fetchHub(hubId, { connections: true });
+    if (!hubInDb || !isHubManager(interaction.user.id, hubInDb)) {
       await interaction.reply({
         content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
         ephemeral: true,

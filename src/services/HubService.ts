@@ -1,7 +1,7 @@
 import { HubSettingsBits } from '#main/modules/BitFields.js';
 import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
 import Constants from '#main/utils/Constants.js';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 export interface HubCreationData {
   name: string;
@@ -17,8 +17,8 @@ export class HubService {
     this.db = db;
   }
 
-  async fetchHub(id: string) {
-    return await this.db.hub.findFirst({ where: { id } });
+  async fetchHub(id: string, include: Prisma.HubInclude = {}) {
+    return await this.db.hub.findFirst({ where: { id }, include });
   }
 
   async createHub(data: HubCreationData): Promise<void> {
@@ -53,8 +53,8 @@ export class HubService {
     return await this.db.hub.findMany({ where: { ownerId: userId } });
   }
 
-  async getHubByName(name: string) {
-    return await this.db.hub.findFirst({ where: { name } });
+  async getHubByName(name: string, ownerId?: string, include: Prisma.HubInclude = {}) {
+    return await this.db.hub.findFirst({ where: { name, ownerId }, include });
   }
 
   async getExistingHubs(ownerId: string, hubName: string) {
