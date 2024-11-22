@@ -63,6 +63,10 @@ export type TranslationKeys = {
   'connection.paused.tips': 'unpause_cmd' | 'leave_cmd';
   'hub.notFound': 'emoji';
   'hub.notFound_mod': 'emoji';
+  'hub.notManager': 'emoji';
+  'hub.notModerator': 'emoji';
+  'hub.notPrivate': 'emoji';
+  'hub.notOwner': 'emoji';
   'hub.alreadyJoined': 'emoji' | 'hub' | 'channel';
   'hub.invalidChannel': 'emoji';
   'hub.invalidImgurUrl': 'emoji';

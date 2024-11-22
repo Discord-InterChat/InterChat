@@ -12,6 +12,7 @@ import {
   ButtonStyle,
   CacheType,
   EmbedBuilder,
+  InteractionContextType,
   MessageContextMenuCommandInteraction,
   ModalBuilder,
   ModalSubmitInteraction,
@@ -25,7 +26,7 @@ export default class Translate extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Translate',
-    dm_permission: false,
+    contexts: [InteractionContextType.Guild],
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {

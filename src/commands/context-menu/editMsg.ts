@@ -22,6 +22,7 @@ import {
   ActionRowBuilder,
   ApplicationCommandType,
   EmbedBuilder,
+  InteractionContextType,
   Message,
   MessageContextMenuCommandInteraction,
   ModalBuilder,
@@ -42,7 +43,7 @@ export default class EditMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Edit Message',
-    dm_permission: false,
+    contexts: [InteractionContextType.Guild],
   };
 
   readonly cooldown = 10_000;

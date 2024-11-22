@@ -28,6 +28,7 @@ import {
   ComponentType,
   EmbedBuilder,
   Guild,
+  InteractionContextType,
   MessageContextMenuCommandInteraction,
   ModalBuilder,
   ModalSubmitInteraction,
@@ -53,7 +54,7 @@ export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Message Info/Report',
-    dm_permission: false,
+    contexts: [InteractionContextType.Guild],
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction) {

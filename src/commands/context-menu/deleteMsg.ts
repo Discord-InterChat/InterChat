@@ -14,6 +14,7 @@ import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/dele
 import { Hub, HubLogConfig } from '@prisma/client';
 import {
   ApplicationCommandType,
+  InteractionContextType,
   MessageContextMenuCommandInteraction,
   RESTPostAPIApplicationCommandsJSONBody,
 } from 'discord.js';
@@ -22,7 +23,7 @@ export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Delete Message',
-    dm_permission: false,
+    contexts: [InteractionContextType.Guild],
   };
 
   readonly cooldown = 10_000;

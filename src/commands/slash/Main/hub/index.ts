@@ -11,6 +11,7 @@ import {
   ChatInputCommandInteraction,
   Collection,
   Guild,
+  InteractionContextType,
   RESTPostAPIApplicationCommandsJSONBody,
   Snowflake,
 } from 'discord.js';
@@ -36,7 +37,7 @@ export default class HubCommand extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
     name: 'hub',
     description: 'Manage your hubs.',
-    dm_permission: false,
+    contexts: [InteractionContextType.Guild],
     options: [
       {
         type: ApplicationCommandOptionType.Subcommand,
@@ -463,6 +464,7 @@ export default class HubCommand extends BaseCommand {
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const modCmds = ['servers', 'invite', 'announce'];
     const managerCmds = [
       'edit',
       'visibility',
@@ -471,9 +473,7 @@ export default class HubCommand extends BaseCommand {
       'logging',
       'appeal',
       'blockwords',
-      'announce',
     ];
-    const modCmds = ['servers', 'invite'];
 
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
