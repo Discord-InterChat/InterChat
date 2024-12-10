@@ -1,7 +1,7 @@
 import { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
- 
- 
+
+
 import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';

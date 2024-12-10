@@ -101,7 +101,7 @@ export const sendHubReport = async (
 
   if (!logConfig?.config.reports?.channelId || !evidence?.messageId) return;
 
-  const { channelId: reportsChannelId, roleId: reportsRoleId } = logConfig?.config.reports;
+  const { channelId: reportsChannelId, roleId: reportsRoleId } = logConfig.config.reports;
   const user = await client.users.fetch(userId).catch(() => null);
   const server = await client.fetchGuild(serverId);
   const jumpLink = await genJumpLink(hubId, client, evidence?.messageId, reportsChannelId);

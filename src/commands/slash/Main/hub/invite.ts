@@ -52,7 +52,7 @@ export default class Invite extends HubCommand {
       return;
     }
 
-    if (!hub.isManager(interaction.user.id)) {
+    if (!await hub.isManager(interaction.user.id)) {
       await this.replyEmbed(interaction, 'hub.notManager', {
         t: { emoji: emojis.no },
         ephemeral: true,

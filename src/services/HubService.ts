@@ -133,7 +133,7 @@ export class HubService {
   ) {
     const hubs = await this.db.hubModerator.findMany({
       where: {
-        role: opts?.roles ? { in: [...opts?.roles, 'OWNER'] } : undefined,
+        role: opts?.roles ? { in: [...opts.roles, 'OWNER'] } : undefined,
         ...opts?.filter,
         userId,
       },

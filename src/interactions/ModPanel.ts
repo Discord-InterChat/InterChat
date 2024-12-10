@@ -1,7 +1,7 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
- 
- 
+
+
 import { HubService } from '#main/services/HubService.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
