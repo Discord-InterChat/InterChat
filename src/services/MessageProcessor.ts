@@ -1,5 +1,4 @@
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
-import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { LobbyManager } from '#main/managers/LobbyManager.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
@@ -57,13 +56,12 @@ export class MessageProcessor {
     const userData = await userManager.getUser(message.author.id);
     if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
 
-    const settings = new HubSettingsManager(hub.id, hub.settings);
     const attachmentURL = await this.broadcastService.resolveAttachmentURL(message);
 
     if (
       !(await runChecks(message, hub, {
         userData,
-        settings,
+        settings: hub.settings,
         attachmentURL,
         totalHubConnections: hubConnections.length,
       }))
@@ -73,16 +71,10 @@ export class MessageProcessor {
 
     message.channel.sendTyping().catch(() => null);
 
-    const { passed } = await checkBlockedWords(message, hub.msgBlockList);
+    const { passed } = await checkBlockedWords(message, await hub.fetchBlockWords());
     if (!passed) return;
 
-    await this.broadcastService.broadcastMessage(
-      message,
-      hub,
-      hubConnections,
-      settings,
-      connection,
-    );
+    await this.broadcastService.broadcastMessage(message, hub, hubConnections, connection);
   }
 
   private async updateLobbyActivity(message: Message<true>, lobby: LobbyData) {

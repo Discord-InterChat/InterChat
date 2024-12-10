@@ -33,8 +33,7 @@ export class CustomID {
    * @returns CustomID - The CustomID instance for method chaining.
    */
 
-  // TODO: Rename this to set args and add a new method for adding args
-  addArgs(...values: string[]): CustomID {
+  setArgs(...values: string[]): CustomID {
     if (!values) return this;
 
     const invalidChars = ['&'];
@@ -53,7 +52,7 @@ export class CustomID {
    * @returns CustomID - The CustomID instance for method chaining.
    */
   setExpiry(date: Date): CustomID {
-    this.addArgs(`ex=${date.getTime()}`);
+    this.setArgs(`ex=${date.getTime()}`);
     return this;
   }
 

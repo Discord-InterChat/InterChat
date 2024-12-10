@@ -1,20 +1,20 @@
-import Constants, { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import HubSettingsManager from '#main/managers/HubSettingsManager.js';
-import { HubSettingsBitField } from '#main/modules/BitFields.js';
+import HubManager from '#main/managers/HubManager.js';
+import { HubService } from '#main/services/HubService.js';
+import db from '#main/utils/Db.js';
 import {
   findOriginalMessage,
   getOriginalMessage,
   OriginalMessage,
   storeMessage,
 } from '#main/utils/network/messageUtils.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { CustomID, ParsedCustomId } from '#utils/CustomID.js';
 import { t } from '#utils/Locale.js';
 import { addReaction, removeReaction, updateReactions } from '#utils/reaction/actions.js';
 import { checkBlacklists } from '#utils/reaction/helpers.js';
 import sortReactions from '#utils/reaction/sortReactions.js';
 import { getEmojiId } from '#utils/Utils.js';
-import { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -25,8 +25,6 @@ import {
   StringSelectMenuBuilder,
   time,
 } from 'discord.js';
-import db from '#main/utils/Db.js';
-import { HubService } from '#main/services/HubService.js';
 
 export default class NetworkReactionInteraction {
   @RegisterInteractionHandler('reaction_')
@@ -43,7 +41,7 @@ export default class NetworkReactionInteraction {
     const hubService = new HubService(db);
     const hub = originalMessage ? await hubService.fetchHub(originalMessage?.hubId) : null;
 
-    if (!originalMessage || !this.isReactionAllowed(hub)) return;
+    if (!originalMessage || !hub?.settings.has('Reactions')) return;
 
     const { userBlacklisted, serverBlacklisted } = await this.checkUserPermissions(
       hub,
@@ -70,12 +68,8 @@ export default class NetworkReactionInteraction {
     return { customId, messageId };
   }
 
-  private isReactionAllowed(hub: Hub | null): hub is Hub {
-    return Boolean(hub && new HubSettingsBitField(hub.settings).has('Reactions'));
-  }
-
   private async checkUserPermissions(
-    hub: Hub,
+    hub: HubManager,
     interaction: ButtonInteraction | AnySelectMenuInteraction,
   ) {
     return await checkBlacklists(hub.id, interaction.guildId, interaction.user.id);
@@ -111,7 +105,7 @@ export default class NetworkReactionInteraction {
   private async handleViewAllReactions(
     interaction: ButtonInteraction | AnySelectMenuInteraction,
     messageId: string,
-    hub: Hub,
+    hub: HubManager,
   ) {
     const originalMessage =
       (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId));
@@ -142,7 +136,7 @@ export default class NetworkReactionInteraction {
   private buildReactionMenu(
     dbReactions: { [key: string]: Snowflake[] },
     interaction: ButtonInteraction | AnySelectMenuInteraction,
-    hub: Hub,
+    hub: HubManager,
   ) {
     const sortedReactions = sortReactions(dbReactions);
     let totalReactions = 0;
@@ -150,13 +144,12 @@ export default class NetworkReactionInteraction {
     const reactionMenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId(
-          new CustomID().setIdentifier('reaction_').addArgs(interaction.message.id).toString(),
+          new CustomID().setIdentifier('reaction_').setArgs(interaction.message.id).toString(),
         )
         .setPlaceholder('Add a reaction'),
     );
 
-    const hubSettings = new HubSettingsManager(hub.id, hub.settings);
-    if (!hubSettings.getSetting('Reactions')) reactionMenu.components[0].setDisabled(true);
+    if (!hub.settings.has('Reactions')) reactionMenu.components[0].setDisabled(true);
 
     sortedReactions.forEach((r, index) => {
       if (r[1].length === 0 || index >= 10) return;

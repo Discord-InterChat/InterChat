@@ -1,49 +1,39 @@
-import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import InfractionManager from '#main/managers/InfractionManager.js';
+import UserDbManager from '#main/managers/UserDbManager.js';
+import { HubService } from '#main/services/HubService.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
-import db from '#main/utils/Db.js';
 import { sendLog } from '#main/utils/hub/logger/Default.js';
 import { resolveEval } from '#main/utils/Utils.js';
-import { InfractionStatus, Prisma, ServerInfraction, UserInfraction } from '@prisma/client';
+import { Infraction, InfractionStatus, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { Client, EmbedBuilder, User, type Snowflake } from 'discord.js';
 
 export default class BlacklistManager {
-  readonly targetId: Snowflake;
-  readonly infracManager;
+  public readonly targetId: Snowflake;
+  public readonly infractions;
+  private readonly type: 'user' | 'server';
+  private readonly userManager = new UserDbManager();
 
-  constructor(infracManager: UserInfractionManager | ServerInfractionManager) {
-    this.targetId = infracManager.targetId;
-    this.infracManager = infracManager;
+  constructor(type: 'user' | 'server', targetId: Snowflake) {
+    this.type = type;
+    this.targetId = targetId;
+    this.infractions = new InfractionManager(type, targetId);
   }
 
   public async addBlacklist(opts: {
     hubId: string;
     reason: string;
     moderatorId: string;
-    serverName: string;
     expiresAt: Date | null;
-  }): Promise<ServerInfraction | null>;
-  public async addBlacklist(opts: {
-    hubId: string;
-    reason: string;
-    moderatorId: string;
-    expiresAt: Date | null;
-  }): Promise<UserInfraction | null>;
-  public async addBlacklist(opts: {
-    hubId: string;
-    reason: string;
-    moderatorId: string;
-    serverName: string;
-    expiresAt: Date | null;
-  }): Promise<UserInfraction | ServerInfraction | null> {
+    serverName?: string;
+  }): Promise<Infraction | null> {
     const blacklisted = await this.fetchBlacklist(opts.hubId);
 
     if (blacklisted) {
-      return await this.infracManager.updateInfraction(
+      return await this.infractions.updateInfraction(
         { hubId: opts.hubId, type: 'BLACKLIST', status: 'ACTIVE' },
         {
-          dateIssued: new Date(),
+          updatedAt: new Date(),
           expiresAt: opts.expiresAt,
           reason: opts.reason,
           moderatorId: opts.moderatorId,
@@ -51,7 +41,11 @@ export default class BlacklistManager {
       );
     }
 
-    return await this.infracManager.addInfraction('BLACKLIST', opts);
+    if (this.type === 'user' && !(await this.userManager.getUser(this.targetId))) {
+      await this.userManager.createUser({ id: this.targetId }); // Create user if not found
+    }
+
+    return await this.infractions.addInfraction('BLACKLIST', opts);
   }
 
   public async removeBlacklist(
@@ -61,24 +55,21 @@ export default class BlacklistManager {
     const exists = await this.fetchBlacklist(hubId);
     if (!exists) return null;
 
-    return await this.infracManager.revokeInfraction('BLACKLIST', hubId, status);
+    return await this.infractions.revokeInfraction('BLACKLIST', hubId, status);
   }
 
-  public async updateBlacklist(
-    hubId: string,
-    data: Prisma.UserInfractionUpdateInput | Prisma.ServerInfractionUpdateInput,
-  ) {
+  public async updateBlacklist(hubId: string, data: Prisma.InfractionUpdateInput) {
     const blacklisted = await this.fetchBlacklist(hubId);
     if (!blacklisted) return null;
 
-    return await this.infracManager.updateInfraction(
+    return await this.infractions.updateInfraction(
       { hubId, type: 'BLACKLIST', status: 'ACTIVE' },
       data,
     );
   }
 
   public async fetchBlacklist(hubId: string) {
-    const blacklist = await this.infracManager.fetchInfraction('BLACKLIST', hubId, 'ACTIVE');
+    const blacklist = await this.infractions.fetchInfraction('BLACKLIST', hubId, 'ACTIVE');
     return blacklist;
   }
   /**
@@ -95,16 +86,17 @@ export default class BlacklistManager {
   ) {
     const { mod, reason, expiresAt } = opts;
 
-    const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
-    const { modLogs } = hub?.logConfig.at(0) ?? {};
-    if (!modLogs) return;
+    const hub = await new HubService().fetchHub(hubId);
+    const logConfig = await hub?.fetchLogConfig();
+
+    if (!logConfig?.config.modLogs) return;
 
     let name;
     let iconURL;
     let type;
     let target;
 
-    if (this.infracManager instanceof ServerInfractionManager) {
+    if (this.infractions.targetType === 'server') {
       target = resolveEval(
         await client.cluster.broadcastEval(
           (c, guildId) => {
@@ -135,7 +127,7 @@ export default class BlacklistManager {
         stripIndents`
 				${emojis.dotBlue} **${type}:** ${name} (${target.id})
 				${emojis.dotBlue} **Moderator:** ${mod.username} (${mod.id})
-				${emojis.dotBlue} **Hub:** ${hub?.name}
+				${emojis.dotBlue} **Hub:** ${hub?.data.name}
 			`,
       )
       .addFields(
@@ -149,12 +141,10 @@ export default class BlacklistManager {
       .setColor(Constants.Colors.interchatBlue)
       .setFooter({ text: `Blacklisted by: ${mod.username}`, iconURL: mod.displayAvatarURL() });
 
-    await sendLog(opts.mod.client.cluster, modLogs, embed);
+    await sendLog(opts.mod.client.cluster, logConfig?.config.modLogs.channelId, embed);
   }
 
-  public static isServerBlacklist(
-    data: UserInfraction | ServerInfraction | null,
-  ): data is ServerInfraction {
-    return Boolean(data && 'serverId' in data);
+  public static isServerBlacklist(data: Infraction | null) {
+    return data?.serverId !== null && data?.serverName === null;
   }
 }

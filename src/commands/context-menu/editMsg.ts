@@ -1,7 +1,6 @@
 /* eslint-disable complexity */
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { SerializedHubSettings } from '#main/modules/BitFields.js';
 import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
 import { HubService } from '#main/services/HubService.js';
@@ -82,7 +81,7 @@ export default class EditMessage extends BaseCommand {
     }
 
     const modal = new ModalBuilder()
-      .setCustomId(new CustomID().setIdentifier('editMsg').addArgs(target.id).toString())
+      .setCustomId(new CustomID().setIdentifier('editMsg').setArgs(target.id).toString())
       .setTitle('Edit Message')
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -146,11 +145,10 @@ export default class EditMessage extends BaseCommand {
 
     // Get the new message input from the user
     const userInput = interaction.fields.getTextInputValue('newMessage');
-    const settingsManager = new HubSettingsManager(originalMsgData.hubId, hub.settings);
-    const messageToEdit = this.sanitizeMessage(userInput, settingsManager.getAllSettings());
+    const messageToEdit = this.sanitizeMessage(userInput, hub.settings.getAll());
 
     // Check if the message contains invite links
-    if (settingsManager.getSetting('BlockInvites') && containsInviteLinks(messageToEdit)) {
+    if (hub.settings.has('BlockInvites') && containsInviteLinks(messageToEdit)) {
       await interaction.editReply(
         t('errors.inviteLinks', await this.getLocale(interaction), { emoji: emojis.no }),
       );
@@ -177,7 +175,7 @@ export default class EditMessage extends BaseCommand {
 
     // Find all the messages that need to be edited
     const broadcastedMsgs = Object.values(await getBroadcasts(target.id, originalMsgData.hubId));
-    const channelSettingsArr = await db.connectedList.findMany({
+    const channelSettingsArr = await db.connection.findMany({
       where: { channelId: { in: broadcastedMsgs.map((c) => c.channelId) } },
     });
 

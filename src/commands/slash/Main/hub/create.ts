@@ -1,10 +1,9 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { HubValidator } from '#main/modules/HubValidator.js';
-import { HubCreationData, HubService } from '#main/services/HubService.js';
+import { HubCreationData } from '#main/services/HubService.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { handleError } from '#main/utils/Utils.js';
 import Constants from '#utils/Constants.js';
-import db from '#utils/Db.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
@@ -19,13 +18,7 @@ import {
 import HubCommand from './index.js';
 
 export default class Create extends HubCommand {
-  private readonly hubService: HubService;
   readonly cooldown = 10 * 60 * 1000; // 10 mins
-
-  constructor() {
-    super();
-    this.hubService = new HubService(db);
-  }
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
     const { userManager } = interaction.client;

@@ -1,7 +1,12 @@
+import HubManager from '#main/managers/HubManager.js';
 import { HubSettingsBits } from '#main/modules/BitFields.js';
+import { ConvertDatesToString } from '#main/types/Utils.js';
 import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
-import Constants from '#main/utils/Constants.js';
-import { Prisma, PrismaClient } from '@prisma/client';
+import Constants, { RedisKeys } from '#main/utils/Constants.js';
+import db from '#main/utils/Db.js';
+import getRedis from '#main/utils/Redis.js';
+import { Hub, Prisma, PrismaClient, Role } from '@prisma/client';
+import { Redis } from 'ioredis';
 
 export interface HubCreationData {
   name: string;
@@ -13,18 +18,55 @@ export interface HubCreationData {
 
 export class HubService {
   private readonly db: PrismaClient;
-  constructor(db: PrismaClient) {
-    this.db = db;
+  private readonly cache: Redis;
+  public readonly hubKey = `${RedisKeys.Hub}:`;
+
+  constructor(_db: PrismaClient = db, cache = getRedis()) {
+    this.db = _db;
+    this.cache = cache;
   }
 
-  async fetchHub(id: string, include: Prisma.HubInclude = {}) {
-    return await this.db.hub.findFirst({ where: { id }, include });
+  protected serializeHub(hub: string): Hub {
+    const parsedHub = JSON.parse(hub) as ConvertDatesToString<Hub>;
+
+    return {
+      ...parsedHub,
+      createdAt: new Date(parsedHub.createdAt),
+      updatedAt: new Date(parsedHub.updatedAt),
+    };
   }
 
-  async createHub(data: HubCreationData): Promise<void> {
-    await this.db.hub.create({
+  private createHubManager(hub: Hub): HubManager;
+  private createHubManager(hub: string): HubManager;
+  private createHubManager(hub: Hub | string | null): HubManager | null;
+  private createHubManager(hub: Hub | string | null) {
+    if (typeof hub === 'string') return new HubManager(this.serializeHub(hub), this);
+    if (hub) return new HubManager(hub);
+    return null;
+  }
+
+  async fetchHub(where: { name: string; }): Promise<HubManager | null>;
+  async fetchHub(where: { id: string; }): Promise<HubManager | null>;
+  async fetchHub(where: { name: string, id: string }): Promise<HubManager | null>;
+  async fetchHub(id: string): Promise<HubManager | null>;
+  async fetchHub(where: string | { name?: string, id?: string }) {
+    const id = typeof where === 'string' ? where : where.id;
+    const name = typeof where === 'string' ? undefined : where.name;
+
+    if (!id && !name) return null;
+
+    const fromCache = await this.cache.get(`${this.hubKey}${id}`);
+    if (fromCache) return this.createHubManager(fromCache);
+
+    const hub = await this.db.hub.findFirst({ where: { id, name } });
+    return this.createHubManager(hub);
+  }
+
+  async createHub(data: HubCreationData): Promise<HubManager> {
+    const hub = await this.db.hub.create({
       data: {
         ...data,
+        moderators: { create: { userId: data.ownerId, role: 'OWNER' } },
         private: true,
         iconUrl: data.iconUrl ?? Constants.Links.EasterAvatar,
         bannerUrl: data.bannerUrl ?? null,
@@ -32,6 +74,8 @@ export class HubService {
           HubSettingsBits.SpamFilter | HubSettingsBits.Reactions | HubSettingsBits.BlockNSFW,
       },
     });
+
+    return this.createHubManager(hub);
   }
 
   async deleteHub(hubId: string): Promise<void> {
@@ -40,28 +84,63 @@ export class HubService {
     await this.db.$transaction([
       this.db.hubInvite.deleteMany({ where: { hubId } }),
       this.db.hubLogConfig.deleteMany({ where: { hubId } }),
-      this.db.messageBlockList.deleteMany({ where: { hubId } }),
-      this.db.userInfraction.deleteMany({ where: { hubId } }),
-      this.db.serverInfraction.deleteMany({ where: { hubId } }),
+      this.db.blockWord.deleteMany({ where: { hubId } }),
+      this.db.infraction.deleteMany({ where: { hubId } }),
     ]);
 
     // finally, delete the hub
-    await this.db.hub.deleteMany({ where: { id: hubId } });
+    await this.db.hub.delete({ where: { id: hubId } });
   }
 
-  async getHubsForUser(userId: string) {
-    return await this.db.hub.findMany({ where: { ownerId: userId } });
+  async getOwnedHubs(userId: string) {
+    const hubs = await this.db.hub.findMany({ where: { ownerId: userId } });
+    return hubs.map((hub) => this.createHubManager(hub));
   }
 
-  async getHubByName(name: string, ownerId?: string, include: Prisma.HubInclude = {}) {
-    return await this.db.hub.findFirst({ where: { name, ownerId }, include });
+  async findHubsByName(
+    name: string,
+    opts?: { insensitive?: boolean; ownerId?: string; take?: number },
+  ): Promise<HubManager[]> {
+    const hubs = await this.db.hub.findMany({
+      where: {
+        name: {
+          mode: opts?.insensitive ? 'insensitive' : 'default',
+          contains: name,
+        },
+        ownerId: opts?.ownerId,
+      },
+      take: opts?.take,
+    });
+
+    return hubs.map((hub) => this.createHubManager(hub));
   }
 
   async getExistingHubs(ownerId: string, hubName: string) {
-    return await this.db.hub.findMany({
-      where: {
-        OR: [{ ownerId }, { name: hubName }],
-      },
+    const hubs = await this.db.hub.findMany({
+      where: { OR: [{ ownerId }, { name: hubName }] },
     });
+
+    return hubs.map((hub) => this.createHubManager(hub));
+  }
+
+  async fetchModeratedHubs(
+    userId: string,
+    opts?: {
+      roles?: Role[];
+      filter?: Prisma.HubModeratorWhereInput;
+      take?: number;
+    },
+  ) {
+    const hubs = await this.db.hubModerator.findMany({
+      where: {
+        role: opts?.roles ? { in: [...opts?.roles, 'OWNER'] } : undefined,
+        ...opts?.filter,
+        userId,
+      },
+      include: { hub: true },
+      take: opts?.take,
+    });
+
+    return hubs.map(({ hub }) => this.createHubManager(hub));
   }
 }

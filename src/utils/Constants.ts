@@ -1,16 +1,15 @@
 import type { Colors, HexColorString, Snowflake } from 'discord.js';
-import { createRequire } from 'module';
-import type jsonEmotes from './JSON/emojis.json';
-import type badwordsType from './JSON/profanity.json';
+import jsonEmotes from './JSON/emojis.json' with { 'type': 'json' };
+import badwordsType from './JSON/profanity.json' with { 'type': 'json' };
+import packageJson from '../../package.json' with { 'type': 'json' };
 
-// create a require as ESM doesn't support importing JSON
-const require = createRequire(import.meta.url);
-export const { slurs, profanity } = require('./JSON/profanity.json') as typeof badwordsType;
+
+export const { slurs, profanity } = badwordsType;
 export const {
   normal: emojis,
   mascot: mascotEmojis,
   badge: badgeEmojis,
-} = require('./JSON/emojis.json') as typeof jsonEmotes;
+} = jsonEmotes;
 
 export const enum RedisKeys {
   msgTimestamp = 'msgTimestamp',
@@ -23,8 +22,7 @@ export const enum RedisKeys {
   channelQueue = 'channelQueue',
   commandUsesLeft = 'commandUsesLeft',
   msgDeleteInProgress = 'msgDeleteInProgress',
-  userInfraction = 'UserInfraction',
-  serverInfraction = 'ServerInfraction',
+  Infraction = 'Infraction',
   hubLogConfig = 'hubLogConfig',
   message = 'message',
   broadcasts = 'broadcasts',
@@ -34,6 +32,7 @@ export const enum RedisKeys {
   ChannelPrefs = 'channelPrefs',
   MatchingPool = 'matchingPool',
   LobbyMessages = 'lobbyMessages',
+  Hub = 'hub',
 }
 
 export const enum ConnectionMode {
@@ -63,7 +62,7 @@ export default {
   DeveloperIds: ['701727675311587358'] as Snowflake[],
   SupporterIds: ['880978672037802014', '786348225341947986'] as Snowflake[],
 
-  ProjectVersion: require('../../package.json').version ?? 'Unknown',
+  ProjectVersion: packageJson.version ?? 'Unknown',
   SupportServerId: '770256165300338709',
   VoterRoleId: '985153241727770655',
 

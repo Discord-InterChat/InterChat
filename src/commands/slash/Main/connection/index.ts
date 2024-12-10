@@ -79,7 +79,7 @@ export default class Connection extends BaseCommand {
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const focusedValue = escapeRegexChars(interaction.options.getFocused());
 
-    const isInDb = await db.connectedList.findMany({
+    const isInDb = await db.connection.findMany({
       where: {
         serverId: interaction.guild?.id,
         OR: [

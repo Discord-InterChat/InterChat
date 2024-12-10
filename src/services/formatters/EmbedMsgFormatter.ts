@@ -1,4 +1,4 @@
-import { connectedList } from '@prisma/client';
+import { Connection } from '@prisma/client';
 import { Message, WebhookMessageCreateOptions } from 'discord.js';
 import { DefaultFormaterOpts, MessageFormatterStrategy } from '../MessageFormattingService.js';
 import { buildNetworkEmbed } from '#main/utils/network/utils.js';
@@ -6,7 +6,7 @@ import { buildNetworkEmbed } from '#main/utils/network/utils.js';
 export class EmbedMessageFormatter implements MessageFormatterStrategy {
   format(
     message: Message<true>,
-    connection: connectedList,
+    connection: Connection,
     opts: DefaultFormaterOpts,
   ): WebhookMessageCreateOptions {
     const embeds = buildNetworkEmbed(message, opts.username, opts.censoredContent, {

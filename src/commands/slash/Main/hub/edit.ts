@@ -1,36 +1,34 @@
-import Constants, { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import HubLogManager, { LogConfigTypes as HubConfigTypes } from '#main/managers/HubLogManager.js';
+import HubManager from '#main/managers/HubManager.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
-import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { hubEditSelects, hubEmbed } from '#utils/hub/edit.js';
-import { isHubManager, sendToHub } from '#utils/hub/utils.js';
+import { sendToHub } from '#utils/hub/utils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
-import type { Hub } from '@prisma/client';
 import {
   ActionRowBuilder,
   type ChatInputCommandInteraction,
   type MessageComponentInteraction,
   ModalBuilder,
   type ModalSubmitInteraction,
+  RepliableInteraction,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
 import HubCommand from './index.js';
-import { HubService } from '#main/services/HubService.js';
 
 export default class HubEdit extends HubCommand {
-  private readonly hubService = new HubService(db);
-
   async execute(interaction: ChatInputCommandInteraction) {
-    const { hubInDb, locale } = await this.getInitialData(interaction);
-    if (!hubInDb) return;
+    const { hub, locale } = await this.getInitialData(interaction);
+    if (!hub) return;
 
+    const embed = await this.getRefreshedEmbed(hub);
     await interaction.reply({
-      embeds: [await hubEmbed(hubInDb)],
-      components: [hubEditSelects(hubInDb.id, interaction.user.id, locale)],
+      embeds: [embed],
+      components: [hubEditSelects(hub.id, interaction.user.id, locale)],
     });
 
     await this.setComponentExpiry(interaction);
@@ -40,47 +38,47 @@ export default class HubEdit extends HubCommand {
   async handleActionsSelect(interaction: MessageComponentInteraction) {
     if (!interaction.isStringSelectMenu()) return;
 
-    const { hubInDb, locale } = await this.componentChecks(interaction);
-    if (!hubInDb) return;
+    const { hub, locale } = await this.componentChecks(interaction);
+    if (!hub) return;
 
     const action = interaction.values[0];
-    await this.handleAction(interaction, hubInDb, action, locale);
+    await this.handleAction(interaction, hub, action, locale);
   }
 
   @RegisterInteractionHandler('hub_edit', 'logsChSel')
   async handleChannelSelects(interaction: MessageComponentInteraction) {
     if (!interaction.isChannelSelectMenu()) return;
 
-    const { hubInDb, customId, locale } = await this.componentChecks(interaction);
-    if (!hubInDb) return;
+    const { hub, customId, locale } = await this.componentChecks(interaction);
+    if (!hub) return;
 
     const type = customId.args[2] as HubConfigTypes;
     const channel = interaction.channels.first();
     if (!channel) return;
 
-    await this.updateLogChannel(interaction, hubInDb, type, channel.id, locale);
+    await this.updateLogChannel(interaction, await hub.fetchLogConfig(), type, channel.id, locale);
   }
 
   @RegisterInteractionHandler('hub_edit_modal')
   async handleModals(interaction: ModalSubmitInteraction) {
-    const { hubInDb, customId, locale } = await this.modalChecks(interaction);
-    if (!hubInDb) return;
+    const { hub, customId, locale } = await this.modalChecks(interaction);
+    if (!hub) return;
 
     switch (customId.suffix) {
       case 'description':
-        await this.updateDescription(interaction, hubInDb.id, locale);
+        await this.updateDescription(interaction, hub.id, locale);
         break;
       case 'icon':
-        await this.updateIcon(interaction, hubInDb.id, locale);
+        await this.updateIcon(interaction, hub.id, locale);
         break;
       case 'banner':
-        await this.updateBanner(interaction, hubInDb.id, locale);
+        await this.updateBanner(interaction, hub.id, locale);
         break;
       default:
         break;
     }
 
-    await this.updateOriginalMessage(interaction, hubInDb.id);
+    await this.updateOriginalMessage(interaction, hub.id);
   }
 
   // Helper methods...
@@ -89,24 +87,22 @@ export default class HubEdit extends HubCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     const chosenHub = interaction.options.getString('hub', true);
-    const hubInDb = await this.fetchHubFromDb(interaction.user.id, chosenHub);
+    const hub = await this.fetchHubFromDb(interaction.user.id, chosenHub);
 
-    if (!hubInDb) {
+    if (!hub) {
       await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
-      return { hubInDb: null, locale };
+      return { hub: null, locale };
     }
 
-    return { hubInDb, locale };
+    return { hub, locale };
   }
 
   private async fetchHubFromDb(userId: string, hubName: string) {
-    return await db.hub.findFirst({
-      where: {
-        name: hubName,
-        OR: [{ ownerId: userId }, { moderators: { some: { userId, position: 'manager' } } }],
-      },
-      include: { connections: true },
-    });
+    const hubByName = (await this.hubService.findHubsByName(hubName)).at(0);
+    console.log(hubByName);
+    if (hubByName) return hubByName;
+
+    return (await this.hubService.fetchModeratedHubs(userId, { take: 1 })).at(0);
   }
 
   private async setComponentExpiry(interaction: ChatInputCommandInteraction) {
@@ -116,7 +112,7 @@ export default class HubEdit extends HubCommand {
 
   private async handleAction(
     interaction: MessageComponentInteraction,
-    hubInDb: Hub,
+    hub: HubManager,
     action: string,
     locale: supportedLocaleCodes,
   ) {
@@ -124,10 +120,10 @@ export default class HubEdit extends HubCommand {
       case 'icon':
       case 'description':
       case 'banner':
-        await this.showModal(interaction, hubInDb.id, action, locale);
+        await this.showModal(interaction, hub.id, action, locale);
         break;
       case 'toggle_lock':
-        await this.toggleLock(interaction, hubInDb);
+        await this.toggleLock(interaction, hub);
         break;
       default:
         break;
@@ -165,25 +161,21 @@ export default class HubEdit extends HubCommand {
     await interaction.showModal(modal);
   }
 
-  private async toggleLock(interaction: MessageComponentInteraction, hubInDb: Hub) {
+  private async toggleLock(interaction: MessageComponentInteraction, hub: HubManager) {
     await interaction.deferReply({ ephemeral: true });
 
-    const updatedHub = await db.hub.update({
-      where: { id: hubInDb?.id },
-      data: { locked: !hubInDb?.locked },
-      include: { connections: true },
-    });
-
-    const lockedStatus = updatedHub.locked ? 'locked' : 'unlocked';
+    await hub.setLocked(!hub.data.locked);
+    const lockedStatus = hub.data.locked ? 'locked' : 'unlocked';
 
     await this.replyEmbed(
       interaction,
       `${lockedStatus === 'locked' ? '🔒' : '🔓'} Hub chats are now **${lockedStatus}**.`,
     );
 
-    await interaction.message.edit({ embeds: [await hubEmbed(updatedHub)] }).catch(() => null);
+    const embed = await this.getRefreshedEmbed(hub);
+    await interaction.message.edit({ embeds: [embed] }).catch(() => null);
 
-    await sendToHub(updatedHub.id, {
+    await sendToHub(hub.id, {
       embeds: [
         new InfoEmbed()
           .setTitle(`🛡️ Hub chats are now ${lockedStatus}.`)
@@ -196,12 +188,11 @@ export default class HubEdit extends HubCommand {
 
   private async updateLogChannel(
     interaction: MessageComponentInteraction,
-    hubInDb: Hub,
+    logManager: HubLogManager,
     type: HubConfigTypes,
     channelId: string,
     locale: supportedLocaleCodes,
   ) {
-    const logManager = await HubLogManager.create(hubInDb.id);
     await logManager.setLogChannel(type, channelId);
 
     const embed = interaction.message.embeds[0].toJSON();
@@ -229,10 +220,18 @@ export default class HubEdit extends HubCommand {
     locale: supportedLocaleCodes,
   ) {
     const description = interaction.fields.getTextInputValue('description');
-    await db.hub.update({
-      where: { id: hubId },
-      data: { description },
-    });
+    const hub = await this.hubService.fetchHub(hubId);
+    console.log(hub);
+
+    if (!hub) {
+      await interaction.reply({
+        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
+        ephemeral: true,
+      });
+      return;
+    }
+
+    await hub.setDescription(description);
 
     await interaction.reply({
       content: t('hub.manage.description.changed', locale),
@@ -253,7 +252,10 @@ export default class HubEdit extends HubCommand {
       return;
     }
 
-    await db.hub.update({ where: { id: hubId }, data: { iconUrl } });
+    const hub = await this.getHubOrError(interaction, hubId, locale);
+    if (!hub) return;
+
+    await hub.setIconUrl(iconUrl);
 
     await interaction.reply({
       content: t('hub.manage.icon.changed', locale),
@@ -268,14 +270,12 @@ export default class HubEdit extends HubCommand {
   ) {
     await interaction.deferReply({ ephemeral: true });
 
+    const hub = await this.getHubOrError(interaction, hubId, locale);
+    if (!hub) return;
+
     const bannerUrl = interaction.fields.getTextInputValue('banner');
-
     if (!bannerUrl) {
-      await db.hub.update({
-        where: { id: hubId },
-        data: { bannerUrl: { unset: true } },
-      });
-
+      await hub.setBannerUrl(null);
       await interaction.editReply(t('hub.manage.banner.removed', locale));
       return;
     }
@@ -287,22 +287,17 @@ export default class HubEdit extends HubCommand {
       return;
     }
 
-    await db.hub.update({
-      where: { id: hubId },
-      data: { bannerUrl },
-    });
+    await hub.setBannerUrl(bannerUrl);
 
     await interaction.editReply(emojis.yes + t('hub.manage.banner.changed', locale));
   }
 
   private async updateOriginalMessage(interaction: ModalSubmitInteraction, hubId: string) {
-    const updatedHub = await db.hub.findFirst({
-      where: { id: hubId },
-      include: { connections: true },
-    });
+    const updatedHub = await this.hubService.fetchHub(hubId);
 
     if (updatedHub) {
-      await interaction.message?.edit({ embeds: [await hubEmbed(updatedHub)] }).catch(() => null);
+      const embed = await this.getRefreshedEmbed(updatedHub);
+      await interaction.message?.edit({ embeds: [embed] }).catch(() => null);
     }
   }
 
@@ -320,14 +315,14 @@ export default class HubEdit extends HubCommand {
       return {};
     }
 
-    const hubInDb = await this.hubService.fetchHub(customId.args[1], { connections: true });
-    if (!hubInDb) {
+    const hub = await this.hubService.fetchHub(customId.args[1]);
+    if (!hub) {
       const embed = new InfoEmbed().setDescription(t('hub.notFound', locale, { emoji: emojis.no }));
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return {};
     }
 
-    return { hubInDb, customId, locale };
+    return { hub, customId, locale };
   }
 
   private async modalChecks(interaction: ModalSubmitInteraction) {
@@ -336,20 +331,45 @@ export default class HubEdit extends HubCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    const hubInDb = await this.hubService.fetchHub(hubId, { connections: true });
-    if (!hubInDb || !isHubManager(interaction.user.id, hubInDb)) {
+    const hub = await this.hubService.fetchHub(hubId);
+
+    if (!(await hub?.isManager(interaction.user.id))) {
       await interaction.reply({
-        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
+        content: t('hub.notManager', locale, { emoji: emojis.no }),
         ephemeral: true,
       });
       return {};
     }
 
-    return { hubInDb, customId, locale };
+    return { hub, customId, locale };
   }
 
   private channelMention(channelId: string | null | undefined) {
     if (!channelId) return emojis.no;
     return `<#${channelId}>`;
+  }
+
+  private async getHubOrError(
+    interaction: RepliableInteraction,
+    hubId: string,
+    locale: supportedLocaleCodes,
+  ) {
+    const hub = await this.hubService.fetchHub(hubId);
+
+    if (!hub) {
+      await interaction.reply({
+        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
+        ephemeral: true,
+      });
+      return null;
+    }
+
+    return hub;
+  }
+
+  private async getRefreshedEmbed(hub: HubManager) {
+    const connections = await hub.fetchConnections();
+    const mods = await hub.moderators.fetchAll();
+    return await hubEmbed(hub.data, connections.length, mods.length);
   }
 }

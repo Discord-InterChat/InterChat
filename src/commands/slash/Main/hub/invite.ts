@@ -6,7 +6,6 @@ import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js
 import ms from 'ms';
 import HubCommand from './index.js';
 import { HubService } from '#main/services/HubService.js';
-import { isHubManager } from '#main/utils/hub/utils.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 
 export default class Invite extends HubCommand {
@@ -35,17 +34,17 @@ export default class Invite extends HubCommand {
     const duration = expiryStr ? ms(expiryStr) : undefined;
     const expires = new Date(Date.now() + (duration || 60 * 60 * 4000));
 
-    const hubService = new HubService(db);
-    const hubInDb = await hubService.getHubByName(hubName);
+    const hubService = new HubService();
+    const hub = await (await hubService.findHubsByName(hubName)).at(0);
 
-    if (!hubInDb) {
+    if (!hub) {
       await this.replyEmbed(interaction, 'hub.notFound_mod', {
         t: { emoji: emojis.no },
         ephemeral: true,
       });
       return;
     }
-    else if (!hubInDb?.private) {
+    else if (!hub?.data.private) {
       await this.replyEmbed(interaction, 'hub.notPrivate', {
         t: { emoji: emojis.no },
         ephemeral: true,
@@ -53,7 +52,7 @@ export default class Invite extends HubCommand {
       return;
     }
 
-    if (!isHubManager(interaction.user.id, hubInDb)) {
+    if (!hub.isManager(interaction.user.id)) {
       await this.replyEmbed(interaction, 'hub.notManager', {
         t: { emoji: emojis.no },
         ephemeral: true,
@@ -69,12 +68,7 @@ export default class Invite extends HubCommand {
       return;
     }
 
-    const createdInvite = await db.hubInvite.create({
-      data: {
-        hub: { connect: { name: hubName } },
-        expires,
-      },
-    });
+    const createdInvite = await hub.createInvite(expires);
 
     const embed = new EmbedBuilder()
       .setDescription(
@@ -98,13 +92,14 @@ export default class Invite extends HubCommand {
     locale: supportedLocaleCodes,
   ) {
     const code = interaction.options.getString('code', true);
+
     const inviteInDb = await db.hubInvite.findFirst({
       where: {
         code,
         hub: {
           OR: [
             { ownerId: interaction.user.id },
-            { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
+            { moderators: { some: { userId: interaction.user.id, role: 'MANAGER' } } },
           ],
         },
       },
@@ -137,17 +132,19 @@ export default class Invite extends HubCommand {
     locale: supportedLocaleCodes,
   ) {
     const hubName = interaction.options.getString('hub', true);
-    const hubInDb = await db.hub.findFirst({
-      where: {
-        name: hubName,
-        OR: [
-          { ownerId: interaction.user.id },
-          { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
-        ],
-      },
-    });
 
-    if (!hubInDb?.private) {
+    const hub = (await this.hubService.findHubsByName(hubName)).at(0);
+
+    if (!await hub?.isManager(interaction.user.id)) {
+      await this.replyEmbed(
+        interaction,
+        t('hub.notManager', locale, { emoji: emojis.no }),
+        { ephemeral: true },
+      );
+      return;
+    }
+
+    if (!hub?.data.private) {
       await this.replyEmbed(
         interaction,
         t('hub.invite.list.notPrivate', locale, { emoji: emojis.no }),
@@ -156,7 +153,7 @@ export default class Invite extends HubCommand {
       return;
     }
 
-    const invitesInDb = await db.hubInvite.findMany({ where: { hubId: hubInDb.id } });
+    const invitesInDb = await hub.fetchInvites();
     if (invitesInDb.length === 0) {
       await this.replyEmbed(
         interaction,

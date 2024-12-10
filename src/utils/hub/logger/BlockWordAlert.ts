@@ -2,7 +2,7 @@ import { emojis } from '#utils/Constants.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import { sendLog } from '#main/utils/hub/logger/Default.js';
 import { ACTION_LABELS, createRegexFromWords } from '#main/utils/moderation/blockWords.js';
-import { MessageBlockList } from '@prisma/client';
+import { BlockWord } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, Message } from 'discord.js';
 
@@ -10,7 +10,7 @@ const boldANSIText = (text: string) => `\u001b[1;2m${text}\u001b[0m`;
 
 export const logBlockwordAlert = async (
   message: Message<true>,
-  rule: MessageBlockList,
+  rule: BlockWord,
   matches: string[],
 ) => {
   const logManager = await HubLogManager.create(rule.hubId);
