@@ -1,11 +1,11 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
-import db from '#utils/Db.js';
-import type { Hub, HubLogConfig } from '@prisma/client';
+import HubLogManager from '#main/managers/HubLogManager.js';
+import HubManager from '#main/managers/HubManager.js';
+
+
+import Constants, { emojis } from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { type Client, codeBlock, EmbedBuilder, type Snowflake, User } from 'discord.js';
-import Constants, { emojis } from '#utils/Constants.js';
 import { sendLog } from './Default.js';
 
 const getUnblacklistEmbed = (
@@ -50,32 +50,38 @@ type UnblacklistOpts = {
 
 export const logServerUnblacklist = async (
   client: Client,
-  hubId: string,
+  hub: HubManager,
   opts: UnblacklistOpts,
 ) => {
-  const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
-  const blacklistManager = new BlacklistManager(new ServerInfractionManager(opts.id));
-  const blacklist = await blacklistManager.fetchBlacklist(hubId);
-  const modLogs = hub?.logConfig.at(0)?.modLogs;
-  if (!BlacklistManager.isServerBlacklist(blacklist) || !modLogs) return;
+  const blacklistManager = new BlacklistManager('server', opts.id);
+  const blacklist = await blacklistManager.fetchBlacklist(hub.id);
+
+  const logConfig = await hub.fetchLogConfig();
+  const modLogs = logConfig.config.modLogs;
+  if (!blacklist?.serverName || !modLogs) return;
 
   const embed = getUnblacklistEmbed('Server', {
     id: opts.id,
     name: blacklist.serverName,
     mod: opts.mod,
-    hubName: hub.name,
+    hubName: hub.data.name,
     reason: opts.reason,
     originalReason: blacklist.reason,
   });
 
-  await sendLog(client.cluster, modLogs, embed);
+  await sendLog(client.cluster, modLogs.channelId, embed);
 };
 
-export const logUserUnblacklist = async (client: Client, hubId: string, opts: UnblacklistOpts) => {
-  const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
-  const blacklistManager = new BlacklistManager(new UserInfractionManager(opts.id));
-  const blacklist = await blacklistManager.fetchBlacklist(hubId);
-  const modLogs = hub?.logConfig.at(0)?.modLogs;
+export const logUserUnblacklist = async (
+  client: Client,
+  hub: HubManager,
+  opts: UnblacklistOpts,
+) => {
+  const blacklistManager = new BlacklistManager('user', opts.id);
+  const blacklist = await blacklistManager.fetchBlacklist(hub.id);
+
+  const logConfig = await hub.fetchLogConfig();
+  const modLogs = logConfig.config.modLogs;
   if (!blacklist || !modLogs) return;
 
   const user = await client.users.fetch(opts.id).catch(() => null);
@@ -86,21 +92,22 @@ export const logUserUnblacklist = async (client: Client, hubId: string, opts: Un
     id: opts.id,
     mod: opts.mod,
     reason: opts.reason,
-    hubName: hub.name,
+    hubName: hub.data.name,
     originalReason: blacklist.reason,
   });
 
-  await sendLog(client.cluster, modLogs, embed);
+  await sendLog(client.cluster, modLogs.channelId, embed);
 };
 
 export const logMsgDelete = async (
   client: Client,
   content: string,
-  hub: Hub & { logConfig: HubLogConfig[] },
+  hubName: string,
+  logConfig: HubLogManager,
   opts: { userId: string; serverId: string; modName: string; imageUrl?: string },
 ) => {
-  const modLogs = hub?.logConfig.at(0)?.modLogs;
-  if (!modLogs) return;
+  const modLogs = logConfig.config.modLogs;
+  if (!modLogs?.channelId) return;
 
   const { userId, serverId } = opts;
   const user = await client.users.fetch(userId).catch(() => null);
@@ -119,9 +126,9 @@ export const logMsgDelete = async (
     .addFields([
       { name: `${emojis.connect_icon} User`, value: `${user?.username} (\`${userId}\`)` },
       { name: `${emojis.rules_icon} Server`, value: `${server?.name} (\`${serverId}\`)` },
-      { name: `${emojis.globe_icon} Hub`, value: hub.name },
+      { name: `${emojis.globe_icon} Hub`, value: hubName },
     ])
     .setFooter({ text: `Deleted by: ${opts.modName}` });
 
-  await sendLog(client.cluster, modLogs, embed);
+  await sendLog(client.cluster, modLogs.channelId, embed);
 };

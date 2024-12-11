@@ -1,7 +1,8 @@
 import { emojis } from '#utils/Constants.js';
 import { ChatInputCommandInteraction } from 'discord.js';
 import Set from './index.js';
-export default class replyMention extends Set {
+
+export default class ReplyMention extends Set {
   async execute(interaction: ChatInputCommandInteraction) {
     const { userManager } = interaction.client;
     const dbUser = await userManager.getUser(interaction.user.id);

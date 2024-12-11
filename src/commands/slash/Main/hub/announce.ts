@@ -1,6 +1,9 @@
-import { emojis } from '#utils/Constants.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { HubService } from '#main/services/HubService.js';
+import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
-import { isHubManager, sendToHub } from '#main/utils/hub/utils.js';
+import { sendToHub } from '#main/utils/hub/utils.js';
+import { emojis } from '#utils/Constants.js';
 import {
   ActionRowBuilder,
   ChatInputCommandInteraction,
@@ -11,18 +14,20 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import HubCommand from './index.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { HubService } from '#main/services/HubService.js';
 
 export default class AnnounceCommand extends HubCommand {
   readonly cooldown = 1 * 60 * 1000;
   async execute(interaction: ChatInputCommandInteraction) {
     const hubName = interaction.options.getString('hub', true);
-    const hub = await db.hub.findFirst({ where: { name: hubName } });
 
-    if (!hub || !isHubManager(interaction.user.id, hub)) {
-      await this.replyEmbed(interaction, 'hub.notFound_mod', { ephemeral: true, t: { emoji: emojis.no } });
+    const hubService = new HubService();
+    const hub = (await hubService.findHubsByName(hubName)).at(0);
+
+    if (!hub || !(await hub.isMod(interaction.user.id))) {
+      await this.replyEmbed(interaction, 'hub.notFound_mod', {
+        ephemeral: true,
+        t: { emoji: emojis.no },
+      });
       return;
     }
 
@@ -56,7 +61,7 @@ export default class AnnounceCommand extends HubCommand {
     const hub = await hubService.fetchHub(hubId);
 
     await sendToHub(hubId, {
-      avatarURL: hub?.iconUrl,
+      avatarURL: hub?.data.iconUrl,
       embeds: [
         new EmbedBuilder()
           .setTitle('📢 Official Hub Announcement')

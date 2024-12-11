@@ -1,10 +1,11 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+
 import { logBlockwordAlert } from '#main/utils/hub/logger/BlockWordAlert.js';
 import Logger from '#main/utils/Logger.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import { createRegexFromWords } from '#main/utils/moderation/blockWords.js';
-import { BlockWordAction, MessageBlockList } from '@prisma/client';
+import { CheckResult } from '#main/utils/network/runChecks.js';
+import { BlockWordAction, BlockWord } from '@prisma/client';
 import { ActionRowBuilder, Awaitable, ButtonBuilder, Message } from 'discord.js';
 
 // Interface for action handler results
@@ -18,7 +19,7 @@ interface ActionResult {
 // Action handler type
 type ActionHandler = (
   message: Message<true>,
-  rule: MessageBlockList,
+  rule: BlockWord,
   matches: string[],
 ) => Awaitable<ActionResult>;
 
@@ -42,7 +43,7 @@ const actionHandlers: Record<BlockWordAction, ActionHandler> = {
     const target = message.author;
     const mod = message.client.user;
 
-    const blacklistManager = new BlacklistManager(new UserInfractionManager(target.id));
+    const blacklistManager = new BlacklistManager('user', target.id);
     await blacklistManager.addBlacklist({
       hubId: rule.hubId,
       reason,
@@ -66,8 +67,11 @@ const actionHandlers: Record<BlockWordAction, ActionHandler> = {
   },
 };
 
-export async function checkBlockedWords(message: Message<true>, msgBlockList: MessageBlockList[]) {
-  if (msgBlockList.length === 0) return Promise.resolve({ passed: true });
+export async function checkBlockedWords(
+  message: Message<true>,
+  msgBlockList: BlockWord[],
+): Promise<CheckResult> {
+  if (msgBlockList.length === 0) return { passed: true };
 
   for (const rule of msgBlockList) {
     const regex = createRegexFromWords(rule.words);

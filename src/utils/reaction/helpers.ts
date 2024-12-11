@@ -1,6 +1,6 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+
+
 import { isBlacklisted } from '#utils/moderation/blacklistUtils.js';
 
 /**
@@ -16,10 +16,10 @@ export const checkBlacklists = async (
   userId: string | null,
 ) => {
   const userBlacklistManager = userId
-    ? new BlacklistManager(new UserInfractionManager(userId))
+    ? new BlacklistManager('user', userId)
     : undefined;
   const guildBlacklistManager = guildId
-    ? new BlacklistManager(new ServerInfractionManager(guildId))
+    ? new BlacklistManager('server', guildId)
     : undefined;
 
   const userBlacklist = await userBlacklistManager?.fetchBlacklist(hubId);

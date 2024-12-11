@@ -14,6 +14,7 @@ export default class UserDbManager {
   private serializeUserDates(user: ConvertDatesToString<UserData>): UserData {
     return {
       ...user,
+      updatedAt: new Date(user.updatedAt),
       lastVoted: user.lastVoted ? new Date(user.lastVoted) : null,
     };
   }
@@ -67,7 +68,7 @@ export default class UserDbManager {
     const user = await this.upsertUser(id, {
       username,
       voteCount: 0,
-      banMeta: { reason },
+      banReason: reason,
     });
 
     await this.addToCache(user);
@@ -77,7 +78,7 @@ export default class UserDbManager {
     const user = await this.upsertUser(id, {
       username,
       voteCount: 0,
-      banMeta: { set: null },
+      banReason: null,
     });
 
     await this.addToCache(user);

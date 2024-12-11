@@ -11,7 +11,7 @@ import db from '#main/utils/Db.js';
 
 export const modPanelButton = (targetMsgId: string, opts?: { label?: string; emoji?: string }) =>
   new ButtonBuilder()
-    .setCustomId(new CustomID().setIdentifier('showModPanel').addArgs(targetMsgId).toString())
+    .setCustomId(new CustomID().setIdentifier('showModPanel').setArgs(targetMsgId).toString())
     .setStyle(ButtonStyle.Danger)
     .setLabel(opts?.label ?? 'Mod Panel')
     .setEmoji(emojis.blobFastBan);
@@ -30,7 +30,7 @@ export default class ModActionsButton {
     const hubService = new HubService(db);
     const hub = originalMessage ? await hubService.fetchHub(originalMessage?.hubId) : null;
 
-    if (!originalMessage || !hub || !isStaffOrHubMod(interaction.user.id, hub)) {
+    if (!originalMessage || !hub || !await isStaffOrHubMod(interaction.user.id, hub)) {
       await interaction.editReply({ components: [] });
       await interaction.followUp({
         embeds: [new InfoEmbed({ description: `${emojis.slash} Message was deleted.` })],
@@ -39,7 +39,7 @@ export default class ModActionsButton {
       return;
     }
 
-    if (!isStaffOrHubMod(interaction.user.id, hub)) return;
+    if (!await isStaffOrHubMod(interaction.user.id, hub)) return;
 
     const panel = await buildModPanel(interaction, originalMessage);
     await interaction.followUp({

@@ -36,7 +36,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
 
     const hubService = new HubService(db);
     const hub = await hubService.fetchHub(originalMessage.hubId);
-    if (!hub || !isStaffOrHubMod(message.author.id, hub)) {
+    if (!hub || !await isStaffOrHubMod(message.author.id, hub)) {
       const embed = new EmbedBuilder()
         .setColor('Red')
         .setDescription(`${emojis.no} You do not have permission to use this command.`);

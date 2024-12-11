@@ -40,7 +40,7 @@ export default class DeleteMsgCommand extends BasePrefixCommand {
     const hub = await hubService.fetchHub(originalMsg.hubId);
     if (
       !hub || // Check if the hub exists
-      !isStaffOrHubMod(message.author.id, hub) || // Check if the user is a staff or hub mod
+      !await isStaffOrHubMod(message.author.id, hub) || // Check if the user is a staff or hub mod
       originalMsg.authorId !== message.author.id // Only then check if the user is the author of the message
     ) {
       const embed = new EmbedBuilder()

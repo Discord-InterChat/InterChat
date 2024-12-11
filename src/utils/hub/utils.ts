@@ -1,11 +1,9 @@
+import HubManager from '#main/managers/HubManager.js';
 import Constants from '#main/utils/Constants.js';
-import {
-  deleteConnection,
-  getHubConnections,
-} from '#utils/ConnectedListUtils.js';
+import { deleteConnection, getHubConnections } from '#utils/ConnectedListUtils.js';
 import Logger from '#utils/Logger.js';
 import { checkIfStaff } from '#utils/Utils.js';
-import type { Hub } from '@prisma/client';
+import type { HubModerator, Role } from '@prisma/client';
 import { type WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
 
 /**
@@ -48,12 +46,13 @@ export const sendToHub = async (
   }
 };
 
-export const isHubMod = (userId: string, hub: Hub) =>
-  Boolean(hub.ownerId === userId || hub.moderators.find((mod) => mod.userId === userId));
+export const isHubMod = (userId: string, mods: HubModerator[], checkRoles?: Role[]) =>
+  mods.some((mod) => {
+    if (mod.userId !== userId) return false;
+    if (!checkRoles) return true;
 
-export const isStaffOrHubMod = (userId: string, hub: Hub) =>
-  checkIfStaff(userId) || isHubMod(userId, hub);
+    return checkRoles.includes(mod.role);
+  });
 
-export const isHubManager = (userId: string, hub: Hub) =>
-  hub.ownerId === userId ||
-  hub.moderators.some((mod) => mod.userId === userId && mod.position === 'manager');
+export const isStaffOrHubMod = async (userId: string, hub: HubManager) =>
+  checkIfStaff(userId) || (await hub.isMod(userId));

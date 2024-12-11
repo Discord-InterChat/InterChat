@@ -4,7 +4,7 @@ import { emojis } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
-import { connectedList } from '@prisma/client';
+import { Connection } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { WebhookClient } from 'discord.js';
 import 'dotenv/config';
@@ -43,7 +43,7 @@ export default async () => {
   });
 };
 
-async function findInactiveConnections(): Promise<connectedList[]> {
+async function findInactiveConnections(): Promise<Connection[]> {
   const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   // Find all hubs with at least 50 connections

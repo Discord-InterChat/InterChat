@@ -1,4 +1,4 @@
-import { connectedList } from '@prisma/client';
+import { Connection } from '@prisma/client';
 import { WebhookMessageCreateOptions, EmbedBuilder, Message } from 'discord.js';
 import { DefaultFormaterOpts, MessageFormatterStrategy } from '../MessageFormattingService.js';
 import { censor } from '#main/utils/ProfanityUtils.js';
@@ -8,7 +8,7 @@ import Constants from '#main/utils/Constants.js';
 export class CompactMessageFormatter implements MessageFormatterStrategy {
   format(
     message: Message<true>,
-    connection: connectedList,
+    connection: Connection,
     opts: DefaultFormaterOpts,
   ): WebhookMessageCreateOptions {
     const contents = {

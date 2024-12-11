@@ -4,6 +4,7 @@ import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Find from './index.js';
+import { HubService } from '#main/services/HubService.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -19,7 +20,7 @@ export default class Server extends Find {
     }
 
     const userData = await interaction.client.userManager.getUser(user.id);
-    const blacklistList = await db.userInfraction.findMany({
+    const blacklistList = await db.infraction.findMany({
       where: { userId: user.id, status: 'ACTIVE', type: 'BLACKLIST' },
       select: { hub: { select: { name: true } } },
     });
@@ -32,11 +33,10 @@ export default class Server extends Find {
     const serversOwned = user.client.guilds.cache
       .filter((guild) => guild.ownerId === user.id)
       .map((guild) => guild.name);
-    const hubsOwned = await db.hub.findMany({
-      where: { ownerId: user.id },
-    });
+
+    const ownedHubs = await new HubService().getOwnedHubs(user.id);
     const numServersOwned = serversOwned.length > 0 ? serversOwned.join(', ') : 'None';
-    const numHubOwned = hubsOwned.length > 0 ? hubsOwned.map((hub) => hub.name).join(', ') : 'None';
+    const numHubOwned = ownedHubs.length > 0 ? ownedHubs.map((hub) => hub.data.name).join(', ') : 'None';
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
@@ -59,7 +59,7 @@ export default class Server extends Find {
           value: stripIndents`
             > ${emojis.chat_icon} **Hubs Owned:** ${numHubOwned}
             > ${emojis.delete} **Blacklisted From:** ${blacklistedFromStr}
-            > ${emojis.deleteDanger_icon} **Banned:** ${userData?.banMeta?.reason ? 'Yes' : 'No'}
+            > ${emojis.deleteDanger_icon} **Banned:** ${userData?.banReason ? 'Yes' : 'No'}
              `,
         },
       ]);

@@ -1,9 +1,7 @@
+import HubManager from '#main/managers/HubManager.js';
 import { emojis } from '#utils/Constants.js';
-import db from '#utils/Db.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
-import { isHubMod } from '#utils/hub/utils.js';
 import { t } from '#utils/Locale.js';
-import { Hub } from '@prisma/client';
 import { ChatInputCommandInteraction } from 'discord.js';
 import ms from 'ms';
 import HubCommand from './index.js';
@@ -20,7 +18,7 @@ export default class AppealCommand extends HubCommand {
     }
   }
 
-  private async handleAppealCooldown(interaction: ChatInputCommandInteraction, hub: Hub) {
+  private async handleAppealCooldown(interaction: ChatInputCommandInteraction, hub: HubManager) {
     const cooldown = interaction.options.getString('cooldown', true);
     const appealCooldownHours = ms(cooldown) / 1000 / 60 / 60;
     if (!appealCooldownHours || appealCooldownHours < 1) {
@@ -34,7 +32,7 @@ export default class AppealCommand extends HubCommand {
       return;
     }
 
-    await db.hub.update({ where: { id: hub.id }, data: { appealCooldownHours } });
+    await hub.setAppealCooldownHours(appealCooldownHours);
 
     await interaction.reply({
       content: `${emojis.clock_icon} Appeal cooldown has been set to **${appealCooldownHours}** hour(s).`,
@@ -44,9 +42,9 @@ export default class AppealCommand extends HubCommand {
 
   private async runHubChecks(interaction: ChatInputCommandInteraction) {
     const hubName = interaction.options.getString('hub', true);
-    const hub = await db.hub.findFirst({ where: { name: hubName } });
+    const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
-    if (!hub || !isHubMod(interaction.user.id, hub)) {
+    if (!hub || !await hub.isMod(interaction.user.id)) {
       await this.replyEmbed(
         interaction,
         t(

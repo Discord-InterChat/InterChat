@@ -2,7 +2,7 @@
 import { emojis, numberEmojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { BlockWordAction, MessageBlockList } from '@prisma/client';
+import { BlockWord, BlockWordAction } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   codeBlock,
@@ -38,7 +38,7 @@ export const sanitizeWords = (words: string) =>
     .map((word) => word.trim())
     .join(',');
 
-export const buildBlockWordsListEmbed = (rules: MessageBlockList[]) =>
+export const buildBlockWordListEmbed = (rules: BlockWord[]) =>
   new InfoEmbed()
     .removeTitle()
     .setDescription(
@@ -54,7 +54,7 @@ export const buildBlockWordsListEmbed = (rules: MessageBlockList[]) =>
       })),
     );
 
-export const buildBWRuleEmbed = (rule: MessageBlockList) => {
+export const buildBWRuleEmbed = (rule: BlockWord) => {
   const actions = rule.actions.map((a) => ACTION_LABELS[a]).join(', ');
   return new InfoEmbed()
     .removeTitle()
@@ -79,7 +79,7 @@ export const buildBlockedWordsBtns = (hubId: string, ruleId: string) =>
       .setStyle(ButtonStyle.Secondary),
   );
 
-export const buildBlockWordsModal = (hubId: string, opts?: { presetRule: MessageBlockList }) => {
+export const buildBlockWordModal = (hubId: string, opts?: { presetRule: BlockWord }) => {
   const customId = new CustomID('blockwordsModal', [hubId]);
   const modal = new ModalBuilder()
     .setTitle(opts?.presetRule ? `Edit Block Rule ${opts.presetRule.name}` : 'Add Block Word Rule')
@@ -110,7 +110,7 @@ export const buildBlockWordsModal = (hubId: string, opts?: { presetRule: Message
     );
 
   if (opts?.presetRule) {
-    modal.setCustomId(customId.addArgs(hubId, opts.presetRule.id).toString());
+    modal.setCustomId(customId.setArgs(hubId, opts.presetRule.id).toString());
     modal.components[0].components[0].setValue(opts.presetRule.name);
     modal.components[1].components[0].setValue(opts.presetRule.words.replace(/\.\*/g, '*'));
   }
@@ -118,7 +118,7 @@ export const buildBlockWordsModal = (hubId: string, opts?: { presetRule: Message
   return modal;
 };
 
-export const buildBlockWordsActionsSelect = (
+export const buildBlockWordActionsSelect = (
   hubId: string,
   ruleId: string,
   currentActions: BlockWordAction[],

@@ -1,8 +1,8 @@
 import HubLogManager from '#main/managers/HubLogManager.js';
+import { getHubConnections } from '#utils/ConnectedListUtils.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, Guild } from 'discord.js';
-import Constants, { emojis } from '#utils/Constants.js';
-import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { sendLog } from './Default.js';
 
 export const logJoinToHub = async (
@@ -29,7 +29,7 @@ export const logJoinToHub = async (
       text: `We have ${opt?.totalConnections} server(s) connected to ${opt?.hubName} now!`,
     });
 
-  await sendLog(server.client.cluster, logManager.config.joinLeaves, embed);
+  await sendLog(server.client.cluster, logManager.config.joinLeaves.channelId, embed);
 };
 
 export const logGuildLeaveToHub = async (hubId: string, server: Guild) => {
@@ -57,5 +57,5 @@ export const logGuildLeaveToHub = async (hubId: string, server: Guild) => {
       text: `We now have ${totalConnections} server(s) connected to the hub now!`,
     });
 
-  await sendLog(server.client.cluster, logManager.config.joinLeaves, embed);
+  await sendLog(server.client.cluster, logManager.config.joinLeaves.channelId, embed);
 };

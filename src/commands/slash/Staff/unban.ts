@@ -23,7 +23,7 @@ export default class Unban extends BaseCommand {
     const { userManager } = interaction.client;
     const alreadyBanned = await userManager.getUser(user.id);
 
-    if (!alreadyBanned?.banMeta?.reason) {
+    if (!alreadyBanned?.banReason) {
       const notBannedEmbed = new InfoEmbed().setDescription(
         `${emojis.slash} User **${user.username}** is not banned.`,
       );

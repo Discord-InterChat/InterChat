@@ -19,20 +19,26 @@ import HubCommand from './index.js';
 export default class Delete extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
-    const hubInDb = await db.hub.findFirst({ where: { name: hubName } });
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
 
-    if (interaction.user.id !== hubInDb?.ownerId) {
-      await interaction.reply({
-        content: t('hub.delete.ownerOnly', locale, { emoji: emojis.no }),
-        ephemeral: true,
-      });
+    const hub = (await this.hubService.getOwnedHubs(interaction.user.id)).find(
+      (h) => h.data.name === hubName,
+    );
+
+    if (!hub) {
+      const infoEmbed = new InfoEmbed().setDescription(
+        t('hub.notOwner', await interaction.client.userManager.getUserLocale(interaction.user.id), {
+          emoji: emojis.no,
+        }),
+      );
+      await interaction.reply({ embeds: [infoEmbed], ephemeral: true });
       return;
     }
 
+    const { userManager } = interaction.client;
+    const locale = await userManager.getUserLocale(interaction.user.id);
+
     const confirmEmbed = new EmbedBuilder()
-      .setDescription(t('hub.delete.confirm', locale, { hub: hubInDb.name }))
+      .setDescription(t('hub.delete.confirm', locale, { hub: hub.data.name }))
       .setColor('Red');
     const confirmButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
@@ -40,8 +46,8 @@ export default class Delete extends HubCommand {
         .setCustomId(
           new CustomID()
             .setIdentifier('hub_delete', 'confirm')
-            .addArgs(interaction.user.id)
-            .addArgs(hubInDb.id)
+            .setArgs(interaction.user.id)
+            .setArgs(hub.id)
             .toString(),
         )
         .setStyle(ButtonStyle.Danger),
@@ -50,8 +56,8 @@ export default class Delete extends HubCommand {
         .setCustomId(
           new CustomID()
             .setIdentifier('hub_delete', 'cancel')
-            .addArgs(interaction.user.id)
-            .addArgs(hubInDb.id)
+            .setArgs(interaction.user.id)
+            .setArgs(hub.id)
             .toString(),
         )
         .setStyle(ButtonStyle.Secondary),
@@ -100,7 +106,7 @@ export default class Delete extends HubCommand {
     const hubInDb = await hubService.fetchHub(hubId);
 
     // only the owner can delete the hub
-    if (hubInDb?.ownerId !== interaction.user.id) {
+    if (!hubInDb?.isOwner(interaction.user.id)) {
       const infoEmbed = new InfoEmbed().setDescription(
         t('hub.notFound', locale, { emoji: emojis.no }),
       );
@@ -113,7 +119,7 @@ export default class Delete extends HubCommand {
     await hubService.deleteHub(hubInDb.id);
 
     await interaction.editReply({
-      content: t('hub.delete.success', locale, { emoji: emojis.tick, hub: hubInDb.name }),
+      content: t('hub.delete.success', locale, { emoji: emojis.tick, hub: hubInDb.data.name }),
       embeds: [],
     });
   }

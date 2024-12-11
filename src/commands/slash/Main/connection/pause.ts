@@ -14,7 +14,7 @@ import Connection from './index.js';
 export default class Pause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const channelId = interaction.options.getString('channel') ?? interaction.channelId;
-    const connected = await db.connectedList.findFirst({ where: { channelId } });
+    const connected = await db.connection.findFirst({ where: { channelId } });
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 

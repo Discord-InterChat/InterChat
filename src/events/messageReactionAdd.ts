@@ -1,5 +1,4 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
-import { HubSettingsBitField } from '#main/modules/BitFields.js';
 import { HubService } from '#main/services/HubService.js';
 import db from '#main/utils/Db.js';
 import {
@@ -32,7 +31,7 @@ export default class ReadctionAdd extends BaseEventListener<'messageReactionAdd'
     const hubService = new HubService(db);
     const hub = originalMsg ? await hubService.fetchHub(originalMsg?.hubId) : null;
 
-    if (!originalMsg || !hub || !new HubSettingsBitField(hub.settings).has('Reactions')) {
+    if (!originalMsg || !hub?.settings.has('Reactions')) {
       return;
     }
 

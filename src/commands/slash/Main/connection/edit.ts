@@ -34,7 +34,7 @@ export default class ConnectionEditCommand extends Connection {
       interaction.options.getString('channel')?.replace(Constants.Regex.ChannelMention, '') ??
       interaction.channelId;
 
-    const isInDb = await db.connectedList.findFirst({ where: { channelId } });
+    const isInDb = await db.connection.findFirst({ where: { channelId } });
     const locale = await this.getLocale(interaction);
 
     if (!isInDb) {
@@ -161,7 +161,7 @@ export default class ConnectionEditCommand extends Connection {
       return;
     }
 
-    const connection = await db.connectedList.findFirst({ where: { channelId } });
+    const connection = await db.connection.findFirst({ where: { channelId } });
     if (!channelId || !connection) {
       await interaction.reply({
         content: t('connection.channelNotFound', locale, { emoji: emojis.no }),
@@ -183,7 +183,7 @@ export default class ConnectionEditCommand extends Connection {
         const modal = new ModalBuilder()
           .setTitle('Add Invite Link')
           .setCustomId(
-            new CustomID().setIdentifier('connectionModal', 'invite').addArgs(channelId).toString(),
+            new CustomID().setIdentifier('connectionModal', 'invite').setArgs(channelId).toString(),
           )
           .addComponents(
             new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -205,7 +205,7 @@ export default class ConnectionEditCommand extends Connection {
           .setCustomId(
             new CustomID()
               .setIdentifier('connectionModal', 'embed_color')
-              .addArgs(channelId)
+              .setArgs(channelId)
               .toString(),
           )
           .addComponents(
@@ -274,7 +274,7 @@ export default class ConnectionEditCommand extends Connection {
       return;
     }
 
-    const alreadyConnected = await db.connectedList.findFirst({
+    const alreadyConnected = await db.connection.findFirst({
       where: { channelId: newChannel.id },
     });
 

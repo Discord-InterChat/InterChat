@@ -1,7 +1,8 @@
-import { Hub, connectedList } from '@prisma/client';
+import HubManager from '#main/managers/HubManager.js';
+import { Connection } from '@prisma/client';
 
 export interface ConnectionData {
-  connection: connectedList;
-  hubConnections: connectedList[];
-  hub: Hub & { msgBlockList: MessageBlockList[] };
+  connection: Connection;
+  hubConnections: Connection[];
+  hub: HubManager;
 }

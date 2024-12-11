@@ -301,8 +301,12 @@ export class Pagination {
         ackd = true;
       }
 
-      if (options?.deleteOnEnd) await interaction.deleteReply();
-      else if (ackd === false) await interaction.editReply({ components: [] });
+      if (options?.deleteOnEnd) {
+        await interaction.deleteReply();
+      }
+      else if (ackd === false) {
+        await interaction.message.edit({ components: [] }).catch(() => null);
+      }
     });
   }
 

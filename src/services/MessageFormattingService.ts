@@ -1,5 +1,5 @@
 import { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
-import { connectedList, Hub } from '@prisma/client';
+import { Connection, Hub } from '@prisma/client';
 import { ActionRowBuilder, ButtonBuilder, Message, userMention, WebhookMessageCreateOptions } from 'discord.js';
 import { CompactMessageFormatter } from './formatters/CompactMsgFormatter.js';
 import { EmbedMessageFormatter } from './formatters/EmbedMsgFormatter.js';
@@ -7,7 +7,7 @@ import { EmbedMessageFormatter } from './formatters/EmbedMsgFormatter.js';
 export interface MessageFormatterStrategy {
   format(
     message: Message<true>,
-    connection: connectedList,
+    connection: Connection,
     opts: DefaultFormaterOpts
   ): WebhookMessageCreateOptions;
 }
@@ -27,9 +27,9 @@ export type DefaultFormaterOpts = BroadcastOpts & {
 
 export default class MessageFormattingService {
   private readonly strategy: MessageFormatterStrategy;
-  private readonly connection: connectedList;
+  private readonly connection: Connection;
 
-  constructor(connection: connectedList) {
+  constructor(connection: Connection) {
     this.strategy = connection.compact
       ? new CompactMessageFormatter()
       : new EmbedMessageFormatter();
@@ -45,7 +45,7 @@ export default class MessageFormattingService {
   }
   private addReplyMention(
     messageFormat: WebhookMessageCreateOptions,
-    connection: connectedList,
+    connection: Connection,
     referredMsgData?: ReferredMsgData,
   ): WebhookMessageCreateOptions {
     if (referredMsgData && connection.serverId === referredMsgData.dbReferrence?.guildId) {

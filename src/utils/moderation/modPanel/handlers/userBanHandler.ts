@@ -33,7 +33,7 @@ export default class UserBanHandler implements ModAction {
     const modal = new ModalBuilder()
       .setTitle('Ban User')
       .setCustomId(
-        new CustomID().setIdentifier('userBanModal').addArgs(originalMsg.authorId).toString(),
+        new CustomID().setIdentifier('userBanModal').setArgs(originalMsg.authorId).toString(),
       )
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(

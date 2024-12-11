@@ -23,7 +23,7 @@ export default class Leave extends HubCommand {
     await interaction.deferReply({ ephemeral: true });
 
     const channelId = interaction.options.getString('hub', true);
-    const isChannelConnected = await db.connectedList.findFirst({
+    const isChannelConnected = await db.connection.findFirst({
       where: { channelId },
       include: { hub: true },
     });
@@ -91,7 +91,7 @@ export default class Leave extends HubCommand {
 
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
-    const validConnection = await db.connectedList.findFirst({ where: { channelId } });
+    const validConnection = await db.connection.findFirst({ where: { channelId } });
     if (!validConnection) {
       await interaction.update({
         content: t('connection.notFound', locale, { emoji: emojis.no }),

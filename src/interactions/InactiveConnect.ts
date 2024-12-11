@@ -32,8 +32,8 @@ export const buildConnectionButtons = (
       .setCustomId(
         new CustomID()
           .setIdentifier(opts.customCustomId ?? 'connection', 'toggle')
-          .addArgs(channelId)
-          .addArgs(opts?.userId ?? '')
+          .setArgs(channelId)
+          .setArgs(opts?.userId ?? '')
           .toString(),
       )
       .setLabel(connected ? 'Disconnect' : 'Reconnect')

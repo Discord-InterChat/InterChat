@@ -60,14 +60,9 @@ export default class HubLogManager {
 
 
   async setLogChannel(type: LogConfigTypes, channelId: string) {
-    if (this.logsWithRoleId.includes(type)) {
-      await this.updateLogConfig({
-        [type]: { upsert: { set: { channelId }, update: { channelId } } },
-      });
-      return;
-    }
-
-    await this.updateLogConfig({ [type]: channelId });
+    await this.updateLogConfig({
+      [type]: { upsert: { set: { channelId }, update: { channelId } } },
+    });
   }
 
   async resetLog(...type: LogConfigTypes[]) {
@@ -130,8 +125,8 @@ export default class HubLogManager {
         .setCustomId(
           new CustomID()
             .setIdentifier('hub_edit', 'logsSelect')
-            .addArgs(userId)
-            .addArgs(hubId)
+            .setArgs(userId)
+            .setArgs(hubId)
             .toString(),
         )
         .setPlaceholder('Choose a log type to set a channel.')

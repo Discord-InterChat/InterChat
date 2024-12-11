@@ -2,6 +2,7 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { modPanelButton } from '#main/interactions/ShowModPanel.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
+import HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
@@ -14,7 +15,7 @@ import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { sendHubReport } from '#utils/hub/logger/Report.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import type { connectedList, Hub } from '@prisma/client';
+import { Connection } from '@prisma/client';
 import {
   ActionRow,
   ActionRowBuilder,
@@ -42,13 +43,13 @@ import {
 type LocaleInfo = { locale: supportedLocaleCodes };
 type AuthorInfo = { author: User };
 type ServerInfo = { server: RemoveMethods<Guild> | undefined };
-type HubInfo = { hub: Hub | null };
+type HubInfo = { hub: HubManager | null };
 type MsgInfo = { messageId: string };
 
 type UserInfoOpts = LocaleInfo & AuthorInfo;
 type MsgInfoOpts = AuthorInfo & ServerInfo & LocaleInfo & HubInfo & MsgInfo;
 type ReportOpts = LocaleInfo & HubInfo & MsgInfo;
-type ServerInfoOpts = LocaleInfo & ServerInfo & { connection: connectedList | undefined };
+type ServerInfoOpts = LocaleInfo & ServerInfo & { connection: Connection | undefined };
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -80,7 +81,7 @@ export default class MessageInfo extends BaseCommand {
       .addFields([
         { name: 'Sender', value: codeBlock(author.username), inline: true },
         { name: 'From Server', value: codeBlock(`${server?.name}`), inline: true },
-        { name: 'Which Hub?', value: codeBlock(hub.name), inline: true },
+        { name: 'Which Hub?', value: codeBlock(hub.data.name), inline: true },
         { name: 'Message ID', value: codeBlock(originalMsg.messageId), inline: true },
         { name: 'Sent At', value: time(new Date(originalMsg.timestamp), 't'), inline: true },
       ])
@@ -91,7 +92,7 @@ export default class MessageInfo extends BaseCommand {
       (c) => c.connected && c.serverId === originalMsg.guildId,
     );
     const components = this.buildButtons(target.id, locale, {
-      buildModActions: isStaffOrHubMod(interaction.user.id, hub),
+      buildModActions: await isStaffOrHubMod(interaction.user.id, hub),
       inviteButtonUrl: connection?.invite,
     });
 
@@ -294,7 +295,7 @@ export default class MessageInfo extends BaseCommand {
       .addFields([
         { name: 'Sender', value: codeBlock(author.username), inline: true },
         { name: 'From Server', value: codeBlock(`${server?.name}`), inline: true },
-        { name: 'Which Hub?', value: codeBlock(hub.name), inline: true },
+        { name: 'Which Hub?', value: codeBlock(hub.data.name), inline: true },
         { name: 'Message ID', value: codeBlock(messageId), inline: true },
         { name: 'Sent At', value: time(message.createdAt, 't'), inline: true },
       ])

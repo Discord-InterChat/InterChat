@@ -12,7 +12,7 @@ export default class Ready extends BaseEventListener<'webhooksUpdate'> {
     channel: NewsChannel | TextChannel | VoiceChannel | ForumChannel | MediaChannel,
   ) {
     try {
-      const connection = await db.connectedList.findFirst({
+      const connection = await db.connection.findFirst({
         where: { OR: [{ channelId: channel.id }, { parentId: channel.id }] },
       });
 

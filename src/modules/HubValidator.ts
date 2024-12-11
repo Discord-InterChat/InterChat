@@ -1,8 +1,7 @@
-import type { HubCreationData } from '#main/services/HubService.js';
+import HubManager from '#main/managers/HubManager.js';
+import { HubService, type HubCreationData } from '#main/services/HubService.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
-import db from '#main/utils/Db.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { Hub } from '@prisma/client';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -11,6 +10,7 @@ export interface ValidationResult {
 
 export class HubValidator {
   private readonly locale: supportedLocaleCodes;
+  private readonly hubService = new HubService();
 
   constructor(locale: supportedLocaleCodes) {
     this.locale = locale;
@@ -18,7 +18,10 @@ export class HubValidator {
 
   private static readonly MAX_HUBS_PER_USER = 3;
 
-  async validateNewHub(data: HubCreationData, existingHubs: Hub[]): Promise<ValidationResult> {
+  async validateNewHub(
+    data: HubCreationData,
+    existingHubs: HubManager[],
+  ): Promise<ValidationResult> {
     const nameValidation = this.validateHubName(data.name);
     if (!nameValidation.isValid) return nameValidation;
 
@@ -45,7 +48,7 @@ export class HubValidator {
   }
 
   private async validateUniqueName(name: string): Promise<ValidationResult> {
-    const existingHub = await db.hub.findFirst({ where: { name } });
+    const existingHub = await this.hubService.fetchHub({ name });
     if (existingHub) {
       return {
         isValid: false,
@@ -55,9 +58,9 @@ export class HubValidator {
     return { isValid: true };
   }
 
-  private validateHubLimit(ownerId: string, existingHubs: Hub[]): ValidationResult {
+  private validateHubLimit(ownerId: string, existingHubs: HubManager[]): ValidationResult {
     const userHubCount = existingHubs.reduce(
-      (acc, hub) => (hub.ownerId === ownerId ? acc + 1 : acc),
+      (acc, hub) => (hub.isOwner(ownerId) ? acc + 1 : acc),
       0,
     );
 

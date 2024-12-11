@@ -1,19 +1,19 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
+import HubManager from '#main/managers/HubManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+
 import NSFWDetector from '#main/modules/NSFWDetection.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import logProfanity from '#utils/hub/logger/Profanity.js';
-import { isHubMod } from '#utils/hub/utils.js';
 import { t } from '#utils/Locale.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';
 import { containsInviteLinks, replaceLinks } from '#utils/Utils.js';
-import { Hub, MessageBlockList, UserData } from '@prisma/client';
+import { UserData } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { Awaitable, EmbedBuilder, Message } from 'discord.js';
 
-interface CheckResult {
+export interface CheckResult {
   passed: boolean;
   reason?: string;
 }
@@ -22,7 +22,7 @@ interface CheckFunctionOpts {
   userData: UserData;
   settings: HubSettingsManager;
   totalHubConnections: number;
-  hub: Hub & { msgBlockList: MessageBlockList[] };
+  hub: HubManager;
   attachmentURL?: string | null;
 }
 
@@ -59,7 +59,7 @@ const replyToMsg = async (
 
 export const runChecks = async (
   message: Message<true>,
-  hub: Hub & { msgBlockList: MessageBlockList[] },
+  hub: HubManager,
   opts: {
     userData: UserData;
     settings: HubSettingsManager;
@@ -84,24 +84,27 @@ async function checkBanAndBlacklist(
 ): Promise<CheckResult> {
   const { userManager } = message.client;
   const userData = await userManager.getUser(message.author.id);
-  const blacklistManager = new BlacklistManager(new UserInfractionManager(message.author.id));
+  const blacklistManager = new BlacklistManager('user', message.author.id);
   const blacklisted = await blacklistManager.fetchBlacklist(opts.hub.id);
 
-  if (userData?.banMeta?.reason || blacklisted) {
+  if (userData?.banReason || blacklisted) {
     return { passed: false };
   }
   return { passed: true };
 }
 
-function checkHubLock(message: Message<true>, { hub }: CheckFunctionOpts): CheckResult {
-  if (hub.locked && !isHubMod(message.author.id, hub)) {
+async function checkHubLock(
+  message: Message<true>,
+  { hub }: CheckFunctionOpts,
+): Promise<CheckResult> {
+  if (hub.data.locked && !(await hub.isMod(message.author.id))) {
     return { passed: false, reason: 'This hub is currently locked.' };
   }
   return { passed: true };
 }
 
 const containsLinks = (message: Message, settings: HubSettingsManager) =>
-  settings.getSetting('HideLinks') &&
+  settings.has('HideLinks') &&
   !Constants.Regex.StaticImageUrl.test(message.content) &&
   Constants.Regex.Links.test(message.content);
 
@@ -116,14 +119,14 @@ function checkLinks(message: Message<true>, opts: CheckFunctionOpts): CheckResul
 async function checkSpam(message: Message<true>, opts: CheckFunctionOpts): Promise<CheckResult> {
   const { settings, hub } = opts;
   const result = await message.client.antiSpamManager.handleMessage(message);
-  if (settings.getSetting('SpamFilter') && result) {
+  if (settings.has('SpamFilter') && result) {
     if (result.messageCount >= 6) {
       const expiresAt = new Date(Date.now() + 60 * 5000);
       const reason = 'Auto-blacklisted for spamming.';
       const target = message.author;
       const mod = message.client.user;
 
-      const blacklistManager = new BlacklistManager(new UserInfractionManager(target.id));
+      const blacklistManager = new BlacklistManager('user', target.id);
       await blacklistManager.addBlacklist({
         hubId: hub.id,
         reason,
@@ -199,7 +202,7 @@ async function checkInviteLinks(
 ): Promise<CheckResult> {
   const { settings, userData } = opts;
 
-  if (settings.getSetting('BlockInvites') && containsInviteLinks(message.content)) {
+  if (settings.has('BlockInvites') && containsInviteLinks(message.content)) {
     const locale = await message.client.userManager.getUserLocale(userData);
     return { passed: false, reason: t('errors.inviteLinks', locale, { emoji: emojis.no }) };
   }

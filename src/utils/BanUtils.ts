@@ -16,7 +16,7 @@ export const handleBan = async (
   const { userManager } = interaction.client;
   const dbUser = await userManager.getUser(targetId);
 
-  if (dbUser?.banMeta) {
+  if (dbUser?.banReason) {
     await interaction.reply({
       content: `${emojis.slash} This user is already banned.`,
       ephemeral: true,

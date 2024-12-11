@@ -16,7 +16,7 @@ export default function startTasks(clusterManager: ClusterManager) {
 
   const scheduler = new Scheduler();
 
-  // store network message timestamps to connectedList every minute
+  // store network message timestamps to Connection every minute
   scheduler.addRecurringTask('storeMsgTimestamps', 10 * 60 * 1000, storeMsgTimestamps);
   scheduler.addRecurringTask('cleanupTasks', 60 * 60 * 1000, () => {
     deleteExpiredInvites().catch(Logger.error);

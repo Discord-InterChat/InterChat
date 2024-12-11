@@ -1,5 +1,5 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+
 import { emojis } from '#utils/Constants.js';
 import { logUserUnblacklist } from '#utils/hub/logger/ModLogs.js';
 import { t } from '#utils/Locale.js';
@@ -7,6 +7,7 @@ import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import type { ChatInputCommandInteraction, User } from 'discord.js';
 import BlacklistCommand from './index.js';
 import ms from 'ms';
+import { HubService } from '#main/services/HubService.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -27,7 +28,7 @@ export default class extends BlacklistCommand {
 
     if (subcommandGroup === 'add') {
       const user = interaction.options.getUser('user', true);
-      const blacklistManager = new BlacklistManager(new UserInfractionManager(user.id));
+      const blacklistManager = new BlacklistManager('user', user.id);
 
       const passedChecks = await this.runUserAddChecks(interaction, blacklistManager, {
         hubId: hub.id,
@@ -58,7 +59,7 @@ export default class extends BlacklistCommand {
     }
     else if (subcommandGroup === 'remove') {
       const userId = interaction.options.getString('user', true);
-      const blacklistManager = new BlacklistManager(new UserInfractionManager(userId));
+      const blacklistManager = new BlacklistManager('user', userId);
 
       const result = await this.removeUserBlacklist(interaction, blacklistManager, userId, {
         hubId: hub.id,
@@ -109,9 +110,10 @@ export default class extends BlacklistCommand {
     opts: { hubId: string; reason: string },
   ) {
     const revoked = await blacklistManager.removeBlacklist(opts.hubId);
+    const hub = await new HubService().fetchHub(opts.hubId);
 
-    if (revoked) {
-      await logUserUnblacklist(interaction.client, opts.hubId, {
+    if (revoked && hub) {
+      await logUserUnblacklist(interaction.client, hub, {
         id: userId,
         mod: interaction.user,
         reason: opts.reason,

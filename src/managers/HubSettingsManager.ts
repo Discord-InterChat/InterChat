@@ -1,27 +1,27 @@
-import { emojis } from '#utils/Constants.js';
+import HubManager from '#main/managers/HubManager.js';
 import {
   HubSettingsBitField,
   HubSettingsBits,
   type HubSettingsString,
 } from '#main/modules/BitFields.js';
-import db from '#utils/Db.js';
-import { Hub } from '@prisma/client';
-import { EmbedBuilder } from 'discord.js';
+import { HubService } from '#main/services/HubService.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import { emojis } from '#utils/Constants.js';
+import { EmbedBuilder } from 'discord.js';
 
 export default class HubSettingsManager {
-  private readonly hubId: string;
+  private readonly hub: HubManager;
   private settings: HubSettingsBitField;
 
-  constructor(hubId: string, initialSettings?: number) {
-    this.hubId = hubId;
-    this.settings = new HubSettingsBitField(initialSettings ?? 0);
+  constructor(hub: HubManager) {
+    this.hub = hub;
+    this.settings = new HubSettingsBitField(hub.data.settings ?? 0);
   }
 
   static async create(hubId: string): Promise<HubSettingsManager> {
-    const hub = await db.hub.findUnique({ where: { id: hubId } });
+    const hub = await new HubService().fetchHub(hubId);
     if (!hub) throw new Error('Hub not found');
-    return new HubSettingsManager(hubId, hub.settings);
+    return new HubSettingsManager(hub);
   }
 
   async updateSetting(setting: HubSettingsString, value?: boolean): Promise<boolean> {
@@ -30,7 +30,7 @@ export default class HubSettingsManager {
     else this.settings.remove(setting);
 
     await this.saveSettings();
-    return this.settings.has(setting);
+    return this.has(setting);
   }
 
   async updateMultipleSettings(
@@ -44,21 +44,21 @@ export default class HubSettingsManager {
     await this.saveSettings();
   }
 
-  getSetting(setting: HubSettingsString): boolean {
+  has(setting: HubSettingsString): boolean {
     return this.settings.has(setting);
   }
 
-  getAllSettings(): Record<HubSettingsString, boolean> {
+  getAll(): Record<HubSettingsString, boolean> {
     return this.settings.serialize();
   }
 
-  get settingsEmbed(): EmbedBuilder {
+  get embed(): EmbedBuilder {
     const embed = new InfoEmbed()
       .setTitle('Hub Settings')
       .setColor('#0099ff')
       .setDescription('Current settings for this hub:');
 
-    for (const [key, value] of Object.entries(this.getAllSettings())) {
+    for (const [key, value] of Object.entries(this.getAll())) {
       embed.addFields({
         name: key,
         value: value ? `${emojis.yes} Enabled` : `${emojis.no} Disabled`,
@@ -69,11 +69,8 @@ export default class HubSettingsManager {
     return embed;
   }
 
-  private async saveSettings(): Promise<Hub> {
-    return await db.hub.update({
-      where: { id: this.hubId },
-      data: { settings: this.settings.bitfield },
-    });
+  private async saveSettings(): Promise<void> {
+    return await this.hub.setSettings(this.settings.bitfield);
   }
 
   // Helper method to reset all settings to default

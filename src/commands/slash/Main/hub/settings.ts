@@ -1,12 +1,11 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
-import { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { type HubSettingsString } from '#main/modules/BitFields.js';
+import HubManager from '#main/managers/HubManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import { type HubSettingsString } from '#main/modules/BitFields.js';
+import { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
-import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
-import type { Hub } from '@prisma/client';
 import {
   ActionRowBuilder,
   ButtonBuilder,
@@ -30,23 +29,19 @@ export default class Settings extends HubCommand {
     }
   }
 
-  private async handleList(interaction: ChatInputCommandInteraction, hub: Hub) {
-    const settingsManager = new HubSettingsManager(hub.id, hub.settings);
-
-    await interaction.reply({ embeds: [settingsManager.settingsEmbed] });
+  private async handleList(interaction: ChatInputCommandInteraction, hub: HubManager) {
+    await interaction.reply({ embeds: [hub.settings.embed] });
   }
 
-  private async handleToggle(interaction: ChatInputCommandInteraction, hub: Hub) {
+  private async handleToggle(interaction: ChatInputCommandInteraction, hub: HubManager) {
     const settingStr = interaction.options.getString('setting', true) as HubSettingsString;
-    const settingsManager = new HubSettingsManager(hub.id, hub.settings);
-
-    const value = await settingsManager.updateSetting(settingStr);
+    const value = await hub.settings.updateSetting(settingStr);
     const viewSettingsButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(
           new CustomID()
             .setIdentifier('hubSettings', 'list')
-            .addArgs(hub.id, interaction.user.id)
+            .setArgs(hub.id, interaction.user.id)
             .toString(),
         )
         .setLabel('View Settings')
@@ -80,21 +75,13 @@ export default class Settings extends HubCommand {
     }
 
     const settingsManager = await HubSettingsManager.create(hubId);
-    await interaction.reply({ embeds: [settingsManager.settingsEmbed], ephemeral: true });
+    await interaction.reply({ embeds: [settingsManager.embed], ephemeral: true });
   }
   private async runHubCheck(interaction: ChatInputCommandInteraction) {
     const hubName = interaction.options.getString('hub') as string | undefined;
-    const hub = await db.hub.findFirst({
-      where: {
-        name: hubName,
-        OR: [
-          { ownerId: interaction.user.id },
-          { moderators: { some: { userId: interaction.user.id, position: 'manager' } } },
-        ],
-      },
-    });
+    const hub = hubName ? (await this.hubService.findHubsByName(hubName)).at(0) : null;
 
-    if (!hub) {
+    if (!await hub?.isManager(interaction.user.id)) {
       await this.replyEmbed(
         interaction,
         'Hub not found. Provide a valid hub in the `hub` option of the command.',

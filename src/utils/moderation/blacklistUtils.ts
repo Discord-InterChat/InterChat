@@ -3,7 +3,7 @@ import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import Logger from '#utils/Logger.js';
-import { ServerInfraction, UserInfraction } from '@prisma/client';
+import { Infraction } from '@prisma/client';
 import {
   ActionRowBuilder,
   APIActionRowComponent,
@@ -18,10 +18,9 @@ import {
   User,
 } from 'discord.js';
 import { buildAppealSubmitButton } from '#main/interactions/BlacklistAppeal.js';
+import { HubService } from '#main/services/HubService.js';
 
-export const isBlacklisted = <T extends UserInfraction | ServerInfraction>(
-  infraction: T | null,
-): infraction is T =>
+export const isBlacklisted = (infraction: Infraction | null): infraction is Infraction =>
   Boolean(
     infraction?.type === 'BLACKLIST' &&
       infraction.status === 'ACTIVE' &&
@@ -66,9 +65,9 @@ export const sendBlacklistNotif = async (
   opts: BlacklistOpts,
 ) => {
   try {
-    const hub = await db.hub.findUnique({ where: { id: opts.hubId } });
+    const hub = await new HubService().fetchHub(opts.hubId);
     const embed = buildBlacklistNotifEmbed(type, {
-      hubName: `${hub?.name}`,
+      hubName: `${hub?.data.name}`,
       expiresAt: opts.expiresAt,
       reason: opts.reason,
     });
@@ -84,7 +83,7 @@ export const sendBlacklistNotif = async (
     else {
       const serverInHub =
         (await getHubConnections(opts.hubId))?.find((con) => con.serverId === opts.target.id) ??
-        (await db.connectedList.findFirst({
+        (await db.connection.findFirst({
           where: { serverId: opts.target.id, hubId: opts.hubId },
         }));
 

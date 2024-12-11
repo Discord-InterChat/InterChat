@@ -1,9 +1,9 @@
 import HubLogManager, { LogConfigTypes, RoleIdLogConfigs } from '#main/managers/HubLogManager.js';
+import HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
 import { emojis } from '#main/utils/Constants.js';
 import db from '#utils/Db.js';
-import { Hub } from '@prisma/client';
 import {
   Channel,
   ChatInputCommandInteraction,
@@ -37,10 +37,12 @@ export default class LoggingCommand extends HubCommand {
     await handlers[subcommand]?.();
   }
 
-  private async getHubForUser(interaction: ChatInputCommandInteraction): Promise<Hub | null> {
+  private async getHubForUser(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<HubManager | null> {
     const hubService = new HubService(db);
     const hubName = interaction.options.getString('hub');
-    const hubs = await hubService.getHubsForUser(interaction.user.id);
+    const hubs = await hubService.getOwnedHubs(interaction.user.id);
 
     if (hubs.length === 0) {
       await this.replyEmbed(interaction, 'You do not have access to any hubs.', {
@@ -50,7 +52,7 @@ export default class LoggingCommand extends HubCommand {
     }
 
     if (hubName) {
-      const hub = hubs.find((h) => h.name === hubName);
+      const hub = hubs.find((h) => h.data.name === hubName);
       if (!hub) {
         await this.replyEmbed(interaction, 'Hub not found.', { ephemeral: true });
         return null;
@@ -68,9 +70,9 @@ export default class LoggingCommand extends HubCommand {
     return null;
   }
 
-  private async handleView(interaction: ChatInputCommandInteraction, hub: Hub) {
+  private async handleView(interaction: ChatInputCommandInteraction, hub: HubManager) {
     const hubLogManager = await HubLogManager.create(hub.id);
-    const embed = hubLogManager.createEmbed(hub.iconUrl);
+    const embed = hubLogManager.createEmbed(hub.data.iconUrl);
     await interaction.reply({ embeds: [embed] });
   }
 

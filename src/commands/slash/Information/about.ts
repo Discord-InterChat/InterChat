@@ -90,20 +90,20 @@ export default class About extends BaseCommand {
       
         ${creditsDivider}
         ✨ **Deserving Mentions:**
-        ${emojis.dotBlue} @${usernames[6]} (made our cute mascot chipi ${mascotEmojis.flushed})
-        ${emojis.dotBlue} @${usernames[7]} (top [voter](${Constants.Links.Vote}) of all time ${emojis.topggSparkles})
+        ${emojis.dotBlue} @${usernames[4]} (maker of our cute mascot chipi ${mascotEmojis.smile})
+        ${emojis.dotBlue} @${usernames[5]} ([top voter](${Constants.Links.Vote}) of all time ${emojis.topggSparkles})
 
         ${badgeEmojis.Developer} **Developers:**
         ${emojis.dotBlue} @${usernames[0]}
 
-        ${badgeEmojis.Staff} **Staff: ([Recruiting!](${Constants.Links.Website}/apply))**
+        ${badgeEmojis.Staff} **Staff: ([Check Applications!](${Constants.Links.Website}/apply))**
         ${emojis.dotBlue} @${usernames[1]}
         ${emojis.dotBlue} @${usernames[2]}
         ${emojis.dotBlue} @${usernames[3]}
         ${emojis.dotBlue} @${usernames[4]}
         ${emojis.dotBlue} @${usernames[5]}
         ${creditsDivider}
-    `,
+      `,
       )
       .setFooter({
         text: ` InterChat v${interaction.client.version} • Made with ❤️ by the InterChat Team`,

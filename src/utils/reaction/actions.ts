@@ -100,7 +100,7 @@ export const updateReactions = async (
   const broadcastedMessages = Object.values(
     await getBroadcasts(originalMessage.messageId, originalMessage.hubId),
   );
-  const connections = await db.connectedList.findMany({
+  const connections = await db.connection.findMany({
     where: {
       channelId: { in: broadcastedMessages.map((c) => c.channelId) },
       connected: true,

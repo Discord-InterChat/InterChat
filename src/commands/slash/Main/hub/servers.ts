@@ -1,6 +1,5 @@
 import { Pagination } from '#main/modules/Pagination.js';
 import Constants, { emojis } from '#utils/Constants.js';
-import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
@@ -15,24 +14,18 @@ export default class Servers extends HubCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    const hub = await db.hub.findUnique({
-      where: { name: hubOpt },
-      include: { connections: true },
-    });
-
+    const hub = (await this.hubService.findHubsByName(hubOpt)).at(0);
     if (!hub) {
       await this.replyEmbed(interaction, t('hub.notFound', locale, { emoji: emojis.no }));
       return;
     }
-    else if (
-      hub.ownerId !== interaction.user.id &&
-      !hub.moderators.some((mod) => mod.userId === interaction.user.id)
-    ) {
+    else if (!(await hub.isMod(interaction.user.id))) {
       await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
       return;
     }
 
-    if (hub.connections.length === 0) {
+    const connections = await hub.fetchConnections();
+    if (connections.length === 0) {
       await this.replyEmbed(
         interaction,
         t('hub.servers.noConnections', locale, { emoji: emojis.no }),
@@ -41,11 +34,11 @@ export default class Servers extends HubCommand {
     }
 
     if (serverOpt) {
-      const connection = hub.connections.find((con) => con.serverId === serverOpt);
+      const connection = connections.find((con) => con.serverId === serverOpt);
       if (!connection) {
         await this.replyEmbed(
           interaction,
-          t('hub.servers.notConnected', locale, { hub: hub.name, emoji: emojis.no }),
+          t('hub.servers.notConnected', locale, { hub: hub.data.name, emoji: emojis.no }),
         );
         return;
       }
@@ -58,7 +51,7 @@ export default class Servers extends HubCommand {
           t('hub.servers.connectionInfo', locale, {
             channelName: `${channel?.name}`,
             channelId: connection.channelId,
-            joinedAt: `<t:${Math.round(connection.date.getTime() / 1000)}:d>`,
+            joinedAt: `<t:${Math.round(connection.createdAt.getTime() / 1000)}:d>`,
             invite: connection.invite ? connection.invite : 'Not Set.',
             connected: connection.connected ? 'Yes' : 'No',
           }),
@@ -71,8 +64,8 @@ export default class Servers extends HubCommand {
     const paginator = new Pagination();
     let itemsPerPage = 5;
 
-    for (let index = 0; index < hub.connections.length; index += 5) {
-      const current = hub.connections?.slice(index, itemsPerPage);
+    for (let index = 0; index < connections.length; index += 5) {
+      const current = connections?.slice(index, itemsPerPage);
 
       let itemCounter = index;
       let embedFromIndex = index;
@@ -99,7 +92,7 @@ export default class Servers extends HubCommand {
         const value = t('hub.servers.connectionInfo', locale, {
           channelName: `${evalRes?.channelName}`,
           channelId: connection.channelId,
-          joinedAt: `<t:${Math.round(connection.date.getTime() / 1000)}:d>`,
+          joinedAt: `<t:${Math.round(connection.createdAt.getTime() / 1000)}:d>`,
           invite: connection.invite ? connection.invite : 'Not Set.',
           connected: connection.connected ? 'Yes' : 'No',
         });
@@ -114,7 +107,7 @@ export default class Servers extends HubCommand {
               t('hub.servers.total', locale, {
                 from: `${++embedFromIndex}`,
                 to: `${itemCounter}`,
-                total: `${hub.connections.length}`,
+                total: `${connections.length}`,
               }),
             )
             .setColor(0x2f3136)

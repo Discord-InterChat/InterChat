@@ -2,13 +2,13 @@ import Constants, { emojis } from '#utils/Constants.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
-import { connectedList, Hub } from '@prisma/client';
+import { Connection, Hub } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import ConnectionCommand from './index.js';
 
 export default class extends ConnectionCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
-    const connections = await db.connectedList.findMany({
+    const connections = await db.connection.findMany({
       where: { serverId: interaction.guild?.id },
       include: { hub: true },
     });
@@ -34,7 +34,7 @@ export default class extends ConnectionCommand {
   }
 
   private createPaginatedEmbeds(
-    connections: (connectedList & { hub: Hub | null })[],
+    connections: (Connection & { hub: Hub | null })[],
     description: string,
     fieldsPerPage = 25,
   ) {
@@ -50,7 +50,7 @@ export default class extends ConnectionCommand {
     return pages;
   }
 
-  private getField(connection: connectedList & { hub: Hub | null }) {
+  private getField(connection: Connection & { hub: Hub | null }) {
     return {
       name: `${connection.hub?.name} ${connection.connected ? emojis.connect : emojis.disconnect}`,
       value: `<#${connection.channelId}>`,
