@@ -45,21 +45,35 @@ export class HubService {
     return null;
   }
 
-  async fetchHub(where: { name: string; }): Promise<HubManager | null>;
-  async fetchHub(where: { id: string; }): Promise<HubManager | null>;
-  async fetchHub(where: { name: string, id: string }): Promise<HubManager | null>;
   async fetchHub(id: string): Promise<HubManager | null>;
-  async fetchHub(where: string | { name?: string, id?: string }) {
-    const id = typeof where === 'string' ? where : where.id;
-    const name = typeof where === 'string' ? undefined : where.name;
+  async fetchHub(where: { id: string }): Promise<HubManager | null>;
+  async fetchHub(where: { name: string }): Promise<HubManager | null>;
+  async fetchHub(whereInput: string | { id?: string; name?: string }): Promise<HubManager | null> {
+    const where: { id?: string; name?: string } = typeof whereInput === 'string'
+      ? { id: whereInput }
+      : whereInput;
 
-    if (!id && !name) return null;
+    if (!where.id && !where.name) {
+      return null;
+    }
 
-    const fromCache = await this.cache.get(`${this.hubKey}${id}`);
-    if (fromCache) return this.createHubManager(fromCache);
+    // Check cache if we have an ID
+    if (where.id) {
+      const fromCache = await this.cache.get(`${this.hubKey}${where.id}`);
+      if (fromCache) {
+        return this.createHubManager(fromCache);
+      }
+    }
 
-    const hub = await this.db.hub.findFirst({ where: { id, name } });
-    return this.createHubManager(hub);
+    const hub = await this.db.hub.findFirst({ where });
+
+    // Cache result if we found something
+    if (hub) {
+      await this.cache.set(`${this.hubKey}${hub.id}`, JSON.stringify(hub));
+      return this.createHubManager(hub);
+    }
+
+    return null;
   }
 
   async createHub(data: HubCreationData): Promise<HubManager> {

@@ -149,16 +149,16 @@ export default class HubManager {
   private async storeInCache(key: string, data: BlockWord[] | HubModerator[]) {
     const multi = this.cache.multi();
     multi.del(key);
-    data.forEach(async (bw) => multi.sadd(key, JSON.stringify(bw)));
+    data.forEach((bw) => multi.sadd(key, JSON.stringify(bw)));
     multi.expire(key, 60 * 60 * 24); //
     await multi.exec();
   }
 
   async isManager(userId: string) {
-    return this.modManager.checkStatus(userId, ['MANAGER', 'OWNER']);
+    return await this.modManager.checkStatus(userId, ['MANAGER', 'OWNER']);
   }
 
   async isMod(userId: string) {
-    return this.modManager.checkStatus(userId);
+    return await this.modManager.checkStatus(userId);
   }
 }
