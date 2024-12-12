@@ -78,6 +78,25 @@ interface BlockResult {
   reason?: string;
 }
 
+export async function checkBlockedWords(
+  message: Message<true>,
+  msgBlockList: BlockWord[],
+): Promise<CheckResult> {
+  if (msgBlockList.length === 0) return { passed: true };
+
+  for (const rule of msgBlockList) {
+    const { shouldBlock, reason } = await checkRule(message, rule);
+    if (shouldBlock) {
+      return {
+        passed: false,
+        reason,
+      };
+    }
+  }
+
+  return { passed: true };
+}
+
 async function executeAction(
   action: keyof typeof actionHandlers,
   message: Message<true>,
@@ -98,13 +117,13 @@ async function executeAction(
 
 async function processActions(
   message: Message<true>,
-  rule: BlockWord,
+  triggeredRule: BlockWord,
   matches: RegExpMatchArray,
 ): Promise<BlockResult> {
-  if (!rule.actions?.length) return { shouldBlock: false };
+  if (!triggeredRule.actions.length) return { shouldBlock: false };
 
-  for (const action of rule.actions) {
-    const result = await executeAction(action, message, rule, matches);
+  for (const actionToTake of triggeredRule.actions) {
+    const result = await executeAction(actionToTake, message, triggeredRule, matches);
     if (result.success && result.shouldBlock) {
       return {
         shouldBlock: true,
@@ -113,40 +132,14 @@ async function processActions(
     }
   }
 
-  // Default block if actions were configured but none explicitly blocked
-  return {
-    shouldBlock: true,
-    reason: `Your message contains blocked words from the rule: ${rule.name}`,
-  };
+  return { shouldBlock: false };
 }
 
-async function checkRule(
-  message: Message<true>,
-  rule: BlockWord,
-): Promise<BlockResult> {
+async function checkRule(message: Message<true>, rule: BlockWord): Promise<BlockResult> {
   const regex = createRegexFromWords(rule.words);
   const matches = message.content.match(regex);
 
   if (!matches) return { shouldBlock: false };
 
   return await processActions(message, rule, matches);
-}
-
-export async function checkBlockedWords(
-  message: Message<true>,
-  msgBlockList: BlockWord[],
-): Promise<CheckResult> {
-  if (msgBlockList.length === 0) return { passed: true };
-
-  for (const rule of msgBlockList) {
-    const { shouldBlock, reason } = await checkRule(message, rule);
-    if (shouldBlock) {
-      return {
-        passed: false,
-        reason,
-      };
-    }
-  }
-
-  return { passed: true };
 }

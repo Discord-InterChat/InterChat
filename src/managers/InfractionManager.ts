@@ -185,6 +185,6 @@ export default class InfractionManager {
   }
 
   public isExpiredInfraction(infraction: Infraction | null) {
-    return !infraction || (!!infraction.expiresAt && infraction.expiresAt <= new Date());
+    return !infraction?.expiresAt || infraction.expiresAt <= new Date();
   }
 }

@@ -26,7 +26,7 @@ export class HubService {
     this.cache = cache;
   }
 
-  protected serializeHub(hub: string): Hub {
+  protected parseHubStringToObject(hub: string): Hub {
     const parsedHub = JSON.parse(hub) as ConvertDatesToString<Hub>;
 
     return {
@@ -36,13 +36,10 @@ export class HubService {
     };
   }
 
-  private createHubManager(hub: Hub): HubManager;
-  private createHubManager(hub: string): HubManager;
-  private createHubManager(hub: Hub | string | null): HubManager | null;
-  private createHubManager(hub: Hub | string | null) {
-    if (typeof hub === 'string') return new HubManager(this.serializeHub(hub), this);
-    if (hub) return new HubManager(hub);
-    return null;
+
+  private createHubManager(hub: Hub | string): HubManager {
+    if (typeof hub === 'string') return new HubManager(this.parseHubStringToObject(hub), this);
+    return new HubManager(hub);
   }
 
   async fetchHub(whereInput: string | { id?: string; name?: string }): Promise<HubManager | null> {
