@@ -22,7 +22,7 @@ export class CustomID {
    * @param suffix - The suffix for the custom ID (optional).
    * @returns CustomID - The CustomID instance for method chaining.
    */
-  setIdentifier(prefix: string, suffix?: string): CustomID {
+  setIdentifier(prefix: string, suffix?: string): this {
     this.customId = `${prefix}${suffix ? `:${suffix}` : ''}`;
     return this;
   }
