@@ -1,6 +1,7 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import HubManager from '#main/managers/HubManager.js';
+import { HubService } from '#main/services/HubService.js';
+
 import { TranslationKeys } from '#types/TranslationKeys.d.ts';
 import { createConnection, getHubConnections } from '#utils/ConnectedListUtils.js';
 import { emojis } from '#utils/Constants.js';
@@ -10,7 +11,6 @@ import { sendToHub } from '#utils/hub/utils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { check } from '#utils/ProfanityUtils.js';
 import { getOrCreateWebhook, getReplyMethod } from '#utils/Utils.js';
-import { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   ChatInputCommandInteraction,
@@ -23,13 +23,16 @@ export class HubJoinService {
     | ChatInputCommandInteraction<'cached'>
     | MessageComponentInteraction<'cached'>;
   private readonly locale: supportedLocaleCodes;
+  private readonly hubService: HubService;
 
   constructor(
     interaction: ChatInputCommandInteraction<'cached'> | MessageComponentInteraction<'cached'>,
     locale: supportedLocaleCodes,
+    hubService: HubService = new HubService(),
   ) {
     this.interaction = interaction;
     this.locale = locale;
+    this.hubService = hubService;
   }
 
   async joinRandomHub(channel: GuildTextBasedChannel) {
@@ -109,17 +112,15 @@ export class HubJoinService {
         include: { hub: true },
       });
 
-      if (fetchedInvite) return fetchedInvite.hub;
+      if (fetchedInvite) return new HubManager(fetchedInvite.hub);
     }
 
     // Otherwise search by name
-    return await db.hub.findFirst({
-      where: { name: hubName, private: false },
-    });
+    return await this.hubService.fetchHub({ name: hubName });
   }
 
   private async isAlreadyInHub(channel: GuildTextBasedChannel, hubId: string) {
-    const channelInHub = await db.connectedList.findFirst({
+    const channelInHub = await db.connection.findFirst({
       where: { OR: [{ channelId: channel.id }, { serverId: channel.guildId, hubId }] },
       include: { hub: { select: { name: true } } },
     });
@@ -135,17 +136,15 @@ export class HubJoinService {
     return false;
   }
 
-  private async isBlacklisted(hub: Hub) {
-    const userBlManager = new BlacklistManager(new UserInfractionManager(this.interaction.user.id));
-    const serverBlManager = new BlacklistManager(
-      new ServerInfractionManager(this.interaction.guildId),
-    );
+  private async isBlacklisted(hub: HubManager) {
+    const userBlManager = new BlacklistManager('user', this.interaction.user.id);
+    const serverBlManager = new BlacklistManager('server', this.interaction.guildId);
 
     const userBlacklist = await userBlManager.fetchBlacklist(hub.id);
     const serverBlacklist = await serverBlManager.fetchBlacklist(hub.id);
 
     if (userBlacklist || serverBlacklist) {
-      await this.replyError('errors.blacklisted', { emoji: emojis.no, hub: hub.name });
+      await this.replyError('errors.blacklisted', { emoji: emojis.no, hub: hub.data.name });
       return true;
     }
 
@@ -164,38 +163,45 @@ export class HubJoinService {
     return webhook;
   }
 
-  private async sendSuccessMessages(hub: Hub, channel: GuildTextBasedChannel) {
+  private async sendSuccessMessages(hub: HubManager, channel: GuildTextBasedChannel) {
     const replyMethod = getReplyMethod(this.interaction);
     await this.interaction[replyMethod]({
       content: t('hub.join.success', this.locale, {
         channel: `${channel}`,
-        hub: hub.name,
+        hub: hub.data.name,
       }),
       embeds: [],
       components: [],
     });
 
     const totalConnections =
-      (await getHubConnections(hub.id))?.reduce((total, c) => total + (c.connected ? 1 : 0), 0) ??
-      0;
+      (await getHubConnections(hub.id))?.reduce(
+        (total, c) => total + (c.connected && c.channelId !== channel.id ? 1 : 0),
+        0,
+      ) ?? 0;
+
+    const serverCountMessage =
+      totalConnections === 0
+        ? 'There are no other servers connected to this hub. *cricket noises* 🦗'
+        : `We now have ${totalConnections} servers in this hub! 🎉`;
 
     // Announce to hub
     await sendToHub(hub.id, {
-      username: `InterChat | ${hub.name}`,
+      username: `InterChat | ${hub.data.name}`,
       content: stripIndents`
         A new server has joined the hub! ${emojis.clipart}
 
         **Server Name:** __${this.interaction.guild.name}__
         **Member Count:** __${this.interaction.guild.memberCount}__
 
-        We now have **${totalConnections}** servers with us!
+        ${serverCountMessage}
       `,
     });
 
     // Send log
     await logJoinToHub(hub.id, this.interaction.guild, {
       totalConnections,
-      hubName: hub.name,
+      hubName: hub.data.name,
     });
   }
 

@@ -1,6 +1,6 @@
 import { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
+
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import { logServerUnblacklist } from '#utils/hub/logger/ModLogs.js';
 import { t } from '#utils/Locale.js';
@@ -24,7 +24,7 @@ export default class extends BlacklistCommand {
     const subCommandGroup = interaction.options.getSubcommandGroup();
     const serverId = interaction.options.getString('server', true);
 
-    const blacklistManager = new BlacklistManager(new ServerInfractionManager(serverId));
+    const blacklistManager = new BlacklistManager('server', serverId);
 
     if (subCommandGroup === 'add') {
       const reason = interaction.options.getString('reason', true);
@@ -85,11 +85,11 @@ export default class extends BlacklistCommand {
       // Using name from DB since the bot can't access server through API.
       await this.replyEmbed(
         interaction,
-        t('blacklist.removed', locale, { emoji: emojis.delete, name: result.serverName }),
+        t('blacklist.removed', locale, { emoji: emojis.delete, name: result.serverName ?? 'Unknown Server.' }),
       );
 
       // send log to hub's log channel
-      await logServerUnblacklist(interaction.client, hub.id, {
+      await logServerUnblacklist(interaction.client, hub, {
         id: serverId,
         mod: interaction.user,
       });
@@ -101,7 +101,7 @@ export default class extends BlacklistCommand {
     serverId: Snowflake,
     opts: { duration?: number },
   ) {
-    const blacklistManager = new BlacklistManager(new ServerInfractionManager(serverId));
+    const blacklistManager = new BlacklistManager('server', serverId);
     const blacklist = await blacklistManager.fetchBlacklist(hubId);
     const hiddenOpt = { ephemeral: true };
 

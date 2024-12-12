@@ -1,14 +1,13 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
-import Constants, { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { HubJoinService } from '#main/services/HubJoinService.js';
 import { Pagination } from '#main/modules/Pagination.js';
+import { HubJoinService } from '#main/services/HubJoinService.js';
 import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { calculateRating, getStars } from '#main/utils/Utils.js';
-import { connectedList, Hub } from '@prisma/client';
+import Constants, { emojis } from '#utils/Constants.js';
+import { Connection, Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -20,7 +19,6 @@ import {
   EmbedField,
   time,
 } from 'discord.js';
-import { HubService } from '#main/services/HubService.js';
 
 export default class BrowseCommand extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -78,24 +76,22 @@ export default class BrowseCommand extends HubCommand {
 
     await interaction.deferReply();
 
-    const hubService = new HubService(db);
-    const hub = await hubService.fetchHub(hubId);
+    const hub = await this.hubService.fetchHub(hubId);
     if (!hub) {
       await interaction.reply({ content: 'Hub not found.', ephemeral: true });
       return;
     }
 
     const joinService = new HubJoinService(interaction, await this.getLocale(interaction));
-    await joinService.joinHub(interaction.channel, hub.name);
+    await joinService.joinHub(interaction.channel, hub.data.name);
   }
 
-  private buildField(hub: Hub, connections: connectedList[]) {
+  private buildField(hub: Hub, connections: Connection[]) {
     const lastActiveConnection = connections.filter((c) => c.hubId === hub.id).at(0);
 
-    const stars = `\`${getStars(calculateRating(hub.rating.map((r) => r.rating)))}\``;
 
     return {
-      name: `${hub.name} (${stars || '`0`'})`,
+      name: `${hub.name}`,
       value:
         `${emojis.user_icon} ${connections.length} ・ ${emojis.chat_icon} ${time(lastActiveConnection?.lastActive ?? new Date(), 'R')}\n\n${hub.description}`.slice(
           0,
@@ -105,7 +101,7 @@ export default class BrowseCommand extends HubCommand {
     };
   }
 
-  private buildButtons(guildId: string, hub: Hub, connections: connectedList[]) {
+  private buildButtons(guildId: string, hub: Hub, connections: Connection[]) {
     const disabled = connections.some((c) => c.serverId === guildId);
     const joinButton = new ButtonBuilder()
       .setCustomId(new CustomID('hub_browse:join', [hub.id]).toString())
@@ -126,7 +122,7 @@ export default class BrowseCommand extends HubCommand {
   private getPages(
     guildId: string,
     hubs: Hub[],
-    connections: connectedList[][],
+    connections: Connection[][],
     thumbnail: string,
   ) {
     const pages: BaseMessageOptions[] = [];

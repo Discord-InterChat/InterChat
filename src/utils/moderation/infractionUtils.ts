@@ -1,18 +1,10 @@
 import Constants from '#utils/Constants.js';
 import { msToReadable, toTitleCase } from '#utils/Utils.js';
-import { ServerInfraction, UserInfraction } from '@prisma/client';
+import { Infraction } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, User, Client, time } from 'discord.js';
 
-// Type guard
-export const isServerInfraction = (
-  list: ServerInfraction | UserInfraction | undefined,
-): list is ServerInfraction => Boolean(list && 'serverName' in list);
-
-const createFieldData = (
-  data: ServerInfraction | UserInfraction,
-  { moderator }: { moderator: User | null },
-) => {
+const createFieldData = (data: Infraction, { moderator }: { moderator: User | null }) => {
   let expiresAt = 'Never';
   if (data.expiresAt) {
     expiresAt =
@@ -22,7 +14,7 @@ const createFieldData = (
   }
 
   return {
-    name: `${data.id} (${time(data.dateIssued, 'R')})`,
+    name: `${data.id} (${time(data.createdAt, 'R')})`,
     value: stripIndents`
     > \`\`\`yaml
     > Type: ${data.type}
@@ -38,7 +30,7 @@ const createFieldData = (
 export const buildInfractionListEmbeds = async (
   client: Client,
   targetName: string,
-  infractions: (ServerInfraction | UserInfraction)[],
+  infractions: Infraction[],
   type: 'server' | 'user',
   iconURL: string,
 ) => {
@@ -47,9 +39,7 @@ export const buildInfractionListEmbeds = async (
   let counter = 0;
 
   const firstInfraction = infractions.at(0);
-  const targetId = isServerInfraction(firstInfraction)
-    ? firstInfraction.serverId
-    : firstInfraction?.userId;
+  const targetId = firstInfraction?.serverId ?? firstInfraction?.userId;
 
   const pages = [];
   for (const infraction of infractions) {

@@ -138,7 +138,7 @@ hub:
   invalidImgurUrl: '{emoji} Invalid image URL for icon or banner. Please make sure you have entered a valid Imgur image URL that is not a gallery or album.'
   join:
     success: |
-      Successfully joined hub **{hub}** from {channel}! You can now chat with members from other servers in this hub.
+      Successfully joined hub **{hub}** from {channel}! You can now chat with members from other servers from this channel.
       - Use `/connection` to explore various customizations for this connection.
       - Use `/hub leave` to stop receiving messages from this hub.
       - Use **`/connection edit`** to change channels.

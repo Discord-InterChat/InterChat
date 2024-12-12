@@ -20,6 +20,7 @@ import {
 } from 'discord.js';
 import { sendLog } from './Default.js';
 import { markResolvedButton } from '#main/interactions/MarkResolvedButton.js';
+import { HubService } from '#main/services/HubService.js';
 
 export type ReportEvidenceOpts = {
   // the message content
@@ -68,7 +69,7 @@ const genJumpLink = async (
     ),
   );
 
-  const networkChannel = await db.connectedList.findFirst({
+  const networkChannel = await db.connection.findFirst({
     where: { serverId: reportsServerId, hubId },
   });
 
@@ -95,12 +96,12 @@ export const sendHubReport = async (
   client: Client,
   { userId, serverId, reason, reportedBy, evidence }: LogReportOpts,
 ) => {
-  const hub = await db.hub.findFirst({ where: { id: hubId }, include: { logConfig: true } });
-  if (!hub?.logConfig[0]?.reports?.channelId) return;
+  const hub = await new HubService().fetchHub(hubId);
+  const logConfig = await hub?.fetchLogConfig();
 
-  if (!evidence?.messageId) return;
+  if (!logConfig?.config.reports?.channelId || !evidence?.messageId) return;
 
-  const { channelId: reportsChannelId, roleId: reportsRoleId } = hub.logConfig[0].reports;
+  const { channelId: reportsChannelId, roleId: reportsRoleId } = logConfig.config.reports;
   const user = await client.users.fetch(userId).catch(() => null);
   const server = await client.fetchGuild(serverId);
   const jumpLink = await genJumpLink(hubId, client, evidence?.messageId, reportsChannelId);

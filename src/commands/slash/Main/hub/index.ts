@@ -1,6 +1,8 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { logsWithRoleId } from '#main/managers/HubLogManager.js';
+import HubManager from '#main/managers/HubManager.js';
 import { HubSettingsBits } from '#main/modules/BitFields.js';
+import { HubService } from '#main/services/HubService.js';
 import db from '#utils/Db.js';
 import { escapeRegexChars, handleError, toTitleCase } from '#utils/Utils.js';
 import {
@@ -455,6 +457,8 @@ export default class HubCommand extends BaseCommand {
   // subcommand classes are added to this map in their respective files
   static readonly subcommands = new Collection<string, BaseCommand>();
 
+  protected readonly hubService = new HubService();
+
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = HubCommand.subcommands?.get(
       interaction.options.getSubcommandGroup() || interaction.options.getSubcommand(),
@@ -478,13 +482,13 @@ export default class HubCommand extends BaseCommand {
     const subcommand = interaction.options.getSubcommand();
     const subcommandGroup = interaction.options.getSubcommandGroup();
     const focusedValue = escapeRegexChars(interaction.options.getFocused());
-    let hubChoices;
+    let hubChoices: HubManager[] = [];
 
     if (subcommand === 'browse' || subcommand === 'join') {
       hubChoices = await this.getPublicHubs(focusedValue);
     }
-    else if (subcommand === 'edit' && subcommandGroup === 'blockwords') {
-      const choices = await this.getBlockWordsRules(interaction);
+    else if (subcommandGroup === 'blockwords' && subcommand === 'edit') {
+      const choices = await this.getBlockWordRules(interaction);
       await interaction.respond(choices ?? []);
       return;
     }
@@ -508,18 +512,18 @@ export default class HubCommand extends BaseCommand {
       return;
     }
 
-    const choices = hubChoices?.map((hub) => ({ name: hub.name, value: hub.name }));
+    const choices = hubChoices.map((hub) => ({ name: hub.data.name, value: hub.data.name }));
     await interaction.respond(choices ?? []);
   }
 
-  private async getBlockWordsRules(interaction: AutocompleteInteraction) {
+  private async getBlockWordRules(interaction: AutocompleteInteraction) {
     const focused = interaction.options.getFocused(true);
     const hubName = interaction.options.getString('hub');
 
     if (focused.name === 'rule') {
       if (!hubName) return [{ name: 'Please select a hub first.', value: '' }];
 
-      const rules = await db.messageBlockList.findMany({
+      const rules = await db.blockWord.findMany({
         where: { hub: { name: hubName } },
         select: { id: true, name: true },
       });
@@ -530,51 +534,46 @@ export default class HubCommand extends BaseCommand {
   }
 
   private async getPublicHubs(focusedValue: string) {
-    return await db.hub.findMany({
+    const hubs = await db.hub.findMany({
       where: {
         name: { mode: 'insensitive', contains: focusedValue },
         private: false,
       },
       take: 25,
     });
+
+    return hubs.map((hub) => new HubManager(hub, this.hubService));
   }
 
   private async getModeratedHubs(focusedValue: string, modId: Snowflake) {
-    return await db.hub.findMany({
-      where: {
-        name: { mode: 'insensitive', contains: focusedValue },
-        OR: [{ ownerId: modId }, { moderators: { some: { userId: modId } } }],
-      },
+    const hubs = await this.hubService.fetchModeratedHubs(modId, {
+      filter: { hub: { name: { contains: focusedValue } } },
       take: 25,
     });
+    return hubs;
   }
 
   private async getManagedHubs(focusedValue: string, modId: Snowflake) {
-    return await db.hub.findMany({
-      where: {
-        name: { mode: 'insensitive', contains: focusedValue },
-        OR: [{ ownerId: modId }, { moderators: { some: { userId: modId, position: 'manager' } } }],
-      },
+    const hubs = await this.hubService.fetchModeratedHubs(modId, {
+      roles: ['MANAGER', 'OWNER'],
+      filter: { hub: { name: { contains: focusedValue } } },
       take: 25,
     });
+
+    return hubs;
   }
 
   private async getOwnedHubs(focusedValue: string, ownerId: Snowflake) {
-    return await db.hub.findMany({
-      where: {
-        ownerId,
-        name: { mode: 'insensitive', contains: focusedValue },
-      },
-      take: 25,
-    });
+    const hubs = await this.hubService.getOwnedHubs(ownerId);
+    return hubs.filter((hub) => hub.data.name.toLowerCase().includes(focusedValue.toLowerCase()));
   }
 
   private async getInfractionSubcommandChoices(interaction: AutocompleteInteraction) {
     const focused = interaction.options.getFocused(true);
     if (focused.name === 'hub') {
       return (await this.getModeratedHubs(focused.value, interaction.user.id)).map((hub) => ({
-        name: hub.name,
-        value: hub.name,
+        name: hub.data.name,
+        value: hub.data.name,
       }));
     }
   }
@@ -582,7 +581,7 @@ export default class HubCommand extends BaseCommand {
   private async getLeaveSubcommandChoices(focusedValue: string, guild: Guild | null) {
     if (!guild) return null;
 
-    const networks = await db.connectedList.findMany({
+    const networks = await db.connection.findMany({
       where: { serverId: guild?.id },
       select: { channelId: true, hub: true },
       take: 25,

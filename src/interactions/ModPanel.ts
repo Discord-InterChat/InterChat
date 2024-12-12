@@ -1,7 +1,7 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+
+
 import { HubService } from '#main/services/HubService.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
@@ -106,7 +106,7 @@ export default class ModPanelHandler {
   ) {
     const hubService = new HubService(db);
     const hub = await hubService.fetchHub(originalMsg.hubId);
-    if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
+    if (!hub || !await isStaffOrHubMod(interaction.user.id, hub)) {
       const embed = new InfoEmbed().setDescription(t('errors.messageNotSentOrExpired', locale));
       await interaction.editReply({ embeds: [embed] });
       return false;
@@ -125,8 +125,8 @@ export async function buildModPanel(
   const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
 
   const { userManager } = interaction.client;
-  const userBlManager = new BlacklistManager(new UserInfractionManager(originalMsg.authorId));
-  const serverBlManager = new BlacklistManager(new ServerInfractionManager(originalMsg.guildId));
+  const userBlManager = new BlacklistManager('user', originalMsg.authorId);
+  const serverBlManager = new BlacklistManager('server', originalMsg.guildId);
 
   const isUserBlacklisted = Boolean(await userBlManager.fetchBlacklist(originalMsg.hubId));
   const isServerBlacklisted = Boolean(await serverBlManager.fetchBlacklist(originalMsg.hubId));
@@ -135,14 +135,14 @@ export async function buildModPanel(
   const embed = buildInfoEmbed(user.username, server?.name ?? 'Unknown Server', {
     isUserBlacklisted,
     isServerBlacklisted,
-    isBanned: Boolean(dbUserTarget?.banMeta?.reason),
+    isBanned: Boolean(dbUserTarget?.banReason),
     isDeleteInProgress: deleteInProgress,
   });
 
   const buttons = buildButtons(interaction, originalMsg.messageId, {
     isUserBlacklisted,
     isServerBlacklisted,
-    isBanned: Boolean(dbUserTarget?.banMeta?.reason),
+    isBanned: Boolean(dbUserTarget?.banReason),
     isDeleteInProgress: deleteInProgress,
   });
 

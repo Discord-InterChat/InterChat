@@ -1,16 +1,17 @@
-import { Message, WebhookClient, WebhookMessageCreateOptions, HexColorString } from 'discord.js';
-import { Hub, connectedList } from '@prisma/client';
+import HubManager from '#main/managers/HubManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
-import { getAttachmentURL } from '#utils/ImageUtils.js';
-import { getReferredContent, getReferredMsgData } from '#utils/network/utils.js';
-import storeMessageData, { NetworkWebhookSendResult } from '#utils/network/storeMessageData.js';
 import MessageFormattingService from '#main/services/MessageFormattingService.js';
 import Logger from '#main/utils/Logger.js';
+import { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
 import { generateJumpButton as getJumpButton } from '#utils/ComponentUtils.js';
 import { ConnectionMode } from '#utils/Constants.js';
+import { getAttachmentURL } from '#utils/ImageUtils.js';
+import storeMessageData, { NetworkWebhookSendResult } from '#utils/network/storeMessageData.js';
+import { getReferredContent, getReferredMsgData } from '#utils/network/utils.js';
 import { censor } from '#utils/ProfanityUtils.js';
 import { trimAndCensorBannedWebhookWords } from '#utils/Utils.js';
-import { ReferredMsgData, BroadcastOpts } from '#main/utils/network/Types.js';
+import { Connection } from '@prisma/client';
+import { HexColorString, Message, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
 
 const BATCH_SIZE = 15;
 const CONCURRENCY_LIMIT = 10;
@@ -40,13 +41,12 @@ export class BroadcastService {
 
   async broadcastMessage(
     message: Message<true>,
-    hub: Hub,
-    hubConnections: connectedList[],
-    settings: HubSettingsManager,
-    connection: connectedList,
+    hub: HubManager,
+    hubConnections: Connection[],
+    connection: Connection,
   ) {
     const attachmentURL = await this.resolveAttachmentURL(message);
-    const username = this.getUsername(settings, message);
+    const username = this.getUsername(hub.settings, message);
     const censoredContent = censor(message.content);
     const referredMessage = await this.fetchReferredMessage(message);
     const referredMsgData = await getReferredMsgData(referredMessage);
@@ -145,7 +145,7 @@ export class BroadcastService {
 
   private getUsername(settings: HubSettingsManager, message: Message<true>): string {
     return trimAndCensorBannedWebhookWords(
-      settings.getSetting('UseNicknames')
+      settings.has('UseNicknames')
         ? (message.member?.displayName ?? message.author.displayName)
         : message.author.username,
     );
@@ -153,8 +153,8 @@ export class BroadcastService {
 
   private async sendToConnection(
     message: Message<true>,
-    hub: Hub,
-    connection: connectedList,
+    hub: HubManager,
+    connection: Connection,
     opts: BroadcastOpts & {
       username: string;
       censoredContent: string;
@@ -180,8 +180,8 @@ export class BroadcastService {
 
   private getMessageFormat(
     message: Message<true>,
-    connection: connectedList,
-    hub: Hub,
+    connection: Connection,
+    hub: HubManager,
     opts: BroadcastOpts & {
       username: string;
       censoredContent: string;
@@ -201,7 +201,7 @@ export class BroadcastService {
     const messageFormatter = new MessageFormattingService(connection);
     return messageFormatter.format(message, {
       ...opts,
-      hub,
+      hub: hub.data,
       author,
       servername,
       jumpButton,
@@ -210,7 +210,7 @@ export class BroadcastService {
 
   private getJumpButton(
     username: string,
-    { channelId, serverId }: connectedList,
+    { channelId, serverId }: Connection,
     dbReferrence: ReferredMsgData['dbReferrence'],
   ) {
     const reply = dbReferrence?.broadcastMsgs.get(channelId) ?? dbReferrence;

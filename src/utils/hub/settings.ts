@@ -13,8 +13,8 @@ export const buildSettingsMenu = (
       .setCustomId(
         new CustomID()
           .setIdentifier('hub_edit', 'settingsSelect')
-          .addArgs(userId)
-          .addArgs(hubId)
+          .setArgs(userId)
+          .setArgs(hubId)
           .toString(),
       )
       .setPlaceholder('Select an option')

@@ -1,8 +1,8 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
-import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+import InfractionManager from '#main/managers/InfractionManager.js';
+
 import { HubService } from '#main/services/HubService.js';
 import db from '#main/utils/Db.js';
 import { CustomID } from '#utils/CustomID.js';
@@ -30,7 +30,6 @@ export const buildAppealSubmitButton = (type: 'user' | 'server', hubId: string) 
       .setEmoji('📝')
       .setStyle(ButtonStyle.Primary),
   );
-
 
 export default class AppealInteraction {
   @RegisterInteractionHandler('appealSubmit', 'button')
@@ -80,22 +79,17 @@ export default class AppealInteraction {
       appealIconUrl = interaction.guild?.iconURL();
       appealName = interaction.guild?.name;
       appealTargetId = interaction.guildId as string;
-
-      new ServerInfractionManager(appealTargetId).updateInfraction(
-        { type: 'BLACKLIST', hubId, status: 'ACTIVE' },
-        { appealerUserId: interaction.user.id, appealedAt: new Date() },
-      );
     }
     else {
       appealIconUrl = interaction.user.displayAvatarURL();
       appealName = interaction.user.username;
       appealTargetId = interaction.user.id;
-
-      new UserInfractionManager(appealTargetId).updateInfraction(
-        { type: 'BLACKLIST', hubId, status: 'ACTIVE' },
-        { appealedAt: new Date() },
-      );
     }
+
+    await new InfractionManager(type, appealTargetId).updateInfraction(
+      { type: 'BLACKLIST', hubId, status: 'ACTIVE' },
+      { appealedBy: interaction.user.id, appealedAt: new Date() },
+    );
 
     await logAppeals(type, hubId, interaction.user, {
       appealsChannelId,
@@ -138,8 +132,8 @@ export default class AppealInteraction {
 
     const blacklistManager =
       type === 'user'
-        ? new BlacklistManager(new UserInfractionManager(targetId))
-        : new BlacklistManager(new ServerInfractionManager(targetId));
+        ? new BlacklistManager('user', targetId)
+        : new BlacklistManager('server', targetId);
 
     const blacklist = await blacklistManager.fetchBlacklist(hubId);
     if (!blacklist) return;
@@ -162,13 +156,13 @@ export default class AppealInteraction {
         'appealerUserId' in blacklist
           ? await interaction.client.users.fetch(blacklist.appealerUserId as string)
           : await interaction.client.users.fetch(targetId);
-      extraServerSteps = `You can re-join the hub by running \`/hub join hub:${hub?.name}\`.`;
+      extraServerSteps = `You can re-join the hub by running \`/hub join hub:${hub?.data.name}\`.`;
     }
 
     const approvalStatus = customId.suffix === 'approve' ? 'appealed 🎉' : 'rejected';
     const message = `
       ### Blacklist Appeal Review
-      Your blacklist appeal for ${appealTarget} in the hub **${hub?.name}** has been ${approvalStatus}. ${extraServerSteps}
+      Your blacklist appeal for ${appealTarget} in the hub **${hub?.data.name}** has been ${approvalStatus}. ${extraServerSteps}
     `;
 
     const embed = new EmbedBuilder()
@@ -198,21 +192,20 @@ export default class AppealInteraction {
     hubId: string,
     type: 'user' | 'server',
   ): Promise<{ passedCheck: boolean }> {
-    const infractionManager =
-      type === 'user'
-        ? new UserInfractionManager(interaction.user.id)
-        : new ServerInfractionManager(interaction.guildId as string);
-
-
-    const blacklistManager = new BlacklistManager(infractionManager);
+    const blacklistManager = new BlacklistManager(
+      type,
+      type === 'user' ? interaction.user.id : (interaction.guildId as string),
+    );
 
     const hubService = new HubService(db);
     const hub = await hubService.fetchHub(hubId);
-    const allInfractions = await infractionManager.getHubInfractions(hubId, { type: 'BLACKLIST' });
+    const allInfractions = await blacklistManager.infractions.getHubInfractions(hubId, {
+      type: 'BLACKLIST',
+    });
 
     const sevenDays = 60 * 60 * 24 * 7 * 1000;
-    const appealCooldown = hub?.appealCooldownHours
-      ? hub.appealCooldownHours * (60 * 60 * 1000)
+    const appealCooldown = hub?.data.appealCooldownHours
+      ? hub.data.appealCooldownHours * (60 * 60 * 1000)
       : sevenDays;
 
     const lastAppealed = allInfractions.find(

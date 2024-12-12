@@ -1,10 +1,11 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+
 import { logBlockwordAlert } from '#main/utils/hub/logger/BlockWordAlert.js';
 import Logger from '#main/utils/Logger.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import { createRegexFromWords } from '#main/utils/moderation/blockWords.js';
-import { BlockWordAction, MessageBlockList } from '@prisma/client';
+import { CheckResult } from '#main/utils/network/runChecks.js';
+import { BlockWordAction, BlockWord } from '@prisma/client';
 import { ActionRowBuilder, Awaitable, ButtonBuilder, Message } from 'discord.js';
 
 // Interface for action handler results
@@ -18,7 +19,7 @@ interface ActionResult {
 // Action handler type
 type ActionHandler = (
   message: Message<true>,
-  rule: MessageBlockList,
+  rule: BlockWord,
   matches: string[],
 ) => Awaitable<ActionResult>;
 
@@ -42,7 +43,7 @@ const actionHandlers: Record<BlockWordAction, ActionHandler> = {
     const target = message.author;
     const mod = message.client.user;
 
-    const blacklistManager = new BlacklistManager(new UserInfractionManager(target.id));
+    const blacklistManager = new BlacklistManager('user', target.id);
     await blacklistManager.addBlacklist({
       hubId: rule.hubId,
       reason,
@@ -66,49 +67,79 @@ const actionHandlers: Record<BlockWordAction, ActionHandler> = {
   },
 };
 
-export async function checkBlockedWords(message: Message<true>, msgBlockList: MessageBlockList[]) {
-  if (msgBlockList.length === 0) return Promise.resolve({ passed: true });
+interface ActionResult {
+  success: boolean;
+  shouldBlock: boolean;
+  message?: string;
+}
+
+interface BlockResult {
+  shouldBlock: boolean;
+  reason?: string;
+}
+
+export async function checkBlockedWords(
+  message: Message<true>,
+  msgBlockList: BlockWord[],
+): Promise<CheckResult> {
+  if (msgBlockList.length === 0) return { passed: true };
 
   for (const rule of msgBlockList) {
-    const regex = createRegexFromWords(rule.words);
-    const matches = message.content.match(regex);
-
-    if (matches) {
-      let shouldBlock = false;
-      let blockReason: string | undefined;
-
-      // Execute all configured actions for this rule
-      for (const action of rule.actions || []) {
-        const handler = actionHandlers[action];
-        if (handler) {
-          try {
-            const result = await handler(message, rule, matches);
-            if (result.success && result.shouldBlock) {
-              shouldBlock = true;
-              blockReason = result.message;
-            }
-          }
-          catch (error) {
-            Logger.error(`Failed to execute action ${action}:`, error);
-          }
-        }
-      }
-
-      // If no specific blocking actions were taken but actions were configured,
-      // still block the message by default
-      if (rule.actions?.length && !shouldBlock) {
-        shouldBlock = true;
-        blockReason = `Your message contains blocked words from the rule: ${rule.name}`;
-      }
-
-      if (shouldBlock) {
-        return {
-          passed: false,
-          reason: blockReason,
-        };
-      }
+    const { shouldBlock, reason } = await checkRule(message, rule);
+    if (shouldBlock) {
+      return {
+        passed: false,
+        reason,
+      };
     }
   }
 
   return { passed: true };
+}
+
+async function executeAction(
+  action: keyof typeof actionHandlers,
+  message: Message<true>,
+  rule: BlockWord,
+  matches: RegExpMatchArray,
+): Promise<ActionResult> {
+  const handler = actionHandlers[action];
+  if (!handler) return { success: false, shouldBlock: false };
+
+  try {
+    return await handler(message, rule, matches);
+  }
+  catch (error) {
+    Logger.error(`Failed to execute action ${action}:`, error);
+    return { success: false, shouldBlock: false };
+  }
+}
+
+async function processActions(
+  message: Message<true>,
+  triggeredRule: BlockWord,
+  matches: RegExpMatchArray,
+): Promise<BlockResult> {
+  if (!triggeredRule.actions.length) return { shouldBlock: false };
+
+  for (const actionToTake of triggeredRule.actions) {
+    const result = await executeAction(actionToTake, message, triggeredRule, matches);
+    if (result.success && result.shouldBlock) {
+      return {
+        shouldBlock: true,
+        reason: result.message,
+      };
+    }
+  }
+
+  return { shouldBlock: false };
+}
+
+async function checkRule(message: Message<true>, rule: BlockWord): Promise<BlockResult> {
+  const regex = createRegexFromWords(rule.words);
+  const matches = message.content.match(regex);
+
+  if (!matches) return { shouldBlock: false };
+
+  return await processActions(message, rule, matches);
 }

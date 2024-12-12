@@ -19,12 +19,12 @@ export default class Server extends Find {
 
     const owner = await guild?.fetchOwner();
 
-    const guildInDb = await db.connectedList.findMany({
+    const guildInDb = await db.connection.findMany({
       where: { serverId: guild.id },
       include: { hub: true },
     });
 
-    const guildBlacklisted = await db.serverInfraction.count({
+    const guildBlacklisted = await db.infraction.count({
       where: { expiresAt: { gt: new Date() }, serverId: guild.id },
     });
     const guildBoostLevel = GuildPremiumTier[guild.premiumTier];

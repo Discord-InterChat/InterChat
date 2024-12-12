@@ -23,7 +23,7 @@ interface SendResult {
 export type NetworkWebhookSendResult = ErrorResult | SendResult;
 
 /**
- * Stores message data in the database and updates the connectedList based on the webhook status.
+ * Stores message data in the database and updates the Connection based on the webhook status.
  * @param channelAndMessageIds The result of sending the message to multiple channels.
  * @param hubId The ID of the hub to connect the message data to.
  */

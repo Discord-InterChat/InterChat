@@ -2,18 +2,22 @@ import Constants, { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { connectedList, Hub } from '@prisma/client';
+import { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 
-export const hubEditSelects = (hubId: string, userId: string, locale: supportedLocaleCodes = 'en') =>
+export const hubEditSelects = (
+  hubId: string,
+  userId: string,
+  locale: supportedLocaleCodes = 'en',
+) =>
   new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
       .setCustomId(
         new CustomID()
           .setIdentifier('hub_edit', 'actions')
-          .addArgs(userId)
-          .addArgs(hubId)
+          .setArgs(userId)
+          .setArgs(hubId)
           .toString(),
       )
       .addOptions([
@@ -44,11 +48,8 @@ export const hubEditSelects = (hubId: string, userId: string, locale: supportedL
       ]),
   );
 
-export const hubEmbed = async (hub: Hub & { connections: connectedList[] }) => {
-  const hubBlacklistedUsers = await db.userInfraction.count({
-    where: { hubId: hub.id, status: 'ACTIVE' },
-  });
-  const hubBlacklistedServers = await db.serverInfraction.count({
+export const hubEmbed = async (hub: Hub, totalConnections: number, totalMods: number) => {
+  const hubBlacklists = await db.infraction.findMany({
     where: { hubId: hub.id, status: 'ACTIVE' },
   });
 
@@ -60,7 +61,7 @@ export const hubEmbed = async (hub: Hub & { connections: connectedList[] }) => {
     ${hub.description}
 
     ${emojis.dotBlue} __**Visibility:**__ ${hub.private ? 'Private' : 'Public'}
-    ${emojis.dotBlue} __**Connections**__: ${hub.connections.length}
+    ${emojis.dotBlue} __**Connections**__: ${totalConnections}
     ${emojis.dotBlue} __**Chats Locked:**__ ${hub.locked ? 'Yes' : 'No'}
 
   `,
@@ -71,17 +72,17 @@ export const hubEmbed = async (hub: Hub & { connections: connectedList[] }) => {
       {
         name: 'Blacklists',
         value: stripIndents`
-          Total: ${hubBlacklistedUsers + hubBlacklistedServers}
-          Users: ${hubBlacklistedUsers}
-          Servers: ${hubBlacklistedServers}
-      `,
+          Total: ${hubBlacklists.length}
+          Users: ${hubBlacklists.filter((i) => Boolean(i.userId)).length}
+          Servers: ${hubBlacklists.filter((i) => Boolean(i.serverId)).length}
+        `,
         inline: true,
       },
 
       {
         name: 'Hub Stats',
         value: stripIndents`
-          Moderators: ${hub.moderators.length.toString()}
+          Moderators: ${totalMods}
           Owner: <@${hub.ownerId}>
       `,
         inline: true,

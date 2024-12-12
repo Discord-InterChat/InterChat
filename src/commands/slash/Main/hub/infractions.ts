@@ -1,16 +1,14 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
-import { InfractionManagerFactory } from '#main/managers/InfractionManager/InfractionManagerFactory.js';
+import HubManager from '#main/managers/HubManager.js';
+import InfractionManager from '#main/managers/InfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { RemoveMethods } from '#main/types/Utils.js';
 import { msToReadable } from '#main/utils/Utils.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
-import {
-  buildInfractionListEmbeds,
-  isServerInfraction,
-} from '#utils/moderation/infractionUtils.js';
-import { Hub, ServerInfraction, UserInfraction } from '@prisma/client';
+import { buildInfractionListEmbeds } from '#utils/moderation/infractionUtils.js';
+import { Infraction, UserData } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   BaseMessageOptions,
@@ -25,7 +23,7 @@ import {
 
 // Types for better type safety and documentation
 type InfractionType = 'server' | 'user';
-type GroupedInfraction = (UserInfraction | ServerInfraction) & { count: number };
+type GroupedInfraction = Infraction & { user: UserData | null; count: number };
 
 interface TargetInfo {
   name: string;
@@ -52,41 +50,45 @@ export default class ViewInfractions extends HubCommand {
     await this.showTargetInfractions(interaction, hub, type, targetId);
   }
 
-  private async validateAndGetHub(interaction: ChatInputCommandInteraction): Promise<Hub | null> {
+  private async validateAndGetHub(
+    interaction: ChatInputCommandInteraction,
+  ): Promise<HubManager | null> {
     const hubName = interaction.options.getString('hub', true);
-    const hub = await db.hub.findFirst({
-      where: {
-        name: hubName,
-        OR: [
-          { ownerId: interaction.user.id },
-          { moderators: { some: { userId: interaction.user.id } } },
-        ],
-      },
+
+    const hub = await this.hubService.fetchModeratedHubs(interaction.user.id, {
+      filter: { hub: { name: hubName } },
+      take: 1,
     });
 
-    if (!hub) {
+    if (!hub.length) {
       const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
       await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
       return null;
     }
 
-    return hub;
+    return hub[0];
   }
 
   private async showTargetInfractions(
     interaction: ChatInputCommandInteraction,
-    hub: Hub,
+    hub: HubManager,
     type: InfractionType,
     targetId: string,
   ) {
-    const targetInfo = await this.getTargetInfo(interaction.client, type, targetId, hub.iconUrl);
-    const infractionManager = InfractionManagerFactory.create(type, targetId);
+    const targetInfo = await this.getTargetInfo(
+      interaction.client,
+      type,
+      targetId,
+      hub.data.iconUrl,
+    );
+    const infractionManager = new InfractionManager(type, targetId);
     const infractions = await infractionManager.getHubInfractions(hub.id);
 
     // Update target name if it's a server infraction
-    const finalTargetName = isServerInfraction(infractions[0])
-      ? infractions[0].serverName
-      : targetInfo.name;
+    const finalTargetName =
+      infractionManager.targetType === 'user'
+        ? targetInfo.name
+        : (infractions.at(0)?.serverName ?? 'Unknown Server');
 
     const embeds = await buildInfractionListEmbeds(
       interaction.client,
@@ -120,32 +122,21 @@ export default class ViewInfractions extends HubCommand {
 
   private async showAllInfractions(
     interaction: ChatInputCommandInteraction,
-    hub: Hub,
+    hub: HubManager,
     type: InfractionType,
   ) {
-    const groupedInfractions = await this.getGroupedInfractions(hub.id, type);
-    const embeds = await this.buildAllInfractionsEmbed(
-      interaction.client,
-      groupedInfractions,
-      type,
-    );
+    const Infractions = await this.getInfractions(hub.id);
+    const embeds = await this.buildAllInfractionsEmbed(interaction.client, Infractions, type);
     await this.displayPagination(interaction, embeds);
   }
 
-  private async getGroupedInfractions(
-    hubId: string,
-    type: InfractionType,
-  ): Promise<Collection<string, GroupedInfraction>> {
+  private async getInfractions(hubId: string): Promise<Collection<string, GroupedInfraction>> {
     // Fetch all infractions in a single query with included relations
-    const infractions = await (type === 'server'
-      ? db.serverInfraction.findMany({
-        where: { hubId },
-        orderBy: { dateIssued: 'desc' },
-      })
-      : db.userInfraction.findMany({
-        where: { hubId },
-        orderBy: { dateIssued: 'desc' },
-      }));
+    const infractions = await db.infraction.findMany({
+      where: { hubId },
+      orderBy: { createdAt: 'desc' },
+      include: { user: true },
+    });
 
     // Group infractions by target ID
     return infractions.reduce((grouped, infraction) => {
@@ -166,29 +157,29 @@ export default class ViewInfractions extends HubCommand {
 
   private async buildAllInfractionsEmbed(
     client: Client,
-    groupedInfractions: Collection<string, GroupedInfraction>,
+    Infractions: Collection<string, GroupedInfraction>,
     type: InfractionType,
   ) {
     const pages: BaseMessageOptions[] = [];
-    const targetIds = [...groupedInfractions.keys()];
+    const targetIds = [...Infractions.keys()];
 
     // Batch fetch all users/servers at once
     const [targets, moderators] = await Promise.all([
       this.batchFetchTargets(client, targetIds, type),
       this.batchFetchModerators(client, [
-        ...new Set(groupedInfractions.map((i) => i.moderatorId).filter(Boolean) as string[]),
+        ...new Set(Infractions.map((i) => i.moderatorId).filter(Boolean) as string[]),
       ]),
     ]);
 
     let currentFields: { name: string; value: string }[] = [];
     let counter = 0;
 
-    for (const [targetId, infraction] of groupedInfractions) {
+    for (const [targetId, infraction] of Infractions) {
       const target = targets.get(targetId);
       const moderator = moderators.get(infraction.moderatorId ?? '') ?? null;
 
       const field = {
-        name: `${this.getTargetName(target, infraction)} (${targetId}) (${time(infraction.dateIssued, 'R')})`,
+        name: `${this.getTargetName(target, infraction)} (${targetId}) (${time(infraction.createdAt, 'R')})`,
         value: this.formatInfractionDetails(
           infraction,
           moderator,
@@ -199,7 +190,7 @@ export default class ViewInfractions extends HubCommand {
       currentFields.push(field);
       counter++;
 
-      if (this.shouldCreateNewPage(counter, currentFields.length, groupedInfractions.size)) {
+      if (this.shouldCreateNewPage(counter, currentFields.length, Infractions.size)) {
         pages.push(this.createPageEmbed(currentFields));
         currentFields = [];
         counter = 0;
@@ -251,13 +242,15 @@ export default class ViewInfractions extends HubCommand {
     infraction: GroupedInfraction,
   ): string {
     if (!target) {
-      return 'userId' in infraction ? 'Unknown User' : (infraction.serverName ?? 'Unknown Server');
+      return infraction.userId
+        ? (infraction.user?.username ?? 'Unknown User')
+        : (infraction.serverName ?? 'Unknown Server');
     }
     return target instanceof User ? target.username : target.name;
   }
 
-  private getTargetId(infraction: UserInfraction | ServerInfraction): string {
-    return 'userId' in infraction ? infraction.userId : infraction.serverId;
+  private getTargetId(infraction: Infraction): string {
+    return infraction.userId ?? infraction.serverId ?? '';
   }
 
   private async createInfractionField(client: Client, infraction: GroupedInfraction) {
@@ -266,7 +259,7 @@ export default class ViewInfractions extends HubCommand {
     const targetInfo = await this.getTargetFieldInfo(client, infraction);
 
     return {
-      name: `${targetInfo.name} (${targetInfo.id}) (${time(infraction.dateIssued, 'R')})`,
+      name: `${targetInfo.name} (${targetInfo.id}) (${time(infraction.createdAt, 'R')})`,
       value: this.formatInfractionDetails(infraction, moderator, expiresAt),
     };
   }
@@ -287,7 +280,7 @@ export default class ViewInfractions extends HubCommand {
   private async getTargetFieldInfo(client: Client, infraction: GroupedInfraction) {
     const targetId = this.getTargetId(infraction);
 
-    if ('userId' in infraction) {
+    if (infraction.userId) {
       const user = await client.users.fetch(targetId).catch(() => null);
       return { name: user?.username ?? 'Unknown User', id: targetId };
     }

@@ -1,7 +1,7 @@
 import { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import ServerInfractionManager from '#main/managers/InfractionManager/ServerInfractionManager.js';
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
+
+
 import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
@@ -45,7 +45,7 @@ abstract class BaseBlacklistHandler implements ModAction {
     return new ModalBuilder()
       .setTitle(title)
       .setCustomId(
-        new CustomID().setIdentifier('blacklist_modal', type).addArgs(originalMsgId).toString(),
+        new CustomID().setIdentifier('blacklist_modal', type).setArgs(originalMsgId).toString(),
       )
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -142,7 +142,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     }
 
     const { reason, expiresAt } = this.getModalData(interaction);
-    const blacklistManager = new BlacklistManager(new UserInfractionManager(user.id));
+    const blacklistManager = new BlacklistManager('user', user.id);
 
     await blacklistManager.addBlacklist({
       hubId: originalMsg.hubId,
@@ -212,7 +212,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     }
 
     const { reason, expiresAt } = this.getModalData(interaction);
-    const blacklistManager = new BlacklistManager(new ServerInfractionManager(originalMsg.guildId));
+    const blacklistManager = new BlacklistManager('server', originalMsg.guildId);
 
     await blacklistManager.addBlacklist({
       reason,

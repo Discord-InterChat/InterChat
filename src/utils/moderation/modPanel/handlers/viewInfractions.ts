@@ -1,4 +1,3 @@
-import UserInfractionManager from '#main/managers/InfractionManager/UserInfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';
@@ -8,6 +7,7 @@ import {
   replyWithUnknownMessage,
 } from '#main/utils/moderation/modPanel/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
+import InfractionManager from '#main/managers/InfractionManager.js';
 
 export default class ViewInfractionsHandler implements ModAction {
   async handle(
@@ -30,7 +30,7 @@ export default class ViewInfractionsHandler implements ModAction {
       return;
     }
 
-    const infractionManager = new UserInfractionManager(originalMsg.authorId);
+    const infractionManager = new InfractionManager('user', originalMsg.authorId);
     const infractions = await infractionManager.getHubInfractions(originalMsg.hubId);
     const targetName = user.username ?? 'Unknown User.';
     const iconURL = user.displayAvatarURL();

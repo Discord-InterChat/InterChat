@@ -1,13 +1,10 @@
+import HubManager from '#main/managers/HubManager.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import { wait } from '#main/utils/Utils.js';
 import { emojis } from '#utils/Constants.js';
-import HubLogManager from '#main/managers/HubLogManager.js';
-import db from '#main/utils/Db.js';
-import { isHubManager } from '#main/utils/hub/utils.js';
-import { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, time } from 'discord.js';
 import HubCommand from './index.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { wait } from '#main/utils/Utils.js';
 
 export default class VisibilityCommnd extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -15,9 +12,9 @@ export default class VisibilityCommnd extends HubCommand {
 
     const hubName = interaction.options.getString('hub', true);
     const visibility = interaction.options.getString('visibility', true) as 'public' | 'private';
-    const hub = await db.hub.findFirst({ where: { name: hubName } });
+    const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
-    if (!hub || !isHubManager(interaction.user.id, hub)) {
+    if (!hub || await hub.isManager(interaction.user.id)) {
       await this.replyEmbed(interaction, 'hub.notFound_mod', {
         t: { emoji: emojis.no },
         ephemeral: true,
@@ -31,28 +28,35 @@ export default class VisibilityCommnd extends HubCommand {
       if (!passedChecks) return;
     }
 
-    const updatedHub = await db.hub.update({
-      where: { id: hub.id },
-      data: { private: visibility === 'private' },
-    });
+    await hub.setPrivate(visibility === 'private');
 
     await this.replyEmbed(interaction, 'hub.manage.visibility.success', {
       content: ' ',
       ephemeral: true,
       edit: true,
       t: {
-        emoji: updatedHub.private ? '🔒' : '🔓',
-        visibility: updatedHub.private ? 'private' : 'public',
+        emoji: hub.data.private ? '🔒' : '🔓',
+        visibility: hub.data.private ? 'private' : 'public',
       },
     });
   }
 
-  private async runPublicRequirementChecks(interaction: ChatInputCommandInteraction, hub: Hub) {
-    const logConfig = await HubLogManager.create(hub.id);
+  private async runPublicRequirementChecks(
+    interaction: ChatInputCommandInteraction,
+    hub: HubManager,
+  ) {
+    const logConfig = await hub.fetchLogConfig();
+    const mods = await hub.moderators.fetchAll();
     const requirements = [
-      { name: 'Hub is older than 24 hours', check: hub.createdAt < new Date(Date.now() + 24 * 60 * 60 * 1000) },
-      { name: 'Hub has more than 2 moderators', check: hub.moderators.length >= 2 },
-      { name: 'Hub has accepts user-reports by setting a log channel for reports', check: logConfig.config.reports !== null },
+      {
+        name: 'Hub is older than 24 hours',
+        check: hub.data.createdAt < new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+      { name: 'Hub atleast than 2 moderators', check: mods.length >= 2 },
+      {
+        name: 'Hub has accepts user-reports by setting a log channel for reports',
+        check: logConfig.config.reports !== null,
+      },
     ];
 
     const passed = requirements.every((r) => r.check);

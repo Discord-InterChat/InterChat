@@ -1,20 +1,21 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
-import { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { ACTION_LABELS, buildBlockWordsListEmbed } from '#main/utils/moderation/blockWords.js';
+import { ACTION_LABELS, buildBlockWordListEmbed } from '#main/utils/moderation/blockWords.js';
+import { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { t } from '#utils/Locale.js';
 import {
-  buildBlockWordsActionsSelect,
   buildBWRuleEmbed,
-  buildBlockWordsModal,
+  buildBlockWordActionsSelect,
+  buildBlockWordModal,
   buildBlockedWordsBtns,
   sanitizeWords,
 } from '#utils/moderation/blockWords.js';
-import { BlockWordAction, Hub, MessageBlockList } from '@prisma/client';
+import { BlockWord, BlockWordAction } from '@prisma/client';
 import {
+  ButtonBuilder,
   RepliableInteraction,
   StringSelectMenuInteraction,
   type ButtonInteraction,
@@ -25,9 +26,9 @@ import {
 export default class BlockWordCommand extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const hubName = interaction.options.getString('hub', true);
-    const hub = await this.fetchHub({ name: hubName });
+    const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
-    if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
+    if (!hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
       const locale = await this.getLocale(interaction);
       await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), {
         ephemeral: true,
@@ -35,10 +36,12 @@ export default class BlockWordCommand extends HubCommand {
       return;
     }
 
+    const blockWords = await hub.fetchBlockWords();
+
     const handlers = {
-      edit: () => this.handleEditSubcommand(interaction, hub),
-      list: () => this.handleList(interaction, hub),
-      create: () => this.handleAdd(interaction, hub),
+      edit: () => this.handleEditSubcommand(interaction, hub.id, blockWords),
+      list: () => this.handleList(interaction, blockWords),
+      create: () => this.handleAdd(interaction, hub.id),
     };
 
     const subcommand = interaction.options.getSubcommand(true) as keyof typeof handlers;
@@ -52,7 +55,7 @@ export default class BlockWordCommand extends HubCommand {
 
     const hub = await this.fetchHub({ id: hubId });
 
-    if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
+    if (!hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
       const locale = await this.getLocale(interaction);
       await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), {
         ephemeral: true,
@@ -60,7 +63,7 @@ export default class BlockWordCommand extends HubCommand {
       return;
     }
 
-    const blockWords = hub.msgBlockList;
+    const blockWords = await hub.fetchBlockWords();
     const presetRule = blockWords.find((r) => r.id === ruleId);
 
     if (!presetRule) {
@@ -68,7 +71,7 @@ export default class BlockWordCommand extends HubCommand {
       return;
     }
 
-    const modal = buildBlockWordsModal(hub.id, { presetRule });
+    const modal = buildBlockWordModal(hub.id, { presetRule });
     await interaction.showModal(modal);
   }
 
@@ -90,17 +93,17 @@ export default class BlockWordCommand extends HubCommand {
 
     // new rule
     if (!ruleId) {
-      if (hub.msgBlockList.length >= 2) {
+      if ((await hub.fetchBlockWords()).length >= 2) {
         await interaction.editReply('You can only have 2 block word rules per hub.');
         return;
       }
 
-      const rule = await db.messageBlockList.create({
+      const rule = await db.blockWord.create({
         data: { hubId, name, createdBy: interaction.user.id, words: newWords },
       });
 
       const embed = buildBWRuleEmbed(rule);
-      const buttons = buildBlockedWordsBtns(hub.id, rule.id);
+      const buttons = buildBlockedWordsBtns(hub.id, rule.id).addComponents(new ButtonBuilder());
       await interaction.editReply({
         content: `${emojis.yes} Rule added.`,
         embeds: [embed],
@@ -109,13 +112,13 @@ export default class BlockWordCommand extends HubCommand {
     }
     // remove rule
     else if (newWords.length === 0) {
-      await db.messageBlockList.delete({ where: { id: ruleId } });
+      await db.blockWord.delete({ where: { id: ruleId } });
       await interaction.editReply(`${emojis.yes} Rule removed.`);
     }
 
     // update rule
     else {
-      await db.messageBlockList.update({ where: { id: ruleId }, data: { words: newWords, name } });
+      await db.blockWord.update({ where: { id: ruleId }, data: { words: newWords, name } });
       await interaction.editReply(`${emojis.yes} Rule updated.`);
     }
   }
@@ -126,7 +129,7 @@ export default class BlockWordCommand extends HubCommand {
     const [hubId, ruleId] = customId.args;
 
     const hub = await this.fetchHub({ id: hubId });
-    if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
+    if (!hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
       const locale = await this.getLocale(interaction);
       await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), {
         ephemeral: true,
@@ -134,13 +137,13 @@ export default class BlockWordCommand extends HubCommand {
       return;
     }
 
-    const rule = hub.msgBlockList.find((r) => r.id === ruleId);
+    const rule = (await hub.fetchBlockWords()).find((r) => r.id === ruleId);
     if (!rule) {
       await interaction.reply({ content: 'Rule not found', ephemeral: true });
       return;
     }
 
-    const selectMenu = buildBlockWordsActionsSelect(hubId, ruleId, rule.actions || []);
+    const selectMenu = buildBlockWordActionsSelect(hubId, ruleId, rule.actions || []);
     await interaction.reply({
       content: `Configure actions for rule: ${rule.name}`,
       components: [selectMenu],
@@ -154,7 +157,7 @@ export default class BlockWordCommand extends HubCommand {
     const ruleId = customId.args[1];
     const selectedActions = interaction.values as BlockWordAction[];
 
-    await db.messageBlockList.update({
+    await db.blockWord.update({
       where: { id: ruleId },
       data: { actions: selectedActions },
     });
@@ -168,10 +171,11 @@ export default class BlockWordCommand extends HubCommand {
 
   private async handleEditSubcommand(
     interaction: ChatInputCommandInteraction,
-    hub: Hub & { msgBlockList: MessageBlockList[] },
+    hubId: string,
+    blockWords: BlockWord[],
   ) {
     const ruleName = interaction.options.getString('rule', true);
-    const rule = hub.msgBlockList.find((r) => r.name === ruleName);
+    const rule = blockWords.find((r) => r.name === ruleName);
 
     if (!rule) {
       await this.replyWithNotFound(interaction);
@@ -179,30 +183,35 @@ export default class BlockWordCommand extends HubCommand {
     }
 
     const embed = buildBWRuleEmbed(rule);
-    const buttons = buildBlockedWordsBtns(hub.id, rule.id);
+    const buttons = buildBlockedWordsBtns(hubId, rule.id);
     await interaction.reply({ embeds: [embed], components: [buttons] });
   }
 
   private async handleList(
     interaction: ChatInputCommandInteraction,
-    hub: Hub & { msgBlockList: MessageBlockList[] },
+    blockWords: BlockWord[],
   ) {
-    if (!hub.msgBlockList) {
+    if (!blockWords.length) {
       await this.replyWithNotFound(interaction);
       return;
     }
 
-    const embed = buildBlockWordsListEmbed(hub.msgBlockList);
+    const embed = buildBlockWordListEmbed(blockWords);
     await interaction.reply({ embeds: [embed] });
   }
 
-  private async handleAdd(interaction: ChatInputCommandInteraction | ButtonInteraction, hub: Hub) {
-    const modal = buildBlockWordsModal(hub.id);
+  private async handleAdd(
+    interaction: ChatInputCommandInteraction | ButtonInteraction,
+    hubId: string,
+  ) {
+    const modal = buildBlockWordModal(hubId);
     await interaction.showModal(modal);
   }
 
   private async fetchHub({ id, name }: { id?: string; name?: string }) {
-    return await db.hub.findFirst({ where: { id, name }, include: { msgBlockList: true } });
+    if (id) return await this.hubService.fetchHub(id);
+    else if (name) return (await this.hubService.findHubsByName(name)).at(0);
+    return null;
   }
 
   private async replyWithNotFound(interaction: RepliableInteraction) {

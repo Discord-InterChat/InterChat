@@ -20,7 +20,7 @@ export const buildEditEmbed = async (
   iconURL: string | undefined,
   locale: supportedLocaleCodes = 'en',
 ) => {
-  const networkData = await db.connectedList.findFirst({
+  const networkData = await db.connection.findFirst({
     where: { channelId },
     include: { hub: true },
   });
@@ -78,8 +78,8 @@ export const buildEditSelect = (
       .setCustomId(
         new CustomID()
           .setIdentifier('connection', 'settings')
-          .addArgs(channelId)
-          .addArgs(userIdFilter)
+          .setArgs(channelId)
+          .setArgs(userIdFilter)
           .toString(),
       )
       .setPlaceholder(t('connection.selects.placeholder', locale))
@@ -113,8 +113,8 @@ export const buildChannelSelect = (channelId: Snowflake, userIdFilter: Snowflake
       .setCustomId(
         new CustomID()
           .setIdentifier('connection', 'change_channel')
-          .addArgs(channelId)
-          .addArgs(userIdFilter)
+          .setArgs(channelId)
+          .setArgs(userIdFilter)
           .toString(),
       )
       .setChannelTypes(ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread)

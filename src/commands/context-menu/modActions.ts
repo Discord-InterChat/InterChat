@@ -57,7 +57,7 @@ export default class BlacklistCtxMenu extends BaseCommand {
   ) {
     const hubService = new HubService(db);
     const hub = await hubService.fetchHub(originalMsg.hubId);
-    if (!hub || !isStaffOrHubMod(interaction.user.id, hub)) {
+    if (!hub || !await isStaffOrHubMod(interaction.user.id, hub)) {
       await this.replyEmbed(interaction, t('errors.messageNotSentOrExpired', locale), {
         ephemeral: true,
         edit: true,
