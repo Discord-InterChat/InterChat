@@ -45,9 +45,6 @@ export class HubService {
     return null;
   }
 
-  async fetchHub(id: string): Promise<HubManager | null>;
-  async fetchHub(where: { id: string }): Promise<HubManager | null>;
-  async fetchHub(where: { name: string }): Promise<HubManager | null>;
   async fetchHub(whereInput: string | { id?: string; name?: string }): Promise<HubManager | null> {
     const where: { id?: string; name?: string } = typeof whereInput === 'string'
       ? { id: whereInput }

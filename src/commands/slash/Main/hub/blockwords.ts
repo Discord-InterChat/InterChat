@@ -209,7 +209,7 @@ export default class BlockWordCommand extends HubCommand {
   }
 
   private async fetchHub({ id, name }: { id?: string; name?: string }) {
-    if (id) return this.hubService.fetchHub(id);
+    if (id) return await this.hubService.fetchHub(id);
     else if (name) return (await this.hubService.findHubsByName(name)).at(0);
   }
 

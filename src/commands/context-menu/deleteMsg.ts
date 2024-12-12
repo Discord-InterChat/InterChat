@@ -120,7 +120,7 @@ export default class DeleteMessage extends BaseCommand {
     hub: HubManager,
     originalMsg: OriginalMessage,
   ): Promise<void> {
-    if (!isStaffOrHubMod(interaction.user.id, hub)) return;
+    if (!await isStaffOrHubMod(interaction.user.id, hub)) return;
 
     const { targetMessage } = interaction;
     const messageContent =
