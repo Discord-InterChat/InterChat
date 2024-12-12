@@ -106,7 +106,7 @@ export default class DeleteMessage extends BaseCommand {
 
     if (
       interaction.user.id !== originalMsg.authorId &&
-      !isStaffOrHubMod(interaction.user.id, hub)
+      !await isStaffOrHubMod(interaction.user.id, hub)
     ) {
       await interaction.editReply(t('errors.notMessageAuthor', locale, { emoji: emojis.no }));
       return false;
