@@ -2,7 +2,6 @@ import BaseEventListener from '#main/core/BaseEventListener.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import { getGuildOwnerOrFirstChannel, logGuildJoin } from '#utils/GuildUtils.js';
 import Logger from '#utils/Logger.js';
-import { check } from '#utils/ProfanityUtils.js';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Guild } from 'discord.js';
 
@@ -16,60 +15,43 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
 
     const { guildOwner, guildChannel } = await getGuildOwnerOrFirstChannel(guild);
 
-    // notify the person who added the bot
     const embed = new EmbedBuilder()
-      .setTitle('👋 Thanks for adding me to your server!')
+      .setTitle('👋 Welcome to InterChat')
       .setDescription(
         stripIndents`
-            Take your first step into the world of cross-server chatting with InterChat! 🚀 Explore public hubs, connect with multiple servers, and add a splash of excitement to your server experience. ${emojis.clipart}
-            ### Getting Started
-            - Simply run \`/setup\` to see an easy to follow setup guide.
-            - For a more userphone-like experience, type \`c!connect\` to try out our brand new chat lobbies.
-            - Visit our in-depth [wiki](${Constants.Links.Docs}) for more information.
-
-            If you need help, join our [support server](${Constants.Links.SupportInvite}) and we'll be happy to assist!
-        `,
+        Connect your server with others through public chat hubs! ${emojis.clipart}
+  
+        ### Quick Start
+        1. Run \`/setup\` to quickly connect to a hub
+        2. Browse available hubs at [interchat.fun/hubs](${Constants.Links.Website}/hubs)
+        3. Check our [wiki](${Constants.Links.Docs}) for advanced features
+  
+        Need help? Join our [support server](${Constants.Links.SupportInvite})!
+      `,
       )
       .setColor(Constants.Colors.interchatBlue)
       .setFooter({ text: `Sent for server: ${guild.name}`, iconURL: guild.iconURL() ?? undefined });
 
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setLabel('Docs')
+        .setLabel('Wiki')
         .setURL(`${Constants.Links.Docs}/setup`)
         .setEmoji(emojis.guide_icon)
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
-        .setLabel('Terms')
-        .setURL(`${Constants.Links.Docs}/legal/terms`)
-        .setEmoji(emojis.docs_icon)
+        .setLabel('Terms & Privacy')
+        .setURL(`${Constants.Links.Docs}/legal`)
+        .setEmoji(emojis.lock_icon)
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
-        .setLabel('Privacy')
-        .setURL(`${Constants.Links.Docs}/legal/privacy`)
-        .setEmoji(emojis.lock_icon)
+        .setLabel('Discord')
+        .setURL(Constants.Links.SupportInvite)
+        .setEmoji(emojis.code_icon)
         .setStyle(ButtonStyle.Link),
     );
 
     const welcomeMsg = { embeds: [embed], components: [buttons] };
     guildOwner?.send(welcomeMsg).catch(() => null);
     guildChannel?.send(welcomeMsg).catch(() => null);
-
-    const { hasProfanity, hasSlurs } = check(guild.name);
-    if (!hasProfanity && !hasSlurs) return;
-
-    const profaneErrorEmbed = new EmbedBuilder()
-      .setTitle('Leave Notice 👋')
-      .setDescription(
-        `${emojis.no} Your server name contains profanity or sensitive content. Please change it before using InterChat.`,
-      )
-      .setColor(Constants.Colors.invisible)
-      .setFooter({ text: `Sent for: ${guild.name}`, iconURL: guild.iconURL() ?? undefined });
-
-    const leaveMsg = { embeds: [profaneErrorEmbed] };
-    guildOwner?.send(leaveMsg).catch(() => null);
-    guildChannel?.send(leaveMsg).catch(() => null);
-
-    await guild.leave();
   }
 }
