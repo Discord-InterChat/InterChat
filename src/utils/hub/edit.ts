@@ -66,8 +66,8 @@ export const hubEmbed = async (hub: Hub, totalConnections: number, totalMods: nu
 
   `,
     )
-    .setThumbnail(hub.iconUrl)
-    .setImage(hub.bannerUrl)
+    .setThumbnail(hub.iconUrl || null)
+    .setImage(hub.bannerUrl || null)
     .addFields(
       {
         name: 'Blacklists',

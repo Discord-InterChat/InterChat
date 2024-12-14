@@ -11,7 +11,7 @@ export default class Moderator extends HubCommand {
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
     const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
-    if (!hub || !(await hub?.isManager(interaction.user.id))) {
+    if (!hub || !(await hub.isManager(interaction.user.id))) {
       await this.replyEmbed(interaction, t('hub.notManager', locale, { emoji: emojis.no }), {
         ephemeral: true,
       });

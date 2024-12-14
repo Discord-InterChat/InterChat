@@ -5,6 +5,7 @@ import getRedis from '#main/utils/Redis.js';
 import { handleError } from '#main/utils/Utils.js';
 import { HubModerator, Role } from '@prisma/client';
 import { Redis } from 'ioredis';
+import isEmpty from 'lodash/isEmpty.js';
 
 export default class HubModeratorManager {
   private readonly hub: HubManager;
@@ -64,7 +65,7 @@ export default class HubModeratorManager {
 
   async fetchAll() {
     const fromCache = await this.cache.hgetall(this.modsKey);
-    if (fromCache) {
+    if (!isEmpty(fromCache)) {
       return Object.values(fromCache).map((c) => JSON.parse(c)) as HubModerator[];
     }
 
