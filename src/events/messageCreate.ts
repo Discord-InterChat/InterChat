@@ -3,7 +3,7 @@ import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { LobbyManager } from '#main/managers/LobbyManager.js';
 import { ConnectionService } from '#main/services/ConnectionService.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
-import Constants from '#main/utils/Constants.js';
+import Constants, { emojis } from '#main/utils/Constants.js';
 import { handleError, isHumanMessage } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import { Message } from 'discord.js';
@@ -28,16 +28,16 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     }
     else if (
       message.content === `<@${message.client.user.id}>` ||
-        message.content === `<@!${message.client.user.id}>`
+      message.content === `<@!${message.client.user.id}>`
     ) {
       await message.channel
         .send(
           stripIndents`
-            ### Hey there! I'm InterChat, the cross-server chatting bot! 🎉
-            - To get started, use  \`/help\` for a easy guide on how to use me.
-            - If you're new here, please read the rules by typing \`/rules\`.
-            - You can type \`c!connect\` to connect to a random lobby. Or use \`/hub join\` to join a cross-server community.
-            -# **Need help?** Join our [support server](<${Constants.Links.SupportInvite}>).
+            ### Hey there! I'm InterChat, a bot that connects servers together. ${emojis.clipart}
+            - To get started, type \`/setup\` to set up InterChat with a hub.
+            - If you're new here, read the rules by typing \`/rules\`.
+            - Use the [hub browser](${Constants.Links.Website}/hubs) to find and join more cross-server communities.
+            -# ***Need help?** Join our [support server](<${Constants.Links.SupportInvite}>).*
       `,
         )
         .catch(() => null);
@@ -57,8 +57,8 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       if (!commandName) return;
 
       const command =
-      message.client.prefixCommands.get(commandName) ||
-      message.client.prefixCommands.find((cmd) => cmd.data.aliases?.includes(commandName));
+        message.client.prefixCommands.get(commandName) ||
+        message.client.prefixCommands.find((cmd) => cmd.data.aliases?.includes(commandName));
 
       if (!command) return;
 

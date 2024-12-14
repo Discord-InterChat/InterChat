@@ -19,7 +19,7 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
       .setTitle('👋 Welcome to InterChat')
       .setDescription(
         stripIndents`
-        Connect your server with others through public chat hubs! ${emojis.clipart}
+        Break down server walls and chat across Discord! ${emojis.clipart}
   
         ### Quick Start
         1. Run \`/setup\` to quickly connect to a hub
