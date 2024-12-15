@@ -26,8 +26,8 @@ export default class HubManager {
 
   constructor(
     hub: Hub,
-    hubService = new HubService(),
-    modManager = new HubModeratorManager(this),
+    hubService?: HubService,
+    modManager?: HubModeratorManager,
     cache: Redis = getRedis(),
   ) {
     this.hub = hub;
@@ -37,8 +37,8 @@ export default class HubManager {
     this.blockWordsKey = `${RedisKeys.Hub}:${hub.id}:blockWords`;
 
     this.cache = cache;
-    this.hubService = hubService;
-    this.modManager = modManager;
+    this.hubService = hubService ?? new HubService();
+    this.modManager = modManager ?? new HubModeratorManager(this, cache);
 
     this.cacheHub().catch(Logger.error);
   }

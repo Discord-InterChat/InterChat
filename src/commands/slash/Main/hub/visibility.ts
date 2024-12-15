@@ -14,8 +14,8 @@ export default class VisibilityCommnd extends HubCommand {
     const visibility = interaction.options.getString('visibility', true) as 'public' | 'private';
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
-    if (!hub || await hub.isManager(interaction.user.id)) {
-      await this.replyEmbed(interaction, 'hub.notFound_mod', {
+    if (!hub || !await hub.isManager(interaction.user.id)) {
+      await this.replyEmbed(interaction, 'hub.notManager', {
         t: { emoji: emojis.no },
         ephemeral: true,
       });
