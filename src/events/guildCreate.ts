@@ -1,6 +1,6 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import Constants, { emojis } from '#utils/Constants.js';
-import { getGuildOwnerOrFirstChannel, logGuildJoin } from '#utils/GuildUtils.js';
+import { getGuildOwnerOrFirstChannel as getGuildOwnerAndFirstChannel, logGuildJoin } from '#utils/GuildUtils.js';
 import Logger from '#utils/Logger.js';
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Guild } from 'discord.js';
@@ -13,18 +13,18 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
     // log that bot joined a guild to goal channel in support server
     await logGuildJoin(guild, Constants.Channels.goal);
 
-    const { guildOwner, guildChannel } = await getGuildOwnerOrFirstChannel(guild);
+    const { guildOwner, guildChannel } = await getGuildOwnerAndFirstChannel(guild);
 
     const embed = new EmbedBuilder()
       .setTitle('👋 Welcome to InterChat')
+      .setThumbnail(guild.client.user.displayAvatarURL())
       .setDescription(
         stripIndents`
-        Break down server walls and chat across Discord! ${emojis.clipart}
-  
+        I'm a bot that lets you break down server walls and chat across Discord! ${emojis.clipart}
         ### Quick Start
-        1. Run \`/setup\` to quickly connect to a hub
-        2. Browse available hubs at [interchat.fun/hubs](${Constants.Links.Website}/hubs)
-        3. Check our [wiki](${Constants.Links.Docs}) for advanced features
+        1. Run \`/setup\` to quickly connect to your first hub!
+        2. Or browse & join hubs from [interchat.fun/hubs](${Constants.Links.Website}/hubs) like a pro 😎
+        3. Check our [wiki](${Constants.Links.Docs}) for advanced features.
   
         Need help? Join our [support server](${Constants.Links.SupportInvite})!
       `,

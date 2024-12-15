@@ -4,6 +4,7 @@ import {
   AuditLogEvent,
   ChannelType,
   EmbedBuilder,
+  User,
   type ColorResolvable,
   type Guild,
   type TextChannel,
@@ -14,7 +15,9 @@ import {
  * @param guild The guild to retrieve the target for.
  * @returns The greeting target, which can be a TextChannel or a User.
  */
-export const getGuildOwnerOrFirstChannel = async (guild: Guild) => {
+export const getGuildOwnerOrFirstChannel = async (
+  guild: Guild,
+): Promise<{ guildOwner: User | null; guildChannel: TextChannel | null }> => {
   let guildOwner = null;
 
   if (guild.members.me?.permissions.has('ViewAuditLog', true)) {
@@ -22,7 +25,7 @@ export const getGuildOwnerOrFirstChannel = async (guild: Guild) => {
       .fetchAuditLogs({ type: AuditLogEvent.BotAdd, limit: 5 })
       .catch(() => null);
 
-    guildOwner = auditLog?.entries.first()?.executor;
+    guildOwner = auditLog?.entries.first()?.executor ?? null;
   }
 
   const guildChannel = guild.channels.cache
