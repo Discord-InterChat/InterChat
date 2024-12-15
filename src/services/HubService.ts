@@ -76,8 +76,8 @@ export class HubService {
         ...data,
         moderators: { create: { userId: data.ownerId, role: 'OWNER' } },
         private: true,
-        iconUrl: data.iconUrl ?? Constants.Links.EasterAvatar,
-        bannerUrl: data.bannerUrl ?? null,
+        iconUrl: data.iconUrl || Constants.Links.EasterAvatar,
+        bannerUrl: data.bannerUrl || null,
         settings:
           HubSettingsBits.SpamFilter | HubSettingsBits.Reactions | HubSettingsBits.BlockNSFW,
       },
@@ -94,6 +94,8 @@ export class HubService {
       this.db.hubLogConfig.deleteMany({ where: { hubId } }),
       this.db.blockWord.deleteMany({ where: { hubId } }),
       this.db.infraction.deleteMany({ where: { hubId } }),
+      this.db.connection.deleteMany({ where: { hubId } }),
+      this.db.hubModerator.deleteMany({ where: { hubId } }),
     ]);
 
     // finally, delete the hub
