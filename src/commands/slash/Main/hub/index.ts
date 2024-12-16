@@ -5,6 +5,7 @@ import { HubSettingsBits } from '#main/modules/BitFields.js';
 import { HubService } from '#main/services/HubService.js';
 import db from '#utils/Db.js';
 import { escapeRegexChars, handleError, toTitleCase } from '#utils/Utils.js';
+import { Role } from '@prisma/client';
 import {
   APIApplicationCommandBasicOption,
   ApplicationCommandOptionType,
@@ -158,9 +159,9 @@ export default class HubCommand extends BaseCommand {
                 description: 'Determines what hub permissions they have.',
                 required: false,
                 choices: [
-                  { name: 'Network Moderator', value: 'network_mod' },
-                  { name: 'Hub Manager', value: 'manager' },
-                ],
+                  { name: 'Network Moderator', value: 'MODERATOR' },
+                  { name: 'Hub Manager', value: 'MANAGER' },
+                ] as { name: string; value: Role }[],
               },
             ],
           },
