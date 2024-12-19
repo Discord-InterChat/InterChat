@@ -12,28 +12,22 @@ export default async (client: Client) => {
 
   allInfractions?.forEach(async (infrac) => {
     const type = infrac.userId ? 'user' : 'server';
+    const targetId = infrac.userId ?? infrac.serverId!;
 
-    const blacklistManager =
-      type === 'user'
-        ? new BlacklistManager('user', infrac.id)
-        : new BlacklistManager('server', infrac.id);
-
+    const blacklistManager = new BlacklistManager(type, targetId);
     await blacklistManager.removeBlacklist(infrac.hubId);
 
     if (client.user) {
+      const opts = {
+        id: targetId,
+        mod: client.user,
+        reason: 'Blacklist duration expired.',
+      };
       if (type === 'user') {
-        await logUserUnblacklist(client, new HubManager(infrac.hub), {
-          id: infrac.id,
-          mod: client.user,
-          reason: 'Blacklist duration expired.',
-        });
+        await logUserUnblacklist(client, new HubManager(infrac.hub), opts);
       }
       else if (type === 'server') {
-        await logServerUnblacklist(client, new HubManager(infrac.hub), {
-          id: infrac.id,
-          mod: client.user,
-          reason: 'Blacklist duration expired.',
-        });
+        await logServerUnblacklist(client, new HubManager(infrac.hub), opts);
       }
     }
   });
