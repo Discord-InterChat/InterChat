@@ -45,7 +45,7 @@ network:
 
         **Cómo funciona:** La red InterChat es como un puente mágico que vincula los canales en diferentes servidores que están con nosotros en este centro. Obtenga más información en nuestra [Guía]({docs_link}).
       footer: Red InterChat | Version {version}
-    inProgress: 'Ya ha habido un intento de unirse a un centro de {emoji}. Por favor, cancelelo o espere a que se complete.'
+    inProgress: '{emoji} {channel} is already in the process of being setup to join a hub. Please wait for the setup to complete or cancel it if you were the one who initiated it.'
 blacklist:
   success: '{emoji} **{name}** ¡ha sido con éxito en la lista negra!'
   removed: '{emoji} **{name}** ¡se ha eliminado de la lista negra!'
