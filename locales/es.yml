@@ -128,6 +128,10 @@ connection:
 hub:
   notFound: '{emoji} No se puede encontrar HUB. Asegúrese de haber ingresado el nombre correcto del concentrador.'
   notFound_mod: '{emoji} No se puede encontrar HUB. Asegúrese de haber ingresado el nombre correcto del concentrador y de que usted sea el propietario o un moderador del Hub.'
+  notManager: '{emoji} You must be a hub manager to perform this action.'
+  notModerator: '{emoji} You need to be a hub moderator to perform this action.'
+  notPrivate: '{emoji} This hub is not private.'
+  notOwner: '{emoji} Only the owner of this hub can perform this action.'
   alreadyJoined: '{emoji} Ya se ha unido a **{hub}** de {channel}!'
   invalidChannel: '{emoji} El canal no es válido. ¡Solo se admiten los canales de texto y hilo!'
   invalidImgurUrl: '{emoji} URL de imagen no válida para icono o banner. Asegúrese de haber ingresado una URL de imagen de Imgur válida que no es una galería o álbum.'
