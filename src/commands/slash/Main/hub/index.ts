@@ -46,21 +46,6 @@ export default class HubCommand extends BaseCommand {
         type: ApplicationCommandOptionType.Subcommand,
         name: 'browse',
         description: '🔍 Browse public hubs and join them!',
-        options: [
-          { ...hubOption, required: false },
-          {
-            type: ApplicationCommandOptionType.String,
-            name: 'sort',
-            description: 'Sort the results.',
-            required: false,
-            choices: [
-              { name: 'Most Active', value: 'active' },
-              { name: 'Most Popular', value: 'popular' },
-              { name: 'Most Servers', value: 'servers' },
-              { name: 'Recently Created', value: 'recent' },
-            ],
-          },
-        ],
       },
       {
         type: ApplicationCommandOptionType.Subcommand,
@@ -159,8 +144,8 @@ export default class HubCommand extends BaseCommand {
                 description: 'Determines what hub permissions they have.',
                 required: false,
                 choices: [
-                  { name: 'Network Moderator', value: 'MODERATOR' },
-                  { name: 'Hub Manager', value: 'MANAGER' },
+                  { name: 'Network Moderator', value: Role.MODERATOR },
+                  { name: 'Hub Manager', value: Role.MANAGER },
                 ] as { name: string; value: Role }[],
               },
             ],
@@ -197,8 +182,8 @@ export default class HubCommand extends BaseCommand {
                 description: 'The moderator position to change.',
                 required: true,
                 choices: [
-                  { name: 'Network Moderator', value: 'network_mod' },
-                  { name: 'Hub Manager', value: 'manager' },
+                  { name: 'Network Moderator', value: Role.MODERATOR },
+                  { name: 'Hub Manager', value: Role.MANAGER },
                 ],
               },
             ],

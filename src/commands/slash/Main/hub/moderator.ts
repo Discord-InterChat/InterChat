@@ -1,7 +1,7 @@
 import HubManager from '#main/managers/HubManager.js';
 import { emojis } from '#utils/Constants.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
-import type { HubModerator } from '@prisma/client';
+import { Role, type HubModerator } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import HubCommand from './index.js';
 
@@ -137,7 +137,7 @@ export default class Moderator extends HubCommand {
                 .map(
                   (mod, index) =>
                     `${index + 1}. <@${mod.userId}> - ${
-                      mod.role === 'MODERATOR' ? 'Moderator' : 'Hub Manager'
+                      mod.role === Role.MODERATOR ? 'Moderator' : 'Hub Manager'
                     }`,
                 )
                 .join('\n')
@@ -170,8 +170,7 @@ export default class Moderator extends HubCommand {
       return;
     }
 
-    const role = (interaction.options.getString('position') ??
-      'NETWORK_MOD') as HubModerator['role'];
+    const role = (interaction.options.getString('position') ?? Role.MODERATOR) as HubModerator['role'];
 
     await hub.moderators.add(user.id, role);
 
