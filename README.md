@@ -27,6 +27,14 @@ A powerful Discord bot for easy and real-time chatting hubs across multiple Disc
   <a href="#-support"><kbd> <br> Support Server&ensp;<br> </kbd></a>&ensp;&ensp;
 </div>
 
+<br>
+
+<div align="center">
+  <a href="https://ko-fi.com/V7V017M8GW">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Discord">
+  </a>
+</div>
+
 ## 🌟 Features
 
 - 🔗 **Cross-Server Messaging**: Connect channels from different servers and allow users to chat in real-time.
