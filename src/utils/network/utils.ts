@@ -2,16 +2,12 @@ import {
   findOriginalMessage,
   getBroadcasts,
   getOriginalMessage,
+  OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import Constants, { ConnectionMode } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { stripTenorLinks } from '#utils/ImageUtils.js';
 import { censor } from '#utils/ProfanityUtils.js';
-import {
-  type HexColorString,
-  type Message,
-  Collection,
-  EmbedBuilder,
-} from 'discord.js';
+import { type HexColorString, type Message, Collection, EmbedBuilder } from 'discord.js';
 import type { ReferredMsgData } from './Types.js';
 
 /**
@@ -22,21 +18,9 @@ import type { ReferredMsgData } from './Types.js';
  * @param parseMode The mode in which the original message was sent in.
  * @returns The content of the referred message.
  */
-export const getReferredContent = (referredMessage: Message, parseMode: ConnectionMode) => {
-  let referredContent =
-    parseMode === ConnectionMode.Compact
-      ? referredMessage.content
-      : referredMessage.embeds[0]?.description;
-
-  if (!referredContent) {
-    referredContent = '*Original message contains attachment <:attachment:1102464803647275028>*';
-  }
-  else if (referredContent.length > 100) {
-    referredContent = `${referredContent.slice(0, 100)}...`;
-  }
-
-  return referredContent;
-};
+export const getReferredContent = (originalMsg: OriginalMessage) => originalMsg.content.length > 0
+  ? originalMsg.content
+  : '*Original message contains attachment <:attachment:1102464803647275028>*';
 
 export const getReferredMsgData = async (
   referredMessage: Message | null,

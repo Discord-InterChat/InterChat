@@ -1,4 +1,6 @@
 import { buildModPanel } from '#main/interactions/ModPanel.js';
+import { HubService } from '#main/services/HubService.js';
+import { logMsgDelete } from '#main/utils/hub/logger/ModLogs.js';
 import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
 import { getBroadcasts, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import { emojis } from '#utils/Constants.js';
@@ -14,7 +16,6 @@ export default class DeleteMessageHandler implements ModAction {
     locale: supportedLocaleCodes,
   ) {
     const originalMsg = await getOriginalMessage(originalMsgId);
-
     if (!originalMsg) {
       await replyWithUnknownMessage(interaction, locale);
       return;
@@ -48,24 +49,6 @@ export default class DeleteMessageHandler implements ModAction {
       broadcastMsgs,
     );
 
-    // log the deletion to the hub's mod log channel
-    // FIXME: store message content for easier access
-    // if (interaction.message.reference?.messageId) {
-    //   const hub = await fetchHub(originalMsg.hubId);
-    //   const msgContent = originalMsg.content;
-    //   await logMsgDelete(
-    //     interaction.client,
-    //     interaction.message.reference?.messageId,
-    //     await fetchHub(originalMsg.hubId),
-    //     {
-    //       modName: interaction.user.id,
-    //       serverId: originalMsg.guildId,
-    //       userId: originalMsg.authorId,
-    //       imageUrl,
-    //     },
-    //   );
-    // }
-
     await interaction
       .editReply(
         t(
@@ -80,5 +63,13 @@ export default class DeleteMessageHandler implements ModAction {
         ),
       )
       .catch(() => null);
+
+    const hub = await new HubService().fetchHub(originalMsg.hubId);
+    if (!hub) return;
+
+    await logMsgDelete(interaction.client, originalMsg, await hub.fetchLogConfig(), {
+      hubName: hub.data.name,
+      modName: interaction.user.username,
+    });
   }
 }

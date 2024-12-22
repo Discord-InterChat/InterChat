@@ -31,12 +31,15 @@ export default async (
   message: Message,
   broadcastResults: NetworkWebhookSendResult[],
   hubId: string,
-  dbReference?: OriginalMessage | null,
+  dbReference?: OriginalMessage,
+  attachmentUrl?: string,
 ) => {
   if (!message.inGuild()) return;
 
   await storeMessage(message.id, {
     hubId,
+    content: message.content,
+    imageUrl: attachmentUrl ?? null,
     messageId: message.id,
     authorId: message.author.id,
     guildId: message.guildId,

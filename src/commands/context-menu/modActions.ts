@@ -36,7 +36,7 @@ export default class BlacklistCtxMenu extends BaseCommand {
       (await findOriginalMessage(interaction.targetId));
 
     if (
-      !BlacklistCtxMenu.dbMsgExists(originalMsg) ||
+      !originalMsg ||
       !(await this.validateMessage(interaction, originalMsg, locale))
     ) {
       return;
@@ -44,10 +44,6 @@ export default class BlacklistCtxMenu extends BaseCommand {
 
     const { embed, buttons } = await buildModPanel(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: buttons });
-  }
-
-  private static dbMsgExists(originalMsg: OriginalMessage | null): originalMsg is OriginalMessage {
-    return Boolean(originalMsg);
   }
 
   private async validateMessage(

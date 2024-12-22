@@ -90,11 +90,7 @@ export default class EditMessage extends BaseCommand {
             .setCustomId('newMessage')
             .setStyle(TextInputStyle.Paragraph)
             .setLabel('Please enter your new message.')
-            .setValue(
-              `${target.content ?? target.embeds[0]?.description ?? ''}\n${
-                target.embeds[0]?.image?.url ?? ''
-              }`,
-            )
+            .setValue(messageInDb.content)
             .setMaxLength(950),
         ),
       );

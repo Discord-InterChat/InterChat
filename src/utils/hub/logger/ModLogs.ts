@@ -1,8 +1,7 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import HubManager from '#main/managers/HubManager.js';
-
-
+import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { type Client, codeBlock, EmbedBuilder, type Snowflake, User } from 'discord.js';
@@ -101,17 +100,16 @@ export const logUserUnblacklist = async (
 
 export const logMsgDelete = async (
   client: Client,
-  content: string,
-  hubName: string,
+  originalMsg: OriginalMessage,
   logConfig: HubLogManager,
-  opts: { userId: string; serverId: string; modName: string; imageUrl?: string },
+  opts: { hubName: string; modName: string; },
 ) => {
   const modLogs = logConfig.config.modLogs;
   if (!modLogs?.channelId) return;
 
-  const { userId, serverId } = opts;
-  const user = await client.users.fetch(userId).catch(() => null);
-  const server = await client.fetchGuild(serverId).catch(() => null);
+  const { authorId, guildId, content } = originalMsg;
+  const user = await client.users.fetch(authorId).catch(() => null);
+  const server = await client.fetchGuild(guildId).catch(() => null);
 
   const embed = new EmbedBuilder()
     .setDescription(
@@ -122,11 +120,11 @@ export const logMsgDelete = async (
     `,
     )
     .setColor(Constants.Colors.invisible)
-    .setImage(opts.imageUrl ?? null)
+    .setImage(originalMsg.imageUrl ?? null)
     .addFields([
-      { name: `${emojis.connect_icon} User`, value: `${user?.username} (\`${userId}\`)` },
-      { name: `${emojis.rules_icon} Server`, value: `${server?.name} (\`${serverId}\`)` },
-      { name: `${emojis.globe_icon} Hub`, value: hubName },
+      { name: `${emojis.connect_icon} User`, value: `${user?.username} (\`${authorId}\`)` },
+      { name: `${emojis.rules_icon} Server`, value: `${server?.name} (\`${guildId}\`)` },
+      { name: `${emojis.globe_icon} Hub`, value: opts.hubName },
     ])
     .setFooter({ text: `Deleted by: ${opts.modName}` });
 

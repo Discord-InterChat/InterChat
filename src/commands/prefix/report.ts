@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
 import { sendHubReport } from '#main/utils/hub/logger/Report.js';
 import {
@@ -7,7 +6,8 @@ import {
   getMessageIdFromStr,
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import { GuildTextBasedChannel, Message } from 'discord.js';
+import { emojis } from '#utils/Constants.js';
+import { Message } from 'discord.js';
 import ms from 'ms';
 
 export default class ReportPrefixCommand extends BasePrefixCommand {
@@ -44,18 +44,12 @@ export default class ReportPrefixCommand extends BasePrefixCommand {
       return;
     }
 
-    const fetchedMsg = await (
-      message.client.channels.cache.get(broadcastMsg.channelId) as GuildTextBasedChannel
-    )?.messages
-      .fetch(broadcastMsg.messageId)
-      .catch(() => null);
-
     await sendHubReport(originalMsg.hubId, message.client, {
       userId: originalMsg.authorId,
       serverId: originalMsg.guildId,
       reason: message.reference?.messageId ? args[0] : args.slice(1).join(' '),
       reportedBy: message.author,
-      evidence: { messageId: broadcastMsg.messageId, content: fetchedMsg?.content },
+      evidence: { messageId: broadcastMsg.messageId, content: originalMsg.content },
     });
 
     await message

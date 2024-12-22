@@ -7,7 +7,7 @@ import {
   getOriginalMessage,
   OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import { emojis } from '#utils/Constants.js';
 import { logMsgDelete } from '#utils/hub/logger/ModLogs.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { t } from '#utils/Locale.js';
@@ -106,7 +106,7 @@ export default class DeleteMessage extends BaseCommand {
 
     if (
       interaction.user.id !== originalMsg.authorId &&
-      !await isStaffOrHubMod(interaction.user.id, hub)
+      !(await isStaffOrHubMod(interaction.user.id, hub))
     ) {
       await interaction.editReply(t('errors.notMessageAuthor', locale, { emoji: emojis.no }));
       return false;
@@ -120,29 +120,11 @@ export default class DeleteMessage extends BaseCommand {
     hub: HubManager,
     originalMsg: OriginalMessage,
   ): Promise<void> {
-    if (!await isStaffOrHubMod(interaction.user.id, hub)) return;
+    if (!(await isStaffOrHubMod(interaction.user.id, hub))) return;
 
-    const { targetMessage } = interaction;
-    const messageContent =
-      targetMessage.cleanContent ?? targetMessage.embeds.at(0)?.description?.replaceAll('`', '\\`');
-
-    if (!messageContent) return;
-
-    const imageUrl =
-      targetMessage.embeds.at(0)?.image?.url ??
-      targetMessage.content.match(Constants.Regex.ImageURL)?.[0];
-
-    await logMsgDelete(
-      interaction.client,
-      messageContent,
-      hub.data.name,
-      await hub.fetchLogConfig(),
-      {
-        userId: originalMsg.authorId,
-        serverId: originalMsg.guildId,
-        modName: interaction.user.username,
-        imageUrl,
-      },
-    );
+    await logMsgDelete(interaction.client, originalMsg, await hub.fetchLogConfig(), {
+      hubName: hub.data.name,
+      modName: interaction.user.username,
+    });
   }
 }

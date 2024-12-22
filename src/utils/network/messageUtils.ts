@@ -6,6 +6,8 @@ import isEmpty from 'lodash/isEmpty.js';
 
 export interface OriginalMessage {
   hubId: string;
+  content: string;
+  imageUrl: string | null;
   messageId: string;
   guildId: string;
   authorId: string;
