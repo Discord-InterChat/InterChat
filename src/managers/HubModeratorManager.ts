@@ -94,9 +94,14 @@ export default class HubModeratorManager {
     const mods = await this.fetchAll();
     return mods.some((mod) => {
       if (mod.userId !== userId) return false;
-      if (!checkRoles) return true;
+      if (!checkRoles?.length) return true;
 
       return checkRoles.includes(mod.role) || this.hub.data.ownerId === userId;
     });
+  }
+
+  async removeAll() {
+    await db.hubModerator.deleteMany({ where: { hubId: this.hub.id } });
+    await this.cache.del(this.modsKey);
   }
 }

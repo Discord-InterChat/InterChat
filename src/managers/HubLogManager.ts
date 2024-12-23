@@ -48,14 +48,26 @@ export default class HubLogManager {
     return this.logConfig;
   }
 
+  async deleteAll() {
+    await db.hubLogConfig.delete({ where: { hubId: this.hubId } });
+    this.logConfig = {} as HubLogConfig;
+    this.refreshCache();
+  }
+
   protected async updateLogConfig(data: Prisma.HubLogConfigUpdateInput) {
     const updated = await db.hubLogConfig.update({ where: { hubId: this.hubId }, data });
     this.logConfig = updated;
-    this.refreshCache().catch(handleError);
+    this.refreshCache();
   }
 
   private async refreshCache() {
-    await cacheData(`${RedisKeys.hubLogConfig}:${this.hubId}`, JSON.stringify(this.logConfig));
+    try {
+      await cacheData(`${RedisKeys.hubLogConfig}:${this.hubId}`, JSON.stringify(this.logConfig));
+    }
+    catch (error) {
+      error.message = `Failed to refresh cache for hub log config: ${error.message}`;
+      handleError(error);
+    }
   }
 
 
