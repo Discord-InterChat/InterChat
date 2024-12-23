@@ -100,8 +100,6 @@ export default class About extends BaseCommand {
         ${emojis.dotBlue} @${usernames[1]}
         ${emojis.dotBlue} @${usernames[2]}
         ${emojis.dotBlue} @${usernames[3]}
-        ${emojis.dotBlue} @${usernames[4]}
-        ${emojis.dotBlue} @${usernames[5]}
         ${creditsDivider}
       `,
       )
