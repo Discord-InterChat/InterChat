@@ -93,13 +93,16 @@ export default class HubEdit extends HubCommand {
       await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
       return { hub: null, locale };
     }
+    else if (!(await hub.isManager(interaction.user.id))) {
+      await this.replyEmbed(interaction, t('hub.notManager', locale, { emoji: emojis.no }));
+      return { hub: null, locale };
+    }
 
     return { hub, locale };
   }
 
   private async fetchHubFromDb(userId: string, hubName: string) {
     const hubByName = (await this.hubService.findHubsByName(hubName)).at(0);
-    console.log(hubByName);
     if (hubByName) return hubByName;
 
     return (await this.hubService.fetchModeratedHubs(userId, { take: 1 })).at(0);
@@ -221,7 +224,6 @@ export default class HubEdit extends HubCommand {
   ) {
     const description = interaction.fields.getTextInputValue('description');
     const hub = await this.hubService.fetchHub(hubId);
-    console.log(hub);
 
     if (!hub) {
       await interaction.reply({
