@@ -1,4 +1,4 @@
-import Constants from '#utils/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import { msToReadable, toTitleCase } from '#utils/Utils.js';
 import { Infraction } from '@prisma/client';
 import { stripIndents } from 'common-tags';
@@ -55,6 +55,7 @@ export const buildInfractionListEmbeds = async (
         embeds: [
           new EmbedBuilder()
             .setTitle(`ID: ${targetId} | ${infractions.length} Total Infractions`)
+            .setDescription(`${emojis.exclamation} **Currently Blacklisted:** ${infractions.some((i) => i.type === 'BLACKLIST' && i.status === 'ACTIVE')}`)
             .setFields(fields)
             .setColor(Constants.Colors.invisible)
             .setAuthor({

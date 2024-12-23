@@ -39,11 +39,11 @@ export const buildBlacklistNotifEmbed = (
     ? `<t:${Math.round(opts.expiresAt.getTime() / 1000)}:R>`
     : 'Never';
 
-  const targetStr = type === 'user' ? 'You' : 'This server';
+  const targetStr = type === 'user' ? 'You have' : 'This server has';
 
   return new EmbedBuilder()
     .setTitle(`${emojis.blobFastBan} Blacklist Notification`)
-    .setDescription(`${targetStr} has been blacklisted from talking in hub **${opts.hubName}**.`)
+    .setDescription(`${targetStr} been blacklisted from talking in hub **${opts.hubName}**.`)
     .setColor(Constants.Colors.interchatBlue)
     .setFields(
       { name: 'Reason', value: opts.reason ?? 'No reason provided.', inline: true },
@@ -73,7 +73,7 @@ export const sendBlacklistNotif = async (
     });
 
     let components: APIActionRowComponent<APIButtonComponent>[] = [];
-    if (!opts.expiresAt || opts.expiresAt.getTime() > Date.now() + 60 * 60 * 24 * 1000) {
+    if (!opts.expiresAt || opts.expiresAt.getTime() >= Date.now() + 60 * 60 * 24 * 1000) {
       components = [buildAppealSubmitButton(type, opts.hubId).toJSON()];
     }
 

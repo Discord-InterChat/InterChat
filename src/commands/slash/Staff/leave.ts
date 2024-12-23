@@ -12,7 +12,7 @@ export default class Respawn extends BaseCommand {
   readonly staffOnly = true;
   readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'leave',
-    description: 'Make me leave a server (Dev\'s toy only)',
+    description: 'Make me leave a server (dev only)',
     options: [
       {
         type: ApplicationCommandOptionType.String,

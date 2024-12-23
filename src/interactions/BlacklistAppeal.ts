@@ -26,7 +26,7 @@ export const buildAppealSubmitButton = (type: 'user' | 'server', hubId: string) 
   new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(new CustomID('appealSubmit:button', [type, hubId]).toString())
-      .setLabel('Appeal Blacklist')
+      .setLabel('Appeal')
       .setEmoji('📝')
       .setStyle(ButtonStyle.Primary),
   );
