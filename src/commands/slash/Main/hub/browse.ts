@@ -1,22 +1,24 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { hubLeaveConfirmButtons } from '#main/interactions/HubLeaveConfirm.js';
+import ConnectionManager from '#main/managers/ConnectionManager.js';
+import HubManager from '#main/managers/HubManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { HubJoinService } from '#main/services/HubJoinService.js';
-import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import Constants, { emojis } from '#utils/Constants.js';
-import { Connection, Hub } from '@prisma/client';
+import { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   BaseMessageOptions,
-  ButtonBuilder,
-  ButtonInteraction,
-  ButtonStyle,
   ChatInputCommandInteraction,
   EmbedField,
+  StringSelectMenuBuilder,
+  StringSelectMenuInteraction,
+  StringSelectMenuOptionBuilder,
   time,
 } from 'discord.js';
 
@@ -26,26 +28,19 @@ export default class BrowseCommand extends HubCommand {
 
     await interaction.deferReply();
     // find all hubs with more than 3 connections
-    const hubs = await db.hub.findMany({ where: { private: false, locked: false } });
+    const hubs = (await db.hub.findMany({ where: { private: false, locked: false } })).map(
+      (h) => new HubManager(h),
+    );
 
     if (!hubs.length) {
       await this.replyEmbed(interaction, 'hub.notFound', { t: { emoji: emojis.slash } });
       return;
     }
 
-    const connections = await Promise.all(
-      hubs.map(async (h) => (await getHubConnections(h.id)).filter((c) => c.connected)),
-    );
-
     // make paginated embed with 4 hubs in each page as a field
     await new Pagination()
       .addPages(
-        this.getPages(
-          interaction.guildId,
-          hubs,
-          connections,
-          interaction.client.user.displayAvatarURL(),
-        ),
+        await this.getPages(interaction.guildId, hubs, interaction.client.user.displayAvatarURL()),
       )
       .run(interaction);
   }
@@ -59,15 +54,14 @@ export default class BrowseCommand extends HubCommand {
           There are **${totalHubs}** hubs currently available for you to join.`,
       )
       .setFooter({
-        text: 'Use /hub join <hub name> or use the button below to join any one of these!',
+        text: 'Use /hub join <hub name> or use the menu below to join any one of these!',
       });
   }
 
-  @RegisterInteractionHandler('hub_browse', 'join')
-  async handleJoin(interaction: ButtonInteraction) {
+  @RegisterInteractionHandler('hub_browse', 'joinLeaveMenu')
+  async handleJoinLeave(interaction: StringSelectMenuInteraction) {
     if (!interaction.inCachedGuild() || !interaction.channel?.isTextBased()) return;
-    const customId = CustomID.parseCustomId(interaction.customId);
-    const [hubId] = customId.args;
+    const [action, chosenHubId] = interaction.values[0].split(':');
 
     if (!interaction.memberPermissions.has('ManageMessages', true)) {
       await interaction.deferUpdate();
@@ -76,24 +70,39 @@ export default class BrowseCommand extends HubCommand {
 
     await interaction.deferReply();
 
-    const hub = await this.hubService.fetchHub(hubId);
+    const hub = await this.hubService.fetchHub(chosenHubId);
     if (!hub) {
       await interaction.reply({ content: 'Hub not found.', ephemeral: true });
       return;
     }
+    if (action === 'join') {
+      const joinService = new HubJoinService(interaction, await this.getLocale(interaction));
+      await joinService.joinHub(interaction.channel, hub.data.name);
+    }
+    else if (action === 'leave') {
+      const connection = (await hub.connections.toArray()).find(
+        (c) => c.data.serverId === interaction.guildId,
+      );
 
-    const joinService = new HubJoinService(interaction, await this.getLocale(interaction));
-    await joinService.joinHub(interaction.channel, hub.data.name);
+      if (!connection) {
+        await interaction.editReply(`${emojis.neutral} This server is not in this hub.`);
+        return;
+      }
+
+      await interaction.editReply({
+        content: 'Are you sure you want to leave this hub?',
+        components: [hubLeaveConfirmButtons(connection.channelId, connection.hubId)],
+      });
+    }
   }
 
-  private buildField(hub: Hub, connections: Connection[]) {
+  private buildField(hub: Hub, connections: ConnectionManager[]) {
     const lastActiveConnection = connections.filter((c) => c.hubId === hub.id).at(0);
-
 
     return {
       name: `${hub.name}`,
       value:
-        `${emojis.user_icon} ${connections.length} ・ ${emojis.chat_icon} ${time(lastActiveConnection?.lastActive ?? new Date(), 'R')}\n\n${hub.description}`.slice(
+        `${emojis.user_icon} ${connections.length} ・ ${emojis.chat_icon} ${time(lastActiveConnection?.data.lastActive ?? new Date(), 'R')}\n\n${hub.description}`.slice(
           0,
           300,
         ),
@@ -101,33 +110,29 @@ export default class BrowseCommand extends HubCommand {
     };
   }
 
-  private buildButtons(guildId: string, hub: Hub, connections: Connection[]) {
-    const disabled = connections.some((c) => c.serverId === guildId);
-    const joinButton = new ButtonBuilder()
-      .setCustomId(new CustomID('hub_browse:join', [hub.id]).toString())
-      .setDisabled(disabled)
-      .setLabel(`Join ${hub.name}`)
-      .setStyle(ButtonStyle.Success)
-      .setEmoji(emojis.join);
-    // const rateButton = new ButtonBuilder()
-    //   .setCustomId(new CustomID('hub_browse:rate', [hub.id]).toString())
-    //   .setDisabled(disabled)
-    //   .setLabel(`Rate ${hub.name}`)
-    //   .setStyle(ButtonStyle.Secondary)
-    //   .setEmoji('⭐');
+  private buildMenuOption(guildId: string, hub: HubManager, connections: ConnectionManager[]) {
+    const disabled = connections.some((c) => c.data.serverId === guildId);
+    const joinOption = new StringSelectMenuOptionBuilder()
+      .setLabel(disabled ? `Leave ${hub.data.name}` : `Join ${hub.data.name}`)
+      .setValue(disabled ? `leave:${hub.id}` : `join:${hub.id}`)
+      .setEmoji(disabled ? emojis.leave : emojis.join);
 
-    return { joinButton };
+    return { joinOption };
   }
 
-  private getPages(
-    guildId: string,
-    hubs: Hub[],
-    connections: Connection[][],
-    thumbnail: string,
-  ) {
+  private async getPages(guildId: string, hubs: HubManager[], thumbnail: string) {
     const pages: BaseMessageOptions[] = [];
     let fields: EmbedField[] = [];
-    let buttons = { join: new ActionRowBuilder<ButtonBuilder>() };
+
+    const connections = await Promise.all(
+      hubs.map(async (h) => (await h.connections.toArray()).filter((c) => c.data.connected)),
+    );
+
+    const joinMenu = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(new CustomID('hub_browse:joinLeaveMenu').toString())
+        .setPlaceholder('👋 Select a hub to leave/join...'),
+    );
 
     hubs.forEach((hub, index) => {
       if (fields.length === 2 || fields.length === 5) {
@@ -138,18 +143,20 @@ export default class BrowseCommand extends HubCommand {
         pages.push({
           content: `**✨ NEW**: View and join hubs directly from the website, with a much better experience! - ${Constants.Links.Website}/hubs`,
           embeds: [this.buildEmbed(hubs.length, fields, thumbnail)],
-          components: [buttons.join.toJSON()],
+          components: [joinMenu.toJSON()],
         });
 
         fields = [];
-        buttons = { join: new ActionRowBuilder<ButtonBuilder>() };
+
+        // reset the menu
+        joinMenu.components[0].spliceOptions(0, joinMenu.components[0].options.length);
       }
 
       const hubConnections = connections[index];
-      fields.push(this.buildField(hub, hubConnections));
+      fields.push(this.buildField(hub.data, hubConnections));
 
-      const { joinButton } = this.buildButtons(guildId, hub, hubConnections);
-      buttons.join.addComponents(joinButton);
+      const { joinOption } = this.buildMenuOption(guildId, hub, hubConnections);
+      joinMenu.components[0].addOptions(joinOption);
     });
 
     return pages;

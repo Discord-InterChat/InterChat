@@ -22,7 +22,6 @@ type PaginationInteraction = Exclude<RepliableInteraction, ModalSubmitInteractio
 
 type ButtonEmojis = {
   back: string;
-  exit: string;
   next: string;
   search: string;
   select: string;
@@ -39,7 +38,6 @@ export class Pagination {
   private readonly hiddenButtons: Partial<Record<keyof ButtonEmojis, boolean>> = {};
   private emojis: ButtonEmojis = {
     back: emojis.previous,
-    exit: emojis.delete,
     next: emojis.next,
     search: emojis.search,
     select: '#️⃣',
@@ -248,11 +246,6 @@ export class Pagination {
     });
 
     col.on('collect', async (i) => {
-      if (i.customId === 'page_:exit') {
-        col.stop();
-        return;
-      }
-
       if (i.customId === 'page_:search') {
         const newIndex = await this.handleSearch(i);
         if (newIndex !== null) {
@@ -339,7 +332,7 @@ export class Pagination {
   }
 
   private createButtons(index: number, totalPages: number) {
-    const { back, exit, next, search, select } = this.hiddenButtons;
+    const { back, next, search, select } = this.hiddenButtons;
 
     return new ActionRowBuilder<ButtonBuilder>().addComponents(
       [
@@ -354,21 +347,19 @@ export class Pagination {
           : new ButtonBuilder()
             .setEmoji(this.emojis.back)
             .setCustomId('page_:back')
-            .setStyle(ButtonStyle.Secondary)
+            .setStyle(ButtonStyle.Primary)
             .setDisabled(index === 0),
-        exit
-          ? null
-          : new ButtonBuilder()
-            .setEmoji(this.emojis.exit)
-            .setCustomId('page_:exit')
-            .setLabel(`Page ${index + 1} of ${totalPages}`)
-            .setStyle(ButtonStyle.Danger),
+        new ButtonBuilder()
+          .setCustomId('page_:index')
+          .setDisabled(true)
+          .setLabel(`${index + 1}/${totalPages}`)
+          .setStyle(ButtonStyle.Secondary),
         next
           ? null
           : new ButtonBuilder()
             .setEmoji(this.emojis.next)
             .setCustomId('page_:next')
-            .setStyle(ButtonStyle.Secondary)
+            .setStyle(ButtonStyle.Primary)
             .setDisabled(totalPages <= index + 1),
         search
           ? null

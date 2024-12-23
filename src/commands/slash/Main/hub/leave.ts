@@ -1,21 +1,14 @@
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { deleteConnection } from '#utils/ConnectedListUtils.js';
+import { hubLeaveConfirmButtons } from '#main/interactions/HubLeaveConfirm.js';
+import { setComponentExpiry } from '#utils/ComponentUtils.js';
 import { emojis } from '#utils/Constants.js';
-import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
-import { logGuildLeaveToHub } from '#utils/hub/logger/JoinLeave.js';
 import { t } from '#utils/Locale.js';
 import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
   CacheType,
   ChatInputCommandInteraction,
   EmbedBuilder,
-  MessageComponentInteraction,
 } from 'discord.js';
 import HubCommand from './index.js';
-import { setComponentExpiry } from '#utils/ComponentUtils.js';
 
 export default class Leave extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction<CacheType>): Promise<void> {
@@ -45,19 +38,6 @@ export default class Leave extends HubCommand {
       return;
     }
 
-    const choiceButtons = new ActionRowBuilder<ButtonBuilder>().addComponents([
-      new ButtonBuilder()
-        .setCustomId(
-          new CustomID('hub_leave:yes', [channelId, isChannelConnected.hubId]).toString(),
-        )
-        .setLabel('Yes')
-        .setStyle(ButtonStyle.Success),
-      new ButtonBuilder()
-        .setCustomId(new CustomID('hub_leave:no', [channelId, isChannelConnected.hubId]).toString())
-        .setLabel('No')
-        .setStyle(ButtonStyle.Danger),
-    ]);
-
     const resetConfirmEmbed = new EmbedBuilder()
       .setDescription(
         t('hub.leave.confirm', locale, {
@@ -72,46 +52,9 @@ export default class Leave extends HubCommand {
 
     const reply = await interaction.editReply({
       embeds: [resetConfirmEmbed],
-      components: [choiceButtons],
+      components: [hubLeaveConfirmButtons(channelId, isChannelConnected.hubId)],
     });
 
     setComponentExpiry(interaction.client.getScheduler(), reply, 10_000);
-  }
-
-  @RegisterInteractionHandler('hub_leave')
-  override async handleComponents(interaction: MessageComponentInteraction): Promise<void> {
-    const customId = CustomID.parseCustomId(interaction.customId);
-    const [channelId] = customId.args;
-
-    if (customId.suffix === 'no') {
-      await interaction.deferUpdate();
-      await interaction.deleteReply();
-      return;
-    }
-
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
-    const validConnection = await db.connection.findFirst({ where: { channelId } });
-    if (!validConnection) {
-      await interaction.update({
-        content: t('connection.notFound', locale, { emoji: emojis.no }),
-        embeds: [],
-        components: [],
-      });
-      return;
-    }
-
-    await deleteConnection({ channelId });
-    await interaction.update({
-      content: t('hub.leave.success', locale, { channel: `<#${channelId}>`, emoji: emojis.yes }),
-      embeds: [],
-      components: [],
-    });
-
-    // log server leave
-    if (interaction.guild) {
-      const hubId = customId.args[1];
-      await logGuildLeaveToHub(hubId, interaction.guild);
-    }
   }
 }
