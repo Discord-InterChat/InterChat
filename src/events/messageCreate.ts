@@ -1,7 +1,6 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { LobbyManager } from '#main/managers/LobbyManager.js';
-import { ConnectionService } from '#main/services/ConnectionService.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
 import Constants, { emojis } from '#main/utils/Constants.js';
 import { handleError, isHumanMessage } from '#utils/Utils.js';
@@ -11,12 +10,10 @@ import { Message } from 'discord.js';
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
   private readonly messageProcessor: MessageProcessor;
-  private readonly connectionService: ConnectionService;
 
   constructor() {
     super();
     this.messageProcessor = new MessageProcessor();
-    this.connectionService = new ConnectionService();
   }
 
   async execute(message: Message) {
@@ -74,15 +71,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     const lobbyManager = new LobbyManager();
     const lobby = await lobbyManager.getLobbyByChannelId(message.channelId);
 
-    if (lobby) {
-      await this.messageProcessor.processLobbyMessage(message, lobby);
-      return;
-    }
-
-    // Handle hub messages
-    const connectionData = await this.connectionService.getConnectionData(message);
-    if (!connectionData) return;
-
-    await this.messageProcessor.processHubMessage(message, connectionData);
+    if (lobby) await this.messageProcessor.processLobbyMessage(message, lobby);
+    else await this.messageProcessor.processHubMessage(message);
   }
 }

@@ -258,7 +258,7 @@ export default class BlacklistCommand extends BaseCommand {
   ): hub is HubManager {
     const hiddenOpt = { ephemeral: true };
     if (!hub) {
-      this.replyEmbed(interaction, t('hub.notFound_mod', locale), hiddenOpt);
+      this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), hiddenOpt);
       return false;
     }
     else if (hub === 'exceeds max length') {

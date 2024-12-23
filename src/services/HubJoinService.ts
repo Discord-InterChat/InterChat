@@ -3,7 +3,7 @@ import HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 
 import { TranslationKeys } from '#types/TranslationKeys.d.ts';
-import { createConnection, getHubConnections } from '#utils/ConnectedListUtils.js';
+import { createConnection } from '#utils/ConnectedListUtils.js';
 import { emojis } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { logJoinToHub } from '#utils/hub/logger/JoinLeave.js';
@@ -175,14 +175,14 @@ export class HubJoinService {
     });
 
     const totalConnections =
-      (await getHubConnections(hub.id))?.reduce(
-        (total, c) => total + (c.connected && c.channelId !== channel.id ? 1 : 0),
+      (await hub.connections.toArray())?.reduce(
+        (total, c) => total + (c.data.connected ? 1 : 0),
         0,
       ) ?? 0;
 
     const serverCountMessage =
       totalConnections === 0
-        ? 'There are no other servers connected to this hub. *cricket noises* 🦗'
+        ? 'There are no other servers connected to this hub yet. *cricket noises* 🦗'
         : `We now have ${totalConnections} servers in this hub! 🎉`;
 
     // Announce to hub

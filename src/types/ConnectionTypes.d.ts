@@ -1,8 +1,8 @@
+import ConnectionManager from '#main/managers/ConnectionManager.js';
 import HubManager from '#main/managers/HubManager.js';
-import { Connection } from '@prisma/client';
 
 export interface ConnectionData {
-  connection: Connection;
-  hubConnections: Connection[];
+  connection: ConnectionManager;
+  hubConnections: ConnectionManager[];
   hub: HubManager;
 }

@@ -1,7 +1,7 @@
 import type { Colors, HexColorString, Snowflake } from 'discord.js';
-import jsonEmotes from './JSON/emojis.json' with { 'type': 'json' };
-import badwordsType from './JSON/profanity.json' with { 'type': 'json' };
-import packageJson from '../../package.json' with { 'type': 'json' };
+import jsonEmotes from './JSON/emojis.json' with { type: 'json' };
+import badwordsType from './JSON/profanity.json' with { type: 'json' };
+import packageJson from '../../package.json' with { type: 'json' };
 
 
 export const { slurs, profanity } = badwordsType;
@@ -15,7 +15,6 @@ export const enum RedisKeys {
   msgTimestamp = 'msgTimestamp',
   lastActive = 'lastActive',
   connectionHubId = 'connectionHubId',
-  hubConnections = 'hubConnections',
   userData = 'UserData',
   cooldown = 'cooldown',
   blacklistedServers = 'blacklistedServers',

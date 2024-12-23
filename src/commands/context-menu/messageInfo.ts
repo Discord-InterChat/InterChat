@@ -1,13 +1,13 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { modPanelButton } from '#main/interactions/ShowModPanel.js';
+import ConnectionManager from '#main/managers/ConnectionManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import { greyOutButton, greyOutButtons } from '#utils/ComponentUtils.js';
-import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
@@ -15,7 +15,6 @@ import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { sendHubReport } from '#utils/hub/logger/Report.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { Connection } from '@prisma/client';
 import {
   ActionRow,
   ActionRowBuilder,
@@ -49,7 +48,7 @@ type MsgInfo = { messageId: string };
 type UserInfoOpts = LocaleInfo & AuthorInfo;
 type MsgInfoOpts = AuthorInfo & ServerInfo & LocaleInfo & HubInfo & MsgInfo;
 type ReportOpts = LocaleInfo & HubInfo & MsgInfo;
-type ServerInfoOpts = LocaleInfo & ServerInfo & { connection: Connection | undefined };
+type ServerInfoOpts = LocaleInfo & ServerInfo & { connection: ConnectionManager | undefined };
 
 export default class MessageInfo extends BaseCommand {
   readonly data: RESTPostAPIApplicationCommandsJSONBody = {
@@ -88,12 +87,12 @@ export default class MessageInfo extends BaseCommand {
       .setThumbnail(author.displayAvatarURL())
       .setColor(Constants.Colors.invisible);
 
-    const connection = (await getHubConnections(hub.id))?.find(
-      (c) => c.connected && c.serverId === originalMsg.guildId,
+    const connection = (await hub.connections.toArray())?.find(
+      (c) => c.data.connected && c.data.serverId === originalMsg.guildId,
     );
     const components = this.buildButtons(target.id, locale, {
       buildModActions: await isStaffOrHubMod(interaction.user.id, hub),
-      inviteButtonUrl: connection?.invite,
+      inviteButtonUrl: connection?.data.invite,
     });
 
     const reply = await interaction.followUp({ embeds: [embed], components, ephemeral: true });
@@ -211,17 +210,17 @@ export default class MessageInfo extends BaseCommand {
 
     const owner = await interaction.client.users.fetch(server.ownerId);
     const createdAt = Math.round(server.createdTimestamp / 1000);
+    const inviteString = connection?.data.invite ?? 'Not Set.';
     const ownerName = `${owner.username}#${
       owner.discriminator !== '0' ? `#${owner.discriminator}` : ''
     }`;
-
     const iconUrl = server.icon
       ? `https://cdn.discordapp.com/icons/${server.id}/${server.icon}.png`
       : null;
     const bannerUrL = server.icon
       ? `https://cdn.discordapp.com/icons/${server.id}/${server.banner}.png`
       : null;
-    const inviteString = connection?.invite ? `${connection.invite}` : 'Not Set.';
+
 
     const serverEmbed = new EmbedBuilder()
       .setDescription(`### ${emojis.info} ${server.name}`)

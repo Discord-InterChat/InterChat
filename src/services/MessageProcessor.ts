@@ -6,12 +6,14 @@ import { runChecks } from '#main/utils/network/runChecks.js';
 import { check } from '#main/utils/ProfanityUtils.js';
 import { containsInviteLinks, handleError } from '#main/utils/Utils.js';
 import type { LobbyData } from '#types/ChatLobby.d.ts';
-import type { ConnectionData } from '#types/ConnectionTypes.d.ts';
 import { Message, WebhookClient } from 'discord.js';
 import { BroadcastService } from './BroadcastService.js';
+import { getConnectionHubId } from '#main/utils/ConnectedListUtils.js';
+import { HubService } from '#main/services/HubService.js';
 
 export class MessageProcessor {
   private readonly broadcastService: BroadcastService;
+  private readonly hubService = new HubService();
 
   constructor() {
     this.broadcastService = new BroadcastService();
@@ -49,10 +51,21 @@ export class MessageProcessor {
     }
   }
 
-  async processHubMessage(message: Message<true>, connectionData: ConnectionData) {
-    const { connection, hub, hubConnections } = connectionData;
-    const { userManager } = message.client;
+  async processHubMessage(message: Message<true>) {
+    const connectionHubId = await getConnectionHubId(message.channelId);
+    if (!connectionHubId) return null;
 
+    const hub = await this.hubService.fetchHub(connectionHubId);
+    if (!hub) return null;
+
+    const allConnections = await hub.connections.toArray();
+    const hubConnections = allConnections.filter(
+      (c) => c.data.connected && c.channelId !== message.channelId,
+    );
+    const connection = allConnections.find((c) => c.channelId === message.channelId);
+    if (!connection) return null;
+
+    const { userManager } = message.client;
     const userData = await userManager.getUser(message.author.id);
     if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
 
@@ -63,7 +76,7 @@ export class MessageProcessor {
         userData,
         settings: hub.settings,
         attachmentURL,
-        totalHubConnections: hubConnections.length,
+        totalHubConnections: allConnections.length,
       }))
     ) {
       return;

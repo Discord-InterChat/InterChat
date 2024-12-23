@@ -20,12 +20,12 @@ import {
 export default class SetupCommand extends BaseCommand {
   readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'setup',
-    description: 'Setup the bot for the server',
+    description: 'Setup InterChat for a channel in this server.',
     contexts: [InteractionContextType.Guild],
     options: [
       {
         name: 'channel',
-        description: 'The channel to setup the bot in',
+        description: 'The channel to setup InterChat in.',
         type: ApplicationCommandOptionType.Channel,
         channel_types: [ChannelType.GuildText, ChannelType.PublicThread, ChannelType.PrivateThread],
         required: true,
@@ -95,7 +95,7 @@ export default class SetupCommand extends BaseCommand {
     if (!interaction.member.permissionsIn(channel).has('ManageMessages', true)) {
       await interaction.reply({
         content:
-          'You cannot setup the bot in a channel where you do not have `Manage Messages` permission.',
+          'You cannot setup InterChat in a channel where you do not have `Manage Messages` permission.',
         ephemeral: true,
       });
       return;
@@ -115,11 +115,11 @@ export default class SetupCommand extends BaseCommand {
 
     const embed1 = new InfoEmbed().setDescription(stripIndents`
       ## ${emojis.yes} Setup Complete!
-      The bot has been setup in ${channel.toString()}. You can now chat with other servers from this channel. 🎉 
+      InterChat has been setup in ${channel.toString()}! You can now chat with other servers from this channel. 🎉 
     `);
 
     const embed2 = new InfoEmbed().setDescription(stripIndents`
-      You can also setup the bot in other channels with a different hub using \`/hub join\`. Pick a hub of your own choosing from a wide list of [public hubs](${Constants.Links.Website}/hubs) made by the community.
+      You can also setup InterChat in other channels with different hubs using \`/hub join\`. Pick a hub of your own choosing from a wide list of [public hubs](${Constants.Links.Website}/hubs) made by the community.
     `);
 
     const finalEmbed = new InfoEmbed().setDescription(stripIndents`

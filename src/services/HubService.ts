@@ -36,16 +36,14 @@ export class HubService {
     };
   }
 
-
   private createHubManager(hub: Hub | string): HubManager {
     if (typeof hub === 'string') return new HubManager(this.parseHubStringToObject(hub), this);
     return new HubManager(hub);
   }
 
   async fetchHub(whereInput: string | { id?: string; name?: string }): Promise<HubManager | null> {
-    const where: { id?: string; name?: string } = typeof whereInput === 'string'
-      ? { id: whereInput }
-      : whereInput;
+    const where: { id?: string; name?: string } =
+      typeof whereInput === 'string' ? { id: whereInput } : whereInput;
 
     if (!where.id && !where.name) {
       return null;
@@ -87,18 +85,23 @@ export class HubService {
   }
 
   async deleteHub(hubId: string): Promise<void> {
-    // delete all relations first and then delete the hub
+    const hub = await new HubService().fetchHub(hubId);
+    if (!hub) return;
+
+    // delete all relations first
+    (await hub.fetchLogConfig()).deleteAll();
+    await hub.moderators.removeAll();
     await deleteConnections({ hubId });
+
     await this.db.$transaction([
       this.db.hubInvite.deleteMany({ where: { hubId } }),
-      this.db.hubLogConfig.deleteMany({ where: { hubId } }),
       this.db.blockWord.deleteMany({ where: { hubId } }),
+      // TODO: Redo the infraction manager, rename the key to be hub:<hubId>:infractions
+      // and also make it possible to delete from cache too.
       this.db.infraction.deleteMany({ where: { hubId } }),
-      this.db.connection.deleteMany({ where: { hubId } }),
-      this.db.hubModerator.deleteMany({ where: { hubId } }),
     ]);
 
-    // finally, delete the hub
+    // delete the hub
     await this.db.hub.delete({ where: { id: hubId } });
   }
 

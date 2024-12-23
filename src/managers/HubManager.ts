@@ -1,3 +1,4 @@
+import HubConnectionsManager from '#main/managers/HubConnectionsManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import HubModeratorManager from '#main/managers/HubModeratorManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
@@ -24,6 +25,8 @@ export default class HubManager {
   private hub: Hub;
   private logManager: HubLogManager | null = null;
 
+  public readonly connections: HubConnectionsManager;
+
   constructor(
     hub: Hub,
     hubService?: HubService,
@@ -39,6 +42,7 @@ export default class HubManager {
     this.cache = cache;
     this.hubService = hubService ?? new HubService();
     this.modManager = modManager ?? new HubModeratorManager(this, cache);
+    this.connections = new HubConnectionsManager(this, cache);
 
     this.cacheHub().catch(Logger.error);
   }

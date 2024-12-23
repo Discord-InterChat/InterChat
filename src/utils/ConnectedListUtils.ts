@@ -12,7 +12,7 @@ type whereInput = Prisma.ConnectionWhereInput;
 type dataInput = Prisma.ConnectionUpdateInput;
 type CachedConnection = ConvertDatesToString<Connection>;
 
-const convertToConnectedList = (connection: CachedConnection): Connection => ({
+export const convertToConnectedList = (connection: CachedConnection): Connection => ({
   ...connection,
   createdAt: new Date(connection.createdAt),
   lastActive: new Date(connection.lastActive),
@@ -23,7 +23,7 @@ const convertToConnectedList = (connection: CachedConnection): Connection => ({
  */
 export const getHubConnections = async (hubId: string): Promise<Connection[]> => {
   const redis = getRedis();
-  const key = `${RedisKeys.hubConnections}:${hubId}`;
+  const key = `${RedisKeys.Hub}:${hubId}:connections`;
   const cached = await redis.hgetall(key);
 
   if (isEmpty(cached) === false) {
@@ -32,7 +32,7 @@ export const getHubConnections = async (hubId: string): Promise<Connection[]> =>
   }
 
   const fromDb = await db.connection.findMany({ where: { hubId } });
-  const keyValuePairs = fromDb.flatMap((c) => [c.id, JSON.stringify(c)]);
+  const keyValuePairs = fromDb.flatMap((c) => [c.channelId, JSON.stringify(c)]);
 
   if (keyValuePairs.length === 0) return [];
 
@@ -48,9 +48,9 @@ export const getHubConnections = async (hubId: string): Promise<Connection[]> =>
 
 export const cacheHubConnection = async (connection: Connection) => {
   const redis = getRedis();
-  const cached = await redis.hlen(`${RedisKeys.hubConnections}:${connection.hubId}`);
+  const cached = await redis.hlen(`${RedisKeys.Hub}:${connection.hubId}:connections`);
 
-  Logger.debug(`Caching connection ${connection.id} for hub ${connection.hubId}`);
+  Logger.debug(`Caching connection ${connection.channelId} for hub ${connection.hubId}`);
 
   if (!cached) {
     Logger.debug(`No cached connections for hub ${connection.hubId}, fetching from database`);
@@ -60,16 +60,16 @@ export const cacheHubConnection = async (connection: Connection) => {
   }
 
   await getRedis().hset(
-    `${RedisKeys.hubConnections}:${connection.hubId}`,
-    connection.id,
+    `${RedisKeys.Hub}:${connection.hubId}:connections`,
+    connection.channelId,
     JSON.stringify(connection),
   );
 
-  Logger.debug(`Cached connection ${connection.id} for hub ${connection.hubId}`);
+  Logger.debug(`Cached connection ${connection.channelId} for hub ${connection.hubId}`);
 };
 
 export const removeFromHubConnections = async (connId: string, hubId: string) => {
-  await getRedis().hdel(`${RedisKeys.hubConnections}:${hubId}`, connId);
+  await getRedis().hdel(`${RedisKeys.Hub}:${hubId}:connections`, connId);
 };
 
 const purgeConnectionCache = async (channelId: string) => {
@@ -122,7 +122,7 @@ export const deleteConnection = async (where: whereUniuqeInput) => {
   if (!connection) return null;
 
   const deleted = await db.connection.delete({ where });
-  await removeFromHubConnections(deleted.id, deleted.hubId);
+  await removeFromHubConnections(deleted.channelId, deleted.hubId);
   await purgeConnectionCache(deleted.channelId);
   return deleted;
 };
@@ -146,7 +146,7 @@ export const deleteConnections = async (where: whereInput) => {
 
   // repopulate cache
   connections.forEach(async (connection) => {
-    await removeFromHubConnections(connection.id, connection.hubId);
+    await removeFromHubConnections(connection.channelId, connection.hubId);
     await purgeConnectionCache(connection.channelId);
   });
 

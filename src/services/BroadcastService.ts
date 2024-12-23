@@ -1,3 +1,4 @@
+import ConnectionManager from '#main/managers/ConnectionManager.js';
 import HubManager from '#main/managers/HubManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import MessageFormattingService from '#main/services/MessageFormattingService.js';
@@ -42,19 +43,18 @@ export class BroadcastService {
   async broadcastMessage(
     message: Message<true>,
     hub: HubManager,
-    hubConnections: Connection[],
-    connection: Connection,
+    hubConnections: ConnectionManager[],
+    connection: ConnectionManager,
   ) {
     const attachmentURL = await this.resolveAttachmentURL(message);
     const username = this.getUsername(hub.settings, message);
     const censoredContent = censor(message.content);
     const referredMessage = await this.fetchReferredMessage(message);
     const referredMsgData = await getReferredMsgData(referredMessage);
-    const referredContent = this.getReferredContent(referredMsgData);
 
     // Sort connections by last active first
     const sortedHubConnections = hubConnections.sort(
-      (a, b) => b.lastActive.getTime() - a.lastActive.getTime(),
+      (a, b) => b.data.lastActive.getTime() - a.data.lastActive.getTime(),
     );
 
     Logger.debug(`Broadcasting message to ${sortedHubConnections.length} connections`);
@@ -69,10 +69,9 @@ export class BroadcastService {
         this.sendToConnection(message, hub, conn, {
           attachmentURL,
           referredMsgData,
-          embedColor: connection.embedColor as HexColorString,
+          embedColor: connection.data.embedColor as HexColorString,
           username,
           censoredContent,
-          referredContent,
         }),
       );
 
@@ -82,8 +81,14 @@ export class BroadcastService {
       Logger.debug(`Sent batch of ${batch.length} messages`);
     }
 
-    // Batch store message data
-    await storeMessageData(message, allResults, connection.hubId, referredMsgData.dbReferrence);
+    // store message data
+    await storeMessageData(
+      message,
+      allResults,
+      connection.hubId,
+      referredMsgData.dbReferrence ?? undefined,
+      attachmentURL,
+    );
   }
 
   private chunkArray<T>(array: T[], size: number): T[][] {
@@ -134,15 +139,6 @@ export class BroadcastService {
     return message.reference ? await message.fetchReference().catch(() => null) : null;
   }
 
-  private getReferredContent(data: ReferredMsgData) {
-    if (data.referredMessage && data.dbReferrence) {
-      const mode =
-        data.dbReferrence.broadcastMsgs.get(data.referredMessage.channelId)?.mode ??
-        ConnectionMode.Compact;
-      return getReferredContent(data.referredMessage, mode);
-    }
-  }
-
   private getUsername(settings: HubSettingsManager, message: Message<true>): string {
     return trimAndCensorBannedWebhookWords(
       settings.has('UseNicknames')
@@ -154,38 +150,37 @@ export class BroadcastService {
   private async sendToConnection(
     message: Message<true>,
     hub: HubManager,
-    connection: Connection,
+    connection: ConnectionManager,
     opts: BroadcastOpts & {
       username: string;
       censoredContent: string;
-      referredContent: string | undefined;
       referredMsgData: ReferredMsgData;
     },
   ): Promise<NetworkWebhookSendResult> {
     try {
+      const { webhookURL } = connection.data;
       const messageFormat = this.getMessageFormat(message, connection, hub, opts);
-      const messageRes = await this.sendMessage(connection.webhookURL, messageFormat);
-      const mode = connection.compact ? ConnectionMode.Compact : ConnectionMode.Embed;
+      const messageRes = await this.sendMessage(webhookURL, messageFormat);
+      const mode = connection.data.compact ? ConnectionMode.Compact : ConnectionMode.Embed;
 
-      return { messageRes, webhookURL: connection.webhookURL, mode };
+      return { messageRes, webhookURL, mode };
     }
     catch (e) {
       Logger.error(
-        `Failed to send message to ${connection.channelId} in server ${connection.serverId}`,
+        `Failed to send message to ${connection.channelId} in server ${connection.data.serverId}`,
         e,
       );
-      return { error: e.message, webhookURL: connection.webhookURL };
+      return { error: e.message, webhookURL: connection.data.webhookURL };
     }
   }
 
   private getMessageFormat(
     message: Message<true>,
-    connection: Connection,
+    connection: ConnectionManager,
     hub: HubManager,
     opts: BroadcastOpts & {
       username: string;
       censoredContent: string;
-      referredContent: string | undefined;
       referredMsgData: ReferredMsgData;
     },
   ): WebhookMessageCreateOptions {
@@ -193,18 +188,19 @@ export class BroadcastService {
     const author = { username: opts.username, avatarURL: message.author.displayAvatarURL() };
     const jumpButton = this.getJumpButton(
       referredAuthor?.username ?? 'Unknown',
-      connection,
+      connection.data,
       dbReferrence,
     );
     const servername = trimAndCensorBannedWebhookWords(message.guild.name);
 
-    const messageFormatter = new MessageFormattingService(connection);
+    const messageFormatter = new MessageFormattingService(connection.data);
     return messageFormatter.format(message, {
       ...opts,
-      hub: hub.data,
       author,
       servername,
       jumpButton,
+      hub: hub.data,
+      referredContent: dbReferrence ? getReferredContent(dbReferrence) : undefined,
     });
   }
 
