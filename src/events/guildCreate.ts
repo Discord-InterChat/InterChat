@@ -1,4 +1,5 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
+import { donateButton } from '#main/utils/ComponentUtils.js';
 import Constants, { emojis } from '#utils/Constants.js';
 import { getGuildOwnerOrFirstChannel as getGuildOwnerAndFirstChannel, logGuildJoin } from '#utils/GuildUtils.js';
 import Logger from '#utils/Logger.js';
@@ -20,7 +21,7 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
       .setThumbnail(guild.client.user.displayAvatarURL())
       .setDescription(
         stripIndents`
-        I'm a bot that lets you break down server walls and chat across Discord! ${emojis.clipart}
+        Thanks for adding InterChat to your server! I am a discord bot that lets you chat with people from other servers in real-time. 🚀
         ### Quick Start
         1. Run \`/setup\` to quickly connect to your first hub!
         2. Or browse & join hubs from [interchat.fun/hubs](${Constants.Links.Website}/hubs) like a pro 😎
@@ -35,7 +36,7 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setLabel('Wiki')
-        .setURL(`${Constants.Links.Docs}/setup`)
+        .setURL(Constants.Links.Docs)
         .setEmoji(emojis.guide_icon)
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
@@ -50,7 +51,7 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
         .setStyle(ButtonStyle.Link),
     );
 
-    const welcomeMsg = { embeds: [embed], components: [buttons] };
+    const welcomeMsg = { embeds: [embed], components: [buttons, donateButton] };
     guildOwner?.send(welcomeMsg).catch(() => null);
     guildChannel?.send(welcomeMsg).catch(() => null);
   }

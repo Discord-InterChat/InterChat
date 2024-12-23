@@ -1,4 +1,4 @@
-import { emojis } from '#utils/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import Scheduler from '#main/services/SchedulerService.js';
 import { randomBytes } from 'crypto';
 import {
@@ -81,3 +81,11 @@ export const setComponentExpiry = (
 
   return timerId;
 };
+
+export const donateButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
+  new ButtonBuilder()
+    .setLabel('Donate')
+    .setURL(`${Constants.Links.Website}/donate`)
+    .setEmoji('💗')
+    .setStyle(ButtonStyle.Link),
+);

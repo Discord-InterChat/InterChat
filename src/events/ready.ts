@@ -23,7 +23,7 @@ export default class Ready extends BaseEventListener<'ready'> {
     }
 
     client.user.setActivity({
-      name: `🎉 InterChat v4 | Cluster ${client.cluster.id}`,
+      name: `/setup | Cluster ${client.cluster.id}`,
       type: ActivityType.Watching,
     });
   }

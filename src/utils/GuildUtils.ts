@@ -73,11 +73,15 @@ export const logGuildJoin = async (guild: Guild, channelId: string) => {
 
       await inviteLogChannel.send({ embeds: [ctx.logsEmbed] });
 
+      const goal = 100 * Math.floor(guildCount / 100) + 100;
+      const message =
+        goal === guildCount
+          ? `**I've reached **${goal}** servers!** 🎉`
+          : `**${goal - guildCount}** servers to go!`;
+      const content = `${ctx.guildName} added me, I'm in **${guildCount}** servers. ${message}`;
+
       // send message to support server notifying of new guild
-      await goalChannel.send({
-        content: `${ctx.flushedEmoji} ${ctx.guildName} added me, I'm now in **${guildCount}** servers! 🎉`,
-        embeds: [ctx.goalEmbed],
-      });
+      await goalChannel.send({ content, embeds: [ctx.goalEmbed] });
     },
     {
       context: {
