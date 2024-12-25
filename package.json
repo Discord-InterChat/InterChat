@@ -9,29 +9,29 @@
     "start": "node --import ./build/instrument.js .",
     "start:prod": "pm2 start .ecosystem.config.js",
     "build": "tsc --build",
-    "dev": "tsc-watch --outDir ./build --onSuccess \"node --trace-warnings --import ./build/instrument.js .\"",
+    "dev": "tsc-watch --outDir ./build --onSuccess \"node --import ./build/instrument.js .\"",
     "gen:locale-types": "node scripts/genLocaleTypes.js",
-    "deploy-commands": "node scripts/deploy-commands.js",
+    "sync:commands": "node scripts/syncCommands.js",
+    "sync:emojis": "node scripts/syncEmojis.js",
     "release": "release-it",
     "lint": "eslint --cache --fix ./src",
-    "prepare": "husky",
-    "postinstall": "prisma generate && node scripts/genLocaleTypes.js"
+    "prepare": "husky"
   },
   "engines": {
     "node": ">=v20.16.0"
   },
   "type": "module",
   "dependencies": {
-    "@prisma/client": "^6.0.1",
-    "@sentry/node": "^8.45.0",
+    "@prisma/client": "^6.1.0",
+    "@sentry/node": "^8.47.0",
     "common-tags": "^1.8.2",
     "discord-hybrid-sharding": "^2.2.3",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
-    "google-translate-api-x": "^10.7.1",
+    "google-translate-api-x": "^10.7.2",
     "husky": "^9.1.7",
-    "ioredis": "^5.4.1",
+    "ioredis": "^5.4.2",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "lz-string": "^1.5.0",
@@ -54,11 +54,11 @@
     "eslint": "9.17.0",
     "lint-staged": "^15.2.11",
     "prettier": "^3.4.2",
-    "prisma": "^6.0.1",
+    "prisma": "^6.1.0",
     "release-it": "^17.10.0",
     "tsc-watch": "^6.2.1",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.18.1"
   },
   "config": {
     "commitizen": {
