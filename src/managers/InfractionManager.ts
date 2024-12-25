@@ -55,7 +55,7 @@ export default class InfractionManager {
 
     const entity = await db.infraction.delete({ where: { id: infraction.id } });
 
-    this.removeCachedEntity(infraction);
+    this.removeCachedInfraction(infraction);
     return entity;
   }
 
@@ -151,7 +151,7 @@ export default class InfractionManager {
     return cacheData(key, JSON.stringify([...existing, entity]), this.cacheExpirySecs);
   }
 
-  protected async removeCachedEntity(entity: Infraction) {
+  protected async removeCachedInfraction(entity: Infraction) {
     const existingInfractions = await this.getHubInfractions(entity.hubId, { type: entity.type });
     const entitySnowflake = entity.userId ?? entity.serverId;
     return cacheData(

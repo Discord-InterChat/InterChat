@@ -1,4 +1,4 @@
-import Constants, { badgeEmojis, emojis, mascotEmojis } from '#utils/Constants.js';
+import Constants, { emojis } from '#utils/Constants.js';
 import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { getCredits } from '#utils/Utils.js';
@@ -90,13 +90,13 @@ export default class About extends BaseCommand {
       
         ${creditsDivider}
         ✨ **Deserving Mentions:**
-        ${emojis.dotBlue} @${usernames[4]} (maker of our cute mascot chipi ${mascotEmojis.smile})
+        ${emojis.dotBlue} @${usernames[4]} (maker of our cute mascot chipi ${emojis.chipi_smile})
         ${emojis.dotBlue} @${usernames[5]} ([top voter](${Constants.Links.Vote}) of all time ${emojis.topggSparkles})
 
-        ${badgeEmojis.Developer} **Developers:**
+        ${emojis.BadgeDeveloper} **Developers:**
         ${emojis.dotBlue} @${usernames[0]}
 
-        ${badgeEmojis.Staff} **Staff: ([Check Applications!](${Constants.Links.Website}/apply))**
+        ${emojis.BadgeStaff} **Staff: ([Check Applications!](${Constants.Links.Website}/apply))**
         ${emojis.dotBlue} @${usernames[1]}
         ${emojis.dotBlue} @${usernames[2]}
         ${emojis.dotBlue} @${usernames[3]}

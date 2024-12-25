@@ -6,6 +6,7 @@ import { captureException } from '@sentry/node';
 import type { ClusterManager } from 'discord-hybrid-sharding';
 import {
   EmbedBuilder,
+  InteractionType,
   Message,
   type ColorResolvable,
   type CommandInteraction,
@@ -155,14 +156,24 @@ export const handleError = (e: Error, repliable?: Interaction | Message) => {
     extra = { user: { id: repliable.author.id, username: repliable.author.username } };
   }
   else if (repliable) {
-    const identifier =
-      repliable.isCommand() || repliable.isAutocomplete()
-        ? repliable.commandName
-        : repliable.customId;
+    let commandName;
+    if (repliable.isChatInputCommand()) {
+      const subcommand = repliable.options.getSubcommand(false) ?? '';
+      const subcommandGroup = repliable.options.getSubcommandGroup(false) ?? '';
+
+      commandName = `${repliable.commandName} ${subcommandGroup} ${subcommand}`;
+    }
+    else if (repliable.isCommand() || repliable.isAutocomplete()) {
+      commandName = repliable.commandName;
+    }
 
     extra = {
       user: { id: repliable.user.id, username: repliable.user.username },
-      extra: { type: repliable.type, identifier },
+      extra: {
+        type: InteractionType[repliable.type],
+        commandName,
+        customId: 'customId' in repliable ? repliable.customId : undefined,
+      },
     };
   }
 

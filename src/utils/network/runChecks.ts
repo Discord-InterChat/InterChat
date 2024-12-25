@@ -98,7 +98,11 @@ async function checkHubLock(
   { hub }: CheckFunctionOpts,
 ): Promise<CheckResult> {
   if (hub.data.locked && !(await hub.isMod(message.author.id))) {
-    return { passed: false, reason: 'This hub is currently locked.' };
+    return {
+      passed: false,
+      reason:
+        'This hub\'s chat has been locked. Only moderators can send messages. Please check back later as this may be temporary.',
+    };
   }
   return { passed: true };
 }
