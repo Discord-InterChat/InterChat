@@ -12,7 +12,13 @@ import { getReferredContent, getReferredMsgData } from '#utils/network/utils.js'
 import { censor } from '#utils/ProfanityUtils.js';
 import { trimAndCensorBannedWebhookWords } from '#utils/Utils.js';
 import { Connection } from '@prisma/client';
-import { HexColorString, Message, WebhookClient, WebhookMessageCreateOptions } from 'discord.js';
+import {
+  Client,
+  HexColorString,
+  Message,
+  WebhookClient,
+  WebhookMessageCreateOptions,
+} from 'discord.js';
 
 const BATCH_SIZE = 15;
 const CONCURRENCY_LIMIT = 10;
@@ -167,7 +173,7 @@ export class BroadcastService {
     }
     catch (e) {
       Logger.error(
-        `Failed to send message to ${connection.channelId} in server ${connection.data.serverId}`,
+        `Failed to send message to ${connection.data.channelId} in server ${connection.data.serverId}`,
         e,
       );
       return { error: e.message, webhookURL: connection.data.webhookURL };
@@ -190,6 +196,7 @@ export class BroadcastService {
       referredAuthor?.username ?? 'Unknown',
       connection.data,
       dbReferrence,
+      message.client,
     );
     const servername = trimAndCensorBannedWebhookWords(message.guild.name);
 
@@ -208,10 +215,11 @@ export class BroadcastService {
     username: string,
     { channelId, serverId }: Connection,
     dbReferrence: ReferredMsgData['dbReferrence'],
+    client: Client,
   ) {
     const reply = dbReferrence?.broadcastMsgs.get(channelId) ?? dbReferrence;
     return reply?.messageId
-      ? [getJumpButton(username, { channelId, serverId, messageId: reply.messageId })]
+      ? [getJumpButton(client, username, { channelId, serverId, messageId: reply.messageId })]
       : undefined;
   }
 

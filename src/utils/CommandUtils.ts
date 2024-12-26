@@ -28,8 +28,9 @@ export const loadCommands = async (
   commandsMap: Collection<string, BaseCommand>,
   prefixMap: Collection<string, BasePrefixCommand>,
   interactionsMap: Collection<string, InteractionFunction>,
+  client: Client | null,
 ) => {
-  const loader = new CommandLoader(commandsMap, prefixMap, interactionsMap);
+  const loader = new CommandLoader(commandsMap, prefixMap, interactionsMap, client);
   await loader.load();
 };
 

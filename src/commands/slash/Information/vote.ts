@@ -1,5 +1,5 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
@@ -31,7 +31,7 @@ export default class Vote extends BaseCommand {
       })
       .setFields(
         {
-          name: `${emojis.topggSparkles} Current Streak:`,
+          name: `${this.getEmoji('topggSparkles')} Current Streak:`,
           value: codeBlock(voteCount),
           inline: true,
         },
@@ -49,7 +49,7 @@ export default class Vote extends BaseCommand {
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Vote')
-        .setEmoji(emojis.topggSparkles)
+        .setEmoji(this.getEmoji('topggSparkles'))
         .setURL(Constants.Links.Vote),
     );
 

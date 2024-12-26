@@ -1,5 +1,6 @@
-import { emojis } from '#utils/Constants.js';
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
+import { HubService } from '#main/services/HubService.js';
+import db from '#main/utils/Db.js';
 import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { deleteMessageFromHub } from '#main/utils/moderation/deleteMessage.js';
 import {
@@ -9,8 +10,6 @@ import {
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 import { EmbedBuilder, Message } from 'discord.js';
-import { HubService } from '#main/services/HubService.js';
-import db from '#main/utils/Db.js';
 
 export default class DeleteMsgCommand extends BasePrefixCommand {
   public readonly data: CommandData = {
@@ -45,12 +44,12 @@ export default class DeleteMsgCommand extends BasePrefixCommand {
     ) {
       const embed = new EmbedBuilder()
         .setColor('Red')
-        .setDescription(`${emojis.no} You do not have permission to use this command.`);
+        .setDescription(`${this.getEmoji('x_icon')} You do not have permission to use this command.`);
       await message.reply({ embeds: [embed] });
       return;
     }
 
-    const reply = await message.reply(`${emojis.loading} Deleting message...`);
+    const reply = await message.reply(`${this.getEmoji('loading')} Deleting message...`);
 
     const deleted = await deleteMessageFromHub(
       originalMsg.hubId,
@@ -59,7 +58,7 @@ export default class DeleteMsgCommand extends BasePrefixCommand {
     ).catch(() => null);
 
     await reply.edit(
-      `${emojis.delete} Deleted messages from **${deleted?.deletedCount ?? '0'}** servers.`,
+      `${this.getEmoji('delete')} Deleted messages from **${deleted?.deletedCount ?? '0'}** servers.`,
     );
   }
 

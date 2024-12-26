@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { stripIndents } from 'common-tags';
@@ -13,7 +13,7 @@ export default class Server extends Find {
     const user = await interaction.client.users.fetch(userId).catch(() => null);
     if (!user) {
       const embed = new InfoEmbed().setDescription(
-        `${emojis.no} Unknown user. Try using user\`s ID instead if you used username.`,
+        `${this.getEmoji('x_icon')} Unknown user. Try using user\`s ID instead if you used username.`,
       );
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
@@ -47,19 +47,19 @@ export default class Server extends Find {
         {
           name: 'User',
           value: stripIndents`
-            > ${emojis.id} **ID:** ${user.id}
-            > ${emojis.mention} **Username:** ${user.username}
-            > ${emojis.members} **Created:** <t:${Math.round(user.createdTimestamp / 1000)}:R>
-            > ${emojis.bot} **Bot:** ${user.bot}
-            > ${emojis.owner} **Servers Owned:** ${numServersOwned}
+            > ${this.getEmoji('id')} **ID:** ${user.id}
+            > ${this.getEmoji('mention')} **Username:** ${user.username}
+            > ${this.getEmoji('members')} **Created:** <t:${Math.round(user.createdTimestamp / 1000)}:R>
+            > ${this.getEmoji('bot')} **Bot:** ${user.bot}
+            > ${this.getEmoji('owner')} **Servers Owned:** ${numServersOwned}
             `,
         },
         {
           name: 'Network',
           value: stripIndents`
-            > ${emojis.chat_icon} **Hubs Owned:** ${numHubOwned}
-            > ${emojis.delete} **Blacklisted From:** ${blacklistedFromStr}
-            > ${emojis.deleteDanger_icon} **Banned:** ${userData?.banReason ? 'Yes' : 'No'}
+            > ${this.getEmoji('chat_icon')} **Hubs Owned:** ${numHubOwned}
+            > ${this.getEmoji('delete')} **Blacklisted From:** ${blacklistedFromStr}
+            > ${this.getEmoji('deleteDanger_icon')} **Banned:** ${userData?.banReason ? 'Yes' : 'No'}
              `,
         },
       ]);

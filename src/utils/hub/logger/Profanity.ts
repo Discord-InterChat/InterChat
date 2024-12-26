@@ -1,8 +1,9 @@
 import { HubService } from '#main/services/HubService.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, Guild, User } from 'discord.js';
 import { sendLog } from './Default.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 /**
  * Logs the detected profanity along with relevant details.
@@ -16,6 +17,8 @@ export default async (hubId: string, rawContent: string, author: User, server: G
 
   if (!hub || !logConfig?.config?.profanity) return;
 
+  const dotBlueEmoji = getEmoji('dotBlue', server.client);
+
   const embed = new EmbedBuilder()
     .setTitle('Profanity Detected')
     .setDescription(`||${rawContent}||`)
@@ -23,9 +26,9 @@ export default async (hubId: string, rawContent: string, author: User, server: G
     .addFields({
       name: 'Details',
       value: stripIndents`
-					${emojis.dotBlue} **Author:** @${author.username} (${author.id})
-					${emojis.dotBlue} **Server:** ${server.name} (${server.id}})
-					${emojis.dotBlue} **Hub:** ${hub.data.name}
+					${dotBlueEmoji} **Author:** @${author.username} (${author.id})
+					${dotBlueEmoji} **Server:** ${server.name} (${server.id}})
+					${dotBlueEmoji} **Hub:** ${hub.data.name}
 				`,
     });
 

@@ -1,11 +1,12 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
-import { APIEmbed, codeBlock, Colors, EmbedBuilder, EmbedData, resolveColor } from 'discord.js';
+import { APIEmbed, Client, codeBlock, Colors, EmbedBuilder, EmbedData, resolveColor } from 'discord.js';
 
 export class InfoEmbed extends EmbedBuilder {
   constructor(data?: EmbedData | APIEmbed) {
     super({
-      color: resolveColor(Constants.Colors.invisible),
+      color: resolveColor(Constants.Colors.interchatBlue),
       ...data,
     });
   }
@@ -23,9 +24,9 @@ export class InfoEmbed extends EmbedBuilder {
 
 export class ErrorEmbed extends EmbedBuilder {
   private errorCode: string | null = null;
-  constructor(data?: { errorCode?: string }) {
+  constructor(client: Client, data?: { errorCode?: string }) {
     super({
-      title: `${emojis.no} Error`,
+      title: `${getEmoji('x_icon', client)} Error`,
       description:
         'An error occurred while executing this command. Please join our [support server](https://discord.gg/interchat) and report the Error Code!',
       color: Colors.Red,

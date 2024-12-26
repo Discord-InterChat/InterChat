@@ -6,8 +6,8 @@ import UserDbManager from '#main/managers/UserDbManager.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import CooldownService from '#main/services/CooldownService.js';
 import Scheduler from '#main/services/SchedulerService.js';
+import { loadCommands, loadInteractions } from '#main/utils/CommandUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
-import { loadCommands, loadInteractions } from '#utils/CommandUtils.js';
 import Constants from '#utils/Constants.js';
 import { loadLocales } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
@@ -67,15 +67,15 @@ export default class InterChatClient extends Client {
       }),
       sweepers: {
         messages: {
-          interval: 60,
+          interval: 3600,
           filter: Sweepers.filterByLifetime({
-            lifetime: 150,
+            lifetime: 43200, // 12 hours
             getComparisonTimestamp: (message) => message.createdTimestamp,
           }),
         },
         threads: {
           interval: 60,
-          filter: () => (thread) => Boolean(thread.archived),
+          filter: () => (thread) => Boolean(thread.archived || thread.locked),
         },
       },
       intents: [
@@ -86,9 +86,7 @@ export default class InterChatClient extends Client {
         GatewayIntentBits.GuildMessageReactions,
         GatewayIntentBits.GuildWebhooks,
       ],
-      allowedMentions: {
-        repliedUser: false,
-      },
+      allowedMentions: { repliedUser: false },
     });
   }
 
@@ -98,9 +96,7 @@ export default class InterChatClient extends Client {
 
     // initialize i18n for localization
     loadLocales('locales');
-
-    // load commands
-    loadCommands(this.commands, this.prefixCommands, this.interactions);
+    loadCommands(this.commands, this.prefixCommands, this.interactions, this);
     loadInteractions(this.interactions);
     this.eventLoader.load();
 

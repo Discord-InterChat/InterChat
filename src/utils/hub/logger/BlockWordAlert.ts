@@ -1,5 +1,5 @@
-import { emojis } from '#utils/Constants.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { sendLog } from '#main/utils/hub/logger/Default.js';
 import { ACTION_LABELS, createRegexFromWords } from '#main/utils/moderation/blockWords.js';
 import { BlockWord } from '@prisma/client';
@@ -19,7 +19,7 @@ export const logBlockwordAlert = async (
   const content = message.content.replace(createRegexFromWords(matches), boldANSIText);
   const embed = new EmbedBuilder()
     .setColor('Yellow')
-    .setTitle(`${emojis.exclamation} Blocked Word Alert`)
+    .setTitle(`${getEmoji('exclamation', message.client)} Blocked Word Alert`)
     .setDescription(
       stripIndents`
         A message containing blocked words was detected:

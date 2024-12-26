@@ -1,7 +1,8 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import Logger from '#main/utils/Logger.js';
 import { getReplyMethod, handleError } from '#main/utils/Utils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
@@ -32,7 +33,7 @@ export const showRulesScreening = async (
 
     const welcomeMsg = {
       content: t('rules.welcome', locale, {
-        emoji: emojis.wave_anim,
+        emoji: getEmoji('wave_anim', repliable.client),
         user: author.username,
       }),
       components: [buttons],
@@ -59,7 +60,11 @@ export default class RulesScreeningInteraction {
     if (interaction.user.id !== userId) {
       await interaction.reply({
         embeds: [
-          new InfoEmbed({ description: t('errors.notYourAction', 'en', { emoji: emojis.no }) }),
+          new InfoEmbed({
+            description: t('errors.notYourAction', 'en', {
+              emoji: getEmoji('x_icon', interaction.client),
+            }),
+          }),
         ],
         ephemeral: true,
       });
@@ -87,7 +92,10 @@ export default class RulesScreeningInteraction {
       if (!success) return;
 
       const embed = new InfoEmbed().setDescription(
-        t('rules.accepted', locale, { emoji: emojis.yes, guide: Constants.Links.Docs }),
+        t('rules.accepted', locale, {
+          emoji: getEmoji('tick_icon', interaction.client),
+          guide: Constants.Links.Docs,
+        }),
       );
 
       await interaction.editReply({ embeds: [embed], components: [] });
@@ -99,7 +107,11 @@ export default class RulesScreeningInteraction {
 
   private async showRules(interaction: ButtonInteraction, locale: supportedLocaleCodes) {
     const rulesEmbed = new InfoEmbed()
-      .setDescription(t('rules.rules', locale, { support_invite: Constants.Links.SupportInvite }))
+      .setDescription(
+        t('rules.rules', locale, {
+          rules_emoji: getEmoji('rules_icon', interaction.client),
+        }),
+      )
       .setImage(Constants.Links.RulesBanner)
       .setColor(Constants.Colors.interchatBlue);
 
@@ -138,9 +150,8 @@ export default class RulesScreeningInteraction {
     locale: supportedLocaleCodes,
   ) {
     if (!userData?.acceptedRules) return false;
-
     const embed = new InfoEmbed().setDescription(
-      t('rules.alreadyAccepted', locale, { emoji: emojis.yes }),
+      t('rules.alreadyAccepted', locale, { emoji: getEmoji('tick_icon', interaction.client) }),
     );
 
     const replyMethod = getReplyMethod(interaction);

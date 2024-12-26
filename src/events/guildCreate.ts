@@ -1,6 +1,6 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { donateButton } from '#main/utils/ComponentUtils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { getGuildOwnerOrFirstChannel as getGuildOwnerAndFirstChannel, logGuildJoin } from '#utils/GuildUtils.js';
 import Logger from '#utils/Logger.js';
 import { stripIndents } from 'common-tags';
@@ -37,17 +37,17 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
       new ButtonBuilder()
         .setLabel('Wiki')
         .setURL(Constants.Links.Docs)
-        .setEmoji(emojis.guide_icon)
+        .setEmoji(this.getEmoji('wiki_icon'))
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
         .setLabel('Terms & Privacy')
         .setURL(`${Constants.Links.Docs}/legal`)
-        .setEmoji(emojis.lock_icon)
+        .setEmoji(this.getEmoji('lock_icon'))
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
         .setLabel('Discord')
         .setURL(Constants.Links.SupportInvite)
-        .setEmoji(emojis.code_icon)
+        .setEmoji(this.getEmoji('code_icon'))
         .setStyle(ButtonStyle.Link),
     );
 

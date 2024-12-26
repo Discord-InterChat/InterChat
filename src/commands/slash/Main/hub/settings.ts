@@ -3,7 +3,6 @@ import { RegisterInteractionHandler } from '#main/decorators/RegisterInteraction
 import HubManager from '#main/managers/HubManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { type HubSettingsString } from '#main/modules/BitFields.js';
-import { emojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { t } from '#utils/Locale.js';
 import {
@@ -30,7 +29,7 @@ export default class Settings extends HubCommand {
   }
 
   private async handleList(interaction: ChatInputCommandInteraction, hub: HubManager) {
-    await interaction.reply({ embeds: [hub.settings.embed] });
+    await interaction.reply({ embeds: [hub.settings.getEmbed(interaction.client)] });
   }
 
   private async handleToggle(interaction: ChatInputCommandInteraction, hub: HubManager) {
@@ -45,13 +44,13 @@ export default class Settings extends HubCommand {
             .toString(),
         )
         .setLabel('View Settings')
-        .setEmoji(emojis.settings)
+        .setEmoji(this.getEmoji('settings'))
         .setStyle(ButtonStyle.Secondary),
     );
 
     await this.replyEmbed(
       interaction,
-      `Setting \`${settingStr}\` is now **${value ? `${emojis.enabled} enabled` : `${emojis.disabled} disabled`}**.`,
+      `Setting \`${settingStr}\` is now **${value ? `${this.getEmoji('enabled')} enabled` : `${this.getEmoji('disabled')} disabled`}**.`,
       { ephemeral: true, components: [viewSettingsButton] },
     );
   }
@@ -75,13 +74,16 @@ export default class Settings extends HubCommand {
     }
 
     const settingsManager = await HubSettingsManager.create(hubId);
-    await interaction.reply({ embeds: [settingsManager.embed], ephemeral: true });
+    await interaction.reply({
+      embeds: [settingsManager.getEmbed(interaction.client)],
+      ephemeral: true,
+    });
   }
   private async runHubCheck(interaction: ChatInputCommandInteraction) {
     const hubName = interaction.options.getString('hub') as string | undefined;
     const hub = hubName ? (await this.hubService.findHubsByName(hubName)).at(0) : null;
 
-    if (!await hub?.isManager(interaction.user.id)) {
+    if (!(await hub?.isManager(interaction.user.id))) {
       await this.replyEmbed(
         interaction,
         'Hub not found. Provide a valid hub in the `hub` option of the command.',

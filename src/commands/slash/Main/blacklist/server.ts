@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
@@ -36,7 +35,7 @@ export default class extends BlacklistCommand {
 
       const server = await interaction.client.fetchGuild(serverId).catch(() => null);
       if (!server) {
-        await interaction.followUp(t('errors.unknownServer', locale, { emoji: emojis.no }));
+        await interaction.followUp(t('errors.unknownServer', locale, { emoji: this.getEmoji('x_icon') }));
         return;
       }
 
@@ -57,7 +56,7 @@ export default class extends BlacklistCommand {
 
       await this.sendSuccessResponse(
         interaction,
-        t('blacklist.success', locale, { name: server.name, emoji: emojis.tick }),
+        t('blacklist.success', locale, { name: server.name, emoji: this.getEmoji('tick') }),
         { reason, expires },
       );
 
@@ -77,7 +76,7 @@ export default class extends BlacklistCommand {
       if (!result || !BlacklistManager.isServerBlacklist(result)) {
         await this.replyEmbed(
           interaction,
-          t('errors.serverNotBlacklisted', locale, { emoji: emojis.no }),
+          t('errors.serverNotBlacklisted', locale, { emoji: this.getEmoji('x_icon') }),
         );
         return;
       }
@@ -85,7 +84,7 @@ export default class extends BlacklistCommand {
       // Using name from DB since the bot can't access server through API.
       await this.replyEmbed(
         interaction,
-        t('blacklist.removed', locale, { emoji: emojis.delete, name: result.serverName ?? 'Unknown Server.' }),
+        t('blacklist.removed', locale, { emoji: this.getEmoji('delete'), name: result.serverName ?? 'Unknown Server.' }),
       );
 
       // send log to hub's log channel
@@ -108,7 +107,7 @@ export default class extends BlacklistCommand {
     if (blacklist) {
       await this.replyEmbed(
         interaction,
-        t('blacklist.server.alreadyBlacklisted', 'en', { emoji: emojis.no }),
+        t('blacklist.server.alreadyBlacklisted', 'en', { emoji: this.getEmoji('x_icon') }),
         hiddenOpt,
       );
       return false;
@@ -116,7 +115,7 @@ export default class extends BlacklistCommand {
     if (opts?.duration && opts.duration < 30_000) {
       await this.replyEmbed(
         interaction,
-        `${emojis.no} Blacklist duration should be atleast 30 seconds or longer.`,
+        `${this.getEmoji('x_icon')} Blacklist duration should be atleast 30 seconds or longer.`,
         hiddenOpt,
       );
       return false;

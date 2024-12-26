@@ -6,8 +6,9 @@ import {
 } from '#main/modules/BitFields.js';
 import { HubService } from '#main/services/HubService.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { emojis } from '#utils/Constants.js';
-import { EmbedBuilder } from 'discord.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+
+import { Client, EmbedBuilder } from 'discord.js';
 
 export default class HubSettingsManager {
   private readonly hub: HubManager;
@@ -52,7 +53,7 @@ export default class HubSettingsManager {
     return this.settings.serialize();
   }
 
-  get embed(): EmbedBuilder {
+  getEmbed(client: Client): EmbedBuilder {
     const embed = new InfoEmbed()
       .setTitle('Hub Settings')
       .setColor('#0099ff')
@@ -61,7 +62,7 @@ export default class HubSettingsManager {
     for (const [key, value] of Object.entries(this.getAll())) {
       embed.addFields({
         name: key,
-        value: value ? `${emojis.yes} Enabled` : `${emojis.no} Disabled`,
+        value: value ? `${getEmoji('tick_icon', client)} Enabled` : `${getEmoji('x_icon', client)} Disabled`,
         inline: true,
       });
     }

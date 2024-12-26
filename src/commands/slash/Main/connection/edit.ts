@@ -1,8 +1,9 @@
-import Constants, { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import Logger from '#main/utils/Logger.js';
 import { isGuildTextBasedChannel } from '#utils/ChannelUtls.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
+import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -24,7 +25,6 @@ import {
   TextInputStyle,
 } from 'discord.js';
 import Connection from './index.js';
-import Logger from '#main/utils/Logger.js';
 
 export default class ConnectionEditCommand extends Connection {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -38,7 +38,10 @@ export default class ConnectionEditCommand extends Connection {
     const locale = await this.getLocale(interaction);
 
     if (!isInDb) {
-      await this.replyEmbed(interaction, t('connection.notFound', locale, { emoji: emojis.no }));
+      await this.replyEmbed(
+        interaction,
+        t('connection.notFound', locale, { emoji: this.getEmoji('x_icon') }),
+      );
       return;
     }
 
@@ -46,15 +49,15 @@ export default class ConnectionEditCommand extends Connection {
     if (!channelExists) {
       await updateConnection({ channelId }, { connected: !isInDb.connected });
       await interaction.followUp({
-        content: t('connection.channelNotFound', locale, { emoji: emojis.no }),
+        content: t('connection.channelNotFound', locale, { emoji: this.getEmoji('x_icon') }),
         ephemeral: true,
       });
     }
 
     const iconURL = interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString();
 
-    const embed = await buildEditEmbed(channelId, iconURL, locale);
-    const editSelect = buildEditSelect(channelId, interaction.user.id, locale);
+    const embed = await buildEditEmbed(interaction.client, channelId, iconURL, locale);
+    const editSelect = buildEditSelect(interaction.client, channelId, interaction.user.id, locale);
     const channelSelect = buildChannelSelect(channelId, interaction.user.id);
 
     await interaction.editReply({
@@ -83,7 +86,7 @@ export default class ConnectionEditCommand extends Connection {
       if (!invite) {
         await updateConnection({ channelId }, { invite: { unset: true } });
         await interaction.followUp({
-          content: t('connection.inviteRemoved', locale, { emoji: emojis.yes }),
+          content: t('connection.inviteRemoved', locale, { emoji: this.getEmoji('tick_icon') }),
           ephemeral: true,
         });
         return;
@@ -92,7 +95,7 @@ export default class ConnectionEditCommand extends Connection {
       const fetchedInvite = await interaction.client?.fetchInvite(invite).catch(() => null);
       if (fetchedInvite?.guild?.id !== interaction.guildId) {
         await interaction.followUp({
-          content: t('connection.inviteInvalid', locale, { emoji: emojis.no }),
+          content: t('connection.inviteInvalid', locale, { emoji: this.getEmoji('x_icon') }),
           ephemeral: true,
         });
         return;
@@ -101,7 +104,7 @@ export default class ConnectionEditCommand extends Connection {
       await updateConnection({ channelId }, { invite });
 
       await interaction.followUp({
-        content: t('connection.inviteAdded', locale, { emoji: emojis.yes }),
+        content: t('connection.inviteAdded', locale, { emoji: this.getEmoji('tick_icon') }),
         ephemeral: true,
       });
     }
@@ -110,7 +113,7 @@ export default class ConnectionEditCommand extends Connection {
 
       if (!Constants.Regex.Hexcode.test(embedColor)) {
         await interaction.reply({
-          content: t('connection.emColorInvalid', locale, { emoji: emojis.no }),
+          content: t('connection.emColorInvalid', locale, { emoji: this.getEmoji('x_icon') }),
           ephemeral: true,
         });
         return;
@@ -124,7 +127,7 @@ export default class ConnectionEditCommand extends Connection {
       await interaction.reply({
         content: t('connection.emColorChange', locale, {
           action: embedColor ? `set to \`${embedColor}\`!` : 'unset',
-          emoji: emojis.yes,
+          emoji: this.getEmoji('tick_icon'),
         }),
         ephemeral: true,
       });
@@ -134,6 +137,7 @@ export default class ConnectionEditCommand extends Connection {
       ?.edit({
         embeds: [
           await buildEditEmbed(
+            interaction.client,
             customId.args[0],
             interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
             locale,
@@ -155,7 +159,7 @@ export default class ConnectionEditCommand extends Connection {
 
     if (userIdFilter !== interaction.user.id) {
       const embed = new InfoEmbed().setDescription(
-        t('errors.notYourAction', locale, { emoji: emojis.no }),
+        t('errors.notYourAction', locale, { emoji: this.getEmoji('x_icon') }),
       );
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
@@ -164,7 +168,7 @@ export default class ConnectionEditCommand extends Connection {
     const connection = await db.connection.findFirst({ where: { channelId } });
     if (!channelId || !connection) {
       await interaction.reply({
-        content: t('connection.channelNotFound', locale, { emoji: emojis.no }),
+        content: t('connection.channelNotFound', locale, { emoji: this.getEmoji('x_icon') }),
         ephemeral: true,
       });
       return;
@@ -229,6 +233,7 @@ export default class ConnectionEditCommand extends Connection {
     }
 
     const newEmbeds = await buildEditEmbed(
+      interaction.client,
       channelId,
       interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
       locale,
@@ -252,7 +257,7 @@ export default class ConnectionEditCommand extends Connection {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
 
-    const emoji = emojis.no;
+    const emoji = this.getEmoji('x_icon');
     const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.args.at(0);
     const userIdFilter = customId.args.at(1);
@@ -297,12 +302,18 @@ export default class ConnectionEditCommand extends Connection {
       },
     );
 
-    const editSelect = buildEditSelect(newChannel.id, interaction.user.id, locale);
+    const editSelect = buildEditSelect(
+      interaction.client,
+      newChannel.id,
+      interaction.user.id,
+      locale,
+    );
     const channelSelect = buildChannelSelect(newChannel.id, interaction.user.id);
 
     await interaction.editReply({
       embeds: [
         await buildEditEmbed(
+          interaction.client,
           newChannel.id,
           interaction.guild?.iconURL() ?? interaction.user.avatarURL()?.toString(),
           locale,

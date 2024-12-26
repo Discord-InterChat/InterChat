@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
@@ -19,6 +19,7 @@ import {
 } from 'discord.js';
 import { buildAppealSubmitButton } from '#main/interactions/BlacklistAppeal.js';
 import { HubService } from '#main/services/HubService.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export const isBlacklisted = (infraction: Infraction | null): infraction is Infraction =>
   Boolean(
@@ -29,6 +30,7 @@ export const isBlacklisted = (infraction: Infraction | null): infraction is Infr
 
 export const buildBlacklistNotifEmbed = (
   type: 'user' | 'server',
+  client: Client,
   opts: {
     hubName: string;
     expiresAt: Date | null;
@@ -42,7 +44,7 @@ export const buildBlacklistNotifEmbed = (
   const targetStr = type === 'user' ? 'You have' : 'This server has';
 
   return new EmbedBuilder()
-    .setTitle(`${emojis.blobFastBan} Blacklist Notification`)
+    .setTitle(`${getEmoji('blobFastBan', client)} Blacklist Notification`)
     .setDescription(`${targetStr} been blacklisted from talking in hub **${opts.hubName}**.`)
     .setColor(Constants.Colors.interchatBlue)
     .setFields(
@@ -66,7 +68,7 @@ export const sendBlacklistNotif = async (
 ) => {
   try {
     const hub = await new HubService().fetchHub(opts.hubId);
-    const embed = buildBlacklistNotifEmbed(type, {
+    const embed = buildBlacklistNotifEmbed(type, client, {
       hubName: `${hub?.data.name}`,
       expiresAt: opts.expiresAt,
       reason: opts.reason,

@@ -1,6 +1,6 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 
-import { emojis } from '#utils/Constants.js';
+
 import { logUserUnblacklist } from '#utils/hub/logger/ModLogs.js';
 import { t } from '#utils/Locale.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
@@ -46,7 +46,7 @@ export default class extends BlacklistCommand {
 
       await this.sendSuccessResponse(
         interaction,
-        t('blacklist.success', locale, { name: user.username, emoji: emojis.tick }),
+        t('blacklist.success', locale, { name: user.username, emoji: this.getEmoji('tick') }),
         { reason, expires },
       );
 
@@ -69,7 +69,7 @@ export default class extends BlacklistCommand {
       if (!result) {
         await this.replyEmbed(
           interaction,
-          t('errors.userNotBlacklisted', locale, { emoji: emojis.no }),
+          t('errors.userNotBlacklisted', locale, { emoji: this.getEmoji('x_icon') }),
           { ephemeral: true },
         );
         return;
@@ -77,7 +77,7 @@ export default class extends BlacklistCommand {
 
       const user = await interaction.client.users.fetch(userId).catch(() => null);
       await interaction.followUp(
-        t('blacklist.removed', locale, { emoji: emojis.delete, name: `${user?.username}` }),
+        t('blacklist.removed', locale, { emoji: this.getEmoji('delete'), name: `${user?.username}` }),
       );
     }
   }
@@ -155,7 +155,7 @@ export default class extends BlacklistCommand {
     if (opts?.duration && opts.duration < 30_000) {
       await this.replyEmbed(
         interaction,
-        `${emojis.no} Blacklist duration should be atleast 30 seconds or longer.`,
+        `${this.getEmoji('x_icon')} Blacklist duration should be atleast 30 seconds or longer.`,
         hiddenOpt,
       );
       return false;
@@ -165,7 +165,7 @@ export default class extends BlacklistCommand {
     if (userInBlacklist) {
       await this.replyEmbed(
         interaction,
-        t('blacklist.user.alreadyBlacklisted', locale, { emoji: emojis.no }),
+        t('blacklist.user.alreadyBlacklisted', locale, { emoji: this.getEmoji('x_icon') }),
         hiddenOpt,
       );
       return false;

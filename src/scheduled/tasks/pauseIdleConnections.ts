@@ -1,6 +1,6 @@
 import { buildConnectionButtons } from '#main/interactions/InactiveConnect.js';
 import { updateConnections } from '#utils/ConnectedListUtils.js';
-import { emojis } from '#utils/Constants.js';
+
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
@@ -23,7 +23,7 @@ export default async () => {
     .removeTitle()
     .setDescription(
       stripIndents`
-      ### ${emojis.timeout} Paused Due to Inactivity
+      ### :alarm_clock: Paused Due to Inactivity
       Messages will not be sent to this channel until you reconnect because it has been inactive for over 24 hours.
 
       -# Click the **button** below or use  **\`/connection unpause\`** to resume chatting.

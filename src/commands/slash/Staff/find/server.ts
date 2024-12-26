@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { toTitleCase } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
@@ -58,7 +58,7 @@ export default class Server extends Find {
           value:
             guild.features
               .map((feat) => `> ${toTitleCase(feat.replaceAll('_', ' '))}\n`)
-              .join('') || `> ${emojis.no} No Features Enabled`,
+              .join('') || `> ${this.getEmoji('x_icon')} No Features Enabled`,
         },
 
         {

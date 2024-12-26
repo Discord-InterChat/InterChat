@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import Scheduler from '#main/services/SchedulerService.js';
 import { randomBytes } from 'crypto';
 import {
@@ -11,7 +11,9 @@ import {
   MessageActionRowComponent,
   ComponentType,
   Message,
+  Client,
 } from 'discord.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export const greyOutButton = (row: ActionRowBuilder<ButtonBuilder>, disableElement: number) => {
   row.components.forEach((c) => c.setDisabled(false));
@@ -22,6 +24,7 @@ export const greyOutButtons = (rows: ActionRowBuilder<ButtonBuilder>[]) => {
 };
 
 export const generateJumpButton = (
+  client: Client,
   referredAuthorUsername: string,
   opts: { messageId: Snowflake; channelId: Snowflake; serverId: Snowflake },
 ) =>
@@ -29,7 +32,7 @@ export const generateJumpButton = (
   new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setStyle(ButtonStyle.Link)
-      .setEmoji(emojis.reply)
+      .setEmoji(getEmoji('reply', client))
       .setURL(messageLink(opts.channelId, opts.messageId, opts.serverId))
       .setLabel(
         referredAuthorUsername.length >= 80

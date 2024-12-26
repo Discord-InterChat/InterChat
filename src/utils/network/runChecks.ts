@@ -3,8 +3,9 @@ import HubManager from '#main/managers/HubManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 
 import NSFWDetector from '#main/modules/NSFWDetection.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import logProfanity from '#utils/hub/logger/Profanity.js';
 import { t } from '#utils/Locale.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';
@@ -147,7 +148,7 @@ async function checkSpam(message: Message<true>, opts: CheckFunctionOpts): Promi
       }).catch(() => null);
     }
 
-    await message.react(emojis.timeout).catch(() => null);
+    await message.react(getEmoji('timeout', message.client)).catch(() => null);
     return { passed: false };
   }
   return { passed: true };
@@ -172,7 +173,7 @@ async function checkNewUser(message: Message<true>, opts: CheckFunctionOpts): Pr
       passed: false,
       reason: t('network.accountTooNew', locale, {
         user: message.author.toString(),
-        emoji: emojis.no,
+        emoji: getEmoji('x_icon', message.client),
       }),
     };
   }
@@ -208,7 +209,8 @@ async function checkInviteLinks(
 
   if (settings.has('BlockInvites') && containsInviteLinks(message.content)) {
     const locale = await message.client.userManager.getUserLocale(userData);
-    return { passed: false, reason: t('errors.inviteLinks', locale, { emoji: emojis.no }) };
+    const emoji = getEmoji('x_icon', message.client);
+    return { passed: false, reason: t('errors.inviteLinks', locale, { emoji }) };
   }
   return { passed: true };
 }
@@ -240,7 +242,7 @@ async function checkNSFW(message: Message<true>, opts: CheckFunctionOpts): Promi
         .setColor(Constants.Colors.invisible)
         .setDescription(
           stripIndents`
-          ### ${emojis.exclamation} NSFW Image Blocked
+          ### ${getEmoji('exclamation', message.client)} NSFW Image Blocked
           Images that contain NSFW (Not Safe For Work) content are not allowed on InterChat and may result in a blacklist from the hub and bot.
           `,
         )

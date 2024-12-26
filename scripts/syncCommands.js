@@ -1,20 +1,9 @@
 // @ts-check
 import { Collection, REST, Routes } from 'discord.js';
 import 'dotenv/config';
+import { greenText, greyText, redText, Spinner } from './utils.js'
 
 process.env.DEBUG = 'false'; // disable command loader logging
-
-const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-const redText = (/** @type {string} */ text) => `\x1b[0;31m${text}\x1b[0m`;
-const greenText = (/** @type {string} */ text) => `\x1b[38;5;78m${text}\x1b[0m`;
-const greyText = (/** @type {string} */ text) => `\x1b[38;5;246m${text}\x1b[0m`;
-const startSpinner = (/** @type {string} */ type, /** @type {string} */ totalCommands) => {
-  let i = 0;
-  return setInterval(() => {
-    process.stdout.write(`\r${greyText(frames[i])} Registering ${greyText(totalCommands)} ${type} application commands...`);
-    i = ++i % frames.length;
-  }, 80);
-}
 
 const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -27,10 +16,12 @@ const commandUtils = await import('../build/utils/CommandUtils.js').catch(() => 
   throw new Error(`${redText('✘')} Code is not build yet. Run \`pnpm build\` first.`);
 });
 
+const spinner = new Spinner()
+
 const registerAllCommands = async (staffOnly = false) => {
   // make sure CommandsMap is not empty
   const commandsMap = new Collection();
-  await commandUtils.loadCommands(commandsMap, new Collection(), new Collection());
+  await commandUtils.loadCommands(commandsMap, new Collection(), new Collection(), null);
 
   
   const commands = commandsMap
@@ -39,7 +30,7 @@ const registerAllCommands = async (staffOnly = false) => {
   
   const type = staffOnly ? 'private' : 'public';
   const totalCommands = commands.length.toString();
-  const spinner = startSpinner(type, totalCommands);
+  spinner.start(`Registering ${totalCommands} ${greyText(type)} application commands...`);
 
   const rest = new REST().setToken(TOKEN);
   const route = staffOnly
@@ -55,8 +46,7 @@ const registerAllCommands = async (staffOnly = false) => {
       ? greenText(registerRes.length)
       : redText(registerRes.length);
 
-  clearInterval(spinner);
-  console.log(`\r${greenText('✓')} Registered ${totalRegistered}${greyText('/')}${greenText(totalCommands)} ${type} application commands.`); // Clear the spinner line and print "Done!"
+  spinner.stop(`${greenText('✓')} Registered ${totalRegistered}${greyText('/')}${greenText(totalCommands)} ${type} application commands.`)
 };
 
 const logHelp = () =>

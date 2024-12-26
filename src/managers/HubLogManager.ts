@@ -1,4 +1,4 @@
-import { emojis, RedisKeys } from '#utils/Constants.js';
+import { RedisKeys } from '#utils/Constants.js';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
@@ -6,15 +6,13 @@ import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { HubLogConfig, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { ActionRowBuilder, roleMention, Snowflake, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, Client, roleMention, Snowflake, StringSelectMenuBuilder } from 'discord.js';
 import { handleError } from '#main/utils/Utils.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export type RoleIdLogConfigs = 'appeals' | 'reports' | 'networkAlerts';
 export type LogConfigTypes = keyof Omit<Omit<HubLogConfig, 'hubId'>, 'id'>;
 export const logsWithRoleId = ['appeals', 'reports', 'networkAlerts'];
-
-const channelMention = (channelId: string | null | undefined) =>
-  channelId ? `<#${channelId}>` : emojis.no;
 
 export default class HubLogManager {
   private readonly hubId: string;
@@ -70,7 +68,6 @@ export default class HubLogManager {
     }
   }
 
-
   async setLogChannel(type: LogConfigTypes, channelId: string) {
     await this.updateLogConfig({
       [type]: { upsert: { set: { channelId }, update: { channelId } } },
@@ -106,21 +103,30 @@ export default class HubLogManager {
     await this.setRoleId(type as RoleIdLogConfigs, roleId);
   }
 
-  public createEmbed(iconUrl: string | null, locale: supportedLocaleCodes = 'en') {
+  public getEmbed(
+    iconUrl: string | null,
+    client: Client,
+    locale: supportedLocaleCodes = 'en',
+  ) {
     const channelStr = t('hub.manage.logs.config.fields.channel', locale);
     const roleStr = t('hub.manage.logs.config.fields.role', locale);
+
+    const divider = getEmoji('divider', client);
+    const dividerEnd = getEmoji('dividerEnd', client);
+    const x_icon = getEmoji('x_icon', client);
 
     const logDesc = this.logTypes
       .map((type) => {
         const configType = this.config[type];
         const roleInfo = this.logsWithRoleId.includes(type)
-          ? `${emojis.dividerEnd} ${roleStr} ${typeof configType !== 'string' && configType?.roleId ? roleMention(configType.roleId) : emojis.no}`
+          ? `${dividerEnd} ${roleStr} ${typeof configType !== 'string' && configType?.roleId ? roleMention(configType.roleId) : x_icon}`
           : '';
 
+        const channelId = typeof configType === 'string' ? configType : configType?.channelId;
         return stripIndents`
-          ${emojis.arrow} \`${type}:\`
-          ${emojis.divider} ${t(`hub.manage.logs.${type}.description`, locale)}
-          ${roleInfo ? emojis.divider : emojis.dividerEnd} ${channelStr} ${channelMention(typeof configType === 'string' ? configType : configType?.channelId)}
+          ${getEmoji('arrow', client)} \`${type}:\`
+          ${divider} ${t(`hub.manage.logs.${type}.description`, locale)}
+          ${roleInfo ? divider : dividerEnd} ${channelStr} ${channelId ? `<#${channelId}>` : x_icon}
           ${roleInfo}`;
       })
       .join('\n');

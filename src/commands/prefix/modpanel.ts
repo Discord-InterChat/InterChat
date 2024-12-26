@@ -1,7 +1,6 @@
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
 import { buildModPanel } from '#main/interactions/ModPanel.js';
 import { HubService } from '#main/services/HubService.js';
-import { emojis } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import {
@@ -39,7 +38,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     if (!hub || !await isStaffOrHubMod(message.author.id, hub)) {
       const embed = new EmbedBuilder()
         .setColor('Red')
-        .setDescription(`${emojis.no} You do not have permission to use this command.`);
+        .setDescription(`${this.getEmoji('x_icon')} You do not have permission to use this command.`);
       await message.reply({ embeds: [embed] });
       return;
     }

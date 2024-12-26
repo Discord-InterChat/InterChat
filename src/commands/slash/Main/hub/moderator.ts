@@ -1,5 +1,5 @@
 import HubManager from '#main/managers/HubManager.js';
-import { emojis } from '#utils/Constants.js';
+
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { Role, type HubModerator } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
@@ -12,7 +12,7 @@ export default class Moderator extends HubCommand {
 
     const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
     if (!hub || !(await hub.isManager(interaction.user.id))) {
-      await this.replyEmbed(interaction, t('hub.notManager', locale, { emoji: emojis.no }), {
+      await this.replyEmbed(interaction, t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }), {
         ephemeral: true,
       });
       return;
@@ -41,7 +41,7 @@ export default class Moderator extends HubCommand {
     if (!moderators.find((mod) => mod.userId === user.id)) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.remove.notModerator', locale, { user: user.toString(), emoji: emojis.no }),
+        t('hub.moderator.remove.notModerator', locale, { user: user.toString(), emoji: this.getEmoji('x_icon') }),
         { ephemeral: true },
       );
       return;
@@ -57,7 +57,7 @@ export default class Moderator extends HubCommand {
     if (!hub.isOwner(interaction.user.id) && isRestrictedAction) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.remove.notOwner', locale, { emoji: emojis.no }),
+        t('hub.moderator.remove.notOwner', locale, { emoji: this.getEmoji('x_icon') }),
         { ephemeral: true },
       );
       return;
@@ -67,7 +67,7 @@ export default class Moderator extends HubCommand {
 
     await this.replyEmbed(
       interaction,
-      t('hub.moderator.remove.success', locale, { user: user.toString(), emoji: emojis.yes }),
+      t('hub.moderator.remove.success', locale, { user: user.toString(), emoji: this.getEmoji('tick_icon') }),
     );
   }
 
@@ -88,7 +88,7 @@ export default class Moderator extends HubCommand {
     if (!isExecutorManager) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.update.notAllowed', locale, { emoji: emojis.no }),
+        t('hub.moderator.update.notAllowed', locale, { emoji: this.getEmoji('x_icon') }),
         { ephemeral: true },
       );
       return;
@@ -96,7 +96,7 @@ export default class Moderator extends HubCommand {
     else if (!isUserMod) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.update.notModerator', locale, { user: user.toString(), emoji: emojis.no }),
+        t('hub.moderator.update.notModerator', locale, { user: user.toString(), emoji: this.getEmoji('x_icon') }),
         { ephemeral: true },
       );
       return;
@@ -104,7 +104,7 @@ export default class Moderator extends HubCommand {
     else if (isUserMod.role === 'MANAGER' && !hub.isOwner(interaction.user.id)) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.update.notOwner', locale, { emoji: emojis.no }),
+        t('hub.moderator.update.notOwner', locale, { emoji: this.getEmoji('x_icon') }),
         { ephemeral: true },
       );
       return;
@@ -117,7 +117,7 @@ export default class Moderator extends HubCommand {
       t('hub.moderator.update.success', locale, {
         user: user.toString(),
         position: role,
-        emoji: emojis.yes,
+        emoji: this.getEmoji('tick_icon'),
       }),
     );
   }
@@ -141,7 +141,7 @@ export default class Moderator extends HubCommand {
                     }`,
                 )
                 .join('\n')
-              : t('hub.moderator.noModerators', locale, { emoji: emojis.no }),
+              : t('hub.moderator.noModerators', locale, { emoji: this.getEmoji('x_icon') }),
           )
           .setColor('Aqua')
           .setTimestamp(),
@@ -163,7 +163,7 @@ export default class Moderator extends HubCommand {
         interaction,
         t('hub.moderator.add.alreadyModerator', locale, {
           user: user.toString(),
-          emoji: emojis.no,
+          emoji: this.getEmoji('x_icon'),
         }),
         { ephemeral: true },
       );
@@ -179,7 +179,7 @@ export default class Moderator extends HubCommand {
       t('hub.moderator.add.success', locale, {
         user: user.toString(),
         position: role,
-        emoji: emojis.yes,
+        emoji: this.getEmoji('tick_icon'),
       }),
     );
   }

@@ -2,10 +2,7 @@ import { Pagination } from '#main/modules/Pagination.js';
 import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';
 import { buildInfractionListEmbeds } from '#utils/moderation/infractionUtils.js';
-import {
-  type ModAction,
-  replyWithUnknownMessage,
-} from '#main/utils/moderation/modPanel/utils.js';
+import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
 import { type ButtonInteraction, type Snowflake } from 'discord.js';
 import InfractionManager from '#main/managers/InfractionManager.js';
 
@@ -43,6 +40,8 @@ export default class ViewInfractionsHandler implements ModAction {
       iconURL,
     );
 
-    new Pagination().addPages(embeds).run(interaction, { deleteOnEnd: true });
+    new Pagination(interaction.client)
+      .addPages(embeds)
+      .run(interaction, { deleteOnEnd: true });
   }
 }

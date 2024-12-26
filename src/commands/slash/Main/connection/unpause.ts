@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import { fetchCommands, findCommand } from '#utils/CommandUtils.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
@@ -20,7 +19,7 @@ export default class Unpause extends Connection {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!connected) {
-      await this.replyEmbed(interaction, `${emojis.no} That channel is not connected to a hub!`, {
+      await this.replyEmbed(interaction, `${this.getEmoji('x_icon')} That channel is not connected to a hub!`, {
         ephemeral: true,
       });
       return;
@@ -29,7 +28,7 @@ export default class Unpause extends Connection {
     if (connected.connected) {
       await this.replyEmbed(
         interaction,
-        `${emojis.no} This connection is not paused! Use \`/connection pause\` to pause your connection.`,
+        `${this.getEmoji('x_icon')} This connection is not paused! Use \`/connection pause\` to pause your connection.`,
         { ephemeral: true },
       );
       return;
@@ -40,14 +39,14 @@ export default class Unpause extends Connection {
     if (!channel?.isThread() && channel?.type !== ChannelType.GuildText) {
       await this.replyEmbed(
         interaction,
-        t('connection.channelNotFound', locale, { emoji: emojis.no }),
+        t('connection.channelNotFound', locale, { emoji: this.getEmoji('x_icon') }),
         { ephemeral: true },
       );
       return;
     }
 
     await interaction.reply(
-      `${emojis.loading} Checking webhook status... May take a few seconds if it needs to be re-created.`,
+      `${this.getEmoji('loading')} Checking webhook status... May take a few seconds if it needs to be re-created.`,
     );
 
     const webhook = await getOrCreateWebhook(channel).catch(() => null);
@@ -55,7 +54,7 @@ export default class Unpause extends Connection {
       await this.replyEmbed(
         interaction,
         t('errors.botMissingPermissions', locale, {
-          emoji: emojis.no,
+          emoji: this.getEmoji('x_icon'),
           permissions: 'Manage Webhooks',
         }),
       );
@@ -75,7 +74,7 @@ export default class Unpause extends Connection {
     }
 
     await this.replyEmbed(interaction, 'connection.unpaused.desc', {
-      t: { tick_emoji: emojis.tick, channel: channelMention(channelId) },
+      t: { tick_emoji: this.getEmoji('tick'), channel: channelMention(channelId) },
       edit: true,
       content: `-# ${t('connection.unpaused.tips', locale, { pause_cmd, edit_cmd })}`,
     });

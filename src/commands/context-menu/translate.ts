@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
@@ -36,7 +35,7 @@ export default class Translate extends BaseCommand {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!(await userManager.userVotedToday(interaction.user.id))) {
-      await interaction.editReply(t('errors.mustVote', locale, { emoji: emojis.no }));
+      await interaction.editReply(t('errors.mustVote', locale, { emoji: this.getEmoji('x_icon') }));
       return;
     }
 
@@ -46,7 +45,7 @@ export default class Translate extends BaseCommand {
       (await getOriginalMessage(target.id)) ?? (await findOriginalMessage(target.id));
 
     if (!originalMsg) {
-      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }));
+      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: this.getEmoji('x_icon') }));
       return;
     }
 
@@ -133,7 +132,7 @@ export default class Translate extends BaseCommand {
     const from = interaction.fields.getTextInputValue('from');
     if (!isSupported(from) || !isSupported(to)) {
       await interaction.reply({
-        content: t('errors.invalidLangCode', locale, { emoji: emojis.no }),
+        content: t('errors.invalidLangCode', locale, { emoji: this.getEmoji('x_icon') }),
         ephemeral: true,
       });
       return;

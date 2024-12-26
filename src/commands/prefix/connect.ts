@@ -1,7 +1,7 @@
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
 import { LobbyManager } from '#main/managers/LobbyManager.js';
 import { MatchingService } from '#main/services/LobbyMatchingService.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import { t } from '#main/utils/Locale.js';
 import { getOrCreateWebhook } from '#main/utils/Utils.js';
@@ -25,7 +25,6 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     requiredArgs: 0,
   };
 
-  private readonly lobbyManager = new LobbyManager();
   private readonly matching = new MatchingService();
   private readonly tips = [
     'You can change the minimum number of servers required to find a match: `c!call 2`. It can be faster sometimes!',
@@ -33,19 +32,20 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
   ];
 
   protected async run(message: Message<true>, args: string[]) {
+    const lobbies = new LobbyManager(message.client);
     const minServers = parseInt(args[0], 10) || 2;
 
-    const alreadyInLobby = await this.lobbyManager.getLobbyByChannelId(message.channelId);
+    const alreadyInLobby = await lobbies.getLobbyByChannelId(message.channelId);
     if (alreadyInLobby) {
       await message.reply('You are already chatting in a lobby. Please leave it first.');
       return;
     }
 
-    const inWaitingPool = await this.lobbyManager.getChannelFromWaitingPool(message.guildId);
+    const inWaitingPool = await lobbies.getChannelFromWaitingPool(message.guildId);
     if (inWaitingPool) {
       await message.reply(
         stripIndents`
-        ${emojis.slash} You are already in the waiting pool for a lobby.
+        ${this.getEmoji('slash')} You are already in the waiting pool for a lobby.
         -# You will be notified once a lobby is found.
       `,
       );
@@ -59,7 +59,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     );
     if (!webhook) {
       await message.reply(
-        t('errors.missingPermissions', 'en', { emoji: emojis.no, permissions: 'Manage Webhooks' }),
+        t('errors.missingPermissions', 'en', { emoji: this.getEmoji('x_icon'), permissions: 'Manage Webhooks' }),
       );
       return;
     }
@@ -78,14 +78,14 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     };
 
     // Add server to waiting pool for matching
-    await this.lobbyManager.addToWaitingPool(
+    await lobbies.addToWaitingPool(
       { serverId, channelId, webhookUrl: webhook.url },
       preferences,
     );
 
     const match = await this.matching.findMatch(serverId, preferences);
     if (match) {
-      const lobbyId = await this.lobbyManager.createLobby([
+      const lobbyId = await lobbies.createLobby([
         { serverId, channelId, webhookUrl: webhook.url },
         match,
       ]);
@@ -93,7 +93,7 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
       // Update server histories
       await this.updateServerHistory(serverId, lobbyId);
       await this.updateServerHistory(match.serverId, lobbyId);
-      await this.lobbyManager.removeChannelFromPool(channelId);
+      await lobbies.removeChannelFromPool(channelId);
     }
     else {
       await message.reply(
@@ -107,11 +107,11 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
       // Set timeout for 5 minutes
       setTimeout(
         async () => {
-          const stillInWaitingPool = await this.lobbyManager.getChannelFromWaitingPool(
+          const stillInWaitingPool = await lobbies.getChannelFromWaitingPool(
             message.guildId,
           );
           if (stillInWaitingPool && stillInWaitingPool?.timestamp < Date.now() - 5 * 60 * 1000) {
-            await this.lobbyManager.removeChannelFromPool(channelId);
+            await lobbies.removeChannelFromPool(channelId);
             await message.reply('No lobbies were found for this server. Please try again.');
           }
         },

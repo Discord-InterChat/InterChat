@@ -3,7 +3,7 @@ import { HubService } from '#main/services/HubService.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { sendToHub } from '#main/utils/hub/utils.js';
-import { emojis } from '#utils/Constants.js';
+
 import {
   ActionRowBuilder,
   ChatInputCommandInteraction,
@@ -26,7 +26,7 @@ export default class AnnounceCommand extends HubCommand {
     if (!hub || !(await hub.isMod(interaction.user.id))) {
       await this.replyEmbed(interaction, 'hub.notFound_mod', {
         ephemeral: true,
-        t: { emoji: emojis.no },
+        t: { emoji: this.getEmoji('x_icon') },
       });
       return;
     }
@@ -54,7 +54,7 @@ export default class AnnounceCommand extends HubCommand {
 
   @RegisterInteractionHandler('hub_announce')
   async handleAnnounceModal(interaction: ModalSubmitInteraction) {
-    await interaction.reply(`${emojis.loading} Sending announcement to all connected servers...`);
+    await interaction.reply(`${this.getEmoji('loading')} Sending announcement to all connected servers...`);
     const [hubId] = CustomID.parseCustomId(interaction.customId).args;
     const announcement = interaction.fields.getTextInputValue('announcement');
     const hubService = new HubService(db);
@@ -71,6 +71,6 @@ export default class AnnounceCommand extends HubCommand {
       ],
     });
 
-    await interaction.editReply(`${emojis.yes} Announcement sent to all connected servers.`);
+    await interaction.editReply(`${this.getEmoji('tick_icon')} Announcement sent to all connected servers.`);
   }
 }

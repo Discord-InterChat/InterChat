@@ -1,10 +1,11 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
-import { ActionRowBuilder, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, Client, EmbedBuilder, StringSelectMenuBuilder } from 'discord.js';
 
 export const hubEditSelects = (
   hubId: string,
@@ -48,10 +49,17 @@ export const hubEditSelects = (
       ]),
   );
 
-export const hubEmbed = async (hub: Hub, totalConnections: number, totalMods: number) => {
+export const hubEmbed = async (
+  hub: Hub,
+  totalConnections: number,
+  totalMods: number,
+  client: Client,
+) => {
   const hubBlacklists = await db.infraction.findMany({
     where: { hubId: hub.id, status: 'ACTIVE' },
   });
+
+  const dotBlueEmoji = getEmoji('dotBlue', client);
 
   return new EmbedBuilder()
     .setTitle(hub.name)
@@ -60,9 +68,9 @@ export const hubEmbed = async (hub: Hub, totalConnections: number, totalMods: nu
       stripIndents`
     ${hub.description}
 
-    ${emojis.dotBlue} __**Visibility:**__ ${hub.private ? 'Private' : 'Public'}
-    ${emojis.dotBlue} __**Connections**__: ${totalConnections}
-    ${emojis.dotBlue} __**Chats Locked:**__ ${hub.locked ? 'Yes' : 'No'}
+    ${dotBlueEmoji} __**Visibility:**__ ${hub.private ? 'Private' : 'Public'}
+    ${dotBlueEmoji} __**Connections**__: ${totalConnections}
+    ${dotBlueEmoji} __**Chats Locked:**__ ${hub.locked ? 'Yes' : 'No'}
 
   `,
     )

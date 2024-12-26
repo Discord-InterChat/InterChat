@@ -1,15 +1,11 @@
 import type { Colors, HexColorString, Snowflake } from 'discord.js';
-import jsonEmotes from './JSON/emojis.json' with { type: 'json' };
-import badwordsType from './JSON/profanity.json' with { type: 'json' };
-import packageJson from '../../package.json' with { type: 'json' };
+import { createRequire } from 'module';
 
+const require = createRequire(import.meta.url);
+const badwords = require('./JSON/profanity.json');
+const packageJson = require('../../package.json');
 
-export const { slurs, profanity } = badwordsType;
-export const {
-  normal: emojis,
-  mascot: mascotEmojis,
-  badge: badgeEmojis,
-} = jsonEmotes;
+export const { slurs, profanity } = badwords as { slurs: string[]; profanity: string[] };
 
 export const enum RedisKeys {
   msgTimestamp = 'msgTimestamp',
@@ -88,6 +84,7 @@ export default {
     MessageLink: /https:\/\/(?:canary\.|ptb\.)?discord\.com\/channels\/(\d+)\/(\d+)\/(\d+)/,
     SimpleRegexEscape: /[.*+?^${}()|[\]\\]/g,
     RegexChars: /[-[\]{}()*+?.,\\^$|#\s]/g,
+    DiscordEmojiUrl: /^https:\/\/cdn\.discordapp\.com\/emojis\/(\d+)\.[a-z]+$/i,
   },
 
   Links: {
@@ -145,7 +142,7 @@ export default {
       'NotQuiteBlack',
       'Random',
     ] as (keyof typeof Colors)[],
-    interchatBlue: '#58b9ff' as HexColorString,
+    interchatBlue: '#4B81E9' as HexColorString,
     invisible: '#2b2d31' as HexColorString,
     christmas: ['#00B32C', '#D6001C', '#FFFFFF'] as HexColorString[],
   },

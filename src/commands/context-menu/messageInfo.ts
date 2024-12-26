@@ -8,7 +8,7 @@ import { HubService } from '#main/services/HubService.js';
 import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import { greyOutButton, greyOutButtons } from '#utils/ComponentUtils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -66,7 +66,7 @@ export default class MessageInfo extends BaseCommand {
 
     if (!hub || !originalMsg) {
       await interaction.followUp({
-        content: t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
+        content: t('errors.unknownNetworkMessage', locale, { emoji: this.getEmoji('x_icon') }),
         ephemeral: true,
       });
       return;
@@ -76,7 +76,7 @@ export default class MessageInfo extends BaseCommand {
     const server = await interaction.client.fetchGuild(originalMsg.guildId);
 
     const embed = new EmbedBuilder()
-      .setDescription(`### ${emojis.info} Message Info`)
+      .setDescription(`### ${this.getEmoji('info')} Message Info`)
       .addFields([
         { name: 'Sender', value: codeBlock(author.username), inline: true },
         { name: 'From Server', value: codeBlock(`${server?.name}`), inline: true },
@@ -160,7 +160,7 @@ export default class MessageInfo extends BaseCommand {
       !(await HubLogManager.create(originalMsg?.hubId)).config.reports?.channelId
     ) {
       const notEnabledEmbed = new InfoEmbed().setDescription(
-        t('msgInfo.report.notEnabled', locale, { emoji: emojis.no }),
+        t('msgInfo.report.notEnabled', locale, { emoji: this.getEmoji('x_icon') }),
       );
 
       await interaction.reply({ embeds: [notEnabledEmbed], ephemeral: true });
@@ -188,7 +188,7 @@ export default class MessageInfo extends BaseCommand {
     });
 
     const successEmbed = new InfoEmbed().setDescription(
-      t('msgInfo.report.success', locale, { emoji: emojis.yes }),
+      t('msgInfo.report.success', locale, { emoji: this.getEmoji('tick_icon') }),
     );
 
     await interaction.reply({ embeds: [successEmbed], ephemeral: true });
@@ -201,7 +201,7 @@ export default class MessageInfo extends BaseCommand {
   ) {
     if (!server) {
       await interaction.update({
-        content: t('errors.unknownServer', locale, { emoji: emojis.no }),
+        content: t('errors.unknownServer', locale, { emoji: this.getEmoji('x_icon') }),
         embeds: [],
         components: [],
       });
@@ -223,7 +223,7 @@ export default class MessageInfo extends BaseCommand {
 
 
     const serverEmbed = new EmbedBuilder()
-      .setDescription(`### ${emojis.info} ${server.name}`)
+      .setDescription(`### ${this.getEmoji('info')} ${server.name}`)
       .addFields([
         { name: 'Owner', value: codeBlock(ownerName), inline: true },
         { name: 'Member Count', value: codeBlock(String(server.memberCount)), inline: true },
@@ -252,7 +252,7 @@ export default class MessageInfo extends BaseCommand {
     const displayName = author.globalName ?? 'Not Set.';
 
     const userEmbed = new EmbedBuilder()
-      .setDescription(`### ${emojis.info} ${author.username}`)
+      .setDescription(`### ${this.getEmoji('info')} ${author.username}`)
       .addFields([
         { name: 'Display Name', value: codeBlock(displayName), inline: true },
         { name: 'User ID', value: codeBlock(author.id), inline: true },
@@ -282,7 +282,7 @@ export default class MessageInfo extends BaseCommand {
 
     if (!message || !hub) {
       await interaction.update({
-        content: t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
+        content: t('errors.unknownNetworkMessage', locale, { emoji: this.getEmoji('x_icon') }),
         embeds: [],
         components: [],
       });
@@ -290,7 +290,7 @@ export default class MessageInfo extends BaseCommand {
     }
 
     const embed = new EmbedBuilder()
-      .setDescription(`### ${emojis.info} Message Info`)
+      .setDescription(`### ${this.getEmoji('info')} Message Info`)
       .addFields([
         { name: 'Sender', value: codeBlock(author.username), inline: true },
         { name: 'From Server', value: codeBlock(`${server?.name}`), inline: true },
@@ -312,7 +312,7 @@ export default class MessageInfo extends BaseCommand {
   ) {
     if (!hub || !(await HubLogManager.create(hub.id)).config.reports?.channelId) {
       const notEnabledEmbed = new InfoEmbed().setDescription(
-        t('msgInfo.report.notEnabled', locale, { emoji: emojis.no }),
+        t('msgInfo.report.notEnabled', locale, { emoji: this.getEmoji('x_icon') }),
       );
 
       await interaction.reply({ embeds: [notEnabledEmbed], ephemeral: true });
@@ -378,7 +378,7 @@ export default class MessageInfo extends BaseCommand {
     ];
 
     if (opts?.buildModActions) {
-      extras.push(modPanelButton(targetMsgId).setStyle(ButtonStyle.Secondary));
+      extras.push(modPanelButton(targetMsgId, this.getEmoji('blobFastBan')).setStyle(ButtonStyle.Secondary));
     }
     if (opts?.inviteButtonUrl) {
       extras.push(

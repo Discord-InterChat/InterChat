@@ -1,3 +1,4 @@
+import InterChatClient from '#main/core/BaseClient.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { FileLoader } from '#main/core/FileLoader.js';
 import { Client, ClientEvents, Collection } from 'discord.js';
@@ -12,7 +13,7 @@ export default class EventLoader {
   private readonly fileLoader: FileLoader;
   public readonly folderPath = join(__dirname, '..', '..', 'events');
 
-  constructor(client: Client) {
+  constructor(client: InterChatClient) {
     this.client = client;
     this.fileLoader = new FileLoader(this.folderPath);
   }
@@ -24,10 +25,10 @@ export default class EventLoader {
 
   private async registerListener(filePath: string) {
     const { default: Listener } = await FileLoader.import<{
-      default: new () => BaseEventListener<keyof ClientEvents>;
+      default: new (client: Client) => BaseEventListener<keyof ClientEvents>;
     }>(filePath);
 
-    const listener = new Listener();
+    const listener = new Listener(this.client);
     this.listeners.set(listener.name, listener);
     this.client.on(listener.name, listener.execute.bind(listener));
   }

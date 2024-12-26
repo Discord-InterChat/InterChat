@@ -1,7 +1,8 @@
 import InfractionManager from '#main/managers/InfractionManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import { HubService } from '#main/services/HubService.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants from '#main/utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { sendLog } from '#main/utils/hub/logger/Default.js';
 import { resolveEval } from '#main/utils/Utils.js';
 import { Infraction, InfractionStatus, Prisma } from '@prisma/client';
@@ -121,13 +122,14 @@ export default class BlacklistManager {
       type = 'User';
     }
 
+    const dotBlueEmoji = getEmoji('dotBlue', client);
     const embed = new EmbedBuilder()
       .setAuthor({ name: `${type} ${name} blacklisted`, iconURL })
       .setDescription(
         stripIndents`
-				${emojis.dotBlue} **${type}:** ${name} (${target.id})
-				${emojis.dotBlue} **Moderator:** ${mod.username} (${mod.id})
-				${emojis.dotBlue} **Hub:** ${hub?.data.name}
+				${dotBlueEmoji} **${type}:** ${name} (${target.id})
+				${dotBlueEmoji} **Moderator:** ${mod.username} (${mod.id})
+				${dotBlueEmoji} **Hub:** ${hub?.data.name}
 			`,
       )
       .addFields(

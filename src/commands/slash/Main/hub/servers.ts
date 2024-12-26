@@ -1,5 +1,5 @@
 import { Pagination } from '#main/modules/Pagination.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
@@ -16,11 +16,11 @@ export default class Servers extends HubCommand {
 
     const hub = (await this.hubService.findHubsByName(hubOpt)).at(0);
     if (!hub) {
-      await this.replyEmbed(interaction, t('hub.notFound', locale, { emoji: emojis.no }));
+      await this.replyEmbed(interaction, t('hub.notFound', locale, { emoji: this.getEmoji('x_icon') }));
       return;
     }
     else if (!(await hub.isMod(interaction.user.id))) {
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }));
       return;
     }
 
@@ -28,7 +28,7 @@ export default class Servers extends HubCommand {
     if (connections.length === 0) {
       await this.replyEmbed(
         interaction,
-        t('hub.servers.noConnections', locale, { emoji: emojis.no }),
+        t('hub.servers.noConnections', locale, { emoji: this.getEmoji('x_icon') }),
       );
       return;
     }
@@ -38,7 +38,7 @@ export default class Servers extends HubCommand {
       if (!connection) {
         await this.replyEmbed(
           interaction,
-          t('hub.servers.notConnected', locale, { hub: hub.data.name, emoji: emojis.no }),
+          t('hub.servers.notConnected', locale, { hub: hub.data.name, emoji: this.getEmoji('x_icon') }),
         );
         return;
       }
@@ -61,7 +61,7 @@ export default class Servers extends HubCommand {
       return;
     }
 
-    const paginator = new Pagination();
+    const paginator = new Pagination(interaction.client);
     let itemsPerPage = 5;
 
     for (let index = 0; index < connections.length; index += 5) {

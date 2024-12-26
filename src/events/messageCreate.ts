@@ -2,17 +2,17 @@ import BaseEventListener from '#main/core/BaseEventListener.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { LobbyManager } from '#main/managers/LobbyManager.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants from '#main/utils/Constants.js';
 import { handleError, isHumanMessage } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import { Message } from 'discord.js';
+import { Client, Message } from 'discord.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
   private readonly messageProcessor: MessageProcessor;
 
-  constructor() {
-    super();
+  constructor(client: Client<true> | null) {
+    super(client ?? null);
     this.messageProcessor = new MessageProcessor();
   }
 
@@ -30,7 +30,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       await message.channel
         .send(
           stripIndents`
-            ### Hey there! I'm InterChat, a bot that connects servers together. ${emojis.clipart}
+            ### Hey there! I'm InterChat, a bot that connects servers together. ${this.getEmoji('clipart')}
             - To get started, type \`/setup\` to set up InterChat with a hub.
             - If you're new here, read the rules by typing \`/rules\`.
             - Use the [hub browser](${Constants.Links.Website}/hubs) to find and join more cross-server communities.
@@ -68,7 +68,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
   private async handleChatMessage(message: Message<true>) {
     // Handle lobby messages
-    const lobbyManager = new LobbyManager();
+    const lobbyManager = new LobbyManager(message.client);
     const lobby = await lobbyManager.getLobbyByChannelId(message.channelId);
 
     if (lobby) await this.messageProcessor.processLobbyMessage(message, lobby);

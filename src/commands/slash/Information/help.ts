@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { Pagination } from '#main/modules/Pagination.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
@@ -65,7 +65,7 @@ export default class Help extends BaseCommand {
       - </hub edit:1107639810014847049> Edit your hub configuration.
       - </connection:1170719616872501300>・Manage your connections. You can choose an embed color, edit hub icons, switch to a compact mode and more.
 
-      ${emojis.info} You can view other commands aside from these by typing  /.
+      ${this.getEmoji('info')} You can view other commands aside from these by typing  /.
     `);
 
     const page4 = EmbedBuilder.from(baseEmbed).setTitle('Final Notes').setDescription(stripIndents`
@@ -74,7 +74,7 @@ export default class Help extends BaseCommand {
     For any questions, suggestions or feedback, join the [support server](${Constants.Links.SupportInvite}) or [vote for InterChat](https://top.gg/bot/769921109209907241/vote).
     `);
 
-    const paginator = new Pagination().addPages([
+    const paginator = new Pagination(interaction.client).addPages([
       { embeds: [page1] },
       { embeds: [page2] },
       { embeds: [page3] },

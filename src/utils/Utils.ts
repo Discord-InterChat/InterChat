@@ -131,7 +131,7 @@ export const sendErrorEmbed = async (
   repliable: RepliableInteraction | Message,
   errorCode: string,
 ) => {
-  const errorEmbed = new ErrorEmbed({ errorCode });
+  const errorEmbed = new ErrorEmbed(repliable.client, { errorCode });
   if (repliable instanceof Message) {
     return await repliable.reply({
       embeds: [errorEmbed],

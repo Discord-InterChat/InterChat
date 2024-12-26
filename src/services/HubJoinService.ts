@@ -1,10 +1,10 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
+import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
 
 import { TranslationKeys } from '#types/TranslationKeys.d.ts';
 import { createConnection } from '#utils/ConnectedListUtils.js';
-import { emojis } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { logJoinToHub } from '#utils/hub/logger/JoinLeave.js';
 import { sendToHub } from '#utils/hub/utils.js';
@@ -35,6 +35,10 @@ export class HubJoinService {
     this.hubService = hubService;
   }
 
+  private getEmoji(name: EmojiKeys) {
+    return getEmoji(name, this.interaction.client);
+  }
+
   async joinRandomHub(channel: GuildTextBasedChannel) {
     const hub = await db.hub.findMany({
       where: { private: false },
@@ -55,7 +59,7 @@ export class HubJoinService {
     const hub = await this.fetchHub(hubInviteOrName);
     if (!hub) {
       await this.interaction.followUp({
-        content: t('hub.notFound', this.locale, { emoji: emojis.no }),
+        content: t('hub.notFound', this.locale, { emoji: this.getEmoji('x_icon') }),
         ephemeral: true,
       });
       return false;
@@ -88,14 +92,14 @@ export class HubJoinService {
     if (!channel.permissionsFor(this.interaction.member).has('ManageMessages', true)) {
       await this.replyError('errors.missingPermissions', {
         permissions: 'Manage Messages',
-        emoji: emojis.no,
+        emoji: this.getEmoji('x_icon'),
       });
       return false;
     }
 
     const { hasSlurs, hasProfanity } = check(this.interaction.guild.name);
     if (hasSlurs || hasProfanity) {
-      await this.replyError('errors.serverNameInappropriate', { emoji: emojis.no });
+      await this.replyError('errors.serverNameInappropriate', { emoji: this.getEmoji('x_icon') });
       return false;
     }
 
@@ -129,7 +133,7 @@ export class HubJoinService {
       await this.replyError('hub.alreadyJoined', {
         channel: `<#${channelInHub.channelId}>`,
         hub: `${channelInHub.hub?.name}`,
-        emoji: emojis.no,
+        emoji: this.getEmoji('x_icon'),
       });
       return true;
     }
@@ -144,7 +148,7 @@ export class HubJoinService {
     const serverBlacklist = await serverBlManager.fetchBlacklist(hub.id);
 
     if (userBlacklist || serverBlacklist) {
-      await this.replyError('errors.blacklisted', { emoji: emojis.no, hub: hub.data.name });
+      await this.replyError('errors.blacklisted', { emoji: this.getEmoji('x_icon'), hub: hub.data.name });
       return true;
     }
 
@@ -156,7 +160,7 @@ export class HubJoinService {
     if (!webhook) {
       await this.replyError('errors.botMissingPermissions', {
         permissions: 'Manage Webhooks',
-        emoji: emojis.no,
+        emoji: this.getEmoji('x_icon'),
       });
       return null;
     }
@@ -189,7 +193,7 @@ export class HubJoinService {
     await sendToHub(hub.id, {
       username: `InterChat | ${hub.data.name}`,
       content: stripIndents`
-        A new server has joined the hub! ${emojis.clipart}
+        A new server has joined the hub! ${this.getEmoji('clipart')}
 
         **Server Name:** __${this.interaction.guild.name}__
         **Member Count:** __${this.interaction.guild.memberCount}__

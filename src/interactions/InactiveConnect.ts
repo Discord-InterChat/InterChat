@@ -1,5 +1,5 @@
-import { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { fetchConnection, updateConnection } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -23,8 +23,8 @@ export const buildConnectionButtons = (
   opts: extraOpts = {},
 ) => {
   if (!opts?.disconnectEmoji || !opts.connectEmoji) {
-    opts.disconnectEmoji = emojis.disconnect;
-    opts.connectEmoji = emojis.connect;
+    opts.disconnectEmoji = '🔴';
+    opts.connectEmoji = '🟢';
   }
 
   return new ActionRowBuilder<ButtonBuilder>().addComponents([
@@ -54,7 +54,7 @@ export default class InactiveConnectInteraction {
     if (!connection) {
       const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
       const notFoundEmbed = new InfoEmbed().setDescription(
-        t('connection.channelNotFound', locale, { emoji: emojis.no }),
+        t('connection.channelNotFound', locale, { emoji: getEmoji('x_icon', interaction.client) }),
       );
 
       await interaction.followUp({ embeds: [notFoundEmbed], ephemeral: true });
@@ -66,7 +66,7 @@ export default class InactiveConnectInteraction {
     const embed = new InfoEmbed()
       .removeTitle()
       .setDescription(
-        `### ${emojis.tick} Connection Resumed\nConnection has been resumed. Have fun chatting!`,
+        `### ${getEmoji('tick', interaction.client)} Connection Resumed\nConnection has been resumed. Have fun chatting!`,
       );
 
     await interaction.editReply({ embeds: [embed], components: [] });

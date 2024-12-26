@@ -120,7 +120,7 @@ export default class Create extends HubCommand {
     hubData: HubCreationData,
     locale: supportedLocaleCodes,
   ): Promise<void> {
-    const validator = new HubValidator(locale);
+    const validator = new HubValidator(locale, interaction.client);
     const existingHubs = await this.hubService.getExistingHubs(hubData.ownerId, hubData.name);
 
     const validationResult = await validator.validateNewHub(hubData, existingHubs);

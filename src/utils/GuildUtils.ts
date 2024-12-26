@@ -1,4 +1,5 @@
-import Constants, { mascotEmojis } from '#utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import {
   AuditLogEvent,
@@ -88,7 +89,7 @@ export const logGuildJoin = async (guild: Guild, channelId: string) => {
         guildName: guild.name,
         goalChannel: channelId,
         inviteLogs: Constants.Channels.inviteLogs,
-        flushedEmoji: mascotEmojis.flushed,
+        flushedEmoji: getEmoji('chipi_flushed', guild.client),
         goalEmbed: buildGoalEmbed(
           guild.name,
           guild.iconURL(),
@@ -130,7 +131,7 @@ export const logGuildLeave = async (guild: Guild, channelId: string) => {
         goalChannel: channelId,
         inviteLogs: Constants.Channels.inviteLogs,
         guildCount: count.reduce((p, n) => p + n, 0),
-        cryEmoji: mascotEmojis.cry,
+        cryEmoji: getEmoji('chipi_cry', guild.client),
         goalEmbed: buildGoalEmbed(guild.name, guild.iconURL(), 'Red'),
         logsEmbed: buildLogsEmbed(guild, guildOwner.username, {
           color: Constants.Colors.interchatBlue,

@@ -1,6 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { msToReadable } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
@@ -42,14 +42,14 @@ export default class Stats extends BaseCommand {
 
     const embed = new EmbedBuilder()
       .setColor(Constants.Colors.interchatBlue)
-      .setTitle(`${interaction.client.user.username} Statistics`)
+      .setDescription(`### ${this.getEmoji('fire_icon')} InterChat Statistics`)
       .setFooter({
         text: `InterChat v${interaction.client.version}${Constants.isDevBuild ? '+dev' : ''}`,
         iconURL: interaction.client.user.displayAvatarURL(),
       })
       .addFields([
         {
-          name: 'Bot Stats',
+          name: `${this.getEmoji('bot_icon')} Bot Stats`,
           value: stripIndents`
 	          Up Since: ${time(upSince, 'R')}
             Servers: ${guildCount.reduce((p, n) => p + n, 0)}
@@ -57,7 +57,7 @@ export default class Stats extends BaseCommand {
           inline: true,
         },
         {
-          name: 'System Stats',
+          name: `${this.getEmoji('gear_icon')} System Stats`,
           value: stripIndents`
             OS: Linux
             CPU Cores: ${cpus().length}
@@ -70,24 +70,24 @@ export default class Stats extends BaseCommand {
       new ButtonBuilder()
         .setLabel('Guide')
         .setStyle(ButtonStyle.Link)
-        .setEmoji(emojis.docs_icon)
+        .setEmoji(this.getEmoji('wiki_icon'))
         .setURL(Constants.Links.Docs),
       new ButtonBuilder()
         .setLabel('Support')
         .setStyle(ButtonStyle.Link)
-        .setEmoji(emojis.code_icon)
+        .setEmoji(this.getEmoji('code_icon'))
         .setURL(Constants.Links.SupportInvite),
       new ButtonBuilder()
         .setLabel('Invite')
         .setStyle(ButtonStyle.Link)
-        .setEmoji(emojis.add_icon)
+        .setEmoji(this.getEmoji('plus_icon'))
         .setURL(`https://discord.com/application-directory/${interaction.client.user?.id}`),
     );
     const otherBtns = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setLabel('Shard Info')
         .setStyle(ButtonStyle.Secondary)
-        .setEmoji(emojis.crystal)
+        .setEmoji(this.getEmoji('crystal'))
         .setCustomId(new CustomID().setIdentifier('stats', 'shardStats').toString()),
     );
 

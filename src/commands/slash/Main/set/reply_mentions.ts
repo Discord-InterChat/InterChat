@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import { ChatInputCommandInteraction } from 'discord.js';
 import Set from './index.js';
 
@@ -21,7 +20,7 @@ export default class ReplyMention extends Set {
 
     await this.replyEmbed(
       interaction,
-      `${emojis.tick} You will ${mentionOnReply ? 'now' : '**no longer**'} get pinged when someone replies to your messages.`,
+      `${this.getEmoji('tick')} You will ${mentionOnReply ? 'now' : '**no longer**'} get pinged when someone replies to your messages.`,
       { ephemeral: true },
     );
   }

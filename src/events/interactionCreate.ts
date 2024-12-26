@@ -1,7 +1,7 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { CustomID, ParsedCustomId } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
@@ -135,7 +135,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(dbUser);
     const embed = new InfoEmbed({
-      description: t('errors.notUsable', locale, { emoji: emojis.slash }),
+      description: t('errors.notUsable', locale, { emoji: this.getEmoji('slash') }),
     });
 
     await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -157,7 +157,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
 
     interaction
       .reply({
-        content: `${emojis.slash} The bot is currently undergoing maintenance. Please try again later.`,
+        content: `${this.getEmoji('slash')} The bot is currently undergoing maintenance. Please try again later.`,
         ephemeral: true,
       })
       .catch(() => null);
@@ -174,7 +174,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
       const locale = await userManager.getUserLocale(dbUser);
       await interaction.reply({
         content: t('errors.banned', locale, {
-          emoji: emojis.no,
+          emoji: this.getEmoji('x_icon'),
           support_invite: Constants.Links.SupportInvite,
         }),
         ephemeral: true,

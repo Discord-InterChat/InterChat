@@ -12,7 +12,7 @@ export default class Rules extends BaseCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     const rulesEmbed = new EmbedBuilder()
-      .setDescription(t('rules.rules', locale, { support_invite: Constants.Links.SupportInvite }))
+      .setDescription(t('rules.rules', locale, { rules_emoji: this.getEmoji('rules_icon') }))
       .setImage(Constants.Links.RulesBanner)
       .setColor(Constants.Colors.interchatBlue);
 

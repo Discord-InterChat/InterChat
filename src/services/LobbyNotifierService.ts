@@ -1,21 +1,28 @@
 import { LobbyManager } from '#main/managers/LobbyManager.js';
 import { LobbyData } from '#main/types/ChatLobby.js';
-import { emojis } from '#main/utils/Constants.js';
+import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
 import Logger from '#main/utils/Logger.js';
 import { stripIndents } from 'common-tags';
-import { WebhookClient } from 'discord.js';
+import { Client, WebhookClient } from 'discord.js';
 
 export default class LobbyNotifier {
   private readonly manager: LobbyManager;
+  private readonly client: Client<true>;
 
-  constructor(manager = new LobbyManager()) {
+  constructor(manager: LobbyManager, client: Client<true>) {
     this.manager = manager;
+    this.client = client;
+  }
+
+  private getEmoji(name: EmojiKeys) {
+    return getEmoji(name, this.client);
   }
 
   private async sendToChannel(channelId: string, message: string) {
     try {
-      const channel = (await this.manager.getLobbyByChannelId(channelId))?.servers
-        .find((s) => s.channelId === channelId);
+      const channel = (await this.manager.getLobbyByChannelId(channelId))?.servers.find(
+        (s) => s.channelId === channelId,
+      );
 
       if (!channel) {
         Logger.error(`[LobbyNotifier]: Channel ${channelId} not found in any lobby`);
@@ -23,7 +30,7 @@ export default class LobbyNotifier {
       }
       const webhook = new WebhookClient({ url: channel.webhookUrl });
       await webhook.send({
-        content:  message,
+        content: message,
         username: 'InterChat Lobby Notification',
         allowedMentions: { parse: [] },
       });
@@ -39,7 +46,7 @@ export default class LobbyNotifier {
 
       await this.sendToChannel(
         server.channelId,
-        `${emojis.join} A server joined the lobby. ${lobby.servers.length}/3 server(s) in total.`,
+        `${this.getEmoji('join')} A server joined the lobby. ${lobby.servers.length}/3 server(s) in total.`,
       );
     });
     Logger.info(`Channel ${channelId} connected to lobby.`);
@@ -48,7 +55,10 @@ export default class LobbyNotifier {
   public async notifyChannelDisconnect(lobby: LobbyData, channelId: string) {
     lobby.servers.forEach(async (server) => {
       if (server.channelId === channelId) return;
-      await this.sendToChannel(server.channelId, `-# ${emojis.info} A server disconnected from lobby.`);
+      await this.sendToChannel(
+        server.channelId,
+        `-# ${this.getEmoji('info')} A server disconnected from lobby.`,
+      );
     });
   }
 
@@ -65,7 +75,7 @@ export default class LobbyNotifier {
   public async notifyLobbyDelete(channelId: string) {
     await this.sendToChannel(
       channelId,
-      `${emojis.disconnect} No more servers in the lobby. Disconnected.`,
+      `${this.getEmoji('disconnect')} No more servers in the lobby. Disconnected.`,
     );
   }
 }

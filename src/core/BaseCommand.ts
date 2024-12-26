@@ -1,7 +1,8 @@
-import { emojis } from '#utils/Constants.js';
 import { MetadataHandler } from '#main/core/FileLoader.js';
 import { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
+import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
 import type { TranslationKeys } from '#types/TranslationKeys.d.ts';
+
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';
@@ -26,6 +27,7 @@ import {
   type RepliableInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  Client,
   Collection,
   Interaction,
   time,
@@ -43,7 +45,18 @@ export default abstract class BaseCommand {
   readonly staffOnly?: boolean;
   readonly cooldown?: number;
   readonly description?: string;
+  protected readonly client: Client | null;
+
   static readonly subcommands?: Collection<string, BaseCommand>;
+
+  constructor(client: Client | null) {
+    this.client = client;
+  }
+
+  protected getEmoji(name: EmojiKeys): string {
+    if (!this.client?.isReady()) return '';
+    return getEmoji(name, this.client);
+  }
 
   abstract execute(interaction: CmdInteraction): Promise<unknown>;
 
@@ -76,7 +89,7 @@ export default abstract class BaseCommand {
     await interaction.reply({
       content: t('errors.cooldown', locale, {
         time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`,
-        emoji: emojis.no,
+        emoji: this.getEmoji('x_icon'),
       }),
       ephemeral: true,
     });

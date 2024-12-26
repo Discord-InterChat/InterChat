@@ -4,7 +4,7 @@ import {
   getBroadcast,
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import { emojis } from '#utils/Constants.js';
+
 import db from '#utils/Db.js';
 import { resolveEval } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
@@ -21,6 +21,7 @@ import {
 import { sendLog } from './Default.js';
 import { markResolvedButton } from '#main/interactions/MarkResolvedButton.js';
 import { HubService } from '#main/services/HubService.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export type ReportEvidenceOpts = {
   // the message content
@@ -106,17 +107,19 @@ export const sendHubReport = async (
   const server = await client.fetchGuild(serverId);
   const jumpLink = await genJumpLink(hubId, client, evidence?.messageId, reportsChannelId);
 
+  const dotRedEmoji = getEmoji('dotRed', client);
+
   const embed = new EmbedBuilder()
     .setTitle('New Report')
     .setColor('Red')
     .setImage(evidence?.attachmentUrl ?? null)
     .setDescription(
       stripIndents`
-        ${emojis.dotRed} **Reported User:** @${user?.username} (${userId})
-        ${emojis.dotRed} **Reported Server:** ${server?.name} (${serverId})
-        ${emojis.dotRed} **Reported MessageID:** ${evidence.messageId}
+        ${dotRedEmoji} **Reported User:** @${user?.username} (${userId})
+        ${dotRedEmoji} **Reported Server:** ${server?.name} (${serverId})
+        ${dotRedEmoji} **Reported MessageID:** ${evidence.messageId}
 
-        ${emojis.info} **Message Content:**
+        ${getEmoji('info_icon', client)} **Message Content:**
         \`\`\`${evidence?.content?.replaceAll('`', '\\`')}\`\`\`
       `,
     )
@@ -130,7 +133,9 @@ export const sendHubReport = async (
     });
 
   const mentionRole = reportsRoleId ? roleMention(reportsRoleId) : undefined;
-  const button = modPanelButton(evidence.messageId).setLabel('Take Action');
+  const button = modPanelButton(evidence.messageId, getEmoji('hammer_icon', client)).setLabel(
+    'Take Action',
+  );
   const resolveButton = markResolvedButton(); // anyone can use this button, it's on mods to set proper permissions for reports channel
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button, resolveButton);
 

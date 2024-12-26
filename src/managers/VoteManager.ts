@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import Scheduler from '#main/services/SchedulerService.js';
 import Logger from '#utils/Logger.js';
@@ -103,12 +103,10 @@ export class VoteManager {
       embeds: [
         new EmbedBuilder()
           .setDescription(
-            stripIndents`
-            ### ${emojis.topggSparkles} Thank you for voting!
-              
-            You can vote again on [top.gg](${Constants.Links.Vote}) ${timeUntilNextVote}!
+            stripIndents`              
+            <:topgg_ico_sparkles:1026877534563991562> ${username} just voted! Thank you for the support. Vote again on [top.gg](${Constants.Links.Vote}) ${timeUntilNextVote}!
 
-            -# ${isTestVote ? '⚠️ This is a test vote.' : `${emojis.tada} This is your **${voteCount}${ordinalSuffix}** time voting!`}
+            -# ${isTestVote ? '⚠️ This is a test vote.' : `🎉 This is your **${voteCount}${ordinalSuffix}** time voting!`}
             `,
           )
           .setColor('#FB3265'),

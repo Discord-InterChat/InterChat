@@ -1,6 +1,6 @@
 import { hubLeaveConfirmButtons } from '#main/interactions/HubLeaveConfirm.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
-import { emojis } from '#utils/Constants.js';
+
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import {
@@ -24,7 +24,7 @@ export default class Leave extends HubCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (!isChannelConnected) {
-      await this.replyEmbed(interaction, t('hub.leave.noHub', locale, { emoji: emojis.no }));
+      await this.replyEmbed(interaction, t('hub.leave.noHub', locale, { emoji: this.getEmoji('x_icon') }));
       return;
     }
     else if (!interaction.member.permissions.has('ManageChannels', true)) {
@@ -32,7 +32,7 @@ export default class Leave extends HubCommand {
         interaction,
         t('errors.missingPermissions', locale, {
           permissions: 'Manage Channels',
-          emoji: emojis.no,
+          emoji: this.getEmoji('x_icon'),
         }),
       );
       return;

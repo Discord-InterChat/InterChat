@@ -1,6 +1,4 @@
-import { emojis } from '#utils/Constants.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-
 
 import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
@@ -12,6 +10,7 @@ import { type ModAction } from '#main/utils/moderation/modPanel/utils.js';
 import {
   ActionRowBuilder,
   type ButtonInteraction,
+  Client,
   EmbedBuilder,
   ModalBuilder,
   type ModalSubmitInteraction,
@@ -22,6 +21,7 @@ import {
 } from 'discord.js';
 import ms from 'ms';
 import { buildModPanel } from '#main/interactions/ModPanel.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 abstract class BaseBlacklistHandler implements ModAction {
   abstract handle(
@@ -81,11 +81,12 @@ abstract class BaseBlacklistHandler implements ModAction {
     name: string,
     reason: string,
     expires: Date | null,
+    client: Client,
     locale: supportedLocaleCodes,
   ) {
     return new EmbedBuilder()
       .setColor('Green')
-      .setDescription(t('blacklist.success', locale, { name, emoji: emojis.tick }))
+      .setDescription(t('blacklist.success', locale, { name, emoji: getEmoji('tick', client) }))
       .addFields(
         {
           name: 'Reason',
@@ -119,7 +120,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
 
     if (!user) {
       await interaction.reply({
-        content: `${emojis.neutral} Unable to fetch user. They may have deleted their account?`,
+        content: `${getEmoji('neutral', interaction.client)} Unable to fetch user. They may have deleted their account?`,
         ephemeral: true,
       });
       return;
@@ -127,7 +128,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
 
     if (!originalMsg.hubId) {
       await interaction.reply({
-        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
+        content: t('hub.notFound_mod', locale, { emoji: getEmoji('x_icon', interaction.client) }),
         ephemeral: true,
       });
       return;
@@ -173,7 +174,13 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     const { embed, buttons } = await buildModPanel(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: buttons });
 
-    const successEmbed = this.buildSuccessEmbed(user.username, reason, expiresAt, locale);
+    const successEmbed = this.buildSuccessEmbed(
+      user.username,
+      reason,
+      expiresAt,
+      interaction.client,
+      locale,
+    );
     await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
   }
 }
@@ -194,9 +201,11 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     originalMsg: OriginalMessage,
     locale: supportedLocaleCodes,
   ) {
+    const client = interaction.client;
+
     if (!originalMsg.hubId) {
       await interaction.reply({
-        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
+        content: t('hub.notFound_mod', locale, { emoji: getEmoji('x_icon', client) }),
         ephemeral: true,
       });
       return;
@@ -205,7 +214,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     const server = await interaction.client.fetchGuild(originalMsg.guildId);
     if (!server) {
       await interaction.reply({
-        content: t('errors.unknownServer', locale, { emoji: emojis.no }),
+        content: t('errors.unknownServer', locale, { emoji: getEmoji('x_icon', client) }),
         ephemeral: true,
       });
       return;
@@ -233,14 +242,16 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     await deleteConnections({ serverId: originalMsg.guildId, hubId: originalMsg.hubId });
 
     if (server) {
-      await blacklistManager.log(originalMsg.hubId, interaction.client, {
-        mod: interaction.user,
-        reason,
-        expiresAt,
-      }).catch(() => null);
+      await blacklistManager
+        .log(originalMsg.hubId, interaction.client, {
+          mod: interaction.user,
+          reason,
+          expiresAt,
+        })
+        .catch(() => null);
     }
 
-    const successEmbed = this.buildSuccessEmbed(server.name, reason, expiresAt, locale);
+    const successEmbed = this.buildSuccessEmbed(server.name, reason, expiresAt, client, locale);
 
     const { embed, buttons } = await buildModPanel(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: buttons });

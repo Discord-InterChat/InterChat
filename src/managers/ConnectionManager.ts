@@ -25,10 +25,6 @@ export default class ConnectionManager {
     return this.connection.hubId;
   }
 
-  get channelId() {
-    return this.connection.channelId;
-  }
-
   get data() {
     return this.connection;
   }
@@ -40,6 +36,8 @@ export default class ConnectionManager {
   private async refreshCache(deleteConnection = false) {
     if (deleteConnection) {
       await this.cache.hdel(this.key, this.connection.channelId);
+      await this.cache.del(`${RedisKeys.connectionHubId}:${this.connection.channelId}`);
+      return;
     }
     cacheHubConnection(this.connection);
   }

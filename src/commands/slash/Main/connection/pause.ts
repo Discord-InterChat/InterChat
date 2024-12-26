@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import { fetchCommands, findCommand } from '#utils/CommandUtils.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
@@ -20,7 +19,7 @@ export default class Pause extends Connection {
 
     if (!connected) {
       await interaction.reply({
-        content: `${emojis.no} That channel is not connected to a hub!`,
+        content: `${this.getEmoji('x_icon')} That channel is not connected to a hub!`,
         ephemeral: true,
       });
       return;
@@ -28,7 +27,7 @@ export default class Pause extends Connection {
 
     if (!connected.connected) {
       const embed = new InfoEmbed().setDescription(
-        `${emojis.no} The connection is already paused for this channel. Use \`/connection unpause\` to continue chatting.`,
+        `${this.getEmoji('x_icon')} The connection is already paused for this channel. Use \`/connection unpause\` to continue chatting.`,
       );
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
@@ -48,7 +47,7 @@ export default class Pause extends Connection {
 
     const successEmbed = new InfoEmbed().removeTitle().setDescription(
       t('connection.paused.desc', locale, {
-        clock_emoji: emojis.timeout,
+        clock_emoji: this.getEmoji('timeout'),
         channel: channelMention(channelId),
       }),
     );

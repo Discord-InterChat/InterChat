@@ -3,6 +3,7 @@ import BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
+import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import CooldownService from '#main/services/CooldownService.js';
 import Scheduler from '#main/services/SchedulerService.js';
 import { ClusterClient } from 'discord-hybrid-sharding';
@@ -27,9 +28,11 @@ declare module 'discord.js' {
     readonly development: boolean;
     readonly description: string;
     readonly commands: Collection<string, BaseCommand>;
-    readonly interactions: Collection<string, InteractionFunction | undefined>;
+    readonly interactions: Collection<string, InteractionFunction>;
     readonly prefixCommands: Collection<string, BasePrefixCommand>;
 
+    readonly userManager: UserDbManager;
+    readonly eventLoader: EventLoader;
     readonly commandCooldowns: CooldownService;
     readonly reactionCooldowns: Collection<string, number>;
     readonly cluster: ClusterClient<Client>;

@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
@@ -6,7 +6,7 @@ import { Connection, Hub } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import ConnectionCommand from './index.js';
 
-export default class extends ConnectionCommand {
+export default class List extends ConnectionCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const connections = await db.connection.findMany({
       where: { serverId: interaction.guild?.id },
@@ -16,21 +16,23 @@ export default class extends ConnectionCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (connections.length === 0) {
-      await interaction.reply(t('hub.joined.noJoinedHubs', locale, { emoji: emojis.no }));
+      await interaction.reply(
+        t('hub.joined.noJoinedHubs', locale, { emoji: this.getEmoji('x_icon') }),
+      );
       return;
     }
 
     const description = t('hub.joined.joinedHubs', locale, { total: `${connections.length}` });
 
     if (connections.length <= 25) {
-      const embed = this.getEmbed(connections.map(this.getField), description);
+      const embed = this.getEmbed(connections.map(this.getField.bind(this)), description);
       await interaction.reply({ embeds: [embed] });
       return;
     }
 
     const pages = this.createPaginatedEmbeds(connections, description);
 
-    new Pagination().addPages(pages).run(interaction);
+    new Pagination(interaction.client).addPages(pages).run(interaction);
   }
 
   private createPaginatedEmbeds(
@@ -42,7 +44,9 @@ export default class extends ConnectionCommand {
 
     const pages = Array.from({ length: totalPages }, (_, pageIndex) => {
       const startIndex = pageIndex * fieldsPerPage;
-      const fields = connections.slice(startIndex, startIndex + fieldsPerPage).map(this.getField);
+      const fields = connections
+        .slice(startIndex, startIndex + fieldsPerPage)
+        .map(this.getField.bind(this));
 
       return { embeds: [this.getEmbed(fields, description)] };
     });
@@ -52,7 +56,7 @@ export default class extends ConnectionCommand {
 
   private getField(connection: Connection & { hub: Hub | null }) {
     return {
-      name: `${connection.hub?.name} ${connection.connected ? emojis.connect : emojis.disconnect}`,
+      name: `${connection.hub?.name} ${connection.connected ? this.getEmoji('connect') : this.getEmoji('disconnect')}`,
       value: `<#${connection.channelId}>`,
       inline: true,
     };

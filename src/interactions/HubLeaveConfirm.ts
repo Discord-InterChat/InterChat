@@ -1,7 +1,7 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { HubService } from '#main/services/HubService.js';
-import { emojis } from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { logGuildLeaveToHub } from '#main/utils/hub/logger/JoinLeave.js';
 import { t } from '#main/utils/Locale.js';
 import { ActionRowBuilder, ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js';
@@ -38,7 +38,7 @@ export default class ModActionsButton {
     const hub = await this.hubService.fetchHub(hubId);
     if (!hub) {
       await interaction.update({
-        content: t('hub.leave.noHub', locale, { emoji: emojis.no }),
+        content: t('hub.leave.noHub', locale, { emoji: getEmoji('x_icon', interaction.client) }),
         embeds: [],
         components: [],
       });
@@ -48,14 +48,17 @@ export default class ModActionsButton {
     const success = await hub.connections.delete(channelId);
     if (!success) {
       await interaction.update({
-        content: t('hub.leave.noHub', locale, { emoji: emojis.no }),
+        content: t('hub.leave.noHub', locale, { emoji: getEmoji('x_icon', interaction.client) }),
         embeds: [],
         components: [],
       });
     }
 
     await interaction.update({
-      content: t('hub.leave.success', locale, { channel: `<#${channelId}>`, emoji: emojis.yes }),
+      content: t('hub.leave.success', locale, {
+        channel: `<#${channelId}>`,
+        emoji: getEmoji('tick_icon', interaction.client),
+      }),
       embeds: [],
       components: [],
     });

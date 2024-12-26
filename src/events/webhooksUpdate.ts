@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
@@ -35,7 +34,7 @@ export default class Ready extends BaseEventListener<'webhooksUpdate'> {
         : channel;
 
       if (networkChannel?.isSendable()) {
-        await networkChannel.send(t('misc.webhookNoLongerExists', 'en', { emoji: emojis.info }));
+        await networkChannel.send(t('misc.webhookNoLongerExists', 'en', { emoji: this.getEmoji('info') }));
       }
     }
     catch (error) {

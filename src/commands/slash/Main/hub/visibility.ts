@@ -1,7 +1,7 @@
 import HubManager from '#main/managers/HubManager.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { wait } from '#main/utils/Utils.js';
-import { emojis } from '#utils/Constants.js';
+
 import { stripIndents } from 'common-tags';
 import { ChatInputCommandInteraction, time } from 'discord.js';
 import HubCommand from './index.js';
@@ -16,14 +16,14 @@ export default class VisibilityCommnd extends HubCommand {
 
     if (!hub || !await hub.isManager(interaction.user.id)) {
       await this.replyEmbed(interaction, 'hub.notManager', {
-        t: { emoji: emojis.no },
+        t: { emoji: this.getEmoji('x_icon') },
         ephemeral: true,
       });
       return;
     }
 
     if (visibility === 'public') {
-      await interaction.followUp(`${emojis.offline_anim} Checking requirements...`);
+      await interaction.followUp(`${this.getEmoji('offline_anim')} Checking requirements...`);
       const passedChecks = await this.runPublicRequirementChecks(interaction, hub);
       if (!passedChecks) return;
     }
@@ -61,10 +61,10 @@ export default class VisibilityCommnd extends HubCommand {
 
     const passed = requirements.every((r) => r.check);
     const embed = new InfoEmbed().setTitle('Requirement Summary:').setDescription(stripIndents` 
-      Result: **${passed ? `${emojis.yes} Passed` : `${emojis.no} Failed`}**
+      Result: **${passed ? `${this.getEmoji('tick_icon')} Passed` : `${this.getEmoji('x_icon')} Failed`}**
 
-      ${requirements.map((r) => `${r.check ? emojis.yes : emojis.no} ${r.name}`).join('\n')}
-      ${!passed ? `\n-# ${emojis.info} Please fix failed requirements and/or try again later.` : ''}
+      ${requirements.map((r) => `${r.check ? this.getEmoji('tick_icon') : this.getEmoji('x_icon')} ${r.name}`).join('\n')}
+      ${!passed ? `\n-# ${this.getEmoji('info')} Please fix failed requirements and/or try again later.` : ''}
     `);
 
     await interaction.editReply({

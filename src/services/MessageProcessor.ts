@@ -1,6 +1,8 @@
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { LobbyManager } from '#main/managers/LobbyManager.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import { HubService } from '#main/services/HubService.js';
+import { getConnectionHubId } from '#main/utils/ConnectedListUtils.js';
+import Constants from '#main/utils/Constants.js';
 import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
 import { runChecks } from '#main/utils/network/runChecks.js';
 import { check } from '#main/utils/ProfanityUtils.js';
@@ -8,8 +10,7 @@ import { containsInviteLinks, handleError } from '#main/utils/Utils.js';
 import type { LobbyData } from '#types/ChatLobby.d.ts';
 import { Message, WebhookClient } from 'discord.js';
 import { BroadcastService } from './BroadcastService.js';
-import { getConnectionHubId } from '#main/utils/ConnectedListUtils.js';
-import { HubService } from '#main/services/HubService.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export class MessageProcessor {
   private readonly broadcastService: BroadcastService;
@@ -28,7 +29,7 @@ export class MessageProcessor {
       Constants.Regex.ImageURL.test(message.content) ||
       check(message.content).hasSlurs
     ) {
-      message.react(`${emojis.no}`).catch(() => null);
+      message.react(`${getEmoji('x_icon', message.client)}`).catch(() => null);
       return;
     }
 
@@ -60,9 +61,9 @@ export class MessageProcessor {
 
     const allConnections = await hub.connections.toArray();
     const hubConnections = allConnections.filter(
-      (c) => c.data.connected && c.channelId !== message.channelId,
+      (c) => c.data.connected && c.data.channelId !== message.channelId,
     );
-    const connection = allConnections.find((c) => c.channelId === message.channelId);
+    const connection = allConnections.find((c) => c.data.channelId === message.channelId);
     if (!connection) return null;
 
     const { userManager } = message.client;
@@ -91,7 +92,7 @@ export class MessageProcessor {
   }
 
   private async updateLobbyActivity(message: Message<true>, lobby: LobbyData) {
-    const lobbyManager = new LobbyManager();
+    const lobbyManager = new LobbyManager(message.client);
     await lobbyManager.updateLastMessageTimestamp(lobby.id, message.guildId);
   }
 }

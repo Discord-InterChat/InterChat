@@ -2,13 +2,15 @@ import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import HubManager from '#main/managers/HubManager.js';
 import { OriginalMessage } from '#main/utils/network/messageUtils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { type Client, codeBlock, EmbedBuilder, type Snowflake, User } from 'discord.js';
 import { sendLog } from './Default.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 const getUnblacklistEmbed = (
   type: 'User' | 'Server',
+  client: Client,
   opts: {
     name: string;
     id: Snowflake;
@@ -22,9 +24,9 @@ const getUnblacklistEmbed = (
     .setAuthor({ name: `${type} ${opts.name} unblacklisted` })
     .setDescription(
       stripIndents`
-      ${emojis.dotBlue} **${type}:** ${opts.name} (${opts.id})
-      ${emojis.dotBlue} **Moderator:** ${opts.mod.username} (${opts.mod.id})
-      ${emojis.dotBlue} **Hub:** ${opts.hubName}
+      ${getEmoji('dotBlue', client)} **${type}:** ${opts.name} (${opts.id})
+      ${getEmoji('dotBlue', client)} **Moderator:** ${opts.mod.username} (${opts.mod.id})
+      ${getEmoji('dotBlue', client)} **Hub:** ${opts.hubName}
     `,
     )
     .addFields(
@@ -59,7 +61,7 @@ export const logServerUnblacklist = async (
   const modLogs = logConfig.config.modLogs;
   if (!blacklist?.serverName || !modLogs) return;
 
-  const embed = getUnblacklistEmbed('Server', {
+  const embed = getUnblacklistEmbed('Server', client, {
     id: opts.id,
     name: blacklist.serverName,
     mod: opts.mod,
@@ -86,7 +88,7 @@ export const logUserUnblacklist = async (
   const user = await client.users.fetch(opts.id).catch(() => null);
   const name = `${user?.username}`;
 
-  const embed = getUnblacklistEmbed('User', {
+  const embed = getUnblacklistEmbed('User', client, {
     name,
     id: opts.id,
     mod: opts.mod,
@@ -102,7 +104,7 @@ export const logMsgDelete = async (
   client: Client,
   originalMsg: OriginalMessage,
   logConfig: HubLogManager,
-  opts: { hubName: string; modName: string; },
+  opts: { hubName: string; modName: string },
 ) => {
   const modLogs = logConfig.config.modLogs;
   if (!modLogs?.channelId) return;
@@ -114,7 +116,7 @@ export const logMsgDelete = async (
   const embed = new EmbedBuilder()
     .setDescription(
       stripIndents`
-      ### ${emojis.deleteDanger_icon} Message Deleted
+      ### ${getEmoji('deleteDanger_icon', client)} Message Deleted
       **Content:**
       ${codeBlock(content)}
     `,
@@ -122,9 +124,9 @@ export const logMsgDelete = async (
     .setColor(Constants.Colors.invisible)
     .setImage(originalMsg.imageUrl ?? null)
     .addFields([
-      { name: `${emojis.connect_icon} User`, value: `${user?.username} (\`${authorId}\`)` },
-      { name: `${emojis.rules_icon} Server`, value: `${server?.name} (\`${guildId}\`)` },
-      { name: `${emojis.globe_icon} Hub`, value: opts.hubName },
+      { name: `${getEmoji('connect_icon', client)} User`, value: `${user?.username} (\`${authorId}\`)` },
+      { name: `${getEmoji('rules_icon', client)} Server`, value: `${server?.name} (\`${guildId}\`)` },
+      { name: `${getEmoji('globe_icon', client)} Hub`, value: opts.hubName },
     ])
     .setFooter({ text: `Deleted by: ${opts.modName}` });
 

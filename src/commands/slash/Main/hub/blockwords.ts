@@ -1,7 +1,7 @@
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { ACTION_LABELS, buildBlockWordListEmbed } from '#main/utils/moderation/blockWords.js';
-import { emojis } from '#utils/Constants.js';
+
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
@@ -30,7 +30,7 @@ export default class BlockWordCommand extends HubCommand {
 
     if (!hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
       const locale = await this.getLocale(interaction);
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), {
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }), {
         ephemeral: true,
       });
       return;
@@ -57,7 +57,7 @@ export default class BlockWordCommand extends HubCommand {
 
     if (!hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
       const locale = await this.getLocale(interaction);
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), {
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }), {
         ephemeral: true,
       });
       return;
@@ -84,7 +84,7 @@ export default class BlockWordCommand extends HubCommand {
     if (!hub) return;
 
     await interaction.reply({
-      content: `${emojis.loading} Validating blocked words...`,
+      content: `${this.getEmoji('loading')} Validating blocked words...`,
       ephemeral: true,
     });
 
@@ -102,10 +102,10 @@ export default class BlockWordCommand extends HubCommand {
         data: { hubId, name, createdBy: interaction.user.id, words: newWords },
       });
 
-      const embed = buildBWRuleEmbed(rule);
+      const embed = buildBWRuleEmbed(rule, interaction.client);
       const buttons = buildBlockedWordsBtns(hub.id, rule.id).addComponents(new ButtonBuilder());
       await interaction.editReply({
-        content: `${emojis.yes} Rule added.`,
+        content: `${this.getEmoji('tick_icon')} Rule added.`,
         embeds: [embed],
         components: [buttons],
       });
@@ -113,13 +113,13 @@ export default class BlockWordCommand extends HubCommand {
     // remove rule
     else if (newWords.length === 0) {
       await db.blockWord.delete({ where: { id: ruleId } });
-      await interaction.editReply(`${emojis.yes} Rule removed.`);
+      await interaction.editReply(`${this.getEmoji('tick_icon')} Rule removed.`);
     }
 
     // update rule
     else {
       await db.blockWord.update({ where: { id: ruleId }, data: { words: newWords, name } });
-      await interaction.editReply(`${emojis.yes} Rule updated.`);
+      await interaction.editReply(`${this.getEmoji('tick_icon')} Rule updated.`);
     }
   }
 
@@ -131,7 +131,7 @@ export default class BlockWordCommand extends HubCommand {
     const hub = await this.fetchHub({ id: hubId });
     if (!hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
       const locale = await this.getLocale(interaction);
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), {
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }), {
         ephemeral: true,
       });
       return;
@@ -182,7 +182,7 @@ export default class BlockWordCommand extends HubCommand {
       return;
     }
 
-    const embed = buildBWRuleEmbed(rule);
+    const embed = buildBWRuleEmbed(rule, interaction.client);
     const buttons = buildBlockedWordsBtns(hubId, rule.id);
     await interaction.reply({ embeds: [embed], components: [buttons] });
   }
@@ -196,7 +196,7 @@ export default class BlockWordCommand extends HubCommand {
       return;
     }
 
-    const embed = buildBlockWordListEmbed(blockWords);
+    const embed = buildBlockWordListEmbed(blockWords, interaction.client);
     await interaction.reply({ embeds: [embed] });
   }
 

@@ -8,14 +8,17 @@ import {
   ChannelType,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
+  Client,
 } from 'discord.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { yesOrNoEmoji } from '#utils/Utils.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { stripIndents } from 'common-tags';
 import { CustomID } from '#utils/CustomID.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export const buildEditEmbed = async (
+  client: Client<true>,
   channelId: string,
   iconURL: string | undefined,
   locale: supportedLocaleCodes = 'en',
@@ -49,17 +52,17 @@ export const buildEditEmbed = async (
     )
     .addFields([
       {
-        name: `${emojis.globe_icon} ${t('connection.embed.fields.hub', locale)}`,
+        name: `${getEmoji('globe_icon', client)} ${t('connection.embed.fields.hub', locale)}`,
         value: `${networkData?.hub?.name}`,
         inline: true,
       },
       {
-        name: `${emojis.chat_icon} ${t('connection.embed.fields.channel', locale)}`,
+        name: `${getEmoji('chat_icon', client)} ${t('connection.embed.fields.channel', locale)}`,
         value: `<#${channelId}>`,
         inline: true,
       },
       {
-        name: `${emojis.add_icon} ${t('connection.embed.fields.invite', locale)}`,
+        name: `${getEmoji('plus_icon', client)} ${t('connection.embed.fields.invite', locale)}`,
         value: invite,
         inline: true,
       },
@@ -69,6 +72,7 @@ export const buildEditEmbed = async (
 };
 
 export const buildEditSelect = (
+  client: Client,
   channelId: Snowflake,
   userIdFilter: Snowflake,
   locale: supportedLocaleCodes = 'en',
@@ -86,7 +90,7 @@ export const buildEditSelect = (
       .addOptions(
         new StringSelectMenuOptionBuilder()
           .setLabel('Compact')
-          .setEmoji(emojis.clipart)
+          .setEmoji(getEmoji('clipart', client))
           .setDescription('Disable embeds in the network to fit more messages.')
           .setValue('compact'),
         new StringSelectMenuOptionBuilder()
@@ -96,7 +100,7 @@ export const buildEditSelect = (
           .setValue('profanity'),
         new StringSelectMenuOptionBuilder()
           .setLabel('Invite Link')
-          .setEmoji(emojis.members)
+          .setEmoji(getEmoji('members', client))
           .setDescription('Set an invite for network users to join your server easily!')
           .setValue('invite'),
         new StringSelectMenuOptionBuilder()

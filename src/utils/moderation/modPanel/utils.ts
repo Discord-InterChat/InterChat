@@ -1,4 +1,4 @@
-import { emojis } from '#utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { getReplyMethod } from '#main/utils/Utils.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -29,7 +29,7 @@ export async function replyWithUnknownMessage(
   edit = false,
 ) {
   const embed = new InfoEmbed().setDescription(
-    t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
+    t('errors.unknownNetworkMessage', locale, { emoji: getEmoji('x_icon', interaction.client) }),
   );
 
   const replyMethod = getReplyMethod(interaction);

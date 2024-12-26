@@ -2,7 +2,6 @@ import HubLogManager, { LogConfigTypes, RoleIdLogConfigs } from '#main/managers/
 import HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
-import { emojis } from '#main/utils/Constants.js';
 import db from '#utils/Db.js';
 import {
   Channel,
@@ -72,7 +71,7 @@ export default class LoggingCommand extends HubCommand {
 
   private async handleView(interaction: ChatInputCommandInteraction, hub: HubManager) {
     const hubLogManager = await HubLogManager.create(hub.id);
-    const embed = hubLogManager.createEmbed(hub.data.iconUrl);
+    const embed = hubLogManager.getEmbed(hub.data.iconUrl, interaction.client);
     await interaction.reply({ embeds: [embed] });
   }
 
@@ -148,7 +147,7 @@ export default class LoggingCommand extends HubCommand {
 
     if (!hasPermissions) {
       this.replyEmbed(interaction, 'errors.missingPermissions', {
-        t: { emoji: emojis.no, permissions: 'Manage Messages' },
+        t: { emoji: this.getEmoji('x_icon'), permissions: 'Manage Messages' },
       });
       return false;
     }

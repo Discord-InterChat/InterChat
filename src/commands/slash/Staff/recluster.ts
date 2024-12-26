@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import { emojis } from '#utils/Constants.js';
+
 import { isDev } from '#utils/Utils.js';
 
 export default class Respawn extends BaseCommand {
@@ -15,7 +15,7 @@ export default class Respawn extends BaseCommand {
       return;
     }
 
-    await interaction.reply({ content: `${emojis.tick} I'll be back!`, ephemeral: true });
+    await interaction.reply({ content: `${this.getEmoji('tick')} I'll be back!`, ephemeral: true });
     interaction.client.cluster.send('recluster');
   }
 }

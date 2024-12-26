@@ -1,5 +1,5 @@
 import HubManager from '#main/managers/HubManager.js';
-import { emojis } from '#utils/Constants.js';
+
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
 import { ChatInputCommandInteraction } from 'discord.js';
@@ -22,12 +22,12 @@ export default class AppealCommand extends HubCommand {
     const cooldown = interaction.options.getString('cooldown', true);
     const appealCooldownHours = ms(cooldown) / 1000 / 60 / 60;
     if (!appealCooldownHours || appealCooldownHours < 1) {
-      const embed = new ErrorEmbed().setDescription('Cooldown must be atleast **1 hour** long.');
+      const embed = new ErrorEmbed(interaction.client).setDescription('Cooldown must be atleast **1 hour** long.');
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
     else if (appealCooldownHours > 8766) {
-      const embed = new ErrorEmbed().setDescription('Cooldown cannot be longer than **1 year**.');
+      const embed = new ErrorEmbed(interaction.client).setDescription('Cooldown cannot be longer than **1 year**.');
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return;
     }
@@ -35,7 +35,7 @@ export default class AppealCommand extends HubCommand {
     await hub.setAppealCooldownHours(appealCooldownHours);
 
     await interaction.reply({
-      content: `${emojis.clock_icon} Appeal cooldown has been set to **${appealCooldownHours}** hour(s).`,
+      content: `${this.getEmoji('clock_icon')} Appeal cooldown has been set to **${appealCooldownHours}** hour(s).`,
       ephemeral: true,
     });
   }
@@ -50,7 +50,7 @@ export default class AppealCommand extends HubCommand {
         t(
           'hub.notFound_mod',
           await interaction.client.userManager.getUserLocale(interaction.user.id),
-          { emoji: emojis.no },
+          { emoji: this.getEmoji('x_icon') },
         ),
         { ephemeral: true },
       );

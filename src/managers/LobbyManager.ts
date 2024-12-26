@@ -3,15 +3,17 @@ import LobbyNotifier from '#main/services/LobbyNotifierService.js';
 import getRedis from '#main/utils/Redis.js';
 import type { LobbyData, LobbyServer, QueuedChannel, ServerPreferences } from '#types/ChatLobby.d.ts';
 import crypto from 'crypto';
+import { Client } from 'discord.js';
 import { Redis } from 'ioredis';
 
 export class LobbyManager {
   private readonly redis: Redis;
   private readonly encryption: EncryptionService;
   private readonly notifier: LobbyNotifier;
-  constructor() {
+
+  constructor(client: Client<true>) {
     this.redis = getRedis();
-    this.notifier = new LobbyNotifier(this);
+    this.notifier = new LobbyNotifier(this, client);
     this.encryption = new EncryptionService();
   }
 

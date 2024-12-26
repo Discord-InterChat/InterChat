@@ -1,7 +1,9 @@
 import HubManager from '#main/managers/HubManager.js';
 import { HubService, type HubCreationData } from '#main/services/HubService.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants from '#main/utils/Constants.js';
+import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { Client } from 'discord.js';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -11,12 +13,18 @@ export interface ValidationResult {
 export class HubValidator {
   private readonly locale: supportedLocaleCodes;
   private readonly hubService = new HubService();
+  private readonly client: Client;
 
-  constructor(locale: supportedLocaleCodes) {
+  constructor(locale: supportedLocaleCodes, client: Client) {
     this.locale = locale;
+    this.client = client;
   }
 
   private static readonly MAX_HUBS_PER_USER = 3;
+
+  private getEmoji(name: EmojiKeys): string {
+    return getEmoji(name, this.client);
+  }
 
   async validateNewHub(
     data: HubCreationData,
@@ -41,7 +49,7 @@ export class HubValidator {
     if (Constants.Regex.BannedWebhookWords.test(name)) {
       return {
         isValid: false,
-        error: t('hub.create.invalidName', this.locale, { emoji: emojis.no }),
+        error: t('hub.create.invalidName', this.locale, { emoji: this.getEmoji('x_icon') }),
       };
     }
     return { isValid: true };
@@ -52,7 +60,7 @@ export class HubValidator {
     if (existingHub) {
       return {
         isValid: false,
-        error: t('hub.create.nameTaken', this.locale, { emoji: emojis.no }),
+        error: t('hub.create.nameTaken', this.locale, { emoji: this.getEmoji('x_icon') }),
       };
     }
     return { isValid: true };
@@ -67,7 +75,7 @@ export class HubValidator {
     if (userHubCount >= HubValidator.MAX_HUBS_PER_USER) {
       return {
         isValid: false,
-        error: t('hub.create.maxHubs', this.locale, { emoji: emojis.no }),
+        error: t('hub.create.maxHubs', this.locale, { emoji: this.getEmoji('x_icon') }),
       };
     }
     return { isValid: true };
@@ -79,7 +87,7 @@ export class HubValidator {
     if ((iconUrl && !imgurRegex.test(iconUrl)) || (bannerUrl && !imgurRegex.test(bannerUrl))) {
       return {
         isValid: false,
-        error: t('hub.invalidImgurUrl', this.locale, { emoji: emojis.no }),
+        error: t('hub.invalidImgurUrl', this.locale, { emoji: this.getEmoji('x_icon') }),
       };
     }
     return { isValid: true };

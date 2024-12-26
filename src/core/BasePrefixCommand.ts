@@ -1,7 +1,8 @@
-import { emojis } from '#utils/Constants.js';
+import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
 import Logger from '#main/utils/Logger.js';
 import { isDev } from '#main/utils/Utils.js';
-import { Message, PermissionsBitField } from 'discord.js';
+
+import { Client, Message, PermissionsBitField } from 'discord.js';
 
 export interface CommandData {
   name: string;
@@ -20,12 +21,23 @@ export interface CommandData {
 
 export default abstract class BasePrefixCommand {
   public abstract readonly data: CommandData;
+  protected readonly client: Client | null;
+
+  constructor(client: Client | null) {
+    this.client = client;
+  }
+
+  protected getEmoji(name: EmojiKeys): string {
+    if (!this.client?.isReady()) return '';
+    return getEmoji(name, this.client);
+  }
+
   protected abstract run(message: Message, args: string[]): Promise<void>;
   public async execute(message: Message, args: string[]): Promise<void> {
     try {
       // Check if command is owner-only
       if (this.data.ownerOnly && !isDev(message.author.id)) {
-        await message.reply(`${emojis.botdev} This command can only be used by the bot owner.`);
+        await message.reply(`${this.getEmoji('botdev')} This command can only be used by the bot owner.`);
         return;
       }
 
@@ -37,7 +49,7 @@ export default abstract class BasePrefixCommand {
         message.member?.permissions.missing(requiredUserPermissions, true);
       if (missingPerms?.length) {
         await message.reply(
-          `${emojis.neutral} You're missing the following permissions: ${missingPerms.join(', ')}`,
+          `${this.getEmoji('neutral')} You're missing the following permissions: ${missingPerms.join(', ')}`,
         );
         return;
       }
@@ -47,13 +59,13 @@ export default abstract class BasePrefixCommand {
         message.guild?.members.me?.permissions.missing(requiredBotPermissions, true);
       if (botMissingPerms?.length) {
         await message.reply(
-          `${emojis.no} I'm missing the following permissions: ${botMissingPerms.join(', ')}`,
+          `${this.getEmoji('x_icon')} I'm missing the following permissions: ${botMissingPerms.join(', ')}`,
         );
         return;
       }
 
       if (this.data.dbPermission && !message.inGuild()) {
-        await message.reply(`${emojis.no} This command can only be used in a server.`);
+        await message.reply(`${this.getEmoji('x_icon')} This command can only be used in a server.`);
         return;
       }
 
@@ -65,7 +77,7 @@ export default abstract class BasePrefixCommand {
             : '';
 
         await message.reply({
-          content: `${emojis.neutral} One or more args missing.\n**Usage**: ${this.data.usage}${examplesStr}`,
+          content: `${this.getEmoji('neutral')} One or more args missing.\n**Usage**: ${this.data.usage}${examplesStr}`,
           allowedMentions: { repliedUser: false },
         });
         return;

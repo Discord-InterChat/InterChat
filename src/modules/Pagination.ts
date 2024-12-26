@@ -1,4 +1,4 @@
-import { emojis } from '#utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import Logger from '#main/utils/Logger.js';
 import { getReplyMethod } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
@@ -6,6 +6,7 @@ import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  Client,
   ComponentType,
   InteractionReplyOptions,
   Message,
@@ -36,21 +37,25 @@ type RunOptions = {
 export class Pagination {
   private readonly pages: BaseMessageOptions[] = [];
   private readonly hiddenButtons: Partial<Record<keyof ButtonEmojis, boolean>> = {};
-  private emojis: ButtonEmojis = {
-    back: emojis.previous,
-    next: emojis.next,
-    search: emojis.search,
-    select: '#️⃣',
-  };
+  private readonly client: Client<true>;
+  private customEmojis: ButtonEmojis;
 
   constructor(
+    client: Client<true>,
     opts: {
-      emojis?: ButtonEmojis;
+      customEmojis?: ButtonEmojis;
       hideButtons?: Partial<Record<keyof ButtonEmojis, boolean>>;
     } = {},
   ) {
-    if (opts.emojis) this.emojis = opts.emojis;
-    else if (opts.hideButtons) this.hiddenButtons = opts.hideButtons;
+    if (opts.hideButtons) this.hiddenButtons = opts.hideButtons;
+
+    this.client = client;
+    this.customEmojis = opts.customEmojis ?? {
+      back: getEmoji('arrow_left', client),
+      next: getEmoji('arrow_right', client),
+      search: getEmoji('search_icon', client),
+      select: getEmoji('hash_icon', client),
+    };
   }
 
   public addPage(page: BaseMessageOptions) {
@@ -59,7 +64,7 @@ export class Pagination {
   }
 
   public setEmojis(btnEmojis: ButtonEmojis) {
-    this.emojis = btnEmojis;
+    this.customEmojis = btnEmojis;
     return this;
   }
 
@@ -195,12 +200,12 @@ export class Pagination {
         const totalMatches = results.reduce((sum, result) => sum + result.matches, 0);
         const otherResultsStr =
           results.length > 1
-            ? `-# ${emojis.info} Also found in the following pages: ${results.map((r) => r.page + 1).join(', ')}`
+            ? `-# ${getEmoji('info', this.client)} Also found in the following pages: ${results.map((r) => r.page + 1).join(', ')}`
             : '';
 
         await modalSubmit.reply({
           content: stripIndents`
-            **${emojis.search} Found ${totalMatches} match${totalMatches !== 1 ? 'es' : ''} across ${results.length} page${results.length !== 1 ? 's' : ''}.**
+            **${getEmoji('search_icon', this.client)} Found ${totalMatches} match${totalMatches !== 1 ? 'es' : ''} across ${results.length} page${results.length !== 1 ? 's' : ''}.**
             Jumping to page ${topResult.page + 1} with ${topResult.matches} match${topResult.matches !== 1 ? 'es' : ''}.
             
             ${otherResultsStr}`,
@@ -223,7 +228,7 @@ export class Pagination {
     if (this.pages.length < 1) {
       await this.sendReply(
         ctx,
-        { content: `${emojis.tick} No results to display!` },
+        { content: `${getEmoji('tick', this.client)} No results to display!` },
         { ephemeral: true },
       );
       return;
@@ -339,32 +344,32 @@ export class Pagination {
         select
           ? null
           : new ButtonBuilder()
-            .setEmoji(this.emojis.select)
+            .setEmoji(this.customEmojis.select)
             .setCustomId('page_:select')
             .setStyle(ButtonStyle.Secondary),
         back
           ? null
           : new ButtonBuilder()
-            .setEmoji(this.emojis.back)
+            .setEmoji(this.customEmojis.back)
             .setCustomId('page_:back')
-            .setStyle(ButtonStyle.Primary)
+            .setStyle(ButtonStyle.Secondary)
             .setDisabled(index === 0),
         new ButtonBuilder()
           .setCustomId('page_:index')
           .setDisabled(true)
           .setLabel(`${index + 1}/${totalPages}`)
-          .setStyle(ButtonStyle.Secondary),
+          .setStyle(ButtonStyle.Primary),
         next
           ? null
           : new ButtonBuilder()
-            .setEmoji(this.emojis.next)
+            .setEmoji(this.customEmojis.next)
             .setCustomId('page_:next')
-            .setStyle(ButtonStyle.Primary)
+            .setStyle(ButtonStyle.Secondary)
             .setDisabled(totalPages <= index + 1),
         search
           ? null
           : new ButtonBuilder()
-            .setEmoji(this.emojis.search)
+            .setEmoji(this.customEmojis.search)
             .setCustomId('page_:search')
             .setStyle(ButtonStyle.Secondary),
       ].filter(Boolean) as ButtonBuilder[],

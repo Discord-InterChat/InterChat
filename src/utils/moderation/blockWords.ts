@@ -1,5 +1,5 @@
-// utils/moderation/blockedWords.ts
-import { emojis, numberEmojis } from '#utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { numberEmojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { BlockWord, BlockWordAction } from '@prisma/client';
@@ -13,6 +13,7 @@ import {
   TextInputBuilder,
   TextInputStyle,
   StringSelectMenuBuilder,
+  Client,
 } from 'discord.js';
 
 export const ACTION_LABELS = {
@@ -38,12 +39,12 @@ export const sanitizeWords = (words: string) =>
     .map((word) => word.trim())
     .join(',');
 
-export const buildBlockWordListEmbed = (rules: BlockWord[]) =>
+export const buildBlockWordListEmbed = (rules: BlockWord[], client: Client) =>
   new InfoEmbed()
     .removeTitle()
     .setDescription(
       stripIndents`
-      ### ${emojis.exclamation} Blocked Words
+      ### ${getEmoji('exclamation', client)} Blocked Words
       This hub has **${rules.length}**/2 blocked word rules.
       `,
     )
@@ -54,13 +55,13 @@ export const buildBlockWordListEmbed = (rules: BlockWord[]) =>
       })),
     );
 
-export const buildBWRuleEmbed = (rule: BlockWord) => {
+export const buildBWRuleEmbed = (rule: BlockWord, client: Client) => {
   const actions = rule.actions.map((a) => ACTION_LABELS[a]).join(', ');
   return new InfoEmbed()
     .removeTitle()
     .setDescription(
       stripIndents`
-          ### ${emojis.exclamation} Editing Rule: ${rule.name}
+          ### ${getEmoji('exclamation', client)} Editing Rule: ${rule.name}
           ${rule.words ? `**Blocked Words:**\n${codeBlock(rule.words.replace(/\.\*/g, '*'))}` : ''}
           -# Configured Actions: **${actions.length > 0 ? actions : 'None. Configure using the button below.'}**
           `,

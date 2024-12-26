@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
@@ -8,13 +7,14 @@ import { ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js';
 import { buildModPanel } from '#main/interactions/ModPanel.js';
 import { HubService } from '#main/services/HubService.js';
 import db from '#main/utils/Db.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
-export const modPanelButton = (targetMsgId: string, opts?: { label?: string; emoji?: string }) =>
+export const modPanelButton = (targetMsgId: string, emoji: string, opts?: { label?: string }) =>
   new ButtonBuilder()
     .setCustomId(new CustomID().setIdentifier('showModPanel').setArgs(targetMsgId).toString())
     .setStyle(ButtonStyle.Danger)
     .setLabel(opts?.label ?? 'Mod Panel')
-    .setEmoji(emojis.blobFastBan);
+    .setEmoji(emoji);
 
 export default class ModActionsButton {
   @RegisterInteractionHandler('showModPanel')
@@ -33,7 +33,7 @@ export default class ModActionsButton {
     if (!originalMessage || !hub || !await isStaffOrHubMod(interaction.user.id, hub)) {
       await interaction.editReply({ components: [] });
       await interaction.followUp({
-        embeds: [new InfoEmbed({ description: `${emojis.slash} Message was deleted.` })],
+        embeds: [new InfoEmbed({ description: `${getEmoji('slash', interaction.client)} Message was deleted.` })],
         ephemeral: true,
       });
       return;

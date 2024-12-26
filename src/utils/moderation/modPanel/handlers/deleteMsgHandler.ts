@@ -1,9 +1,10 @@
 import { buildModPanel } from '#main/interactions/ModPanel.js';
 import { HubService } from '#main/services/HubService.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { logMsgDelete } from '#main/utils/hub/logger/ModLogs.js';
 import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
 import { getBroadcasts, getOriginalMessage } from '#main/utils/network/messageUtils.js';
-import { emojis } from '#utils/Constants.js';
+
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
@@ -27,7 +28,7 @@ export default class DeleteMessageHandler implements ModAction {
       await interaction.update({ embeds: [embed], components: buttons });
 
       const errorEmbed = new InfoEmbed().setDescription(
-        `${emojis.neutral} This message is already deleted or is being deleted by another moderator.`,
+        `${getEmoji('neutral', interaction.client)} This message is already deleted or is being deleted by another moderator.`,
       );
 
       await interaction.followUp({ ephemeral: true, embeds: [errorEmbed] });
@@ -35,7 +36,7 @@ export default class DeleteMessageHandler implements ModAction {
     }
 
     await interaction.reply({
-      content: `${emojis.loading} Deleting messages... This may take a minute or so.`,
+      content: `${getEmoji('loading', interaction.client)} Deleting messages... This may take a minute or so.`,
       ephemeral: true,
     });
 
@@ -55,7 +56,7 @@ export default class DeleteMessageHandler implements ModAction {
           'network.deleteSuccess',
           await interaction.client.userManager.getUserLocale(interaction.user.id),
           {
-            emoji: emojis.yes,
+            emoji: getEmoji('tick_icon', interaction.client),
             user: `<@${originalMsg.authorId}>`,
             deleted: `${deletedCount}`,
             total: `${broadcastMsgs.length}`,

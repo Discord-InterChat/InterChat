@@ -10,7 +10,7 @@ import {
   getBroadcasts,
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import Constants, { ConnectionMode, emojis } from '#utils/Constants.js';
+import Constants, { ConnectionMode } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { getAttachmentURL } from '#utils/ImageUtils.js';
@@ -58,7 +58,7 @@ export default class EditMessage extends BaseCommand {
 
     if (await voteLimiter.hasExceededLimit()) {
       await interaction.reply({
-        content: `${emojis.topggSparkles} You've hit your daily limit for message edits. [Vote for InterChat](${Constants.Links.Vote}) on top.gg to get unlimited edits!`,
+        content: `${this.getEmoji('topggSparkles')} You've hit your daily limit for message edits. [Vote for InterChat](${Constants.Links.Vote}) on top.gg to get unlimited edits!`,
       });
       return;
     }
@@ -69,13 +69,13 @@ export default class EditMessage extends BaseCommand {
 
     if (!messageInDb) {
       await interaction.reply({
-        content: t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }),
+        content: t('errors.unknownNetworkMessage', locale, { emoji: this.getEmoji('x_icon') }),
       });
       return;
     }
     else if (interaction.user.id !== messageInDb.authorId) {
       await interaction.reply({
-        content: t('errors.notMessageAuthor', locale, { emoji: emojis.no }),
+        content: t('errors.notMessageAuthor', locale, { emoji: this.getEmoji('x_icon') }),
       });
       return;
     }
@@ -111,7 +111,7 @@ export default class EditMessage extends BaseCommand {
     const target = await interaction.channel?.messages.fetch(messageId).catch(() => null);
     if (!target) {
       await this.replyEmbed(interaction, 'errors.unknownNetworkMessage', {
-        t: { emoji: emojis.no },
+        t: { emoji: this.getEmoji('x_icon') },
       });
       return;
     }
@@ -122,7 +122,7 @@ export default class EditMessage extends BaseCommand {
 
     if (!originalMsgData?.hubId) {
       await this.replyEmbed(interaction, 'errors.unknownNetworkMessage', {
-        t: { emoji: emojis.no },
+        t: { emoji: this.getEmoji('x_icon') },
       });
       return;
     }
@@ -133,7 +133,7 @@ export default class EditMessage extends BaseCommand {
     if (!hub) {
       await interaction.editReply(
         t('errors.unknownNetworkMessage', await this.getLocale(interaction), {
-          emoji: emojis.no,
+          emoji: this.getEmoji('x_icon'),
         }),
       );
       return;
@@ -146,7 +146,7 @@ export default class EditMessage extends BaseCommand {
     // Check if the message contains invite links
     if (hub.settings.has('BlockInvites') && containsInviteLinks(messageToEdit)) {
       await interaction.editReply(
-        t('errors.inviteLinks', await this.getLocale(interaction), { emoji: emojis.no }),
+        t('errors.inviteLinks', await this.getLocale(interaction), { emoji: this.getEmoji('x_icon') }),
       );
       return;
     }
@@ -213,7 +213,7 @@ export default class EditMessage extends BaseCommand {
         t('network.editSuccess', await this.getLocale(interaction), {
           edited: counter.toString(),
           total: broadcastedMsgs.length.toString(),
-          emoji: emojis.yes,
+          emoji: this.getEmoji('tick_icon'),
           user: userMention(originalMsgData.authorId),
         }),
       )

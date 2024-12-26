@@ -1,6 +1,5 @@
 import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
 import { LobbyManager } from '#main/managers/LobbyManager.js';
-import { emojis } from '#main/utils/Constants.js';
 import { Message, PermissionsBitField } from 'discord.js';
 
 export default class BlacklistPrefixCommand extends BasePrefixCommand {
@@ -16,20 +15,19 @@ export default class BlacklistPrefixCommand extends BasePrefixCommand {
     requiredArgs: 0,
   };
 
-  private readonly lobbyManager = new LobbyManager();
-
   protected async run(message: Message<true>) {
-    const alreadyConnected = await this.lobbyManager.getLobbyByChannelId(message.channelId);
+    const lobbies = new LobbyManager(message.client);
+    const alreadyConnected = await lobbies.getLobbyByChannelId(message.channelId);
 
     if (alreadyConnected) {
-      await this.lobbyManager.removeServerFromLobby(alreadyConnected.id, message.guildId);
+      await lobbies.removeServerFromLobby(alreadyConnected.id, message.guildId);
     }
     else {
-      await this.lobbyManager.removeChannelFromPool(message.channelId);
-      await message.reply(`${emojis.disconnect} Not connected to any lobby. Removed from waiting pool if exists.`);
+      await lobbies.removeChannelFromPool(message.channelId);
+      await message.reply(`${this.getEmoji('disconnect')} Not connected to any lobby. Removed from waiting pool if exists.`);
       return;
     }
 
-    await message.reply(`${emojis.disconnect} You have left the lobby.`);
+    await message.reply(`${this.getEmoji('disconnect')} You have left the lobby.`);
   }
 }

@@ -1,9 +1,10 @@
 import HubLogManager from '#main/managers/HubLogManager.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, Guild } from 'discord.js';
 import { sendLog } from './Default.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export const logJoinToHub = async (
   hubId: string,
@@ -13,14 +14,15 @@ export const logJoinToHub = async (
   const logManager = await HubLogManager.create(hubId);
   if (!logManager.config.joinLeaves) return;
 
+  const dotBlueEmoji = getEmoji('dotBlue', server.client);
   const owner = await server.fetchOwner();
   const embed = new EmbedBuilder()
     .setTitle('New Server Joined')
     .setDescription(
       stripIndents`
-        ${emojis.dotBlue} **Server:** ${server.name} (${server.id})
-        ${emojis.dotBlue} **Owner:** ${owner.user.tag} (${server.ownerId})
-        ${emojis.dotBlue} **Member Count:** ${server.memberCount}
+        ${dotBlueEmoji} **Server:** ${server.name} (${server.id})
+        ${dotBlueEmoji} **Owner:** ${owner.user.tag} (${server.ownerId})
+        ${dotBlueEmoji} **Member Count:** ${server.memberCount}
       `,
     )
     .setColor(Constants.Colors.interchatBlue)
@@ -42,13 +44,15 @@ export const logGuildLeaveToHub = async (hubId: string, server: Guild) => {
     0,
   );
 
+  const dotRedEmoji = getEmoji('dotRed', server.client);
+
   const embed = new EmbedBuilder()
     .setTitle('Server Left')
     .setDescription(
       stripIndents`
-        ${emojis.dotRed} **Server:** ${server.name} (${server.id})
-        ${emojis.dotRed} **Owner:** ${owner?.username} (${server.ownerId})
-        ${emojis.dotRed} **Member Count:** ${server.memberCount}
+        ${dotRedEmoji} **Server:** ${server.name} (${server.id})
+        ${dotRedEmoji} **Owner:** ${owner?.username} (${server.ownerId})
+        ${dotRedEmoji} **Member Count:** ${server.memberCount}
       `,
     )
     .setColor('Red')

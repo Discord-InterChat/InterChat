@@ -2,7 +2,7 @@ import BaseCommand from '#main/core/BaseCommand.js';
 import HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
-import { emojis } from '#utils/Constants.js';
+
 import db from '#utils/Db.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { getReplyMethod, handleError } from '#utils/Utils.js';
@@ -258,13 +258,13 @@ export default class BlacklistCommand extends BaseCommand {
   ): hub is HubManager {
     const hiddenOpt = { ephemeral: true };
     if (!hub) {
-      this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }), hiddenOpt);
+      this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }), hiddenOpt);
       return false;
     }
     else if (hub === 'exceeds max length') {
       this.replyEmbed(
         interaction,
-        `${emojis.no} Specify the \`hub\` option of the slash command as you own/moderate more than one hub.`,
+        `${this.getEmoji('x_icon')} Specify the \`hub\` option of the slash command as you own/moderate more than one hub.`,
         hiddenOpt,
       );
       return false;

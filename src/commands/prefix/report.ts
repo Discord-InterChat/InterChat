@@ -6,7 +6,7 @@ import {
   getMessageIdFromStr,
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import { emojis } from '#utils/Constants.js';
+
 import { Message } from 'discord.js';
 import ms from 'ms';
 
@@ -53,8 +53,8 @@ export default class ReportPrefixCommand extends BasePrefixCommand {
     });
 
     await message
-      .react(emojis.tick)
-      .catch(() => message.reply(`${emojis.tick} Sent the report.`).catch(() => null));
+      .react(this.getEmoji('tick'))
+      .catch(() => message.reply(`${this.getEmoji('tick')} Sent the report.`).catch(() => null));
   }
   private async getOriginalMessage(messageId: string) {
     return (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId)) ?? null;

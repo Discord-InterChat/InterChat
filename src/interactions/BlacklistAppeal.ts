@@ -213,7 +213,7 @@ export default class AppealInteraction {
     );
 
     if (lastAppealed?.appealedAt) {
-      const embed = new ErrorEmbed().setDescription(
+      const embed = new ErrorEmbed(interaction.client).setDescription(
         `You can only appeal once every **${msToReadable(appealCooldown, false)}**.`,
       );
 
@@ -226,7 +226,7 @@ export default class AppealInteraction {
 
     const blacklist = await blacklistManager.fetchBlacklist(hubId);
     if (!blacklist) {
-      const embed = new ErrorEmbed().setDescription(
+      const embed = new ErrorEmbed(interaction.client).setDescription(
         'You cannot appeal a blacklist that does not exist.',
       );
       await interaction.reply({ embeds: [embed], ephemeral: true });

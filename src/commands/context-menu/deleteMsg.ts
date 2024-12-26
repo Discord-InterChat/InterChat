@@ -7,7 +7,7 @@ import {
   getOriginalMessage,
   OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import { emojis } from '#utils/Constants.js';
+
 import { logMsgDelete } from '#utils/hub/logger/ModLogs.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { t } from '#utils/Locale.js';
@@ -57,7 +57,7 @@ export default class DeleteMessage extends BaseCommand {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     await interaction.editReply(
-      `${emojis.yes} Your request has been queued. Messages will be deleted shortly...`,
+      `${this.getEmoji('tick_icon')} Your request has been queued. Messages will be deleted shortly...`,
     );
 
     const broadcasts = Object.values(await getBroadcasts(originalMsg.messageId, originalMsg.hubId));
@@ -66,7 +66,7 @@ export default class DeleteMessage extends BaseCommand {
     await interaction
       .editReply(
         t('network.deleteSuccess', locale, {
-          emoji: emojis.yes,
+          emoji: this.getEmoji('tick_icon'),
           user: `<@${originalMsg.authorId}>`,
           deleted: `${deletedCount}`,
           total: `${broadcasts.length}`,
@@ -91,14 +91,14 @@ export default class DeleteMessage extends BaseCommand {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!originalMsg || !hub) {
-      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: emojis.no }));
+      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: this.getEmoji('x_icon') }));
       return false;
     }
 
     if (await isDeleteInProgress(originalMsg.messageId)) {
       await this.replyEmbed(
         interaction,
-        `${emojis.neutral} This message is already deleted or is being deleted by another moderator.`,
+        `${this.getEmoji('neutral')} This message is already deleted or is being deleted by another moderator.`,
         { ephemeral: true, edit: true },
       );
       return false;
@@ -108,7 +108,7 @@ export default class DeleteMessage extends BaseCommand {
       interaction.user.id !== originalMsg.authorId &&
       !(await isStaffOrHubMod(interaction.user.id, hub))
     ) {
-      await interaction.editReply(t('errors.notMessageAuthor', locale, { emoji: emojis.no }));
+      await interaction.editReply(t('errors.notMessageAuthor', locale, { emoji: this.getEmoji('x_icon') }));
       return false;
     }
 

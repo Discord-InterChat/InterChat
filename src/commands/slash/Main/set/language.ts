@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import { supportedLocaleCodes, supportedLocales, t } from '#utils/Locale.js';
 import { ChatInputCommandInteraction } from 'discord.js';
 import Set from './index.js';
@@ -12,7 +11,7 @@ export default class SetLanguage extends Set {
         content: t(
           'errors.invalidLangCode',
           await interaction.client.userManager.getUserLocale(interaction.user.id),
-          { emoji: emojis.info },
+          { emoji: this.getEmoji('info') },
         ),
         ephemeral: true,
       });
@@ -26,7 +25,7 @@ export default class SetLanguage extends Set {
     const lang = `${langInfo.emoji} ${langInfo.name}`;
 
     await interaction.reply({
-      content: emojis.yes + t('language.set', locale, { lang }),
+      content: this.getEmoji('tick_icon') + t('language.set', locale, { lang }),
       ephemeral: true,
     });
   }

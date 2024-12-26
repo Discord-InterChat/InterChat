@@ -1,11 +1,10 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-
-
 import { HubService } from '#main/services/HubService.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
@@ -19,13 +18,14 @@ import UserBanHandler from '#main/utils/moderation/modPanel/handlers/userBanHand
 import ViewInfractionsHandler from '#main/utils/moderation/modPanel/handlers/viewInfractions.js';
 import { getOriginalMessage, OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { checkIfStaff } from '#main/utils/Utils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonInteraction,
   ButtonStyle,
+  Client,
   EmbedBuilder,
   Interaction,
   Message,
@@ -71,7 +71,7 @@ export default class ModPanelHandler {
   ) {
     if (interaction.user.id !== userId) {
       const embed = new InfoEmbed().setDescription(
-        t('errors.notYourAction', locale, { emoji: emojis.no }),
+        t('errors.notYourAction', locale, { emoji: getEmoji('x_icon', interaction.client) }),
       );
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -106,7 +106,7 @@ export default class ModPanelHandler {
   ) {
     const hubService = new HubService(db);
     const hub = await hubService.fetchHub(originalMsg.hubId);
-    if (!hub || !await isStaffOrHubMod(interaction.user.id, hub)) {
+    if (!hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
       const embed = new InfoEmbed().setDescription(t('errors.messageNotSentOrExpired', locale));
       await interaction.editReply({ embeds: [embed] });
       return false;
@@ -132,12 +132,17 @@ export async function buildModPanel(
   const isServerBlacklisted = Boolean(await serverBlManager.fetchBlacklist(originalMsg.hubId));
   const dbUserTarget = await userManager.getUser(user.id);
 
-  const embed = buildInfoEmbed(user.username, server?.name ?? 'Unknown Server', {
-    isUserBlacklisted,
-    isServerBlacklisted,
-    isBanned: Boolean(dbUserTarget?.banReason),
-    isDeleteInProgress: deleteInProgress,
-  });
+  const embed = buildInfoEmbed(
+    user.username,
+    server?.name ?? 'Unknown Server',
+    interaction.client,
+    {
+      isUserBlacklisted,
+      isServerBlacklisted,
+      isBanned: Boolean(dbUserTarget?.banReason),
+      isDeleteInProgress: deleteInProgress,
+    },
+  );
 
   const buttons = buildButtons(interaction, originalMsg.messageId, {
     isUserBlacklisted,
@@ -155,21 +160,21 @@ function buildButtons(interaction: Interaction | Message, messageId: Snowflake, 
     new ButtonBuilder()
       .setCustomId(new CustomID('modPanel:blacklistUser', [author.id, messageId]).toString())
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(emojis.user_icon)
+      .setEmoji(getEmoji('user_icon', interaction.client))
       .setDisabled(opts.isUserBlacklisted),
     new ButtonBuilder()
       .setCustomId(new CustomID('modPanel:blacklistServer', [author.id, messageId]).toString())
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(emojis.globe_icon)
+      .setEmoji(getEmoji('globe_icon', interaction.client))
       .setDisabled(opts.isServerBlacklisted),
     new ButtonBuilder()
       .setCustomId(new CustomID('modPanel:removeAllReactions', [author.id, messageId]).toString())
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(emojis.add_icon),
+      .setEmoji(getEmoji('plus_icon', interaction.client)),
     new ButtonBuilder()
       .setCustomId(new CustomID('modPanel:deleteMsg', [author.id, messageId]).toString())
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(emojis.deleteDanger_icon)
+      .setEmoji(getEmoji('deleteDanger_icon', interaction.client))
       .setDisabled(opts.isDeleteInProgress),
   );
 
@@ -178,7 +183,7 @@ function buildButtons(interaction: Interaction | Message, messageId: Snowflake, 
       new ButtonBuilder()
         .setCustomId(new CustomID('modPanel:banUser', [author.id, messageId]).toString())
         .setStyle(ButtonStyle.Secondary)
-        .setEmoji(emojis.blobFastBan)
+        .setEmoji(getEmoji('blobFastBan', interaction.client))
         .setDisabled(opts.isBanned),
     );
   }
@@ -188,13 +193,13 @@ function buildButtons(interaction: Interaction | Message, messageId: Snowflake, 
       .setCustomId(new CustomID('modPanel:viewInfractions', [author.id, messageId]).toString())
       .setLabel('View Infractions')
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(emojis.exclamation),
+      .setEmoji(getEmoji('exclamation', interaction.client)),
   );
 
   return [buttons, extras];
 }
 
-function buildInfoEmbed(username: string, servername: string, opts: BuilderOpts) {
+function buildInfoEmbed(username: string, servername: string, client: Client, opts: BuilderOpts) {
   const userEmbedDesc = opts.isUserBlacklisted
     ? `~~User **${username}** is already blacklisted.~~`
     : `Blacklist user **${username}** from this hub.`;
@@ -214,11 +219,11 @@ function buildInfoEmbed(username: string, servername: string, opts: BuilderOpts)
   return new EmbedBuilder().setColor(Constants.Colors.invisible).setFooter({
     text: 'Target will be notified of the blacklist. Use /blacklist list to view all blacklists.',
   }).setDescription(stripIndents`
-        ### ${emojis.timeout_icon} Moderation Actions
-        **${emojis.user_icon} Blacklist User**: ${userEmbedDesc}
-        **${emojis.globe_icon} Blacklist Server**: ${serverEmbedDesc}
-        **${emojis.add_icon} Remove Reactions**: Remove all reactions from this message.
-        **${emojis.deleteDanger_icon} Delete Message**: ${deleteDesc}
-        **${emojis.blobFastBan} Ban User**: ${banUserDesc}
+        ### ${getEmoji('timeout_icon', client)} Moderation Actions
+        **${getEmoji('user_icon', client)} Blacklist User**: ${userEmbedDesc}
+        **${getEmoji('globe_icon', client)} Blacklist Server**: ${serverEmbedDesc}
+        **${getEmoji('plus_icon', client)} Remove Reactions**: Remove all reactions from this message.
+        **${getEmoji('deleteDanger_icon', client)} Delete Message**: ${deleteDesc}
+        **${getEmoji('blobFastBan', client)} Ban User**: ${banUserDesc}
     `);
 }

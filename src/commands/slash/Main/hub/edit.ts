@@ -2,7 +2,7 @@ import { RegisterInteractionHandler } from '#main/decorators/RegisterInteraction
 import HubLogManager, { LogConfigTypes as HubConfigTypes } from '#main/managers/HubLogManager.js';
 import HubManager from '#main/managers/HubManager.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { hubEditSelects, hubEmbed } from '#utils/hub/edit.js';
@@ -11,6 +11,7 @@ import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
   type ChatInputCommandInteraction,
+  Client,
   type MessageComponentInteraction,
   ModalBuilder,
   type ModalSubmitInteraction,
@@ -25,7 +26,7 @@ export default class HubEdit extends HubCommand {
     const { hub, locale } = await this.getInitialData(interaction);
     if (!hub) return;
 
-    const embed = await this.getRefreshedEmbed(hub);
+    const embed = await this.getRefreshedEmbed(hub, interaction.client);
     await interaction.reply({
       embeds: [embed],
       components: [hubEditSelects(hub.id, interaction.user.id, locale)],
@@ -90,11 +91,11 @@ export default class HubEdit extends HubCommand {
     const hub = await this.fetchHubFromDb(interaction.user.id, chosenHub);
 
     if (!hub) {
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }));
       return { hub: null, locale };
     }
     else if (!(await hub.isManager(interaction.user.id))) {
-      await this.replyEmbed(interaction, t('hub.notManager', locale, { emoji: emojis.no }));
+      await this.replyEmbed(interaction, t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }));
       return { hub: null, locale };
     }
 
@@ -175,7 +176,7 @@ export default class HubEdit extends HubCommand {
       `${lockedStatus === 'locked' ? '🔒' : '🔓'} Hub chats are now **${lockedStatus}**.`,
     );
 
-    const embed = await this.getRefreshedEmbed(hub);
+    const embed = await this.getRefreshedEmbed(hub, interaction.client);
     await interaction.message.edit({ embeds: [embed] }).catch(() => null);
 
     await sendToHub(hub.id, {
@@ -207,7 +208,7 @@ export default class HubEdit extends HubCommand {
       embeds: [
         new InfoEmbed().setDescription(
           t('hub.manage.logs.channelSuccess', locale, {
-            emoji: emojis.yes,
+            emoji: this.getEmoji('tick_icon'),
             type,
             channel: channelStr,
           }),
@@ -227,7 +228,7 @@ export default class HubEdit extends HubCommand {
 
     if (!hub) {
       await interaction.reply({
-        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
+        content: t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
         ephemeral: true,
       });
       return;
@@ -250,7 +251,7 @@ export default class HubEdit extends HubCommand {
 
     const regex = Constants.Regex.ImageURL;
     if (!regex.test(iconUrl)) {
-      await interaction.editReply(t('hub.invalidImgurUrl', locale, { emoji: emojis.no }));
+      await interaction.editReply(t('hub.invalidImgurUrl', locale, { emoji: this.getEmoji('x_icon') }));
       return;
     }
 
@@ -285,20 +286,20 @@ export default class HubEdit extends HubCommand {
     // check if imgur url is a valid jpg, png, jpeg or gif and NOT a gallery or album link
     const regex = Constants.Regex.ImageURL;
     if (!regex.test(bannerUrl)) {
-      await interaction.editReply(t('hub.invalidImgurUrl', locale, { emoji: emojis.no }));
+      await interaction.editReply(t('hub.invalidImgurUrl', locale, { emoji: this.getEmoji('x_icon') }));
       return;
     }
 
     await hub.setBannerUrl(bannerUrl);
 
-    await interaction.editReply(emojis.yes + t('hub.manage.banner.changed', locale));
+    await interaction.editReply(this.getEmoji('tick_icon') + t('hub.manage.banner.changed', locale));
   }
 
   private async updateOriginalMessage(interaction: ModalSubmitInteraction, hubId: string) {
     const updatedHub = await this.hubService.fetchHub(hubId);
 
     if (updatedHub) {
-      const embed = await this.getRefreshedEmbed(updatedHub);
+      const embed = await this.getRefreshedEmbed(updatedHub, interaction.client);
       await interaction.message?.edit({ embeds: [embed] }).catch(() => null);
     }
   }
@@ -310,7 +311,7 @@ export default class HubEdit extends HubCommand {
 
     if (customId.args[0] !== interaction.user.id) {
       const embed = new InfoEmbed().setDescription(
-        t('errors.notYourAction', locale, { emoji: emojis.no }),
+        t('errors.notYourAction', locale, { emoji: this.getEmoji('x_icon') }),
       );
 
       await interaction.reply({ embeds: [embed], ephemeral: true });
@@ -319,7 +320,7 @@ export default class HubEdit extends HubCommand {
 
     const hub = await this.hubService.fetchHub(customId.args[1]);
     if (!hub) {
-      const embed = new InfoEmbed().setDescription(t('hub.notFound', locale, { emoji: emojis.no }));
+      const embed = new InfoEmbed().setDescription(t('hub.notFound', locale, { emoji: this.getEmoji('x_icon') }));
       await interaction.reply({ embeds: [embed], ephemeral: true });
       return {};
     }
@@ -337,7 +338,7 @@ export default class HubEdit extends HubCommand {
 
     if (!(await hub?.isManager(interaction.user.id))) {
       await interaction.reply({
-        content: t('hub.notManager', locale, { emoji: emojis.no }),
+        content: t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }),
         ephemeral: true,
       });
       return {};
@@ -347,7 +348,7 @@ export default class HubEdit extends HubCommand {
   }
 
   private channelMention(channelId: string | null | undefined) {
-    if (!channelId) return emojis.no;
+    if (!channelId) return this.getEmoji('x_icon');
     return `<#${channelId}>`;
   }
 
@@ -360,7 +361,7 @@ export default class HubEdit extends HubCommand {
 
     if (!hub) {
       await interaction.reply({
-        content: t('hub.notFound_mod', locale, { emoji: emojis.no }),
+        content: t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
         ephemeral: true,
       });
       return null;
@@ -369,9 +370,9 @@ export default class HubEdit extends HubCommand {
     return hub;
   }
 
-  private async getRefreshedEmbed(hub: HubManager) {
+  private async getRefreshedEmbed(hub: HubManager, client: Client) {
     const connections = await hub.fetchConnections();
     const mods = await hub.moderators.fetchAll();
-    return await hubEmbed(hub.data, connections.length, mods.length);
+    return await hubEmbed(hub.data, connections.length, mods.length, client);
   }
 }

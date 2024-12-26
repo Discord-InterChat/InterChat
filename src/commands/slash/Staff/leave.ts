@@ -6,7 +6,7 @@ import {
 } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { isDev, resolveEval } from '#utils/Utils.js';
-import { emojis } from '#utils/Constants.js';
+
 
 export default class Respawn extends BaseCommand {
   readonly staffOnly = true;
@@ -25,7 +25,7 @@ export default class Respawn extends BaseCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     if (!isDev(interaction.user.id)) {
       await interaction.reply({
-        content: `${emojis.dnd_anim} You are not authorized to use this command.`,
+        content: `${this.getEmoji('dnd_anim')} You are not authorized to use this command.`,
         ephemeral: true,
       });
       return;
@@ -44,7 +44,7 @@ export default class Respawn extends BaseCommand {
     );
 
     await interaction.reply(
-      `${emojis.tick} Successfully Left guild ${leftGuild?.name} (${leftGuild?.id})`,
+      `${this.getEmoji('tick')} Successfully Left guild ${leftGuild?.name} (${leftGuild?.id})`,
     );
   }
 }

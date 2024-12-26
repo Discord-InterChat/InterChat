@@ -1,7 +1,7 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { HubJoinService } from '#main/services/HubJoinService.js';
-import Constants, { emojis } from '#main/utils/Constants.js';
+import Constants from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { stripIndents } from 'common-tags';
@@ -36,7 +36,7 @@ export default class SetupCommand extends BaseCommand {
   public async execute(interaction: ChatInputCommandInteraction) {
     const embed = new InfoEmbed().setDescription(
       stripIndents`
-        ## ${emojis.guide_icon} Interchat Setup - Let\'s get started!
+        ## ${this.getEmoji('wiki_icon')} Interchat Setup - Let\'s get started!
         Let's get started with setting up a connection to a hub from a channel in this server. 
         ### Hub?
         A **hub** is a **group**—where servers connect to, to chat together. Once you setup the bot in a channel, messages to and from that channel will go to other servers in that hub.
@@ -114,7 +114,7 @@ export default class SetupCommand extends BaseCommand {
     if (!joinSuccess) return;
 
     const embed1 = new InfoEmbed().setDescription(stripIndents`
-      ## ${emojis.yes} Setup Complete!
+      ## ${this.getEmoji('tick_icon')} Setup Complete!
       InterChat has been setup in ${channel.toString()}! You can now chat with other servers from this channel. 🎉 
     `);
 

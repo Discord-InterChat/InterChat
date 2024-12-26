@@ -1,4 +1,4 @@
-import { emojis } from '#utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import Logger from '#utils/Logger.js';
 import type { RepliableInteraction, User } from 'discord.js';
 
@@ -9,7 +9,10 @@ export const handleBan = async (
   reason: string,
 ) => {
   if (targetId === interaction.user.id) {
-    await interaction.reply({ content: `Let's not go there. ${emojis.bruhcat}`, ephemeral: true });
+    await interaction.reply({
+      content: `Let's not go there. ${getEmoji('bruhcat', interaction.client)}`,
+      ephemeral: true,
+    });
     return;
   }
 
@@ -18,7 +21,7 @@ export const handleBan = async (
 
   if (dbUser?.banReason) {
     await interaction.reply({
-      content: `${emojis.slash} This user is already banned.`,
+      content: `${getEmoji('slash', interaction.client)} This user is already banned.`,
       ephemeral: true,
     });
     return;
@@ -30,6 +33,6 @@ export const handleBan = async (
   Logger.info(`User ${targetUsername} (${targetId}) banned by ${interaction.user.username}.`);
 
   await interaction.reply(
-    `${emojis.tick} Successfully banned \`${targetUsername}\`. They can no longer use the bot.`,
+    `${getEmoji('tick', interaction.client)} Successfully banned \`${targetUsername}\`. They can no longer use the bot.`,
   );
 };

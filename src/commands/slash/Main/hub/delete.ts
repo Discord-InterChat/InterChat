@@ -1,7 +1,7 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { HubService } from '#main/services/HubService.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
-import { emojis } from '#utils/Constants.js';
+
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -27,7 +27,7 @@ export default class Delete extends HubCommand {
     if (!hub) {
       const infoEmbed = new InfoEmbed().setDescription(
         t('hub.notOwner', await interaction.client.userManager.getUserLocale(interaction.user.id), {
-          emoji: emojis.no,
+          emoji: this.getEmoji('x_icon'),
         }),
       );
       await interaction.reply({ embeds: [infoEmbed], ephemeral: true });
@@ -80,7 +80,7 @@ export default class Delete extends HubCommand {
 
     if (interaction.user.id !== userId) {
       const infoEmbed = new InfoEmbed().setDescription(
-        t('hub.delete.ownerOnly', locale, { emoji: emojis.no }),
+        t('hub.delete.ownerOnly', locale, { emoji: this.getEmoji('x_icon') }),
       );
 
       await interaction.reply({ embeds: [infoEmbed], ephemeral: true });
@@ -89,7 +89,7 @@ export default class Delete extends HubCommand {
 
     if (customId.suffix === 'cancel') {
       const infoEmbed = new InfoEmbed().setDescription(
-        t('hub.delete.cancelled', locale, { emoji: emojis.no }),
+        t('hub.delete.cancelled', locale, { emoji: this.getEmoji('x_icon') }),
       );
 
       await interaction.update({ embeds: [infoEmbed], components: [] });
@@ -97,7 +97,7 @@ export default class Delete extends HubCommand {
     }
 
     const embed = new InfoEmbed().setDescription(
-      t('misc.loading', locale, { emoji: emojis.loading }),
+      t('misc.loading', locale, { emoji: this.getEmoji('loading') }),
     );
 
     await interaction.update({ embeds: [embed], components: [] });
@@ -108,7 +108,7 @@ export default class Delete extends HubCommand {
     // only the owner can delete the hub
     if (!hubInDb?.isOwner(interaction.user.id)) {
       const infoEmbed = new InfoEmbed().setDescription(
-        t('hub.notFound', locale, { emoji: emojis.no }),
+        t('hub.notFound', locale, { emoji: this.getEmoji('x_icon') }),
       );
 
       await interaction.editReply({ embeds: [infoEmbed] });
@@ -119,7 +119,7 @@ export default class Delete extends HubCommand {
     await hubService.deleteHub(hubInDb.id);
 
     await interaction.editReply({
-      content: t('hub.delete.success', locale, { emoji: emojis.tick, hub: hubInDb.data.name }),
+      content: t('hub.delete.success', locale, { emoji: this.getEmoji('tick'), hub: hubInDb.data.name }),
       embeds: [],
     });
   }

@@ -1,4 +1,3 @@
-import { emojis } from '#utils/Constants.js';
 import BaseCommand, { type CmdData } from '#main/core/BaseCommand.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type ChatInputCommandInteraction, ApplicationCommandOptionType } from 'discord.js';
@@ -25,7 +24,7 @@ export default class Unban extends BaseCommand {
 
     if (!alreadyBanned?.banReason) {
       const notBannedEmbed = new InfoEmbed().setDescription(
-        `${emojis.slash} User **${user.username}** is not banned.`,
+        `${this.getEmoji('slash')} User **${user.username}** is not banned.`,
       );
       await interaction.reply({ embeds: [notBannedEmbed] });
       return;
@@ -34,7 +33,7 @@ export default class Unban extends BaseCommand {
     await userManager.unban(user.id, user.username);
 
     const unbanEmbed = new InfoEmbed().setDescription(
-      `${emojis.tick} Successfully unbanned \`${user.username}\`. They can use the bot again.`,
+      `${this.getEmoji('tick')} Successfully unbanned \`${user.username}\`. They can use the bot again.`,
     );
     await interaction.reply({ embeds: [unbanEmbed] });
   }

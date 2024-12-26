@@ -8,7 +8,7 @@ import { HubJoinService } from '#main/services/HubJoinService.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
@@ -33,22 +33,22 @@ export default class BrowseCommand extends HubCommand {
     );
 
     if (!hubs.length) {
-      await this.replyEmbed(interaction, 'hub.notFound', { t: { emoji: emojis.slash } });
+      await this.replyEmbed(interaction, 'hub.notFound', { t: { emoji: this.getEmoji('slash') } });
       return;
     }
 
     // make paginated embed with 4 hubs in each page as a field
-    await new Pagination()
+    await new Pagination(interaction.client)
       .addPages(
-        await this.getPages(interaction.guildId, hubs, interaction.client.user.displayAvatarURL()),
+        await this.getPages(interaction.guildId, hubs),
       )
       .run(interaction);
   }
 
-  private buildEmbed(totalHubs: number, fields: EmbedField[], thumbnail: string) {
+  private buildEmbed(totalHubs: number, fields: EmbedField[]) {
     return new InfoEmbed()
       .addFields(fields)
-      .setThumbnail(thumbnail)
+      .setThumbnail('https://i.imgur.com/tWuSzBd.png')
       .setDescription(
         stripIndents`### Discoverable Hubs
           There are **${totalHubs}** hubs currently available for you to join.`,
@@ -68,7 +68,7 @@ export default class BrowseCommand extends HubCommand {
       return;
     }
 
-    await interaction.deferReply();
+    await interaction.deferReply({ ephemeral: true });
 
     const hub = await this.hubService.fetchHub(chosenHubId);
     if (!hub) {
@@ -85,13 +85,13 @@ export default class BrowseCommand extends HubCommand {
       );
 
       if (!connection) {
-        await interaction.editReply(`${emojis.neutral} This server is not in this hub.`);
+        await interaction.editReply(`${this.getEmoji('neutral')} This server is not in this hub.`);
         return;
       }
 
       await interaction.editReply({
         content: 'Are you sure you want to leave this hub?',
-        components: [hubLeaveConfirmButtons(connection.channelId, connection.hubId)],
+        components: [hubLeaveConfirmButtons(connection.data.channelId, connection.hubId)],
       });
     }
   }
@@ -102,7 +102,7 @@ export default class BrowseCommand extends HubCommand {
     return {
       name: `${hub.name}`,
       value:
-        `${emojis.user_icon} ${connections.length} ・ ${emojis.chat_icon} ${time(lastActiveConnection?.data.lastActive ?? new Date(), 'R')}\n\n${hub.description}`.slice(
+        `${this.getEmoji('person_icon')} ${connections.length} ・ ${this.getEmoji('chat_icon')} ${time(lastActiveConnection?.data.lastActive ?? new Date(), 'R')}\n\n${hub.description}`.slice(
           0,
           300,
         ),
@@ -115,12 +115,12 @@ export default class BrowseCommand extends HubCommand {
     const joinOption = new StringSelectMenuOptionBuilder()
       .setLabel(disabled ? `Leave ${hub.data.name}` : `Join ${hub.data.name}`)
       .setValue(disabled ? `leave:${hub.id}` : `join:${hub.id}`)
-      .setEmoji(disabled ? emojis.leave : emojis.join);
+      .setEmoji(disabled ? this.getEmoji('hangup_icon') : this.getEmoji('call_icon'));
 
     return { joinOption };
   }
 
-  private async getPages(guildId: string, hubs: HubManager[], thumbnail: string) {
+  private async getPages(guildId: string, hubs: HubManager[]) {
     const pages: BaseMessageOptions[] = [];
     let fields: EmbedField[] = [];
 
@@ -135,14 +135,15 @@ export default class BrowseCommand extends HubCommand {
     );
 
     hubs.forEach((hub, index) => {
-      if (fields.length === 2 || fields.length === 5) {
+      if (index % 2 === 0 && index !== 0) {
         fields.push({ name: '\u200b', value: '\u200b', inline: true });
       }
+
 
       if (index === hubs.length - 1 || fields.length === 6) {
         pages.push({
           content: `**✨ NEW**: View and join hubs directly from the website, with a much better experience! - ${Constants.Links.Website}/hubs`,
-          embeds: [this.buildEmbed(hubs.length, fields, thumbnail)],
+          embeds: [this.buildEmbed(hubs.length, fields)],
           components: [joinMenu.toJSON()],
         });
 

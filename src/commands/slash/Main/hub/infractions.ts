@@ -4,7 +4,7 @@ import InfractionManager from '#main/managers/InfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { RemoveMethods } from '#main/types/Utils.js';
 import { msToReadable } from '#main/utils/Utils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import { buildInfractionListEmbeds } from '#utils/moderation/infractionUtils.js';
@@ -62,7 +62,7 @@ export default class ViewInfractions extends HubCommand {
 
     if (!hub.length) {
       const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }));
       return null;
     }
 
@@ -332,7 +332,7 @@ export default class ViewInfractions extends HubCommand {
     interaction: ChatInputCommandInteraction,
     pages: BaseMessageOptions[],
   ) {
-    const paginator = new Pagination().addPages(pages);
+    const paginator = new Pagination(interaction.client).addPages(pages);
     await paginator.run(interaction);
   }
 }

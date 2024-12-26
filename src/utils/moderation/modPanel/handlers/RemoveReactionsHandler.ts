@@ -1,10 +1,10 @@
-import { emojis } from '#utils/Constants.js';
 import type { ReactionArray } from '#types/Utils.d.ts';
 import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import { ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
 import { updateReactions } from '#utils/reaction/actions.js';
 import sortReactions from '#utils/reaction/sortReactions.js';
 import { ButtonInteraction, Snowflake } from 'discord.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export default class RemoveReactionsHandler implements ModAction {
   async handle(interaction: ButtonInteraction, originalMsgId: Snowflake): Promise<void> {
@@ -18,7 +18,7 @@ export default class RemoveReactionsHandler implements ModAction {
 
     if (!sortReactions((originalMsg.reactions as ReactionArray) ?? {}).length) {
       await interaction.followUp({
-        content: `${emojis.slash} No reactions to remove.`,
+        content: `${getEmoji('slash', interaction.client)} No reactions to remove.`,
         ephemeral: true,
       });
       return;
@@ -26,6 +26,9 @@ export default class RemoveReactionsHandler implements ModAction {
 
     await updateReactions(originalMsg, {});
 
-    await interaction.followUp({ content: `${emojis.yes} Reactions removed.`, ephemeral: true });
+    await interaction.followUp({
+      content: `${getEmoji('tick_icon', interaction.client)} Reactions removed.`,
+      ephemeral: true,
+    });
   }
 }

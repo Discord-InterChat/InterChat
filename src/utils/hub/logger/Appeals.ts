@@ -1,4 +1,5 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { toTitleCase } from '#utils/Utils.js';
 import {
@@ -57,20 +58,21 @@ export const logAppeals = async (
     })
     .setColor(Constants.Colors.invisible);
 
+
   const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(
         new CustomID('appealReview:approve', [type, hubId, opts.appealTargetId]).toString(),
       )
       .setLabel('Approve')
-      .setEmoji(emojis.yes)
+      .setEmoji(getEmoji('tick_icon', appealer.client))
       .setStyle(ButtonStyle.Success),
     new ButtonBuilder()
       .setCustomId(
         new CustomID('appealReview:reject', [type, hubId, opts.appealTargetId]).toString(),
       )
       .setLabel('Reject')
-      .setEmoji(emojis.no)
+      .setEmoji(getEmoji('x_icon', appealer.client))
       .setStyle(ButtonStyle.Danger),
   );
 

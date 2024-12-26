@@ -2,13 +2,14 @@ import { RegisterInteractionHandler } from '#main/decorators/RegisterInteraction
 import HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 import db from '#main/utils/Db.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import {
   findOriginalMessage,
   getOriginalMessage,
   OriginalMessage,
   storeMessage,
 } from '#main/utils/network/messageUtils.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { CustomID, ParsedCustomId } from '#utils/CustomID.js';
 import { t } from '#utils/Locale.js';
 import { addReaction, removeReaction, updateReactions } from '#utils/reaction/actions.js';
@@ -20,6 +21,7 @@ import {
   ActionRowBuilder,
   AnySelectMenuInteraction,
   ButtonInteraction,
+  Client,
   EmbedBuilder,
   Snowflake,
   StringSelectMenuBuilder,
@@ -83,7 +85,7 @@ export default class NetworkReactionInteraction {
     const locale = await userManager.getUserLocale(interaction.user.id);
     const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
     await interaction.followUp({
-      content: t(phrase, locale, { emoji: emojis.no }),
+      content: t(phrase, locale, { emoji: getEmoji('no', interaction.client) }),
       ephemeral: true,
     });
   }
@@ -124,7 +126,11 @@ export default class NetworkReactionInteraction {
       hub,
     );
 
-    const embed = this.buildReactionEmbed(reactionString, totalReactions);
+    const embed = this.buildReactionEmbed(
+      reactionString,
+      totalReactions,
+      interaction.client,
+    );
 
     await interaction.followUp({
       embeds: [embed],
@@ -165,11 +171,11 @@ export default class NetworkReactionInteraction {
     return { reactionMenu, reactionString, totalReactions };
   }
 
-  private buildReactionEmbed(reactionString: string, totalReactions: number) {
+  private buildReactionEmbed(reactionString: string, totalReactions: number, client: Client) {
     return new EmbedBuilder()
       .setDescription(
         stripIndents`
-          ## ${emojis.clipart} Reactions
+          ## ${getEmoji('clipart', client)} Reactions
 
           ${reactionString || 'No reactions yet!'}
 
@@ -194,7 +200,7 @@ export default class NetworkReactionInteraction {
 
     if (!emojiAlreadyReacted) {
       await interaction.followUp({
-        content: `${emojis.no} This reaction doesn't exist.`,
+        content: `${getEmoji('no', interaction.client)} This reaction doesn't exist.`,
         ephemeral: true,
       });
       return;

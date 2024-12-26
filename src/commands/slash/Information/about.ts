@@ -1,4 +1,4 @@
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { getCredits } from '#utils/Utils.js';
@@ -23,7 +23,7 @@ export default class About extends BaseCommand {
     const creditsEmbed = new InfoEmbed()
       .setDescription(
         stripIndents`
-        ### ${emojis.wand} About InterChat
+        ### ${this.getEmoji('wand_icon')} About InterChat
         InterChat is a bot which provides cross-server chats that allows users to talk across different servers. Using webhooks, InterChat broadcasts messages to all connected channels in real time, making server connections seamless.
         ### Notable Features:
         - Cross-server messaging
@@ -43,32 +43,32 @@ export default class About extends BaseCommand {
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Invite')
-        .setEmoji(emojis.add_icon)
+        .setEmoji(this.getEmoji('plus_icon'))
         .setURL('https://discord.com/application-directory/769921109209907241'),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Guide')
-        .setEmoji(emojis.guide_icon)
+        .setEmoji(this.getEmoji('wiki_icon'))
         .setURL(Constants.Links.Docs),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Support')
-        .setEmoji(emojis.code_icon)
+        .setEmoji(this.getEmoji('code_icon'))
         .setURL(Constants.Links.SupportInvite),
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Vote!')
         // NOTE emoji is from official top.gg server
-        .setEmoji(emojis.topggSparkles)
+        .setEmoji(this.getEmoji('topggSparkles'))
         .setURL('https://top.gg/bot/769921109209907241/vote'),
     );
 
     const normalButtons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(new CustomID('about:credits').toString())
-        .setStyle(ButtonStyle.Success)
+        .setStyle(ButtonStyle.Primary)
         .setLabel('Credits & Team')
-        .setEmoji(`${emojis.ghost_heart}`),
+        .setEmoji(`${this.getEmoji('ghost_heart')}`),
     );
 
     await interaction.reply({
@@ -82,7 +82,7 @@ export default class About extends BaseCommand {
     await interaction.deferReply({ ephemeral: true });
 
     const usernames = await this.getUsernames(interaction.client);
-    const creditsDivider = `${emojis.blueLine.repeat(9)} **CREDITS** ${emojis.blueLine.repeat(9)}`;
+    const creditsDivider = `${this.getEmoji('blueLine').repeat(9)} **CREDITS** ${this.getEmoji('blueLine').repeat(9)}`;
 
     const creditsEmbed = new InfoEmbed()
       .setDescription(
@@ -90,16 +90,16 @@ export default class About extends BaseCommand {
       
         ${creditsDivider}
         ✨ **Deserving Mentions:**
-        ${emojis.dotBlue} @${usernames[4]} (maker of our cute mascot chipi ${emojis.chipi_smile})
-        ${emojis.dotBlue} @${usernames[5]} ([top voter](${Constants.Links.Vote}) of all time ${emojis.topggSparkles})
+        ${this.getEmoji('dotBlue')} @${usernames[4]} (maker of our cute mascot chipi ${this.getEmoji('chipi_smile')})
+        ${this.getEmoji('dotBlue')} @${usernames[5]} ([top voter](${Constants.Links.Vote}) of all time ${this.getEmoji('topggSparkles')})
 
-        ${emojis.BadgeDeveloper} **Developers:**
-        ${emojis.dotBlue} @${usernames[0]}
+        ${this.getEmoji('BadgeDeveloper')} **Developers:**
+        ${this.getEmoji('dotBlue')} @${usernames[0]}
 
-        ${emojis.BadgeStaff} **Staff: ([Check Applications!](${Constants.Links.Website}/apply))**
-        ${emojis.dotBlue} @${usernames[1]}
-        ${emojis.dotBlue} @${usernames[2]}
-        ${emojis.dotBlue} @${usernames[3]}
+        ${this.getEmoji('BadgeStaff')} **Staff: ([Check Applications!](${Constants.Links.Website}/apply))**
+        ${this.getEmoji('dotBlue')} @${usernames[1]}
+        ${this.getEmoji('dotBlue')} @${usernames[2]}
+        ${this.getEmoji('dotBlue')} @${usernames[3]}
         ${creditsDivider}
       `,
       )

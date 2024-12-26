@@ -1,12 +1,13 @@
 import { SerializedHubSettings } from '#main/modules/BitFields.js';
-import { emojis } from '#utils/Constants.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { CustomID } from '#utils/CustomID.js';
-import { ActionRowBuilder, Snowflake, StringSelectMenuBuilder } from 'discord.js';
+import { ActionRowBuilder, Client, Snowflake, StringSelectMenuBuilder } from 'discord.js';
 
 export const buildSettingsMenu = (
   rawSettings: SerializedHubSettings,
   hubId: string,
   userId: Snowflake,
+  client: Client,
 ) =>
   new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
@@ -20,7 +21,7 @@ export const buildSettingsMenu = (
       .setPlaceholder('Select an option')
       .addOptions(
         Object.entries(rawSettings).map(([setting, isEnabled]) => {
-          const emoji = isEnabled ? emojis.no : emojis.yes;
+          const emoji = isEnabled ? getEmoji('x_icon', client) : getEmoji('tick_icon', client);
           return {
             label: `${isEnabled ? 'Disable' : 'Enable'} ${setting}`,
             value: setting,

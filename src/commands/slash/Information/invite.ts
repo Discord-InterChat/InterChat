@@ -1,6 +1,6 @@
 import { ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
 
 export default class Invite extends BaseCommand {
@@ -15,8 +15,8 @@ export default class Invite extends BaseCommand {
       content: t('invite', locale, {
         support: Constants.Links.SupportInvite,
         invite: Constants.Links.AppDirectory,
-        invite_emoji: emojis.add_icon,
-        support_emoji: emojis.code_icon,
+        invite_emoji: this.getEmoji('plus_icon'),
+        support_emoji: this.getEmoji('code_icon'),
       }),
     });
   }

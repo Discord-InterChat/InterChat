@@ -1,5 +1,5 @@
 import { Pagination } from '#main/modules/Pagination.js';
-import Constants, { emojis } from '#utils/Constants.js';
+import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { toTitleCase } from '#utils/Utils.js';
@@ -20,7 +20,7 @@ export default class ListBlacklists extends BlacklistCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (!hub) {
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: emojis.no }));
+      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }));
       return;
     }
 
@@ -38,7 +38,7 @@ export default class ListBlacklists extends BlacklistCommand {
     let counter = 0;
     const type = isServerType(list[0]) ? 'server' : 'user';
 
-    const paginator = new Pagination();
+    const paginator = new Pagination(interaction.client);
     for (const data of list) {
       const moderator = data.moderatorId
         ? await interaction.client.users.fetch(data.moderatorId).catch(() => null)

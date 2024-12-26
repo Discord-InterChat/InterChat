@@ -4,7 +4,7 @@
 */
 
 export type TranslationKeys = {
-  'rules.rules': never;
+  'rules.rules': 'rules_emoji';
   'rules.welcome': 'emoji' | 'user';
   'rules.accepted': 'emoji' | 'guide';
   'rules.alreadyAccepted': 'emoji';
