@@ -36,7 +36,7 @@ const route = Routes.applicationEmojis(CLIENT_ID);
 /**
  * @type {Collection<string, import('discord.js').APIEmoji>}
  */
-const emojiCollection = new Collection();
+const APIEmojiCollection = new Collection();
 
 async function initialize() {
   const spinner = new Spinner();
@@ -48,12 +48,14 @@ async function initialize() {
   const requiredEmojisArray = Object.entries(requiredEmojis);
   let missingEmojis = 0;
   let erroredEmojis = 0;
+  const emojisToSyncWithJson = [];
 
   for (let i = 0; i < requiredEmojisArray.length; i++) {
     const [name, data] = requiredEmojisArray[i];
-    const updatedAt = new Date(data.updatedAt || Date.now());
-    let emoji = emojiCollection.get(name);
     const indexStr = greyText(`[${i}/${requiredEmojisArray.length}]`);
+
+    let emoji = APIEmojiCollection.get(name);
+    const updatedAt = new Date(data.updatedAt || Date.now());
 
     if (emoji && getTimestampFromSnowflake(emoji.id) < updatedAt) {
       spinner.update(
@@ -67,10 +69,15 @@ async function initialize() {
       try {
         spinner.update(`${indexStr} Creating emoji ${name}...`);
 
-        await createEmoji({
+        const createdEmoji = await createEmoji({
           name,
           image: await fetchEmojiImage(data.url),
         });
+
+        // if updatedAt is not set, it means the emoji didnt exist before
+        if (!data.updatedAt && createdEmoji.name) {
+          emojisToSyncWithJson.push(createdEmoji);
+        }
 
         missingEmojis++;
       } catch (error) {
@@ -100,19 +107,23 @@ async function initialize() {
 
   spinner.stop(successMsg);
 
-  const newSpinner = new Spinner();
-  newSpinner.start('Updating emojis.json with new emoji IDs...');
-  await updateEmojiJson();
-
-  newSpinner.stop(orangeText('ⓘ ') + 'Updated emojis.json with new emoji IDs.');
+  if (emojisToSyncWithJson.length > 0) {
+    await updateEmojiJson(emojisToSyncWithJson);
+  }
 }
 
-async function updateEmojiJson() {
+/**
+ *
+ * @param {import('discord.js').APIEmoji[]} emojis
+ */
+async function updateEmojiJson(emojis) {
+  const newSpinner = new Spinner();
+  newSpinner.start('Updating emojis.json with new emoji IDs...');
   /**
    * @type {Record<keyof typeof requiredEmojis, string>}
    */
   // @ts-ignore
-  const newEmojis = emojiCollection
+  const newEmojis = emojis
     .filter((e) => e.name)
     .reduce((acc, emoji) => {
       // @ts-ignore
@@ -123,7 +134,10 @@ async function updateEmojiJson() {
       return acc;
     }, {});
 
-  await writeFile('src/utils/JSON/emojis.json', JSON.stringify(newEmojis, null, 2));
+    const updatedEmojiSet = {...requiredEmojis, ...newEmojis }
+
+  await writeFile('src/utils/JSON/emojis.json', JSON.stringify(updatedEmojiSet, null, 2));
+  newSpinner.stop(orangeText('ⓘ ') + `Added ${emojis.length} emojis with new emoji IDs to emojis.json file.`);
 }
 
 /**
@@ -154,7 +168,7 @@ async function fetchEmojis() {
    */
   // @ts-ignore
   const fetched = await rest.get(route);
-  fetched.items.forEach((emoji) => emojiCollection.set(emoji.name, emoji));
+  fetched.items.forEach((emoji) => APIEmojiCollection.set(emoji.name, emoji));
 }
 /**
  *
@@ -165,7 +179,7 @@ async function createEmoji(emoji) {
   /** @type {import('discord.js').APIEmoji} */
   // @ts-ignore
   const created = await rest.post(route, { body: emoji });
-  if (created.name) emojiCollection.set(created.name, created);
+  if (created.name) APIEmojiCollection.set(created.name, created);
   return created;
 }
 

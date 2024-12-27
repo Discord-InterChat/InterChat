@@ -64,7 +64,7 @@ export class MessageProcessor {
       (c) => c.data.connected && c.data.channelId !== message.channelId,
     );
     const connection = allConnections.find((c) => c.data.channelId === message.channelId);
-    if (!connection) return null;
+    if (!connection?.data.connected) return null;
 
     const { userManager } = message.client;
     const userData = await userManager.getUser(message.author.id);
