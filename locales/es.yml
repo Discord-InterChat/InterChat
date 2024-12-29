@@ -1,6 +1,6 @@
 rules:
   rules: |
-    ### Rules:
+    ### {rules_emoji} Rules:
     These rules are in place to make a safe and enjoyable experience for everyone. Read and follow them carefully:
 
     1. **No NSFW, NSFL, or Gore Content**
@@ -25,10 +25,11 @@ rules:
     And remember to follow [Discord's Terms of Service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines).
   welcome: |
     {emoji} Hey {user}, welcome to InterChat!
-    To use InterChat you need to accept the guidelines. Please read and accept them by clicking continue.
+    Before you can start chatting with people from other servers using InterChat, you need to accept the rules. Use the button below to accept them.
   accepted: |
     {emoji} Welcome to InterChat! You have accepted the rules and are now ready to chat with members from other servers!
-    If you are not already in a hub, use `/hub browse` to join one and start chatting. We have a simple [wiki and guide]({guide}) for more tips and tricks. Good luck!
+    If you are not already in a hub, use `/hub browse` to join one and start chatting. If you have any questions or need help, feel free to ask in the [support server]({support_invite}).
+    If you enjoy using InterChat, please consider [donating]({donateLink}) to support the development costs.
   alreadyAccepted: '{emoji} You have already accepted the rules. You can now use InterChat to its full extent.'
 vote:
   description: "## Vote por Interchat\nAl votar, nos apoya ayudando a Interchat a clasificar más alto en las búsquedas. Solo toma un par de clics pero nos ayuda enormemente. ¡Apreciamos profundamente su voto, cada uno cuenta!"
@@ -41,9 +42,7 @@ network:
     embed:
       title: '👋 ¡Hola, bienvenido a {hubName}!'
       description: |
-        Para mantener las cosas organizadas, se recomienda usar un canal separado solo para este centro. Pero no se preocupe, siempre puede cambiar esto más tarde.
-
-        **Cómo funciona:** La red InterChat es como un puente mágico que vincula los canales en diferentes servidores que están con nosotros en este centro. Obtenga más información en nuestra [Guía]({docs_link}).
+        Hey there! You are trying to join a hub called **{hubName}**. In order to chat with members from other servers, you need to accept InterChat's guidelines. Use the button below to continue.
       footer: Red InterChat | Version {version}
     inProgress: '{emoji} {channel} is already in the process of being setup to join a hub. Please wait for the setup to complete or cancel it if you were the one who initiated it.'
 blacklist:
@@ -166,18 +165,18 @@ hub:
     invalidName: '{emoji} Nombre de la concentración no válida. No debe contener `discord`,`clyde` o `/`. Elija otro nombre.'
     nameTaken: '{emoji} Este nombre del centro ya está tomado. Elija otro nombre.'
     success: |
-      ### Hub creado!
+      ### Your __private__ hub, **{name}**, has been successfully created.
+      To join, create an invite using `/hub invite create` and share the generated code. Then join using `/hub join`.
 
-      ¡Felicidades! Su centro privado, **{name}**, se ha creado con éxito.
-      Para unirse, cree una invitación usando `/Hub Invite Create` y comparta el código generado. Luego únete a usar `/Hub Join`.
+      - **Edit hub:** `/hub edit`
+      - **Generate invite:** `/hub invite create`
+      - **Make public:** `/hub visibility`
+      - **Join hub:** `/hub join`
+      - **Edit hub:** `/hub edit`
+      - **Set report channel:** `/hub logging set_channe;`
+      - **Add moderators:** `/hub moderator add`
 
-      - **Generar invitación:** `/Hub Invite Create`
-      - **Gestión del Hub:** `/Hub Management`
-      - **Unirse al Hub:** `/HUB Join`
-      - **Editar Hub:** `/Hub Management`
-      - **Agregar moderadores:** `/Hub Moderator Add`
-
-      Obtenga más información sobre los centros en nuestra [Guía]({docs_link}). Une el [servidor de soporte]({support_invite}) para obtener ayuda.
+      If you have any questions or need help, feel free to ask in the [support server]({support_invite}). Consider [donating]({donateLink}) to support the development costs.
   delete:
     confirm: '¿Estás seguro de que desea eliminar **{hub}**? Esta acción es irreversible. Todos los servidores conectados, invitaciones y datos de mensajes se eliminarán de este centro.'
     ownerOnly: '{emoji} Solo el propietario de este centro puede eliminarlo.'
@@ -196,16 +195,16 @@ hub:
   invite:
     create:
       success: |
-        ### Invitación creada!
+        ### Invite Created!
 
-        Su invitación ha sido creada con éxito. Otros ahora pueden unirse a este centro utilizando el comando `/HUB Join`.
+        Your invite has been successfully created. Others can now join this hub by using the `/hub join` command.
 
-        - **Únete usando:** `/HUB INVITE: {inviteCode}`
-        - **View Invites:** `/Hub Invited List`
-        - **Expiración:** {expiry}
-        - **Usos**: ∞
+        - **Join using:** `/hub join invite:{inviteCode}`
+        - **View invites:** `/hub invite list`
+        - **Expiry:** {expiry}
+        - **Uses**: ∞
 
-        __Learn más sobre los centros en nuestra [Guía]({docs_link}) .__.
+        **Note:** You can revoke this invite anytime using `/hub invite revoke {inviteCode}`.
     revoke:
       invalidCode: '{emoji} Código de invitación no válido. Asegúrese de haber ingresado un código de invitación válido.'
       success: '{emoji} Invitación {inviteCode} revocada.'
@@ -323,7 +322,7 @@ report:
 language:
   set: '¡Sé de idiomas! Ahora te responderé en **{lang}**.'
 errors:
-  messageNotSentOrExpired: ' Este mensaje no se envió en un centro, ha expirado o le falta permisos para realizar esta acción.'
+  messageNotSentOrExpired: "{emoji} This message was not sent in a hub, has expired, or you lack permissions to perform this action."
   notYourAction: "{emoji} Lo siento, no puedes realizar esta acción. Por favor ejecute el comando usted mismo."
   notMessageAuthor: '{emoji} No eres el autor de este mensaje.'
   commandError: |
@@ -349,8 +348,8 @@ errors:
   cooldown: '{emoji} Estás en el tiempo de reutilización. Espere **{time}** antes de intentarlo nuevamente.'
   serverNameInappropriate: '{emoji} Your server name contains inappropriate words. Please change it before joining the hub.'
   banned: |
-    {emoji} se le ha prohibido usar Interchat por la razón **{reason}**
-    Si cree que es aplicable una apelación, cree un ticket en el [Servidor de soporte]({support_invite}).
+    {emoji} You have been banned from using InterChat for violating our [guidelines](https://interchat.tech/guidelines).
+    If you think an appeal is applicable create a ticket in the [support server]( {support_invite} ).
 misc:
   webhookNoLongerExists: '{emoji} El webhook para este canal ya no existe. Para continuar usando Interchat, vuelva a habilitar el webhook cambiando la conexión a otro canal usando `/Connection`.'
   noReason: No se proporcionó ninguna razón.
