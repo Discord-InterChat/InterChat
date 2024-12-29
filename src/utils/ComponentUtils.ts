@@ -1,19 +1,19 @@
-import Constants from '#utils/Constants.js';
 import Scheduler from '#main/services/SchedulerService.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
 import { randomBytes } from 'crypto';
 import {
+  ActionRow,
   ActionRowBuilder,
   ButtonBuilder,
-  Snowflake,
   ButtonStyle,
-  messageLink,
-  ActionRow,
-  MessageActionRowComponent,
+  Client,
   ComponentType,
   Message,
-  Client,
+  MessageActionRowComponent,
+  messageLink,
+  Snowflake,
 } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export const greyOutButton = (row: ActionRowBuilder<ButtonBuilder>, disableElement: number) => {
   row.components.forEach((c) => c.setDisabled(false));
@@ -85,10 +85,8 @@ export const setComponentExpiry = (
   return timerId;
 };
 
-export const donateButton = new ActionRowBuilder<ButtonBuilder>().addComponents(
-  new ButtonBuilder()
-    .setLabel('Donate')
-    .setURL(`${Constants.Links.Website}/donate`)
-    .setEmoji('💗')
-    .setStyle(ButtonStyle.Link),
-);
+export const donateButton = new ButtonBuilder()
+  .setLabel('Donate')
+  .setURL(`${Constants.Links.Website}/donate`)
+  .setEmoji('💗')
+  .setStyle(ButtonStyle.Link);

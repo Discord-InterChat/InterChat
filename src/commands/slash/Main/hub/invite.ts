@@ -1,12 +1,11 @@
+import { HubService } from '#main/services/HubService.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { handleError } from '#main/utils/Utils.js';
-import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import ms from 'ms';
 import HubCommand from './index.js';
-import { HubService } from '#main/services/HubService.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 
 export default class Invite extends HubCommand {
   readonly cooldown = 3000; // 3 seconds
@@ -74,7 +73,6 @@ export default class Invite extends HubCommand {
       .setDescription(
         t('hub.invite.create.success', locale, {
           inviteCode: createdInvite.code,
-          docs_link: Constants.Links.Docs,
           expiry: `<t:${Math.round(createdInvite.expires.getTime() / 1000)}:R>`,
         }),
       )

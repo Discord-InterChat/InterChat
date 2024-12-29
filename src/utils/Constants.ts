@@ -88,10 +88,10 @@ export default {
   },
 
   Links: {
-    Website: 'https://interchat.fun',
+    Website: 'https://interchat.tech',
     TopggApi: 'https://top.gg/api/bots/769921109209907241',
     Vote: 'https://top.gg/bot/769921109209907241/vote',
-    Docs: 'https://docs.interchat.fun',
+    Donate: 'https://ko-fi.com/dev737',
     SupportInvite: 'https://discord.gg/8DhUA4HNpD',
     AppDirectory: 'https://discord.com/application-directory/769921109209907241',
     RulesBanner: 'https://i.imgur.com/MBG0Rks.png',

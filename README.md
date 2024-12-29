@@ -22,16 +22,16 @@ A powerful Discord bot for easy and real-time chatting hubs across multiple Disc
 <br />
 
 <div align="center">
-  <a href="https://docs.interchat.fun"><kbd> <br> Documentation <br> </kbd></a>&ensp;&ensp;
   <a href="#-getting-started"><kbd> <br> Invite InterChat&ensp;<br> </kbd></a>&ensp;&ensp;
   <a href="#-support"><kbd> <br> Support Server&ensp;<br> </kbd></a>&ensp;&ensp;
+  <a href="https://interchat.tech/vote"><kbd> <br> Vote on Top.gg <br> </kbd></a>&ensp;&ensp;
 </div>
 
 <br>
 
 <div align="center">
   <a href="https://ko-fi.com/V7V017M8GW">
-    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Discord">
+    <img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Donate">
   </a>
 </div>
 
@@ -46,12 +46,12 @@ A powerful Discord bot for easy and real-time chatting hubs across multiple Disc
 
 ## 🚀 Getting Started
 
-1. Invite InterChat to your Discord server using [this link](https://interchat.fun/invite).
+1. Invite InterChat to your Discord server using [this link][invite].
 2. Use the `/hub browse` command to configure your first hub.
 3. Connect a channel to a hub containing many other discord servers using the `/hub join` command.
 4. Start chatting across servers!
 
-For detailed instructions, check out our [Documentation](https://docs.interchat.fun).
+For detailed instructions, check out our [Donate](https://ko-fi.com/dev737).
 
 ## 💻 Self-Hosting
 
@@ -95,7 +95,7 @@ For full terms and conditions, see the [`LICENSE`](LICENSE) file in the reposito
 
 ## 📞 Support
 
-If you need help or have any questions, join our [Discord support server](https://interchat.fun/support).
+If you need help or have any questions, join our [Discord support server][support]
 
 ## ✨ Acknowledgements
 
@@ -111,6 +111,9 @@ Thanks to the Discord community and all our contributors:
 Made with ❤️ by the <a href="https://github.com/orgs/Discord-InterChat/people">InterChat Team</a>!
 </p>
 
+[invite]: https://interchat.tech/invite
+[support]: https://discord.gg/cgYgC6YZyX
+
 <!--
 ## Tensorflow Errors
 
@@ -122,3 +125,4 @@ Error: The specified module could not be found.
 ```
 
 A simple fix would be to copy `node_modules/@tensorflow/tfjs-node/lib/napi-v9/tensorflow.dll` into `node_modules/@tensorflow/tfjs-node/lib/napi-v8/`. Everything should work fine after that. (just use linux frfr)
+ -->

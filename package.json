@@ -20,6 +20,9 @@
   "engines": {
     "node": ">=v20.16.0"
   },
+  "sponsor": {
+    "url": "https://ko-fi.com/dev737"
+  },
   "type": "module",
   "dependencies": {
     "@prisma/client": "^6.1.0",
@@ -71,6 +74,5 @@
   "imports": {
     "#main/*.js": "./build/*.js",
     "#utils/*": "./build/utils/*"
-  },
-  "packageManager": "pnpm@9.6.0"
+  }
 }

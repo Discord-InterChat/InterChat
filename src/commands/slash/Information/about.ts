@@ -13,6 +13,7 @@ import {
 } from 'discord.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { donateButton } from '#main/utils/ComponentUtils.js';
 
 export default class About extends BaseCommand {
   public readonly data: CmdData = {
@@ -32,7 +33,7 @@ export default class About extends BaseCommand {
         - Webhook management for smoother message handling
         - [And more](${Constants.Links.Website}/#features)! 🚀
         ### Quick Links:
-       [Guide](${Constants.Links.Docs}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${Constants.Links.SupportInvite}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${Constants.Links.Docs}/legal/privacy) • [Terms](${Constants.Links.Docs}/legal/terms)
+       [Donate](${Constants.Links.Donate}) • [Invite](https://discord.com/application-directory/769921109209907241) • [Support Server](${Constants.Links.SupportInvite}) • [Vote](https://top.gg/bot/769921109209907241/vote) • [Privacy](${Constants.Links.Donate}/legal/privacy) • [Terms](${Constants.Links.Donate}/legal/terms)
       `,
       )
       .setFooter({
@@ -45,11 +46,7 @@ export default class About extends BaseCommand {
         .setLabel('Invite')
         .setEmoji(this.getEmoji('plus_icon'))
         .setURL('https://discord.com/application-directory/769921109209907241'),
-      new ButtonBuilder()
-        .setStyle(ButtonStyle.Link)
-        .setLabel('Guide')
-        .setEmoji(this.getEmoji('wiki_icon'))
-        .setURL(Constants.Links.Docs),
+      donateButton,
       new ButtonBuilder()
         .setStyle(ButtonStyle.Link)
         .setLabel('Support')

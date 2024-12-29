@@ -24,24 +24,20 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
         Thanks for adding InterChat to your server! I am a discord bot that lets you chat with people from other servers in real-time. 🚀
         ### Quick Start
         1. Run \`/setup\` to quickly connect to your first hub!
-        2. Or browse & join hubs from [interchat.fun/hubs](${Constants.Links.Website}/hubs) like a pro 😎
-        3. Check our [wiki](${Constants.Links.Docs}) for advanced features.
-  
-        Need help? Join our [support server](${Constants.Links.SupportInvite})!
+        2. Or browse & join hubs from [interchat.tech/hubs](${Constants.Links.Website}/hubs) like a pro 😎
+        3. Need help? Join our [support server](${Constants.Links.SupportInvite})!
+
+        If you liked InterChat, consider [donating](${Constants.Links.Donate}) to support the project! 🌟
       `,
       )
       .setColor(Constants.Colors.interchatBlue)
       .setFooter({ text: `Sent for server: ${guild.name}`, iconURL: guild.iconURL() ?? undefined });
 
-    const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
+    const buttonsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+      donateButton,
       new ButtonBuilder()
-        .setLabel('Wiki')
-        .setURL(Constants.Links.Docs)
-        .setEmoji(this.getEmoji('wiki_icon'))
-        .setStyle(ButtonStyle.Link),
-      new ButtonBuilder()
-        .setLabel('Terms & Privacy')
-        .setURL(`${Constants.Links.Docs}/legal`)
+        .setLabel('ToS & Privacy')
+        .setURL(`${Constants.Links.Website}/legal`)
         .setEmoji(this.getEmoji('lock_icon'))
         .setStyle(ButtonStyle.Link),
       new ButtonBuilder()
@@ -51,7 +47,9 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
         .setStyle(ButtonStyle.Link),
     );
 
-    const welcomeMsg = { embeds: [embed], components: [buttons, donateButton] };
+    const donateRow = new ActionRowBuilder<ButtonBuilder>().addComponents(donateButton);
+
+    const welcomeMsg = { embeds: [embed], components: [buttonsRow, donateRow] };
     guildOwner?.send(welcomeMsg).catch(() => null);
     guildChannel?.send(welcomeMsg).catch(() => null);
   }

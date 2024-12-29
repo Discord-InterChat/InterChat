@@ -149,7 +149,7 @@ export default class Create extends HubCommand {
         t('hub.create.success', locale, {
           name: hubName,
           support_invite: Constants.Links.SupportInvite,
-          docs_link: Constants.Links.Docs,
+          donateLink: Constants.Links.Donate,
         }),
       )
       .setTimestamp();

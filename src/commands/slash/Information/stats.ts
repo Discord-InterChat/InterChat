@@ -1,5 +1,6 @@
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { donateButton } from '#main/utils/ComponentUtils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { msToReadable } from '#utils/Utils.js';
@@ -68,20 +69,16 @@ export default class Stats extends BaseCommand {
 
     const linksRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
-        .setLabel('Guide')
+        .setLabel('Invite')
         .setStyle(ButtonStyle.Link)
-        .setEmoji(this.getEmoji('wiki_icon'))
-        .setURL(Constants.Links.Docs),
+        .setEmoji(this.getEmoji('plus_icon'))
+        .setURL(`https://discord.com/application-directory/${interaction.client.user?.id}`),
       new ButtonBuilder()
         .setLabel('Support')
         .setStyle(ButtonStyle.Link)
         .setEmoji(this.getEmoji('code_icon'))
         .setURL(Constants.Links.SupportInvite),
-      new ButtonBuilder()
-        .setLabel('Invite')
-        .setStyle(ButtonStyle.Link)
-        .setEmoji(this.getEmoji('plus_icon'))
-        .setURL(`https://discord.com/application-directory/${interaction.client.user?.id}`),
+      donateButton,
     );
     const otherBtns = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()

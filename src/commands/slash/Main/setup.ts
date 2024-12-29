@@ -42,10 +42,11 @@ export default class SetupCommand extends BaseCommand {
         A **hub** is a **group**—where servers connect to, to chat together. Once you setup the bot in a channel, messages to and from that channel will go to other servers in that hub.
         ## Choose a Hub
         1. Click **Official Hub** to join the official InterChat hub. (Recommended)
-        2. Or click **Random Hub** to join to a random community hub! 
+        2. Or click **Random Hub** to join to a random community hub! 🎲
+        3. Once you join a hub, you can start chatting with people from other servers in real-time. Do note that messages sent in the channel will be broadcasted to all servers in the hub.
 
-        You and this server are expected to follow the [guidelines](${Constants.Links.Website}/guidelines) when chatting. We hope you enjoy your time on InterChat. 🎉
-        `,
+        There are many other public hubs you can join from the [website](${Constants.Links.Website}/hubs). You and this server are expected to follow the [guidelines](${Constants.Links.Website}/guidelines) when chatting. We hope you enjoy your time on InterChat. 🎉
+      `,
     );
 
     const channel = interaction.options.getChannel('channel', true, [
@@ -115,7 +116,7 @@ export default class SetupCommand extends BaseCommand {
 
     const embed1 = new InfoEmbed().setDescription(stripIndents`
       ## ${this.getEmoji('tick_icon')} Setup Complete!
-      InterChat has been setup in ${channel.toString()}! You can now chat with other servers from this channel. 🎉 
+      InterChat has been setup in ${channel.toString()}! You can now chat with other servers from this channel. **Do note that messages sent in ${channel} channel will be broadcasted to all servers in the hub.**
     `);
 
     const embed2 = new InfoEmbed().setDescription(stripIndents`
@@ -123,9 +124,9 @@ export default class SetupCommand extends BaseCommand {
     `);
 
     const finalEmbed = new InfoEmbed().setDescription(stripIndents`
-      If you have any questions or need help, feel free to ask in the [support server](${Constants.Links.SupportInvite}). We also have a [Documentation](${Constants.Links.Website}/docs) page for more information.
+      If you have any questions or need help, feel free to ask in the [support server](${Constants.Links.SupportInvite}). If you enjoy using InterChat, consider [donating](${Constants.Links.Donate}) to support the project.
 
-      Enjoy your time on InterChat! 🎉
+      We hope you enjoy your time on InterChat! 🎉
     `);
 
     await interaction.followUp({ embeds: [embed1, embed2, finalEmbed], ephemeral: true });

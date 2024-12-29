@@ -69,7 +69,7 @@ export default class Help extends BaseCommand {
     `);
 
     const page4 = EmbedBuilder.from(baseEmbed).setTitle('Final Notes').setDescription(stripIndents`
-    You\'re all set! You can now chat with people from other servers in real-time. For more detailed information and advanced features, refer to the official  [InterChat guide](${Constants.Links.Docs}). Have fun! 🎉
+    You\'re all set! You can now chat with people from other servers in real-time. If you enjoyed using InterChat, consider [donating](${Constants.Links.Donate}) to support the project.
     
     For any questions, suggestions or feedback, join the [support server](${Constants.Links.SupportInvite}) or [vote for InterChat](https://top.gg/bot/769921109209907241/vote).
     `);

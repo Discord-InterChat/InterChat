@@ -94,7 +94,8 @@ export default class RulesScreeningInteraction {
       const embed = new InfoEmbed().setDescription(
         t('rules.accepted', locale, {
           emoji: getEmoji('tick_icon', interaction.client),
-          guide: Constants.Links.Docs,
+          support_invite: Constants.Links.SupportInvite,
+          donateLink: Constants.Links.Donate,
         }),
       );
 

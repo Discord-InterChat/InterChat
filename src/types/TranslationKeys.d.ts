@@ -6,7 +6,7 @@
 export type TranslationKeys = {
   'rules.rules': 'rules_emoji';
   'rules.welcome': 'emoji' | 'user';
-  'rules.accepted': 'emoji' | 'guide';
+  'rules.accepted': 'emoji' | 'support_invite' | 'donateLink';
   'rules.alreadyAccepted': 'emoji';
   'vote.description': never;
   'vote.footer': never;
@@ -14,7 +14,7 @@ export type TranslationKeys = {
   'network.deleteSuccess': 'emoji' | 'user' | 'deleted' | 'total';
   'network.editSuccess': 'emoji' | 'user' | 'edited' | 'total';
   'network.onboarding.embed.title': 'hubName';
-  'network.onboarding.embed.description': 'docs_link';
+  'network.onboarding.embed.description': 'hubName';
   'network.onboarding.embed.footer': 'version';
   'network.onboarding.inProgress': 'emoji' | 'channel';
   'blacklist.success': 'emoji' | 'name';
@@ -87,7 +87,7 @@ export type TranslationKeys = {
   'hub.create.maxHubs': 'emoji';
   'hub.create.invalidName': 'emoji';
   'hub.create.nameTaken': 'emoji';
-  'hub.create.success': 'name' | 'docs_link' | 'support_invite';
+  'hub.create.success': 'name' | 'support_invite' | 'donateLink';
   'hub.delete.confirm': 'hub';
   'hub.delete.ownerOnly': 'emoji';
   'hub.delete.success': 'emoji' | 'hub';
@@ -97,7 +97,7 @@ export type TranslationKeys = {
   'hub.browse.noHubs': 'emoji';
   'hub.browse.rating.invalid': never;
   'hub.browse.rating.success': never;
-  'hub.invite.create.success': 'inviteCode' | 'expiry' | 'docs_link';
+  'hub.invite.create.success': 'inviteCode' | 'expiry' | 'inviteCode';
   'hub.invite.revoke.invalidCode': 'emoji';
   'hub.invite.revoke.success': 'emoji' | 'inviteCode';
   'hub.invite.list.title': never;
@@ -175,7 +175,7 @@ export type TranslationKeys = {
   'report.bug.affected': never;
   'report.bug.description': never;
   'language.set': 'lang';
-  'errors.messageNotSentOrExpired': never;
+  'errors.messageNotSentOrExpired': 'emoji';
   'errors.notYourAction': 'emoji';
   'errors.notMessageAuthor': 'emoji';
   'errors.commandError': 'emoji' | 'support_invite' | 'errorId';
