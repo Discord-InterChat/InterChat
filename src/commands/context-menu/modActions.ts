@@ -8,7 +8,7 @@ import {
   OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
-import { t, type supportedLocaleCodes } from '#utils/Locale.js';
+import { t } from '#utils/Locale.js';
 import {
   ApplicationCommandType,
   InteractionContextType,
@@ -35,10 +35,12 @@ export default class BlacklistCtxMenu extends BaseCommand {
       (await getOriginalMessage(interaction.targetId)) ??
       (await findOriginalMessage(interaction.targetId));
 
-    if (
-      !originalMsg ||
-      !(await this.validateMessage(interaction, originalMsg, locale))
-    ) {
+    if (!originalMsg || !(await this.validateMessage(interaction, originalMsg))) {
+      await interaction.editReply({
+        content: t('errors.messageNotSentOrExpired', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+      });
       return;
     }
 
@@ -46,18 +48,11 @@ export default class BlacklistCtxMenu extends BaseCommand {
     await interaction.editReply({ embeds: [embed], components: buttons });
   }
 
-  private async validateMessage(
-    interaction: RepliableInteraction,
-    originalMsg: OriginalMessage,
-    locale: supportedLocaleCodes,
-  ) {
+  private async validateMessage(interaction: RepliableInteraction, originalMsg: OriginalMessage) {
     const hubService = new HubService(db);
     const hub = await hubService.fetchHub(originalMsg.hubId);
-    if (!hub || !await isStaffOrHubMod(interaction.user.id, hub)) {
-      await this.replyEmbed(interaction, t('errors.messageNotSentOrExpired', locale), {
-        ephemeral: true,
-        edit: true,
-      });
+
+    if (!hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
       return false;
     }
 

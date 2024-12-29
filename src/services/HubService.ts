@@ -5,7 +5,7 @@ import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
 import Constants, { RedisKeys } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import getRedis from '#main/utils/Redis.js';
-import { Hub, Prisma, PrismaClient, Role } from '@prisma/client';
+import { Hub, PrismaClient, Role } from '@prisma/client';
 import { Redis } from 'ioredis';
 
 export interface HubCreationData {
@@ -72,7 +72,6 @@ export class HubService {
     const hub = await this.db.hub.create({
       data: {
         ...data,
-        moderators: { create: { userId: data.ownerId, role: 'OWNER' } },
         private: true,
         iconUrl: data.iconUrl || Constants.Links.EasterAvatar,
         bannerUrl: data.bannerUrl || null,
@@ -136,24 +135,21 @@ export class HubService {
     return hubs.map((hub) => this.createHubManager(hub));
   }
 
-  async fetchModeratedHubs(
-    userId: string,
-    opts?: {
-      roles?: Role[];
-      filter?: Prisma.HubModeratorWhereInput;
-      take?: number;
-    },
-  ) {
-    const hubs = await this.db.hubModerator.findMany({
-      where: {
-        role: opts?.roles ? { in: [...opts.roles, 'OWNER'] } : undefined,
-        ...opts?.filter,
-        userId,
-      },
-      include: { hub: true },
-      take: opts?.take,
+  async fetchModeratedHubs(userId: string, roles?: Role[]) {
+    const user = await this.db.userData.findFirst({
+      where: { id: userId },
+      include: { modPositions: { include: { hub: true } }, ownedHubs: true },
     });
 
-    return hubs.map(({ hub }) => this.createHubManager(hub));
+    if (!user) return [];
+    if (user.modPositions.length === 0 && user.ownedHubs.length === 0) return [];
+
+    const ownedHubs = user.ownedHubs.map((hub) => this.createHubManager(hub));
+    const modHubs = user.modPositions
+      .filter((mod) => !roles?.length || roles.includes(mod.role))
+      .map((mod) => this.createHubManager(mod.hub));
+
+
+    return [...ownedHubs, ...modHubs];
   }
 }

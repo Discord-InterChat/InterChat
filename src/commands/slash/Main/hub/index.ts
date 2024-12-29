@@ -532,19 +532,16 @@ export default class HubCommand extends BaseCommand {
   }
 
   private async getModeratedHubs(focusedValue: string, modId: Snowflake) {
-    const hubs = await this.hubService.fetchModeratedHubs(modId, {
-      filter: { hub: { name: { contains: focusedValue } } },
-      take: 25,
-    });
+    const hubs = (await this.hubService.fetchModeratedHubs(modId))
+      .filter((hub) => hub.data.name.toLowerCase().includes(focusedValue.toLowerCase()))
+      .slice(0, 25);
     return hubs;
   }
 
   private async getManagedHubs(focusedValue: string, modId: Snowflake) {
-    const hubs = await this.hubService.fetchModeratedHubs(modId, {
-      roles: ['MANAGER', 'OWNER'],
-      filter: { hub: { name: { contains: focusedValue } } },
-      take: 25,
-    });
+    const hubs = (await this.hubService.fetchModeratedHubs(modId))
+      .filter((hub) => hub.data.name.toLowerCase().includes(focusedValue.toLowerCase()))
+      .slice(0, 25);
 
     return hubs;
   }

@@ -4,6 +4,7 @@ import db from '#main/utils/Db.js';
 import getRedis from '#main/utils/Redis.js';
 import { handleError } from '#main/utils/Utils.js';
 import { HubModerator, Role } from '@prisma/client';
+import { Collection } from 'discord.js';
 import { Redis } from 'ioredis';
 import isEmpty from 'lodash/isEmpty.js';
 
@@ -20,7 +21,7 @@ export default class HubModeratorManager {
     this.modsKey = `${RedisKeys.Hub}:${hub.id}:moderators`;
   }
 
-  private async storeInCache(key: string, mods: HubModerator[]) {
+  private async storeInCache(mods: HubModerator[]) {
     await this.cache.hset(
       this.modsKey,
       mods.map((mod) => [mod.userId, JSON.stringify(mod)]).flat(),
@@ -66,13 +67,15 @@ export default class HubModeratorManager {
   async fetchAll() {
     const fromCache = await this.cache.hgetall(this.modsKey);
     if (!isEmpty(fromCache)) {
-      return Object.values(fromCache).map((c) => JSON.parse(c)) as HubModerator[];
+      return new Collection(
+        Object.entries(fromCache).map(([userId, mod]) => [userId, JSON.parse(mod) as HubModerator]),
+      );
     }
 
     const mods = await db.hubModerator.findMany({ where: { hubId: this.hub.id } });
-    await this.storeInCache(this.modsKey, mods);
+    await this.storeInCache(mods);
 
-    return mods;
+    return new Collection(mods.map((m) => [m.userId, m]));
   }
 
   async fetch(userId: string) {
@@ -91,13 +94,14 @@ export default class HubModeratorManager {
   }
 
   async checkStatus(userId: string, checkRoles?: Role[]) {
-    const mods = await this.fetchAll();
-    return mods.some((mod) => {
-      if (mod.userId !== userId) return false;
-      if (!checkRoles?.length) return true;
+    if (this.hub.isOwner(userId)) return true;
 
-      return checkRoles.includes(mod.role) || this.hub.data.ownerId === userId;
-    });
+    const mod = await this.fetch(userId);
+
+    if (!mod) return false;
+    if (!checkRoles?.length) return true;
+
+    return checkRoles.includes(mod.role);
   }
 
   async removeAll() {

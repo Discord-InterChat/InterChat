@@ -1,6 +1,6 @@
 import HubManager from '#main/managers/HubManager.js';
 
-import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { t, type supportedLocaleCodes } from '#utils/Locale.js';
 import { Role, type HubModerator } from '@prisma/client';
 import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import HubCommand from './index.js';
@@ -12,19 +12,21 @@ export default class Moderator extends HubCommand {
 
     const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
     if (!hub || !(await hub.isManager(interaction.user.id))) {
-      await this.replyEmbed(interaction, t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }), {
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }),
+        {
+          ephemeral: true,
+        },
+      );
       return;
     }
 
-    const moderators = await hub.moderators.fetchAll();
-
     const handlers = {
-      add: () => this.handleAddSubcommand(interaction, hub, moderators, locale),
-      remove: () => this.handleRemoveSubcommand(interaction, hub, moderators, locale),
-      edit: () => this.handleEditSubcommand(interaction, hub, moderators, locale),
-      list: () => this.handleListSubcommand(interaction, moderators, locale),
+      add: () => this.handleAddSubcommand(interaction, hub, locale),
+      remove: () => this.handleRemoveSubcommand(interaction, hub, locale),
+      edit: () => this.handleEditSubcommand(interaction, hub, locale),
+      list: () => this.handleListSubcommand(interaction, hub, locale),
     };
 
     const subcommand = interaction.options.getSubcommand(true) as keyof typeof handlers;
@@ -34,20 +36,22 @@ export default class Moderator extends HubCommand {
   private async handleRemoveSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: HubManager,
-    moderators: HubModerator[],
     locale: supportedLocaleCodes,
   ) {
     const user = interaction.options.getUser('user', true);
-    if (!moderators.find((mod) => mod.userId === user.id)) {
+    if (!(await hub.isMod(user.id))) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.remove.notModerator', locale, { user: user.toString(), emoji: this.getEmoji('x_icon') }),
+        t('hub.moderator.remove.notModerator', locale, {
+          user: user.toString(),
+          emoji: this.getEmoji('x_icon'),
+        }),
         { ephemeral: true },
       );
       return;
     }
 
-    const mod = moderators.find((m) => m.userId === user.id);
+    const mod = await hub.moderators.fetch(user.id);
     const isRestrictedAction = mod?.role === 'MANAGER' || user.id === interaction.user.id;
 
     /* executor needs to be owner to:
@@ -67,25 +71,23 @@ export default class Moderator extends HubCommand {
 
     await this.replyEmbed(
       interaction,
-      t('hub.moderator.remove.success', locale, { user: user.toString(), emoji: this.getEmoji('tick_icon') }),
+      t('hub.moderator.remove.success', locale, {
+        user: user.toString(),
+        emoji: this.getEmoji('tick_icon'),
+      }),
     );
   }
 
   private async handleEditSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: HubManager,
-    moderators: HubModerator[],
     locale: supportedLocaleCodes,
   ) {
     const user = interaction.options.getUser('user', true);
     const role = interaction.options.getString('position', true) as HubModerator['role'];
-    const isUserMod = moderators.find((mod) => mod.userId === user.id);
-    const isExecutorManager = moderators.find(
-      (mod) =>
-        mod.userId === interaction.user.id && (mod.role === 'MANAGER' || mod.role === 'OWNER'),
-    );
+    const userPosition = await hub.moderators.fetch(user.id);
 
-    if (!isExecutorManager) {
+    if (!(await hub.isManager(interaction.user.id))) {
       await this.replyEmbed(
         interaction,
         t('hub.moderator.update.notAllowed', locale, { emoji: this.getEmoji('x_icon') }),
@@ -93,15 +95,18 @@ export default class Moderator extends HubCommand {
       );
       return;
     }
-    else if (!isUserMod) {
+    else if (!userPosition) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.update.notModerator', locale, { user: user.toString(), emoji: this.getEmoji('x_icon') }),
+        t('hub.moderator.update.notModerator', locale, {
+          user: user.toString(),
+          emoji: this.getEmoji('x_icon'),
+        }),
         { ephemeral: true },
       );
       return;
     }
-    else if (isUserMod.role === 'MANAGER' && !hub.isOwner(interaction.user.id)) {
+    else if (userPosition.role === 'MANAGER' && !hub.isOwner(interaction.user.id)) {
       await this.replyEmbed(
         interaction,
         t('hub.moderator.update.notOwner', locale, { emoji: this.getEmoji('x_icon') }),
@@ -124,15 +129,16 @@ export default class Moderator extends HubCommand {
 
   private async handleListSubcommand(
     interaction: ChatInputCommandInteraction,
-    moderators: HubModerator[],
+    hub: HubManager,
     locale: supportedLocaleCodes,
   ) {
+    const moderators = await hub.moderators.fetchAll();
     await interaction.reply({
       embeds: [
         new EmbedBuilder()
           .setTitle('Hub Moderators')
           .setDescription(
-            moderators.length > 0
+            moderators.size > 0
               ? moderators
                 .map(
                   (mod, index) =>
@@ -153,12 +159,11 @@ export default class Moderator extends HubCommand {
   private async handleAddSubcommand(
     interaction: ChatInputCommandInteraction,
     hub: HubManager,
-    moderators: HubModerator[],
     locale: supportedLocaleCodes,
   ) {
     const user = interaction.options.getUser('user', true);
 
-    if (moderators.find((mod) => mod.userId === user.id)) {
+    if (await hub.isMod(user.id)) {
       await this.replyEmbed(
         interaction,
         t('hub.moderator.add.alreadyModerator', locale, {
@@ -170,7 +175,8 @@ export default class Moderator extends HubCommand {
       return;
     }
 
-    const role = (interaction.options.getString('position') ?? Role.MODERATOR) as HubModerator['role'];
+    const role = (interaction.options.getString('position') ??
+      Role.MODERATOR) as HubModerator['role'];
 
     await hub.moderators.add(user.id, role);
 

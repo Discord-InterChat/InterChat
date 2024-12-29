@@ -52,9 +52,9 @@ export default class VisibilityCommnd extends HubCommand {
         name: 'Hub is older than 24 hours',
         check: hub.data.createdAt < new Date(Date.now() + 24 * 60 * 60 * 1000),
       },
-      { name: 'Hub atleast than 2 moderators', check: mods.length >= 2 },
+      { name: 'Hub has atleast 2 moderators', check: mods.size >= 2 },
       {
-        name: 'Hub has accepts user-reports by setting a log channel for reports',
+        name: 'Hub accepts user-reports by setting a log channel for reports',
         check: logConfig.config.reports !== null,
       },
     ];

@@ -104,7 +104,6 @@ export default class HubLogManager {
   }
 
   public getEmbed(
-    iconUrl: string | null,
     client: Client,
     locale: supportedLocaleCodes = 'en',
   ) {
@@ -134,7 +133,7 @@ export default class HubLogManager {
     return new InfoEmbed()
       .removeTitle()
       .setDescription(`## ${t('hub.manage.logs.title', locale)}\n\n${logDesc}`)
-      .setThumbnail(iconUrl);
+      .setThumbnail('https://i.imgur.com/tHVt3Gw.png');
   }
 
   public createSelectMenu(userId: Snowflake, hubId: string, locale: supportedLocaleCodes) {

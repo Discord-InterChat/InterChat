@@ -54,19 +54,20 @@ export default class ViewInfractions extends HubCommand {
     interaction: ChatInputCommandInteraction,
   ): Promise<HubManager | null> {
     const hubName = interaction.options.getString('hub', true);
+    const hub = (await this.hubService.fetchModeratedHubs(interaction.user.id)).find(
+      (h) => h.data.name === hubName,
+    );
 
-    const hub = await this.hubService.fetchModeratedHubs(interaction.user.id, {
-      filter: { hub: { name: hubName } },
-      take: 1,
-    });
-
-    if (!hub.length) {
+    if (!hub) {
       const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }));
+      await this.replyEmbed(
+        interaction,
+        t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
+      );
       return null;
     }
 
-    return hub[0];
+    return hub;
   }
 
   private async showTargetInfractions(

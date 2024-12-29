@@ -159,7 +159,7 @@ export default class HubManager {
   }
 
   async isManager(userId: string) {
-    return await this.modManager.checkStatus(userId, ['MANAGER', 'OWNER']);
+    return await this.modManager.checkStatus(userId, ['MANAGER']);
   }
 
   async isMod(userId: string) {

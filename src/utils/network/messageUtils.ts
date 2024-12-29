@@ -3,6 +3,7 @@ import Logger from '#main/utils/Logger.js';
 import getRedis from '#main/utils/Redis.js';
 import type { Message, Snowflake } from 'discord.js';
 import isEmpty from 'lodash/isEmpty.js';
+import { handleError } from '#main/utils/Utils.js';
 
 export interface OriginalMessage {
   hubId: string;
@@ -88,7 +89,10 @@ export const addBroadcasts = async (
     });
 
     // Execute all Redis operations in a single pipeline
-    await pipeline.exec();
+    await pipeline.exec().catch((error) => {
+      error.message = `Failed to add broadcasts: ${error.message}`;
+      handleError(error);
+    });
 
     Logger.debug(`Added ${broadcasts.length} broadcasts for message ${originalMsgId}`);
   }

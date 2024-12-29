@@ -71,7 +71,7 @@ export default class LoggingCommand extends HubCommand {
 
   private async handleView(interaction: ChatInputCommandInteraction, hub: HubManager) {
     const hubLogManager = await HubLogManager.create(hub.id);
-    const embed = hubLogManager.getEmbed(hub.data.iconUrl, interaction.client);
+    const embed = hubLogManager.getEmbed(interaction.client);
     await interaction.reply({ embeds: [embed] });
   }
 

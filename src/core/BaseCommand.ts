@@ -15,7 +15,6 @@ import {
   type APIMessageActionRowComponent,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
-  type ColorResolvable,
   type ContextMenuCommandInteraction,
   type InteractionResponse,
   type JSONEncodable,
@@ -146,7 +145,6 @@ export default abstract class BaseCommand {
       t?: { [Key in TranslationKeys[K]]: string };
       content?: string;
       title?: string;
-      color?: ColorResolvable;
       components?: readonly (
         | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
         | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>

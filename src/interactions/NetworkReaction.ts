@@ -19,7 +19,7 @@ import { getEmojiId } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
-  AnySelectMenuInteraction,
+  type AnySelectMenuInteraction,
   ButtonInteraction,
   Client,
   EmbedBuilder,
