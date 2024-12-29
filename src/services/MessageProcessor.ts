@@ -1,16 +1,10 @@
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
-import { LobbyManager } from '#main/managers/LobbyManager.js';
 import { HubService } from '#main/services/HubService.js';
 import { getConnectionHubId } from '#main/utils/ConnectedListUtils.js';
-import Constants from '#main/utils/Constants.js';
 import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
 import { runChecks } from '#main/utils/network/runChecks.js';
-import { check } from '#main/utils/ProfanityUtils.js';
-import { containsInviteLinks, handleError } from '#main/utils/Utils.js';
-import type { LobbyData } from '#types/ChatLobby.d.ts';
-import { Message, WebhookClient } from 'discord.js';
+import { Message } from 'discord.js';
 import { BroadcastService } from './BroadcastService.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export class MessageProcessor {
   private readonly broadcastService: BroadcastService;
@@ -18,38 +12,6 @@ export class MessageProcessor {
 
   constructor() {
     this.broadcastService = new BroadcastService();
-  }
-
-  async processLobbyMessage(message: Message<true>, lobby: LobbyData) {
-    await this.updateLobbyActivity(message, lobby);
-
-    if (
-      containsInviteLinks(message.content) ||
-      message.attachments.size > 0 ||
-      Constants.Regex.ImageURL.test(message.content) ||
-      check(message.content).hasSlurs
-    ) {
-      message.react(`${getEmoji('x_icon', message.client)}`).catch(() => null);
-      return;
-    }
-
-    for (const server of lobby.servers) {
-      if (server.channelId === message.channelId) continue;
-
-      try {
-        const webhook = new WebhookClient({ url: server.webhookUrl });
-        await webhook.send({
-          username: message.author.username,
-          avatarURL: message.author.displayAvatarURL(),
-          content: message.content,
-          allowedMentions: { parse: [] },
-        });
-      }
-      catch (err) {
-        err.message = `Failed to send message to ${server.channelId}: ${err.message}`;
-        handleError(err);
-      }
-    }
   }
 
   async processHubMessage(message: Message<true>) {
@@ -89,10 +51,5 @@ export class MessageProcessor {
     if (!passed) return;
 
     await this.broadcastService.broadcastMessage(message, hub, hubConnections, connection);
-  }
-
-  private async updateLobbyActivity(message: Message<true>, lobby: LobbyData) {
-    const lobbyManager = new LobbyManager(message.client);
-    await lobbyManager.updateLastMessageTimestamp(lobby.id, message.guildId);
   }
 }

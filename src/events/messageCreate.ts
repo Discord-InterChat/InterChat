@@ -1,6 +1,5 @@
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
-import { LobbyManager } from '#main/managers/LobbyManager.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
 import Constants from '#main/utils/Constants.js';
 import { handleError, isHumanMessage } from '#utils/Utils.js';
@@ -67,11 +66,6 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   }
 
   private async handleChatMessage(message: Message<true>) {
-    // Handle lobby messages
-    const lobbyManager = new LobbyManager(message.client);
-    const lobby = await lobbyManager.getLobbyByChannelId(message.channelId);
-
-    if (lobby) await this.messageProcessor.processLobbyMessage(message, lobby);
-    else await this.messageProcessor.processHubMessage(message);
+    await this.messageProcessor.processHubMessage(message);
   }
 }
