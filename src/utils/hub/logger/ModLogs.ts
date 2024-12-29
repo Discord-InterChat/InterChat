@@ -122,9 +122,9 @@ export const logMsgDelete = async (
     `,
     )
     .setColor(Constants.Colors.invisible)
-    .setImage(originalMsg.imageUrl ?? null)
+    .setImage(originalMsg.imageUrl || null)
     .addFields([
-      { name: `${getEmoji('connect_icon', client)} User`, value: `${user?.username} (\`${authorId}\`)` },
+      { name: `${getEmoji('person_icon', client)} User`, value: `${user?.username} (\`${authorId}\`)` },
       { name: `${getEmoji('rules_icon', client)} Server`, value: `${server?.name} (\`${guildId}\`)` },
       { name: `${getEmoji('globe_icon', client)} Hub`, value: opts.hubName },
     ])

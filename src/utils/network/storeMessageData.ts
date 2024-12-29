@@ -39,7 +39,7 @@ export default async (
   await storeMessage(message.id, {
     hubId,
     content: message.content,
-    imageUrl: attachmentUrl ?? null,
+    imageUrl: attachmentUrl || null,
     messageId: message.id,
     authorId: message.author.id,
     guildId: message.guildId,
