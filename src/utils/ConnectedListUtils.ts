@@ -84,7 +84,7 @@ const cacheConnectionHubId = async (...connections: Connection[]) => {
     const key = `${RedisKeys.connectionHubId}:${c.channelId}`;
 
     if (!c.connected) pipeline.del(key);
-    else pipeline.set(key, JSON.stringify(c.hubId));
+    else pipeline.set(key, c.hubId);
   });
 
   await pipeline.exec().catch((e) => {
