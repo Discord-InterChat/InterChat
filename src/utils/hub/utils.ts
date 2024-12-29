@@ -1,5 +1,4 @@
 import HubManager from '#main/managers/HubManager.js';
-import Constants from '#main/utils/Constants.js';
 import { deleteConnection, getHubConnections } from '#utils/ConnectedListUtils.js';
 import Logger from '#utils/Logger.js';
 import { checkIfStaff } from '#utils/Utils.js';
@@ -12,11 +11,7 @@ import { type WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
  * @param message The message to send. Can be a string or a MessageCreateOptions object.
  * @returns A array of the responses from each connection's webhook.
  */
-export const sendToHub = async (
-  hubId: string,
-  message: string | WebhookMessageCreateOptions,
-  avatarURL = Constants.Links.EasterAvatar,
-) => {
+export const sendToHub = async (hubId: string, message: string | WebhookMessageCreateOptions) => {
   const connections = await getHubConnections(hubId);
   if (!connections?.length) return;
 
@@ -29,7 +24,7 @@ export const sendToHub = async (
 
     try {
       const webhook = new WebhookClient({ url: webhookURL });
-      await webhook.send({ ...payload, avatarURL, allowedMentions: { parse: [] } });
+      await webhook.send({ ...payload, allowedMentions: { parse: [] } });
     }
     catch (e) {
       const validErrors = [

@@ -88,7 +88,7 @@ export default class HubEdit extends HubCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     const chosenHub = interaction.options.getString('hub', true);
-    const hub = await this.fetchHubFromDb(interaction.user.id, chosenHub);
+    const hub = (await this.hubService.findHubsByName(chosenHub)).at(0);
 
     if (!hub) {
       await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }));
@@ -100,13 +100,6 @@ export default class HubEdit extends HubCommand {
     }
 
     return { hub, locale };
-  }
-
-  private async fetchHubFromDb(userId: string, hubName: string) {
-    const hubByName = (await this.hubService.findHubsByName(hubName)).at(0);
-    if (hubByName) return hubByName;
-
-    return (await this.hubService.fetchModeratedHubs(userId, { take: 1 })).at(0);
   }
 
   private async setComponentExpiry(interaction: ChatInputCommandInteraction) {
@@ -180,6 +173,8 @@ export default class HubEdit extends HubCommand {
     await interaction.message.edit({ embeds: [embed] }).catch(() => null);
 
     await sendToHub(hub.id, {
+      username: hub.data.name ?? 'InterChat Hub Announcement',
+      avatarURL: hub.data.iconUrl,
       embeds: [
         new InfoEmbed()
           .setTitle(`🛡️ Hub chats are now ${lockedStatus}.`)
@@ -373,6 +368,6 @@ export default class HubEdit extends HubCommand {
   private async getRefreshedEmbed(hub: HubManager, client: Client) {
     const connections = await hub.fetchConnections();
     const mods = await hub.moderators.fetchAll();
-    return await hubEmbed(hub.data, connections.length, mods.length, client);
+    return await hubEmbed(hub.data, connections.length, mods.size, client);
   }
 }

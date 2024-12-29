@@ -192,6 +192,7 @@ export class HubJoinService {
     // Announce to hub
     await sendToHub(hub.id, {
       username: `InterChat | ${hub.data.name}`,
+      avatarURL: hub.data.iconUrl,
       content: stripIndents`
         A new server has joined the hub! ${this.getEmoji('clipart')}
 

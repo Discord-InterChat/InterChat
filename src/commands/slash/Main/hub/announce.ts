@@ -60,8 +60,14 @@ export default class AnnounceCommand extends HubCommand {
     const hubService = new HubService(db);
     const hub = await hubService.fetchHub(hubId);
 
+    if (!hub) {
+      await interaction.editReply(`${this.getEmoji('x_icon')} Hub not found.`);
+      return;
+    }
+
     await sendToHub(hubId, {
-      avatarURL: hub?.data.iconUrl,
+      username: hub.data.name ?? 'InterChat Hub Announcement',
+      avatarURL: hub.data.iconUrl,
       embeds: [
         new EmbedBuilder()
           .setTitle('📢 Official Hub Announcement')
