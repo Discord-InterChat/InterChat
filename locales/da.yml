@@ -28,7 +28,8 @@ rules:
     Before you can start chatting with people from other servers using InterChat, you need to accept the rules. Use the button below to accept them.
   accepted: |
     {emoji} Welcome to InterChat! You have accepted the rules and are now ready to chat with members from other servers!
-    If you are not already in a hub, use `/hub browse` to join one and start chatting. We have a simple [wiki and guide]({guide}) for more tips and tricks. Good luck!
+    If you are not already in a hub, use `/hub browse` to join one and start chatting. If you have any questions or need help, feel free to ask in the [support server]({support_invite}).
+    If you enjoy using InterChat, please consider [donating]({donateLink}) to support the development costs.
   alreadyAccepted: '{emoji} You have already accepted the rules. You can now use InterChat to its full extent.'
 vote:
   description: By voting you support us by helping InterChat rank higher on topgg searches.
@@ -41,9 +42,7 @@ network:
     embed:
       title: '👋 Hey there, welcome to {hubName}!'
       description: |
-        To keep things organized, it's recommended to use a separate channel for just for this hub. But don't worry, you can always change this later.
-
-        **How it works:** The InterChat Network is like a magic bridge that links channels on different servers that are with us in this hub. Learn more at our [guide]({docs_link}).
+        Hey there! You are trying to join a hub called **{hubName}**. In order to chat with members from other servers, you need to accept InterChat's guidelines. Use the button below to continue.
       footer: InterChat Network | Version {version}
     inProgress: '{emoji} {channel} is already in the process of being setup to join a hub. Please wait for the setup to complete or cancel it if you were the one who initiated it.'
 blacklist:
@@ -180,7 +179,7 @@ hub:
       - **Set report channel:** `/hub logging set_channe;`
       - **Add moderators:** `/hub moderator add`
 
-      Learn more about hubs in our [guide]({docs_link}). Join the [support server]({support_invite}) for help.
+      If you have any questions or need help, feel free to ask in the [support server]({support_invite}). Consider [donating]({donateLink}) to support the development costs.
   delete:
     confirm: Are you sure you wish to delete **{hub}**? This action is irreversible. All connected servers, invites and message data will be removed from this hub.
     ownerOnly: '{emoji} Only the owner of this hub can delete it.'
@@ -208,7 +207,7 @@ hub:
         - **Expiry:** {expiry}
         - **Uses**: ∞
 
-        __Learn more about hubs in our [guide]({docs_link}).__.
+        **Note:** You can revoke this invite anytime using `/hub invite revoke {inviteCode}`.
     revoke:
       invalidCode: '{emoji} Invalid invite code. Please make sure you have entered a valid invite code.'
       success: '{emoji} Invite {inviteCode} revoked.'
@@ -326,7 +325,7 @@ report:
 language:
   set: Language set! I will now respond to you in **{lang}**.
 errors:
-  messageNotSentOrExpired: This message was not sent in a hub, has expired, or you lack permissions to perform this action.
+  messageNotSentOrExpired: "{emoji} This message was not sent in a hub, has expired, or you lack permissions to perform this action."
   notYourAction: "{emoji} Sorry, you can't perform this action. Please run the command yourself."
   notMessageAuthor: '{emoji} You are not the author of this message.'
   commandError: |
@@ -352,7 +351,7 @@ errors:
   cooldown: '{emoji} You are on cooldown. Please wait until **{time}** before attempting again.'
   serverNameInappropriate: '{emoji} Your server name contains inappropriate words. Please change it before joining the hub.'
   banned: |
-    {emoji} You have been banned from using InterChat for violating our [guidelines](https://interchat.fun/guidelines).
+    {emoji} You have been banned from using InterChat for violating our [guidelines](https://interchat.tech/guidelines).
     If you think an appeal is applicable create a ticket in the [support server]( {support_invite} ).
 misc:
   webhookNoLongerExists: '{emoji} The webhook for this channel no longer exists. To continue using InterChat, please re-create the webhook by using `/connection unpause`.'
