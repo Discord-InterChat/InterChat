@@ -15,10 +15,6 @@
     "url": "https://cdn.discordapp.com/emojis/1321726605088919653.png",
     "updatedAt": "2024-12-26T06:29:39.146Z"
   },
-  "connect_icon": {
-    "url": "https://cdn.discordapp.com/emojis/1321726608574251042.png",
-    "updatedAt": "2024-12-26T06:29:39.977Z"
-  },
   "chipi_forwn": {
     "url": "https://cdn.discordapp.com/emojis/1321726612781400147.png",
     "updatedAt": "2024-12-26T06:29:40.980Z"
@@ -275,25 +271,13 @@
     "url": "https://cdn.discordapp.com/emojis/1321726846429040741.png",
     "updatedAt": "2024-12-26T06:30:36.686Z"
   },
-  "guide_icon": {
-    "url": "https://cdn.discordapp.com/emojis/1321726849830621209.png",
-    "updatedAt": "2024-12-26T06:30:37.497Z"
-  },
   "BadgeStaff": {
     "url": "https://cdn.discordapp.com/emojis/1321726854369120387.png",
     "updatedAt": "2024-12-26T06:30:38.579Z"
   },
-  "user_icon": {
-    "url": "https://cdn.discordapp.com/emojis/1321726858315956265.png",
-    "updatedAt": "2024-12-26T06:30:39.520Z"
-  },
   "owner": {
     "url": "https://cdn.discordapp.com/emojis/1321726862178652160.png",
     "updatedAt": "2024-12-26T06:30:40.441Z"
-  },
-  "add_icon": {
-    "url": "https://cdn.discordapp.com/emojis/1321726865748004934.png",
-    "updatedAt": "2024-12-26T06:30:41.292Z"
   },
   "onlineMobile": {
     "url": "https://cdn.discordapp.com/emojis/1321726868898058240.png",
@@ -302,10 +286,6 @@
   "disabled": {
     "url": "https://cdn.discordapp.com/emojis/1321726872609882112.png",
     "updatedAt": "2024-12-26T06:30:42.928Z"
-  },
-  "docs_icon": {
-    "url": "https://cdn.discordapp.com/emojis/1321726875613134889.png",
-    "updatedAt": "2024-12-26T06:30:43.644Z"
   },
   "attachment": {
     "url": "https://cdn.discordapp.com/emojis/1321726879283019890.png",
@@ -318,10 +298,6 @@
   "chipi_ugh": {
     "url": "https://cdn.discordapp.com/emojis/1321726886241505336.png",
     "updatedAt": "2024-12-26T06:30:46.178Z"
-  },
-  "id_icon": {
-    "url": "https://cdn.discordapp.com/emojis/1321726890125561876.png",
-    "updatedAt": "2024-12-26T06:30:47.104Z"
   },
   "yes": {
     "url": "https://cdn.discordapp.com/emojis/1321726893849968662.png",
