@@ -1,10 +1,10 @@
+import '#main/instrument.js';
 import startTasks from '#main/scheduled/startTasks.js';
 import Logger from '#utils/Logger.js';
 import { ClusterManager, HeartbeatManager, ReClusterManager } from 'discord-hybrid-sharding';
-import 'dotenv/config';
 
 const shardsPerClusters = 6;
-const clusterManager = new ClusterManager('build/client.js', {
+const clusterManager = new ClusterManager('src/client.ts', {
   token: process.env.DISCORD_TOKEN,
   totalShards: 'auto',
   totalClusters: 'auto',

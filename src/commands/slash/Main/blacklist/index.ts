@@ -14,7 +14,7 @@ import {
   type ChatInputCommandInteraction,
   Collection,
   EmbedBuilder,
-  type RESTPostAPIApplicationCommandsJSONBody,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type Snowflake,
   time,
 } from 'discord.js';
@@ -39,7 +39,7 @@ export default class BlacklistCommand extends BaseCommand {
     },
   ];
 
-  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'blacklist',
     description: 'Blacklist a user or server from a hub.',
     options: [

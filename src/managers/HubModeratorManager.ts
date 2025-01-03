@@ -22,6 +22,8 @@ export default class HubModeratorManager {
   }
 
   private async storeInCache(mods: HubModerator[]) {
+    if (!mods.length) return;
+
     await this.cache.hset(
       this.modsKey,
       mods.map((mod) => [mod.userId, JSON.stringify(mod)]).flat(),

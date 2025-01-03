@@ -32,7 +32,7 @@ import {
   MessageContextMenuCommandInteraction,
   ModalBuilder,
   ModalSubmitInteraction,
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIContextMenuApplicationCommandsJSONBody,
   TextInputBuilder,
   TextInputStyle,
   time,
@@ -51,7 +51,7 @@ type ReportOpts = LocaleInfo & HubInfo & MsgInfo;
 type ServerInfoOpts = LocaleInfo & ServerInfo & { connection: ConnectionManager | undefined };
 
 export default class MessageInfo extends BaseCommand {
-  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIContextMenuApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Message Info/Report',
     contexts: [InteractionContextType.Guild],

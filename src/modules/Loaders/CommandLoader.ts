@@ -45,7 +45,7 @@ export class CommandLoader implements ResourceLoader {
       this.prefixMap.set(command.data.name, command);
     }
     else {
-      command.build(fileName.replace('.js', ''), {
+      command.build(fileName.replace('.ts', ''), {
         commandsMap: this.commandMap,
         interactionsMap: this.interactionsMap,
       });

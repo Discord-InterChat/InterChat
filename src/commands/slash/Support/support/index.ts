@@ -3,13 +3,13 @@ import {
   CacheType,
   ChatInputCommandInteraction,
   Collection,
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import { handleError } from '#utils/Utils.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 
 export default class Support extends BaseCommand {
-  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'support',
     description: 'Send reports/suggestions to InterChat staff/developers.',
     options: [

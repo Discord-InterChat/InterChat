@@ -20,14 +20,15 @@ export default class ListBlacklists extends BlacklistCommand {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (!hub) {
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }));
+      await this.replyEmbed(
+        interaction,
+        t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
+      );
       return;
     }
 
-    const hubId = hub.id;
-    const query = { where: { hubId, type: 'BLACKLIST', status: 'ACTIVE' } } as const;
     const list = await db.infraction.findMany({
-      where: query.where,
+      where: { hubId: hub.id, type: 'BLACKLIST', status: 'ACTIVE' },
       orderBy: { expiresAt: 'desc' },
       include: { user: { select: { username: true } } },
     });

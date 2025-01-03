@@ -20,6 +20,7 @@
     "emitDecoratorMetadata": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
+    "types": ["bun-types"],
     "paths": {
       "#main/*": ["./src/*"],
       "#utils/*": ["./src/utils/*"],

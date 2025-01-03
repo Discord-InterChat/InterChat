@@ -1,7 +1,7 @@
 // @ts-check
 import { Collection, REST, Routes } from 'discord.js';
-import 'dotenv/config';
-import { greenText, greyText, redText, Spinner } from './utils.js'
+import { greenText, greyText, redText, Spinner } from './utils.js';
+import { loadCommands } from '../src/utils/CommandUtils.js';
 
 process.env.DEBUG = 'false'; // disable command loader logging
 
@@ -9,25 +9,19 @@ const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 const SUPPORT_SERVER_ID = '770256165300338709';
 
-if (!TOKEN || !CLIENT_ID)
-  throw new Error('Missing TOKEN or CLIENT_ID.');
+if (!TOKEN || !CLIENT_ID) throw new Error('Missing TOKEN or CLIENT_ID.');
 
-const commandUtils = await import('../build/utils/CommandUtils.js').catch(() => {
-  throw new Error(`${redText('✘')} Code is not build yet. Run \`pnpm build\` first.`);
-});
-
-const spinner = new Spinner()
+const spinner = new Spinner();
 
 const registerAllCommands = async (staffOnly = false) => {
   // make sure CommandsMap is not empty
   const commandsMap = new Collection();
-  await commandUtils.loadCommands(commandsMap, new Collection(), new Collection(), null);
+  await loadCommands(commandsMap, new Collection(), new Collection(), null);
 
-  
   const commands = commandsMap
-  .filter((command) => (staffOnly ? command.staffOnly : !command.staffOnly))
-  .map((command) => command.data);
-  
+    .filter((command) => (staffOnly ? command.staffOnly : !command.staffOnly))
+    .map((command) => command.data);
+
   const type = staffOnly ? 'private' : 'public';
   const totalCommands = commands.length.toString();
   spinner.start(`Registering ${totalCommands} ${greyText(type)} application commands...`);
@@ -46,7 +40,9 @@ const registerAllCommands = async (staffOnly = false) => {
       ? greenText(registerRes.length)
       : redText(registerRes.length);
 
-  spinner.stop(`${greenText('✓')} Registered ${totalRegistered}${greyText('/')}${greenText(totalCommands)} ${type} application commands.`)
+  spinner.stop(
+    `${greenText('✓')} Registered ${totalRegistered}${greyText('/')}${greenText(totalCommands)} ${type} application commands.`,
+  );
 };
 
 const logHelp = () =>

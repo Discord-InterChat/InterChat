@@ -26,7 +26,7 @@ export default class About extends BaseCommand {
         stripIndents`
         ### ${this.getEmoji('wand_icon')} About InterChat
         InterChat is a bot which provides cross-server chats that allows users to talk across different servers. Using webhooks, InterChat broadcasts messages to all connected channels in real time, making server connections seamless.
-        ### Notable Features:
+        ### Features:
         - Cross-server messaging
         - Customizable block words and filters
         - Advanced hub moderation tools
@@ -86,10 +86,6 @@ export default class About extends BaseCommand {
         stripIndents`
       
         ${creditsDivider}
-        ✨ **Deserving Mentions:**
-        ${this.getEmoji('dotBlue')} @${usernames[4]} (maker of our cute mascot chipi ${this.getEmoji('chipi_smile')})
-        ${this.getEmoji('dotBlue')} @${usernames[5]} ([top voter](${Constants.Links.Vote}) of all time ${this.getEmoji('topggSparkles')})
-
         ${this.getEmoji('BadgeDeveloper')} **Developers:**
         ${this.getEmoji('dotBlue')} @${usernames[0]}
 
@@ -97,6 +93,10 @@ export default class About extends BaseCommand {
         ${this.getEmoji('dotBlue')} @${usernames[1]}
         ${this.getEmoji('dotBlue')} @${usernames[2]}
         ${this.getEmoji('dotBlue')} @${usernames[3]}
+
+        ✨ **Deserving Mentions:**
+        ${this.getEmoji('dotBlue')} @${usernames[4]} (maker of our cute mascot chipi ${this.getEmoji('chipi_smile')})
+        ${this.getEmoji('dotBlue')} @${usernames[5]} ([top voter](${Constants.Links.Vote}) of all time ${this.getEmoji('topggSparkles')})
         ${creditsDivider}
       `,
       )

@@ -3,14 +3,14 @@ import {
   AutocompleteInteraction,
   ChatInputCommandInteraction,
   Collection,
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { handleError } from '#utils/Utils.js';
 
 export default class Find extends BaseCommand {
   staffOnly = true;
-  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'find',
     description: 'Find a user/server (Staff Only).',
     options: [

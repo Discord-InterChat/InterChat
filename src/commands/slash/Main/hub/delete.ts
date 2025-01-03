@@ -97,7 +97,7 @@ export default class Delete extends HubCommand {
     }
 
     const embed = new InfoEmbed().setDescription(
-      t('misc.loading', locale, { emoji: this.getEmoji('loading') }),
+      t('global.loading', locale, { emoji: this.getEmoji('loading') }),
     );
 
     await interaction.update({ embeds: [embed], components: [] });

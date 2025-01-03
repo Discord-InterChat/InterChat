@@ -1,15 +1,22 @@
-import dblRouter from '#main/api/routes/dbl.js';
+import { VoteManager } from '#main/managers/VoteManager.js';
+import Constants from '#main/utils/Constants.js';
 import Logger from '#utils/Logger.js';
-import express from 'express';
 
-const app = express();
+export const startApi = () => {
+  const voteManager = new VoteManager();
+  const server = Bun.serve({
+    static: {
+      '/': Response.redirect(Constants.Links.Website),
+    },
+    fetch(request) {
+      const url = new URL(request.url);
+      if (url.pathname === '/dbl' && request.method === 'POST') {
+        voteManager.middleware(request);
+      }
 
-app.use(express.json());
-app.get('/', (req, res) => res.redirect('https://interchat.tech'));
-app.use('/dbl', dblRouter);
+      return new Response('404!');
+    },
+  });
 
-// run da server
-export const startApi = () =>
-  app.listen(process.env.PORT, () =>
-    Logger.info(`API listening on http://localhost:${process.env.PORT}`),
-  );
+  Logger.info(`API server started on port ${server.port}`);
+};

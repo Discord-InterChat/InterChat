@@ -7,7 +7,6 @@ import Logger from '#utils/Logger.js';
 import { Connection, Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { EmbedBuilder, WebhookClient } from 'discord.js';
-import 'dotenv/config';
 
 const INACTIVITY_HOURS = 24;
 const MIN_CONNECTIONS = 50;

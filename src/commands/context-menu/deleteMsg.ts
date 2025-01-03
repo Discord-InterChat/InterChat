@@ -16,11 +16,11 @@ import {
   ApplicationCommandType,
   InteractionContextType,
   MessageContextMenuCommandInteraction,
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from 'discord.js';
 
 export default class DeleteMessage extends BaseCommand {
-  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIContextMenuApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Delete Message',
     contexts: [InteractionContextType.Guild],

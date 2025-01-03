@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import Logger from '#utils/Logger.js';
 
 const logPostError = (error: unknown) => {

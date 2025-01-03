@@ -11,39 +11,51 @@ import {
   Role,
 } from 'discord.js';
 import HubCommand from './index.js';
+import Logger from '#main/utils/Logger.js';
 
 interface SetLogOptions {
-  hubId: string;
-  logType: LogConfigTypes;
-  target: GuildTextBasedChannel | Role | null;
+  hub: HubManager;
+  logType: LogConfigTypes | RoleIdLogConfigs;
+  targetId: string | null;
   member: GuildMember;
 }
 
+type LogTarget = GuildTextBasedChannel | Role | null;
+type SetLogType = 'channel' | 'role';
+
 export default class LoggingCommand extends HubCommand {
+  private commandHandlers = {
+    view: this.handleViewSubcommand,
+    set_channel: this.handleSetChannelSubcommand,
+    set_role: this.handleSetRoleSubcommand,
+  };
+
   async execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.inCachedGuild()) return;
 
     const hub = await this.getHubForUser(interaction);
     if (!hub) return;
 
-    const handlers = {
-      view: () => this.handleView(interaction, hub),
-      set_channel: () => this.handleSetChannel(interaction, hub.id),
-      set_role: () => this.handleSetRole(interaction, hub.id),
-    };
+    const subcommand = interaction.options.getSubcommand() as keyof typeof this.commandHandlers;
+    const handler = this.commandHandlers[subcommand];
 
-    const subcommand = interaction.options.getSubcommand() as keyof typeof handlers;
-    await handlers[subcommand]?.();
+    if (handler) {
+      await handler.call(this, interaction, hub);
+    }
+    else {
+      Logger.error(`Unknown subcommand: ${subcommand}`);
+    }
   }
 
   private async getHubForUser(
     interaction: ChatInputCommandInteraction,
   ): Promise<HubManager | null> {
     const hubService = new HubService(db);
+    const userId = interaction.user.id;
     const hubName = interaction.options.getString('hub');
-    const hubs = await hubService.getOwnedHubs(interaction.user.id);
+    const ownedHubs = await hubService.getOwnedHubs(userId);
 
-    if (hubs.length === 0) {
+    if (ownedHubs.length === 0) {
       await this.replyEmbed(interaction, 'You do not have access to any hubs.', {
         ephemeral: true,
       });
@@ -51,91 +63,128 @@ export default class LoggingCommand extends HubCommand {
     }
 
     if (hubName) {
-      const hub = hubs.find((h) => h.data.name === hubName);
-      if (!hub) {
-        await this.replyEmbed(interaction, 'Hub not found.', { ephemeral: true });
-        return null;
-      }
-      return hub;
+      return this.findHubByName(interaction, ownedHubs, hubName);
     }
 
-    if (hubs.length === 1) return hubs[0];
+    return this.getDefaultHub(interaction, ownedHubs);
+  }
 
-    await this.replyEmbed(
-      interaction,
-      'You must provide a hub in the `hub` option of the command.',
-      { ephemeral: true },
-    );
+  private findHubByName(
+    interaction: ChatInputCommandInteraction,
+    hubs: HubManager[],
+    hubName: string,
+  ): HubManager | null {
+    const hub = hubs.find((h) => h.data.name === hubName);
+    if (!hub) {
+      this.replyEmbed(interaction, 'Hub not found.', { ephemeral: true });
+      return null;
+    }
+    return hub;
+  }
+
+  private getDefaultHub(
+    interaction: ChatInputCommandInteraction,
+    hubs: HubManager[],
+  ): HubManager | null {
+    if (hubs.length === 1) {
+      return hubs[0];
+    }
+
+    this.replyEmbed(interaction, 'You must provide a hub in the `hub` option of the command.', {
+      ephemeral: true,
+    });
     return null;
   }
 
-  private async handleView(interaction: ChatInputCommandInteraction, hub: HubManager) {
+  private async handleViewSubcommand(interaction: ChatInputCommandInteraction, hub: HubManager) {
     const hubLogManager = await HubLogManager.create(hub.id);
     const embed = hubLogManager.getEmbed(interaction.client);
     await interaction.reply({ embeds: [embed] });
   }
 
-  private async handleSetChannel(
+  private async handleSetChannelSubcommand(
     interaction: ChatInputCommandInteraction<'cached'>,
-    hubId: string,
+    hub: HubManager,
   ) {
     const channel = interaction.options.getChannel('channel') as GuildTextBasedChannel | null;
     const logType = interaction.options.getString('log_type', true) as LogConfigTypes;
 
-    if (!this.validateChannelPermissions(channel, interaction)) return;
+    if (!this.isChannelPermissionValid(channel, interaction)) return;
 
-    await this.handleSetLogConfig({
-      hubId,
-      logType,
-      target: channel,
-      member: interaction.member,
-      setType: 'channel',
-    });
+    await this.setLogConfig(
+      {
+        hub,
+        logType,
+        targetId: channel?.id || null,
+        member: interaction.member,
+      },
+      'channel',
+    );
 
-    await this.sendSetConfirmation(interaction, logType, channel, 'channel');
+    await this.sendSetConfirmationMessage(interaction, logType, channel, 'channel');
   }
 
-  private async handleSetRole(interaction: ChatInputCommandInteraction<'cached'>, hubId: string) {
-    const role = interaction.options.getRole('role');
+  private async handleSetRoleSubcommand(
+    interaction: ChatInputCommandInteraction<'cached'>,
+    hub: HubManager,
+  ) {
+    const role = interaction.options.getRole('role') as Role | null;
     const logType = interaction.options.getString('log_type', true) as RoleIdLogConfigs;
 
-    await this.handleSetLogConfig({
-      hubId,
-      logType,
-      target: role,
-      member: interaction.member,
-      setType: 'role',
-    });
+    await this.setLogConfig(
+      {
+        hub,
+        logType,
+        targetId: role?.id || null,
+        member: interaction.member,
+      },
+      'role',
+    );
 
-    await this.sendSetConfirmation(interaction, logType, role, 'role');
+    await this.sendSetConfirmationMessage(interaction, logType, role, 'role');
   }
 
-  private async handleSetLogConfig({
-    hubId,
-    logType,
-    target,
-    setType,
-  }: SetLogOptions & { setType: 'channel' | 'role' }) {
-    const hubLogManager = await HubLogManager.create(hubId);
-
-    if (!target?.id) {
-      if (setType === 'channel') await hubLogManager.resetLog(logType);
-      else await hubLogManager.removeRoleId(logType as RoleIdLogConfigs);
+  private async setLogConfig({ hub, logType, targetId }: SetLogOptions, setType: SetLogType) {
+    const logManager = await hub.fetchLogConfig();
+    if (!targetId) {
+      await this.resetLogConfig(logManager, logType, setType);
       return;
     }
 
+    await this.applyLogConfig(logManager, logType, targetId, setType);
+  }
+
+  private async resetLogConfig(
+    hubLogManager: HubLogManager,
+    logType: LogConfigTypes | RoleIdLogConfigs,
+    setType: SetLogType,
+  ) {
     if (setType === 'channel') {
-      await hubLogManager.setLogChannel(logType, target.id);
-    }
-    else if (hubLogManager.config.appeals?.channelId) {
-      await hubLogManager.setRoleId(logType as RoleIdLogConfigs, target.id);
+      await hubLogManager.resetLog(logType as LogConfigTypes);
     }
     else {
-      throw new Error('Appeals channel must be set before setting role ID');
+      await hubLogManager.removeRoleId(logType as RoleIdLogConfigs);
     }
   }
 
-  private validateChannelPermissions(
+  private async applyLogConfig(
+    hubLogManager: HubLogManager,
+    logType: LogConfigTypes | RoleIdLogConfigs,
+    targetId: string,
+    setType: SetLogType,
+  ) {
+    if (setType === 'channel') {
+      await hubLogManager.setLogChannel(logType as LogConfigTypes, targetId);
+    }
+    else {
+      if (!hubLogManager.config.appeals?.channelId) {
+        throw new Error('Appeals channel must be set before setting role ID');
+      }
+      await hubLogManager.setRoleId(logType as RoleIdLogConfigs, targetId);
+    }
+  }
+
+  private isChannelPermissionValid(
     channel: GuildTextBasedChannel | null,
     interaction: ChatInputCommandInteraction<'cached'>,
   ): boolean {
@@ -155,16 +204,15 @@ export default class LoggingCommand extends HubCommand {
     return true;
   }
 
-  private async sendSetConfirmation(
+  private async sendSetConfirmationMessage(
     interaction: ChatInputCommandInteraction,
     logType: string,
-    target: GuildTextBasedChannel | Role | null,
-    type: 'channel' | 'role',
+    target: LogTarget,
+    type: SetLogType,
   ) {
-    const message = target
-      ? `Successfully set \`${logType}\` ${type} to <#${target.id}>.`
-      : `Successfully reset logging ${type} for type \`${logType}\`.`;
-
+    const targetMention = target ? `<${type === 'channel' ? '#' : '@&'}${target.id}>` : '';
+    const action = target ? 'set' : 'resetting';
+    const message = `Successfully ${action} \`${logType}\` ${type} to ${targetMention}.`;
     await this.replyEmbed(interaction, message, { ephemeral: true });
   }
 }

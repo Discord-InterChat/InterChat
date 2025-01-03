@@ -14,6 +14,7 @@ export default class UserDbManager {
   private serializeUserDates(user: ConvertDatesToString<UserData>): UserData {
     return {
       ...user,
+      lastMessageAt: new Date(user.lastMessageAt),
       updatedAt: new Date(user.updatedAt),
       lastVoted: user.lastVoted ? new Date(user.lastVoted) : null,
     };

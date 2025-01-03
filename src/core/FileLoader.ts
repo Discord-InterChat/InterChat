@@ -1,12 +1,12 @@
 import { type InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import Logger from '#utils/Logger.js';
 import {
-  Awaitable,
   Collection,
+  type Awaitable,
   type ChatInputCommandInteraction,
   type ContextMenuCommandInteraction,
 } from 'discord.js';
-import { readdir, stat } from 'fs/promises';
+import { readdir, stat } from 'node:fs/promises';
 import { join } from 'path';
 import 'reflect-metadata';
 
@@ -62,7 +62,7 @@ export class FileLoader {
       if (stats.isDirectory() && this.recursive) {
         await this.processDirectory(filePath, processor);
       }
-      else if (file.endsWith('.js')) {
+      else if (file.endsWith('.ts')) {
         await processor(filePath);
       }
     }
