@@ -4,7 +4,7 @@
 */
 
 export type TranslationKeys = {
-  'rules.rules': 'rules_emoji';
+  'rules.rules': never;
   'rules.welcome': 'emoji' | 'user';
   'rules.accepted': 'emoji' | 'support_invite' | 'donateLink';
   'rules.alreadyAccepted': 'emoji';
@@ -74,7 +74,13 @@ export type TranslationKeys = {
   'hub.servers.total': 'from' | 'to' | 'total';
   'hub.servers.noConnections': 'emoji';
   'hub.servers.notConnected': 'emoji' | 'hub';
-  'hub.servers.connectionInfo': 'channelName' | 'channelId' | 'joinedAt' | 'invite' | 'connected';
+  'hub.servers.connectionInfo':
+    | 'serverId'
+    | 'channelName'
+    | 'channelId'
+    | 'joinedAt'
+    | 'invite'
+    | 'connected';
   'hub.create.modal.title': never;
   'hub.create.modal.name.label': never;
   'hub.create.modal.name.placeholder': never;
@@ -140,6 +146,22 @@ export type TranslationKeys = {
   'hub.manage.visibility.success': 'emoji' | 'visibility';
   'hub.manage.visibility.selects.label': never;
   'hub.manage.visibility.selects.description': never;
+  'hub.manage.toggleLock.selects.label': never;
+  'hub.manage.toggleLock.selects.description': never;
+  'hub.manage.toggleLock.confirmation': 'status';
+  'hub.manage.toggleLock.announcementTitle': 'status';
+  'hub.manage.toggleLock.announcementDescription.locked': never;
+  'hub.manage.toggleLock.announcementDescription.unlocked': never;
+  'hub.manage.embed.visibility': never;
+  'hub.manage.embed.connections': never;
+  'hub.manage.embed.chatsLocked': never;
+  'hub.manage.embed.blacklists': never;
+  'hub.manage.embed.total': never;
+  'hub.manage.embed.users': never;
+  'hub.manage.embed.servers': never;
+  'hub.manage.embed.hubStats': never;
+  'hub.manage.embed.moderators': never;
+  'hub.manage.embed.owner': never;
   'hub.manage.logs.title': never;
   'hub.manage.logs.reset': 'emoji' | 'type';
   'hub.manage.logs.roleSuccess': 'emoji' | 'type' | 'role';
@@ -197,12 +219,16 @@ export type TranslationKeys = {
   'errors.cooldown': 'emoji' | 'time';
   'errors.serverNameInappropriate': 'emoji';
   'errors.banned': 'emoji' | 'support_invite';
-  'misc.webhookNoLongerExists': 'emoji';
-  'misc.noReason': never;
-  'misc.noDesc': never;
-  'misc.version': 'version';
-  'misc.loading': 'emoji';
-  'misc.reportOptionMoved': 'emoji' | 'support_invite';
+  'global.webhookNoLongerExists': 'emoji';
+  'global.noReason': never;
+  'global.noDesc': never;
+  'global.version': 'version';
+  'global.loading': 'emoji';
+  'global.reportOptionMoved': 'emoji' | 'support_invite';
+  'global.private': never;
+  'global.public': never;
+  'global.yes': never;
+  'global.no': never;
 };
 
 export type ErrorLocaleKeys = Extract<keyof TranslationKeys, `errors.${string}`>;

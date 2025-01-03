@@ -3,22 +3,20 @@
   "private": true,
   "version": "4.1.1",
   "description": "A growing Discord bot which provides inter-server chat!",
-  "main": "build/index.js",
+  "main": "src/index.ts",
   "license": "AGPL-3.0-only",
   "scripts": {
-    "start": "node --import ./build/instrument.js .",
+    "start": "bun run .",
     "start:prod": "pm2 start .ecosystem.config.js",
+    "dev": "nodemon --exec \"bun typecheck && bun start\" --ext ts,js,json",
     "build": "tsc --build",
-    "dev": "tsc-watch --outDir ./build --onSuccess \"node --import ./build/instrument.js .\"",
-    "gen:locale-types": "node scripts/genLocaleTypes.js",
-    "sync:commands": "node scripts/syncCommands.js",
-    "sync:emojis": "node scripts/syncEmojis.js",
+    "typecheck": "tsc --noEmit",
+    "gen:locale-types": "bun scripts/genLocaleTypes.js",
+    "sync:commands": "bun scripts/syncCommands.js",
+    "sync:emojis": "bun scripts/syncEmojis.js",
     "release": "release-it",
     "lint": "eslint --cache --fix ./src",
     "prepare": "husky"
-  },
-  "engines": {
-    "node": ">=v20.16.0"
   },
   "sponsor": {
     "url": "https://ko-fi.com/dev737"
@@ -26,13 +24,10 @@
   "type": "module",
   "dependencies": {
     "@prisma/client": "^6.1.0",
-    "@sentry/node": "^8.47.0",
+    "@sentry/bun": "^8.47.0",
     "common-tags": "^1.8.2",
     "discord-hybrid-sharding": "^2.2.3",
-    "discord.js": "^14.16.3",
-    "dotenv": "^16.4.7",
-    "express": "^5.0.1",
-    "google-translate-api-x": "^10.7.2",
+    "discord.js": "^14.17.2",
     "husky": "^9.1.7",
     "ioredis": "^5.4.2",
     "js-yaml": "^4.1.0",
@@ -40,28 +35,25 @@
     "lz-string": "^1.5.0",
     "ms": "^2.1.3",
     "reflect-metadata": "^0.2.2",
-    "source-map-support": "^0.5.21",
     "uuid": "^11.0.3",
     "winston": "^3.17.0"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^2.12.1",
     "@types/common-tags": "^1.8.4",
-    "@types/express": "^5.0.0",
     "@types/js-yaml": "^4.0.9",
     "@types/lodash": "^4.17.13",
     "@types/ms": "^0.7.34",
-    "@types/node": "^22.10.2",
-    "@types/source-map-support": "^0.5.10",
+    "bun-types": "^1.1.42",
     "cz-conventional-changelog": "^3.3.0",
     "eslint": "9.17.0",
-    "lint-staged": "^15.2.11",
+    "lint-staged": "^15.3.0",
+    "nodemon": "^3.1.9",
     "prettier": "^3.4.2",
     "prisma": "^6.1.0",
-    "release-it": "^17.10.0",
-    "tsc-watch": "^6.2.1",
+    "release-it": "^17.11.0",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.1"
+    "typescript-eslint": "^8.19.0"
   },
   "config": {
     "commitizen": {
@@ -69,10 +61,12 @@
     }
   },
   "lint-staged": {
-    "*.ts": "eslint --cache --fix"
+    "*.ts": [
+      "eslint --cache --fix"
+    ]
   },
   "imports": {
-    "#main/*.js": "./build/*.js",
-    "#utils/*": "./build/utils/*"
+    "#main/*.js": "./src/*.ts",
+    "#utils/*.js": "./src/utils/*.ts"
   }
 }

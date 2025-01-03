@@ -135,6 +135,6 @@ export default class Stats extends BaseCommand {
         iconURL: interaction.client.user.displayAvatarURL(),
       });
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
   }
 }

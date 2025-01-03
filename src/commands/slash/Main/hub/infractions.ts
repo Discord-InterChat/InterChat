@@ -21,7 +21,6 @@ import {
   type ChatInputCommandInteraction,
 } from 'discord.js';
 
-// Types for better type safety and documentation
 type InfractionType = 'server' | 'user';
 type GroupedInfraction = Infraction & { user: UserData | null; count: number };
 

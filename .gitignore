@@ -30,3 +30,5 @@ dump.rdb
 
 # dev dbs
 dev/docker/db*
+
+idk.sh

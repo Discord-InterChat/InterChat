@@ -1,5 +1,5 @@
 import {
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
   ApplicationCommandOptionType,
   Collection,
   ChatInputCommandInteraction,
@@ -13,7 +13,7 @@ const currSupportedLangs = ['en', 'hi', 'es'] as const;
 export default class Set extends BaseCommand {
   static readonly subcommands = new Collection<string, BaseCommand>();
 
-  data: RESTPostAPIApplicationCommandsJSONBody = {
+  data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'set',
     description: 'Set your preferences',
     options: [

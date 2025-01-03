@@ -1,9 +1,6 @@
 // @ts-check
 
 import { Collection, REST, Routes } from 'discord.js';
-import 'dotenv/config';
-import { readFile, writeFile } from 'fs/promises';
-import { extname } from 'path';
 import requiredEmojis from '../src/utils/JSON/emojis.json' with { type: 'json' };
 import {
   getTimestampFromSnowflake,
@@ -13,23 +10,20 @@ import {
   redText,
   Spinner,
 } from './utils.js';
-import { stripIndents } from 'common-tags';
 import { stripIndent } from 'common-tags';
+
+if (!process.isBun) {
+  throw new Error(`${redText('This script must be run using')} ${orangeText('bun run')}.`);
+}
 
 const TOKEN = process.env.DISCORD_TOKEN;
 const CLIENT_ID = process.env.CLIENT_ID;
 
-const supportedMimeMap = {
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
-};
-
 if (!TOKEN || !CLIENT_ID) {
   throw new Error('Missing Discord token or client ID.');
 }
+
+const jsonFile = Bun.file('src/utils/JSON/emojis.json');
 
 const rest = new REST({ version: '10' }).setToken(TOKEN);
 const route = Routes.applicationEmojis(CLIENT_ID);
@@ -136,7 +130,7 @@ async function updateEmojiJson(emojis) {
 
     const updatedEmojiSet = {...requiredEmojis, ...newEmojis }
 
-  await writeFile('src/utils/JSON/emojis.json', JSON.stringify(updatedEmojiSet, null, 2));
+  await Bun.write(jsonFile, JSON.stringify(updatedEmojiSet, null, 2));
   newSpinner.stop(orangeText('ⓘ ') + `Added ${emojis.length} emojis with new emoji IDs to emojis.json file.`);
 }
 
@@ -155,8 +149,8 @@ async function fetchEmojiImage(url) {
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return urlToDataUri(url);
   } else if (/^\.{0,2}\/|^[a-zA-Z]:\\/.test(url)) {
-    const fileData = await readFile(url);
-    return bufferToDataUri(Buffer.from(fileData.buffer), getMimeTypeFromPath(url));
+    const fileData = Bun.file(url)
+    return bufferToDataUri(Buffer.from(await fileData.arrayBuffer()), fileData.type);
   }
 
   throw new Error('Invalid URL or file path.');
@@ -209,18 +203,6 @@ async function urlToDataUri(url) {
  */
 async function bufferToDataUri(buffer, contentType = 'image/png') {
   return `data:${contentType};base64,${buffer.toString('base64')}`;
-}
-
-/**
- * @param {string} path
- */
-function getMimeTypeFromPath(path) {
-  const ext = extname(path);
-  const type = supportedMimeMap[ext];
-  if (!type) {
-    throw new Error(`Unsupported file extension: ${ext}`);
-  }
-  return type;
 }
 
 /**

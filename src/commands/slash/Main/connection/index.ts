@@ -7,7 +7,7 @@ import {
   Collection,
   InteractionContextType,
   PermissionFlagsBits,
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import { escapeRegexChars, handleError } from '#utils/Utils.js';
 
@@ -15,7 +15,7 @@ export default class Connection extends BaseCommand {
   // subcommand classes are added to this map in their respective files
   static readonly subcommands = new Collection<string, BaseCommand>();
 
-  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'connection',
     description: 'Pause, unpause or edit your connections to hubs in this server.',
     default_member_permissions: PermissionFlagsBits.ManageMessages.toString(),

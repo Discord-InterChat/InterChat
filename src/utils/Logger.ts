@@ -1,5 +1,4 @@
 import { createLogger, format, transports } from 'winston';
-import 'source-map-support/register.js';
 
 const custom = format.printf(
   (info) =>

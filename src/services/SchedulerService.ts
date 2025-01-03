@@ -1,5 +1,5 @@
 export default class Scheduler {
-  private tasks: Map<string, { task: () => void; ms: number; timeout: NodeJS.Timeout }>;
+  private tasks: Map<string, { task: () => void; ms: number; timeout: Timer }>;
 
   constructor() {
     this.tasks = new Map();

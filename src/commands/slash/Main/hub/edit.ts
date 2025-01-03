@@ -1,175 +1,252 @@
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import HubLogManager, { LogConfigTypes as HubConfigTypes } from '#main/managers/HubLogManager.js';
 import HubManager from '#main/managers/HubManager.js';
+import db from '#main/utils/Db.js';
+import { getReplyMethod } from '#main/utils/Utils.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { hubEditSelects, hubEmbed } from '#utils/hub/edit.js';
 import { sendToHub } from '#utils/hub/utils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { Hub } from '@prisma/client';
+import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   type ChatInputCommandInteraction,
-  Client,
+  EmbedBuilder,
   type MessageComponentInteraction,
   ModalBuilder,
   type ModalSubmitInteraction,
   RepliableInteraction,
+  StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
 import HubCommand from './index.js';
 
+const HUB_EDIT_IDENTIFIER = 'hubEdit';
+const HUB_EDIT_MODAL_IDENTIFIER = 'hubEditModal';
+const ACTIONS_ARG = 'actions';
+const LOGS_CHANNEL_SELECT_ARG = 'logsChSel';
+
+enum HubEditAction {
+  Description = 'description',
+  Icon = 'icon',
+  ToggleLock = 'toggleLock',
+  Banner = 'banner',
+}
+
+enum HubEditModalSuffix {
+  Description = 'description',
+  Icon = 'icon',
+  Banner = 'banner',
+}
+
 export default class HubEdit extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
-    const { hub, locale } = await this.getInitialData(interaction);
+    const { hub, locale } = await this.getHubAndLocale(interaction);
     if (!hub) return;
 
-    const embed = await this.getRefreshedEmbed(hub, interaction.client);
-    await interaction.reply({
-      embeds: [embed],
-      components: [hubEditSelects(hub.id, interaction.user.id, locale)],
-    });
+    const embed = await this.getRefreshedHubEmbed(hub, locale);
+    const actionRow = this.buildActionsSelectMenu(interaction.user.id, hub.id, locale);
 
-    await this.setComponentExpiry(interaction);
+    await interaction.reply({ embeds: [embed], components: [actionRow] });
+    await this.setComponentExpiration(interaction);
   }
 
-  @RegisterInteractionHandler('hub_edit', 'actions')
+  private buildActionsSelectMenu(userId: string, hubId: string, locale: supportedLocaleCodes) {
+    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId(
+          new CustomID()
+            .setIdentifier(HUB_EDIT_IDENTIFIER, ACTIONS_ARG)
+            .setArgs(userId)
+            .setArgs(hubId)
+            .toString(),
+        )
+        .addOptions([
+          {
+            label: t('hub.manage.description.selects.label', locale),
+            value: HubEditAction.Description,
+            description: t('hub.manage.description.selects.description', locale),
+            emoji: '📝',
+          },
+          {
+            label: t('hub.manage.icon.selects.label', locale),
+            value: HubEditAction.Icon,
+            description: t('hub.manage.icon.selects.description', locale),
+            emoji: '🖼️',
+          },
+          {
+            label: t('hub.manage.toggleLock.selects.label', locale),
+            value: HubEditAction.ToggleLock,
+            description: t('hub.manage.toggleLock.selects.description', locale),
+            emoji: '🔒',
+          },
+          {
+            label: t('hub.manage.banner.selects.label', locale),
+            value: HubEditAction.Banner,
+            description: t('hub.manage.banner.selects.description', locale),
+            emoji: '🎨',
+          },
+        ]),
+    );
+  }
+
+  @RegisterInteractionHandler(HUB_EDIT_IDENTIFIER, ACTIONS_ARG)
   async handleActionsSelect(interaction: MessageComponentInteraction) {
     if (!interaction.isStringSelectMenu()) return;
 
-    const { hub, locale } = await this.componentChecks(interaction);
+    const { hub, locale } = await this.ensureComponentValidity(interaction);
     if (!hub) return;
 
-    const action = interaction.values[0];
-    await this.handleAction(interaction, hub, action, locale);
+    const action = interaction.values[0] as HubEditAction;
+    await this.handleActionSelection(interaction, hub, action, locale);
   }
 
-  @RegisterInteractionHandler('hub_edit', 'logsChSel')
-  async handleChannelSelects(interaction: MessageComponentInteraction) {
+  @RegisterInteractionHandler(HUB_EDIT_IDENTIFIER, LOGS_CHANNEL_SELECT_ARG)
+  async handleLogChannelSelect(interaction: MessageComponentInteraction) {
     if (!interaction.isChannelSelectMenu()) return;
 
-    const { hub, customId, locale } = await this.componentChecks(interaction);
+    const { hub, customId, locale } = await this.ensureComponentValidity(interaction);
     if (!hub) return;
 
-    const type = customId.args[2] as HubConfigTypes;
-    const channel = interaction.channels.first();
-    if (!channel) return;
+    const logType = customId.args[2] as HubConfigTypes;
+    const selectedChannel = interaction.channels.first();
+    if (!selectedChannel) return;
 
-    await this.updateLogChannel(interaction, await hub.fetchLogConfig(), type, channel.id, locale);
+    await this.updateHubLogChannel(
+      interaction,
+      await hub.fetchLogConfig(),
+      logType,
+      selectedChannel.id,
+      locale,
+    );
   }
 
-  @RegisterInteractionHandler('hub_edit_modal')
-  async handleModals(interaction: ModalSubmitInteraction) {
-    const { hub, customId, locale } = await this.modalChecks(interaction);
+  @RegisterInteractionHandler(HUB_EDIT_MODAL_IDENTIFIER)
+  async handleModalSubmission(interaction: ModalSubmitInteraction) {
+    const { hub, customId, locale } = await this.ensureModalValidity(interaction);
     if (!hub) return;
 
     switch (customId.suffix) {
-      case 'description':
-        await this.updateDescription(interaction, hub.id, locale);
+      case HubEditModalSuffix.Description:
+        await this.updateHubDescription(interaction, hub.id, locale);
         break;
-      case 'icon':
-        await this.updateIcon(interaction, hub.id, locale);
+      case HubEditModalSuffix.Icon:
+        await this.updateHubIcon(interaction, hub.id, locale);
         break;
-      case 'banner':
-        await this.updateBanner(interaction, hub.id, locale);
+      case HubEditModalSuffix.Banner:
+        await this.updateHubBanner(interaction, hub.id, locale);
         break;
       default:
         break;
     }
 
-    await this.updateOriginalMessage(interaction, hub.id);
+    await this.updateOriginalMessage(interaction, hub.id, locale);
   }
 
-  // Helper methods...
+  // --- Helper Methods ---
 
-  private async getInitialData(interaction: ChatInputCommandInteraction) {
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
-    const chosenHub = interaction.options.getString('hub', true);
-    const hub = (await this.hubService.findHubsByName(chosenHub)).at(0);
+  private async getHubAndLocale(interaction: ChatInputCommandInteraction) {
+    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const hubName = interaction.options.getString('hub', true);
+    const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
     if (!hub) {
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }));
+      await this.replyError(
+        interaction,
+        t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
+      );
       return { hub: null, locale };
     }
-    else if (!(await hub.isManager(interaction.user.id))) {
-      await this.replyEmbed(interaction, t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }));
+
+    if (!(await hub.isManager(interaction.user.id))) {
+      await this.replyError(
+        interaction,
+        t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }),
+      );
       return { hub: null, locale };
     }
 
     return { hub, locale };
   }
 
-  private async setComponentExpiry(interaction: ChatInputCommandInteraction) {
+  private async setComponentExpiration(interaction: ChatInputCommandInteraction) {
     const reply = await interaction.fetchReply();
-    setComponentExpiry(interaction.client.getScheduler(), reply, 60 * 5000);
+    setComponentExpiry(interaction.client.getScheduler(), reply, 5 * 60 * 1000); // Using constant for time
   }
 
-  private async handleAction(
+  private async handleActionSelection(
     interaction: MessageComponentInteraction,
     hub: HubManager,
-    action: string,
+    action: HubEditAction,
     locale: supportedLocaleCodes,
   ) {
     switch (action) {
-      case 'icon':
-      case 'description':
-      case 'banner':
-        await this.showModal(interaction, hub.id, action, locale);
+      case HubEditAction.Icon:
+      case HubEditAction.Description:
+      case HubEditAction.Banner:
+        await this.showEditModal(interaction, hub.id, action, locale);
         break;
-      case 'toggle_lock':
-        await this.toggleLock(interaction, hub);
+      case HubEditAction.ToggleLock:
+        await this.toggleHubLock(interaction, hub, locale);
         break;
       default:
         break;
     }
   }
 
-  private async showModal(
+  private async showEditModal(
     interaction: MessageComponentInteraction,
     hubId: string,
-    type: 'icon' | 'banner' | 'description',
+    actionType: Exclude<HubEditAction, HubEditAction.ToggleLock>,
     locale: supportedLocaleCodes,
   ) {
     const modal = new ModalBuilder()
-      .setCustomId(new CustomID(`hub_edit_modal:${type}`, [hubId]).toString())
-      .setTitle(t(`hub.manage.${type}.modal.title`, locale));
+      .setCustomId(new CustomID(`${HUB_EDIT_MODAL_IDENTIFIER}:${actionType}`, [hubId]).toString())
+      .setTitle(t(`hub.manage.${actionType}.modal.title`, locale));
 
     const inputField = new TextInputBuilder()
-      .setLabel(t(`hub.manage.${type}.modal.label`, locale))
-      .setStyle(type === 'description' ? TextInputStyle.Paragraph : TextInputStyle.Short)
-      .setCustomId(type);
+      .setLabel(t(`hub.manage.${actionType}.modal.label`, locale))
+      .setStyle(
+        actionType === HubEditAction.Description ? TextInputStyle.Paragraph : TextInputStyle.Short,
+      )
+      .setCustomId(actionType);
 
-    if (type === 'description') {
+    if (actionType === HubEditAction.Description) {
       inputField.setMaxLength(1024);
     }
     else {
       inputField.setPlaceholder(t('hub.manage.enterImgurUrl', locale));
     }
 
-    if (type === 'banner') {
+    if (actionType === HubEditAction.Banner) {
       inputField.setRequired(false);
     }
 
     modal.addComponents(new ActionRowBuilder<TextInputBuilder>().addComponents(inputField));
-
     await interaction.showModal(modal);
   }
 
-  private async toggleLock(interaction: MessageComponentInteraction, hub: HubManager) {
+  private async toggleHubLock(
+    interaction: MessageComponentInteraction,
+    hub: HubManager,
+    locale: supportedLocaleCodes,
+  ) {
     await interaction.deferReply({ ephemeral: true });
 
-    await hub.setLocked(!hub.data.locked);
-    const lockedStatus = hub.data.locked ? 'locked' : 'unlocked';
+    const newLockState = !hub.data.locked;
+    await hub.setLocked(newLockState);
+    const lockedStatus = newLockState ? 'locked' : 'unlocked';
 
-    await this.replyEmbed(
+    await this.replySuccess(
       interaction,
-      `${lockedStatus === 'locked' ? '🔒' : '🔓'} Hub chats are now **${lockedStatus}**.`,
+      `${lockedStatus === 'locked' ? '🔒' : '🔓'} ${t('hub.manage.toggleLock.confirmation', locale, { status: `**${lockedStatus}**` })}`,
     );
 
-    const embed = await this.getRefreshedEmbed(hub, interaction.client);
+    const embed = await this.getRefreshedHubEmbed(hub, locale);
     await interaction.message.edit({ embeds: [embed] }).catch(() => null);
 
     await sendToHub(hub.id, {
@@ -177,35 +254,38 @@ export default class HubEdit extends HubCommand {
       avatarURL: hub.data.iconUrl,
       embeds: [
         new InfoEmbed()
-          .setTitle(`🛡️ Hub chats are now ${lockedStatus}.`)
+          .setTitle(
+            `🛡️ ${t('hub.manage.toggleLock.announcementTitle', locale, { status: lockedStatus })}`,
+          )
           .setDescription(
-            `${lockedStatus === 'locked' ? 'Only moderators can send messages.' : 'Everyone can send messages.'}`,
+            t(`hub.manage.toggleLock.announcementDescription.${lockedStatus}`, locale),
           ),
       ],
     });
   }
 
-  private async updateLogChannel(
+  private async updateHubLogChannel(
     interaction: MessageComponentInteraction,
     logManager: HubLogManager,
-    type: HubConfigTypes,
+    logType: HubConfigTypes,
     channelId: string,
     locale: supportedLocaleCodes,
   ) {
-    await logManager.setLogChannel(type, channelId);
+    await logManager.setLogChannel(logType, channelId);
 
-    const embed = interaction.message.embeds[0].toJSON();
-    const channelStr = this.channelMention(channelId);
-    if (embed.fields?.at(0)) embed.fields[0].value = channelStr;
-    await interaction.update({ embeds: [embed] });
+    const embed = interaction.message.embeds[0]?.toJSON();
+    if (embed?.fields?.at(0)) {
+      embed.fields[0].value = this.channelMention(channelId);
+      await interaction.update({ embeds: [embed] });
+    }
 
     await interaction.followUp({
       embeds: [
         new InfoEmbed().setDescription(
           t('hub.manage.logs.channelSuccess', locale, {
             emoji: this.getEmoji('tick_icon'),
-            type,
-            channel: channelStr,
+            type: logType,
+            channel: this.channelMention(channelId),
           }),
         ),
       ],
@@ -213,129 +293,131 @@ export default class HubEdit extends HubCommand {
     });
   }
 
-  private async updateDescription(
+  private async updateHubDescription(
     interaction: ModalSubmitInteraction,
     hubId: string,
     locale: supportedLocaleCodes,
   ) {
-    const description = interaction.fields.getTextInputValue('description');
+    const description = interaction.fields.getTextInputValue(HubEditAction.Description);
     const hub = await this.hubService.fetchHub(hubId);
 
     if (!hub) {
-      await interaction.reply({
-        content: t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
+      await this.replyError(
+        interaction,
+        t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
+        true,
+      );
+      return;
+    }
+
+    await hub.setDescription(description);
+    await this.replySuccess(interaction, t('hub.manage.description.changed', locale), true);
+  }
+
+  private async updateHubIcon(
+    interaction: ModalSubmitInteraction,
+    hubId: string,
+    locale: supportedLocaleCodes,
+  ) {
+    const iconUrl = interaction.fields.getTextInputValue(HubEditAction.Icon);
+
+    if (!Constants.Regex.ImageURL.test(iconUrl)) {
+      await this.replyEmbed(interaction, 'hub.invalidImgurUrl', {
+        t: { emoji: this.getEmoji('x_icon') },
         ephemeral: true,
       });
       return;
     }
 
-    await hub.setDescription(description);
-
-    await interaction.reply({
-      content: t('hub.manage.description.changed', locale),
-      ephemeral: true,
-    });
-  }
-
-  private async updateIcon(
-    interaction: ModalSubmitInteraction,
-    hubId: string,
-    locale: supportedLocaleCodes,
-  ) {
-    const iconUrl = interaction.fields.getTextInputValue('icon');
-
-    const regex = Constants.Regex.ImageURL;
-    if (!regex.test(iconUrl)) {
-      await interaction.editReply(t('hub.invalidImgurUrl', locale, { emoji: this.getEmoji('x_icon') }));
-      return;
-    }
-
-    const hub = await this.getHubOrError(interaction, hubId, locale);
+    const hub = await this.getHubOrReplyError(interaction, hubId, locale);
     if (!hub) return;
 
     await hub.setIconUrl(iconUrl);
-
-    await interaction.reply({
-      content: t('hub.manage.icon.changed', locale),
-      ephemeral: true,
-    });
+    await this.replySuccess(interaction, t('hub.manage.icon.changed', locale), true);
   }
 
-  private async updateBanner(
+  private async updateHubBanner(
     interaction: ModalSubmitInteraction,
     hubId: string,
     locale: supportedLocaleCodes,
   ) {
     await interaction.deferReply({ ephemeral: true });
 
-    const hub = await this.getHubOrError(interaction, hubId, locale);
+    const hub = await this.getHubOrReplyError(interaction, hubId, locale);
     if (!hub) return;
 
-    const bannerUrl = interaction.fields.getTextInputValue('banner');
+    const bannerUrl = interaction.fields.getTextInputValue(HubEditAction.Banner);
+
     if (!bannerUrl) {
       await hub.setBannerUrl(null);
       await interaction.editReply(t('hub.manage.banner.removed', locale));
       return;
     }
 
-    // check if imgur url is a valid jpg, png, jpeg or gif and NOT a gallery or album link
-    const regex = Constants.Regex.ImageURL;
-    if (!regex.test(bannerUrl)) {
-      await interaction.editReply(t('hub.invalidImgurUrl', locale, { emoji: this.getEmoji('x_icon') }));
+    if (!Constants.Regex.ImageURL.test(bannerUrl)) {
+      await interaction.editReply(
+        t('hub.invalidImgurUrl', locale, { emoji: this.getEmoji('x_icon') }),
+      );
       return;
     }
 
     await hub.setBannerUrl(bannerUrl);
-
-    await interaction.editReply(this.getEmoji('tick_icon') + t('hub.manage.banner.changed', locale));
+    await interaction.editReply(
+      `${this.getEmoji('tick_icon')} ${t('hub.manage.banner.changed', locale)}`,
+    );
   }
 
-  private async updateOriginalMessage(interaction: ModalSubmitInteraction, hubId: string) {
+  private async updateOriginalMessage(
+    interaction: ModalSubmitInteraction,
+    hubId: string,
+    locale: supportedLocaleCodes,
+  ) {
     const updatedHub = await this.hubService.fetchHub(hubId);
-
     if (updatedHub) {
-      const embed = await this.getRefreshedEmbed(updatedHub, interaction.client);
+      const embed = await this.getRefreshedHubEmbed(updatedHub, locale);
       await interaction.message?.edit({ embeds: [embed] }).catch(() => null);
     }
   }
 
-  private async componentChecks(interaction: MessageComponentInteraction) {
+  private async ensureComponentValidity(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
 
     if (customId.args[0] !== interaction.user.id) {
-      const embed = new InfoEmbed().setDescription(
+      await this.replyError(
+        interaction,
         t('errors.notYourAction', locale, { emoji: this.getEmoji('x_icon') }),
+        true,
       );
-
-      await interaction.reply({ embeds: [embed], ephemeral: true });
       return {};
     }
 
     const hub = await this.hubService.fetchHub(customId.args[1]);
     if (!hub) {
-      const embed = new InfoEmbed().setDescription(t('hub.notFound', locale, { emoji: this.getEmoji('x_icon') }));
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await this.replyError(
+        interaction,
+        t('hub.notFound', locale, { emoji: this.getEmoji('x_icon') }),
+        true,
+      );
       return {};
     }
 
     return { hub, customId, locale };
   }
 
-  private async modalChecks(interaction: ModalSubmitInteraction) {
+  private async ensureModalValidity(interaction: ModalSubmitInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId] = customId.args;
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
 
     const hub = await this.hubService.fetchHub(hubId);
 
     if (!(await hub?.isManager(interaction.user.id))) {
-      await interaction.reply({
-        content: t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }),
-        ephemeral: true,
-      });
+      await this.replyError(
+        interaction,
+        t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }),
+        true,
+      );
       return {};
     }
 
@@ -343,31 +425,102 @@ export default class HubEdit extends HubCommand {
   }
 
   private channelMention(channelId: string | null | undefined) {
-    if (!channelId) return this.getEmoji('x_icon');
-    return `<#${channelId}>`;
+    return channelId ? `<#${channelId}>` : this.getEmoji('x_icon');
   }
 
-  private async getHubOrError(
+  private async getHubOrReplyError(
     interaction: RepliableInteraction,
     hubId: string,
     locale: supportedLocaleCodes,
   ) {
     const hub = await this.hubService.fetchHub(hubId);
-
     if (!hub) {
-      await interaction.reply({
-        content: t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
-        ephemeral: true,
-      });
+      await this.replyError(
+        interaction,
+        t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
+        true,
+      );
       return null;
     }
-
     return hub;
   }
 
-  private async getRefreshedEmbed(hub: HubManager, client: Client) {
+  private async getRefreshedHubEmbed(hub: HubManager, locale: supportedLocaleCodes) {
     const connections = await hub.fetchConnections();
     const mods = await hub.moderators.fetchAll();
-    return await hubEmbed(hub.data, connections.length, mods.size, client);
+    return await this.buildHubEmbed(hub.data, connections.length, mods.size, locale);
+  }
+
+  private async buildHubEmbed(
+    hub: Hub,
+    totalConnections: number,
+    totalMods: number,
+    locale: supportedLocaleCodes,
+  ) {
+    const hubBlacklists = await db.infraction.findMany({
+      where: { hubId: hub.id, status: 'ACTIVE' },
+    });
+
+    const dotBlueEmoji = this.getEmoji('dotBlue');
+
+    return new EmbedBuilder()
+      .setTitle(hub.name)
+      .setColor(Constants.Colors.interchatBlue)
+      .setDescription(
+        stripIndents`
+          ${hub.description}
+
+          ${dotBlueEmoji} __**${t('hub.manage.embed.visibility', locale)}:**__ ${hub.private ? t('global.private', locale) : t('global.public', locale)}
+          ${dotBlueEmoji} __**${t('hub.manage.embed.connections', locale)}**__: ${totalConnections}
+          ${dotBlueEmoji} __**${t('hub.manage.embed.chatsLocked', locale)}:**__ ${hub.locked ? t('global.yes', locale) : t('global.no', locale)}
+        `,
+      )
+      .setThumbnail(hub.iconUrl || null)
+      .setImage(hub.bannerUrl || null)
+      .addFields(
+        {
+          name: t('hub.manage.embed.blacklists', locale),
+          value: stripIndents`
+            ${t('hub.manage.embed.total', locale)}: ${hubBlacklists.length}
+            ${t('hub.manage.embed.users', locale)}: ${hubBlacklists.filter((i) => Boolean(i.userId)).length}
+            ${t('hub.manage.embed.servers', locale)}: ${hubBlacklists.filter((i) => Boolean(i.serverId)).length}
+          `,
+          inline: true,
+        },
+        {
+          name: t('hub.manage.embed.hubStats', locale),
+          value: stripIndents`
+            ${t('hub.manage.embed.moderators', locale)}: ${totalMods}
+            ${t('hub.manage.embed.owner', locale)}: <@${hub.ownerId}>
+          `,
+          inline: true,
+        },
+      );
+  }
+
+  private async replyError(
+    interaction: RepliableInteraction | MessageComponentInteraction,
+    content: string,
+    ephemeral = false,
+  ) {
+    const method = getReplyMethod(interaction);
+    const flags = ephemeral ? (['Ephemeral'] as const) : [];
+    await interaction[method]({
+      embeds: [new InfoEmbed().setDescription(`${this.getEmoji('x_icon')} ${content}`)],
+      flags,
+    });
+  }
+
+  private async replySuccess(
+    interaction: RepliableInteraction | MessageComponentInteraction,
+    content: string,
+    ephemeral = false,
+  ) {
+    const method = getReplyMethod(interaction);
+    const flags = ephemeral ? (['Ephemeral'] as const) : [];
+    await interaction[method]({
+      embeds: [new InfoEmbed().setDescription(`${this.getEmoji('tick_icon')} ${content}`)],
+      flags,
+    });
   }
 }

@@ -2,9 +2,10 @@ module.exports = {
   apps: [
     {
       name: 'interchat',
-      script: 'build/index.js',
-      node_args: '--import ./build/instrument.js',
-      env_production: {
+      script: '.',
+      interpreter: "bun",
+      env: {
+        PATH: `${process.env.HOME}/.bun/bin:${process.env.PATH}`,
         NODE_ENV: 'production',
       },
       autorestart: true,

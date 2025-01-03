@@ -15,7 +15,7 @@ export type LogConfigTypes = keyof Omit<Omit<HubLogConfig, 'hubId'>, 'id'>;
 export const logsWithRoleId = ['appeals', 'reports', 'networkAlerts'];
 
 export default class HubLogManager {
-  private readonly hubId: string;
+  public readonly hubId: string;
   private logConfig: HubLogConfig;
   readonly logsWithRoleId = logsWithRoleId;
   readonly logTypes: LogConfigTypes[];
@@ -141,7 +141,7 @@ export default class HubLogManager {
       new StringSelectMenuBuilder()
         .setCustomId(
           new CustomID()
-            .setIdentifier('hub_edit', 'logsSelect')
+            .setIdentifier('hubEdit', 'logsSelect')
             .setArgs(userId)
             .setArgs(hubId)
             .toString(),

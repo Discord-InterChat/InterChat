@@ -15,7 +15,7 @@ import {
   Collection,
   Guild,
   InteractionContextType,
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIChatInputApplicationCommandsJSONBody,
   Snowflake,
 } from 'discord.js';
 
@@ -37,7 +37,7 @@ const logTypeOpt = [
 ];
 
 export default class HubCommand extends BaseCommand {
-  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
     name: 'hub',
     description: 'Manage your hubs.',
     contexts: [InteractionContextType.Guild],

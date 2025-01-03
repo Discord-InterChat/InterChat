@@ -26,7 +26,7 @@ import {
   MessageContextMenuCommandInteraction,
   ModalBuilder,
   ModalSubmitInteraction,
-  RESTPostAPIApplicationCommandsJSONBody,
+  RESTPostAPIContextMenuApplicationCommandsJSONBody,
   TextInputBuilder,
   TextInputStyle,
   User,
@@ -39,7 +39,7 @@ interface ImageUrls {
 }
 
 export default class EditMessage extends BaseCommand {
-  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIContextMenuApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Edit Message',
     contexts: [InteractionContextType.Guild],

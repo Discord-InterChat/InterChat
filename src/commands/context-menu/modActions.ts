@@ -14,11 +14,11 @@ import {
   InteractionContextType,
   type MessageContextMenuCommandInteraction,
   type RepliableInteraction,
-  type RESTPostAPIApplicationCommandsJSONBody,
+  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from 'discord.js';
 
 export default class BlacklistCtxMenu extends BaseCommand {
-  readonly data: RESTPostAPIApplicationCommandsJSONBody = {
+  readonly data: RESTPostAPIContextMenuApplicationCommandsJSONBody = {
     type: ApplicationCommandType.Message,
     name: 'Moderation Actions',
     contexts: [InteractionContextType.Guild],

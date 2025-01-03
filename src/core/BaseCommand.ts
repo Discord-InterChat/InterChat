@@ -10,8 +10,6 @@ import { getReplyMethod } from '#utils/Utils.js';
 import {
   type ActionRowData,
   type APIActionRowComponent,
-  type APIApplicationCommandSubcommandGroupOption,
-  type APIApplicationCommandSubcommandOption,
   type APIMessageActionRowComponent,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
@@ -35,9 +33,7 @@ import {
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
 export type CmdData =
   | RESTPostAPIChatInputApplicationCommandsJSONBody
-  | RESTPostAPIContextMenuApplicationCommandsJSONBody
-  | APIApplicationCommandSubcommandGroupOption
-  | APIApplicationCommandSubcommandOption;
+  | RESTPostAPIContextMenuApplicationCommandsJSONBody;
 
 export default abstract class BaseCommand {
   abstract readonly data: CmdData;
@@ -167,7 +163,11 @@ export default abstract class BaseCommand {
     if (opts?.edit) return await interaction.editReply(message);
 
     const methodName = getReplyMethod(interaction);
-    return await interaction[methodName]({ ...message, ephemeral: opts?.ephemeral });
+    return await interaction[methodName]({
+      ...message,
+      ephemeral: opts?.ephemeral,
+      flags: opts?.ephemeral ? 'Ephemeral' : undefined,
+    });
   }
 
   build(
@@ -183,7 +183,7 @@ export default abstract class BaseCommand {
     }
     else {
       const parentCommand = Object.getPrototypeOf(this.constructor) as typeof BaseCommand;
-      parentCommand.subcommands?.set(fileName.replace('.js', ''), this);
+      parentCommand.subcommands?.set(fileName.replace('.ts', ''), this);
       this.loadCommandInteractions(this, opts.interactionsMap);
     }
   }

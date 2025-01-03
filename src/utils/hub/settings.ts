@@ -13,7 +13,7 @@ export const buildSettingsMenu = (
     new StringSelectMenuBuilder()
       .setCustomId(
         new CustomID()
-          .setIdentifier('hub_edit', 'settingsSelect')
+          .setIdentifier('hubEdit', 'settingsSelect')
           .setArgs(userId)
           .setArgs(hubId)
           .toString(),

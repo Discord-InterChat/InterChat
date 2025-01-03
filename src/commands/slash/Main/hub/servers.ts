@@ -1,117 +1,172 @@
 import { Pagination } from '#main/modules/Pagination.js';
 import Constants from '#utils/Constants.js';
-import { t } from '#utils/Locale.js';
+import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
-import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { Connection } from '@prisma/client';
+import {
+  type ChatInputCommandInteraction,
+  Client,
+  EmbedBuilder,
+  Guild,
+  GuildBasedChannel,
+} from 'discord.js';
 import HubCommand from './index.js';
 
+interface ConnectionDisplayData {
+  serverName?: string;
+  channelName?: string;
+}
+
 export default class Servers extends HubCommand {
+  private async sendErrorMessage(
+    interaction: ChatInputCommandInteraction,
+    message: string,
+  ): Promise<void> {
+    await this.replyEmbed(interaction, message);
+  }
+
+  private async getConnectionInfoEmbed(
+    locale: supportedLocaleCodes,
+    connection: Connection,
+    server: Guild | null,
+    channel: GuildBasedChannel | null,
+  ): Promise<EmbedBuilder> {
+    return new EmbedBuilder()
+      .setTitle(`${server?.name ?? 'Unknown Server'} \`(${connection.serverId})\``)
+      .setColor(Constants.Colors.interchatBlue)
+      .setDescription(
+        t('hub.servers.connectionInfo', locale, {
+          serverId: connection.serverId,
+          channelName: `${channel?.name ?? 'Unknown Channel'}`,
+          channelId: connection.channelId,
+          joinedAt: `<t:${Math.round(connection.createdAt.getTime() / 1000)}:d>`,
+          invite: connection.invite || 'Not Set.',
+          connected: connection.connected ? 'Yes' : 'No',
+        }),
+      );
+  }
+
+  private async fetchConnectionDisplayData(
+    client: Client,
+    connection: Connection,
+  ): Promise<ConnectionDisplayData | null> {
+    const evalArr = await client.cluster.broadcastEval(
+      async (c, ctx) => {
+        const server = c.guilds.cache.get(ctx.connection.serverId);
+        if (server) {
+          const channel = await server.channels.fetch(ctx.connection.channelId).catch(() => null);
+          return { serverName: server.name, channelName: channel?.name };
+        }
+        return null;
+      },
+      { context: { connection } },
+    );
+
+    return resolveEval(evalArr) ?? null;
+  }
+
+  private async getConnectionFieldsForPagination(
+    connections: Connection[],
+    client: Client,
+    locale: supportedLocaleCodes,
+    startIndex: number,
+  ): Promise<{ name: string; value: string }[]> {
+    return Promise.all(
+      connections.map(async (connection, index) => {
+        const displayData = await this.fetchConnectionDisplayData(client, connection);
+        const value = t('hub.servers.connectionInfo', locale, {
+          serverId: connection.serverId,
+          channelName: `${displayData?.channelName ?? 'Unknown Channel'}`,
+          channelId: connection.channelId,
+          joinedAt: `<t:${Math.round(connection.createdAt.getTime() / 1000)}:d>`,
+          invite: connection.invite || 'Not Set.',
+          connected: connection.connected ? 'Yes' : 'No',
+        });
+        return {
+          name: `${startIndex + index}. ${displayData?.serverName ?? 'Unknown Server'}`,
+          value,
+        };
+      }),
+    );
+  }
+
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     await interaction.deferReply();
 
-    const hubOpt = interaction.options.getString('hub', true);
-    const serverOpt = interaction.options.getString('server');
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const hubName = interaction.options.getString('hub', true);
+    const serverId = interaction.options.getString('server');
+    const client = interaction.client;
+    const locale = await client.userManager.getUserLocale(interaction.user.id);
 
-    const hub = (await this.hubService.findHubsByName(hubOpt)).at(0);
+    const hub = (await this.hubService.findHubsByName(hubName)).at(0);
     if (!hub) {
-      await this.replyEmbed(interaction, t('hub.notFound', locale, { emoji: this.getEmoji('x_icon') }));
-      return;
+      return this.sendErrorMessage(
+        interaction,
+        t('hub.notFound', locale, { emoji: this.getEmoji('x_icon') }),
+      );
     }
-    else if (!(await hub.isMod(interaction.user.id))) {
-      await this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }));
-      return;
+
+    if (!(await hub.isMod(interaction.user.id))) {
+      return this.sendErrorMessage(
+        interaction,
+        t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
+      );
     }
 
     const connections = await hub.fetchConnections();
     if (connections.length === 0) {
-      await this.replyEmbed(
+      return this.sendErrorMessage(
         interaction,
         t('hub.servers.noConnections', locale, { emoji: this.getEmoji('x_icon') }),
       );
-      return;
     }
 
-    if (serverOpt) {
-      const connection = connections.find((con) => con.serverId === serverOpt);
+    if (serverId) {
+      const connection = connections.find((con) => con.serverId === serverId);
       if (!connection) {
-        await this.replyEmbed(
+        return this.sendErrorMessage(
           interaction,
-          t('hub.servers.notConnected', locale, { hub: hub.data.name, emoji: this.getEmoji('x_icon') }),
-        );
-        return;
-      }
-      const server = await interaction.client.guilds.fetch(serverOpt).catch(() => null);
-      const channel = await server?.channels.fetch(connection.channelId).catch(() => null);
-      const embed = new EmbedBuilder()
-        .setTitle(`${server?.name} \`(${connection.serverId})\``)
-        .setColor(Constants.Colors.interchatBlue)
-        .setDescription(
-          t('hub.servers.connectionInfo', locale, {
-            channelName: `${channel?.name}`,
-            channelId: connection.channelId,
-            joinedAt: `<t:${Math.round(connection.createdAt.getTime() / 1000)}:d>`,
-            invite: connection.invite ? connection.invite : 'Not Set.',
-            connected: connection.connected ? 'Yes' : 'No',
+          t('hub.servers.notConnected', locale, {
+            hub: hub.data.name,
+            emoji: this.getEmoji('x_icon'),
           }),
         );
-
+      }
+      const server = await client.guilds.fetch(serverId).catch(() => null);
+      const channel = await server?.channels.fetch(connection.channelId).catch(() => null);
+      const embed = await this.getConnectionInfoEmbed(locale, connection, server, channel ?? null);
       await interaction.editReply({ embeds: [embed] });
       return;
     }
 
-    const paginator = new Pagination(interaction.client);
-    let itemsPerPage = 5;
+    const paginator = new Pagination(client);
+    const itemsPerPage = 5;
+    const totalConnections = connections.length;
 
-    for (let index = 0; index < connections.length; index += 5) {
-      const current = connections?.slice(index, itemsPerPage);
+    for (let i = 0; i < totalConnections; i += itemsPerPage) {
+      const currentConnections = connections.slice(i, i + itemsPerPage);
+      const startIndex = i + 1;
+      const endIndex = Math.min(i + itemsPerPage, totalConnections);
 
-      let itemCounter = index;
-      let embedFromIndex = index;
-      itemsPerPage += 5;
-
-      const fields = current.map(async (connection) => {
-        const evalArr = await interaction.client.cluster.broadcastEval(
-          async (client, ctx) => {
-            const server = client.guilds.cache.get(ctx.connection.serverId);
-
-            if (server) {
-              const channel = await server?.channels
-                .fetch(ctx.connection.channelId)
-                .catch(() => null);
-              return { serverName: server.name, channelName: channel?.name };
-            }
-            return null;
-          },
-          { context: { connection } },
-        );
-
-        const evalRes = resolveEval(evalArr);
-
-        const value = t('hub.servers.connectionInfo', locale, {
-          channelName: `${evalRes?.channelName}`,
-          channelId: connection.channelId,
-          joinedAt: `<t:${Math.round(connection.createdAt.getTime() / 1000)}:d>`,
-          invite: connection.invite ? connection.invite : 'Not Set.',
-          connected: connection.connected ? 'Yes' : 'No',
-        });
-
-        return { name: `${++itemCounter}. ${evalRes?.serverName}`, value };
-      });
+      const fields = await this.getConnectionFieldsForPagination(
+        currentConnections,
+        client,
+        locale,
+        startIndex,
+      );
 
       paginator.addPage({
         embeds: [
           new EmbedBuilder()
             .setDescription(
               t('hub.servers.total', locale, {
-                from: `${++embedFromIndex}`,
-                to: `${itemCounter}`,
-                total: `${connections.length}`,
+                from: `${startIndex}`,
+                to: `${endIndex}`,
+                total: `${totalConnections}`,
               }),
             )
-            .setColor(0x2f3136)
-            .setFields(await Promise.all(fields)),
+            .setColor(Constants.Colors.interchatBlue)
+            .setFields(fields),
         ],
       });
     }

@@ -1,18 +1,10 @@
 // @ts-check
-import { readFileSync, writeFileSync } from 'fs';
 import yaml from 'js-yaml';
-import { dirname, resolve } from 'path';
 import prettier from 'prettier';
 import { createPrinter, factory, NewLineKind, NodeFlags, SyntaxKind } from 'typescript';
-import { fileURLToPath } from 'url';
-
-// Helper function to get the current directory name in ES modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 // Read the YAML file
-const filePath = resolve(__dirname, '..', 'locales/en.yml');
-const file = readFileSync(filePath, 'utf8');
+const file = await Bun.file('locales/en.yml').text();
 
 // Parse the YAML content
 /** @type {{ [key: string]: string }} */
@@ -53,8 +45,9 @@ ${errorLocaleKeysExtra}
 `
 
 // Write the .d.ts file
-const outputFilePath = resolve(__dirname, '..', 'src/types/TranslationKeys.d.ts');
-writeFileSync(outputFilePath, output);
+const outputFilePath = 'src/types/TranslationKeys.d.ts';
+const outputFile = Bun.file(outputFilePath);
+await Bun.write(outputFile, output);
 
 console.log(`Type definitions for locales written to ${outputFilePath}`);
 

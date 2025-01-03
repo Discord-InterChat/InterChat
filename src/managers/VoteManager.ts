@@ -16,7 +16,6 @@ import {
   userMention,
   WebhookClient,
 } from 'discord.js';
-import type { NextFunction, Request, Response } from 'express';
 import ms from 'ms';
 
 export class VoteManager {
@@ -34,22 +33,18 @@ export class VoteManager {
     });
   }
 
-  async middleware(req: Request, res: Response, next: NextFunction) {
-    const dblHeader = req.header('Authorization');
+  async middleware(req: Request) {
+    const dblHeader = req.headers.get('Authorization');
     if (dblHeader !== process.env.TOPGG_WEBHOOK_SECRET) {
-      res.status(401).json({ message: 'Unauthorized' });
-      return;
+      return Response.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
-    const payload = req.body;
+    const payload = await req.json();
 
     if (!this.isValidVotePayload(payload)) {
       Logger.error('Invalid payload received from top.gg, possible untrusted request: %O', payload);
-      res.status(400).json({ message: 'Invalid payload' });
-      return;
+      return Response.json({ message: 'Invalid payload' }, { status: 400 });
     }
-
-    res.status(204).send();
 
     if (payload.type === 'upvote') {
       await this.incrementUserVote(payload.user);
@@ -58,7 +53,7 @@ export class VoteManager {
 
     await this.announceVote(payload);
 
-    next();
+    return new Response(null, { status: 204 });
   }
 
   async getUserVoteCount(id: string) {
@@ -125,9 +120,7 @@ export class VoteManager {
     if (!userInGuild?.roles.includes(roleId)) return;
 
     const method = type === 'add' ? 'put' : 'delete';
-    await this.rest[method](
-      Routes.guildMemberRole(Constants.SupportServerId, userId, roleId),
-    );
+    await this.rest[method](Routes.guildMemberRole(Constants.SupportServerId, userId, roleId));
     return;
   }
 

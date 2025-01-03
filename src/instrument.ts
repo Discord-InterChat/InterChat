@@ -1,6 +1,5 @@
 import Constants from '#utils/Constants.js';
-import * as Sentry from '@sentry/node';
-import 'dotenv/config';
+import * as Sentry from '@sentry/bun';
 
 if (!Constants.isDevBuild) {
   Sentry.init({

@@ -1,5 +1,4 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-
 import { OriginalMessage } from '#main/utils/network/messageUtils.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
@@ -90,7 +89,7 @@ abstract class BaseBlacklistHandler implements ModAction {
       .addFields(
         {
           name: 'Reason',
-          value: reason ?? t('misc.noReason', locale),
+          value: reason ?? t('global.noReason', locale),
           inline: true,
         },
         {
