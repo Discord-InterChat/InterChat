@@ -86,7 +86,7 @@ export default class NetworkReactionInteraction {
     const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
     await interaction.followUp({
       content: t(phrase, locale, { emoji: getEmoji('no', interaction.client) }),
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 
@@ -96,7 +96,7 @@ export default class NetworkReactionInteraction {
       const timeString = time(Math.round(cooldown / 1000), 'R');
       await interaction.followUp({
         content: `A little quick there! You can react again ${timeString}!`,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return true;
     }
@@ -114,7 +114,7 @@ export default class NetworkReactionInteraction {
     if (!originalMessage?.reactions || !originalMessage.hubId) {
       await interaction.followUp({
         content: 'There are no more reactions to view.',
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -133,7 +133,7 @@ export default class NetworkReactionInteraction {
     await interaction.followUp({
       embeds: [embed],
       components: [reactionMenu],
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 
@@ -199,7 +199,7 @@ export default class NetworkReactionInteraction {
     if (!emojiAlreadyReacted) {
       await interaction.followUp({
         content: `${getEmoji('no', interaction.client)} This reaction doesn't exist.`,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -237,7 +237,7 @@ export default class NetworkReactionInteraction {
       await interaction
         .followUp({
           content: `You have ${action} with ${reactedEmoji}!`,
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         })
         .catch(() => null);
     }

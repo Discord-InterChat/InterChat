@@ -36,11 +36,11 @@ export default class AppealCommand extends HubCommand {
       return;
     }
 
-    await hub.setAppealCooldownHours(appealCooldownHours);
+    await hub.update({ appealCooldownHours });
 
     await interaction.reply({
       content: `${this.getEmoji('clock_icon')} Appeal cooldown has been set to **${appealCooldownHours}** hour(s).`,
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 

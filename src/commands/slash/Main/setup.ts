@@ -103,7 +103,7 @@ export default class SetupCommand extends BaseCommand {
       await interaction.reply({
         content:
           'You cannot setup InterChat in a channel where you do not have `Manage Messages` permission.',
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }

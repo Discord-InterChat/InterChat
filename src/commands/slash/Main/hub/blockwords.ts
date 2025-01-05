@@ -28,14 +28,24 @@ export default class BlockWordCommand extends HubCommand {
     const hubName = interaction.options.getString('hub', true);
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
-    if (!hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
+    if (!hub) {
       const locale = await this.getLocale(interaction);
       await this.replyEmbed(
         interaction,
         t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
         {
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         },
+      );
+      return;
+    }
+
+    if (!(await isStaffOrHubMod(interaction.user.id, hub))) {
+      const locale = await this.getLocale(interaction);
+      await this.replyEmbed(
+        interaction,
+        t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }),
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -65,7 +75,7 @@ export default class BlockWordCommand extends HubCommand {
         interaction,
         t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
         {
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         },
       );
       return;
@@ -96,7 +106,7 @@ export default class BlockWordCommand extends HubCommand {
 
     await interaction.reply({
       content: `${this.getEmoji('loading')} Validating blocked words...`,
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
 
     const name = interaction.fields.getTextInputValue('name');
@@ -149,7 +159,7 @@ export default class BlockWordCommand extends HubCommand {
         interaction,
         t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
         {
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         },
       );
       return;
@@ -168,7 +178,7 @@ export default class BlockWordCommand extends HubCommand {
     await interaction.reply({
       content: `Configure actions for rule: ${rule.name}`,
       components: [selectMenu],
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 

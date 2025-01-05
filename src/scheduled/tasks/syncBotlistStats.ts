@@ -1,7 +1,8 @@
+import { handleError } from '#main/utils/Utils.js';
 import Logger from '#utils/Logger.js';
 
 const logPostError = (error: unknown) => {
-  Logger.error('[TopGGPostStats]: Error updating stats %O', error);
+  handleError(error, { comment: 'Failed to update top.gg stats' });
 };
 
 const logPostSuccess = (data: TopggStats) => {

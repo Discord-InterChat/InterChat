@@ -52,6 +52,8 @@ export default class SetCommand extends BaseCommand {
 
   override async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = SetCommand.subcommands?.get(interaction.options.getSubcommand());
-    return await subcommand?.execute(interaction).catch((e) => handleError(e, interaction));
+    return await subcommand
+      ?.execute(interaction)
+      .catch((e) => handleError(e, { repliable: interaction }));
   }
 }

@@ -43,8 +43,7 @@ export default class MarkResolvedButton {
       await interaction.editReply({ components: rows });
     }
     catch (e) {
-      e.message = `Failed to mark the message as resolved: ${e.message}`;
-      handleError(e, interaction);
+      handleError(e, { repliable: interaction, comment: 'Failed to mark the message as resolved' });
     }
   }
 }

@@ -88,8 +88,7 @@ const cacheConnectionHubId = async (...connections: Connection[]) => {
   }
 
   await pipeline.exec().catch((e) => {
-    e.message = `Failed to cache connection hub id: ${e.message}`;
-    handleError(e);
+    handleError(e, { comment: 'Failed to cache connectionHubId' });
   });
 };
 

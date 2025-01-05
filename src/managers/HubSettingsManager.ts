@@ -5,10 +5,11 @@ import {
   type HubSettingsString,
 } from '#main/modules/BitFields.js';
 import { HubService } from '#main/services/HubService.js';
+import Constants from '#main/utils/Constants.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 
-import type { Client, EmbedBuilder } from 'discord.js';
+import type { BitFieldResolvable, Client, EmbedBuilder } from 'discord.js';
 
 export default class HubSettingsManager {
   private readonly hub: HubManager;
@@ -35,8 +36,13 @@ export default class HubSettingsManager {
   }
 
   async updateMultipleSettings(
-    updates: Partial<Record<HubSettingsString, boolean>>,
+    updates: BitFieldResolvable<HubSettingsString, number>,
   ): Promise<void> {
+    if (typeof updates === 'number') {
+      this.settings = new HubSettingsBitField(updates);
+      await this.saveSettings();
+      return;
+    }
     for (const [setting, value] of Object.entries(updates)) {
       if (value) this.settings.add(setting as HubSettingsString);
       else this.settings.remove(setting as HubSettingsString);
@@ -56,7 +62,7 @@ export default class HubSettingsManager {
   getEmbed(client: Client): EmbedBuilder {
     const embed = new InfoEmbed()
       .setTitle('Hub Settings')
-      .setColor('#0099ff')
+      .setColor(Constants.Colors.interchatBlue)
       .setDescription('Current settings for this hub:');
 
     for (const [key, value] of Object.entries(this.getAll())) {
@@ -73,7 +79,7 @@ export default class HubSettingsManager {
   }
 
   private async saveSettings(): Promise<void> {
-    return await this.hub.setSettings(this.settings.bitfield);
+    await this.hub.update({ settings: this.settings.bitfield });
   }
 
   // Helper method to reset all settings to default

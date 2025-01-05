@@ -9,76 +9,132 @@ import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import getRedis from '#main/utils/Redis.js';
 
+interface CacheConfig {
+  expirationMs: number;
+}
+
 export default class HubConnectionsManager {
-  private hub: HubManager;
-  private redis: Redis;
-  private readonly key;
+  private readonly cacheKey: string;
+  private readonly cacheConfig: CacheConfig = {
+    expirationMs: 10 * 60 * 1000, // 10 minutes
+  };
 
-  constructor(hubManager: HubManager, redis?: Redis) {
-    this.hub = hubManager;
-    this.redis = redis ?? getRedis();
-    this.key = `${RedisKeys.Hub}:${this.hub.id}:connections`;
+  constructor(
+    private readonly hub: HubManager,
+    private readonly redis: Redis = getRedis(),
+  ) {
+    this.cacheKey = this.buildCacheKey(hub.id);
   }
 
-  async toArray() {
-    const cached = await this.redis.hgetall(this.key);
+  async fetch(channelId: string): Promise<ConnectionManager | null>;
+  async fetch(): Promise<ConnectionManager[]>;
+  async fetch(channelId?: string): Promise<ConnectionManager[] | ConnectionManager | null> {
+    if (channelId) {
+      const cachedConnection = await this.getCachedConnection(channelId);
+      if (cachedConnection) {
+        return new ConnectionManager(cachedConnection);
+      }
 
-    if (isEmpty(cached) === false) {
-      const cachedData = Object.values(cached).map((c) => convertToConnectedList(JSON.parse(c)));
-      return cachedData.map((c) => new ConnectionManager(c));
+      return this.fetchAndCacheConnection(channelId);
+    }
+    const cachedConnections = await this.getCachedConnections();
+    if (cachedConnections.length > 0) {
+      return this.createManagersFromConnections(cachedConnections);
     }
 
-    const fromDb = await db.connection.findMany({
-      where: { hubId: this.hub.id },
-    });
-    const keyValuePairs = fromDb.flatMap((c) => [c.channelId, JSON.stringify(c)]);
-
-    if (keyValuePairs.length === 0) return [];
-
-    Logger.debug(`Caching ${fromDb.length} connections for hub ${this.hub.id}`);
-
-    await this.redis.hset(this.key, keyValuePairs);
-    await this.redis.expire(this.key, 10 * 60 * 1000); // 10 minutes
-
-    Logger.debug(`Cached ${fromDb.length} connections for hub ${this.hub.id}`);
-
-    return fromDb.map((c) => new ConnectionManager(c));
+    return this.fetchAndCacheConnections();
   }
 
-  async get(channelId: string) {
-    const rawConnection = await this.redis.hget(this.key, channelId);
-
-    if (!rawConnection) {
-      const connection = await db.connection.findUnique({
-        where: { channelId },
-      });
-      if (!connection) return null;
-      return await this.set(connection);
+  async createConnection(data: Prisma.ConnectionCreateInput): Promise<ConnectionManager | null> {
+    const existingConnection = await this.fetch(data.channelId);
+    if (existingConnection) {
+      return null;
     }
 
-    const connection = convertToConnectedList(JSON.parse(rawConnection));
+    const connection = await db.connection.create({ data });
+    await this.cacheConnection(connection);
     return new ConnectionManager(connection);
   }
 
-  async set(data: Connection) {
-    cacheHubConnection(data);
-    return new ConnectionManager(data);
-  }
-
-  async create(data: Prisma.ConnectionCreateInput) {
-    const existing = await this.get(data.channelId);
-    if (existing) return null;
-
-    const created = await db.connection.create({ data });
-    await this.redis.hset(this.key, created.channelId, JSON.stringify(created));
-    return new ConnectionManager(created);
-  }
-
-  async delete(channelId: string) {
-    const connection = await this.get(channelId);
-    if (!connection) return null;
+  async deleteConnection(channelId: string): Promise<ConnectionManager | null> {
+    const connection = await this.fetch(channelId);
+    if (!connection) {
+      return null;
+    }
 
     await connection.disconnect();
     return connection;
+  }
+
+  async setConnection(connection: Connection): Promise<ConnectionManager> {
+    await this.cacheConnection(connection);
+    return new ConnectionManager(connection);
+  }
+
+  // Private helper methods
+  private buildCacheKey(hubId: string): string {
+    return `${RedisKeys.Hub}:${hubId}:connections`;
+  }
+
+  private async getCachedConnections(): Promise<Connection[]> {
+    const cached = await this.redis.hgetall(this.cacheKey);
+    if (isEmpty(cached)) {
+      return [];
+    }
+
+    return Object.values(cached).map((conn) => convertToConnectedList(JSON.parse(conn)));
+  }
+
+  private async fetchAndCacheConnections(): Promise<ConnectionManager[]> {
+    const connections = await db.connection.findMany({
+      where: { hubId: this.hub.id },
+    });
+
+    if (connections.length === 0) {
+      return [];
+    }
+
+    await this.cacheConnections(connections);
+    return this.createManagersFromConnections(connections);
+  }
+
+  private async getCachedConnection(channelId: string): Promise<Connection | null> {
+    const rawConnection = await this.redis.hget(this.cacheKey, channelId);
+    if (!rawConnection) {
+      return null;
+    }
+
+    return convertToConnectedList(JSON.parse(rawConnection));
+  }
+
+  private async fetchAndCacheConnection(channelId: string): Promise<ConnectionManager | null> {
+    const connection = await db.connection.findUnique({
+      where: { channelId },
+    });
+
+    if (!connection) {
+      return null;
+    }
+
+    return this.setConnection(connection);
+  }
+
+  private async cacheConnections(connections: Connection[]): Promise<void> {
+    Logger.debug(`Caching ${connections.length} connections for hub ${this.hub.id}`);
+
+    const keyValuePairs = connections.flatMap((conn) => [conn.channelId, JSON.stringify(conn)]);
+
+    await this.redis.hset(this.cacheKey, keyValuePairs);
+    await this.redis.expire(this.cacheKey, this.cacheConfig.expirationMs);
+
+    Logger.debug(`Cached ${connections.length} connections for hub ${this.hub.id}`);
+  }
+
+  private async cacheConnection(connection: Connection): Promise<void> {
+    cacheHubConnection(connection);
+  }
+
+  private createManagersFromConnections(connections: Connection[]): ConnectionManager[] {
+    return connections.map((conn) => new ConnectionManager(conn));
   }
 }

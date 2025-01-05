@@ -1,7 +1,7 @@
 // @ts-check
 import { Collection, REST, Routes } from 'discord.js';
-import { greenText, greyText, redText, Spinner } from './utils.js';
 import { loadCommands } from '../src/utils/CommandUtils.js';
+import { Spinner, greenText, greyText, redText } from './utils.js';
 
 process.env.DEBUG = 'false'; // disable command loader logging
 

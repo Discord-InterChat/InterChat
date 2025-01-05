@@ -52,7 +52,7 @@ export default class ConnectionEditCommand extends Connection {
         content: t('connection.channelNotFound', locale, {
           emoji: this.getEmoji('x_icon'),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
     }
 
@@ -91,7 +91,7 @@ export default class ConnectionEditCommand extends Connection {
           content: t('connection.inviteRemoved', locale, {
             emoji: this.getEmoji('tick_icon'),
           }),
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         });
         return;
       }
@@ -102,7 +102,7 @@ export default class ConnectionEditCommand extends Connection {
           content: t('connection.inviteInvalid', locale, {
             emoji: this.getEmoji('x_icon'),
           }),
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         });
         return;
       }
@@ -113,7 +113,7 @@ export default class ConnectionEditCommand extends Connection {
         content: t('connection.inviteAdded', locale, {
           emoji: this.getEmoji('tick_icon'),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
     }
     else if (customId.suffix === 'embed_color') {
@@ -124,7 +124,7 @@ export default class ConnectionEditCommand extends Connection {
           content: t('connection.emColorInvalid', locale, {
             emoji: this.getEmoji('x_icon'),
           }),
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         });
         return;
       }
@@ -139,7 +139,7 @@ export default class ConnectionEditCommand extends Connection {
           action: embedColor ? `set to \`${embedColor}\`!` : 'unset',
           emoji: this.getEmoji('tick_icon'),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
     }
 
@@ -181,7 +181,7 @@ export default class ConnectionEditCommand extends Connection {
         content: t('connection.channelNotFound', locale, {
           emoji: this.getEmoji('x_icon'),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -231,7 +231,7 @@ export default class ConnectionEditCommand extends Connection {
                 .setStyle(TextInputStyle.Short)
                 .setLabel('Embed Color')
                 .setPlaceholder('Provide a hex color code or leave blank to remove.')
-                .setValue(connection.embedColor || '#000000')
+                .setValue(connection.embedColor ?? '#000000')
                 .setRequired(false),
             ),
           );
@@ -283,7 +283,7 @@ export default class ConnectionEditCommand extends Connection {
     if (!isGuildTextBasedChannel(newChannel) || newChannel.isVoiceBased()) {
       await interaction.followUp({
         content: t('hub.invalidChannel', locale, { emoji }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }

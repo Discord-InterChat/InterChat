@@ -28,6 +28,6 @@ export default class Support extends BaseCommand {
     const subCommandName = interaction.options.getSubcommand();
     const subcommand = Support.subcommands?.get(subCommandName);
 
-    await subcommand?.execute(interaction).catch((e) => handleError(e, interaction));
+    await subcommand?.execute(interaction).catch((e) => handleError(e, { repliable: interaction }));
   }
 }

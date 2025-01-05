@@ -25,7 +25,7 @@ export default class Respawn extends BaseCommand {
     if (!isDev(interaction.user.id)) {
       await interaction.reply({
         content: `${this.getEmoji('dnd_anim')} You are not authorized to use this command.`,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }

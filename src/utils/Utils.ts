@@ -1,12 +1,7 @@
 import { captureException } from '@sentry/node';
-import type { ClusterManager } from 'discord-hybrid-sharding';
 import {
-  type ColorResolvable,
   type CommandInteraction,
-  EmbedBuilder,
   type GuildTextBasedChannel,
-  type Interaction,
-  InteractionType,
   Message,
   type MessageComponentInteraction,
   type RepliableInteraction,
@@ -15,7 +10,7 @@ import {
 } from 'discord.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
-import { CustomID } from '#main/utils/CustomID.js';
+import { ErrorHandlerOptions, createErrorHint, sendErrorResponse } from '#main/utils/ErrorUtils.js';
 import type { RemoveMethods, ThreadParentChannel } from '#types/CustomClientProps.d.ts';
 import Constants from '#utils/Constants.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
@@ -60,21 +55,12 @@ export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve,
 export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) =>
   option ? yesEmoji : noEmoji;
 
-export const disableComponents = (message: Message) =>
-  message.components.flatMap((row) => {
-    const jsonRow = row.toJSON();
-    for (const component of jsonRow.components) {
-      component.disabled = true;
-    }
-    return jsonRow;
-  });
-
-const findExistingWebhook = async (channel: ThreadParentChannel | VoiceBasedChannel) => {
+export const findExistingWebhook = async (channel: ThreadParentChannel | VoiceBasedChannel) => {
   const webhooks = await channel?.fetchWebhooks().catch(() => null);
   return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
 };
 
-const createWebhook = async (
+export const createWebhook = async (
   channel: ThreadParentChannel | VoiceBasedChannel,
   avatar: string,
   name: string,
@@ -112,14 +98,6 @@ export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
 export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') =>
   string.replaceAll(Constants.Regex.Links, replaceText);
 
-export const calculateRating = (ratings: number[]): number => {
-  if (ratings.length === 0) return 0;
-
-  const sum = ratings.reduce((acc, cur) => acc + cur, 0);
-  const average = sum / ratings.length;
-  return Math.round(average * 10) / 10;
-};
-
 export const toTitleCase = (str: string) => startCase(toLower(str));
 
 export const getReplyMethod = (
@@ -145,49 +123,33 @@ export const sendErrorEmbed = async (
   const method = getReplyMethod(repliable);
   return await repliable[method]({
     embeds: [errorEmbed],
-    flags: 'Ephemeral',
+    flags: ['Ephemeral'],
   });
 };
 
-export const handleError = (e: Error, repliable?: Interaction | Message) => {
-  // log the error to the system
-  Logger.error(e);
+export function handleError(error: unknown, options: ErrorHandlerOptions = {}): void {
+  const { repliable, comment } = options;
 
-  let extra = {};
-
-  if (repliable instanceof Message) {
-    extra = {
-      user: { id: repliable.author.id, username: repliable.author.username },
-    };
-  }
-  else if (repliable) {
-    let commandName: string | undefined;
-    if (repliable.isChatInputCommand()) {
-      const subcommand = repliable.options.getSubcommand(false) ?? '';
-      const subcommandGroup = repliable.options.getSubcommandGroup(false) ?? '';
-
-      commandName = `${repliable.commandName} ${subcommandGroup} ${subcommand}`;
-    }
-    else if (repliable.isCommand() || repliable.isAutocomplete()) {
-      commandName = repliable.commandName;
-    }
-
-    extra = {
-      user: { id: repliable.user.id, username: repliable.user.username },
-      extra: {
-        type: InteractionType[repliable.type],
-        commandName,
-        customId: 'customId' in repliable ? CustomID.parseCustomId(repliable.customId) : undefined,
-      },
-    };
+  // Enhance error message if possible
+  if (error instanceof Error && comment) {
+    error.message = `${comment}: ${error.message}`;
   }
 
-  // capture the error to Sentry.io with additional information
-  const errorCode = captureException(e, extra);
+  // Log the error
+  Logger.error(error);
 
-  // reply with an error message to the user
-  if (repliable && 'reply' in repliable) sendErrorEmbed(repliable, errorCode).catch(Logger.error);
-};
+  // Create hint with additional context
+  const hint = createErrorHint(repliable, comment);
+
+  // Capture in Sentry
+  const errorCode = captureException(error, hint);
+
+  // Send error response if possible
+  if (repliable) {
+    void sendErrorResponse(repliable, errorCode);
+  }
+}
+
 
 export const isDev = (userId: Snowflake) => Constants.DeveloperIds.includes(userId);
 
@@ -220,22 +182,6 @@ export const getOrdinalSuffix = (num: number) => {
   return 'th';
 };
 
-export const getUsername = async (client: ClusterManager, userId: Snowflake) => {
-  if (!client) return null;
-
-  const username = resolveEval(
-    await client.broadcastEval(
-      async (c, ctx) => {
-        const user = await c.users.fetch(ctx.userId).catch(() => null);
-        return user?.username;
-      },
-      { context: { userId } },
-    ),
-  );
-
-  return username;
-};
-
 export const containsInviteLinks = (str: string) => {
   const inviteLinks = ['discord.gg', 'discord.com/invite', 'dsc.gg'];
   return inviteLinks.some((link) => str.includes(link));
@@ -250,16 +196,3 @@ export const isHumanMessage = (message: Message) =>
 export const trimAndCensorBannedWebhookWords = (content: string) =>
   content.slice(0, 35).replace(Constants.Regex.BannedWebhookWords, '[censored]');
 
-export const simpleEmbed = (
-  description: string,
-  opts?: { color?: ColorResolvable; title?: string },
-) =>
-  new EmbedBuilder()
-    .setTitle(opts?.title ?? null)
-    .setColor(opts?.color ?? Constants.Colors.invisible)
-    .setDescription(description.toString());
-
-export const getStars = (rating: number, emoji = '⭐') => {
-  const stars = Math.round(rating);
-  return emoji.repeat(stars);
-};

@@ -24,10 +24,9 @@
     "paths": {
       "#main/*": ["./src/*"],
       "#utils/*": ["./src/utils/*"],
-      "#types/*.d.ts": ["src/types/*.d.ts"],
+      "#types/*.d.ts": ["src/types/*.d.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.json"],
-  "exclude": ["node_modules", "build", ]
+  "exclude": ["node_modules", "build"]
 }
-

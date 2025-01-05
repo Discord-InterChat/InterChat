@@ -160,7 +160,7 @@ export default class BlacklistCommand extends BaseCommand {
     const subCommandName = interaction.options.getSubcommand();
     const subcommand = BlacklistCommand.subcommands.get(subCommandName);
 
-    await subcommand?.execute(interaction).catch((e) => handleError(e, interaction));
+    await subcommand?.execute(interaction).catch((e) => handleError(e, { repliable: interaction }));
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {

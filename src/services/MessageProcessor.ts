@@ -21,7 +21,7 @@ export class MessageProcessor {
     const hub = await this.hubService.fetchHub(connectionHubId);
     if (!hub) return null;
 
-    const allConnections = await hub.connections.toArray();
+    const allConnections = await hub.connections.fetch();
     const hubConnections = allConnections.filter(
       (c) => c.data.connected && c.data.channelId !== message.channelId,
     );

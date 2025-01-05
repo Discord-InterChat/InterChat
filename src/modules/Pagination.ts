@@ -138,14 +138,14 @@ export class Pagination {
       if (Number.isNaN(pageNumber) || pageNumber < 1 || pageNumber > totalPages) {
         await modalSubmit.reply({
           content: `Please enter a valid page number between 1 and ${totalPages}`,
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         });
         return null;
       }
 
       await modalSubmit.reply({
         content: `Going to page ${pageNumber}`,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return pageNumber - 1; // Convert to 0-based index
     }
@@ -211,7 +211,7 @@ export class Pagination {
             Jumping to page ${topResult.page + 1} with ${topResult.matches} match${topResult.matches !== 1 ? 'es' : ''}.
             
             ${otherResultsStr}`,
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         });
 
         return topResult.page;

@@ -25,11 +25,6 @@ export enum RedisKeys {
   message = 'message',
   broadcasts = 'broadcasts',
   messageReverse = 'messageReverse',
-  ChatLobby = 'chatLobby',
-  ChannelMap = 'channelMap',
-  ChannelPrefs = 'channelPrefs',
-  MatchingPool = 'matchingPool',
-  LobbyMessages = 'lobbyMessages',
   Hub = 'hub',
 }
 

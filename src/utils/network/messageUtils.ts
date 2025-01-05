@@ -98,8 +98,7 @@ export const addBroadcasts = async (
 
     // Execute all Redis operations in a single pipeline
     await pipeline.exec().catch((error) => {
-      error.message = `Failed to add broadcasts: ${error.message}`;
-      handleError(error);
+      handleError(error, { comment: 'Failed to add broadcasts' });
     });
 
     Logger.debug(`Added ${broadcasts.length} broadcasts for message ${originalMsgId}`);

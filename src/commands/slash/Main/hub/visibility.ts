@@ -17,7 +17,7 @@ export default class VisibilityCommnd extends HubCommand {
     if (!hub || !(await hub.isManager(interaction.user.id))) {
       await this.replyEmbed(interaction, 'hub.notManager', {
         t: { emoji: this.getEmoji('x_icon') },
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -28,11 +28,11 @@ export default class VisibilityCommnd extends HubCommand {
       if (!passedChecks) return;
     }
 
-    await hub.setPrivate(visibility === 'private');
+    await hub.update({ private: visibility === 'private' });
 
     await this.replyEmbed(interaction, 'hub.manage.visibility.success', {
       content: ' ',
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
       edit: true,
       t: {
         emoji: hub.data.private ? '🔒' : '🔓',

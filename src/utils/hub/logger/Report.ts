@@ -5,11 +5,6 @@ import {
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 
-import { markResolvedButton } from '#main/interactions/MarkResolvedButton.js';
-import { HubService } from '#main/services/HubService.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import db from '#utils/Db.js';
-import { resolveEval } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -20,6 +15,11 @@ import {
   type User,
   messageLink,
 } from 'discord.js';
+import { markResolvedButton } from '#main/interactions/MarkResolvedButton.js';
+import { HubService } from '#main/services/HubService.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import db from '#utils/Db.js';
+import { resolveEval } from '#utils/Utils.js';
 import { sendLog } from './Default.js';
 
 export type ReportEvidenceOpts = {

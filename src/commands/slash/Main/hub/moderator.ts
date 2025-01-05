@@ -16,7 +16,7 @@ export default class Moderator extends HubCommand {
         interaction,
         t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }),
         {
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         },
       );
       return;
@@ -160,7 +160,7 @@ export default class Moderator extends HubCommand {
           .setColor('Aqua')
           .setTimestamp(),
       ],
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 

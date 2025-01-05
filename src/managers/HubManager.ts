@@ -1,197 +1,144 @@
-import type { BlockWord, Hub, HubModerator } from '@prisma/client';
+import type { BlockWord, Hub } from '@prisma/client';
 import type { Redis } from 'ioredis';
+import { CacheConfig, CacheManager } from '#main/managers/CacheManager.js';
 import HubConnectionsManager from '#main/managers/HubConnectionsManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import HubModeratorManager from '#main/managers/HubModeratorManager.js';
 import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import { HubService } from '#main/services/HubService.js';
-import { getHubConnections } from '#main/utils/ConnectedListUtils.js';
 import { RedisKeys } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import getRedis from '#main/utils/Redis.js';
 
 export default class HubManager {
-  public readonly id: string;
-
-  private readonly cache: Redis;
-  private readonly hubService: HubService;
-  private readonly settingsManager: HubSettingsManager;
-  private readonly modManager: HubModeratorManager;
-
-  private readonly blockWordsKey: `${RedisKeys.Hub}:${string}:blockWords`;
-  private readonly expirationSeconds = 10 * 60 * 1000; // 10 mins
-
+  private readonly cacheManager: CacheManager;
+  private readonly components: {
+    hubService: HubService;
+    moderators: HubModeratorManager;
+    settings: HubSettingsManager;
+    connections: HubConnectionsManager;
+    logs: HubLogManager | null;
+  };
   private hub: Hub;
-  private logManager: HubLogManager | null = null;
-
-  public readonly connections: HubConnectionsManager;
 
   constructor(
     hub: Hub,
-    hubService?: HubService,
-    modManager?: HubModeratorManager,
-    cache: Redis = getRedis(),
+    config: Partial<{
+      hubService: HubService;
+      modManager: HubModeratorManager;
+      cache: Redis;
+      cacheConfig: CacheConfig;
+    }> = {},
   ) {
     this.hub = hub;
-    this.id = hub.id;
-    this.settingsManager = new HubSettingsManager(this);
+    this.cacheManager = new CacheManager(config.cache ?? getRedis(), {
+      expirationMs: 10 * 60 * 1000, // 10 minutes
+      prefix: RedisKeys.Hub,
+      ...config.cacheConfig,
+    });
 
-    this.blockWordsKey = `${RedisKeys.Hub}:${hub.id}:blockWords`;
+    this.components = {
+      hubService: config.hubService ?? new HubService(),
+      moderators: config.modManager ?? new HubModeratorManager(this, this.cacheManager.redis),
+      settings: new HubSettingsManager(this),
+      connections: new HubConnectionsManager(this, this.cacheManager.redis),
+      logs: null, // Lazy loaded
+    };
 
-    this.cache = cache;
-    this.hubService = hubService ?? new HubService();
-    this.modManager = modManager ?? new HubModeratorManager(this, cache);
-    this.connections = new HubConnectionsManager(this, cache);
-
-    this.cacheHub().catch(Logger.error);
+    this.initializeCache().catch(Logger.error);
   }
 
-  private async cacheHub() {
-    await this.cache.set(
-      `${this.hubService.hubKey}${this.hub.id}`,
-      JSON.stringify(this.hub),
-      'EX',
-      this.expirationSeconds,
-    );
+  // Public accessors
+  public get id(): string {
+    return this.hub.id;
   }
 
-  public get data() {
+  public get data(): Hub {
     return this.hub;
   }
 
-  public get moderators() {
-    return this.modManager;
+  public get settings(): HubSettingsManager {
+    return this.components.settings;
   }
 
-  async delete() {
-    await this.hubService.deleteHub(this.hub.id);
-  }
-  async setDescription(description: string) {
-    this.hub = await db.hub.update({
-      where: { id: this.hub.id },
-      data: { description },
-    });
-    this.cacheHub();
+  public get moderators(): HubModeratorManager {
+    return this.components.moderators;
   }
 
-  async setIconUrl(iconUrl: string) {
-    this.hub = await db.hub.update({
-      where: { id: this.hub.id },
-      data: { iconUrl },
-    });
-    this.cacheHub();
+  public get connections(): HubConnectionsManager {
+    return this.components.connections;
   }
 
-  async setBannerUrl(bannerUrl: string | null) {
-    this.hub = await db.hub.update({
-      where: { id: this.hub.id },
-      data: { bannerUrl },
-    });
-    this.cacheHub();
+  private async initializeCache(): Promise<void> {
+    await this.cacheManager.set(this.hub.id, this.hub);
   }
 
-  async setPrivate(isPrivate: boolean) {
+  // Data operations
+  public async update(
+    data: Partial<
+      Pick<
+        Hub,
+        | 'description'
+        | 'iconUrl'
+        | 'bannerUrl'
+        | 'private'
+        | 'locked'
+        | 'appealCooldownHours'
+        | 'settings'
+      >
+    >,
+  ): Promise<void> {
     this.hub = await db.hub.update({
       where: { id: this.hub.id },
-      data: { private: isPrivate },
+      data,
     });
-    this.cacheHub();
+    await this.initializeCache();
   }
 
-  async setLocked(locked: boolean) {
-    this.hub = await db.hub.update({
-      where: { id: this.hub.id },
-      data: { locked },
-    });
-    this.cacheHub();
-  }
-  async setAppealCooldownHours(appealCooldownHours: number) {
-    this.hub = await db.hub.update({
-      where: { id: this.hub.id },
-      data: { appealCooldownHours },
-    });
-    this.cacheHub();
+  public async delete(): Promise<void> {
+    await this.components.hubService.deleteHub(this.hub.id);
   }
 
-  async createInvite(expires: Date) {
-    const createdInvite = await db.hubInvite.create({
+  public async createInvite(expires: Date) {
+    return await db.hubInvite.create({
       data: {
         hub: { connect: { id: this.hub.id } },
         expires,
       },
     });
-
-    return createdInvite;
   }
 
-  /**
-   * This method is made specifically for the HubSettingsManager to update settings
-   * @param settings - Bitfield of settings
-   */
-  async setSettings(settings: number) {
-    this.hub = await db.hub.update({
-      where: { id: this.hub.id },
-      data: { settings },
+  public async fetchBlockWords(): Promise<BlockWord[]> {
+    return await this.cacheManager.getSetMembers<BlockWord>(
+      'blockWords',
+      async () => await db.blockWord.findMany({ where: { hubId: this.hub.id } }),
+    );
+  }
+
+  public async fetchInvites() {
+    return await db.hubInvite.findMany({
+      where: { hubId: this.hub.id },
     });
-    this.cacheHub();
   }
 
-  get settings() {
-    return this.settingsManager;
-  }
-
-  async fetchBlockWords() {
-    const fromCache = await this.cache.smembers(this.blockWordsKey);
-    if (fromCache.length > 0) {
-      return fromCache.map((c) => JSON.parse(c)) as BlockWord[];
+  public async fetchLogConfig() {
+    if (!this.components.logs) {
+      this.components.logs = await HubLogManager.create(this.hub.id);
     }
-
-    const blockWords = await db.blockWord.findMany({
-      where: { hubId: this.hub.id },
-    });
-    await this.storeInCache(this.blockWordsKey, blockWords);
-
-    return blockWords;
+    return this.components.logs;
   }
 
-  async fetchInvites() {
-    const invites = await db.hubInvite.findMany({
-      where: { hubId: this.hub.id },
-    });
-    return invites;
-  }
-
-  async fetchLogConfig() {
-    if (!this.logManager) this.logManager = await HubLogManager.create(this.hub.id);
-    return this.logManager;
-  }
-
-  async fetchConnections() {
-    return await getHubConnections(this.hub.id);
-  }
-
-  isOwner(userId: string) {
+  // Authorization methods
+  public isOwner(userId: string): boolean {
     return this.data.ownerId === userId;
   }
 
-  private async storeInCache(key: string, data: BlockWord[] | HubModerator[]) {
-    const multi = this.cache.multi();
-    multi.del(key);
-
-    for (const bw of data) {
-      multi.sadd(key, JSON.stringify(bw));
-    }
-
-    multi.expire(key, 60 * 60 * 24);
-    await multi.exec();
+  public async isManager(userId: string): Promise<boolean> {
+    return await this.components.moderators.checkStatus(userId, ['MANAGER']);
   }
 
-  async isManager(userId: string) {
-    return await this.modManager.checkStatus(userId, ['MANAGER']);
-  }
-
-  async isMod(userId: string) {
-    return await this.modManager.checkStatus(userId);
+  public async isMod(userId: string): Promise<boolean> {
+    return await this.components.moderators.checkStatus(userId);
   }
 }

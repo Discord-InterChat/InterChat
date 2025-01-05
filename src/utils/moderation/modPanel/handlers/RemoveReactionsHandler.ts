@@ -19,7 +19,7 @@ export default class RemoveReactionsHandler implements ModAction {
     if (!sortReactions((originalMsg.reactions as ReactionArray) ?? {}).length) {
       await interaction.followUp({
         content: `${getEmoji('slash', interaction.client)} No reactions to remove.`,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -28,7 +28,7 @@ export default class RemoveReactionsHandler implements ModAction {
 
     await interaction.followUp({
       content: `${getEmoji('tick_icon', interaction.client)} Reactions removed.`,
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 }

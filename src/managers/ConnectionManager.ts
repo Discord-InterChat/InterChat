@@ -7,98 +7,112 @@ import db from '#main/utils/Db.js';
 import getRedis from '#main/utils/Redis.js';
 
 export default class ConnectionManager {
-  private connection: Connection;
   private readonly cache = getRedis();
-  private readonly key: string;
-  readonly hubService = new HubService();
+  private readonly hubService = new HubService();
+  private readonly cacheKey: string;
 
-  constructor(connection: Connection) {
-    this.connection = connection;
-    this.key = `${RedisKeys.Hub}:${connection.hubId}:connections`;
+  constructor(private connection: Connection) {
+    this.cacheKey = this.buildCacheKey(connection.hubId);
   }
 
-  get id() {
+  get id(): string {
     return this.connection.id;
   }
 
-  get hubId() {
+  get hubId(): string {
     return this.connection.hubId;
   }
 
-  get data() {
+  get data(): Connection {
     return this.connection;
   }
 
-  async fetchHub() {
-    return await this.hubService.fetchHub(this.hubId);
+  get connected(): boolean {
+    return this.connection.connected;
   }
 
-  private async refreshCache(deleteConnection = false) {
-    if (deleteConnection) {
-      await this.cache.hdel(this.key, this.connection.channelId);
-      await this.cache.del(`${RedisKeys.connectionHubId}:${this.connection.channelId}`);
+  get channelId(): string {
+    return this.connection.channelId;
+  }
+
+  // Public methods
+  async fetchHub() {
+    return this.hubService.fetchHub(this.hubId);
+  }
+
+  async pause(): Promise<void> {
+    await this.updateConnectionIfExists({ connected: false });
+  }
+
+  async resume(): Promise<void> {
+    await this.updateConnectionIfExists({ connected: true });
+  }
+
+  async disconnect(): Promise<void> {
+    if (!(await this.connectionExists())) {
       return;
     }
-    cacheHubConnection(this.connection);
+
+    await db.connection.delete({
+      where: { id: this.connection.id },
+    });
+    await this.clearCache();
   }
 
-  private async updateConnection(data: Prisma.ConnectionUpdateInput) {
+  async setInvite(invite: string): Promise<void> {
+    await this.updateConnectionIfExists({ invite });
+  }
+
+  async setEmbedColor(embedColor: HexColorString): Promise<void> {
+    await this.updateConnectionIfExists({ embedColor });
+  }
+
+  async setCompactMode(compact: boolean): Promise<void> {
+    await this.updateConnectionIfExists({ compact });
+  }
+
+  async toggleCompactMode(): Promise<void> {
+    await this.updateConnectionIfExists({
+      compact: !this.connection.compact,
+    });
+  }
+
+  async setProfanityFilter(profFilter: boolean): Promise<void> {
+    await this.updateConnectionIfExists({ profFilter });
+  }
+
+  // Private helper methods
+  private buildCacheKey(hubId: string): string {
+    return `${RedisKeys.Hub}:${hubId}:connections`;
+  }
+
+  private async connectionExists(): Promise<boolean> {
+    return Boolean(await this.cache.hget(this.cacheKey, this.connection.channelId));
+  }
+
+  private async updateConnectionIfExists(data: Prisma.ConnectionUpdateInput): Promise<void> {
+    if (!(await this.connectionExists())) {
+      return;
+    }
+    await this.updateConnection(data);
+  }
+
+  private async updateConnection(data: Prisma.ConnectionUpdateInput): Promise<void> {
     this.connection = await db.connection.update({
       where: { id: this.connection.id },
       data,
     });
-
-    await this.refreshCache();
+    await this.updateCache();
   }
 
-  async pause() {
-    const exists = await this.cache.hget(this.key, this.connection.channelId);
-    if (!exists) return;
-
-    await this.updateConnection({ connected: false });
-  }
-  async resume() {
-    const exists = await this.cache.hget(this.key, this.connection.channelId);
-    if (!exists) return;
-
-    await this.updateConnection({ connected: true });
-  }
-  async disconnect() {
-    const exists = await this.cache.hget(this.key, this.connection.channelId);
-    if (!exists) return;
-
-    await db.connection.delete({ where: { id: this.connection.id } });
-    await this.refreshCache(true);
-  }
-  async setInvite(invite: string) {
-    const exists = await this.cache.hget(this.key, this.connection.channelId);
-    if (!exists) return;
-
-    await this.updateConnection({ invite });
-  }
-  async setEmbedColor(embedColor: HexColorString) {
-    const exists = await this.cache.hget(this.key, this.connection.channelId);
-    if (!exists) return;
-
-    await this.updateConnection({ embedColor });
-  }
-  async toggleCompactMode() {
-    const exists = await this.cache.hget(this.key, this.connection.channelId);
-    if (!exists) return;
-
-    await this.updateConnection({ compact: !this.connection.compact });
+  private async updateCache(): Promise<void> {
+    cacheHubConnection(this.connection);
   }
 
-  async setCompactMode(compact: boolean) {
-    const exists = await this.cache.hget(this.key, this.connection.channelId);
-    if (!exists) return;
-
-    await this.updateConnection({ compact });
-  }
-  async setProfanityFilter(profFilter: boolean) {
-    const exists = await this.cache.hget(this.key, this.connection.channelId);
-    if (!exists) return;
-
-    await this.updateConnection({ profFilter });
+  private async clearCache(): Promise<void> {
+    await Promise.all([
+      this.cache.hdel(this.cacheKey, this.connection.channelId),
+      this.cache.del(`${RedisKeys.connectionHubId}:${this.connection.channelId}`),
+    ]);
   }
 }

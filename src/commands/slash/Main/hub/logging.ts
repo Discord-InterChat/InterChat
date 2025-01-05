@@ -60,7 +60,7 @@ export default class LoggingCommand extends HubCommand {
 
     if (ownedHubs.length === 0) {
       await this.replyEmbed(interaction, 'You do not have access to any hubs.', {
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return null;
     }
@@ -94,7 +94,7 @@ export default class LoggingCommand extends HubCommand {
     }
 
     this.replyEmbed(interaction, 'You must provide a hub in the `hub` option of the command.', {
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
     return null;
   }

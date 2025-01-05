@@ -31,13 +31,13 @@ export default class DeleteMessageHandler implements ModAction {
         `${getEmoji('neutral', interaction.client)} This message is already deleted or is being deleted by another moderator.`,
       );
 
-      await interaction.followUp({ flags: 'Ephemeral', embeds: [errorEmbed] });
+      await interaction.followUp({ flags: ['Ephemeral'], embeds: [errorEmbed] });
       return;
     }
 
     await interaction.reply({
       content: `${getEmoji('loading', interaction.client)} Deleting messages... This may take a minute or so.`,
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
 
     const broadcastMsgs = Object.values(

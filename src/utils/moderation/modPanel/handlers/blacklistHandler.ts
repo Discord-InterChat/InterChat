@@ -125,7 +125,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     if (!user) {
       await interaction.reply({
         content: `${getEmoji('neutral', interaction.client)} Unable to fetch user. They may have deleted their account?`,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -135,7 +135,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
         content: t('hub.notFound_mod', locale, {
           emoji: getEmoji('x_icon', interaction.client),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -143,7 +143,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     if (originalMsg.authorId === interaction.user.id) {
       await interaction.followUp({
         content: '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -218,7 +218,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
         content: t('hub.notFound_mod', locale, {
           emoji: getEmoji('x_icon', client),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -229,7 +229,7 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
         content: t('errors.unknownServer', locale, {
           emoji: getEmoji('x_icon', client),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }

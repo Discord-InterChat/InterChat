@@ -26,7 +26,7 @@ export class HubService {
     this.cache = cache;
   }
 
-  protected parseHubStringToObject(hub: string): Hub {
+  static parseHubStringToObject(hub: string): Hub {
     const parsedHub = JSON.parse(hub) as ConvertDatesToString<Hub>;
 
     return {
@@ -37,8 +37,10 @@ export class HubService {
   }
 
   private createHubManager(hub: Hub | string): HubManager {
-    if (typeof hub === 'string') return new HubManager(this.parseHubStringToObject(hub), this);
-    return new HubManager(hub);
+    if (typeof hub === 'string') {
+      return new HubManager(HubService.parseHubStringToObject(hub), { hubService: this });
+    }
+    return new HubManager(hub, { hubService: this });
   }
 
   async fetchHub(whereInput: string | { id?: string; name?: string }): Promise<HubManager | null> {
@@ -84,7 +86,7 @@ export class HubService {
   }
 
   async deleteHub(hubId: string): Promise<void> {
-    const hub = await new HubService().fetchHub(hubId);
+    const hub = await this.fetchHub(hubId);
     if (!hub) return;
 
     // delete all relations first

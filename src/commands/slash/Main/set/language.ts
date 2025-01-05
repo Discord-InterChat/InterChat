@@ -13,7 +13,7 @@ export default class SetLanguage extends SetCommand {
           await interaction.client.userManager.getUserLocale(interaction.user.id),
           { emoji: this.getEmoji('info') },
         ),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -26,7 +26,7 @@ export default class SetLanguage extends SetCommand {
 
     await interaction.reply({
       content: this.getEmoji('tick_icon') + t('language.set', locale, { lang }),
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 }

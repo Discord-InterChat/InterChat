@@ -53,7 +53,7 @@ export default class Settings extends HubCommand {
     await this.replyEmbed(
       interaction,
       `Setting \`${settingStr}\` is now **${value ? `${this.getEmoji('enabled')} enabled` : `${this.getEmoji('disabled')} disabled`}**.`,
-      { flags: 'Ephemeral', components: [viewSettingsButton] },
+      { flags: ['Ephemeral'], components: [viewSettingsButton] },
     );
   }
 
@@ -78,7 +78,7 @@ export default class Settings extends HubCommand {
     const settingsManager = await HubSettingsManager.create(hubId);
     await interaction.reply({
       embeds: [settingsManager.getEmbed(interaction.client)],
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
   private async runHubCheck(interaction: ChatInputCommandInteraction) {

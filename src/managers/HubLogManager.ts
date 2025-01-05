@@ -72,8 +72,7 @@ export default class HubLogManager {
       await cacheData(`${RedisKeys.hubLogConfig}:${this.hubId}`, JSON.stringify(this.logConfig));
     }
     catch (error) {
-      error.message = `Failed to refresh cache for hub log config: ${error.message}`;
-      handleError(error);
+      handleError(error, { comment: 'Failed to refresh cache for hub log config' });
     }
   }
 
@@ -128,8 +127,9 @@ export default class HubLogManager {
     const logDesc = this.logTypes
       .map((type) => {
         const configType = this.config[type];
+        const mentionedRole = typeof configType !== 'string' && configType?.roleId ? roleMention(configType.roleId) : x_icon;
         const roleInfo = this.logsWithRoleId.includes(type)
-          ? `${dividerEnd} ${roleStr} ${typeof configType !== 'string' && configType?.roleId ? roleMention(configType.roleId) : x_icon}`
+          ? `${dividerEnd} ${roleStr} ${mentionedRole}`
           : '';
 
         const channelId = typeof configType === 'string' ? configType : configType?.channelId;

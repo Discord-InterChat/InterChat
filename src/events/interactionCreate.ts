@@ -28,7 +28,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
       await this.handleInteraction(interaction, preCheckResult.dbUser);
     }
     catch (e) {
-      handleError(e, interaction);
+      handleError(e, { repliable: interaction });
     }
   }
 
@@ -160,7 +160,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     interaction
       .reply({
         content: `${this.getEmoji('slash')} The bot is currently undergoing maintenance. Please try again later.`,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       })
       .catch(() => null);
     return true;
@@ -179,7 +179,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
           emoji: this.getEmoji('x_icon'),
           support_invite: Constants.Links.SupportInvite,
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
     }
     return true;

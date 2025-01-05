@@ -28,22 +28,13 @@ export default class BlacklistManager {
     moderatorId: string;
     expiresAt: Date | null;
     serverName?: string;
-  }): Promise<Infraction | null> {
+  }): Promise<Infraction> {
     const blacklisted = await this.fetchBlacklist(opts.hubId);
 
     if (blacklisted) {
-      return await this.infractions.updateInfraction(
-        { hubId: opts.hubId, type: 'BLACKLIST', status: 'ACTIVE' },
-        {
-          updatedAt: new Date(),
-          expiresAt: opts.expiresAt,
-          reason: opts.reason,
-          moderatorId: opts.moderatorId,
-        },
-      );
+      await this.infractions.revokeInfraction('BLACKLIST', opts.hubId, 'REVOKED');
     }
-
-    if (this.type === 'user' && !(await this.userManager.getUser(this.targetId))) {
+    else if (this.type === 'user' && !(await this.userManager.getUser(this.targetId))) {
       await this.userManager.createUser({ id: this.targetId }); // Create user if not found
     }
 

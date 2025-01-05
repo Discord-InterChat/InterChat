@@ -69,7 +69,7 @@ export default class MessageInfo extends BaseCommand {
         content: t('errors.unknownNetworkMessage', locale, {
           emoji: this.getEmoji('x_icon'),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -101,7 +101,7 @@ export default class MessageInfo extends BaseCommand {
       .setThumbnail(author.displayAvatarURL())
       .setColor(Constants.Colors.invisible);
 
-    const connection = (await hub.connections.toArray())?.find(
+    const connection = (await hub.connections.fetch())?.find(
       (c) => c.data.connected && c.data.serverId === originalMsg.guildId,
     );
     const components = this.buildButtons(target.id, locale, {
@@ -198,7 +198,7 @@ export default class MessageInfo extends BaseCommand {
 
     const reason = interaction.fields.getTextInputValue('reason');
     const message = await interaction.channel?.messages.fetch(messageId).catch(() => null);
-    const content = message?.content || message?.embeds[0].description || undefined;
+    const content = originalMsg.content;
     const attachmentUrl =
       content?.match(Constants.Regex.StaticImageUrl)?.at(0) ?? message?.embeds[0]?.image?.url;
 

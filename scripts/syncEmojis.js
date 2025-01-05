@@ -1,16 +1,16 @@
 // @ts-check
 
+import { stripIndent } from 'common-tags';
 import { Collection, REST, Routes } from 'discord.js';
 import requiredEmojis from '../src/utils/JSON/emojis.json' with { type: 'json' };
 import {
+  Spinner,
   getTimestampFromSnowflake,
   greenText,
   greyText,
   orangeText,
   redText,
-  Spinner,
 } from './utils.js';
-import { stripIndent } from 'common-tags';
 
 if (!process.isBun) {
   throw new Error(`${redText('This script must be run using')} ${orangeText('bun run')}.`);
@@ -128,10 +128,12 @@ async function updateEmojiJson(emojis) {
       return acc;
     }, {});
 
-    const updatedEmojiSet = {...requiredEmojis, ...newEmojis }
+  const updatedEmojiSet = { ...requiredEmojis, ...newEmojis };
 
   await Bun.write(jsonFile, JSON.stringify(updatedEmojiSet, null, 2));
-  newSpinner.stop(orangeText('ⓘ ') + `Added ${emojis.length} emojis with new emoji IDs to emojis.json file.`);
+  newSpinner.stop(
+    orangeText('ⓘ ') + `Added ${emojis.length} emojis with new emoji IDs to emojis.json file.`,
+  );
 }
 
 /**
@@ -149,7 +151,7 @@ async function fetchEmojiImage(url) {
   if (url.startsWith('http://') || url.startsWith('https://')) {
     return urlToDataUri(url);
   } else if (/^\.{0,2}\/|^[a-zA-Z]:\\/.test(url)) {
-    const fileData = Bun.file(url)
+    const fileData = Bun.file(url);
     return bufferToDataUri(Buffer.from(await fileData.arrayBuffer()), fileData.type);
   }
 

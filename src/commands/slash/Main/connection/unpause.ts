@@ -23,7 +23,7 @@ export default class Unpause extends Connection {
         interaction,
         `${this.getEmoji('x_icon')} That channel is not connected to a hub!`,
         {
-          flags: 'Ephemeral',
+          flags: ['Ephemeral'],
         },
       );
       return;

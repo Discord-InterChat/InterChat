@@ -20,7 +20,7 @@ export default class Pause extends Connection {
     if (!connected) {
       await interaction.reply({
         content: `${this.getEmoji('x_icon')} That channel is not connected to a hub!`,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }

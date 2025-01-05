@@ -41,7 +41,7 @@ export default class BrowseCommand extends HubCommand {
 
     // Fetch all connections upfront to avoid repeated database calls
     for (const hub of hubs) {
-      const connections = (await hub.connections.toArray()).filter((c) => c.data.connected);
+      const connections = (await hub.connections.fetch()).filter((c) => c.data.connected);
       connectionsByHub.set(hub.id, connections);
     }
 
@@ -198,7 +198,7 @@ export default class BrowseCommand extends HubCommand {
     interaction: StringSelectMenuInteraction<'cached'>,
     hub: HubManager,
   ): Promise<void> {
-    const connection = (await hub.connections.toArray()).find(
+    const connection = (await hub.connections.fetch()).find(
       (c) => c.data.serverId === interaction.guildId,
     );
 
@@ -209,7 +209,7 @@ export default class BrowseCommand extends HubCommand {
 
     await interaction.editReply({
       content: 'Are you sure you want to leave this hub?',
-      components: [hubLeaveConfirmButtons(connection.data.channelId, connection.hubId)],
+      components: [hubLeaveConfirmButtons(connection.channelId, connection.hubId)],
     });
   }
 }

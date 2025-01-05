@@ -103,7 +103,7 @@ export default class DeleteMessage extends BaseCommand {
       await this.replyEmbed(
         interaction,
         `${this.getEmoji('neutral')} This message is already deleted or is being deleted by another moderator.`,
-        { flags: 'Ephemeral', edit: true },
+        { flags: ['Ephemeral'], edit: true },
       );
       return false;
     }

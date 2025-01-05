@@ -47,7 +47,7 @@ export default class ModActionsButton {
       return;
     }
 
-    const success = await hub.connections.delete(channelId);
+    const success = await hub.connections.deleteConnection(channelId);
     if (!success) {
       await interaction.update({
         content: t('hub.leave.noHub', locale, {

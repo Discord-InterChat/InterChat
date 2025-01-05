@@ -73,7 +73,9 @@ export default class Connection extends BaseCommand {
   override async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = Connection.subcommands?.get(interaction.options.getSubcommand());
 
-    await subcommand?.execute(interaction).catch((e: Error) => handleError(e, interaction));
+    await subcommand
+      ?.execute(interaction)
+      .catch((e: Error) => handleError(e, { repliable: interaction }));
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
@@ -94,7 +96,7 @@ export default class Connection extends BaseCommand {
     const filtered = isInDb?.map(async ({ channelId, hub }) => {
       const channel = await interaction.guild?.channels.fetch(channelId).catch(() => null);
       return {
-        name: `${hub?.name} | #${channel?.name || channelId}`,
+        name: `${hub?.name} | #${channel?.name ?? channelId}`,
         value: channelId,
       };
     });

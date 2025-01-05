@@ -240,7 +240,7 @@ export default class HubEdit extends HubCommand {
     await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const newLockState = !hub.data.locked;
-    await hub.setLocked(newLockState);
+    await hub.update({ locked: newLockState });
     const lockedStatus = newLockState ? 'locked' : 'unlocked';
 
     await this.replySuccess(
@@ -312,7 +312,7 @@ export default class HubEdit extends HubCommand {
       return;
     }
 
-    await hub.setDescription(description);
+    await hub.update({ description });
     await this.replySuccess(interaction, t('hub.manage.description.changed', locale), true);
   }
 
@@ -334,7 +334,7 @@ export default class HubEdit extends HubCommand {
     const hub = await this.getHubOrReplyError(interaction, hubId, locale);
     if (!hub) return;
 
-    await hub.setIconUrl(iconUrl);
+    await hub.update({ iconUrl });
     await this.replySuccess(interaction, t('hub.manage.icon.changed', locale), true);
   }
 
@@ -351,7 +351,7 @@ export default class HubEdit extends HubCommand {
     const bannerUrl = interaction.fields.getTextInputValue(HubEditAction.Banner);
 
     if (!bannerUrl) {
-      await hub.setBannerUrl(null);
+      await hub.update({ bannerUrl: null });
       await interaction.editReply(t('hub.manage.banner.removed', locale));
       return;
     }
@@ -363,7 +363,8 @@ export default class HubEdit extends HubCommand {
       return;
     }
 
-    await hub.setBannerUrl(bannerUrl);
+    await hub.update({ bannerUrl });
+
     await interaction.editReply(
       `${this.getEmoji('tick_icon')} ${t('hub.manage.banner.changed', locale)}`,
     );
@@ -448,7 +449,7 @@ export default class HubEdit extends HubCommand {
   }
 
   private async getRefreshedHubEmbed(hub: HubManager, locale: supportedLocaleCodes) {
-    const connections = await hub.fetchConnections();
+    const connections = await hub.connections.fetch();
     const mods = await hub.moderators.fetchAll();
     return await this.buildHubEmbed(hub.data, connections.length, mods.size, locale);
   }

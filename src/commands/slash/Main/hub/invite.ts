@@ -39,14 +39,14 @@ export default class Invite extends HubCommand {
     if (!hub) {
       await this.replyEmbed(interaction, 'hub.notFound_mod', {
         t: { emoji: this.getEmoji('x_icon') },
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
     if (!hub?.data.private) {
       await this.replyEmbed(interaction, 'hub.notPrivate', {
         t: { emoji: this.getEmoji('x_icon') },
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -54,7 +54,7 @@ export default class Invite extends HubCommand {
     if (!(await hub.isManager(interaction.user.id))) {
       await this.replyEmbed(interaction, 'hub.notManager', {
         t: { emoji: this.getEmoji('x_icon') },
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -62,7 +62,7 @@ export default class Invite extends HubCommand {
     if (!Date.parse(expires.toString())) {
       await interaction.reply({
         content: `${this.getEmoji('x_icon')} Invalid Expiry Duration provided!`,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -81,7 +81,7 @@ export default class Invite extends HubCommand {
 
     await interaction.reply({
       embeds: [embed],
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 
@@ -112,7 +112,7 @@ export default class Invite extends HubCommand {
         content: t('hub.invite.revoke.invalidCode', locale, {
           emoji: this.getEmoji('x_icon'),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -129,7 +129,7 @@ export default class Invite extends HubCommand {
       );
     }
     catch (e) {
-      handleError(e, interaction);
+      handleError(e, { repliable: interaction });
       return;
     }
   }
@@ -185,7 +185,7 @@ export default class Invite extends HubCommand {
 
     await interaction.reply({
       embeds: [inviteEmbed],
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 }

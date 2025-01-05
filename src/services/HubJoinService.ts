@@ -62,7 +62,7 @@ export class HubJoinService {
         content: t('hub.notFound', this.locale, {
           emoji: this.getEmoji('x_icon'),
         }),
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return false;
     }
@@ -188,7 +188,7 @@ export class HubJoinService {
     });
 
     const totalConnections =
-      (await hub.connections.toArray())?.reduce(
+      (await hub.connections.fetch())?.reduce(
         (total, c) => total + (c.data.connected ? 1 : 0),
         0,
       ) ?? 0;
@@ -228,7 +228,7 @@ export class HubJoinService {
 
     await this.interaction[replyMethod]({
       content,
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 }

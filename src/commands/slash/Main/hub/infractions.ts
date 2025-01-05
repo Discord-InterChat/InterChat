@@ -167,7 +167,7 @@ export default class ViewInfractions extends HubCommand {
     const [targets, moderators] = await Promise.all([
       this.batchFetchTargets(client, targetIds, type),
       this.batchFetchModerators(client, [
-        ...new Set(Infractions.map((i) => i.moderatorId).filter(Boolean) as string[]),
+        ...new Set(Infractions.map((i) => i.moderatorId).filter(Boolean)),
       ]),
     ]);
 

@@ -453,10 +453,12 @@ export default class HubCommand extends BaseCommand {
 
   async execute(interaction: ChatInputCommandInteraction) {
     const subcommand = HubCommand.subcommands?.get(
-      interaction.options.getSubcommandGroup() || interaction.options.getSubcommand(),
+      interaction.options.getSubcommandGroup() ?? interaction.options.getSubcommand(),
     );
 
-    await subcommand?.execute(interaction).catch((e: Error) => handleError(e, interaction));
+    await subcommand
+      ?.execute(interaction)
+      .catch((e: Error) => handleError(e, { repliable: interaction }));
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
@@ -537,7 +539,7 @@ export default class HubCommand extends BaseCommand {
       take: 25,
     });
 
-    return hubs.map((hub) => new HubManager(hub, this.hubService));
+    return hubs.map((hub) => new HubManager(hub, { hubService: this.hubService }));
   }
 
   private async getModeratedHubs(focusedValue: string, modId: Snowflake) {

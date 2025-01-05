@@ -1,7 +1,7 @@
 // @ts-check
 
-import { config, configs, parser, plugin } from 'typescript-eslint';
 import stylistic from '@stylistic/eslint-plugin';
+import { config, configs, parser, plugin } from 'typescript-eslint';
 
 export default config({
   // @ts-ignore
@@ -38,7 +38,7 @@ export default config({
     '@typescript-eslint/no-var-requires': 'off',
     '@typescript-eslint/no-shadow': ['error', { allow: ['err', 'resolve', 'reject'] }],
 
-    // 'class-methods-use-this': 'warn', 
+    // 'class-methods-use-this': 'warn',
     'no-nested-ternary': 'error',
 
     'object-shorthand': 'error',

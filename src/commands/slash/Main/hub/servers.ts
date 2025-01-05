@@ -1,4 +1,3 @@
-import type { Connection } from '@prisma/client';
 import {
   type ChatInputCommandInteraction,
   type Client,
@@ -6,6 +5,7 @@ import {
   type Guild,
   type GuildBasedChannel,
 } from 'discord.js';
+import ConnectionManager from '#main/managers/ConnectionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import Constants from '#utils/Constants.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
@@ -27,20 +27,20 @@ export default class Servers extends HubCommand {
 
   private async getConnectionInfoEmbed(
     locale: supportedLocaleCodes,
-    connection: Connection,
+    connection: ConnectionManager,
     server: Guild | null,
     channel: GuildBasedChannel | null,
   ): Promise<EmbedBuilder> {
     return new EmbedBuilder()
-      .setTitle(`${server?.name ?? 'Unknown Server'} \`(${connection.serverId})\``)
+      .setTitle(`${server?.name ?? 'Unknown Server'} \`(${connection.data.serverId})\``)
       .setColor(Constants.Colors.interchatBlue)
       .setDescription(
         t('hub.servers.connectionInfo', locale, {
-          serverId: connection.serverId,
+          serverId: connection.data.serverId,
           channelName: `${channel?.name ?? 'Unknown Channel'}`,
           channelId: connection.channelId,
-          joinedAt: `<t:${Math.round(connection.createdAt.getTime() / 1000)}:d>`,
-          invite: connection.invite || 'Not Set.',
+          joinedAt: `<t:${Math.round(connection.data.createdAt.getTime() / 1000)}:d>`,
+          invite: connection.data.invite ?? 'Not Set.',
           connected: connection.connected ? 'Yes' : 'No',
         }),
       );
@@ -48,7 +48,7 @@ export default class Servers extends HubCommand {
 
   private async fetchConnectionDisplayData(
     client: Client,
-    connection: Connection,
+    connection: ConnectionManager,
   ): Promise<ConnectionDisplayData | null> {
     const evalArr = await client.cluster.broadcastEval(
       async (c, ctx) => {
@@ -59,14 +59,14 @@ export default class Servers extends HubCommand {
         }
         return null;
       },
-      { context: { connection } },
+      { context: { connection: connection.data } },
     );
 
     return resolveEval(evalArr) ?? null;
   }
 
   private async getConnectionFieldsForPagination(
-    connections: Connection[],
+    connections: ConnectionManager[],
     client: Client,
     locale: supportedLocaleCodes,
     startIndex: number,
@@ -75,11 +75,11 @@ export default class Servers extends HubCommand {
       connections.map(async (connection, index) => {
         const displayData = await this.fetchConnectionDisplayData(client, connection);
         const value = t('hub.servers.connectionInfo', locale, {
-          serverId: connection.serverId,
+          serverId: connection.data.serverId,
           channelName: `${displayData?.channelName ?? 'Unknown Channel'}`,
           channelId: connection.channelId,
-          joinedAt: `<t:${Math.round(connection.createdAt.getTime() / 1000)}:d>`,
-          invite: connection.invite || 'Not Set.',
+          joinedAt: `<t:${Math.round(connection.data.createdAt.getTime() / 1000)}:d>`,
+          invite: connection.data.invite ?? 'Not Set.',
           connected: connection.connected ? 'Yes' : 'No',
         });
         return {
@@ -113,7 +113,7 @@ export default class Servers extends HubCommand {
       );
     }
 
-    const connections = await hub.fetchConnections();
+    const connections = await hub.connections.fetch();
     if (connections.length === 0) {
       return this.sendErrorMessage(
         interaction,
@@ -124,7 +124,7 @@ export default class Servers extends HubCommand {
     }
 
     if (serverId) {
-      const connection = connections.find((con) => con.serverId === serverId);
+      const connection = connections.find((con) => con.data.serverId === serverId);
       if (!connection) {
         return this.sendErrorMessage(
           interaction,

@@ -1,9 +1,8 @@
-import type { HubModerator, Role } from '@prisma/client';
-import { WebhookClient, type WebhookMessageCreateOptions } from 'discord.js';
 import type HubManager from '#main/managers/HubManager.js';
 import { deleteConnection, getHubConnections } from '#utils/ConnectedListUtils.js';
-import Logger from '#utils/Logger.js';
-import { checkIfStaff } from '#utils/Utils.js';
+import { checkIfStaff, handleError } from '#utils/Utils.js';
+import type { HubModerator, Role } from '@prisma/client';
+import { WebhookClient, type WebhookMessageCreateOptions } from 'discord.js';
 
 /**
  * Sends a message to all connections in a hub's network.
@@ -35,8 +34,7 @@ export const sendToHub = async (hubId: string, message: string | WebhookMessageC
 
       if (validErrors.includes(e.message)) await deleteConnection({ channelId });
 
-      e.message = `For Connection: ${channelId} ${e.message}`;
-      Logger.error(e);
+      handleError(e, { comment: `Failed to send to connection ${channelId} ${e.message}` });
     }
   }
 };

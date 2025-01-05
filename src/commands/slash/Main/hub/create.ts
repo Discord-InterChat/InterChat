@@ -101,7 +101,7 @@ export default class Create extends HubCommand {
       await this.processHubCreation(interaction, hubData, locale);
     }
     catch (error) {
-      handleError(error, interaction);
+      handleError(error, { repliable: interaction });
     }
   }
 
@@ -127,7 +127,7 @@ export default class Create extends HubCommand {
     if (!validationResult.isValid) {
       await interaction.followUp({
         content: validationResult.error,
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }

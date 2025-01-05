@@ -66,7 +66,7 @@ export default class RulesScreeningInteraction {
             }),
           }),
         ],
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -130,7 +130,7 @@ export default class RulesScreeningInteraction {
     await interaction.reply({
       embeds: [rulesEmbed],
       components: [components],
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 

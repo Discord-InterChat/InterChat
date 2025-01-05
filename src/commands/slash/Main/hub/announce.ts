@@ -25,7 +25,7 @@ export default class AnnounceCommand extends HubCommand {
 
     if (!hub || !(await hub.isMod(interaction.user.id))) {
       await this.replyEmbed(interaction, 'hub.notFound_mod', {
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
         t: { emoji: this.getEmoji('x_icon') },
       });
       return;

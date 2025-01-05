@@ -89,7 +89,7 @@ export default abstract class BaseCommand {
         time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`,
         emoji: this.getEmoji('x_icon'),
       }),
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 

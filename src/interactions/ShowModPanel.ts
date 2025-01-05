@@ -38,7 +38,7 @@ export default class ModActionsButton {
             description: `${getEmoji('slash', interaction.client)} Message was deleted.`,
           }),
         ],
-        flags: 'Ephemeral',
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -49,7 +49,7 @@ export default class ModActionsButton {
     await interaction.followUp({
       embeds: [panel.embed],
       components: panel.buttons,
-      flags: 'Ephemeral',
+      flags: ['Ephemeral'],
     });
   }
 }

@@ -1,87 +1,97 @@
 import type { Prisma, UserData } from '@prisma/client';
 import type { Snowflake } from 'discord.js';
+import { CacheManager } from '#main/managers/CacheManager.js';
+import getRedis from '#main/utils/Redis.js';
 import type { ConvertDatesToString } from '#types/Utils.d.ts';
-import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import { RedisKeys } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';
 
 export default class UserDbManager {
-  private async addToCache(entity: ConvertDatesToString<UserData> | UserData, expirySecs?: number) {
-    await cacheData(`${RedisKeys.userData}:${entity.id}`, JSON.stringify(entity), expirySecs);
+  private readonly cacheManager: CacheManager;
+  private readonly VOTE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+  constructor() {
+    this.cacheManager = new CacheManager(getRedis(), { prefix: RedisKeys.userData });
   }
 
   private serializeUserDates(user: ConvertDatesToString<UserData>): UserData {
-    return {
-      ...user,
+    const dates = {
       lastMessageAt: new Date(user.lastMessageAt),
       updatedAt: new Date(user.updatedAt),
       lastVoted: user.lastVoted ? new Date(user.lastVoted) : null,
     };
+    return { ...user, ...dates };
   }
 
-  async getUser(id: Snowflake): Promise<UserData | null> {
-    const results = await getCachedData(
-      `${RedisKeys.userData}:${id}`,
+  public async getUser(id: Snowflake): Promise<UserData | null> {
+    const result = await this.cacheManager.get<UserData>(
+      id,
       async () => await db.userData.findFirst({ where: { id } }),
     );
 
-    if (!results.data) return null;
-    if (!results.fromCache) this.addToCache(results.data);
-
-    return this.serializeUserDates(results.data);
+    return result ? this.serializeUserDates(result) : null;
   }
 
-  async getUserLocale(userOrId: string | UserData | null | undefined) {
-    const dbUser = typeof userOrId === 'string' ? await this.getUser(userOrId) : userOrId;
-    return (dbUser?.locale as supportedLocaleCodes | null | undefined) ?? 'en';
+  public async createUser(data: Prisma.UserDataCreateInput): Promise<UserData> {
+    const user = await db.userData.create({ data });
+    await this.cacheUser(user);
+    return user;
   }
 
-  async createUser(data: Prisma.UserDataCreateInput) {
-    const createdUser = await db.userData.create({ data });
-    await this.addToCache(createdUser);
-    return createdUser;
+  public async updateUser(id: Snowflake, data: Prisma.UserDataUpdateInput): Promise<UserData> {
+    const user = await db.userData.update({ where: { id }, data });
+    await this.cacheUser(user);
+    return user;
   }
 
-  async updateUser(id: Snowflake, data: Prisma.UserDataUpdateInput) {
-    const updatedUser = await db.userData.update({ where: { id }, data });
-    await this.addToCache(updatedUser);
-    return updatedUser;
-  }
-
-  async upsertUser(id: Snowflake, data: Omit<Prisma.UserDataUpsertArgs['create'], 'id'>) {
-    const upsertedUser = await db.userData.upsert({
+  public async upsertUser(
+    id: Snowflake,
+    data: Omit<Prisma.UserDataUpsertArgs['create'], 'id'>,
+  ): Promise<UserData> {
+    const user = await db.userData.upsert({
       where: { id },
       create: { ...data, id },
       update: data,
     });
-    await this.addToCache(upsertedUser);
-    return upsertedUser;
+    await this.cacheUser(user);
+    return user;
   }
 
-  async userVotedToday(id: Snowflake): Promise<boolean> {
+  public async getUserLocale(
+    userOrId: string | UserData | null | undefined,
+  ): Promise<supportedLocaleCodes> {
+    const user = typeof userOrId === 'string' ? await this.getUser(userOrId) : userOrId;
+    return (user?.locale as supportedLocaleCodes) ?? 'en';
+  }
+
+  public async userVotedToday(id: Snowflake): Promise<boolean> {
     const user = await this.getUser(id);
-    const twenty4HoursAgo = new Date(Date.now() - 60 * 60 * 24 * 1000);
-    return Boolean(user?.lastVoted && new Date(user.lastVoted) >= twenty4HoursAgo);
+    if (!user?.lastVoted) return false;
+
+    const lastVoteTime = new Date(user.lastVoted).getTime();
+    const timeSinceVote = Date.now() - lastVoteTime;
+    return timeSinceVote < this.VOTE_COOLDOWN_MS;
   }
 
-  async ban(id: string, reason: string, username?: string) {
-    const user = await this.upsertUser(id, {
+  // Moderation methods
+  public async ban(id: string, reason: string, username?: string): Promise<void> {
+    await this.upsertUser(id, {
       username,
       voteCount: 0,
       banReason: reason,
     });
-
-    await this.addToCache(user);
   }
 
-  async unban(id: string, username?: string) {
-    const user = await this.upsertUser(id, {
+  public async unban(id: string, username?: string): Promise<void> {
+    await this.upsertUser(id, {
       username,
       voteCount: 0,
       banReason: null,
     });
+  }
 
-    await this.addToCache(user);
+  private async cacheUser(user: UserData, expirySecs?: number): Promise<void> {
+    await this.cacheManager.set(user.id, user, expirySecs);
   }
 }
