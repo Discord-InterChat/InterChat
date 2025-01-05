@@ -1,27 +1,17 @@
 name: Lint
 on: pull_request
+
 jobs:
   tests:
     name: Lint Check
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [20]
 
     steps:
       - uses: actions/checkout@v4
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9.6.0
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+      - uses: oven-sh/setup-bun@v2
 
       - name: Install dependencies
-        run: pnpm add eslint
+        run: bun add eslint
 
       - name: Lint files
-        run: pnpm eslint --no-fix src/
+        run: bun eslint --no-fix src/
