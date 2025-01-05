@@ -1,10 +1,10 @@
+import type { Infraction } from '@prisma/client';
+import { type ChatInputCommandInteraction, EmbedBuilder, type User, time } from 'discord.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { toTitleCase } from '#utils/Utils.js';
-import { Infraction } from '@prisma/client';
-import { type ChatInputCommandInteraction, EmbedBuilder, time, User } from 'discord.js';
 import BlacklistCommand from './index.js';
 
 // Type guard

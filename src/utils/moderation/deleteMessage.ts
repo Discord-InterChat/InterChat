@@ -1,9 +1,9 @@
-import { RedisKeys } from '#utils/Constants.js';
-import getRedis from '#utils/Redis.js';
+import { type Snowflake, WebhookClient } from 'discord.js';
+import { type Broadcast, deleteMessageCache } from '#main/utils/network/messageUtils.js';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
-import { Snowflake, WebhookClient } from 'discord.js';
-import { Broadcast, deleteMessageCache } from '#main/utils/network/messageUtils.js';
+import { RedisKeys } from '#utils/Constants.js';
+import getRedis from '#utils/Redis.js';
 
 export const setDeleteLock = async (messageId: string) => {
   const key = `${RedisKeys.msgDeleteInProgress}:${messageId}` as const;

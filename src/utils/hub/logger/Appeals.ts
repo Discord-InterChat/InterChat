@@ -1,16 +1,16 @@
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import Constants from '#utils/Constants.js';
-import { CustomID } from '#utils/CustomID.js';
-import { toTitleCase } from '#utils/Utils.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  codeBlock,
   EmbedBuilder,
-  Snowflake,
-  User,
+  type Snowflake,
+  type User,
+  codeBlock,
 } from 'discord.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
+import { CustomID } from '#utils/CustomID.js';
+import { toTitleCase } from '#utils/Utils.js';
 
 export const logAppeals = async (
   type: 'user' | 'server',
@@ -57,7 +57,6 @@ export const logAppeals = async (
       iconURL: appealer.displayAvatarURL(),
     })
     .setColor(Constants.Colors.invisible);
-
 
   const buttonRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()

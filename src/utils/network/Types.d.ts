@@ -1,11 +1,6 @@
-import type { Broadcast, OriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { UserData } from '@prisma/client';
-import type {
-  User,
-  Message,
-  HexColorString,
-  Collection,
-} from 'discord.js';
+import type { Collection, HexColorString, Message, User } from 'discord.js';
+import type { Broadcast, OriginalMessage } from '#main/utils/network/messageUtils.js';
 
 export interface ReferredMsgData {
   dbReferrence: (OriginalMessage & { broadcastMsgs: Collection<string, Broadcast> }) | null;
@@ -19,4 +14,3 @@ export interface BroadcastOpts {
   embedColor?: HexColorString;
   attachmentURL?: string | null;
 }
-

@@ -1,13 +1,5 @@
-import BaseCommand from '#main/core/BaseCommand.js';
-import BaseEventListener from '#main/core/BaseEventListener.js';
-import { showRulesScreening } from '#main/interactions/RulesScreening.js';
-import Constants from '#utils/Constants.js';
-import { CustomID, ParsedCustomId } from '#utils/CustomID.js';
-import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { t } from '#utils/Locale.js';
-import { checkIfStaff, handleError } from '#utils/Utils.js';
-import { UserData } from '@prisma/client';
-import {
+import type { UserData } from '@prisma/client';
+import type {
   AutocompleteInteraction,
   CacheType,
   ChatInputCommandInteraction,
@@ -16,6 +8,14 @@ import {
   MessageComponentInteraction,
   ModalSubmitInteraction,
 } from 'discord.js';
+import type BaseCommand from '#main/core/BaseCommand.js';
+import BaseEventListener from '#main/core/BaseEventListener.js';
+import { showRulesScreening } from '#main/interactions/RulesScreening.js';
+import Constants from '#utils/Constants.js';
+import { CustomID, type ParsedCustomId } from '#utils/CustomID.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { t } from '#utils/Locale.js';
+import { checkIfStaff, handleError } from '#utils/Utils.js';
 
 export default class InteractionCreate extends BaseEventListener<'interactionCreate'> {
   readonly name = 'interactionCreate';
@@ -135,10 +135,12 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(dbUser);
     const embed = new InfoEmbed({
-      description: t('errors.notUsable', locale, { emoji: this.getEmoji('slash') }),
+      description: t('errors.notUsable', locale, {
+        emoji: this.getEmoji('slash'),
+      }),
     });
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
     return true;
   }
 
@@ -158,7 +160,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     interaction
       .reply({
         content: `${this.getEmoji('slash')} The bot is currently undergoing maintenance. Please try again later.`,
-        ephemeral: true,
+        flags: 'Ephemeral',
       })
       .catch(() => null);
     return true;
@@ -177,7 +179,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
           emoji: this.getEmoji('x_icon'),
           support_invite: Constants.Links.SupportInvite,
         }),
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
     }
     return true;

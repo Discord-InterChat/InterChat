@@ -1,13 +1,13 @@
+import { ButtonBuilder, type ButtonInteraction, ButtonStyle } from 'discord.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
-import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
-import { ButtonBuilder, ButtonInteraction, ButtonStyle } from 'discord.js';
 import { buildModPanel } from '#main/interactions/ModPanel.js';
 import { HubService } from '#main/services/HubService.js';
+import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
+import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
+import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 
 export const modPanelButton = (targetMsgId: string, emoji: string, opts?: { label?: string }) =>
   new ButtonBuilder()
@@ -30,22 +30,26 @@ export default class ModActionsButton {
     const hubService = new HubService(db);
     const hub = originalMessage ? await hubService.fetchHub(originalMessage?.hubId) : null;
 
-    if (!originalMessage || !hub || !await isStaffOrHubMod(interaction.user.id, hub)) {
+    if (!originalMessage || !hub || !(await isStaffOrHubMod(interaction.user.id, hub))) {
       await interaction.editReply({ components: [] });
       await interaction.followUp({
-        embeds: [new InfoEmbed({ description: `${getEmoji('slash', interaction.client)} Message was deleted.` })],
-        ephemeral: true,
+        embeds: [
+          new InfoEmbed({
+            description: `${getEmoji('slash', interaction.client)} Message was deleted.`,
+          }),
+        ],
+        flags: 'Ephemeral',
       });
       return;
     }
 
-    if (!await isStaffOrHubMod(interaction.user.id, hub)) return;
+    if (!(await isStaffOrHubMod(interaction.user.id, hub))) return;
 
     const panel = await buildModPanel(interaction, originalMessage);
     await interaction.followUp({
       embeds: [panel.embed],
       components: panel.buttons,
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 }

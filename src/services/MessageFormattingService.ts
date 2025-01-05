@@ -1,6 +1,12 @@
-import { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
-import { Connection, Hub } from '@prisma/client';
-import { ActionRowBuilder, ButtonBuilder, Message, userMention, WebhookMessageCreateOptions } from 'discord.js';
+import type { Connection, Hub } from '@prisma/client';
+import {
+  type ActionRowBuilder,
+  type ButtonBuilder,
+  type Message,
+  type WebhookMessageCreateOptions,
+  userMention,
+} from 'discord.js';
+import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
 import { CompactMessageFormatter } from './formatters/CompactMsgFormatter.js';
 import { EmbedMessageFormatter } from './formatters/EmbedMsgFormatter.js';
 
@@ -8,7 +14,7 @@ export interface MessageFormatterStrategy {
   format(
     message: Message<true>,
     connection: Connection,
-    opts: DefaultFormaterOpts
+    opts: DefaultFormaterOpts,
   ): WebhookMessageCreateOptions;
 }
 
@@ -36,10 +42,7 @@ export default class MessageFormattingService {
     this.connection = connection;
   }
 
-  format(
-    message: Message<true>,
-    opts: DefaultFormaterOpts,
-  ): WebhookMessageCreateOptions {
+  format(message: Message<true>, opts: DefaultFormaterOpts): WebhookMessageCreateOptions {
     const formatted = this.strategy.format(message, this.connection, opts);
     return this.addReplyMention(formatted, this.connection, opts.referredMsgData);
   }

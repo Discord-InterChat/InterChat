@@ -1,8 +1,8 @@
-import HubManager from '#main/managers/HubManager.js';
+import type HubManager from '#main/managers/HubManager.js';
 
-import { t, type supportedLocaleCodes } from '#utils/Locale.js';
-import { Role, type HubModerator } from '@prisma/client';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { type HubModerator, Role } from '@prisma/client';
+import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import HubCommand from './index.js';
 
 export default class Moderator extends HubCommand {
@@ -16,7 +16,7 @@ export default class Moderator extends HubCommand {
         interaction,
         t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }),
         {
-          ephemeral: true,
+          flags: 'Ephemeral',
         },
       );
       return;
@@ -46,7 +46,7 @@ export default class Moderator extends HubCommand {
           user: user.toString(),
           emoji: this.getEmoji('x_icon'),
         }),
-        { ephemeral: true },
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -61,8 +61,10 @@ export default class Moderator extends HubCommand {
     if (!hub.isOwner(interaction.user.id) && isRestrictedAction) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.remove.notOwner', locale, { emoji: this.getEmoji('x_icon') }),
-        { ephemeral: true },
+        t('hub.moderator.remove.notOwner', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -90,27 +92,31 @@ export default class Moderator extends HubCommand {
     if (!(await hub.isManager(interaction.user.id))) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.update.notAllowed', locale, { emoji: this.getEmoji('x_icon') }),
-        { ephemeral: true },
+        t('hub.moderator.update.notAllowed', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        { flags: ['Ephemeral'] },
       );
       return;
     }
-    else if (!userPosition) {
+    if (!userPosition) {
       await this.replyEmbed(
         interaction,
         t('hub.moderator.update.notModerator', locale, {
           user: user.toString(),
           emoji: this.getEmoji('x_icon'),
         }),
-        { ephemeral: true },
+        { flags: ['Ephemeral'] },
       );
       return;
     }
-    else if (userPosition.role === 'MANAGER' && !hub.isOwner(interaction.user.id)) {
+    if (userPosition.role === 'MANAGER' && !hub.isOwner(interaction.user.id)) {
       await this.replyEmbed(
         interaction,
-        t('hub.moderator.update.notOwner', locale, { emoji: this.getEmoji('x_icon') }),
-        { ephemeral: true },
+        t('hub.moderator.update.notOwner', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -147,12 +153,14 @@ export default class Moderator extends HubCommand {
                     }`,
                 )
                 .join('\n')
-              : t('hub.moderator.noModerators', locale, { emoji: this.getEmoji('x_icon') }),
+              : t('hub.moderator.noModerators', locale, {
+                emoji: this.getEmoji('x_icon'),
+              }),
           )
           .setColor('Aqua')
           .setTimestamp(),
       ],
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 
@@ -170,7 +178,7 @@ export default class Moderator extends HubCommand {
           user: user.toString(),
           emoji: this.getEmoji('x_icon'),
         }),
-        { ephemeral: true },
+        { flags: ['Ephemeral'] },
       );
       return;
     }

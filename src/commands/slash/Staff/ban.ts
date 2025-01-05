@@ -1,10 +1,10 @@
-import BaseCommand from '#main/core/BaseCommand.js';
-import { handleBan } from '#utils/BanUtils.js';
 import {
+  ApplicationCommandOptionType,
   type ChatInputCommandInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
-  ApplicationCommandOptionType,
 } from 'discord.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import { handleBan } from '#utils/BanUtils.js';
 
 export default class Ban extends BaseCommand {
   readonly staffOnly = true;

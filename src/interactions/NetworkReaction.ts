@@ -1,32 +1,32 @@
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import HubManager from '#main/managers/HubManager.js';
-import { HubService } from '#main/services/HubService.js';
-import db from '#main/utils/Db.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import {
-  findOriginalMessage,
-  getOriginalMessage,
-  OriginalMessage,
-  storeMessage,
-} from '#main/utils/network/messageUtils.js';
-import Constants from '#utils/Constants.js';
-import { CustomID, ParsedCustomId } from '#utils/CustomID.js';
-import { t } from '#utils/Locale.js';
-import { addReaction, removeReaction, updateReactions } from '#utils/reaction/actions.js';
-import { checkBlacklists } from '#utils/reaction/helpers.js';
-import sortReactions from '#utils/reaction/sortReactions.js';
-import { getEmojiId } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   type AnySelectMenuInteraction,
-  ButtonInteraction,
-  Client,
+  type ButtonInteraction,
+  type Client,
   EmbedBuilder,
-  Snowflake,
+  type Snowflake,
   StringSelectMenuBuilder,
   time,
 } from 'discord.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import type HubManager from '#main/managers/HubManager.js';
+import { HubService } from '#main/services/HubService.js';
+import db from '#main/utils/Db.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import {
+  type OriginalMessage,
+  findOriginalMessage,
+  getOriginalMessage,
+  storeMessage,
+} from '#main/utils/network/messageUtils.js';
+import Constants from '#utils/Constants.js';
+import { CustomID, type ParsedCustomId } from '#utils/CustomID.js';
+import { t } from '#utils/Locale.js';
+import { getEmojiId } from '#utils/Utils.js';
+import { addReaction, removeReaction, updateReactions } from '#utils/reaction/actions.js';
+import { checkBlacklists } from '#utils/reaction/helpers.js';
+import sortReactions from '#utils/reaction/sortReactions.js';
 
 export default class NetworkReactionInteraction {
   @RegisterInteractionHandler('reaction_')
@@ -86,7 +86,7 @@ export default class NetworkReactionInteraction {
     const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
     await interaction.followUp({
       content: t(phrase, locale, { emoji: getEmoji('no', interaction.client) }),
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 
@@ -96,7 +96,7 @@ export default class NetworkReactionInteraction {
       const timeString = time(Math.round(cooldown / 1000), 'R');
       await interaction.followUp({
         content: `A little quick there! You can react again ${timeString}!`,
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return true;
     }
@@ -114,28 +114,26 @@ export default class NetworkReactionInteraction {
     if (!originalMessage?.reactions || !originalMessage.hubId) {
       await interaction.followUp({
         content: 'There are no more reactions to view.',
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
 
-    const dbReactions = originalMessage.reactions as { [key: string]: Snowflake[] };
+    const dbReactions = originalMessage.reactions as {
+      [key: string]: Snowflake[];
+    };
     const { reactionMenu, reactionString, totalReactions } = this.buildReactionMenu(
       dbReactions,
       interaction,
       hub,
     );
 
-    const embed = this.buildReactionEmbed(
-      reactionString,
-      totalReactions,
-      interaction.client,
-    );
+    const embed = this.buildReactionEmbed(reactionString, totalReactions, interaction.client);
 
     await interaction.followUp({
       embeds: [embed],
       components: [reactionMenu],
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 
@@ -201,7 +199,7 @@ export default class NetworkReactionInteraction {
     if (!emojiAlreadyReacted) {
       await interaction.followUp({
         content: `${getEmoji('no', interaction.client)} This reaction doesn't exist.`,
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -223,7 +221,10 @@ export default class NetworkReactionInteraction {
     originalMessage: OriginalMessage,
     reactions: { [key: string]: Snowflake[] },
   ) {
-    await storeMessage(originalMessage.messageId, { ...originalMessage, reactions });
+    await storeMessage(originalMessage.messageId, {
+      ...originalMessage,
+      reactions,
+    });
   }
 
   private async sendReactionConfirmation(
@@ -236,7 +237,7 @@ export default class NetworkReactionInteraction {
       await interaction
         .followUp({
           content: `You have ${action} with ${reactedEmoji}!`,
-          ephemeral: true,
+          flags: 'Ephemeral',
         })
         .catch(() => null);
     }

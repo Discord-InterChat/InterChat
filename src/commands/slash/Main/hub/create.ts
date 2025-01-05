@@ -1,20 +1,20 @@
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { HubValidator } from '#main/modules/HubValidator.js';
-import { HubCreationData } from '#main/services/HubService.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { handleError } from '#main/utils/Utils.js';
-import Constants from '#utils/Constants.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
-  CacheType,
-  ChatInputCommandInteraction,
+  type CacheType,
+  type ChatInputCommandInteraction,
   EmbedBuilder,
   ModalBuilder,
-  ModalSubmitInteraction,
+  type ModalSubmitInteraction,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { HubValidator } from '#main/modules/HubValidator.js';
+import type { HubCreationData } from '#main/services/HubService.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import { handleError } from '#main/utils/Utils.js';
+import Constants from '#utils/Constants.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import HubCommand from './index.js';
 
 export default class Create extends HubCommand {
@@ -91,7 +91,7 @@ export default class Create extends HubCommand {
 
   @RegisterInteractionHandler('hub_create_modal')
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
@@ -127,7 +127,7 @@ export default class Create extends HubCommand {
     if (!validationResult.isValid) {
       await interaction.followUp({
         content: validationResult.error,
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }

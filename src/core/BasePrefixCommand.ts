@@ -1,8 +1,8 @@
-import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
+import { type EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
 import Logger from '#main/utils/Logger.js';
 import { isDev } from '#main/utils/Utils.js';
 
-import { Client, Message, PermissionsBitField } from 'discord.js';
+import type { Client, Message, PermissionsBitField } from 'discord.js';
 
 export interface CommandData {
   name: string;
@@ -37,7 +37,9 @@ export default abstract class BasePrefixCommand {
     try {
       // Check if command is owner-only
       if (this.data.ownerOnly && !isDev(message.author.id)) {
-        await message.reply(`${this.getEmoji('botdev')} This command can only be used by the bot owner.`);
+        await message.reply(
+          `${this.getEmoji('botdev')} This command can only be used by the bot owner.`,
+        );
         return;
       }
 
@@ -65,7 +67,9 @@ export default abstract class BasePrefixCommand {
       }
 
       if (this.data.dbPermission && !message.inGuild()) {
-        await message.reply(`${this.getEmoji('x_icon')} This command can only be used in a server.`);
+        await message.reply(
+          `${this.getEmoji('x_icon')} This command can only be used in a server.`,
+        );
         return;
       }
 

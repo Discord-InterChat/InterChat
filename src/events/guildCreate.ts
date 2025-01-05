@@ -1,10 +1,13 @@
+import { stripIndents } from 'common-tags';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, type Guild } from 'discord.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { donateButton } from '#main/utils/ComponentUtils.js';
 import Constants from '#utils/Constants.js';
-import { getGuildOwnerOrFirstChannel as getGuildOwnerAndFirstChannel, logGuildJoin } from '#utils/GuildUtils.js';
+import {
+  getGuildOwnerOrFirstChannel as getGuildOwnerAndFirstChannel,
+  logGuildJoin,
+} from '#utils/GuildUtils.js';
 import Logger from '#utils/Logger.js';
-import { stripIndents } from 'common-tags';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, Guild } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'guildCreate'> {
   readonly name = 'guildCreate';
@@ -31,7 +34,10 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
       `,
       )
       .setColor(Constants.Colors.interchatBlue)
-      .setFooter({ text: `Sent for server: ${guild.name}`, iconURL: guild.iconURL() ?? undefined });
+      .setFooter({
+        text: `Sent for server: ${guild.name}`,
+        iconURL: guild.iconURL() ?? undefined,
+      });
 
     const buttonsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
       donateButton,

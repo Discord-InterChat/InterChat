@@ -1,3 +1,12 @@
+import type { UserData } from '@prisma/client';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  type ButtonInteraction,
+  ButtonStyle,
+  type Interaction,
+  Message,
+} from 'discord.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import Logger from '#main/utils/Logger.js';
@@ -5,16 +14,7 @@ import { getReplyMethod, handleError } from '#main/utils/Utils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { UserData } from '@prisma/client';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  Interaction,
-  Message,
-  type ButtonInteraction,
-} from 'discord.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 
 export const showRulesScreening = async (
   repliable: Interaction | Message,
@@ -43,7 +43,7 @@ export const showRulesScreening = async (
       await repliable.reply(welcomeMsg);
     }
     else if (repliable.isRepliable()) {
-      await repliable.reply({ ...welcomeMsg, ephemeral: true });
+      await repliable.reply({ ...welcomeMsg, flags: ['Ephemeral'] });
     }
   }
   catch (e) {
@@ -66,7 +66,7 @@ export default class RulesScreeningInteraction {
             }),
           }),
         ],
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -130,7 +130,7 @@ export default class RulesScreeningInteraction {
     await interaction.reply({
       embeds: [rulesEmbed],
       components: [components],
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 
@@ -152,11 +152,13 @@ export default class RulesScreeningInteraction {
   ) {
     if (!userData?.acceptedRules) return false;
     const embed = new InfoEmbed().setDescription(
-      t('rules.alreadyAccepted', locale, { emoji: getEmoji('tick_icon', interaction.client) }),
+      t('rules.alreadyAccepted', locale, {
+        emoji: getEmoji('tick_icon', interaction.client),
+      }),
     );
 
     const replyMethod = getReplyMethod(interaction);
-    interaction[replyMethod]({ embeds: [embed], ephemeral: true }).catch(handleError);
+    interaction[replyMethod]({ embeds: [embed], flags: ['Ephemeral'] }).catch(handleError);
 
     return true;
   }

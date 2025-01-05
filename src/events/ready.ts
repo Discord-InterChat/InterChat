@@ -1,8 +1,8 @@
+import { ActivityType, type Client } from 'discord.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import updateBlacklists from '#main/scheduled/tasks/updateBlacklists.js';
 import Scheduler from '#main/services/SchedulerService.js';
 import Logger from '#utils/Logger.js';
-import { ActivityType, Client } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'ready'> {
   readonly name = 'ready';

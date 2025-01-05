@@ -1,5 +1,5 @@
+import type { ChatInputCommandInteraction, GuildTextBasedChannel } from 'discord.js';
 import { HubJoinService } from '#main/services/HubJoinService.js';
-import { ChatInputCommandInteraction, GuildTextBasedChannel } from 'discord.js';
 import HubCommand from './index.js';
 
 export default class JoinSubCommand extends HubCommand {
@@ -9,7 +9,8 @@ export default class JoinSubCommand extends HubCommand {
     const hubInviteOrName =
       interaction.options.getString('invite') ?? interaction.options.getString('hub') ?? undefined;
 
-    const channel = (interaction.options.getChannel('channel') ?? interaction.channel) as GuildTextBasedChannel;
+    const channel = (interaction.options.getChannel('channel') ??
+      interaction.channel) as GuildTextBasedChannel;
     const locale = await this.getLocale(interaction);
 
     // get random hub if no invite or name is provided

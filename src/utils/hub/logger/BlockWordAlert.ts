@@ -1,10 +1,10 @@
+import type { BlockWord } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import { EmbedBuilder, type Message } from 'discord.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { sendLog } from '#main/utils/hub/logger/Default.js';
 import { ACTION_LABELS, createRegexFromWords } from '#main/utils/moderation/blockWords.js';
-import { BlockWord } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import { EmbedBuilder, Message } from 'discord.js';
 
 const boldANSIText = (text: string) => `\u001b[1;2m${text}\u001b[0m`;
 

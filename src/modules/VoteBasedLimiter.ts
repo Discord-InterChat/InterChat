@@ -1,4 +1,4 @@
-import UserDbManager from '#main/managers/UserDbManager.js';
+import type UserDbManager from '#main/managers/UserDbManager.js';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import { RedisKeys } from '#utils/Constants.js';
 
@@ -29,7 +29,7 @@ export default class VoteLimitManager {
       null,
     );
 
-    const usesLeft = isNaN(Number(data?.usesLeft)) ? null : Number(data?.usesLeft);
+    const usesLeft = Number.isNaN(Number(data?.usesLeft)) ? null : Number(data?.usesLeft);
 
     return { usesLeft, fromCache };
   }

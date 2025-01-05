@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 
 import { isDev } from '#utils/Utils.js';
@@ -11,11 +11,14 @@ export default class Respawn extends BaseCommand {
   };
   async execute(interaction: ChatInputCommandInteraction) {
     if (!isDev(interaction.user.id)) {
-      await interaction.reply({ content: 'No u', ephemeral: true });
+      await interaction.reply({ content: 'No u', flags: ['Ephemeral'] });
       return;
     }
 
-    await interaction.reply({ content: `${this.getEmoji('tick')} I'll be back!`, ephemeral: true });
+    await interaction.reply({
+      content: `${this.getEmoji('tick')} I'll be back!`,
+      flags: ['Ephemeral'],
+    });
     interaction.client.cluster.send('recluster');
   }
 }

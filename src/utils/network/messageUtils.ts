@@ -1,9 +1,9 @@
-import Constants, { RedisKeys } from '#utils/Constants.js';
-import Logger from '#main/utils/Logger.js';
-import getRedis from '#main/utils/Redis.js';
 import type { Message, Snowflake } from 'discord.js';
 import isEmpty from 'lodash/isEmpty.js';
+import Logger from '#main/utils/Logger.js';
+import getRedis from '#main/utils/Redis.js';
 import { handleError } from '#main/utils/Utils.js';
+import Constants, { RedisKeys } from '#utils/Constants.js';
 
 export interface OriginalMessage {
   hubId: string;
@@ -40,7 +40,10 @@ export const getOriginalMessage = async (originalMsgId: string) => {
 
   if (isEmpty(res)) return null;
 
-  return { ...res, timestamp: parseInt(res.timestamp) } as OriginalMessage;
+  return {
+    ...res,
+    timestamp: Number.parseInt(res.timestamp),
+  } as OriginalMessage;
 };
 
 export const addBroadcasts = async (
@@ -57,7 +60,12 @@ export const addBroadcasts = async (
     const { broadcastEntries, reverseLookupKeys } = broadcasts.reduce(
       (acc, broadcast) => {
         const { messageId, channelId, mode } = broadcast;
-        const broadcastInfo = JSON.stringify({ mode, messageId, channelId, originalMsgId });
+        const broadcastInfo = JSON.stringify({
+          mode,
+          messageId,
+          channelId,
+          originalMsgId,
+        });
 
         // Add to broadcasts entries
         acc.broadcastEntries.push(channelId, broadcastInfo);
@@ -84,9 +92,9 @@ export const addBroadcasts = async (
     pipeline.expire(broadcastsKey, 86400);
 
     // Set expiry for all reverse lookups in the same pipeline
-    reverseLookupKeys.forEach((key) => {
+    for (const key of reverseLookupKeys) {
       pipeline.expire(key, 86400);
-    });
+    }
 
     // Execute all Redis operations in a single pipeline
     await pipeline.exec().catch((error) => {

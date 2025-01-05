@@ -1,5 +1,5 @@
-import Constants from '#utils/Constants.js';
 import * as Sentry from '@sentry/bun';
+import Constants from '#utils/Constants.js';
 
 if (!Constants.isDevBuild) {
   Sentry.init({
@@ -8,7 +8,9 @@ if (!Constants.isDevBuild) {
     tracesSampleRate: 1.0,
     maxValueLength: 1000,
     integrations: [
-      Sentry.onUncaughtExceptionIntegration({ exitEvenIfOtherHandlersAreRegistered: false }),
+      Sentry.onUncaughtExceptionIntegration({
+        exitEvenIfOtherHandlersAreRegistered: false,
+      }),
     ],
   });
 }

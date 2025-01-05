@@ -1,15 +1,7 @@
-import BlacklistManager from '#main/managers/BlacklistManager.js';
-import { OriginalMessage } from '#main/utils/network/messageUtils.js';
-import { deleteConnections } from '#utils/ConnectedListUtils.js';
-import { CustomID } from '#utils/CustomID.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import Logger from '#utils/Logger.js';
-import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
-import { type ModAction } from '#main/utils/moderation/modPanel/utils.js';
 import {
   ActionRowBuilder,
   type ButtonInteraction,
-  Client,
+  type Client,
   EmbedBuilder,
   ModalBuilder,
   type ModalSubmitInteraction,
@@ -20,7 +12,15 @@ import {
 } from 'discord.js';
 import ms from 'ms';
 import { buildModPanel } from '#main/interactions/ModPanel.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
+import type { ModAction } from '#main/utils/moderation/modPanel/utils.js';
+import type { OriginalMessage } from '#main/utils/network/messageUtils.js';
+import { deleteConnections } from '#utils/ConnectedListUtils.js';
+import { CustomID } from '#utils/CustomID.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import Logger from '#utils/Logger.js';
+import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 
 abstract class BaseBlacklistHandler implements ModAction {
   abstract handle(
@@ -85,7 +85,12 @@ abstract class BaseBlacklistHandler implements ModAction {
   ) {
     return new EmbedBuilder()
       .setColor('Green')
-      .setDescription(t('blacklist.success', locale, { name, emoji: getEmoji('tick', client) }))
+      .setDescription(
+        t('blacklist.success', locale, {
+          name,
+          emoji: getEmoji('tick', client),
+        }),
+      )
       .addFields(
         {
           name: 'Reason',
@@ -120,15 +125,17 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     if (!user) {
       await interaction.reply({
         content: `${getEmoji('neutral', interaction.client)} Unable to fetch user. They may have deleted their account?`,
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
 
     if (!originalMsg.hubId) {
       await interaction.reply({
-        content: t('hub.notFound_mod', locale, { emoji: getEmoji('x_icon', interaction.client) }),
-        ephemeral: true,
+        content: t('hub.notFound_mod', locale, {
+          emoji: getEmoji('x_icon', interaction.client),
+        }),
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -136,7 +143,7 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     if (originalMsg.authorId === interaction.user.id) {
       await interaction.followUp({
         content: '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -180,7 +187,11 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
       interaction.client,
       locale,
     );
-    await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
+    await interaction.followUp({
+      embeds: [successEmbed],
+      components: [],
+      flags: ['Ephemeral'],
+    });
   }
 }
 
@@ -204,8 +215,10 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
 
     if (!originalMsg.hubId) {
       await interaction.reply({
-        content: t('hub.notFound_mod', locale, { emoji: getEmoji('x_icon', client) }),
-        ephemeral: true,
+        content: t('hub.notFound_mod', locale, {
+          emoji: getEmoji('x_icon', client),
+        }),
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -213,8 +226,10 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     const server = await interaction.client.fetchGuild(originalMsg.guildId);
     if (!server) {
       await interaction.reply({
-        content: t('errors.unknownServer', locale, { emoji: getEmoji('x_icon', client) }),
-        ephemeral: true,
+        content: t('errors.unknownServer', locale, {
+          emoji: getEmoji('x_icon', client),
+        }),
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -238,7 +253,10 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
       reason,
     });
 
-    await deleteConnections({ serverId: originalMsg.guildId, hubId: originalMsg.hubId });
+    await deleteConnections({
+      serverId: originalMsg.guildId,
+      hubId: originalMsg.hubId,
+    });
 
     if (server) {
       await blacklistManager
@@ -254,6 +272,10 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
 
     const { embed, buttons } = await buildModPanel(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: buttons });
-    await interaction.followUp({ embeds: [successEmbed], components: [], ephemeral: true });
+    await interaction.followUp({
+      embeds: [successEmbed],
+      components: [],
+      flags: ['Ephemeral'],
+    });
   }
 }

@@ -1,18 +1,18 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
-import HubManager from '#main/managers/HubManager.js';
-import HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import type HubManager from '#main/managers/HubManager.js';
+import type HubSettingsManager from '#main/managers/HubSettingsManager.js';
 
+import type { UserData } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import { type Awaitable, EmbedBuilder, type Message } from 'discord.js';
 import NSFWDetector from '#main/modules/NSFWDetection.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import Constants from '#utils/Constants.js';
-import logProfanity from '#utils/hub/logger/Profanity.js';
 import { t } from '#utils/Locale.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';
 import { containsInviteLinks, replaceLinks } from '#utils/Utils.js';
-import { UserData } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import { Awaitable, EmbedBuilder, Message } from 'discord.js';
+import logProfanity from '#utils/hub/logger/Profanity.js';
 
 export interface CheckResult {
   passed: boolean;
@@ -53,7 +53,10 @@ const replyToMsg = async (
   const reply = await message.reply({ content: opts.content, embeds }).catch(() => null);
   if (!reply) {
     await message.channel
-      .send({ content: `${message.author.toString()} ${opts.content ?? ''}`, embeds })
+      .send({
+        content: `${message.author.toString()} ${opts.content ?? ''}`,
+        embeds,
+      })
       .catch(() => null);
   }
 };
@@ -139,7 +142,11 @@ async function checkSpam(message: Message<true>, opts: CheckFunctionOpts): Promi
         moderatorId: mod.id,
       });
 
-      await blacklistManager.log(hub.id, message.client, { mod, reason, expiresAt });
+      await blacklistManager.log(hub.id, message.client, {
+        mod,
+        reason,
+        expiresAt,
+      });
       await sendBlacklistNotif('user', message.client, {
         target,
         hubId: hub.id,
@@ -210,7 +217,10 @@ async function checkInviteLinks(
   if (settings.has('BlockInvites') && containsInviteLinks(message.content)) {
     const locale = await message.client.userManager.getUserLocale(userData);
     const emoji = getEmoji('x_icon', message.client);
-    return { passed: false, reason: t('errors.inviteLinks', locale, { emoji }) };
+    return {
+      passed: false,
+      reason: t('errors.inviteLinks', locale, { emoji }),
+    };
   }
   return { passed: true };
 }

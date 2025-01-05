@@ -5,10 +5,10 @@ import { logMsgDelete } from '#main/utils/hub/logger/ModLogs.js';
 import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
 import { getBroadcasts, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 
+import type { ButtonInteraction, Snowflake } from 'discord.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
-import { type ButtonInteraction, type Snowflake } from 'discord.js';
 
 export default class DeleteMessageHandler implements ModAction {
   async handle(
@@ -31,13 +31,13 @@ export default class DeleteMessageHandler implements ModAction {
         `${getEmoji('neutral', interaction.client)} This message is already deleted or is being deleted by another moderator.`,
       );
 
-      await interaction.followUp({ ephemeral: true, embeds: [errorEmbed] });
+      await interaction.followUp({ flags: 'Ephemeral', embeds: [errorEmbed] });
       return;
     }
 
     await interaction.reply({
       content: `${getEmoji('loading', interaction.client)} Deleting messages... This may take a minute or so.`,
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
 
     const broadcastMsgs = Object.values(

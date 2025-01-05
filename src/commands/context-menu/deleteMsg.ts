@@ -1,23 +1,23 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import HubManager from '#main/managers/HubManager.js';
+import type HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 import {
+  type OriginalMessage,
   findOriginalMessage,
   getBroadcasts,
   getOriginalMessage,
-  OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 
-import { logMsgDelete } from '#utils/hub/logger/ModLogs.js';
-import { isStaffOrHubMod } from '#utils/hub/utils.js';
-import { t } from '#utils/Locale.js';
-import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
 import {
   ApplicationCommandType,
   InteractionContextType,
-  MessageContextMenuCommandInteraction,
-  RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  type MessageContextMenuCommandInteraction,
+  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
 } from 'discord.js';
+import { t } from '#utils/Locale.js';
+import { logMsgDelete } from '#utils/hub/logger/ModLogs.js';
+import { isStaffOrHubMod } from '#utils/hub/utils.js';
+import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIContextMenuApplicationCommandsJSONBody = {
@@ -31,7 +31,7 @@ export default class DeleteMessage extends BaseCommand {
   async execute(interaction: MessageContextMenuCommandInteraction): Promise<void> {
     if ((await this.checkOrSetCooldown(interaction)) || !interaction.inCachedGuild()) return;
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const originalMsg = await this.getOriginalMessage(interaction.targetId);
     const hub = await this.fetchHub(originalMsg?.hubId);
@@ -91,7 +91,11 @@ export default class DeleteMessage extends BaseCommand {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!originalMsg || !hub) {
-      await interaction.editReply(t('errors.unknownNetworkMessage', locale, { emoji: this.getEmoji('x_icon') }));
+      await interaction.editReply(
+        t('errors.unknownNetworkMessage', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+      );
       return false;
     }
 
@@ -99,7 +103,7 @@ export default class DeleteMessage extends BaseCommand {
       await this.replyEmbed(
         interaction,
         `${this.getEmoji('neutral')} This message is already deleted or is being deleted by another moderator.`,
-        { ephemeral: true, edit: true },
+        { flags: 'Ephemeral', edit: true },
       );
       return false;
     }
@@ -108,7 +112,11 @@ export default class DeleteMessage extends BaseCommand {
       interaction.user.id !== originalMsg.authorId &&
       !(await isStaffOrHubMod(interaction.user.id, hub))
     ) {
-      await interaction.editReply(t('errors.notMessageAuthor', locale, { emoji: this.getEmoji('x_icon') }));
+      await interaction.editReply(
+        t('errors.notMessageAuthor', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+      );
       return false;
     }
 

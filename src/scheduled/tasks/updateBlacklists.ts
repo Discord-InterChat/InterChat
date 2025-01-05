@@ -1,8 +1,8 @@
+import type { Client } from 'discord.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubManager from '#main/managers/HubManager.js';
 import db from '#utils/Db.js';
 import { logServerUnblacklist, logUserUnblacklist } from '#utils/hub/logger/ModLogs.js';
-import type { Client } from 'discord.js';
 
 export default async (client: Client) => {
   const allInfractions = await db.infraction.findMany({

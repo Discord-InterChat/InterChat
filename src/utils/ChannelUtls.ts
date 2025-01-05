@@ -1,4 +1,4 @@
-import { APIChannel, Channel, GuildTextBasedChannel } from 'discord.js';
+import type { APIChannel, Channel, GuildTextBasedChannel } from 'discord.js';
 
 export const isGuildTextBasedChannel = (
   channel: Channel | APIChannel | null | undefined,

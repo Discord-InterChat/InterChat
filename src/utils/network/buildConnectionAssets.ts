@@ -1,21 +1,21 @@
-import db from '#utils/Db.js';
+import { stripIndents } from 'common-tags';
 import {
-  EmbedBuilder,
-  codeBlock,
-  Snowflake,
   ActionRowBuilder,
   ChannelSelectMenuBuilder,
   ChannelType,
+  type Client,
+  EmbedBuilder,
+  type Snowflake,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
-  Client,
+  codeBlock,
 } from 'discord.js';
-import Constants from '#utils/Constants.js';
-import { yesOrNoEmoji } from '#utils/Utils.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { stripIndents } from 'common-tags';
-import { CustomID } from '#utils/CustomID.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { yesOrNoEmoji } from '#utils/Utils.js';
 
 export const buildEditEmbed = async (
   client: Client<true>,

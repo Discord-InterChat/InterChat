@@ -1,4 +1,4 @@
-import HubManager from '#main/managers/HubManager.js';
+import type HubManager from '#main/managers/HubManager.js';
 import {
   HubSettingsBitField,
   HubSettingsBits,
@@ -8,7 +8,7 @@ import { HubService } from '#main/services/HubService.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 
-import { Client, EmbedBuilder } from 'discord.js';
+import type { Client, EmbedBuilder } from 'discord.js';
 
 export default class HubSettingsManager {
   private readonly hub: HubManager;
@@ -62,7 +62,9 @@ export default class HubSettingsManager {
     for (const [key, value] of Object.entries(this.getAll())) {
       embed.addFields({
         name: key,
-        value: value ? `${getEmoji('tick_icon', client)} Enabled` : `${getEmoji('x_icon', client)} Disabled`,
+        value: value
+          ? `${getEmoji('tick_icon', client)} Enabled`
+          : `${getEmoji('x_icon', client)} Disabled`,
         inline: true,
       });
     }

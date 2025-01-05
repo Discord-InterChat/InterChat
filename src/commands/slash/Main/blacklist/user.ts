@@ -1,13 +1,12 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 
-
-import { logUserUnblacklist } from '#utils/hub/logger/ModLogs.js';
-import { t } from '#utils/Locale.js';
-import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import type { ChatInputCommandInteraction, User } from 'discord.js';
-import BlacklistCommand from './index.js';
 import ms from 'ms';
 import { HubService } from '#main/services/HubService.js';
+import { t } from '#utils/Locale.js';
+import { logUserUnblacklist } from '#utils/hub/logger/ModLogs.js';
+import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
+import BlacklistCommand from './index.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -46,7 +45,10 @@ export default class extends BlacklistCommand {
 
       await this.sendSuccessResponse(
         interaction,
-        t('blacklist.success', locale, { name: user.username, emoji: this.getEmoji('tick') }),
+        t('blacklist.success', locale, {
+          name: user.username,
+          emoji: this.getEmoji('tick'),
+        }),
         { reason, expires },
       );
 
@@ -69,15 +71,20 @@ export default class extends BlacklistCommand {
       if (!result) {
         await this.replyEmbed(
           interaction,
-          t('errors.userNotBlacklisted', locale, { emoji: this.getEmoji('x_icon') }),
-          { ephemeral: true },
+          t('errors.userNotBlacklisted', locale, {
+            emoji: this.getEmoji('x_icon'),
+          }),
+          { flags: ['Ephemeral'] },
         );
         return;
       }
 
       const user = await interaction.client.users.fetch(userId).catch(() => null);
       await interaction.followUp(
-        t('blacklist.removed', locale, { emoji: this.getEmoji('delete'), name: `${user?.username}` }),
+        t('blacklist.removed', locale, {
+          emoji: this.getEmoji('delete'),
+          name: `${user?.username}`,
+        }),
       );
     }
   }
@@ -134,7 +141,7 @@ export default class extends BlacklistCommand {
   ) {
     const { userManager } = interaction.client;
     const locale = await userManager.getUserLocale(interaction.user.id);
-    const hiddenOpt = { ephemeral: true };
+    const hiddenOpt = { flags: ['Ephemeral'] } as const;
     if (opts.userId === interaction.client.user?.id) {
       await this.replyEmbed(
         interaction,
@@ -143,7 +150,7 @@ export default class extends BlacklistCommand {
       );
       return false;
     }
-    else if (opts.userId === interaction.user.id) {
+    if (opts.userId === interaction.user.id) {
       await this.replyEmbed(
         interaction,
         '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
@@ -165,7 +172,9 @@ export default class extends BlacklistCommand {
     if (userInBlacklist) {
       await this.replyEmbed(
         interaction,
-        t('blacklist.user.alreadyBlacklisted', locale, { emoji: this.getEmoji('x_icon') }),
+        t('blacklist.user.alreadyBlacklisted', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
         hiddenOpt,
       );
       return false;

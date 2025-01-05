@@ -1,11 +1,11 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 
-import { deleteConnections } from '#utils/ConnectedListUtils.js';
-import { logServerUnblacklist } from '#utils/hub/logger/ModLogs.js';
-import { t } from '#utils/Locale.js';
-import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
-import { type ChatInputCommandInteraction, type Snowflake } from 'discord.js';
+import type { ChatInputCommandInteraction, Snowflake } from 'discord.js';
 import ms from 'ms';
+import { deleteConnections } from '#utils/ConnectedListUtils.js';
+import { t } from '#utils/Locale.js';
+import { logServerUnblacklist } from '#utils/hub/logger/ModLogs.js';
+import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import BlacklistCommand from './index.js';
 
 export default class extends BlacklistCommand {
@@ -35,7 +35,9 @@ export default class extends BlacklistCommand {
 
       const server = await interaction.client.fetchGuild(serverId).catch(() => null);
       if (!server) {
-        await interaction.followUp(t('errors.unknownServer', locale, { emoji: this.getEmoji('x_icon') }));
+        await interaction.followUp(
+          t('errors.unknownServer', locale, { emoji: this.getEmoji('x_icon') }),
+        );
         return;
       }
 
@@ -56,7 +58,10 @@ export default class extends BlacklistCommand {
 
       await this.sendSuccessResponse(
         interaction,
-        t('blacklist.success', locale, { name: server.name, emoji: this.getEmoji('tick') }),
+        t('blacklist.success', locale, {
+          name: server.name,
+          emoji: this.getEmoji('tick'),
+        }),
         { reason, expires },
       );
 
@@ -76,7 +81,9 @@ export default class extends BlacklistCommand {
       if (!result || !BlacklistManager.isServerBlacklist(result)) {
         await this.replyEmbed(
           interaction,
-          t('errors.serverNotBlacklisted', locale, { emoji: this.getEmoji('x_icon') }),
+          t('errors.serverNotBlacklisted', locale, {
+            emoji: this.getEmoji('x_icon'),
+          }),
         );
         return;
       }
@@ -84,7 +91,10 @@ export default class extends BlacklistCommand {
       // Using name from DB since the bot can't access server through API.
       await this.replyEmbed(
         interaction,
-        t('blacklist.removed', locale, { emoji: this.getEmoji('delete'), name: result.serverName ?? 'Unknown Server.' }),
+        t('blacklist.removed', locale, {
+          emoji: this.getEmoji('delete'),
+          name: result.serverName ?? 'Unknown Server.',
+        }),
       );
 
       // send log to hub's log channel
@@ -102,12 +112,14 @@ export default class extends BlacklistCommand {
   ) {
     const blacklistManager = new BlacklistManager('server', serverId);
     const blacklist = await blacklistManager.fetchBlacklist(hubId);
-    const hiddenOpt = { ephemeral: true };
+    const hiddenOpt = { flags: ['Ephemeral'] } as const;
 
     if (blacklist) {
       await this.replyEmbed(
         interaction,
-        t('blacklist.server.alreadyBlacklisted', 'en', { emoji: this.getEmoji('x_icon') }),
+        t('blacklist.server.alreadyBlacklisted', 'en', {
+          emoji: this.getEmoji('x_icon'),
+        }),
         hiddenOpt,
       );
       return false;

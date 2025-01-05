@@ -1,6 +1,6 @@
+import { ApplicationCommandOptionType, type ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand, { type CmdData } from '#main/core/BaseCommand.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { type ChatInputCommandInteraction, ApplicationCommandOptionType } from 'discord.js';
 
 export default class Unban extends BaseCommand {
   readonly staffOnly = true;

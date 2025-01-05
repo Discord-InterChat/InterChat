@@ -1,20 +1,20 @@
+import { type BlockWord, BlockWordAction } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  type Client,
+  ModalBuilder,
+  StringSelectMenuBuilder,
+  TextInputBuilder,
+  TextInputStyle,
+  codeBlock,
+} from 'discord.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { numberEmojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { BlockWord, BlockWordAction } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import {
-  codeBlock,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  StringSelectMenuBuilder,
-  Client,
-} from 'discord.js';
 
 export const ACTION_LABELS = {
   [BlockWordAction.BLOCK_MESSAGE]: '🚫 Block Message',

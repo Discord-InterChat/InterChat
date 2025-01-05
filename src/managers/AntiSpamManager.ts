@@ -1,6 +1,6 @@
-import getRedis from '#main/utils/Redis.js';
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import type { Redis } from 'ioredis';
+import getRedis from '#main/utils/Redis.js';
 
 export default class AntiSpamManager {
   private config: SpamConfig;
@@ -38,8 +38,8 @@ export default class AntiSpamManager {
   private async getUserInfo(key: string): Promise<UserMessageInfo> {
     const data = await this.redis.hgetall(key);
     return {
-      messageCount: parseInt(data.messageCount || '0', 10),
-      lastMessage: parseInt(data.lastMessage || '0', 10),
+      messageCount: Number.parseInt(data.messageCount || '0', 10),
+      lastMessage: Number.parseInt(data.lastMessage || '0', 10),
     };
   }
 
@@ -60,7 +60,7 @@ export default class AntiSpamManager {
   public async getSpamCount(userId: string): Promise<number> {
     const key = `spamcount:${userId}`;
     const count = await this.redis.get(key);
-    return parseInt(count || '0', 10);
+    return Number.parseInt(count || '0', 10);
   }
 }
 

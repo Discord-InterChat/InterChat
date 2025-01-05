@@ -1,15 +1,4 @@
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import HubLogManager, { LogConfigTypes as HubConfigTypes } from '#main/managers/HubLogManager.js';
-import HubManager from '#main/managers/HubManager.js';
-import db from '#main/utils/Db.js';
-import { getReplyMethod } from '#main/utils/Utils.js';
-import { setComponentExpiry } from '#utils/ComponentUtils.js';
-import Constants from '#utils/Constants.js';
-import { CustomID } from '#utils/CustomID.js';
-import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { sendToHub } from '#utils/hub/utils.js';
-import { type supportedLocaleCodes, t } from '#utils/Locale.js';
-import { Hub } from '@prisma/client';
+import type { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -18,11 +7,24 @@ import {
   type MessageComponentInteraction,
   ModalBuilder,
   type ModalSubmitInteraction,
-  RepliableInteraction,
+  type RepliableInteraction,
   StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import type HubLogManager from '#main/managers/HubLogManager.js';
+// eslint-disable-next-line no-duplicate-imports
+import type { LogConfigTypes as HubConfigTypes } from '#main/managers/HubLogManager.js';
+import type HubManager from '#main/managers/HubManager.js';
+import db from '#main/utils/Db.js';
+import { getReplyMethod } from '#main/utils/Utils.js';
+import { setComponentExpiry } from '#utils/ComponentUtils.js';
+import Constants from '#utils/Constants.js';
+import { CustomID } from '#utils/CustomID.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { sendToHub } from '#utils/hub/utils.js';
 import HubCommand from './index.js';
 
 const HUB_EDIT_IDENTIFIER = 'hubEdit';
@@ -235,7 +237,7 @@ export default class HubEdit extends HubCommand {
     hub: HubManager,
     locale: supportedLocaleCodes,
   ) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const newLockState = !hub.data.locked;
     await hub.setLocked(newLockState);
@@ -289,7 +291,7 @@ export default class HubEdit extends HubCommand {
           }),
         ),
       ],
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 
@@ -324,7 +326,7 @@ export default class HubEdit extends HubCommand {
     if (!Constants.Regex.ImageURL.test(iconUrl)) {
       await this.replyEmbed(interaction, 'hub.invalidImgurUrl', {
         t: { emoji: this.getEmoji('x_icon') },
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -341,7 +343,7 @@ export default class HubEdit extends HubCommand {
     hubId: string,
     locale: supportedLocaleCodes,
   ) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const hub = await this.getHubOrReplyError(interaction, hubId, locale);
     if (!hub) return;

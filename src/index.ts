@@ -1,7 +1,7 @@
 import '#main/instrument.js';
+import { ClusterManager, HeartbeatManager, ReClusterManager } from 'discord-hybrid-sharding';
 import startTasks from '#main/scheduled/startTasks.js';
 import Logger from '#utils/Logger.js';
-import { ClusterManager, HeartbeatManager, ReClusterManager } from 'discord-hybrid-sharding';
 
 const shardsPerClusters = 6;
 const clusterManager = new ClusterManager('src/client.ts', {

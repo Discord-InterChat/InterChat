@@ -3,24 +3,25 @@ import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import InfractionManager from '#main/managers/InfractionManager.js';
 
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  type ButtonInteraction,
+  ButtonStyle,
+  EmbedBuilder,
+  type ModalSubmitInteraction,
+  type RepliableInteraction,
+  type Snowflake,
+  type User,
+} from 'discord.js';
 import { HubService } from '#main/services/HubService.js';
 import db from '#main/utils/Db.js';
 import { CustomID } from '#utils/CustomID.js';
 import { ErrorEmbed, InfoEmbed } from '#utils/EmbedUtils.js';
-import logAppeals from '#utils/hub/logger/Appeals.js';
 import Logger from '#utils/Logger.js';
-import { buildAppealSubmitModal } from '#utils/moderation/blacklistUtils.js';
 import { getReplyMethod, msToReadable } from '#utils/Utils.js';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonInteraction,
-  ButtonStyle,
-  EmbedBuilder,
-  ModalSubmitInteraction,
-  RepliableInteraction,
-  Snowflake,
-} from 'discord.js';
+import logAppeals from '#utils/hub/logger/Appeals.js';
+import { buildAppealSubmitModal } from '#utils/moderation/blacklistUtils.js';
 
 export const buildAppealSubmitButton = (type: 'user' | 'server', hubId: string) =>
   new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -49,7 +50,7 @@ export default class AppealInteraction {
       const embed = new InfoEmbed().setDescription(
         'You do not have the required permissions in this channel to appeal this blacklist.',
       );
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
       return;
     }
 
@@ -59,7 +60,7 @@ export default class AppealInteraction {
 
   @RegisterInteractionHandler('appealSubmit', 'modal')
   async appealSubmitModal(interaction: ModalSubmitInteraction): Promise<void> {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const customId = CustomID.parseCustomId(interaction.customId);
     const [type, hubId] = customId.args as ['user' | 'server', string];
@@ -72,12 +73,12 @@ export default class AppealInteraction {
 
     const { channelId: appealsChannelId, roleId: appealsRoleId } = appealsConfig;
 
-    let appealIconUrl;
-    let appealName;
-    let appealTargetId;
+    let appealIconUrl: string | null;
+    let appealName: string | undefined;
+    let appealTargetId: Snowflake;
     if (type === 'server') {
-      appealIconUrl = interaction.guild?.iconURL();
-      appealName = interaction.guild?.name;
+      appealIconUrl = interaction.guild?.iconURL() ?? null;
+      appealName = interaction.guild?.name ?? undefined;
       appealTargetId = interaction.guildId as string;
     }
     else {
@@ -142,8 +143,8 @@ export default class AppealInteraction {
     const hubService = new HubService(db);
     const hub = await hubService.fetchHub(hubId);
 
-    let appealer;
-    let appealTarget;
+    let appealer: User;
+    let appealTarget: string;
     let extraServerSteps = '';
     if (type === 'user') {
       appealer = await interaction.client.users.fetch(targetId);
@@ -180,7 +181,7 @@ export default class AppealInteraction {
       const embed = new InfoEmbed().setDescription('Blacklist appeals are disabled in this hub.');
       const replyMethod = getReplyMethod(interaction);
 
-      await interaction[replyMethod]({ embeds: [embed], ephemeral: true });
+      await interaction[replyMethod]({ embeds: [embed], flags: ['Ephemeral'] });
       return null;
     }
 
@@ -218,7 +219,7 @@ export default class AppealInteraction {
       );
 
       const replyMethod = getReplyMethod(interaction);
-      await interaction[replyMethod]({ embeds: [embed], ephemeral: true });
+      await interaction[replyMethod]({ embeds: [embed], flags: ['Ephemeral'] });
       return { passedCheck: false };
     }
 
@@ -229,7 +230,7 @@ export default class AppealInteraction {
       const embed = new ErrorEmbed(interaction.client).setDescription(
         'You cannot appeal a blacklist that does not exist.',
       );
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
       return { passedCheck: false };
     }
 

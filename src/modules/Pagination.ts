@@ -1,23 +1,23 @@
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import Logger from '#main/utils/Logger.js';
-import { getReplyMethod } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
+  type BaseMessageOptions,
   ButtonBuilder,
   ButtonStyle,
-  Client,
+  type Client,
   ComponentType,
-  InteractionReplyOptions,
+  type EmbedBuilder,
+  type InteractionReplyOptions,
   Message,
   ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-  type BaseMessageOptions,
-  type EmbedBuilder,
   type ModalSubmitInteraction,
   type RepliableInteraction,
+  TextInputBuilder,
+  TextInputStyle,
 } from 'discord.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Logger from '#main/utils/Logger.js';
+import { getReplyMethod } from '#utils/Utils.js';
 
 type PaginationInteraction = Exclude<RepliableInteraction, ModalSubmitInteraction>;
 
@@ -69,7 +69,9 @@ export class Pagination {
   }
 
   public addPages(pageArr: BaseMessageOptions[]) {
-    pageArr.forEach((page) => this.pages.push(page));
+    for (const page of pageArr) {
+      this.pages.push(page);
+    }
     return this;
   }
 
@@ -97,9 +99,9 @@ export class Pagination {
       if (embedData.footer?.text) searchableContent.push(embedData.footer.text);
 
       if (embedData.fields?.length) {
-        embedData.fields.forEach((field) => {
+        for (const field of embedData.fields) {
           searchableContent.push(field.name, field.value);
-        });
+        }
       }
     }
 
@@ -131,19 +133,19 @@ export class Pagination {
         filter: (i) => i.customId === 'page_select_modal',
       });
 
-      const pageNumber = parseInt(modalSubmit.fields.getTextInputValue('page_number_input'));
+      const pageNumber = Number.parseInt(modalSubmit.fields.getTextInputValue('page_number_input'));
 
-      if (isNaN(pageNumber) || pageNumber < 1 || pageNumber > totalPages) {
+      if (Number.isNaN(pageNumber) || pageNumber < 1 || pageNumber > totalPages) {
         await modalSubmit.reply({
           content: `Please enter a valid page number between 1 and ${totalPages}`,
-          ephemeral: true,
+          flags: 'Ephemeral',
         });
         return null;
       }
 
       await modalSubmit.reply({
         content: `Going to page ${pageNumber}`,
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return pageNumber - 1; // Convert to 0-based index
     }
@@ -209,13 +211,16 @@ export class Pagination {
             Jumping to page ${topResult.page + 1} with ${topResult.matches} match${topResult.matches !== 1 ? 'es' : ''}.
             
             ${otherResultsStr}`,
-          ephemeral: true,
+          flags: 'Ephemeral',
         });
 
         return topResult.page;
       }
 
-      await modalSubmit.reply({ content: 'No matches found', ephemeral: true });
+      await modalSubmit.reply({
+        content: 'No matches found',
+        flags: ['Ephemeral'],
+      });
       return null;
     }
     catch (error) {
@@ -229,7 +234,7 @@ export class Pagination {
       await this.sendReply(
         ctx,
         { content: `${getEmoji('tick', this.client)} No results to display!` },
-        { ephemeral: true },
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -311,7 +316,10 @@ export class Pagination {
   private async sendReply(
     ctx: PaginationInteraction | Message,
     opts: BaseMessageOptions,
-    interactionOpts?: { ephemeral?: boolean; flags?: InteractionReplyOptions['flags'] },
+    interactionOpts?: {
+      ephemeral?: boolean;
+      flags?: InteractionReplyOptions['flags'];
+    },
   ) {
     if (ctx instanceof Message) return await ctx.reply(opts);
 
@@ -333,7 +341,10 @@ export class Pagination {
     actionButtons: ActionRowBuilder<ButtonBuilder>,
     replyOpts: BaseMessageOptions,
   ) {
-    return { ...replyOpts, components: [actionButtons, ...(replyOpts.components || [])] };
+    return {
+      ...replyOpts,
+      components: [actionButtons, ...(replyOpts.components || [])],
+    };
   }
 
   private createButtons(index: number, totalPages: number) {

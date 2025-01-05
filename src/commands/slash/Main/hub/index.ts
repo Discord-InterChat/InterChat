@@ -1,3 +1,16 @@
+import { Role } from '@prisma/client';
+import {
+  type APIApplicationCommandBasicOption,
+  ApplicationCommandOptionType,
+  type AutocompleteInteraction,
+  ChannelType,
+  type ChatInputCommandInteraction,
+  Collection,
+  type Guild,
+  InteractionContextType,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
+  type Snowflake,
+} from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { logsWithRoleId } from '#main/managers/HubLogManager.js';
 import HubManager from '#main/managers/HubManager.js';
@@ -5,19 +18,6 @@ import { HubSettingsBits } from '#main/modules/BitFields.js';
 import { HubService } from '#main/services/HubService.js';
 import db from '#utils/Db.js';
 import { escapeRegexChars, handleError, toTitleCase } from '#utils/Utils.js';
-import { Role } from '@prisma/client';
-import {
-  APIApplicationCommandBasicOption,
-  ApplicationCommandOptionType,
-  AutocompleteInteraction,
-  ChannelType,
-  ChatInputCommandInteraction,
-  Collection,
-  Guild,
-  InteractionContextType,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
-  Snowflake,
-} from 'discord.js';
 
 const hubOption: APIApplicationCommandBasicOption = {
   type: ApplicationCommandOptionType.String,
@@ -272,7 +272,10 @@ export default class HubCommand extends BaseCommand {
                 description: 'The setting to toggle.',
                 type: ApplicationCommandOptionType.String,
                 required: true,
-                choices: Object.keys(HubSettingsBits).map((s) => ({ name: s, value: s })),
+                choices: Object.keys(HubSettingsBits).map((s) => ({
+                  name: s,
+                  value: s,
+                })),
               },
               { ...hubOption },
             ],
@@ -321,7 +324,10 @@ export default class HubCommand extends BaseCommand {
                 description: 'The type of log to set a role for.',
                 type: ApplicationCommandOptionType.String,
                 required: true,
-                choices: logsWithRoleId.map((log) => ({ name: toTitleCase(log), value: log })),
+                choices: logsWithRoleId.map((log) => ({
+                  name: toTitleCase(log),
+                  value: log,
+                })),
               },
               {
                 name: 'role',
@@ -498,7 +504,10 @@ export default class HubCommand extends BaseCommand {
       return;
     }
 
-    const choices = hubChoices.map((hub) => ({ name: hub.data.name, value: hub.data.name }));
+    const choices = hubChoices.map((hub) => ({
+      name: hub.data.name,
+      value: hub.data.name,
+    }));
     await interaction.respond(choices ?? []);
   }
 

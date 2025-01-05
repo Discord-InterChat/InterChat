@@ -1,21 +1,18 @@
+import {
+  ActionRowBuilder,
+  type ButtonInteraction,
+  ModalBuilder,
+  type ModalSubmitInteraction,
+  type Snowflake,
+  TextInputBuilder,
+  TextInputStyle,
+} from 'discord.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
 import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import { handleBan } from '#utils/BanUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';
-import {
-  type ModAction,
-  replyWithUnknownMessage,
-} from '#main/utils/moderation/modPanel/utils.js';
-import {
-  type ButtonInteraction,
-  type ModalSubmitInteraction,
-  type Snowflake,
-  ActionRowBuilder,
-  ModalBuilder,
-  TextInputBuilder,
-  TextInputStyle,
-} from 'discord.js';
 
 export default class UserBanHandler implements ModAction {
   async handle(

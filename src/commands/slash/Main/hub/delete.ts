@@ -2,18 +2,18 @@ import { RegisterInteractionHandler } from '#main/decorators/RegisterInteraction
 import { HubService } from '#main/services/HubService.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
 
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  type ButtonInteraction,
+  ButtonStyle,
+  type ChatInputCommandInteraction,
+  EmbedBuilder,
+} from 'discord.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonInteraction,
-  ButtonStyle,
-  ChatInputCommandInteraction,
-  EmbedBuilder,
-} from 'discord.js';
 import HubCommand from './index.js';
 
 export default class Delete extends HubCommand {
@@ -30,7 +30,7 @@ export default class Delete extends HubCommand {
           emoji: this.getEmoji('x_icon'),
         }),
       );
-      await interaction.reply({ embeds: [infoEmbed], ephemeral: true });
+      await interaction.reply({ embeds: [infoEmbed], flags: ['Ephemeral'] });
       return;
     }
 
@@ -83,7 +83,7 @@ export default class Delete extends HubCommand {
         t('hub.delete.ownerOnly', locale, { emoji: this.getEmoji('x_icon') }),
       );
 
-      await interaction.reply({ embeds: [infoEmbed], ephemeral: true });
+      await interaction.reply({ embeds: [infoEmbed], flags: ['Ephemeral'] });
       return;
     }
 
@@ -119,7 +119,10 @@ export default class Delete extends HubCommand {
     await hubService.deleteHub(hubInDb.id);
 
     await interaction.editReply({
-      content: t('hub.delete.success', locale, { emoji: this.getEmoji('tick'), hub: hubInDb.data.name }),
+      content: t('hub.delete.success', locale, {
+        emoji: this.getEmoji('tick'),
+        hub: hubInDb.data.name,
+      }),
       embeds: [],
     });
   }

@@ -1,25 +1,25 @@
+import type { Infraction, UserData } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import {
+  type BaseMessageOptions,
+  type ChatInputCommandInteraction,
+  type Client,
+  Collection,
+  EmbedBuilder,
+  type Guild,
+  User,
+  time,
+} from 'discord.js';
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
-import HubManager from '#main/managers/HubManager.js';
+import type HubManager from '#main/managers/HubManager.js';
 import InfractionManager from '#main/managers/InfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
-import { RemoveMethods } from '#main/types/Utils.js';
+import type { RemoveMethods } from '#main/types/Utils.js';
 import { msToReadable } from '#main/utils/Utils.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import { buildInfractionListEmbeds } from '#utils/moderation/infractionUtils.js';
-import { Infraction, UserData } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import {
-  BaseMessageOptions,
-  Client,
-  Collection,
-  EmbedBuilder,
-  Guild,
-  time,
-  User,
-  type ChatInputCommandInteraction,
-} from 'discord.js';
 
 type InfractionType = 'server' | 'user';
 type GroupedInfraction = Infraction & { user: UserData | null; count: number };

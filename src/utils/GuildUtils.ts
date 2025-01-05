@@ -1,15 +1,15 @@
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import {
   AuditLogEvent,
   ChannelType,
-  EmbedBuilder,
-  User,
   type ColorResolvable,
+  EmbedBuilder,
   type Guild,
   type TextChannel,
+  type User,
 } from 'discord.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
 
 /**
  * Retrieves the first channel in a guild or the inviter of the bot.
@@ -46,7 +46,10 @@ const buildLogsEmbed = (
   guildOwnerName: string,
   { title, color }: { title: string; color: ColorResolvable },
 ) =>
-  new EmbedBuilder().setColor(color).setThumbnail(guild.iconURL()).setTitle(title)
+  new EmbedBuilder()
+    .setColor(color)
+    .setThumbnail(guild.iconURL())
+    .setTitle(title)
     .setDescription(stripIndents`
     - Name: ${guild.name}
     - ID: ${guild.id}

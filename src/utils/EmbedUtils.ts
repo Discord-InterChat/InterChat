@@ -1,7 +1,15 @@
+import { stripIndents } from 'common-tags';
+import {
+  type APIEmbed,
+  type Client,
+  Colors,
+  EmbedBuilder,
+  type EmbedData,
+  codeBlock,
+  resolveColor,
+} from 'discord.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import Constants from '#utils/Constants.js';
-import { stripIndents } from 'common-tags';
-import { APIEmbed, Client, codeBlock, Colors, EmbedBuilder, EmbedData, resolveColor } from 'discord.js';
 
 export class InfoEmbed extends EmbedBuilder {
   constructor(data?: EmbedData | APIEmbed) {

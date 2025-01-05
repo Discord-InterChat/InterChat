@@ -1,9 +1,9 @@
-import { HubService } from '#main/services/HubService.js';
-import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
-import { EmbedBuilder, Guild, User } from 'discord.js';
-import { sendLog } from './Default.js';
+import { EmbedBuilder, type Guild, type User } from 'discord.js';
+import { HubService } from '#main/services/HubService.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
+import { sendLog } from './Default.js';
 
 /**
  * Logs the detected profanity along with relevant details.

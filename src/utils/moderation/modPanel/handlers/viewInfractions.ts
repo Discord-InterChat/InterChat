@@ -1,10 +1,10 @@
+import type { ButtonInteraction, Snowflake } from 'discord.js';
+import InfractionManager from '#main/managers/InfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
+import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
 import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';
 import { buildInfractionListEmbeds } from '#utils/moderation/infractionUtils.js';
-import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
-import { type ButtonInteraction, type Snowflake } from 'discord.js';
-import InfractionManager from '#main/managers/InfractionManager.js';
 
 export default class ViewInfractionsHandler implements ModAction {
   async handle(
@@ -12,7 +12,7 @@ export default class ViewInfractionsHandler implements ModAction {
     originalMsgId: Snowflake,
     locale: supportedLocaleCodes,
   ) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const originalMsg = await getOriginalMessage(originalMsgId);
 
@@ -40,8 +40,6 @@ export default class ViewInfractionsHandler implements ModAction {
       iconURL,
     );
 
-    new Pagination(interaction.client)
-      .addPages(embeds)
-      .run(interaction, { deleteOnEnd: true });
+    new Pagination(interaction.client).addPages(embeds).run(interaction, { deleteOnEnd: true });
   }
 }

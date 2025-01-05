@@ -1,9 +1,9 @@
-import HubManager from '#main/managers/HubManager.js';
+import type { HubModerator, Role } from '@prisma/client';
+import { WebhookClient, type WebhookMessageCreateOptions } from 'discord.js';
+import type HubManager from '#main/managers/HubManager.js';
 import { deleteConnection, getHubConnections } from '#utils/ConnectedListUtils.js';
 import Logger from '#utils/Logger.js';
 import { checkIfStaff } from '#utils/Utils.js';
-import type { HubModerator, Role } from '@prisma/client';
-import { type WebhookMessageCreateOptions, WebhookClient } from 'discord.js';
 
 /**
  * Sends a message to all connections in a hub's network.

@@ -1,4 +1,4 @@
-import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
+import BasePrefixCommand, { type CommandData } from '#main/core/BasePrefixCommand.js';
 import { sendHubReport } from '#main/utils/hub/logger/Report.js';
 import {
   findOriginalMessage,
@@ -7,7 +7,7 @@ import {
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 
-import { Message } from 'discord.js';
+import type { Message } from 'discord.js';
 import ms from 'ms';
 
 export default class ReportPrefixCommand extends BasePrefixCommand {
@@ -49,7 +49,10 @@ export default class ReportPrefixCommand extends BasePrefixCommand {
       serverId: originalMsg.guildId,
       reason: message.reference?.messageId ? args[0] : args.slice(1).join(' '),
       reportedBy: message.author,
-      evidence: { messageId: broadcastMsg.messageId, content: originalMsg.content },
+      evidence: {
+        messageId: broadcastMsg.messageId,
+        content: originalMsg.content,
+      },
     });
 
     await message

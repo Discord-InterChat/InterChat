@@ -1,10 +1,10 @@
-// TODO: make this into a class
-import { RedisKeys } from '#utils/Constants.js';
-import getRedis from '#utils/Redis.js';
-import Logger from '#utils/Logger.js';
-import { Prisma } from '@prisma/client';
-import { type Awaitable } from 'discord.js';
+import type { Prisma } from '@prisma/client';
+import type { Awaitable } from 'discord.js';
 import type { ConvertDatesToString } from '#types/Utils.d.ts';
+// TODO: make this into a class
+import type { RedisKeys } from '#utils/Constants.js';
+import Logger from '#utils/Logger.js';
+import getRedis from '#utils/Redis.js';
 
 export const cacheData = async (key: string, value: string, expirySecs?: number) => {
   try {

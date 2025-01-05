@@ -1,14 +1,14 @@
-import db from '#utils/Db.js';
-import BaseCommand from '#main/core/BaseCommand.js';
 import {
   ApplicationCommandOptionType,
-  AutocompleteInteraction,
-  ChatInputCommandInteraction,
+  type AutocompleteInteraction,
+  type ChatInputCommandInteraction,
   Collection,
   InteractionContextType,
   PermissionFlagsBits,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import db from '#utils/Db.js';
 import { escapeRegexChars, handleError } from '#utils/Utils.js';
 
 export default class Connection extends BaseCommand {
@@ -93,7 +93,10 @@ export default class Connection extends BaseCommand {
 
     const filtered = isInDb?.map(async ({ channelId, hub }) => {
       const channel = await interaction.guild?.channels.fetch(channelId).catch(() => null);
-      return { name: `${hub?.name} | #${channel?.name || channelId}`, value: channelId };
+      return {
+        name: `${hub?.name} | #${channel?.name || channelId}`,
+        value: channelId,
+      };
     });
 
     await interaction.respond(await Promise.all(filtered));

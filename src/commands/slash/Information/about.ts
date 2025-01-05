@@ -1,19 +1,19 @@
-import Constants from '#utils/Constants.js';
-import BaseCommand, { CmdData } from '#main/core/BaseCommand.js';
-import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { getCredits } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
-  ChatInputCommandInteraction,
-  Client,
+  type ChatInputCommandInteraction,
+  type Client,
 } from 'discord.js';
-import { CustomID } from '#main/utils/CustomID.js';
+import BaseCommand, { type CmdData } from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { donateButton } from '#main/utils/ComponentUtils.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import Constants from '#utils/Constants.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { getCredits } from '#utils/Utils.js';
 
 export default class About extends BaseCommand {
   public readonly data: CmdData = {
@@ -76,7 +76,7 @@ export default class About extends BaseCommand {
 
   @RegisterInteractionHandler('about', 'credits')
   public async handleCreditsButton(interaction: ButtonInteraction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const usernames = await this.getUsernames(interaction.client);
     const creditsDivider = `${this.getEmoji('blueLine').repeat(9)} **CREDITS** ${this.getEmoji('blueLine').repeat(9)}`;

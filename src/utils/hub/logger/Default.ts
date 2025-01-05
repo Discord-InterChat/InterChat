@@ -38,6 +38,13 @@ export const sendLog = async (
           .catch(() => null);
       }
     },
-    { context: { channelId, embed, content: opts?.content, components: opts?.components } },
+    {
+      context: {
+        channelId,
+        embed,
+        content: opts?.content,
+        components: opts?.components,
+      },
+    },
   );
 };

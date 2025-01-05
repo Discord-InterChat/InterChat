@@ -1,17 +1,17 @@
-import HubCommand from '#main/commands/slash/Main/hub/index.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import HubManager from '#main/managers/HubManager.js';
-import HubSettingsManager from '#main/managers/HubSettingsManager.js';
-import { type HubSettingsString } from '#main/modules/BitFields.js';
-import { CustomID } from '#utils/CustomID.js';
-import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
   type ChatInputCommandInteraction,
 } from 'discord.js';
+import HubCommand from '#main/commands/slash/Main/hub/index.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import type HubManager from '#main/managers/HubManager.js';
+import HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import type { HubSettingsString } from '#main/modules/BitFields.js';
+import { CustomID } from '#utils/CustomID.js';
+import { t } from '#utils/Locale.js';
 
 export default class Settings extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -29,7 +29,9 @@ export default class Settings extends HubCommand {
   }
 
   private async handleList(interaction: ChatInputCommandInteraction, hub: HubManager) {
-    await interaction.reply({ embeds: [hub.settings.getEmbed(interaction.client)] });
+    await interaction.reply({
+      embeds: [hub.settings.getEmbed(interaction.client)],
+    });
   }
 
   private async handleToggle(interaction: ChatInputCommandInteraction, hub: HubManager) {
@@ -51,7 +53,7 @@ export default class Settings extends HubCommand {
     await this.replyEmbed(
       interaction,
       `Setting \`${settingStr}\` is now **${value ? `${this.getEmoji('enabled')} enabled` : `${this.getEmoji('disabled')} disabled`}**.`,
-      { ephemeral: true, components: [viewSettingsButton] },
+      { flags: 'Ephemeral', components: [viewSettingsButton] },
     );
   }
 
@@ -69,14 +71,14 @@ export default class Settings extends HubCommand {
           'errors.notYourAction',
           await interaction.client.userManager.getUserLocale(interaction.user.id),
         ),
-        { ephemeral: true },
+        { flags: ['Ephemeral'] },
       );
     }
 
     const settingsManager = await HubSettingsManager.create(hubId);
     await interaction.reply({
       embeds: [settingsManager.getEmbed(interaction.client)],
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
   private async runHubCheck(interaction: ChatInputCommandInteraction) {
@@ -87,7 +89,7 @@ export default class Settings extends HubCommand {
       await this.replyEmbed(
         interaction,
         'Hub not found. Provide a valid hub in the `hub` option of the command.',
-        { ephemeral: true },
+        { flags: ['Ephemeral'] },
       );
       return null;
     }

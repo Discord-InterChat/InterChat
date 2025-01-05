@@ -1,5 +1,5 @@
-import getRedis from '#utils/Redis.js';
 import { RedisKeys } from '#utils/Constants.js';
+import getRedis from '#utils/Redis.js';
 
 /** Manage and store individual cooldowns */
 export default class CooldownService {
@@ -20,7 +20,7 @@ export default class CooldownService {
 
   /** Get a cooldown */
   public async getCooldown(id: string) {
-    return parseInt((await this.redisClient.get(this.getKey(id))) || '0');
+    return Number.parseInt((await this.redisClient.get(this.getKey(id))) || '0');
   }
 
   /** Delete a cooldown */

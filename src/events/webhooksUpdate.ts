@@ -1,9 +1,15 @@
+import type {
+  ForumChannel,
+  MediaChannel,
+  NewsChannel,
+  TextChannel,
+  VoiceChannel,
+} from 'discord.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';
-import { ForumChannel, MediaChannel, NewsChannel, TextChannel, VoiceChannel } from 'discord.js';
 
 export default class Ready extends BaseEventListener<'webhooksUpdate'> {
   readonly name = 'webhooksUpdate';
@@ -34,7 +40,11 @@ export default class Ready extends BaseEventListener<'webhooksUpdate'> {
         : channel;
 
       if (networkChannel?.isSendable()) {
-        await networkChannel.send(t('global.webhookNoLongerExists', 'en', { emoji: this.getEmoji('info') }));
+        await networkChannel.send(
+          t('global.webhookNoLongerExists', 'en', {
+            emoji: this.getEmoji('info'),
+          }),
+        );
       }
     }
     catch (error) {

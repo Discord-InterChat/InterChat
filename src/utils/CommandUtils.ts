@@ -1,17 +1,17 @@
-import type BaseCommand from '#main/core/BaseCommand.js';
-import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
-import { type InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
-import { CommandLoader } from '#main/modules/Loaders/CommandLoader.js';
-import { InteractionLoader } from '#main/modules/Loaders/InteractionLoader.js';
 import {
-  ApplicationCommandOptionType,
   type ApplicationCommand,
+  ApplicationCommandOptionType,
   type ChatInputCommandInteraction,
   type Client,
   type Collection,
   type ContextMenuCommandInteraction,
   type GuildResolvable,
 } from 'discord.js';
+import type BaseCommand from '#main/core/BaseCommand.js';
+import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
+import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
+import { CommandLoader } from '#main/modules/Loaders/CommandLoader.js';
+import { InteractionLoader } from '#main/modules/Loaders/InteractionLoader.js';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
 

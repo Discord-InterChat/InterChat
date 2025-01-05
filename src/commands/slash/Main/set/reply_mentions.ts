@@ -1,7 +1,7 @@
-import { ChatInputCommandInteraction } from 'discord.js';
-import Set from './index.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
+import SetCommand from './index.js';
 
-export default class ReplyMention extends Set {
+export default class ReplyMention extends SetCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     const { userManager } = interaction.client;
     const dbUser = await userManager.getUser(interaction.user.id);
@@ -21,7 +21,7 @@ export default class ReplyMention extends Set {
     await this.replyEmbed(
       interaction,
       `${this.getEmoji('tick')} You will ${mentionOnReply ? 'now' : '**no longer**'} get pinged when someone replies to your messages.`,
-      { ephemeral: true },
+      { flags: ['Ephemeral'] },
     );
   }
 }

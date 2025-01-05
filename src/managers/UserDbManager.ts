@@ -1,10 +1,10 @@
-import { RedisKeys } from '#utils/Constants.js';
-import { cacheData, getCachedData } from '#utils/CacheUtils.js';
-import db from '#utils/Db.js';
-import { supportedLocaleCodes } from '#utils/Locale.js';
-import { Prisma, UserData } from '@prisma/client';
-import { Snowflake } from 'discord.js';
+import type { Prisma, UserData } from '@prisma/client';
+import type { Snowflake } from 'discord.js';
 import type { ConvertDatesToString } from '#types/Utils.d.ts';
+import { cacheData, getCachedData } from '#utils/CacheUtils.js';
+import { RedisKeys } from '#utils/Constants.js';
+import db from '#utils/Db.js';
+import type { supportedLocaleCodes } from '#utils/Locale.js';
 
 export default class UserDbManager {
   private async addToCache(entity: ConvertDatesToString<UserData> | UserData, expirySecs?: number) {

@@ -1,7 +1,19 @@
+import type { Hub } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import {
+  ActionRowBuilder,
+  type BaseMessageOptions,
+  type ChatInputCommandInteraction,
+  type EmbedField,
+  StringSelectMenuBuilder,
+  type StringSelectMenuInteraction,
+  StringSelectMenuOptionBuilder,
+  time,
+} from 'discord.js';
 import HubCommand from '#main/commands/slash/Main/hub/index.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { hubLeaveConfirmButtons } from '#main/interactions/HubLeaveConfirm.js';
-import ConnectionManager from '#main/managers/ConnectionManager.js';
+import type ConnectionManager from '#main/managers/ConnectionManager.js';
 import HubManager from '#main/managers/HubManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import { HubJoinService } from '#main/services/HubJoinService.js';
@@ -9,24 +21,14 @@ import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import Constants from '#utils/Constants.js';
-import { Hub } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import {
-  ActionRowBuilder,
-  BaseMessageOptions,
-  ChatInputCommandInteraction,
-  EmbedField,
-  StringSelectMenuBuilder,
-  StringSelectMenuInteraction,
-  StringSelectMenuOptionBuilder,
-  time,
-} from 'discord.js';
 
 const HUBS_PER_PAGE = 4;
 
 export default class BrowseCommand extends HubCommand {
   private async fetchAvailableHubs(): Promise<HubManager[]> {
-    const hubs = await db.hub.findMany({ where: { private: false, locked: false } });
+    const hubs = await db.hub.findMany({
+      where: { private: false, locked: false },
+    });
     return hubs.map((hub) => new HubManager(hub));
   }
 
@@ -138,7 +140,9 @@ export default class BrowseCommand extends HubCommand {
     const hubs = await this.fetchAvailableHubs();
 
     if (!hubs.length) {
-      await this.replyEmbed(interaction, 'hub.notFound', { t: { emoji: this.getEmoji('slash') } });
+      await this.replyEmbed(interaction, 'hub.notFound', {
+        t: { emoji: this.getEmoji('slash') },
+      });
       return;
     }
 
@@ -158,7 +162,7 @@ export default class BrowseCommand extends HubCommand {
       return;
     }
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const hub = await this.hubService.fetchHub(chosenHubId);
     if (!hub) {

@@ -1,22 +1,22 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
-import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
+import { type EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
 
-import { TranslationKeys } from '#types/TranslationKeys.d.ts';
-import { createConnection } from '#utils/ConnectedListUtils.js';
-import db from '#utils/Db.js';
-import { logJoinToHub } from '#utils/hub/logger/JoinLeave.js';
-import { sendToHub } from '#utils/hub/utils.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { check } from '#utils/ProfanityUtils.js';
-import { getOrCreateWebhook, getReplyMethod } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
-import {
+import type {
   ChatInputCommandInteraction,
   GuildTextBasedChannel,
   MessageComponentInteraction,
 } from 'discord.js';
+import type { TranslationKeys } from '#types/TranslationKeys.d.ts';
+import { createConnection } from '#utils/ConnectedListUtils.js';
+import db from '#utils/Db.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { check } from '#utils/ProfanityUtils.js';
+import { getOrCreateWebhook, getReplyMethod } from '#utils/Utils.js';
+import { logJoinToHub } from '#utils/hub/logger/JoinLeave.js';
+import { sendToHub } from '#utils/hub/utils.js';
 
 export class HubJoinService {
   private readonly interaction:
@@ -51,7 +51,7 @@ export class HubJoinService {
   }
 
   async joinHub(channel: GuildTextBasedChannel, hubInviteOrName: string | undefined) {
-    if (!this.interaction.deferred) await this.interaction.deferReply({ ephemeral: true });
+    if (!this.interaction.deferred) await this.interaction.deferReply({ flags: ['Ephemeral'] });
 
     const checksPassed = await this.runChecks(channel);
     if (!checksPassed) return false;
@@ -59,8 +59,10 @@ export class HubJoinService {
     const hub = await this.fetchHub(hubInviteOrName);
     if (!hub) {
       await this.interaction.followUp({
-        content: t('hub.notFound', this.locale, { emoji: this.getEmoji('x_icon') }),
-        ephemeral: true,
+        content: t('hub.notFound', this.locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        flags: 'Ephemeral',
       });
       return false;
     }
@@ -99,7 +101,9 @@ export class HubJoinService {
 
     const { hasSlurs, hasProfanity } = check(this.interaction.guild.name);
     if (hasSlurs || hasProfanity) {
-      await this.replyError('errors.serverNameInappropriate', { emoji: this.getEmoji('x_icon') });
+      await this.replyError('errors.serverNameInappropriate', {
+        emoji: this.getEmoji('x_icon'),
+      });
       return false;
     }
 
@@ -125,7 +129,9 @@ export class HubJoinService {
 
   private async isAlreadyInHub(channel: GuildTextBasedChannel, hubId: string) {
     const channelInHub = await db.connection.findFirst({
-      where: { OR: [{ channelId: channel.id }, { serverId: channel.guildId, hubId }] },
+      where: {
+        OR: [{ channelId: channel.id }, { serverId: channel.guildId, hubId }],
+      },
       include: { hub: { select: { name: true } } },
     });
 
@@ -148,7 +154,10 @@ export class HubJoinService {
     const serverBlacklist = await serverBlManager.fetchBlacklist(hub.id);
 
     if (userBlacklist || serverBlacklist) {
-      await this.replyError('errors.blacklisted', { emoji: this.getEmoji('x_icon'), hub: hub.data.name });
+      await this.replyError('errors.blacklisted', {
+        emoji: this.getEmoji('x_icon'),
+        hub: hub.data.name,
+      });
       return true;
     }
 
@@ -219,7 +228,7 @@ export class HubJoinService {
 
     await this.interaction[replyMethod]({
       content,
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 }

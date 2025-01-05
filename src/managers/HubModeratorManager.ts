@@ -1,12 +1,12 @@
-import HubManager from '#main/managers/HubManager.js';
+import type { HubModerator, Role } from '@prisma/client';
+import { Collection } from 'discord.js';
+import type { Redis } from 'ioredis';
+import isEmpty from 'lodash/isEmpty.js';
+import type HubManager from '#main/managers/HubManager.js';
 import { RedisKeys } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import getRedis from '#main/utils/Redis.js';
 import { handleError } from '#main/utils/Utils.js';
-import { HubModerator, Role } from '@prisma/client';
-import { Collection } from 'discord.js';
-import { Redis } from 'ioredis';
-import isEmpty from 'lodash/isEmpty.js';
 
 export default class HubModeratorManager {
   private readonly hub: HubManager;
@@ -26,7 +26,7 @@ export default class HubModeratorManager {
 
     await this.cache.hset(
       this.modsKey,
-      mods.map((mod) => [mod.userId, JSON.stringify(mod)]).flat(),
+      mods.flatMap((mod) => [mod.userId, JSON.stringify(mod)]),
     );
     await this.cache.expire(this.modsKey, this.expirationSeconds);
   }
@@ -47,12 +47,16 @@ export default class HubModeratorManager {
   }
 
   async add(userId: string, role: Role) {
-    const data = await db.hubModerator.create({ data: { hubId: this.hub.id, userId, role } });
+    const data = await db.hubModerator.create({
+      data: { hubId: this.hub.id, userId, role },
+    });
     this.syncModeratorsCache(data);
   }
 
   async remove(userId: string) {
-    await db.hubModerator.delete({ where: { hubId_userId: { hubId: this.hub.id, userId } } });
+    await db.hubModerator.delete({
+      where: { hubId_userId: { hubId: this.hub.id, userId } },
+    });
     await this.cache.hdel(this.modsKey, userId);
     await this.cache.expire(this.modsKey, this.expirationSeconds);
   }
@@ -74,7 +78,9 @@ export default class HubModeratorManager {
       );
     }
 
-    const mods = await db.hubModerator.findMany({ where: { hubId: this.hub.id } });
+    const mods = await db.hubModerator.findMany({
+      where: { hubId: this.hub.id },
+    });
     await this.storeInCache(mods);
 
     return new Collection(mods.map((m) => [m.userId, m]));
@@ -84,7 +90,9 @@ export default class HubModeratorManager {
     const fromCache = await this.cache.hget(this.modsKey, userId);
     if (fromCache) return JSON.parse(fromCache) as HubModerator;
 
-    const mod = await db.hubModerator.findFirst({ where: { hubId: this.hub.id, userId } });
+    const mod = await db.hubModerator.findFirst({
+      where: { hubId: this.hub.id, userId },
+    });
     if (mod) {
       this.cache.hlen(this.modsKey).then(async (len) => {
         if (len === 0) this.fetchAll();

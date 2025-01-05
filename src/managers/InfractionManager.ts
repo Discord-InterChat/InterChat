@@ -1,11 +1,11 @@
+import { isDate } from 'node:util/types';
+import type { Infraction, InfractionStatus, InfractionType, Prisma } from '@prisma/client';
+import type { Client, Snowflake, User } from 'discord.js';
 import { HubService } from '#main/services/HubService.js';
 import db from '#main/utils/Db.js';
-import { logUserUnblacklist, logServerUnblacklist } from '#main/utils/hub/logger/ModLogs.js';
+import { logServerUnblacklist, logUserUnblacklist } from '#main/utils/hub/logger/ModLogs.js';
 import type { ConvertDatesToString } from '#types/Utils.d.ts';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
-import { Infraction, InfractionStatus, InfractionType, Prisma } from '@prisma/client';
-import { type Client, type Snowflake, type User } from 'discord.js';
-import { isDate } from 'util/types';
 
 export default class InfractionManager {
   public readonly targetId: Snowflake;
@@ -18,7 +18,6 @@ export default class InfractionManager {
     this.targetId = targetId;
     this.targetType = targetType;
   }
-
 
   private getKey(entityId: Snowflake, hubId: string) {
     return `${this.modelName}:${entityId}:${hubId}`;
@@ -66,7 +65,10 @@ export default class InfractionManager {
     const infraction = await this.fetchInfraction(filter.type, filter.hubId, filter.status);
     if (!infraction) return null;
 
-    const updated = await db.infraction.update({ where: { id: infraction.id }, data });
+    const updated = await db.infraction.update({
+      where: { id: infraction.id },
+      data,
+    });
     this.cacheEntity(updated);
     return updated;
   }
@@ -78,12 +80,11 @@ export default class InfractionManager {
         orderBy: { createdAt: 'desc' },
       });
     }
-    else {
-      return await db.infraction.findMany({
-        where: { serverId: this.targetId, hubId },
-        orderBy: { createdAt: 'desc' },
-      });
-    }
+
+    return await db.infraction.findMany({
+      where: { serverId: this.targetId, hubId },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   public async getHubInfractions(hubId: string, opts?: { type?: InfractionType; count?: number }) {
@@ -128,10 +129,18 @@ export default class InfractionManager {
     if (!hub) return;
 
     if (this.targetType === 'user') {
-      await logUserUnblacklist(client, hub, { id, mod: opts.mod, reason: opts.reason });
+      await logUserUnblacklist(client, hub, {
+        id,
+        mod: opts.mod,
+        reason: opts.reason,
+      });
     }
     else {
-      await logServerUnblacklist(client, hub, { id, mod: opts.mod, reason: opts.reason });
+      await logServerUnblacklist(client, hub, {
+        id,
+        mod: opts.mod,
+        reason: opts.reason,
+      });
     }
   }
 
@@ -152,7 +161,9 @@ export default class InfractionManager {
   }
 
   protected async removeCachedInfraction(entity: Infraction) {
-    const existingInfractions = await this.getHubInfractions(entity.hubId, { type: entity.type });
+    const existingInfractions = await this.getHubInfractions(entity.hubId, {
+      type: entity.type,
+    });
     const entitySnowflake = entity.userId ?? entity.serverId;
     return cacheData(
       this.getKey(entitySnowflake as string, entity.hubId),
@@ -165,7 +176,7 @@ export default class InfractionManager {
     if (infractions.length === 0) {
       return [];
     }
-    else if (infractions.every((i) => isDate(i.createdAt))) {
+    if (infractions.every((i) => isDate(i.createdAt))) {
       return infractions as unknown as Infraction[];
     }
 

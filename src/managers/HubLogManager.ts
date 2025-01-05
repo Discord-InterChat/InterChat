@@ -1,14 +1,20 @@
-import { RedisKeys } from '#utils/Constants.js';
+import type { HubLogConfig, Prisma } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import {
+  ActionRowBuilder,
+  type Client,
+  type Snowflake,
+  StringSelectMenuBuilder,
+  roleMention,
+} from 'discord.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { handleError } from '#main/utils/Utils.js';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
+import { RedisKeys } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { HubLogConfig, Prisma } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import { ActionRowBuilder, Client, roleMention, Snowflake, StringSelectMenuBuilder } from 'discord.js';
-import { handleError } from '#main/utils/Utils.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 
 export type RoleIdLogConfigs = 'appeals' | 'reports' | 'networkAlerts';
 export type LogConfigTypes = keyof Omit<Omit<HubLogConfig, 'hubId'>, 'id'>;
@@ -53,7 +59,10 @@ export default class HubLogManager {
   }
 
   protected async updateLogConfig(data: Prisma.HubLogConfigUpdateInput) {
-    const updated = await db.hubLogConfig.update({ where: { hubId: this.hubId }, data });
+    const updated = await db.hubLogConfig.update({
+      where: { hubId: this.hubId },
+      data,
+    });
     this.logConfig = updated;
     this.refreshCache();
   }
@@ -75,7 +84,9 @@ export default class HubLogManager {
   }
 
   async resetLog(...type: LogConfigTypes[]) {
-    await this.updateLogConfig(type.reduce((acc, typ) => ({ ...acc, [typ]: { unset: true } }), {}));
+    await this.updateLogConfig(
+      type.reduce((acc, typ) => Object.assign(acc, { [typ]: { unset: true } }), {}),
+    );
   }
 
   async setRoleId(type: RoleIdLogConfigs, roleId: string) {
@@ -83,7 +94,10 @@ export default class HubLogManager {
 
     await this.updateLogConfig({
       [type]: {
-        upsert: { set: { roleId, channelId: this.config[type].channelId }, update: { roleId } },
+        upsert: {
+          set: { roleId, channelId: this.config[type].channelId },
+          update: { roleId },
+        },
       },
     });
   }
@@ -103,10 +117,7 @@ export default class HubLogManager {
     await this.setRoleId(type as RoleIdLogConfigs, roleId);
   }
 
-  public getEmbed(
-    client: Client,
-    locale: supportedLocaleCodes = 'en',
-  ) {
+  public getEmbed(client: Client, locale: supportedLocaleCodes = 'en') {
     const channelStr = t('hub.manage.logs.config.fields.channel', locale);
     const roleStr = t('hub.manage.logs.config.fields.role', locale);
 

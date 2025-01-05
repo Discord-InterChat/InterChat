@@ -1,7 +1,7 @@
+import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import Constants from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
 export default class Rules extends BaseCommand {
   readonly data = {

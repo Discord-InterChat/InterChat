@@ -1,11 +1,11 @@
+import type { Connection, Prisma } from '@prisma/client';
+import isEmpty from 'lodash/isEmpty.js';
 import Logger from '#main/utils/Logger.js';
 import { handleError } from '#main/utils/Utils.js';
 import type { ConvertDatesToString } from '#types/Utils.d.ts';
 import { RedisKeys } from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import getRedis from '#utils/Redis.js';
-import type { Connection, Prisma } from '@prisma/client';
-import isEmpty from 'lodash/isEmpty.js';
 
 type whereUniuqeInput = Prisma.ConnectionWhereUniqueInput;
 type whereInput = Prisma.ConnectionWhereInput;
@@ -80,12 +80,12 @@ const cacheConnectionHubId = async (...connections: Connection[]) => {
   const redis = getRedis();
   const pipeline = redis.pipeline();
 
-  connections.forEach((c) => {
+  for (const c of connections) {
     const key = `${RedisKeys.connectionHubId}:${c.channelId}`;
 
     if (!c.connected) pipeline.del(key);
     else pipeline.set(key, c.hubId);
-  });
+  }
 
   await pipeline.exec().catch((e) => {
     e.message = `Failed to cache connection hub id: ${e.message}`;
@@ -134,8 +134,12 @@ export const createConnection = async (data: Prisma.ConnectionCreateInput) => {
 
 export const deleteConnections = async (where: whereInput) => {
   const connections = await db.connection.findMany({ where });
-  if (connections.length === 0) return [];
-  else if (connections.length === 1) return [await deleteConnection({ id: connections[0].id })];
+  if (connections.length === 0) {
+    return [];
+  }
+  if (connections.length === 1) {
+    return [await deleteConnection({ id: connections[0].id })];
+  }
 
   await db.connection.deleteMany({
     where: { id: { in: connections.map((i) => i.id) } },

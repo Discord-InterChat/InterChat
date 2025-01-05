@@ -1,10 +1,10 @@
+import { stripIndents } from 'common-tags';
+import { EmbedBuilder, type Guild } from 'discord.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import Constants from '#utils/Constants.js';
-import { stripIndents } from 'common-tags';
-import { EmbedBuilder, Guild } from 'discord.js';
 import { sendLog } from './Default.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
 
 export const logJoinToHub = async (
   hubId: string,

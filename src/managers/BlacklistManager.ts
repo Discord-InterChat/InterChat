@@ -1,13 +1,14 @@
+import type { Infraction, InfractionStatus, Prisma } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import { type Client, EmbedBuilder, type Snowflake, type User } from 'discord.js';
 import InfractionManager from '#main/managers/InfractionManager.js';
 import UserDbManager from '#main/managers/UserDbManager.js';
 import { HubService } from '#main/services/HubService.js';
+import type { RemoveMethods } from '#main/types/Utils.d.js';
 import Constants from '#main/utils/Constants.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { sendLog } from '#main/utils/hub/logger/Default.js';
 import { resolveEval } from '#main/utils/Utils.js';
-import { Infraction, InfractionStatus, Prisma } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import { Client, EmbedBuilder, User, type Snowflake } from 'discord.js';
+import { sendLog } from '#main/utils/hub/logger/Default.js';
 
 export default class BlacklistManager {
   public readonly targetId: Snowflake;
@@ -92,23 +93,35 @@ export default class BlacklistManager {
 
     if (!logConfig?.config.modLogs) return;
 
-    let name;
-    let iconURL;
-    let type;
-    let target;
+    let name: string;
+    let iconURL: string | undefined;
+    let type: 'User' | 'Server';
+    let target:
+      | RemoveMethods<{
+        name: string;
+        iconURL: string | undefined;
+        id: string;
+      }>
+      | User
+      | null = null;
 
     if (this.infractions.targetType === 'server') {
-      target = resolveEval(
-        await client.cluster.broadcastEval(
-          (c, guildId) => {
-            const guild = c.guilds.cache.get(guildId);
-            if (!guild) return null;
+      target =
+        resolveEval(
+          await client.cluster.broadcastEval(
+            (c, guildId) => {
+              const guild = c.guilds.cache.get(guildId);
+              if (!guild) return null;
 
-            return { name: guild.name, iconURL: guild.iconURL() ?? undefined, id: guildId };
-          },
-          { context: this.targetId },
-        ),
-      );
+              return {
+                name: guild.name,
+                iconURL: guild.iconURL() ?? undefined,
+                id: guildId,
+              };
+            },
+            { context: this.targetId },
+          ),
+        ) ?? null;
       if (!target) return;
 
       name = target.name;
@@ -141,7 +154,10 @@ export default class BlacklistManager {
         },
       )
       .setColor(Constants.Colors.interchatBlue)
-      .setFooter({ text: `Blacklisted by: ${mod.username}`, iconURL: mod.displayAvatarURL() });
+      .setFooter({
+        text: `Blacklisted by: ${mod.username}`,
+        iconURL: mod.displayAvatarURL(),
+      });
 
     await sendLog(opts.mod.client.cluster, logConfig?.config.modLogs.channelId, embed);
   }

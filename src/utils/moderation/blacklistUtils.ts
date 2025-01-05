@@ -1,25 +1,25 @@
-import Constants from '#utils/Constants.js';
-import { getHubConnections } from '#utils/ConnectedListUtils.js';
-import { CustomID } from '#utils/CustomID.js';
-import db from '#utils/Db.js';
-import Logger from '#utils/Logger.js';
-import { Infraction } from '@prisma/client';
+import type { Infraction } from '@prisma/client';
 import {
+  type APIActionRowComponent,
+  type APIButtonComponent,
   ActionRowBuilder,
-  APIActionRowComponent,
-  APIButtonComponent,
-  Client,
+  type Client,
   EmbedBuilder,
-  ModalActionRowComponentBuilder,
+  type ModalActionRowComponentBuilder,
   ModalBuilder,
-  Snowflake,
+  type Snowflake,
   TextInputBuilder,
   TextInputStyle,
-  User,
+  type User,
 } from 'discord.js';
 import { buildAppealSubmitButton } from '#main/interactions/BlacklistAppeal.js';
 import { HubService } from '#main/services/HubService.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { getHubConnections } from '#utils/ConnectedListUtils.js';
+import Constants from '#utils/Constants.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import Logger from '#utils/Logger.js';
 
 export const isBlacklisted = (infraction: Infraction | null): infraction is Infraction =>
   Boolean(
@@ -48,7 +48,11 @@ export const buildBlacklistNotifEmbed = (
     .setDescription(`${targetStr} been blacklisted from talking in hub **${opts.hubName}**.`)
     .setColor(Constants.Colors.interchatBlue)
     .setFields(
-      { name: 'Reason', value: opts.reason ?? 'No reason provided.', inline: true },
+      {
+        name: 'Reason',
+        value: opts.reason ?? 'No reason provided.',
+        inline: true,
+      },
       { name: 'Expires', value: expireString, inline: true },
     );
 };

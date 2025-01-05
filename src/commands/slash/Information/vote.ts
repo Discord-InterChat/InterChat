@@ -1,15 +1,15 @@
-import BaseCommand from '#main/core/BaseCommand.js';
-import Constants from '#utils/Constants.js';
-import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  ChatInputCommandInteraction,
-  codeBlock,
+  type ChatInputCommandInteraction,
   EmbedBuilder,
+  codeBlock,
   time,
 } from 'discord.js';
+import BaseCommand from '#main/core/BaseCommand.js';
+import Constants from '#utils/Constants.js';
+import { t } from '#utils/Locale.js';
 
 export default class Vote extends BaseCommand {
   readonly data = {

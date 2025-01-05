@@ -1,15 +1,15 @@
-import { Pagination } from '#main/modules/Pagination.js';
-import Constants from '#utils/Constants.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { resolveEval } from '#utils/Utils.js';
-import { Connection } from '@prisma/client';
+import type { Connection } from '@prisma/client';
 import {
   type ChatInputCommandInteraction,
-  Client,
+  type Client,
   EmbedBuilder,
-  Guild,
-  GuildBasedChannel,
+  type Guild,
+  type GuildBasedChannel,
 } from 'discord.js';
+import { Pagination } from '#main/modules/Pagination.js';
+import Constants from '#utils/Constants.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { resolveEval } from '#utils/Utils.js';
 import HubCommand from './index.js';
 
 interface ConnectionDisplayData {
@@ -117,7 +117,9 @@ export default class Servers extends HubCommand {
     if (connections.length === 0) {
       return this.sendErrorMessage(
         interaction,
-        t('hub.servers.noConnections', locale, { emoji: this.getEmoji('x_icon') }),
+        t('hub.servers.noConnections', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       );
     }
 

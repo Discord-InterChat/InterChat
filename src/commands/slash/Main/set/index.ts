@@ -1,16 +1,16 @@
 import {
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
   ApplicationCommandOptionType,
+  type ChatInputCommandInteraction,
   Collection,
-  ChatInputCommandInteraction,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
-import { handleError } from '#main/utils/Utils.js';
 import { supportedLocales } from '#main/utils/Locale.js';
+import { handleError } from '#main/utils/Utils.js';
 
 const currSupportedLangs = ['en', 'hi', 'es'] as const;
 
-export default class Set extends BaseCommand {
+export default class SetCommand extends BaseCommand {
   static readonly subcommands = new Collection<string, BaseCommand>();
 
   data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
@@ -27,7 +27,10 @@ export default class Set extends BaseCommand {
             description: 'The language to set',
             type: ApplicationCommandOptionType.String,
             required: true,
-            choices: currSupportedLangs.map((l) => ({ name: supportedLocales[l].name, value: l })),
+            choices: currSupportedLangs.map((l) => ({
+              name: supportedLocales[l].name,
+              value: l,
+            })),
           },
         ],
       },
@@ -48,7 +51,7 @@ export default class Set extends BaseCommand {
   };
 
   override async execute(interaction: ChatInputCommandInteraction) {
-    const subcommand = Set.subcommands?.get(interaction.options.getSubcommand());
+    const subcommand = SetCommand.subcommands?.get(interaction.options.getSubcommand());
     return await subcommand?.execute(interaction).catch((e) => handleError(e, interaction));
   }
 }

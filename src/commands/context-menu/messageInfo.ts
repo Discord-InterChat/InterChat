@@ -1,9 +1,32 @@
+import {
+  type ActionRow,
+  ActionRowBuilder,
+  ApplicationCommandType,
+  ButtonBuilder,
+  type ButtonComponent,
+  type ButtonInteraction,
+  ButtonStyle,
+  type CacheType,
+  ComponentType,
+  EmbedBuilder,
+  type Guild,
+  InteractionContextType,
+  type MessageContextMenuCommandInteraction,
+  ModalBuilder,
+  type ModalSubmitInteraction,
+  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  TextInputBuilder,
+  TextInputStyle,
+  type User,
+  codeBlock,
+  time,
+} from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { modPanelButton } from '#main/interactions/ShowModPanel.js';
-import ConnectionManager from '#main/managers/ConnectionManager.js';
+import type ConnectionManager from '#main/managers/ConnectionManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
-import HubManager from '#main/managers/HubManager.js';
+import type HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
@@ -12,32 +35,9 @@ import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { sendHubReport } from '#utils/hub/logger/Report.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import {
-  ActionRow,
-  ActionRowBuilder,
-  ApplicationCommandType,
-  ButtonBuilder,
-  ButtonComponent,
-  ButtonInteraction,
-  ButtonStyle,
-  CacheType,
-  codeBlock,
-  ComponentType,
-  EmbedBuilder,
-  Guild,
-  InteractionContextType,
-  MessageContextMenuCommandInteraction,
-  ModalBuilder,
-  ModalSubmitInteraction,
-  RESTPostAPIContextMenuApplicationCommandsJSONBody,
-  TextInputBuilder,
-  TextInputStyle,
-  time,
-  User,
-} from 'discord.js';
 
 type LocaleInfo = { locale: supportedLocaleCodes };
 type AuthorInfo = { author: User };
@@ -58,7 +58,7 @@ export default class MessageInfo extends BaseCommand {
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const target = interaction.targetMessage;
 
@@ -66,8 +66,10 @@ export default class MessageInfo extends BaseCommand {
 
     if (!hub || !originalMsg) {
       await interaction.followUp({
-        content: t('errors.unknownNetworkMessage', locale, { emoji: this.getEmoji('x_icon') }),
-        ephemeral: true,
+        content: t('errors.unknownNetworkMessage', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -79,10 +81,22 @@ export default class MessageInfo extends BaseCommand {
       .setDescription(`### ${this.getEmoji('info')} Message Info`)
       .addFields([
         { name: 'Sender', value: codeBlock(author.username), inline: true },
-        { name: 'From Server', value: codeBlock(`${server?.name}`), inline: true },
+        {
+          name: 'From Server',
+          value: codeBlock(`${server?.name}`),
+          inline: true,
+        },
         { name: 'Which Hub?', value: codeBlock(hub.data.name), inline: true },
-        { name: 'Message ID', value: codeBlock(originalMsg.messageId), inline: true },
-        { name: 'Sent At', value: time(new Date(originalMsg.timestamp), 't'), inline: true },
+        {
+          name: 'Message ID',
+          value: codeBlock(originalMsg.messageId),
+          inline: true,
+        },
+        {
+          name: 'Sent At',
+          value: time(new Date(originalMsg.timestamp), 't'),
+          inline: true,
+        },
       ])
       .setThumbnail(author.displayAvatarURL())
       .setColor(Constants.Colors.invisible);
@@ -95,7 +109,11 @@ export default class MessageInfo extends BaseCommand {
       inviteButtonUrl: connection?.data.invite,
     });
 
-    const reply = await interaction.followUp({ embeds: [embed], components, ephemeral: true });
+    const reply = await interaction.followUp({
+      embeds: [embed],
+      components,
+      flags: ['Ephemeral'],
+    });
     const collector = reply.createMessageComponentCollector({
       idle: 60_000,
       componentType: ComponentType.Button,
@@ -119,7 +137,11 @@ export default class MessageInfo extends BaseCommand {
       // button responses
       switch (customId.suffix) {
         case 'serverInfo':
-          this.handleServerInfoButton(i, newComponents, { server, locale, connection });
+          this.handleServerInfoButton(i, newComponents, {
+            server,
+            locale,
+            connection,
+          });
           break;
 
         case 'userInfo':
@@ -160,10 +182,15 @@ export default class MessageInfo extends BaseCommand {
       !(await HubLogManager.create(originalMsg?.hubId)).config.reports?.channelId
     ) {
       const notEnabledEmbed = new InfoEmbed().setDescription(
-        t('msgInfo.report.notEnabled', locale, { emoji: this.getEmoji('x_icon') }),
+        t('msgInfo.report.notEnabled', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       );
 
-      await interaction.reply({ embeds: [notEnabledEmbed], ephemeral: true });
+      await interaction.reply({
+        embeds: [notEnabledEmbed],
+        flags: ['Ephemeral'],
+      });
       return;
     }
 
@@ -188,10 +215,12 @@ export default class MessageInfo extends BaseCommand {
     });
 
     const successEmbed = new InfoEmbed().setDescription(
-      t('msgInfo.report.success', locale, { emoji: this.getEmoji('tick_icon') }),
+      t('msgInfo.report.success', locale, {
+        emoji: this.getEmoji('tick_icon'),
+      }),
     );
 
-    await interaction.reply({ embeds: [successEmbed], ephemeral: true });
+    await interaction.reply({ embeds: [successEmbed], flags: ['Ephemeral'] });
   }
 
   private async handleServerInfoButton(
@@ -201,7 +230,9 @@ export default class MessageInfo extends BaseCommand {
   ) {
     if (!server) {
       await interaction.update({
-        content: t('errors.unknownServer', locale, { emoji: this.getEmoji('x_icon') }),
+        content: t('errors.unknownServer', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
         embeds: [],
         components: [],
       });
@@ -221,12 +252,15 @@ export default class MessageInfo extends BaseCommand {
       ? `https://cdn.discordapp.com/icons/${server.id}/${server.banner}.png`
       : null;
 
-
     const serverEmbed = new EmbedBuilder()
       .setDescription(`### ${this.getEmoji('info')} ${server.name}`)
       .addFields([
         { name: 'Owner', value: codeBlock(ownerName), inline: true },
-        { name: 'Member Count', value: codeBlock(String(server.memberCount)), inline: true },
+        {
+          name: 'Member Count',
+          value: codeBlock(String(server.memberCount)),
+          inline: true,
+        },
         { name: 'Server ID', value: codeBlock(server.id), inline: true },
         { name: 'Invite', value: inviteString, inline: true },
         { name: 'Created At', value: time(createdAt, 'R'), inline: true },
@@ -282,7 +316,9 @@ export default class MessageInfo extends BaseCommand {
 
     if (!message || !hub) {
       await interaction.update({
-        content: t('errors.unknownNetworkMessage', locale, { emoji: this.getEmoji('x_icon') }),
+        content: t('errors.unknownNetworkMessage', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
         embeds: [],
         components: [],
       });
@@ -293,7 +329,11 @@ export default class MessageInfo extends BaseCommand {
       .setDescription(`### ${this.getEmoji('info')} Message Info`)
       .addFields([
         { name: 'Sender', value: codeBlock(author.username), inline: true },
-        { name: 'From Server', value: codeBlock(`${server?.name}`), inline: true },
+        {
+          name: 'From Server',
+          value: codeBlock(`${server?.name}`),
+          inline: true,
+        },
         { name: 'Which Hub?', value: codeBlock(hub.data.name), inline: true },
         { name: 'Message ID', value: codeBlock(messageId), inline: true },
         { name: 'Sent At', value: time(message.createdAt, 't'), inline: true },
@@ -312,10 +352,15 @@ export default class MessageInfo extends BaseCommand {
   ) {
     if (!hub || !(await HubLogManager.create(hub.id)).config.reports?.channelId) {
       const notEnabledEmbed = new InfoEmbed().setDescription(
-        t('msgInfo.report.notEnabled', locale, { emoji: this.getEmoji('x_icon') }),
+        t('msgInfo.report.notEnabled', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       );
 
-      await interaction.reply({ embeds: [notEnabledEmbed], ephemeral: true });
+      await interaction.reply({
+        embeds: [notEnabledEmbed],
+        flags: ['Ephemeral'],
+      });
       return;
     }
 
@@ -378,7 +423,9 @@ export default class MessageInfo extends BaseCommand {
     ];
 
     if (opts?.buildModActions) {
-      extras.push(modPanelButton(targetMsgId, this.getEmoji('blobFastBan')).setStyle(ButtonStyle.Secondary));
+      extras.push(
+        modPanelButton(targetMsgId, this.getEmoji('blobFastBan')).setStyle(ButtonStyle.Secondary),
+      );
     }
     if (opts?.inviteButtonUrl) {
       extras.push(

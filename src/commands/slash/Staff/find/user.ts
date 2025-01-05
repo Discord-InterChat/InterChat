@@ -1,10 +1,10 @@
+import { stripIndents } from 'common-tags';
+import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { HubService } from '#main/services/HubService.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { stripIndents } from 'common-tags';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Find from './index.js';
-import { HubService } from '#main/services/HubService.js';
 
 export default class Server extends Find {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -15,7 +15,7 @@ export default class Server extends Find {
       const embed = new InfoEmbed().setDescription(
         `${this.getEmoji('x_icon')} Unknown user. Try using user\`s ID instead if you used username.`,
       );
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
       return;
     }
 
@@ -36,7 +36,8 @@ export default class Server extends Find {
 
     const ownedHubs = await new HubService().getOwnedHubs(user.id);
     const numServersOwned = serversOwned.length > 0 ? serversOwned.join(', ') : 'None';
-    const numHubOwned = ownedHubs.length > 0 ? ownedHubs.map((hub) => hub.data.name).join(', ') : 'None';
+    const numHubOwned =
+      ownedHubs.length > 0 ? ownedHubs.map((hub) => hub.data.name).join(', ') : 'None';
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })

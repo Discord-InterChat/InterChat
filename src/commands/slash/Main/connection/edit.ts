@@ -1,3 +1,13 @@
+import {
+  ActionRowBuilder,
+  type ChannelSelectMenuInteraction,
+  type ChatInputCommandInteraction,
+  ModalBuilder,
+  type ModalSubmitInteraction,
+  type StringSelectMenuInteraction,
+  TextInputBuilder,
+  TextInputStyle,
+} from 'discord.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import Logger from '#main/utils/Logger.js';
 import { isGuildTextBasedChannel } from '#utils/ChannelUtls.js';
@@ -8,22 +18,12 @@ import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
+import { getOrCreateWebhook } from '#utils/Utils.js';
 import {
   buildChannelSelect,
   buildEditEmbed,
   buildEditSelect,
 } from '#utils/network/buildConnectionAssets.js';
-import { getOrCreateWebhook } from '#utils/Utils.js';
-import {
-  ActionRowBuilder,
-  ChannelSelectMenuInteraction,
-  ChatInputCommandInteraction,
-  ModalBuilder,
-  ModalSubmitInteraction,
-  StringSelectMenuInteraction,
-  TextInputBuilder,
-  TextInputStyle,
-} from 'discord.js';
 import Connection from './index.js';
 
 export default class ConnectionEditCommand extends Connection {
@@ -49,8 +49,10 @@ export default class ConnectionEditCommand extends Connection {
     if (!channelExists) {
       await updateConnection({ channelId }, { connected: !isInDb.connected });
       await interaction.followUp({
-        content: t('connection.channelNotFound', locale, { emoji: this.getEmoji('x_icon') }),
-        ephemeral: true,
+        content: t('connection.channelNotFound', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        flags: 'Ephemeral',
       });
     }
 
@@ -78,7 +80,7 @@ export default class ConnectionEditCommand extends Connection {
     const locale = await this.getLocale(interaction);
 
     if (customId.suffix === 'invite') {
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: ['Ephemeral'] });
 
       const invite = interaction.fields.getTextInputValue('connInviteField');
       const [channelId] = customId.args;
@@ -86,8 +88,10 @@ export default class ConnectionEditCommand extends Connection {
       if (!invite) {
         await updateConnection({ channelId }, { invite: { unset: true } });
         await interaction.followUp({
-          content: t('connection.inviteRemoved', locale, { emoji: this.getEmoji('tick_icon') }),
-          ephemeral: true,
+          content: t('connection.inviteRemoved', locale, {
+            emoji: this.getEmoji('tick_icon'),
+          }),
+          flags: 'Ephemeral',
         });
         return;
       }
@@ -95,8 +99,10 @@ export default class ConnectionEditCommand extends Connection {
       const fetchedInvite = await interaction.client?.fetchInvite(invite).catch(() => null);
       if (fetchedInvite?.guild?.id !== interaction.guildId) {
         await interaction.followUp({
-          content: t('connection.inviteInvalid', locale, { emoji: this.getEmoji('x_icon') }),
-          ephemeral: true,
+          content: t('connection.inviteInvalid', locale, {
+            emoji: this.getEmoji('x_icon'),
+          }),
+          flags: 'Ephemeral',
         });
         return;
       }
@@ -104,8 +110,10 @@ export default class ConnectionEditCommand extends Connection {
       await updateConnection({ channelId }, { invite });
 
       await interaction.followUp({
-        content: t('connection.inviteAdded', locale, { emoji: this.getEmoji('tick_icon') }),
-        ephemeral: true,
+        content: t('connection.inviteAdded', locale, {
+          emoji: this.getEmoji('tick_icon'),
+        }),
+        flags: 'Ephemeral',
       });
     }
     else if (customId.suffix === 'embed_color') {
@@ -113,8 +121,10 @@ export default class ConnectionEditCommand extends Connection {
 
       if (!Constants.Regex.Hexcode.test(embedColor)) {
         await interaction.reply({
-          content: t('connection.emColorInvalid', locale, { emoji: this.getEmoji('x_icon') }),
-          ephemeral: true,
+          content: t('connection.emColorInvalid', locale, {
+            emoji: this.getEmoji('x_icon'),
+          }),
+          flags: 'Ephemeral',
         });
         return;
       }
@@ -129,7 +139,7 @@ export default class ConnectionEditCommand extends Connection {
           action: embedColor ? `set to \`${embedColor}\`!` : 'unset',
           emoji: this.getEmoji('tick_icon'),
         }),
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
     }
 
@@ -161,15 +171,17 @@ export default class ConnectionEditCommand extends Connection {
       const embed = new InfoEmbed().setDescription(
         t('errors.notYourAction', locale, { emoji: this.getEmoji('x_icon') }),
       );
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
       return;
     }
 
     const connection = await db.connection.findFirst({ where: { channelId } });
     if (!channelId || !connection) {
       await interaction.reply({
-        content: t('connection.channelNotFound', locale, { emoji: this.getEmoji('x_icon') }),
-        ephemeral: true,
+        content: t('connection.channelNotFound', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -241,8 +253,12 @@ export default class ConnectionEditCommand extends Connection {
     const msgBody = { embeds: [newEmbeds] };
 
     try {
-      if (interaction.replied || interaction.deferred) await interaction.message.edit(msgBody);
-      else await interaction.update(msgBody);
+      if (interaction.replied || interaction.deferred) {
+        await interaction.message.edit(msgBody);
+      }
+      else {
+        await interaction.update(msgBody);
+      }
     }
     catch (e) {
       Logger.error('[/connection edit] Error updating message', e);
@@ -267,7 +283,7 @@ export default class ConnectionEditCommand extends Connection {
     if (!isGuildTextBasedChannel(newChannel) || newChannel.isVoiceBased()) {
       await interaction.followUp({
         content: t('hub.invalidChannel', locale, { emoji }),
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -275,7 +291,7 @@ export default class ConnectionEditCommand extends Connection {
     if (userIdFilter !== interaction.user.id) {
       const embed = new InfoEmbed().setDescription(t('errors.notYourAction', locale, { emoji }));
 
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
       return;
     }
 
@@ -285,10 +301,13 @@ export default class ConnectionEditCommand extends Connection {
 
     if (alreadyConnected) {
       const embed = new InfoEmbed().setDescription(
-        t('connection.alreadyConnected', locale, { channel: `${newChannel}`, emoji }),
+        t('connection.alreadyConnected', locale, {
+          channel: `${newChannel}`,
+          emoji,
+        }),
       );
 
-      await interaction.followUp({ embeds: [embed], ephemeral: true });
+      await interaction.followUp({ embeds: [embed], flags: ['Ephemeral'] });
       return;
     }
 

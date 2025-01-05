@@ -1,9 +1,9 @@
+import type { Message } from 'discord.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { HubService } from '#main/services/HubService.js';
 import { getConnectionHubId } from '#main/utils/ConnectedListUtils.js';
 import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
 import { runChecks } from '#main/utils/network/runChecks.js';
-import { Message } from 'discord.js';
 import { BroadcastService } from './BroadcastService.js';
 
 export class MessageProcessor {

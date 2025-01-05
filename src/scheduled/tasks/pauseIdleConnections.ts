@@ -1,12 +1,12 @@
+import type { Connection, Hub } from '@prisma/client';
+import { stripIndents } from 'common-tags';
+import { type EmbedBuilder, WebhookClient } from 'discord.js';
 import { buildConnectionButtons } from '#main/interactions/InactiveConnect.js';
 import Constants from '#main/utils/Constants.js';
 import { updateConnections } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
-import { Connection, Hub } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import { EmbedBuilder, WebhookClient } from 'discord.js';
 
 const INACTIVITY_HOURS = 24;
 const MIN_CONNECTIONS = 50;

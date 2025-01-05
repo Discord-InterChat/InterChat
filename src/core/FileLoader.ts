@@ -1,13 +1,13 @@
-import { type InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
-import Logger from '#utils/Logger.js';
-import {
-  Collection,
-  type Awaitable,
-  type ChatInputCommandInteraction,
-  type ContextMenuCommandInteraction,
-} from 'discord.js';
 import { readdir, stat } from 'node:fs/promises';
-import { join } from 'path';
+import { join } from 'node:path';
+import type {
+  Awaitable,
+  ChatInputCommandInteraction,
+  Collection,
+  ContextMenuCommandInteraction,
+} from 'discord.js';
+import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
+import Logger from '#utils/Logger.js';
 import 'reflect-metadata';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
@@ -19,7 +19,10 @@ export interface ResourceLoader {
 const importPrefix = process.platform === 'win32' ? 'file://' : '';
 
 export class MetadataHandler {
-  static getMetadata(target: { constructor: object }): { customId: string; methodName: string }[] {
+  static getMetadata(target: { constructor: object }): {
+    customId: string;
+    methodName: string;
+  }[] {
     return Reflect.getMetadata('interactions', target.constructor) || [];
   }
 
@@ -27,13 +30,14 @@ export class MetadataHandler {
     target: { constructor: object },
     map: Collection<string, InteractionFunction>,
   ): void {
-    const metadata = this.getMetadata(target);
-    metadata.forEach(({ customId, methodName }) => {
+    const metadata = MetadataHandler.getMetadata(target);
+
+    for (const { customId, methodName } of metadata) {
       Logger.debug(`Adding interaction: ${customId} with method ${methodName}`);
       // @ts-expect-error The names of child class properties can be custom
       const method: InteractionFunction = target[methodName];
       if (method) map.set(customId, method.bind(target));
-    });
+    }
   }
 }
 

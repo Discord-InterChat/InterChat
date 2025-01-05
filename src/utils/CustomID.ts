@@ -72,7 +72,7 @@ export class CustomID {
 
     // Extract expiry from arguments
     const expiryArg = split.slice(1).find((arg) => arg.startsWith('ex='));
-    const expiry = expiryArg ? parseInt(expiryArg.replace('ex=', ''), 10) : undefined;
+    const expiry = expiryArg ? Number.parseInt(expiryArg.replace('ex=', ''), 10) : undefined;
 
     // Filter out 'ex=' arguments and store the rest in 'args'
     const args = split.slice(1).filter((arg) => !arg.startsWith('ex='));
@@ -93,7 +93,12 @@ export class CustomID {
    */
   toString() {
     let str = this.customId;
-    if (this.data.length > 0) this.data.forEach((element) => (str += `&${element}`));
+
+    if (this.data.length > 0) {
+      for (const element of this.data) {
+        str += `&${element}`;
+      }
+    }
 
     // compress and encode the string
     str = lz.compressToUTF16(str).toString();

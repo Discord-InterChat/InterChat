@@ -1,13 +1,13 @@
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { handleError } from '#main/utils/Utils.js';
 import {
   ActionRowBuilder,
   ButtonBuilder,
-  ButtonInteraction,
+  type ButtonInteraction,
   ButtonStyle,
-  MessageActionRowComponentBuilder,
+  type MessageActionRowComponentBuilder,
 } from 'discord.js';
+import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import { handleError } from '#main/utils/Utils.js';
 
 export const markResolvedButton = () =>
   new ButtonBuilder()
@@ -23,12 +23,12 @@ export default class MarkResolvedButton {
       const components = interaction.message.components;
       if (!components) return;
 
-      const rows = components.map(
-        (row) => ActionRowBuilder.from(row),
+      const rows = components.map((row) =>
+        ActionRowBuilder.from(row),
       ) as ActionRowBuilder<MessageActionRowComponentBuilder>[];
 
-      rows.forEach((row) => {
-        row.components.forEach((component) => {
+      for (const row of rows) {
+        for (const component of row.components) {
           if (
             component instanceof ButtonBuilder &&
             component.data.style === ButtonStyle.Success &&
@@ -37,8 +37,8 @@ export default class MarkResolvedButton {
             component.setLabel(`Resolved by @${interaction.user.username}`);
             component.setDisabled(true);
           }
-        });
-      });
+        }
+      }
 
       await interaction.editReply({ components: rows });
     }

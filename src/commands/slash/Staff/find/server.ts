@@ -1,8 +1,8 @@
+import { stripIndents } from 'common-tags';
+import { type ChatInputCommandInteraction, EmbedBuilder, GuildPremiumTier } from 'discord.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { toTitleCase } from '#utils/Utils.js';
-import { stripIndents } from 'common-tags';
-import { ChatInputCommandInteraction, EmbedBuilder, GuildPremiumTier } from 'discord.js';
 import Find from './index.js';
 
 export default class Server extends Find {
@@ -34,7 +34,10 @@ export default class Server extends Find {
     const guildConnections = guildInDb?.map(({ channelId }) => `<#${channelId}> (${channelId}))`);
 
     const embed = new EmbedBuilder()
-      .setAuthor({ name: `${guild.name}`, iconURL: guild.iconURL() || undefined })
+      .setAuthor({
+        name: `${guild.name}`,
+        iconURL: guild.iconURL() || undefined,
+      })
       .setDescription(guild.description || 'No Description')
       .setColor(Constants.Colors.invisible)
       .setThumbnail(guild.iconURL() || null)

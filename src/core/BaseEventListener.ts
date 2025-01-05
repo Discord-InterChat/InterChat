@@ -1,5 +1,5 @@
-import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
-import { Awaitable, Client, ClientEvents } from 'discord.js';
+import type { Awaitable, Client, ClientEvents } from 'discord.js';
+import { type EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
 
 export type EventParams = {
   [K in keyof ClientEvents]: ClientEvents[K];

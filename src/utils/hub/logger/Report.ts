@@ -5,23 +5,23 @@ import {
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 
-import db from '#utils/Db.js';
-import { resolveEval } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
-  ButtonBuilder,
-  EmbedBuilder,
-  messageLink,
-  roleMention,
+  type ButtonBuilder,
   type Client,
+  EmbedBuilder,
   type GuildTextBasedChannel,
   type User,
+  messageLink,
+  roleMention,
 } from 'discord.js';
-import { sendLog } from './Default.js';
 import { markResolvedButton } from '#main/interactions/MarkResolvedButton.js';
 import { HubService } from '#main/services/HubService.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
+import db from '#utils/Db.js';
+import { resolveEval } from '#utils/Utils.js';
+import { sendLog } from './Default.js';
 
 export type ReportEvidenceOpts = {
   // the message content
@@ -125,7 +125,11 @@ export const sendHubReport = async (
     )
     .addFields([
       { name: 'Reason', value: reason, inline: true },
-      { name: 'Jump To Reported Message', value: jumpLink ?? 'N/A', inline: true },
+      {
+        name: 'Jump To Reported Message',
+        value: jumpLink ?? 'N/A',
+        inline: true,
+      },
     ])
     .setFooter({
       text: `Reported by: ${reportedBy.username}`,

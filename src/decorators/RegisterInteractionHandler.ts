@@ -7,7 +7,7 @@ export type InteractionFunction = (
 
 /** Decorator to call a specified method when an interaction is created (ie. interactionCreate event) */
 export function RegisterInteractionHandler(prefix: string, suffix = ''): MethodDecorator {
-  return function(targetClass, propertyKey: string | symbol) {
+  return (targetClass, propertyKey: string | symbol) => {
     const realSuffix = suffix ? `:${suffix}` : '';
     const customId = `${prefix}${realSuffix}`;
 

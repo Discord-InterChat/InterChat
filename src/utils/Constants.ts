@@ -1,13 +1,16 @@
-import type { Colors, HexColorString, Snowflake } from 'discord.js';
 import { createRequire } from 'node:module';
+import type { Colors, HexColorString, Snowflake } from 'discord.js';
 
 const require = createRequire(import.meta.url);
 const badwords = require('./JSON/profanity.json');
 const packageJson = require('../../package.json');
 
-export const { slurs, profanity } = badwords as { slurs: string[]; profanity: string[] };
+export const { slurs, profanity } = badwords as {
+  slurs: string[];
+  profanity: string[];
+};
 
-export const enum RedisKeys {
+export enum RedisKeys {
   msgTimestamp = 'msgTimestamp',
   lastActive = 'lastActive',
   connectionHubId = 'connectionHubId',
@@ -30,25 +33,13 @@ export const enum RedisKeys {
   Hub = 'hub',
 }
 
-export const enum ConnectionMode {
+export enum ConnectionMode {
   Compact = 0,
   Embed = 1,
 }
 
 /** Unicode emojis for numbers */
-export const numberEmojis = [
-  '0️⃣',
-  '1️⃣',
-  '2️⃣',
-  '3️⃣',
-  '4️⃣',
-  '5️⃣',
-  '6️⃣',
-  '7️⃣',
-  '8️⃣',
-  '9️⃣',
-  '🔟',
-] as const;
+export const numberEmojis = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'] as const;
 
 export default {
   isDevBuild: process.env.NODE_ENV === 'development',

@@ -1,14 +1,11 @@
 import BaseCommand from '#main/core/BaseCommand.js';
-import HubManager from '#main/managers/HubManager.js';
+import type HubManager from '#main/managers/HubManager.js';
 import { HubService } from '#main/services/HubService.js';
 import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 
-import db from '#utils/Db.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { getReplyMethod, handleError } from '#utils/Utils.js';
 import {
   type APIApplicationCommandBasicOption,
-  ApplicationCommandOptionChoiceData,
+  type ApplicationCommandOptionChoiceData,
   ApplicationCommandOptionType,
   type AutocompleteInteraction,
   type ChatInputCommandInteraction,
@@ -18,6 +15,9 @@ import {
   type Snowflake,
   time,
 } from 'discord.js';
+import db from '#utils/Db.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { getReplyMethod, handleError } from '#utils/Utils.js';
 
 export default class BlacklistCommand extends BaseCommand {
   static readonly subcommands = new Collection<string, BaseCommand>();
@@ -256,12 +256,16 @@ export default class BlacklistCommand extends BaseCommand {
     hub: HubManager | string | null,
     locale: supportedLocaleCodes = 'en',
   ): hub is HubManager {
-    const hiddenOpt = { ephemeral: true };
+    const hiddenOpt = { flags: ['Ephemeral'] } as const;
     if (!hub) {
-      this.replyEmbed(interaction, t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }), hiddenOpt);
+      this.replyEmbed(
+        interaction,
+        t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
+        hiddenOpt,
+      );
       return false;
     }
-    else if (hub === 'exceeds max length') {
+    if (hub === 'exceeds max length') {
       this.replyEmbed(
         interaction,
         `${this.getEmoji('x_icon')} Specify the \`hub\` option of the slash command as you own/moderate more than one hub.`,
@@ -324,7 +328,10 @@ export default class BlacklistCommand extends BaseCommand {
   ): Promise<HubManager[]>;
   protected async findHubsByName(name: string, modId: string, limit: 1): Promise<HubManager | null>;
   protected async findHubsByName(name: string, modId: string, limit = 25) {
-    const hubs = await this.hubService.findHubsByName(name, { insensitive: true, take: limit });
+    const hubs = await this.hubService.findHubsByName(name, {
+      insensitive: true,
+      take: limit,
+    });
 
     if (limit === 1) return hubs.at(0) ?? null;
     return await Promise.all(hubs.filter((h) => isStaffOrHubMod(modId, h)));

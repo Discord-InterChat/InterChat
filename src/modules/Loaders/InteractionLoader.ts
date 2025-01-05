@@ -1,9 +1,14 @@
-import { Class, FileLoader, MetadataHandler, ResourceLoader } from '#main/core/FileLoader.js';
-import { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { Collection } from 'discord.js';
+import {
+  type Class,
+  FileLoader,
+  MetadataHandler,
+  type ResourceLoader,
+} from '#main/core/FileLoader.js';
+import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import Logger from '#utils/Logger.js';
-import { Collection } from 'discord.js';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export class InteractionLoader implements ResourceLoader {

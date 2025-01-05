@@ -1,3 +1,13 @@
+import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
+import {
+  Client,
+  Collection,
+  GatewayIntentBits,
+  type Guild,
+  Options,
+  type Snowflake,
+  Sweepers,
+} from 'discord.js';
 import type BaseCommand from '#main/core/BaseCommand.js';
 import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
@@ -11,16 +21,6 @@ import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import Constants from '#utils/Constants.js';
 import { loadLocales } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
-import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
-import {
-  type Guild,
-  type Snowflake,
-  Client,
-  Collection,
-  GatewayIntentBits,
-  Options,
-  Sweepers,
-} from 'discord.js';
 
 export default class InterChatClient extends Client {
   static instance: InterChatClient;

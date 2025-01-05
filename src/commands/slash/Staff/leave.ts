@@ -1,12 +1,11 @@
 import {
   ApplicationCommandOptionType,
-  ChatInputCommandInteraction,
-  Guild,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  type ChatInputCommandInteraction,
+  type Guild,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { isDev, resolveEval } from '#utils/Utils.js';
-
 
 export default class Respawn extends BaseCommand {
   readonly staffOnly = true;
@@ -26,7 +25,7 @@ export default class Respawn extends BaseCommand {
     if (!isDev(interaction.user.id)) {
       await interaction.reply({
         content: `${this.getEmoji('dnd_anim')} You are not authorized to use this command.`,
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }

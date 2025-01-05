@@ -1,12 +1,12 @@
-import BlacklistManager from '#main/managers/BlacklistManager.js';
-import HubLogManager from '#main/managers/HubLogManager.js';
-import HubManager from '#main/managers/HubManager.js';
-import { OriginalMessage } from '#main/utils/network/messageUtils.js';
-import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
-import { type Client, codeBlock, EmbedBuilder, type Snowflake, User } from 'discord.js';
-import { sendLog } from './Default.js';
+import { type Client, EmbedBuilder, type Snowflake, User, codeBlock } from 'discord.js';
+import BlacklistManager from '#main/managers/BlacklistManager.js';
+import type HubLogManager from '#main/managers/HubLogManager.js';
+import type HubManager from '#main/managers/HubManager.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
+import type { OriginalMessage } from '#main/utils/network/messageUtils.js';
+import Constants from '#utils/Constants.js';
+import { sendLog } from './Default.js';
 
 const getUnblacklistEmbed = (
   type: 'User' | 'Server',
@@ -35,7 +35,11 @@ const getUnblacklistEmbed = (
         value: opts.reason ?? 'No reason provided.',
         inline: true,
       },
-      { name: 'Blacklisted For', value: opts.originalReason ?? 'Unknown', inline: true },
+      {
+        name: 'Blacklisted For',
+        value: opts.originalReason ?? 'Unknown',
+        inline: true,
+      },
     )
     .setColor(Constants.Colors.interchatBlue)
     .setFooter({
@@ -124,8 +128,14 @@ export const logMsgDelete = async (
     .setColor(Constants.Colors.invisible)
     .setImage(originalMsg.imageUrl || null)
     .addFields([
-      { name: `${getEmoji('person_icon', client)} User`, value: `${user?.username} (\`${authorId}\`)` },
-      { name: `${getEmoji('rules_icon', client)} Server`, value: `${server?.name} (\`${guildId}\`)` },
+      {
+        name: `${getEmoji('person_icon', client)} User`,
+        value: `${user?.username} (\`${authorId}\`)`,
+      },
+      {
+        name: `${getEmoji('rules_icon', client)} Server`,
+        value: `${server?.name} (\`${guildId}\`)`,
+      },
       { name: `${getEmoji('globe_icon', client)} Hub`, value: opts.hubName },
     ])
     .setFooter({ text: `Deleted by: ${opts.modName}` });

@@ -1,17 +1,20 @@
-import HubLogManager, { LogConfigTypes, RoleIdLogConfigs } from '#main/managers/HubLogManager.js';
-import HubManager from '#main/managers/HubManager.js';
-import { HubService } from '#main/services/HubService.js';
-import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
-import db from '#utils/Db.js';
-import {
+import type {
   Channel,
   ChatInputCommandInteraction,
   GuildMember,
   GuildTextBasedChannel,
   Role,
 } from 'discord.js';
-import HubCommand from './index.js';
+import HubLogManager, {
+  type LogConfigTypes,
+  type RoleIdLogConfigs,
+} from '#main/managers/HubLogManager.js';
+import type HubManager from '#main/managers/HubManager.js';
+import { HubService } from '#main/services/HubService.js';
+import { isGuildTextBasedChannel } from '#main/utils/ChannelUtls.js';
 import Logger from '#main/utils/Logger.js';
+import db from '#utils/Db.js';
+import HubCommand from './index.js';
 
 interface SetLogOptions {
   hub: HubManager;
@@ -57,7 +60,7 @@ export default class LoggingCommand extends HubCommand {
 
     if (ownedHubs.length === 0) {
       await this.replyEmbed(interaction, 'You do not have access to any hubs.', {
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return null;
     }
@@ -76,7 +79,7 @@ export default class LoggingCommand extends HubCommand {
   ): HubManager | null {
     const hub = hubs.find((h) => h.data.name === hubName);
     if (!hub) {
-      this.replyEmbed(interaction, 'Hub not found.', { ephemeral: true });
+      this.replyEmbed(interaction, 'Hub not found.', { flags: ['Ephemeral'] });
       return null;
     }
     return hub;
@@ -91,7 +94,7 @@ export default class LoggingCommand extends HubCommand {
     }
 
     this.replyEmbed(interaction, 'You must provide a hub in the `hub` option of the command.', {
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
     return null;
   }
@@ -213,6 +216,6 @@ export default class LoggingCommand extends HubCommand {
     const targetMention = target ? `<${type === 'channel' ? '#' : '@&'}${target.id}>` : '';
     const action = target ? 'set' : 'resetting';
     const message = `Successfully ${action} \`${logType}\` ${type} to ${targetMention}.`;
-    await this.replyEmbed(interaction, message, { ephemeral: true });
+    await this.replyEmbed(interaction, message, { flags: ['Ephemeral'] });
   }
 }

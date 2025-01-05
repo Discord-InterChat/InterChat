@@ -1,10 +1,10 @@
+import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle } from 'discord.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { fetchConnection, updateConnection } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, type ButtonInteraction } from 'discord.js';
 
 type extraOpts = {
   disconnectEmoji?: string;
@@ -54,10 +54,15 @@ export default class InactiveConnectInteraction {
     if (!connection) {
       const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
       const notFoundEmbed = new InfoEmbed().setDescription(
-        t('connection.channelNotFound', locale, { emoji: getEmoji('x_icon', interaction.client) }),
+        t('connection.channelNotFound', locale, {
+          emoji: getEmoji('x_icon', interaction.client),
+        }),
       );
 
-      await interaction.followUp({ embeds: [notFoundEmbed], ephemeral: true });
+      await interaction.followUp({
+        embeds: [notFoundEmbed],
+        flags: ['Ephemeral'],
+      });
       return;
     }
 

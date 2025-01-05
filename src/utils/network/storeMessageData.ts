@@ -1,13 +1,13 @@
-import { ConnectionMode } from '#utils/Constants.js';
+import type { APIMessage, Message } from 'discord.js';
 import {
+  type Broadcast,
+  type OriginalMessage,
   addBroadcasts,
-  Broadcast,
-  OriginalMessage,
   storeMessage,
   storeMessageTimestamp,
 } from '#main/utils/network/messageUtils.js';
 import { updateConnections } from '#utils/ConnectedListUtils.js';
-import { type APIMessage, type Message } from 'discord.js';
+import type { ConnectionMode } from '#utils/Constants.js';
 
 interface ErrorResult {
   webhookURL: string;
@@ -58,10 +58,10 @@ export default async (
   ];
 
   // loop through all results and extract message data and invalid webhook urls
-  broadcastResults.forEach((res) => {
+  for (const res of broadcastResults) {
     if ('error' in res) {
       if (validErrors.some((e) => res.error.includes(e))) invalidWebhookURLs.push(res.webhookURL);
-      return;
+      continue;
     }
     validBroadcasts.push({
       mode: res.mode,
@@ -69,7 +69,7 @@ export default async (
       channelId: res.messageRes.channel_id,
       originalMsgId: message.id,
     });
-  });
+  }
 
   if (validBroadcasts.length > 0) await addBroadcasts(hubId, message.id, ...validBroadcasts);
   await storeMessageTimestamp(message);

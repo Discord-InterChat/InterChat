@@ -1,3 +1,4 @@
+import type { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { HubService } from '#main/services/HubService.js';
 import db from '#main/utils/Db.js';
@@ -8,7 +9,6 @@ import {
 } from '#main/utils/network/messageUtils.js';
 import { addReaction, updateReactions } from '#utils/reaction/actions.js';
 import { checkBlacklists } from '#utils/reaction/helpers.js';
-import { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
 
 export default class ReadctionAdd extends BaseEventListener<'messageReactionAdd'> {
   readonly name = 'messageReactionAdd';
@@ -44,18 +44,27 @@ export default class ReadctionAdd extends BaseEventListener<'messageReactionAdd'
     if (userBlacklisted || serverBlacklisted) return;
 
     const reactedEmoji = reaction.emoji.toString();
-    const dbReactions = (originalMsg.reactions?.valueOf() ?? {}) as { [key: string]: string[] }; // eg. { '👍': 1, '👎': 2 }
+    const dbReactions = (originalMsg.reactions?.valueOf() ?? {}) as {
+      [key: string]: string[];
+    }; // eg. { '👍': 1, '👎': 2 }
     const emojiAlreadyReacted = dbReactions[reactedEmoji] ?? [user.id];
 
     // max 10 reactions
     if (Object.keys(dbReactions).length >= 10) return;
 
     // if there already are reactions by others and the user hasn't reacted yet
-    if (!emojiAlreadyReacted?.includes(user.id)) addReaction(dbReactions, user.id, reactedEmoji);
+    if (!emojiAlreadyReacted?.includes(user.id)) {
+      addReaction(dbReactions, user.id, reactedEmoji);
+    }
     // update the data with a new arr containing userId
-    else dbReactions[reactedEmoji] = emojiAlreadyReacted;
+    else {
+      dbReactions[reactedEmoji] = emojiAlreadyReacted;
+    }
 
-    await storeMessage(originalMsg.messageId, { ...originalMsg, reactions: dbReactions });
+    await storeMessage(originalMsg.messageId, {
+      ...originalMsg,
+      reactions: dbReactions,
+    });
 
     reaction.users.remove(user.id).catch(() => null);
     await updateReactions(originalMsg, dbReactions);

@@ -1,13 +1,13 @@
+import type { Connection, Prisma } from '@prisma/client';
+import type { Redis } from 'ioredis';
+import isEmpty from 'lodash/isEmpty.js';
 import ConnectionManager from '#main/managers/ConnectionManager.js';
-import HubManager from '#main/managers/HubManager.js';
+import type HubManager from '#main/managers/HubManager.js';
 import { cacheHubConnection, convertToConnectedList } from '#main/utils/ConnectedListUtils.js';
 import { RedisKeys } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import getRedis from '#main/utils/Redis.js';
-import { Connection, Prisma } from '@prisma/client';
-import { Redis } from 'ioredis';
-import isEmpty from 'lodash/isEmpty.js';
 
 export default class HubConnectionsManager {
   private hub: HubManager;
@@ -28,7 +28,9 @@ export default class HubConnectionsManager {
       return cachedData.map((c) => new ConnectionManager(c));
     }
 
-    const fromDb = await db.connection.findMany({ where: { hubId: this.hub.id } });
+    const fromDb = await db.connection.findMany({
+      where: { hubId: this.hub.id },
+    });
     const keyValuePairs = fromDb.flatMap((c) => [c.channelId, JSON.stringify(c)]);
 
     if (keyValuePairs.length === 0) return [];
@@ -47,7 +49,9 @@ export default class HubConnectionsManager {
     const rawConnection = await this.redis.hget(this.key, channelId);
 
     if (!rawConnection) {
-      const connection = await db.connection.findUnique({ where: { channelId } });
+      const connection = await db.connection.findUnique({
+        where: { channelId },
+      });
       if (!connection) return null;
       return await this.set(connection);
     }

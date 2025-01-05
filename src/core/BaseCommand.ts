@@ -1,34 +1,37 @@
 import { MetadataHandler } from '#main/core/FileLoader.js';
-import { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
-import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
+import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
+import { type EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
 import type { TranslationKeys } from '#types/TranslationKeys.d.ts';
 
-import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import Logger from '#utils/Logger.js';
-import { getReplyMethod } from '#utils/Utils.js';
 import {
-  type ActionRowData,
   type APIActionRowComponent,
   type APIMessageActionRowComponent,
+  type ActionRowData,
   type AutocompleteInteraction,
+  type BitFieldResolvable,
   type ChatInputCommandInteraction,
+  type Client,
+  type Collection,
   type ContextMenuCommandInteraction,
+  type Interaction,
   type InteractionResponse,
   type JSONEncodable,
   type Message,
   type MessageActionRowComponentBuilder,
   type MessageActionRowComponentData,
   type MessageComponentInteraction,
+  type MessageFlags,
+  type MessageFlagsString,
   type ModalSubmitInteraction,
-  type RepliableInteraction,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
-  Client,
-  Collection,
-  Interaction,
+  type RepliableInteraction,
   time,
 } from 'discord.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import Logger from '#utils/Logger.js';
+import { getReplyMethod } from '#utils/Utils.js';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
 export type CmdData =
@@ -86,7 +89,7 @@ export default abstract class BaseCommand {
         time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`,
         emoji: this.getEmoji('x_icon'),
       }),
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 
@@ -146,7 +149,10 @@ export default abstract class BaseCommand {
         | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
         | APIActionRowComponent<APIMessageActionRowComponent>
       )[];
-      ephemeral?: boolean;
+      flags?: BitFieldResolvable<
+        Extract<MessageFlagsString, 'Ephemeral' | 'SuppressEmbeds' | 'SuppressNotifications'>,
+        MessageFlags.Ephemeral | MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
+      >;
       edit?: boolean;
     },
   ): Promise<InteractionResponse | Message> {
@@ -158,15 +164,17 @@ export default abstract class BaseCommand {
     }
 
     const embed = new InfoEmbed().setDescription(description).setTitle(opts?.title);
-    const message = { content: opts?.content, embeds: [embed], components: opts?.components };
+    const message = {
+      content: opts?.content,
+      embeds: [embed],
+      components: opts?.components,
+    };
 
     if (opts?.edit) return await interaction.editReply(message);
-
     const methodName = getReplyMethod(interaction);
     return await interaction[methodName]({
       ...message,
-      ephemeral: opts?.ephemeral,
-      flags: opts?.ephemeral ? 'Ephemeral' : undefined,
+      flags: opts?.flags,
     });
   }
 

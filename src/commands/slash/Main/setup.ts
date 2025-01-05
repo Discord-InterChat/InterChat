@@ -1,21 +1,21 @@
+import { stripIndents } from 'common-tags';
+import {
+  ActionRowBuilder,
+  ApplicationCommandOptionType,
+  ButtonBuilder,
+  type ButtonInteraction,
+  ButtonStyle,
+  ChannelType,
+  type ChatInputCommandInteraction,
+  InteractionContextType,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
+} from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { HubJoinService } from '#main/services/HubJoinService.js';
 import Constants from '#main/utils/Constants.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { stripIndents } from 'common-tags';
-import {
-  ActionRowBuilder,
-  ApplicationCommandOptionType,
-  ButtonBuilder,
-  ButtonInteraction,
-  ButtonStyle,
-  ChannelType,
-  ChatInputCommandInteraction,
-  InteractionContextType,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
-} from 'discord.js';
 
 export default class SetupCommand extends BaseCommand {
   readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {
@@ -83,13 +83,19 @@ export default class SetupCommand extends BaseCommand {
     const [userId, channelId] = customId.args;
 
     if (interaction.user.id !== userId) {
-      await interaction.reply({ content: 'This button is not for you.', ephemeral: true });
+      await interaction.reply({
+        content: 'This button is not for you.',
+        flags: ['Ephemeral'],
+      });
       return;
     }
 
     const channel = await interaction.guild.channels.fetch(channelId);
     if (!channel?.isTextBased()) {
-      await interaction.reply({ content: 'The channel does not exist.', ephemeral: true });
+      await interaction.reply({
+        content: 'The channel does not exist.',
+        flags: ['Ephemeral'],
+      });
       return;
     }
 
@@ -97,7 +103,7 @@ export default class SetupCommand extends BaseCommand {
       await interaction.reply({
         content:
           'You cannot setup InterChat in a channel where you do not have `Manage Messages` permission.',
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -129,6 +135,9 @@ export default class SetupCommand extends BaseCommand {
       We hope you enjoy your time on InterChat! 🎉
     `);
 
-    await interaction.followUp({ embeds: [embed1, embed2, finalEmbed], ephemeral: true });
+    await interaction.followUp({
+      embeds: [embed1, embed2, finalEmbed],
+      flags: ['Ephemeral'],
+    });
   }
 }

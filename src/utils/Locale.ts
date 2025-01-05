@@ -1,8 +1,8 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { load } from 'js-yaml';
 import type { TranslationKeys } from '#types/TranslationKeys.d.ts';
 import Logger from '#utils/Logger.js';
-import fs from 'node:fs';
-import { load } from 'js-yaml';
-import path from 'node:path';
 
 const localesMap = new Map();
 
@@ -72,19 +72,18 @@ export const t = <K extends keyof TranslationKeys>(
       let result = translation;
 
       if (variables) {
-        Object.keys(variables).forEach((variable) => {
+        for (const variable of Object.keys(variables)) {
           result = result.replace(
             new RegExp(`{${variable}}`, 'g'),
             variables[variable as TranslationKeys[K]],
           );
-        });
-      }
+        }
 
-      return result;
+        return result;
+      }
     }
-    else {
-      Logger.warn(`Translation for key '${phrase}' not found in ${locale} language.`);
-    }
+
+    Logger.warn(`Translation for key '${phrase}' not found in ${locale} language.`);
   }
   return phrase;
 };

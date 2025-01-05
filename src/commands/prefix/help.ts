@@ -1,6 +1,6 @@
-import BasePrefixCommand, { CommandData } from '#main/core/BasePrefixCommand.js';
+import type { Collection, Message } from 'discord.js';
+import BasePrefixCommand, { type CommandData } from '#main/core/BasePrefixCommand.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { Collection, Message } from 'discord.js';
 
 export default class Help extends BasePrefixCommand {
   public readonly data: CommandData = {
@@ -36,7 +36,10 @@ export default class Help extends BasePrefixCommand {
       .setDescription(`**Description:** ${cmd.data.description}`)
       .addFields(
         { name: '**Usage:**', value: cmd.data.usage },
-        { name: '**Aliases:**', value: cmd.data.aliases.map((a) => `\`${a}\``).join(', ') },
+        {
+          name: '**Aliases:**',
+          value: cmd.data.aliases.map((a) => `\`${a}\``).join(', '),
+        },
       );
 
     await message.reply({ embeds: [embed] });
@@ -48,10 +51,10 @@ export default class Help extends BasePrefixCommand {
       .setFooter({ text: 'Use c!help [command] for more info' });
 
     let description = '';
-    prefixCommands.forEach((command) => {
+    for (const command of prefixCommands.values()) {
       const aliases = command.data.aliases.map((a) => `\`${a}\``).join(', ');
       description += `\nc!${command.data.name} (${aliases})\n-# > ${command.data.description}`;
-    });
+    }
 
     embed.setDescription(description);
     return embed;

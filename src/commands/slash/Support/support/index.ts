@@ -1,12 +1,12 @@
 import {
   ApplicationCommandOptionType,
-  CacheType,
-  ChatInputCommandInteraction,
+  type CacheType,
+  type ChatInputCommandInteraction,
   Collection,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
-import { handleError } from '#utils/Utils.js';
 import BaseCommand from '#main/core/BaseCommand.js';
+import { handleError } from '#utils/Utils.js';
 
 export default class Support extends BaseCommand {
   readonly data: RESTPostAPIChatInputApplicationCommandsJSONBody = {

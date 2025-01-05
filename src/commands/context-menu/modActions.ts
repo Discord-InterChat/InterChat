@@ -1,21 +1,21 @@
+import {
+  ApplicationCommandType,
+  InteractionContextType,
+  type MessageContextMenuCommandInteraction,
+  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  type RepliableInteraction,
+} from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { buildModPanel } from '#main/interactions/ModPanel.js';
 import { HubService } from '#main/services/HubService.js';
 import db from '#main/utils/Db.js';
 import {
+  type OriginalMessage,
   findOriginalMessage,
   getOriginalMessage,
-  OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
-import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { t } from '#utils/Locale.js';
-import {
-  ApplicationCommandType,
-  InteractionContextType,
-  type MessageContextMenuCommandInteraction,
-  type RepliableInteraction,
-  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
-} from 'discord.js';
+import { isStaffOrHubMod } from '#utils/hub/utils.js';
 
 export default class BlacklistCtxMenu extends BaseCommand {
   readonly data: RESTPostAPIContextMenuApplicationCommandsJSONBody = {
@@ -25,7 +25,7 @@ export default class BlacklistCtxMenu extends BaseCommand {
   };
 
   async execute(interaction: MessageContextMenuCommandInteraction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const { userManager } = interaction.client;
     const dbUser = await userManager.getUser(interaction.user.id);

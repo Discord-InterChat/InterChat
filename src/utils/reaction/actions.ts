@@ -1,18 +1,15 @@
 import {
-  getBroadcasts,
-  OriginalMessage,
-} from '#main/utils/network/messageUtils.js';
-import { CustomID } from '#utils/CustomID.js';
-import db from '#utils/Db.js';
-import { getEmojiId } from '#utils/Utils.js';
-import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   ComponentType,
   WebhookClient,
 } from 'discord.js';
+import { type OriginalMessage, getBroadcasts } from '#main/utils/network/messageUtils.js';
 import type { ReactionArray } from '#types/Utils.d.ts';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { getEmojiId } from '#utils/Utils.js';
 import sortReactions from './sortReactions.js';
 
 export const addReaction = (reactionArr: ReactionArray, userId: string, emoji: string): void => {

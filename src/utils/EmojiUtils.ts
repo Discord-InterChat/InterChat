@@ -1,4 +1,4 @@
-import { Client } from 'discord.js';
+import type { Client } from 'discord.js';
 import emojis from './JSON/emojis.json' with { type: 'json' };
 
 export type EmojiKeys = keyof typeof emojis;

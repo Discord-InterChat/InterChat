@@ -1,13 +1,5 @@
-import BaseCommand from '#main/core/BaseCommand.js';
-import BasePrefixCommand from '#main/core/BasePrefixCommand.js';
-import { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
-import AntiSpamManager from '#main/managers/AntiSpamManager.js';
-import UserDbManager from '#main/managers/UserDbManager.js';
-import EventLoader from '#main/modules/Loaders/EventLoader.js';
-import CooldownService from '#main/services/CooldownService.js';
-import Scheduler from '#main/services/SchedulerService.js';
-import { ClusterClient } from 'discord-hybrid-sharding';
-import {
+import type { ClusterClient } from 'discord-hybrid-sharding';
+import type {
   Collection,
   ForumChannel,
   MediaChannel,
@@ -15,6 +7,14 @@ import {
   Snowflake,
   TextChannel,
 } from 'discord.js';
+import type BaseCommand from '#main/core/BaseCommand.js';
+import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
+import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
+import type AntiSpamManager from '#main/managers/AntiSpamManager.js';
+import type UserDbManager from '#main/managers/UserDbManager.js';
+import type EventLoader from '#main/modules/Loaders/EventLoader.js';
+import type CooldownService from '#main/services/CooldownService.js';
+import type Scheduler from '#main/services/SchedulerService.js';
 
 export type RemoveMethods<T> = {
   [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? never : RemoveMethods<T[K]>;

@@ -1,12 +1,12 @@
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 
-import { logBlockwordAlert } from '#main/utils/hub/logger/BlockWordAlert.js';
+import { type BlockWord, BlockWordAction } from '@prisma/client';
+import type { ActionRowBuilder, Awaitable, ButtonBuilder, Message } from 'discord.js';
 import Logger from '#main/utils/Logger.js';
+import { logBlockwordAlert } from '#main/utils/hub/logger/BlockWordAlert.js';
 import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import { createRegexFromWords } from '#main/utils/moderation/blockWords.js';
-import { CheckResult } from '#main/utils/network/runChecks.js';
-import { BlockWordAction, BlockWord } from '@prisma/client';
-import { ActionRowBuilder, Awaitable, ButtonBuilder, Message } from 'discord.js';
+import type { CheckResult } from '#main/utils/network/runChecks.js';
 
 // Interface for action handler results
 interface ActionResult {
@@ -51,7 +51,11 @@ const actionHandlers: Record<BlockWordAction, ActionHandler> = {
       moderatorId: mod.id,
     });
 
-    await blacklistManager.log(rule.hubId, message.client, { mod, reason, expiresAt });
+    await blacklistManager.log(rule.hubId, message.client, {
+      mod,
+      reason,
+      expiresAt,
+    });
     await sendBlacklistNotif('user', message.client, {
       target,
       hubId: rule.hubId,

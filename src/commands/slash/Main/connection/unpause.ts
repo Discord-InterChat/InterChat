@@ -1,14 +1,14 @@
+import {
+  ChannelType,
+  type ChatInputCommandInteraction,
+  channelMention,
+  chatInputApplicationCommandMention as slashCmdMention,
+} from 'discord.js';
 import { fetchCommands, findCommand } from '#utils/CommandUtils.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import { getOrCreateWebhook } from '#utils/Utils.js';
-import {
-  ChannelType,
-  ChatInputCommandInteraction,
-  channelMention,
-  chatInputApplicationCommandMention as slashCmdMention,
-} from 'discord.js';
 import Connection from './index.js';
 
 export default class Unpause extends Connection {
@@ -19,9 +19,13 @@ export default class Unpause extends Connection {
     const locale = await userManager.getUserLocale(interaction.user.id);
 
     if (!connected) {
-      await this.replyEmbed(interaction, `${this.getEmoji('x_icon')} That channel is not connected to a hub!`, {
-        ephemeral: true,
-      });
+      await this.replyEmbed(
+        interaction,
+        `${this.getEmoji('x_icon')} That channel is not connected to a hub!`,
+        {
+          flags: 'Ephemeral',
+        },
+      );
       return;
     }
 
@@ -29,7 +33,7 @@ export default class Unpause extends Connection {
       await this.replyEmbed(
         interaction,
         `${this.getEmoji('x_icon')} This connection is not paused! Use \`/connection pause\` to pause your connection.`,
-        { ephemeral: true },
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -39,8 +43,10 @@ export default class Unpause extends Connection {
     if (!channel?.isThread() && channel?.type !== ChannelType.GuildText) {
       await this.replyEmbed(
         interaction,
-        t('connection.channelNotFound', locale, { emoji: this.getEmoji('x_icon') }),
-        { ephemeral: true },
+        t('connection.channelNotFound', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -74,7 +80,10 @@ export default class Unpause extends Connection {
     }
 
     await this.replyEmbed(interaction, 'connection.unpaused.desc', {
-      t: { tick_emoji: this.getEmoji('tick'), channel: channelMention(channelId) },
+      t: {
+        tick_emoji: this.getEmoji('tick'),
+        channel: channelMention(channelId),
+      },
       edit: true,
       content: `-# ${t('connection.unpaused.tips', locale, { pause_cmd, edit_cmd })}`,
     });

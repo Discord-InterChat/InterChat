@@ -1,24 +1,26 @@
-import ConnectionManager from '#main/managers/ConnectionManager.js';
-import HubManager from '#main/managers/HubManager.js';
-import HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import type { Connection } from '@prisma/client';
+import {
+  type Client,
+  type HexColorString,
+  type Message,
+  WebhookClient,
+  type WebhookMessageCreateOptions,
+} from 'discord.js';
+import type ConnectionManager from '#main/managers/ConnectionManager.js';
+import type HubManager from '#main/managers/HubManager.js';
+import type HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import MessageFormattingService from '#main/services/MessageFormattingService.js';
 import Logger from '#main/utils/Logger.js';
-import { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
+import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
 import { generateJumpButton as getJumpButton } from '#utils/ComponentUtils.js';
 import { ConnectionMode } from '#utils/Constants.js';
 import { getAttachmentURL } from '#utils/ImageUtils.js';
-import storeMessageData, { NetworkWebhookSendResult } from '#utils/network/storeMessageData.js';
-import { getReferredContent, getReferredMsgData } from '#utils/network/utils.js';
 import { censor } from '#utils/ProfanityUtils.js';
 import { trimAndCensorBannedWebhookWords } from '#utils/Utils.js';
-import { Connection } from '@prisma/client';
-import {
-  Client,
-  HexColorString,
-  Message,
-  WebhookClient,
-  WebhookMessageCreateOptions,
-} from 'discord.js';
+import storeMessageData, {
+  type NetworkWebhookSendResult,
+} from '#utils/network/storeMessageData.js';
+import { getReferredContent, getReferredMsgData } from '#utils/network/utils.js';
 
 const BATCH_SIZE = 15;
 const CONCURRENCY_LIMIT = 10;
@@ -128,7 +130,7 @@ export class BroadcastService {
     }
 
     // Start initial batch of promises
-    const initialPromises = Array(Math.min(concurrency, promises.length))
+    const initialPromises = new Array(Math.min(concurrency, promises.length))
       .fill(null)
       .map(() => next());
 
@@ -191,7 +193,10 @@ export class BroadcastService {
     },
   ): WebhookMessageCreateOptions {
     const { dbReferrence, referredAuthor } = opts.referredMsgData;
-    const author = { username: opts.username, avatarURL: message.author.displayAvatarURL() };
+    const author = {
+      username: opts.username,
+      avatarURL: message.author.displayAvatarURL(),
+    };
     const jumpButton = this.getJumpButton(
       referredAuthor?.username ?? 'Unknown',
       connection.data,
@@ -219,7 +224,13 @@ export class BroadcastService {
   ) {
     const reply = dbReferrence?.broadcastMsgs.get(channelId) ?? dbReferrence;
     return reply?.messageId
-      ? [getJumpButton(client, username, { channelId, serverId, messageId: reply.messageId })]
+      ? [
+        getJumpButton(client, username, {
+          channelId,
+          serverId,
+          messageId: reply.messageId,
+        }),
+      ]
       : undefined;
   }
 

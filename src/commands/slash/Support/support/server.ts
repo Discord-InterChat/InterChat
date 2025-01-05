@@ -1,6 +1,6 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import Support from './index.js';
+import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import Constants from '#utils/Constants.js';
+import Support from './index.js';
 
 export default class SupportServer extends Support {
   async execute(interaction: ChatInputCommandInteraction) {

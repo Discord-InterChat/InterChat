@@ -1,23 +1,23 @@
-import HubManager from '#main/managers/HubManager.js';
+import type HubManager from '#main/managers/HubManager.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { wait } from '#main/utils/Utils.js';
 
 import { stripIndents } from 'common-tags';
-import { ChatInputCommandInteraction, time } from 'discord.js';
+import { type ChatInputCommandInteraction, time } from 'discord.js';
 import HubCommand from './index.js';
 
 export default class VisibilityCommnd extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     const hubName = interaction.options.getString('hub', true);
     const visibility = interaction.options.getString('visibility', true) as 'public' | 'private';
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
-    if (!hub || !await hub.isManager(interaction.user.id)) {
+    if (!hub || !(await hub.isManager(interaction.user.id))) {
       await this.replyEmbed(interaction, 'hub.notManager', {
         t: { emoji: this.getEmoji('x_icon') },
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -32,7 +32,7 @@ export default class VisibilityCommnd extends HubCommand {
 
     await this.replyEmbed(interaction, 'hub.manage.visibility.success', {
       content: ' ',
-      ephemeral: true,
+      flags: 'Ephemeral',
       edit: true,
       t: {
         emoji: hub.data.private ? '🔒' : '🔓',

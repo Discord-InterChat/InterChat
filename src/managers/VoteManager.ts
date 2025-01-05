@@ -1,22 +1,22 @@
-import Constants from '#utils/Constants.js';
-import UserDbManager from '#main/managers/UserDbManager.js';
-import Scheduler from '#main/services/SchedulerService.js';
-import Logger from '#utils/Logger.js';
-import type { WebhookPayload } from '#types/TopGGPayload.d.ts';
-import db from '#utils/Db.js';
-import { getOrdinalSuffix } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
-  APIGuildMember,
-  APIUser,
+  type APIGuildMember,
+  type APIUser,
   EmbedBuilder,
   REST,
   Routes,
+  WebhookClient,
   time,
   userMention,
-  WebhookClient,
 } from 'discord.js';
 import ms from 'ms';
+import UserDbManager from '#main/managers/UserDbManager.js';
+import Scheduler from '#main/services/SchedulerService.js';
+import type { WebhookPayload } from '#types/TopGGPayload.d.ts';
+import Constants from '#utils/Constants.js';
+import db from '#utils/Db.js';
+import Logger from '#utils/Logger.js';
+import { getOrdinalSuffix } from '#utils/Utils.js';
 
 export class VoteManager {
   private scheduler: Scheduler;
@@ -26,7 +26,9 @@ export class VoteManager {
   constructor(scheduler = new Scheduler()) {
     this.scheduler = scheduler;
     this.scheduler.addRecurringTask('removeVoterRole', 60 * 60 * 1_000, async () => {
-      const expiredVotes = await db.userData.findMany({ where: { lastVoted: { lt: new Date() } } });
+      const expiredVotes = await db.userData.findMany({
+        where: { lastVoted: { lt: new Date() } },
+      });
       for (const vote of expiredVotes) {
         await this.removeVoterRole(vote.id);
       }
@@ -128,7 +130,10 @@ export class VoteManager {
     await this.modifyUserRole('add', { userId, roleId: Constants.VoterRoleId });
   }
   async removeVoterRole(userId: string) {
-    await this.modifyUserRole('remove', { userId, roleId: Constants.VoterRoleId });
+    await this.modifyUserRole('remove', {
+      userId,
+      roleId: Constants.VoterRoleId,
+    });
   }
 
   private isValidVotePayload(payload: WebhookPayload) {

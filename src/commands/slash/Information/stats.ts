@@ -1,21 +1,21 @@
+import { cpus, totalmem } from 'node:os';
+import { stripIndents } from 'common-tags';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  type ButtonInteraction,
+  ButtonStyle,
+  type ChatInputCommandInteraction,
+  EmbedBuilder,
+  Status,
+  time,
+} from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import { donateButton } from '#main/utils/ComponentUtils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { msToReadable } from '#utils/Utils.js';
-import { stripIndents } from 'common-tags';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonInteraction,
-  ButtonStyle,
-  ChatInputCommandInteraction,
-  EmbedBuilder,
-  Status,
-  time,
-} from 'discord.js';
-import { cpus, totalmem } from 'os';
 
 export default class Stats extends BaseCommand {
   override readonly data = {
@@ -88,7 +88,10 @@ export default class Stats extends BaseCommand {
         .setCustomId(new CustomID().setIdentifier('stats', 'shardStats').toString()),
     );
 
-    await interaction.editReply({ embeds: [embed], components: [linksRow, otherBtns] });
+    await interaction.editReply({
+      embeds: [embed],
+      components: [linksRow, otherBtns],
+    });
   }
 
   @RegisterInteractionHandler('stats', 'shardStats')

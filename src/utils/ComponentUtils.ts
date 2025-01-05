@@ -1,26 +1,28 @@
-import Scheduler from '#main/services/SchedulerService.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import Constants from '#utils/Constants.js';
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 import {
-  ActionRow,
+  type ActionRow,
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
-  Client,
+  type Client,
   ComponentType,
-  Message,
-  MessageActionRowComponent,
+  type Message,
+  type MessageActionRowComponent,
+  type Snowflake,
   messageLink,
-  Snowflake,
 } from 'discord.js';
+import type Scheduler from '#main/services/SchedulerService.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
 
 export const greyOutButton = (row: ActionRowBuilder<ButtonBuilder>, disableElement: number) => {
   row.components.forEach((c) => c.setDisabled(false));
   row.components[disableElement].setDisabled(true);
 };
 export const greyOutButtons = (rows: ActionRowBuilder<ButtonBuilder>[]) => {
-  rows.forEach((row) => row.components.forEach((c) => c.setDisabled(true)));
+  for (const row of rows) {
+    row.components.forEach((c) => c.setDisabled(true));
+  }
 };
 
 export const generateJumpButton = (
@@ -47,7 +49,7 @@ export const disableAllComponents = (
 ) =>
   components.map((row) => {
     const jsonRow = row.toJSON();
-    jsonRow.components.forEach((component) => {
+    for (const component of jsonRow.components) {
       if (
         !disableLinks &&
         component.type === ComponentType.Button &&
@@ -58,7 +60,8 @@ export const disableAllComponents = (
       else {
         component.disabled = true;
       }
-    });
+    }
+
     return jsonRow;
   });
 

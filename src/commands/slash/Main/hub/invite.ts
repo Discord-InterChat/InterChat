@@ -1,10 +1,10 @@
+import { type CacheType, type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import ms from 'ms';
 import { HubService } from '#main/services/HubService.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { handleError } from '#main/utils/Utils.js';
 import db from '#utils/Db.js';
-import { supportedLocaleCodes, t } from '#utils/Locale.js';
-import { CacheType, ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import ms from 'ms';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import HubCommand from './index.js';
 
 export default class Invite extends HubCommand {
@@ -39,22 +39,22 @@ export default class Invite extends HubCommand {
     if (!hub) {
       await this.replyEmbed(interaction, 'hub.notFound_mod', {
         t: { emoji: this.getEmoji('x_icon') },
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
-    else if (!hub?.data.private) {
+    if (!hub?.data.private) {
       await this.replyEmbed(interaction, 'hub.notPrivate', {
         t: { emoji: this.getEmoji('x_icon') },
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
 
-    if (!await hub.isManager(interaction.user.id)) {
+    if (!(await hub.isManager(interaction.user.id))) {
       await this.replyEmbed(interaction, 'hub.notManager', {
         t: { emoji: this.getEmoji('x_icon') },
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -62,7 +62,7 @@ export default class Invite extends HubCommand {
     if (!Date.parse(expires.toString())) {
       await interaction.reply({
         content: `${this.getEmoji('x_icon')} Invalid Expiry Duration provided!`,
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -81,7 +81,7 @@ export default class Invite extends HubCommand {
 
     await interaction.reply({
       embeds: [embed],
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 
@@ -97,7 +97,11 @@ export default class Invite extends HubCommand {
         hub: {
           OR: [
             { ownerId: interaction.user.id },
-            { moderators: { some: { userId: interaction.user.id, role: 'MANAGER' } } },
+            {
+              moderators: {
+                some: { userId: interaction.user.id, role: 'MANAGER' },
+              },
+            },
           ],
         },
       },
@@ -105,8 +109,10 @@ export default class Invite extends HubCommand {
 
     if (!inviteInDb) {
       await interaction.reply({
-        content: t('hub.invite.revoke.invalidCode', locale, { emoji: this.getEmoji('x_icon') }),
-        ephemeral: true,
+        content: t('hub.invite.revoke.invalidCode', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -115,8 +121,11 @@ export default class Invite extends HubCommand {
       await db.hubInvite.delete({ where: { code } });
       await this.replyEmbed(
         interaction,
-        t('hub.invite.revoke.success', locale, { emoji: this.getEmoji('tick_icon'), inviteCode: code }),
-        { ephemeral: true },
+        t('hub.invite.revoke.success', locale, {
+          emoji: this.getEmoji('tick_icon'),
+          inviteCode: code,
+        }),
+        { flags: ['Ephemeral'] },
       );
     }
     catch (e) {
@@ -133,11 +142,11 @@ export default class Invite extends HubCommand {
 
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
-    if (!await hub?.isManager(interaction.user.id)) {
+    if (!(await hub?.isManager(interaction.user.id))) {
       await this.replyEmbed(
         interaction,
         t('hub.notManager', locale, { emoji: this.getEmoji('x_icon') }),
-        { ephemeral: true },
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -145,8 +154,10 @@ export default class Invite extends HubCommand {
     if (!hub?.data.private) {
       await this.replyEmbed(
         interaction,
-        t('hub.invite.list.notPrivate', locale, { emoji: this.getEmoji('x_icon') }),
-        { ephemeral: true },
+        t('hub.invite.list.notPrivate', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -155,8 +166,10 @@ export default class Invite extends HubCommand {
     if (invitesInDb.length === 0) {
       await this.replyEmbed(
         interaction,
-        t('hub.invite.list.noInvites', locale, { emoji: this.getEmoji('x_icon') }),
-        { ephemeral: true },
+        t('hub.invite.list.noInvites', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
+        { flags: ['Ephemeral'] },
       );
       return;
     }
@@ -172,7 +185,7 @@ export default class Invite extends HubCommand {
 
     await interaction.reply({
       embeds: [inviteEmbed],
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 }

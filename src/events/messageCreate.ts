@@ -1,10 +1,10 @@
+import { stripIndents } from 'common-tags';
+import type { Client, Message } from 'discord.js';
 import BaseEventListener from '#main/core/BaseEventListener.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
 import Constants from '#main/utils/Constants.js';
 import { handleError, isHumanMessage } from '#utils/Utils.js';
-import { stripIndents } from 'common-tags';
-import { Client, Message } from 'discord.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
@@ -22,7 +22,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
       await this.handlePrefixCommand(message, 'c!');
       return;
     }
-    else if (
+    if (
       message.content === `<@${message.client.user.id}>` ||
       message.content === `<@!${message.client.user.id}>`
     ) {

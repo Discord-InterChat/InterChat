@@ -1,9 +1,9 @@
-import HubManager from '#main/managers/HubManager.js';
-import { HubService, type HubCreationData } from '#main/services/HubService.js';
+import type { Client } from 'discord.js';
+import type HubManager from '#main/managers/HubManager.js';
+import { type HubCreationData, HubService } from '#main/services/HubService.js';
 import Constants from '#main/utils/Constants.js';
-import { EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { Client } from 'discord.js';
+import { type EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
+import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -49,7 +49,9 @@ export class HubValidator {
     if (Constants.Regex.BannedWebhookWords.test(name)) {
       return {
         isValid: false,
-        error: t('hub.create.invalidName', this.locale, { emoji: this.getEmoji('x_icon') }),
+        error: t('hub.create.invalidName', this.locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       };
     }
     return { isValid: true };
@@ -60,7 +62,9 @@ export class HubValidator {
     if (existingHub) {
       return {
         isValid: false,
-        error: t('hub.create.nameTaken', this.locale, { emoji: this.getEmoji('x_icon') }),
+        error: t('hub.create.nameTaken', this.locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       };
     }
     return { isValid: true };
@@ -75,7 +79,9 @@ export class HubValidator {
     if (userHubCount >= HubValidator.MAX_HUBS_PER_USER) {
       return {
         isValid: false,
-        error: t('hub.create.maxHubs', this.locale, { emoji: this.getEmoji('x_icon') }),
+        error: t('hub.create.maxHubs', this.locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       };
     }
     return { isValid: true };
@@ -87,7 +93,9 @@ export class HubValidator {
     if ((iconUrl && !imgurRegex.test(iconUrl)) || (bannerUrl && !imgurRegex.test(bannerUrl))) {
       return {
         isValid: false,
-        error: t('hub.invalidImgurUrl', this.locale, { emoji: this.getEmoji('x_icon') }),
+        error: t('hub.invalidImgurUrl', this.locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       };
     }
     return { isValid: true };

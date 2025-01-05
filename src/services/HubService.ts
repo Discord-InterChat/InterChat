@@ -1,12 +1,12 @@
+import type { Hub, PrismaClient, Role } from '@prisma/client';
+import type { Redis } from 'ioredis';
 import HubManager from '#main/managers/HubManager.js';
 import { HubSettingsBits } from '#main/modules/BitFields.js';
-import { ConvertDatesToString } from '#main/types/Utils.js';
+import type { ConvertDatesToString } from '#main/types/Utils.js';
 import { deleteConnections } from '#main/utils/ConnectedListUtils.js';
 import Constants, { RedisKeys } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import getRedis from '#main/utils/Redis.js';
-import { Hub, PrismaClient, Role } from '@prisma/client';
-import { Redis } from 'ioredis';
 
 export interface HubCreationData {
   name: string;
@@ -148,7 +148,6 @@ export class HubService {
     const modHubs = user.modPositions
       .filter((mod) => !roles?.length || roles.includes(mod.role))
       .map((mod) => this.createHubManager(mod.hub));
-
 
     return [...ownedHubs, ...modHubs];
   }

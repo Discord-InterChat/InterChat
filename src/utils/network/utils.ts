@@ -1,13 +1,13 @@
+import { Collection, EmbedBuilder, type HexColorString, type Message } from 'discord.js';
 import {
+  type OriginalMessage,
   findOriginalMessage,
   getBroadcasts,
   getOriginalMessage,
-  OriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 import Constants from '#utils/Constants.js';
 import { stripTenorLinks } from '#utils/ImageUtils.js';
 import { censor } from '#utils/ProfanityUtils.js';
-import { type HexColorString, type Message, Collection, EmbedBuilder } from 'discord.js';
 import type { ReferredMsgData } from './Types.js';
 
 /**
@@ -18,9 +18,10 @@ import type { ReferredMsgData } from './Types.js';
  * @param parseMode The mode in which the original message was sent in.
  * @returns The content of the referred message.
  */
-export const getReferredContent = (originalMsg: OriginalMessage) => originalMsg.content.length > 0
-  ? originalMsg.content
-  : '*Original message contains attachment <:attachment:1102464803647275028>*';
+export const getReferredContent = (originalMsg: OriginalMessage) =>
+  originalMsg.content.length > 0
+    ? originalMsg.content
+    : '*Original message contains attachment <:attachment:1102464803647275028>*';
 
 export const getReferredMsgData = async (
   referredMessage: Message | null,
@@ -105,7 +106,10 @@ const createCensoredEmbed = (embed: EmbedBuilder, censoredContent: string) =>
 const addReplyField = (normal: EmbedBuilder, censored: EmbedBuilder, referredContent: string) => {
   const formattedReply = referredContent.replaceAll('\n', '\n> ');
   normal.setFields({ name: 'Replying To:', value: `> ${formattedReply}` });
-  censored.setFields({ name: 'Replying To:', value: `> ${censor(formattedReply)}` });
+  censored.setFields({
+    name: 'Replying To:',
+    value: `> ${censor(formattedReply)}`,
+  });
 };
 
 /**

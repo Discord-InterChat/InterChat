@@ -1,9 +1,9 @@
 import {
   ApplicationCommandOptionType,
-  AutocompleteInteraction,
-  ChatInputCommandInteraction,
+  type AutocompleteInteraction,
+  type ChatInputCommandInteraction,
   Collection,
-  RESTPostAPIChatInputApplicationCommandsJSONBody,
+  type RESTPostAPIChatInputApplicationCommandsJSONBody,
 } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { handleError } from '#utils/Utils.js';
@@ -70,7 +70,10 @@ export default class Find extends BaseCommand {
       case 'server': {
         const guilds = interaction.client.guilds.cache;
         const focusedValue = interaction.options.getFocused().toLowerCase();
-        const choices = guilds.map((guild) => ({ name: guild.name, value: guild.id }));
+        const choices = guilds.map((guild) => ({
+          name: guild.name,
+          value: guild.id,
+        }));
 
         const filtered = choices
           .filter(

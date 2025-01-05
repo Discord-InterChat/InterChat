@@ -1,3 +1,17 @@
+import { stripIndents } from 'common-tags';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  type ButtonInteraction,
+  ButtonStyle,
+  type Client,
+  EmbedBuilder,
+  type Interaction,
+  Message,
+  type ModalSubmitInteraction,
+  type RepliableInteraction,
+  type Snowflake,
+} from 'discord.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import { HubService } from '#main/services/HubService.js';
@@ -5,34 +19,20 @@ import { CustomID } from '#main/utils/CustomID.js';
 import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import { checkIfStaff } from '#main/utils/Utils.js';
 import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
-import { supportedLocaleCodes, t } from '#main/utils/Locale.js';
 import { isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
+import RemoveReactionsHandler from '#main/utils/moderation/modPanel/handlers/RemoveReactionsHandler.js';
 import {
   BlacklistServerHandler,
   BlacklistUserHandler,
 } from '#main/utils/moderation/modPanel/handlers/blacklistHandler.js';
 import DeleteMessageHandler from '#main/utils/moderation/modPanel/handlers/deleteMsgHandler.js';
-import RemoveReactionsHandler from '#main/utils/moderation/modPanel/handlers/RemoveReactionsHandler.js';
 import UserBanHandler from '#main/utils/moderation/modPanel/handlers/userBanHandler.js';
 import ViewInfractionsHandler from '#main/utils/moderation/modPanel/handlers/viewInfractions.js';
-import { getOriginalMessage, OriginalMessage } from '#main/utils/network/messageUtils.js';
-import { checkIfStaff } from '#main/utils/Utils.js';
+import { type OriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import Constants from '#utils/Constants.js';
-import { stripIndents } from 'common-tags';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonInteraction,
-  ButtonStyle,
-  Client,
-  EmbedBuilder,
-  Interaction,
-  Message,
-  ModalSubmitInteraction,
-  RepliableInteraction,
-  Snowflake,
-} from 'discord.js';
 
 type BuilderOpts = {
   isUserBlacklisted: boolean;
@@ -71,10 +71,12 @@ export default class ModPanelHandler {
   ) {
     if (interaction.user.id !== userId) {
       const embed = new InfoEmbed().setDescription(
-        t('errors.notYourAction', locale, { emoji: getEmoji('x_icon', interaction.client) }),
+        t('errors.notYourAction', locale, {
+          emoji: getEmoji('x_icon', interaction.client),
+        }),
       );
 
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
       return false;
     }
 
@@ -220,9 +222,12 @@ function buildInfoEmbed(username: string, servername: string, client: Client, op
     ? '~~This user is already banned.~~'
     : 'Ban this user from the entire bot.';
 
-  return new EmbedBuilder().setColor(Constants.Colors.invisible).setFooter({
-    text: 'Target will be notified of the blacklist. Use /blacklist list to view all blacklists.',
-  }).setDescription(stripIndents`
+  return new EmbedBuilder()
+    .setColor(Constants.Colors.invisible)
+    .setFooter({
+      text: 'Target will be notified of the blacklist. Use /blacklist list to view all blacklists.',
+    })
+    .setDescription(stripIndents`
         ### ${getEmoji('timeout_icon', client)} Moderation Actions
         **${getEmoji('person_icon', client)} Blacklist User**: ${userEmbedDesc}
         **${getEmoji('globe_icon', client)} Blacklist Server**: ${serverEmbedDesc}

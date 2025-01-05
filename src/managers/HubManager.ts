@@ -1,3 +1,5 @@
+import type { BlockWord, Hub, HubModerator } from '@prisma/client';
+import type { Redis } from 'ioredis';
 import HubConnectionsManager from '#main/managers/HubConnectionsManager.js';
 import HubLogManager from '#main/managers/HubLogManager.js';
 import HubModeratorManager from '#main/managers/HubModeratorManager.js';
@@ -8,8 +10,6 @@ import { RedisKeys } from '#main/utils/Constants.js';
 import db from '#main/utils/Db.js';
 import Logger from '#main/utils/Logger.js';
 import getRedis from '#main/utils/Redis.js';
-import { BlockWord, Hub, HubModerator } from '@prisma/client';
-import { Redis } from 'ioredis';
 
 export default class HubManager {
   public readonly id: string;
@@ -68,31 +68,49 @@ export default class HubManager {
     await this.hubService.deleteHub(this.hub.id);
   }
   async setDescription(description: string) {
-    this.hub = await db.hub.update({ where: { id: this.hub.id }, data: { description } });
+    this.hub = await db.hub.update({
+      where: { id: this.hub.id },
+      data: { description },
+    });
     this.cacheHub();
   }
 
   async setIconUrl(iconUrl: string) {
-    this.hub = await db.hub.update({ where: { id: this.hub.id }, data: { iconUrl } });
+    this.hub = await db.hub.update({
+      where: { id: this.hub.id },
+      data: { iconUrl },
+    });
     this.cacheHub();
   }
 
   async setBannerUrl(bannerUrl: string | null) {
-    this.hub = await db.hub.update({ where: { id: this.hub.id }, data: { bannerUrl } });
+    this.hub = await db.hub.update({
+      where: { id: this.hub.id },
+      data: { bannerUrl },
+    });
     this.cacheHub();
   }
 
   async setPrivate(isPrivate: boolean) {
-    this.hub = await db.hub.update({ where: { id: this.hub.id }, data: { private: isPrivate } });
+    this.hub = await db.hub.update({
+      where: { id: this.hub.id },
+      data: { private: isPrivate },
+    });
     this.cacheHub();
   }
 
   async setLocked(locked: boolean) {
-    this.hub = await db.hub.update({ where: { id: this.hub.id }, data: { locked } });
+    this.hub = await db.hub.update({
+      where: { id: this.hub.id },
+      data: { locked },
+    });
     this.cacheHub();
   }
   async setAppealCooldownHours(appealCooldownHours: number) {
-    this.hub = await db.hub.update({ where: { id: this.hub.id }, data: { appealCooldownHours } });
+    this.hub = await db.hub.update({
+      where: { id: this.hub.id },
+      data: { appealCooldownHours },
+    });
     this.cacheHub();
   }
 
@@ -112,7 +130,10 @@ export default class HubManager {
    * @param settings - Bitfield of settings
    */
   async setSettings(settings: number) {
-    this.hub = await db.hub.update({ where: { id: this.hub.id }, data: { settings } });
+    this.hub = await db.hub.update({
+      where: { id: this.hub.id },
+      data: { settings },
+    });
     this.cacheHub();
   }
 
@@ -126,14 +147,18 @@ export default class HubManager {
       return fromCache.map((c) => JSON.parse(c)) as BlockWord[];
     }
 
-    const blockWords = await db.blockWord.findMany({ where: { hubId: this.hub.id } });
+    const blockWords = await db.blockWord.findMany({
+      where: { hubId: this.hub.id },
+    });
     await this.storeInCache(this.blockWordsKey, blockWords);
 
     return blockWords;
   }
 
   async fetchInvites() {
-    const invites = await db.hubInvite.findMany({ where: { hubId: this.hub.id } });
+    const invites = await db.hubInvite.findMany({
+      where: { hubId: this.hub.id },
+    });
     return invites;
   }
 
@@ -153,8 +178,12 @@ export default class HubManager {
   private async storeInCache(key: string, data: BlockWord[] | HubModerator[]) {
     const multi = this.cache.multi();
     multi.del(key);
-    data.forEach((bw) => multi.sadd(key, JSON.stringify(bw)));
-    multi.expire(key, 60 * 60 * 24); //
+
+    for (const bw of data) {
+      multi.sadd(key, JSON.stringify(bw));
+    }
+
+    multi.expire(key, 60 * 60 * 24);
     await multi.exec();
   }
 

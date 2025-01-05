@@ -1,4 +1,4 @@
-import InterChatClient from './BaseClient.js';
+import type InterChatClient from './BaseClient.js';
 
 export default abstract class Factory {
   protected readonly client: InterChatClient;

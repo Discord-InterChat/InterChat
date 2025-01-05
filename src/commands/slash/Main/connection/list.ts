@@ -1,9 +1,9 @@
-import Constants from '#utils/Constants.js';
+import type { Connection, Hub } from '@prisma/client';
+import { type ChatInputCommandInteraction, EmbedBuilder, type EmbedField } from 'discord.js';
 import { Pagination } from '#main/modules/Pagination.js';
+import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
-import { Connection, Hub } from '@prisma/client';
-import { ChatInputCommandInteraction, EmbedBuilder, EmbedField } from 'discord.js';
 import ConnectionCommand from './index.js';
 
 export default class List extends ConnectionCommand {
@@ -17,12 +17,16 @@ export default class List extends ConnectionCommand {
     const locale = await userManager.getUserLocale(interaction.user.id);
     if (connections.length === 0) {
       await interaction.reply(
-        t('hub.joined.noJoinedHubs', locale, { emoji: this.getEmoji('x_icon') }),
+        t('hub.joined.noJoinedHubs', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       );
       return;
     }
 
-    const description = t('hub.joined.joinedHubs', locale, { total: `${connections.length}` });
+    const description = t('hub.joined.joinedHubs', locale, {
+      total: `${connections.length}`,
+    });
 
     if (connections.length <= 25) {
       const embed = this.getEmbed(connections.map(this.getField.bind(this)), description);

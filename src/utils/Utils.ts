@@ -1,17 +1,13 @@
-import type { RemoveMethods, ThreadParentChannel } from '#types/CustomClientProps.d.ts';
-import Constants from '#utils/Constants.js';
-import { ErrorEmbed } from '#utils/EmbedUtils.js';
-import Logger from '#utils/Logger.js';
 import { captureException } from '@sentry/node';
 import type { ClusterManager } from 'discord-hybrid-sharding';
 import {
-  EmbedBuilder,
-  InteractionType,
-  Message,
   type ColorResolvable,
   type CommandInteraction,
+  EmbedBuilder,
   type GuildTextBasedChannel,
   type Interaction,
+  InteractionType,
+  Message,
   type MessageComponentInteraction,
   type RepliableInteraction,
   type Snowflake,
@@ -19,6 +15,11 @@ import {
 } from 'discord.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
+import { CustomID } from '#main/utils/CustomID.js';
+import type { RemoveMethods, ThreadParentChannel } from '#types/CustomClientProps.d.ts';
+import Constants from '#utils/Constants.js';
+import { ErrorEmbed } from '#utils/EmbedUtils.js';
+import Logger from '#utils/Logger.js';
 
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
@@ -62,7 +63,9 @@ export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string)
 export const disableComponents = (message: Message) =>
   message.components.flatMap((row) => {
     const jsonRow = row.toJSON();
-    jsonRow.components.forEach((component) => (component.disabled = true));
+    for (const component of jsonRow.components) {
+      component.disabled = true;
+    }
     return jsonRow;
   });
 
@@ -142,7 +145,7 @@ export const sendErrorEmbed = async (
   const method = getReplyMethod(repliable);
   return await repliable[method]({
     embeds: [errorEmbed],
-    ephemeral: true,
+    flags: 'Ephemeral',
   });
 };
 
@@ -153,10 +156,12 @@ export const handleError = (e: Error, repliable?: Interaction | Message) => {
   let extra = {};
 
   if (repliable instanceof Message) {
-    extra = { user: { id: repliable.author.id, username: repliable.author.username } };
+    extra = {
+      user: { id: repliable.author.id, username: repliable.author.username },
+    };
   }
   else if (repliable) {
-    let commandName;
+    let commandName: string | undefined;
     if (repliable.isChatInputCommand()) {
       const subcommand = repliable.options.getSubcommand(false) ?? '';
       const subcommandGroup = repliable.options.getSubcommandGroup(false) ?? '';
@@ -172,7 +177,7 @@ export const handleError = (e: Error, repliable?: Interaction | Message) => {
       extra: {
         type: InteractionType[repliable.type],
         commandName,
-        customId: 'customId' in repliable ? repliable.customId : undefined,
+        customId: 'customId' in repliable ? CustomID.parseCustomId(repliable.customId) : undefined,
       },
     };
   }
@@ -210,8 +215,8 @@ export const getOrdinalSuffix = (num: number) => {
   const k = num % 100;
 
   if (j === 1 && k !== 11) return 'st';
-  else if (j === 2 && k !== 12) return 'nd';
-  else if (j === 3 && k !== 13) return 'rd';
+  if (j === 2 && k !== 12) return 'nd';
+  if (j === 3 && k !== 13) return 'rd';
   return 'th';
 };
 

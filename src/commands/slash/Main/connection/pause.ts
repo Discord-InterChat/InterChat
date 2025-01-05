@@ -1,13 +1,13 @@
+import {
+  type ChatInputCommandInteraction,
+  channelMention,
+  chatInputApplicationCommandMention as slashCmdMention,
+} from 'discord.js';
 import { fetchCommands, findCommand } from '#utils/CommandUtils.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
-import {
-  ChatInputCommandInteraction,
-  channelMention,
-  chatInputApplicationCommandMention as slashCmdMention,
-} from 'discord.js';
 import Connection from './index.js';
 
 export default class Pause extends Connection {
@@ -20,7 +20,7 @@ export default class Pause extends Connection {
     if (!connected) {
       await interaction.reply({
         content: `${this.getEmoji('x_icon')} That channel is not connected to a hub!`,
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -29,7 +29,7 @@ export default class Pause extends Connection {
       const embed = new InfoEmbed().setDescription(
         `${this.getEmoji('x_icon')} The connection is already paused for this channel. Use \`/connection unpause\` to continue chatting.`,
       );
-      await interaction.reply({ embeds: [embed], ephemeral: true });
+      await interaction.reply({ embeds: [embed], flags: ['Ephemeral'] });
       return;
     }
 

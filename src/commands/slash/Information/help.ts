@@ -1,8 +1,8 @@
+import { stripIndents } from 'common-tags';
+import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import Constants from '#utils/Constants.js';
-import { stripIndents } from 'common-tags';
-import { ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 
 export default class Help extends BaseCommand {
   readonly data = {
@@ -56,7 +56,8 @@ export default class Help extends BaseCommand {
 
     const page3 = EmbedBuilder.from(baseEmbed)
       .setTitle('Useful Commands')
-      .setThumbnail('https://i.imgur.com/MrhM6yN.png').setDescription(stripIndents`
+      .setThumbnail('https://i.imgur.com/MrhM6yN.png')
+      .setDescription(stripIndents`
       Here are some essential commands to help you get started:
 
       - </hub join:1107639810014847049>・Join a public or private hub using its name or invite.
@@ -68,7 +69,9 @@ export default class Help extends BaseCommand {
       ${this.getEmoji('info')} You can view other commands aside from these by typing  /.
     `);
 
-    const page4 = EmbedBuilder.from(baseEmbed).setTitle('Final Notes').setDescription(stripIndents`
+    const page4 = EmbedBuilder.from(baseEmbed)
+      .setTitle('Final Notes')
+      .setDescription(stripIndents`
     You\'re all set! You can now chat with people from other servers in real-time. If you enjoyed using InterChat, consider [donating](${Constants.Links.Donate}) to support the project.
     
     For any questions, suggestions or feedback, join the [support server](${Constants.Links.SupportInvite}) or [vote for InterChat](https://top.gg/bot/769921109209907241/vote).

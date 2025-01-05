@@ -1,8 +1,8 @@
-import { supportedLocaleCodes, supportedLocales, t } from '#utils/Locale.js';
-import { ChatInputCommandInteraction } from 'discord.js';
-import Set from './index.js';
+import type { ChatInputCommandInteraction } from 'discord.js';
+import { type supportedLocaleCodes, supportedLocales, t } from '#utils/Locale.js';
+import SetCommand from './index.js';
 
-export default class SetLanguage extends Set {
+export default class SetLanguage extends SetCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const locale = interaction.options.getString('lang', true) as supportedLocaleCodes;
 
@@ -13,7 +13,7 @@ export default class SetLanguage extends Set {
           await interaction.client.userManager.getUserLocale(interaction.user.id),
           { emoji: this.getEmoji('info') },
         ),
-        ephemeral: true,
+        flags: 'Ephemeral',
       });
       return;
     }
@@ -26,7 +26,7 @@ export default class SetLanguage extends Set {
 
     await interaction.reply({
       content: this.getEmoji('tick_icon') + t('language.set', locale, { lang }),
-      ephemeral: true,
+      flags: 'Ephemeral',
     });
   }
 }

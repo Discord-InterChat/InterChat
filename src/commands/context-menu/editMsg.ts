@@ -1,7 +1,22 @@
+import {
+  ActionRowBuilder,
+  ApplicationCommandType,
+  EmbedBuilder,
+  InteractionContextType,
+  type Message,
+  type MessageContextMenuCommandInteraction,
+  ModalBuilder,
+  type ModalSubmitInteraction,
+  type RESTPostAPIContextMenuApplicationCommandsJSONBody,
+  TextInputBuilder,
+  TextInputStyle,
+  type User,
+  userMention,
+} from 'discord.js';
 /* eslint-disable complexity */
 import BaseCommand from '#main/core/BaseCommand.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { SerializedHubSettings } from '#main/modules/BitFields.js';
+import type { SerializedHubSettings } from '#main/modules/BitFields.js';
 import VoteBasedLimiter from '#main/modules/VoteBasedLimiter.js';
 import { HubService } from '#main/services/HubService.js';
 import {
@@ -17,21 +32,6 @@ import { getAttachmentURL } from '#utils/ImageUtils.js';
 import { t } from '#utils/Locale.js';
 import { censor } from '#utils/ProfanityUtils.js';
 import { containsInviteLinks, handleError, replaceLinks } from '#utils/Utils.js';
-import {
-  ActionRowBuilder,
-  ApplicationCommandType,
-  EmbedBuilder,
-  InteractionContextType,
-  Message,
-  MessageContextMenuCommandInteraction,
-  ModalBuilder,
-  ModalSubmitInteraction,
-  RESTPostAPIContextMenuApplicationCommandsJSONBody,
-  TextInputBuilder,
-  TextInputStyle,
-  User,
-  userMention,
-} from 'discord.js';
 
 interface ImageUrls {
   oldURL?: string | null;
@@ -69,13 +69,17 @@ export default class EditMessage extends BaseCommand {
 
     if (!messageInDb) {
       await interaction.reply({
-        content: t('errors.unknownNetworkMessage', locale, { emoji: this.getEmoji('x_icon') }),
+        content: t('errors.unknownNetworkMessage', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       });
       return;
     }
-    else if (interaction.user.id !== messageInDb.authorId) {
+    if (interaction.user.id !== messageInDb.authorId) {
       await interaction.reply({
-        content: t('errors.notMessageAuthor', locale, { emoji: this.getEmoji('x_icon') }),
+        content: t('errors.notMessageAuthor', locale, {
+          emoji: this.getEmoji('x_icon'),
+        }),
       });
       return;
     }
@@ -101,7 +105,7 @@ export default class EditMessage extends BaseCommand {
   @RegisterInteractionHandler('editMsg')
   override async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     // Defer the reply to give the user feedback
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: ['Ephemeral'] });
 
     // Parse the custom ID to get the message ID
     const customId = CustomID.parseCustomId(interaction.customId);
@@ -146,7 +150,9 @@ export default class EditMessage extends BaseCommand {
     // Check if the message contains invite links
     if (hub.settings.has('BlockInvites') && containsInviteLinks(messageToEdit)) {
       await interaction.editReply(
-        t('errors.inviteLinks', await this.getLocale(interaction), { emoji: this.getEmoji('x_icon') }),
+        t('errors.inviteLinks', await this.getLocale(interaction), {
+          emoji: this.getEmoji('x_icon'),
+        }),
       );
       return;
     }
@@ -186,8 +192,8 @@ export default class EditMessage extends BaseCommand {
 
       if (webhook?.owner?.id !== interaction.client.user.id) continue;
 
-      let content;
-      let embeds;
+      let content: string | null = null;
+      let embeds: EmbedBuilder[] = [];
       if (msg.mode === ConnectionMode.Embed) {
         embeds = connection.profFilter ? [newEmbeds.censored] : [newEmbeds.normal];
       }
@@ -274,19 +280,30 @@ export default class EditMessage extends BaseCommand {
 
       // create a new embed if the message being edited is in compact mode
       embed = new EmbedBuilder()
-        .setAuthor({ name: opts.user.username, iconURL: opts.user.displayAvatarURL() })
+        .setAuthor({
+          name: opts.user.username,
+          iconURL: opts.user.displayAvatarURL(),
+        })
         .setDescription(embedContent)
         .setColor(Constants.Colors.invisible)
         .setImage(embedImage)
         .addFields(
           target.embeds.at(0)?.fields.at(0)
-            ? [{ name: 'Replying-to', value: `${target.embeds[0].description}` }]
+            ? [
+              {
+                name: 'Replying-to',
+                value: `${target.embeds[0].description}`,
+              },
+            ]
             : [],
         )
         .setFooter({ text: `Server: ${guild?.name}` });
     }
 
-    const censored = EmbedBuilder.from({ ...embed.data, description: censor(embedContent) });
+    const censored = EmbedBuilder.from({
+      ...embed.data,
+      description: censor(embedContent),
+    });
 
     return { normal: embed, censored };
   }
