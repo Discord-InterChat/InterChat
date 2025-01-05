@@ -1,7 +1,7 @@
 {
   "name": "interchat",
   "private": true,
-  "version": "4.1.1",
+  "version": "4.2.0",
   "description": "A growing Discord bot which provides inter-server chat!",
   "main": "src/index.ts",
   "license": "AGPL-3.0-only",
@@ -52,6 +52,7 @@
     "prettier": "^3.4.2",
     "prisma": "^6.1.0",
     "release-it": "^17.11.0",
+    "semantic-release": "^24.2.1",
     "typescript": "^5.7.2",
     "typescript-eslint": "^8.19.0"
   },
