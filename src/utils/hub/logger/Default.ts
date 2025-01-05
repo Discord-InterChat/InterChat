@@ -1,4 +1,3 @@
-import { handleError } from '#main/utils/Utils.js';
 import type { ClusterClient } from 'discord-hybrid-sharding';
 import type {
   APIActionRowComponent,
@@ -37,7 +36,7 @@ export const sendLog = async (
             components: ctx.components,
             allowedMentions: { roles: ctx.roleMentionIds },
           })
-          .catch(handleError);
+          .catch(() => null);
       }
     },
     {
