@@ -1,6 +1,6 @@
 rules:
   rules: |
-    ### {rules_emoji} Rules:
+    ### Rules:
     These rules are in place to make a safe and enjoyable experience for everyone. Read and follow them carefully:
 
     1. **No NSFW, NSFL, or Gore Content**
@@ -43,7 +43,7 @@ network:
       title: '👋 Hey und Willkommen bei {hubName}!'
       description: |
         Hey! Du versuchst einem Hub namens **{hubName}** beizutreten. Wenn du mit Mitgliedern anderer Server chatten möchtest, musst du InterChat's Richtlinien zustimmen. Nutze den Button unterhalb um fortzufahren.
-      footer: InterChat Netzwerk| Version {version}
+      footer: InterChat Netzwerk | Version {version}
     inProgress: '{emoji} {channel} Befindet sich bereits im Aufbauprozess für den Beitritt zu einem Hub. Bitte warte, bis die Einrichtung abgeschlossen ist, oder brich diese ab, wenn du sie initiiert hast.'
 blacklist:
   success: '{emoji} **{name}** wurde erfolgreich auf die schwarze Liste gesetzt!'
@@ -51,7 +51,7 @@ blacklist:
   modal:
     reason:
       label: Grund
-      placeholder: Grund für Schwarzlisten
+      placeholder: Grund für die schwarze Liste
     duration:
       label: Dauer
       placeholder: 'Dauer des Schwarzlisten. Z.b.: 1d, 1w, 1m, 1y (Tag/ Woche/ Monat/ Jahr). Leer lassen für Dauerhaft.'
