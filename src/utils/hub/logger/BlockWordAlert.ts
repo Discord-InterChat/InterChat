@@ -37,5 +37,9 @@ export const logBlockwordAlert = async (
     )
     .setTimestamp();
 
-  await sendLog(message.client.cluster, logManager.config.networkAlerts.channelId, embed);
+  const { networkAlerts: config } = logManager.config;
+
+  await sendLog(message.client.cluster, config.channelId, embed, {
+    roleMentionIds: config.roleId ? [config.roleId] : undefined,
+  });
 };

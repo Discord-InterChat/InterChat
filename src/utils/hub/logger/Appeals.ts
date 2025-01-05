@@ -11,6 +11,7 @@ import { getEmoji } from '#main/utils/EmojiUtils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { toTitleCase } from '#utils/Utils.js';
+import { sendLog } from '#main/utils/hub/logger/Default.js';
 
 export const logAppeals = async (
   type: 'user' | 'server',
@@ -75,30 +76,11 @@ export const logAppeals = async (
       .setStyle(ButtonStyle.Danger),
   );
 
-  await appealer.client.cluster.broadcastEval(
-    async (client, ctx) => {
-      const channel = await client.channels.fetch(ctx.appealsChannelId);
-      if (!channel?.isSendable()) return;
-      const roleMention = ctx.appealsRoleId ? `<@&${ctx.appealsRoleId}> ` : '';
-
-      return await channel.send({
-        content: `-# ${roleMention}New blacklist appeal for ${ctx.type} **${ctx.appealName} (${ctx.appealTargetId})**`,
-        embeds: [ctx.appealEmbed],
-        components: [ctx.buttonRow],
-      });
-    },
-    {
-      context: {
-        appealsChannelId: opts.appealsChannelId,
-        appealsRoleId: opts.appealsRoleId,
-        appealName: opts.appealName,
-        appealTargetId: opts.appealTargetId,
-        type,
-        appealEmbed: appealEmbed.toJSON(),
-        buttonRow: buttonRow.toJSON(),
-      },
-    },
-  );
+  await sendLog(appealer.client.cluster, opts.appealsChannelId, appealEmbed, {
+    roleMentionIds: opts.appealsRoleId ? [opts.appealsRoleId] : undefined,
+    content: `\n-# New blacklist appeal for ${opts.appealName} (${opts.appealTargetId})`,
+    components: [buttonRow.toJSON()],
+  });
 };
 
 export default logAppeals;

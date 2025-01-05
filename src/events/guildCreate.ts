@@ -30,7 +30,7 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
         2. Or browse & join hubs from [interchat.tech/hubs](${Constants.Links.Website}/hubs) like a pro 😎
         3. Need help? Join our [support server](${Constants.Links.SupportInvite})!
 
-        If you liked InterChat, consider [donating](${Constants.Links.Donate}) to support the project! 🌟
+        🌟 If you liked InterChat, consider [donating](${Constants.Links.Donate}) to support the project!
       `,
       )
       .setColor(Constants.Colors.interchatBlue)
@@ -40,7 +40,6 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
       });
 
     const buttonsRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
-      donateButton,
       new ButtonBuilder()
         .setLabel('ToS & Privacy')
         .setURL(`${Constants.Links.Website}/legal`)
@@ -51,11 +50,10 @@ export default class Ready extends BaseEventListener<'guildCreate'> {
         .setURL(Constants.Links.SupportInvite)
         .setEmoji(this.getEmoji('code_icon'))
         .setStyle(ButtonStyle.Link),
+      donateButton,
     );
 
-    const donateRow = new ActionRowBuilder<ButtonBuilder>().addComponents(donateButton);
-
-    const welcomeMsg = { embeds: [embed], components: [buttonsRow, donateRow] };
+    const welcomeMsg = { embeds: [embed], components: [buttonsRow] };
     guildOwner?.send(welcomeMsg).catch(() => null);
     guildChannel?.send(welcomeMsg).catch(() => null);
   }

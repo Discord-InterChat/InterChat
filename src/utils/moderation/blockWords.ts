@@ -44,7 +44,7 @@ export const buildBlockWordListEmbed = (rules: BlockWord[], client: Client) =>
     .removeTitle()
     .setDescription(
       stripIndents`
-      ### ${getEmoji('exclamation', client)} Blocked Words
+      ### ${getEmoji('alert_icon', client)} Blocked Words
       This hub has **${rules.length}**/2 blocked word rules.
       `,
     )
@@ -61,7 +61,7 @@ export const buildBWRuleEmbed = (rule: BlockWord, client: Client) => {
     .removeTitle()
     .setDescription(
       stripIndents`
-          ### ${getEmoji('exclamation', client)} Editing Rule: ${rule.name}
+          ### ${getEmoji('alert_icon', client)} Editing Rule: ${rule.name}
           ${rule.words ? `**Blocked Words:**\n${codeBlock(rule.words.replace(/\.\*/g, '*'))}` : ''}
           -# Configured Actions: **${actions.length > 0 ? actions : 'None. Configure using the button below.'}**
           `,

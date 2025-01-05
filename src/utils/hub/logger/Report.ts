@@ -5,6 +5,11 @@ import {
   getOriginalMessage,
 } from '#main/utils/network/messageUtils.js';
 
+import { markResolvedButton } from '#main/interactions/MarkResolvedButton.js';
+import { HubService } from '#main/services/HubService.js';
+import { getEmoji } from '#main/utils/EmojiUtils.js';
+import db from '#utils/Db.js';
+import { resolveEval } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -14,13 +19,7 @@ import {
   type GuildTextBasedChannel,
   type User,
   messageLink,
-  roleMention,
 } from 'discord.js';
-import { markResolvedButton } from '#main/interactions/MarkResolvedButton.js';
-import { HubService } from '#main/services/HubService.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import db from '#utils/Db.js';
-import { resolveEval } from '#utils/Utils.js';
 import { sendLog } from './Default.js';
 
 export type ReportEvidenceOpts = {
@@ -136,7 +135,6 @@ export const sendHubReport = async (
       iconURL: reportedBy.displayAvatarURL(),
     });
 
-  const mentionRole = reportsRoleId ? roleMention(reportsRoleId) : undefined;
   const button = modPanelButton(evidence.messageId, getEmoji('hammer_icon', client)).setLabel(
     'Take Action',
   );
@@ -144,7 +142,7 @@ export const sendHubReport = async (
   const row = new ActionRowBuilder<ButtonBuilder>().addComponents(button, resolveButton);
 
   await sendLog(client.cluster, reportsChannelId, embed, {
-    content: mentionRole,
+    roleMentionIds: reportsRoleId ? [reportsRoleId] : undefined,
     components: [row.toJSON()],
   });
 };

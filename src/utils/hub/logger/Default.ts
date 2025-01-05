@@ -1,3 +1,4 @@
+import { handleError } from '#main/utils/Utils.js';
 import type { ClusterClient } from 'discord-hybrid-sharding';
 import type {
   APIActionRowComponent,
@@ -18,7 +19,8 @@ export const sendLog = async (
   embed: EmbedBuilder,
   opts?: {
     content?: string;
-    components: APIActionRowComponent<APIMessageActionRowComponent>[];
+    roleMentionIds?: readonly string[];
+    components?: APIActionRowComponent<APIMessageActionRowComponent>[];
   },
 ) => {
   await cluster.broadcastEval(
@@ -30,20 +32,21 @@ export const sendLog = async (
       if (channel?.isSendable()) {
         await channel
           .send({
-            content: ctx.content,
+            content: `${ctx.roleMentionIds?.map((id) => `<@&${id}>`).join(' ')} ${ctx.content ?? ''}`,
             embeds: [ctx.embed],
             components: ctx.components,
-            allowedMentions: { parse: ['roles'] },
+            allowedMentions: { roles: ctx.roleMentionIds },
           })
-          .catch(() => null);
+          .catch(handleError);
       }
     },
     {
       context: {
         channelId,
         embed,
-        content: opts?.content,
+        content: opts?.roleMentionIds,
         components: opts?.components,
+        roleMentionIds: opts?.roleMentionIds,
       },
     },
   );

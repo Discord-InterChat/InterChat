@@ -78,11 +78,10 @@ export const t = <K extends keyof TranslationKeys>(
             variables[variable as TranslationKeys[K]],
           );
         }
-
-        return result;
       }
-    }
 
+      return result;
+    }
     Logger.warn(`Translation for key '${phrase}' not found in ${locale} language.`);
   }
   return phrase;
