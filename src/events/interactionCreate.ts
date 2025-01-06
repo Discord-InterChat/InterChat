@@ -16,6 +16,8 @@ import { CustomID, type ParsedCustomId } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
 import { checkIfStaff, handleError } from '#utils/Utils.js';
+import { AchievementType } from '@prisma/client';
+import db from '#utils/Db.js';
 
 export default class InteractionCreate extends BaseEventListener<'interactionCreate'> {
   readonly name = 'interactionCreate';
@@ -77,6 +79,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     }
 
     await command?.execute(interaction);
+    await this.trackUserActions(interaction);
   }
 
   private validateCommandAccess(
@@ -110,6 +113,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     }
 
     if (handler) await handler(interaction);
+    await this.trackUserActions(interaction);
   }
 
   private getInteractionHandler(
@@ -183,5 +187,68 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
       });
     }
     return true;
+  }
+
+  private async trackUserActions(interaction: Interaction) {
+    const userId = interaction.user.id;
+    const userData = await interaction.client.userManager.getUser(userId);
+
+    if (!userData) return;
+
+    // Track interaction count
+    const newInteractionCount = (userData.interactionCount ?? 0) + 1;
+    await interaction.client.userManager.updateUser(userId, { interactionCount: newInteractionCount });
+
+    // Check achievement criteria
+    await this.checkAchievementCriteria(interaction, userData, newInteractionCount);
+  }
+
+  private async checkAchievementCriteria(interaction: Interaction, userData: any, newInteractionCount: number) {
+    const userId = interaction.user.id;
+
+    // Check for first interaction achievement
+    if (newInteractionCount === 1) {
+      await this.awardAchievement(userId, AchievementType.FIRST_INTERACTION, interaction);
+    }
+
+    // Check for first 10 interactions achievement
+    if (newInteractionCount === 10) {
+      await this.awardAchievement(userId, AchievementType.FIRST_10_INTERACTIONS, interaction);
+    }
+
+    // Check for first 50 interactions achievement
+    if (newInteractionCount === 50) {
+      await this.awardAchievement(userId, AchievementType.FIRST_50_INTERACTIONS, interaction);
+    }
+
+    // Check for first 100 interactions achievement
+    if (newInteractionCount === 100) {
+      await this.awardAchievement(userId, AchievementType.FIRST_100_INTERACTIONS, interaction);
+    }
+  }
+
+  private async awardAchievement(userId: string, type: AchievementType, interaction: Interaction) {
+    const achievement = await db.achievement.create({
+      data: {
+        userId,
+        type,
+      },
+    });
+
+    await db.userAchievement.create({
+      data: {
+        userId,
+        achievementId: achievement.id,
+      },
+    });
+
+    await this.notifyUser(userId, type, interaction);
+  }
+
+  private async notifyUser(userId: string, type: AchievementType, interaction: Interaction) {
+    const user = await interaction.client.users.fetch(userId);
+    const embed = new InfoEmbed().setDescription(`Congratulations! You've unlocked the achievement: **${type}**`);
+
+    await user.send({ embeds: [embed] }).catch(() => null);
   }
 }

@@ -63,3 +63,14 @@ export class ErrorEmbed extends EmbedBuilder {
     return this;
   }
 }
+
+export function createAchievementNotificationEmbed(achievementType: string): EmbedBuilder {
+  return new EmbedBuilder()
+    .setTitle('Achievement Unlocked!')
+    .setDescription(`Congratulations! You've unlocked the achievement: **${achievementType}**`)
+    .setColor(Constants.Colors.interchatBlue)
+    .setFooter({
+      text: 'Keep up the great work!',
+      iconURL: 'https://i.imgur.com/NKKmav5.gif',
+    });
+}

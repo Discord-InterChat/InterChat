@@ -30,6 +30,26 @@ enum BlockWordAction {
   SEND_ALERT
 }
 
+enum AchievementType {
+  FIRST_100_MESSAGES
+  FIRST_HUB
+  CREATING_FIRST_HUB
+  SENDING_STICKER
+  FIRST_VOTE
+  FIRST_10_MESSAGES_IN_HUB
+  FIRST_50_MESSAGES_IN_HUB
+  FIRST_500_MESSAGES_IN_HUB
+  FIRST_1000_MESSAGES_IN_HUB
+  FIRST_REPLY_IN_HUB
+  FIRST_REACTION_IN_HUB
+  FIRST_MENTION_IN_HUB
+  FIRST_THREAD_CREATION_IN_HUB
+  FIRST_MODERATION_ACTION_IN_HUB
+  FIRST_REPORT
+  FIRST_APPEAL
+  FIRST_RESOLVED_APPEAL
+}
+
 type LogChannel {
   channelId String
   roleId    String?
@@ -177,6 +197,7 @@ model UserData {
   messageCount   Int            @default(0)
   lastMessageAt  DateTime       @default(now())
   ownedHubs      Hub[]
+  achievements   UserAchievement[]
 
   @@index([xp])
   @@index([level])
@@ -189,4 +210,28 @@ model ServerData {
   premiumStatus Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Achievement {
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String           @db.String
+  type       AchievementType
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  user       UserData         @relation(fields: [userId], references: [id])
+
+  @@index([userId, type])
+}
+
+model UserAchievement {
+  userId        String         @db.String
+  achievementId String         @db.ObjectId
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  user          UserData       @relation(fields: [userId], references: [id])
+  achievement   Achievement    @relation(fields: [achievementId], references: [id])
+
+  @@id([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
 }
