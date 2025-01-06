@@ -1,5 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -173,7 +173,7 @@ model UserData {
   modPositions   HubModerator[]
   updatedAt      DateTime       @updatedAt
   xp             Int            @default(0)
-  level          Int            @default(1)
+  level          Int            @default(0)
   messageCount   Int            @default(0)
   lastMessageAt  DateTime       @default(now())
   ownedHubs      Hub[]
@@ -184,9 +184,10 @@ model UserData {
 }
 
 model ServerData {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  serverId      String   @unique
+  id            String   @id @map("_id") @db.String
   premiumStatus Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  messageCount  Int      @default(0)
+  lastMessageAt DateTime @default(now())
 }

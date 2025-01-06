@@ -67,5 +67,6 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
   private async handleChatMessage(message: Message<true>) {
     await this.messageProcessor.processHubMessage(message);
+    await message.client.userLevels.handleMessage(message);
   }
 }

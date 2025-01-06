@@ -114,8 +114,11 @@ export const getReplyMethod = (
 export const sendErrorEmbed = async (
   repliable: RepliableInteraction | Message,
   errorCode: string,
+  comment?: string,
 ) => {
   const errorEmbed = new ErrorEmbed(repliable.client, { errorCode });
+  if (comment) errorEmbed.setDescription(comment);
+
   if (repliable instanceof Message) {
     return await repliable.reply({
       embeds: [errorEmbed],
@@ -149,7 +152,7 @@ export function handleError(error: unknown, options: ErrorHandlerOptions = {}): 
 
   // Send error response if possible
   if (repliable) {
-    void sendErrorResponse(repliable, errorCode);
+    void sendErrorResponse(repliable, errorCode, comment);
   }
 }
 

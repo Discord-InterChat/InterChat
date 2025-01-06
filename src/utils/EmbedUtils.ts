@@ -35,8 +35,7 @@ export class ErrorEmbed extends EmbedBuilder {
   constructor(client: Client, data?: { errorCode?: string }) {
     super({
       title: `${getEmoji('x_icon', client)} Error`,
-      description:
-        'An error occurred while executing this command. Please join our [support server](https://discord.gg/interchat) and report the Error Code!',
+      description: 'An error occurred while executing this command.',
       color: Colors.Red,
     });
 
@@ -51,6 +50,7 @@ export class ErrorEmbed extends EmbedBuilder {
     return super.setDescription(stripIndents`
       ${this.data.description ?? ''}
 
+      Please join our [support server](https://discord.gg/interchat) and report the following Error Code:
       **Error Code:**
       ${codeBlock(errorCode)}
     `);

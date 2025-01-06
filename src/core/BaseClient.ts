@@ -14,6 +14,7 @@ import type { InteractionFunction } from '#main/decorators/RegisterInteractionHa
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import CooldownService from '#main/services/CooldownService.js';
+import { LevelingService } from '#main/services/LevelingService.js';
 import Scheduler from '#main/services/SchedulerService.js';
 import { loadCommands, loadInteractions } from '#main/utils/CommandUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
@@ -40,6 +41,8 @@ export default class InterChatClient extends Client {
     timeWindow: 3000,
     spamCountExpirySecs: 60,
   });
+
+  public readonly userLevels: LevelingService = new LevelingService();
 
   constructor() {
     super({
