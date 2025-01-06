@@ -5,6 +5,9 @@ import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
 import Constants from '#main/utils/Constants.js';
 import { handleError, isHumanMessage } from '#utils/Utils.js';
+import { AchievementType } from '@prisma/client';
+import db from '#utils/Db.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
@@ -67,5 +70,74 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
   private async handleChatMessage(message: Message<true>) {
     await this.messageProcessor.processHubMessage(message);
+    await this.trackUserActions(message);
+  }
+
+  private async trackUserActions(message: Message<true>) {
+    const userId = message.author.id;
+    const userData = await message.client.userManager.getUser(userId);
+
+    if (!userData) return;
+
+    // Track message count
+    const newMessageCount = userData.messageCount + 1;
+    await message.client.userManager.updateUser(userId, { messageCount: newMessageCount });
+
+    // Check achievement criteria
+    await this.checkAchievementCriteria(message, userData, newMessageCount);
+  }
+
+  private async checkAchievementCriteria(message: Message<true>, userData: any, newMessageCount: number) {
+    const userId = message.author.id;
+
+    // Check for first 100 messages achievement
+    if (newMessageCount === 100) {
+      await this.awardAchievement(userId, AchievementType.FIRST_100_MESSAGES, message);
+    }
+
+    // Check for first 10 messages in a hub achievement
+    if (newMessageCount === 10) {
+      await this.awardAchievement(userId, AchievementType.FIRST_10_MESSAGES_IN_HUB, message);
+    }
+
+    // Check for first 50 messages in a hub achievement
+    if (newMessageCount === 50) {
+      await this.awardAchievement(userId, AchievementType.FIRST_50_MESSAGES_IN_HUB, message);
+    }
+
+    // Check for first 500 messages in a hub achievement
+    if (newMessageCount === 500) {
+      await this.awardAchievement(userId, AchievementType.FIRST_500_MESSAGES_IN_HUB, message);
+    }
+
+    // Check for first 1000 messages in a hub achievement
+    if (newMessageCount === 1000) {
+      await this.awardAchievement(userId, AchievementType.FIRST_1000_MESSAGES_IN_HUB, message);
+    }
+  }
+
+  private async awardAchievement(userId: string, type: AchievementType, message: Message<true>) {
+    const achievement = await db.achievement.create({
+      data: {
+        userId,
+        type,
+      },
+    });
+
+    await db.userAchievement.create({
+      data: {
+        userId,
+        achievementId: achievement.id,
+      },
+    });
+
+    await this.notifyUser(userId, type, message);
+  }
+
+  private async notifyUser(userId: string, type: AchievementType, message: Message<true>) {
+    const user = await message.client.users.fetch(userId);
+    const embed = new InfoEmbed().setDescription(`Congratulations! You've unlocked the achievement: **${type}**`);
+
+    await user.send({ embeds: [embed] }).catch(() => null);
   }
 }
