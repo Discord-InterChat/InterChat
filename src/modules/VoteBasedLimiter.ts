@@ -1,11 +1,11 @@
-import type UserDbManager from '#main/managers/UserDbManager.js';
+import UserDbService from '#main/services/UserDbService.js';
 import { cacheData, getCachedData } from '#utils/CacheUtils.js';
 import { RedisKeys } from '#utils/Constants.js';
 
 export default class VoteLimitManager {
-  private readonly userManager;
   private readonly userId;
   private readonly limitObjKey;
+  private readonly userManager: UserDbService;
 
   private readonly MAX_USES_WITHOUT_VOTE;
   private readonly CACHE_DURATION; // 12 hours
@@ -13,12 +13,11 @@ export default class VoteLimitManager {
   constructor(
     limitObjKey: string,
     userId: string,
-    userManager: UserDbManager,
     opts?: { maxUses?: number; cacheDuration?: number },
   ) {
     this.limitObjKey = limitObjKey;
     this.userId = userId;
-    this.userManager = userManager;
+    this.userManager = new UserDbService();
     this.MAX_USES_WITHOUT_VOTE = opts?.maxUses ?? 3;
     this.CACHE_DURATION = opts?.cacheDuration ?? 43200; // 12 hours
   }

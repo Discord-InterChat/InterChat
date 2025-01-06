@@ -9,6 +9,7 @@ import type { ButtonInteraction, Snowflake } from 'discord.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class DeleteMessageHandler implements ModAction {
   async handle(
@@ -54,7 +55,7 @@ export default class DeleteMessageHandler implements ModAction {
       .editReply(
         t(
           'network.deleteSuccess',
-          await interaction.client.userManager.getUserLocale(interaction.user.id),
+          await fetchUserLocale(interaction.user.id),
           {
             emoji: getEmoji('tick_icon', interaction.client),
             user: `<@${originalMsg.authorId}>`,

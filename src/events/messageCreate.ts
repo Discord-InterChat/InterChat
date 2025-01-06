@@ -4,7 +4,7 @@ import BaseEventListener from '#main/core/BaseEventListener.js';
 import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
 import Constants from '#main/utils/Constants.js';
-import { handleError, isHumanMessage } from '#utils/Utils.js';
+import { fetchUserData, handleError, isHumanMessage } from '#utils/Utils.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
@@ -44,7 +44,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
 
   private async handlePrefixCommand(message: Message, prefix: string) {
     try {
-      const userData = await message.client.userManager.getUser(message.author.id);
+      const userData = await fetchUserData(message.author.id);
       if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
 
       const args = message.content.slice(prefix.length).trim().split(/ +/);

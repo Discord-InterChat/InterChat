@@ -11,7 +11,7 @@ import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
 import Constants from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';
-import { containsInviteLinks, replaceLinks } from '#utils/Utils.js';
+import { containsInviteLinks, fetchUserData, fetchUserLocale, replaceLinks } from '#utils/Utils.js';
 import logProfanity from '#utils/hub/logger/Profanity.js';
 
 export interface CheckResult {
@@ -86,8 +86,7 @@ async function checkBanAndBlacklist(
   message: Message<true>,
   opts: CheckFunctionOpts,
 ): Promise<CheckResult> {
-  const { userManager } = message.client;
-  const userData = await userManager.getUser(message.author.id);
+  const userData = await fetchUserData(message.author.id);
   const blacklistManager = new BlacklistManager('user', message.author.id);
   const blacklisted = await blacklistManager.fetchBlacklist(opts.hub.id);
 
@@ -175,7 +174,7 @@ async function checkNewUser(message: Message<true>, opts: CheckFunctionOpts): Pr
   const sevenDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 7;
 
   if (message.author.createdTimestamp > sevenDaysAgo) {
-    const locale = await message.client.userManager.getUserLocale(opts.userData);
+    const locale = await fetchUserLocale(opts.userData);
     return {
       passed: false,
       reason: t('network.accountTooNew', locale, {
@@ -215,7 +214,7 @@ async function checkInviteLinks(
   const { settings, userData } = opts;
 
   if (settings.has('BlockInvites') && containsInviteLinks(message.content)) {
-    const locale = await message.client.userManager.getUserLocale(userData);
+    const locale = await fetchUserLocale(userData);
     const emoji = getEmoji('x_icon', message.client);
     return {
       passed: false,

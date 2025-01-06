@@ -2,6 +2,7 @@ import { hubLeaveConfirmButtons } from '#main/interactions/HubLeaveConfirm.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
 
 import { type CacheType, type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import HubCommand from './index.js';
@@ -17,8 +18,7 @@ export default class Leave extends HubCommand {
       include: { hub: true },
     });
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
     if (!isChannelConnected) {
       await this.replyEmbed(
         interaction,

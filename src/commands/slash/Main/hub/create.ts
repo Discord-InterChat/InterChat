@@ -12,7 +12,7 @@ import { RegisterInteractionHandler } from '#main/decorators/RegisterInteraction
 import { HubValidator } from '#main/modules/HubValidator.js';
 import type { HubCreationData } from '#main/services/HubService.js';
 import { CustomID } from '#main/utils/CustomID.js';
-import { handleError } from '#main/utils/Utils.js';
+import { fetchUserLocale, handleError } from '#main/utils/Utils.js';
 import Constants from '#utils/Constants.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import HubCommand from './index.js';
@@ -21,8 +21,7 @@ export default class Create extends HubCommand {
   readonly cooldown = 10 * 60 * 1000; // 10 mins
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     if (await this.isOnCooldown(interaction, locale)) return;
 
@@ -93,8 +92,7 @@ export default class Create extends HubCommand {
   async handleModals(interaction: ModalSubmitInteraction): Promise<void> {
     await interaction.deferReply({ flags: ['Ephemeral'] });
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     try {
       const hubData = this.extractHubData(interaction);

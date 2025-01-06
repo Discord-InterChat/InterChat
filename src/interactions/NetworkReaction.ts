@@ -23,7 +23,7 @@ import {
 import Constants from '#utils/Constants.js';
 import { CustomID, type ParsedCustomId } from '#utils/CustomID.js';
 import { t } from '#utils/Locale.js';
-import { getEmojiId } from '#utils/Utils.js';
+import { fetchUserLocale, getEmojiId } from '#utils/Utils.js';
 import { addReaction, removeReaction, updateReactions } from '#utils/reaction/actions.js';
 import { checkBlacklists } from '#utils/reaction/helpers.js';
 import sortReactions from '#utils/reaction/sortReactions.js';
@@ -81,8 +81,7 @@ export default class NetworkReactionInteraction {
     interaction: ButtonInteraction | AnySelectMenuInteraction,
     userBlacklisted: boolean,
   ) {
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
     const phrase = userBlacklisted ? 'errors.userBlacklisted' : 'errors.serverBlacklisted';
     await interaction.followUp({
       content: t(phrase, locale, { emoji: getEmoji('no', interaction.client) }),

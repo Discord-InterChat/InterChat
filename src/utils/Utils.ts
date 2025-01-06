@@ -15,6 +15,9 @@ import type { RemoveMethods, ThreadParentChannel } from '#types/CustomClientProp
 import Constants from '#utils/Constants.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
+import UserDbService from '#main/services/UserDbService.js';
+import { UserData } from '@prisma/client';
+import { supportedLocaleCodes } from '#main/utils/Locale.js';
 
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
@@ -150,7 +153,6 @@ export function handleError(error: unknown, options: ErrorHandlerOptions = {}): 
   }
 }
 
-
 export const isDev = (userId: Snowflake) => Constants.DeveloperIds.includes(userId);
 
 export const escapeRegexChars = (input: string, type: 'simple' | 'full' = 'simple'): string =>
@@ -196,3 +198,12 @@ export const isHumanMessage = (message: Message) =>
 export const trimAndCensorBannedWebhookWords = (content: string) =>
   content.slice(0, 35).replace(Constants.Regex.BannedWebhookWords, '[censored]');
 
+export const fetchUserData = async (userId: Snowflake) => {
+  const user = new UserDbService().getUser(userId);
+  return user;
+};
+
+export const fetchUserLocale = async (user: Snowflake | UserData) => {
+  const userData = typeof user === 'string' ? await fetchUserData(user) : user;
+  return (userData?.locale ?? 'en') as supportedLocaleCodes;
+};

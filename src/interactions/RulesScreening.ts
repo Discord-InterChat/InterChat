@@ -8,9 +8,10 @@ import {
   Message,
 } from 'discord.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
+import UserDbService from '#main/services/UserDbService.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import Logger from '#main/utils/Logger.js';
-import { getReplyMethod, handleError } from '#main/utils/Utils.js';
+import { fetchUserData, fetchUserLocale, getReplyMethod, handleError } from '#main/utils/Utils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -23,7 +24,7 @@ export const showRulesScreening = async (
   try {
     const author = repliable instanceof Message ? repliable.author : repliable.user;
 
-    const locale = await repliable.client.userManager.getUserLocale(userData);
+    const locale = userData ? await fetchUserLocale(userData) : 'en';
     const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
       new ButtonBuilder()
         .setCustomId(new CustomID('rulesScreen:continue', [author.id]).toString())
@@ -71,13 +72,11 @@ export default class RulesScreeningInteraction {
       return;
     }
 
-    const { userManager } = interaction.client;
-    const userData = await userManager.getUser(userId);
-    const locale = await userManager.getUserLocale(userData);
+    const userData = await fetchUserData(userId);
 
-    if (this.hasAlreadyAccepted(interaction, userData, locale)) return;
+    if (this.hasAlreadyAccepted(interaction, userData)) return;
 
-    await this.showRules(interaction, locale).catch(handleError);
+    await this.showRules(interaction, userData).catch(handleError);
   }
 
   @RegisterInteractionHandler('rulesScreen')
@@ -86,9 +85,9 @@ export default class RulesScreeningInteraction {
     const customId = CustomID.parseCustomId(interaction.customId);
 
     if (customId.suffix === 'accept') {
-      const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+      const locale = await fetchUserLocale(interaction.user.id);
 
-      const { success } = await this.acceptRules(interaction, locale);
+      const { success } = await this.acceptRules(interaction);
       if (!success) return;
 
       const embed = new InfoEmbed().setDescription(
@@ -106,7 +105,8 @@ export default class RulesScreeningInteraction {
     }
   }
 
-  private async showRules(interaction: ButtonInteraction, locale: supportedLocaleCodes) {
+  private async showRules(interaction: ButtonInteraction, userData: UserData | null) {
+    const locale = userData ? await fetchUserLocale(userData) : 'en';
     const rulesEmbed = new InfoEmbed()
       .setDescription(
         t('rules.rules', locale, {
@@ -134,25 +134,21 @@ export default class RulesScreeningInteraction {
     });
   }
 
-  private async acceptRules(interaction: ButtonInteraction, locale: supportedLocaleCodes) {
-    const { userManager } = interaction.client;
-    const userData = await userManager.getUser(interaction.user.id);
+  private async acceptRules(interaction: ButtonInteraction) {
+    const userService = new UserDbService();
+    const userData = await userService.getUser(interaction.user.id); // fetch user data again to ensure it's up to date
 
-    if (this.hasAlreadyAccepted(interaction, userData, locale)) return { success: false };
+    if (this.hasAlreadyAccepted(interaction, userData)) return { success: false };
 
-    await userManager.upsertUser(interaction.user.id, { acceptedRules: true });
+    await userService.upsertUser(interaction.user.id, { acceptedRules: true });
 
     return { success: true };
   }
 
-  private hasAlreadyAccepted(
-    interaction: ButtonInteraction,
-    userData: UserData | null | undefined,
-    locale: supportedLocaleCodes,
-  ) {
+  private hasAlreadyAccepted(interaction: ButtonInteraction, userData: UserData | null) {
     if (!userData?.acceptedRules) return false;
     const embed = new InfoEmbed().setDescription(
-      t('rules.alreadyAccepted', locale, {
+      t('rules.alreadyAccepted', userData.locale as supportedLocaleCodes, {
         emoji: getEmoji('tick_icon', interaction.client),
       }),
     );

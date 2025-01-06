@@ -18,7 +18,7 @@ import type HubLogManager from '#main/managers/HubLogManager.js';
 import type { LogConfigTypes as HubConfigTypes } from '#main/managers/HubLogManager.js';
 import type HubManager from '#main/managers/HubManager.js';
 import db from '#main/utils/Db.js';
-import { getReplyMethod } from '#main/utils/Utils.js';
+import { fetchUserLocale, getReplyMethod } from '#main/utils/Utils.js';
 import { setComponentExpiry } from '#utils/ComponentUtils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
@@ -152,7 +152,7 @@ export default class HubEdit extends HubCommand {
   // --- Helper Methods ---
 
   private async getHubAndLocale(interaction: ChatInputCommandInteraction) {
-    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
     const hubName = interaction.options.getString('hub', true);
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
@@ -384,7 +384,7 @@ export default class HubEdit extends HubCommand {
 
   private async ensureComponentValidity(interaction: MessageComponentInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
-    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     if (customId.args[0] !== interaction.user.id) {
       await this.replyError(
@@ -411,7 +411,7 @@ export default class HubEdit extends HubCommand {
   private async ensureModalValidity(interaction: ModalSubmitInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [hubId] = customId.args;
-    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     const hub = await this.hubService.fetchHub(hubId);
 

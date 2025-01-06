@@ -18,7 +18,7 @@ import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
-import { getOrCreateWebhook } from '#utils/Utils.js';
+import { fetchUserLocale, getOrCreateWebhook } from '#utils/Utils.js';
 import {
   buildChannelSelect,
   buildEditEmbed,
@@ -164,8 +164,8 @@ export default class ConnectionEditCommand extends Connection {
     const customId = CustomID.parseCustomId(interaction.customId);
     const channelId = customId.args.at(0);
     const userIdFilter = customId.args.at(1);
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+
+    const locale = await fetchUserLocale(interaction.user.id);
 
     if (userIdFilter !== interaction.user.id) {
       const embed = new InfoEmbed().setDescription(
@@ -270,8 +270,7 @@ export default class ConnectionEditCommand extends Connection {
     if (!interaction.isChannelSelectMenu()) return;
     await interaction.deferUpdate();
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     const emoji = this.getEmoji('x_icon');
     const customId = CustomID.parseCustomId(interaction.customId);

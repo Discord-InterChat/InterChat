@@ -4,7 +4,7 @@ import { Pagination } from '#main/modules/Pagination.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
-import { toTitleCase } from '#utils/Utils.js';
+import { fetchUserLocale, toTitleCase } from '#utils/Utils.js';
 import BlacklistCommand from './index.js';
 
 // Type guard
@@ -17,8 +17,7 @@ export default class ListBlacklists extends BlacklistCommand {
     const hubName = interaction.options.getString('hub', true);
     const hub = await this.findHubsByName(hubName, interaction.user.id, 1);
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
     if (!hub) {
       await this.replyEmbed(
         interaction,

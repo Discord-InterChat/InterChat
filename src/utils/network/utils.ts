@@ -9,6 +9,7 @@ import Constants from '#utils/Constants.js';
 import { stripTenorLinks } from '#utils/ImageUtils.js';
 import { censor } from '#utils/ProfanityUtils.js';
 import type { ReferredMsgData } from './Types.js';
+import { fetchUserData } from '#main/utils/Utils.js';
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.
@@ -51,7 +52,7 @@ export const getReferredMsgData = async (
 
   // fetch the acttual user ("referredMessage" is a webhook message)
   const referredAuthor = await client.users.fetch(dbReferrenceRaw.authorId).catch(() => null);
-  const dbReferredAuthor = await client.userManager.getUser(dbReferrenceRaw.authorId);
+  const dbReferredAuthor = await fetchUserData(dbReferrenceRaw.authorId);
   const broadcastedMessages = await getBroadcasts(dbReferrenceRaw.messageId, dbReferrenceRaw.hubId);
 
   const dbReferrence = {

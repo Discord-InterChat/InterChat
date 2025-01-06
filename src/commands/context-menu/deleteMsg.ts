@@ -18,6 +18,7 @@ import { t } from '#utils/Locale.js';
 import { logMsgDelete } from '#utils/hub/logger/ModLogs.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
 import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class DeleteMessage extends BaseCommand {
   readonly data: RESTPostAPIContextMenuApplicationCommandsJSONBody = {
@@ -53,8 +54,7 @@ export default class DeleteMessage extends BaseCommand {
     originalMsg: OriginalMessage,
     hub: HubManager,
   ): Promise<void> {
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     await interaction.editReply(
       `${this.getEmoji('tick_icon')} Your request has been queued. Messages will be deleted shortly...`,
@@ -87,8 +87,7 @@ export default class DeleteMessage extends BaseCommand {
     originalMsg: OriginalMessage | null,
     hub: HubManager | null,
   ) {
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     if (!originalMsg || !hub) {
       await interaction.editReply(

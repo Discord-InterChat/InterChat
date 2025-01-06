@@ -12,7 +12,6 @@ import type BaseCommand from '#main/core/BaseCommand.js';
 import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
-import UserDbManager from '#main/managers/UserDbManager.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import CooldownService from '#main/services/CooldownService.js';
 import Scheduler from '#main/services/SchedulerService.js';
@@ -33,7 +32,6 @@ export default class InterChatClient extends Client {
 
   public readonly version = Constants.ProjectVersion;
   public readonly reactionCooldowns = new Collection<string, number>();
-  public readonly userManager = new UserDbManager();
   public readonly cluster = new ClusterClient(this);
   public readonly eventLoader = new EventLoader(this);
   public readonly commandCooldowns = new CooldownService();

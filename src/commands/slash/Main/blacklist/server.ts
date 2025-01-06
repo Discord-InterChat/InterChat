@@ -7,14 +7,14 @@ import { t } from '#utils/Locale.js';
 import { logServerUnblacklist } from '#utils/hub/logger/ModLogs.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import BlacklistCommand from './index.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class extends BlacklistCommand {
   async execute(interaction: ChatInputCommandInteraction) {
     await interaction.deferReply();
 
     const { id: moderatorId } = interaction.user;
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     const hubName = interaction.options.getString('hub');
     const hub = await this.getHub({ name: hubName, userId: moderatorId });

@@ -16,6 +16,7 @@ import {
 } from '#main/utils/network/messageUtils.js';
 import { t } from '#utils/Locale.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
+import { fetchUserData, fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class BlacklistCtxMenu extends BaseCommand {
   readonly data: RESTPostAPIContextMenuApplicationCommandsJSONBody = {
@@ -27,9 +28,9 @@ export default class BlacklistCtxMenu extends BaseCommand {
   async execute(interaction: MessageContextMenuCommandInteraction) {
     await interaction.deferReply({ flags: ['Ephemeral'] });
 
-    const { userManager } = interaction.client;
-    const dbUser = await userManager.getUser(interaction.user.id);
-    const locale = await userManager.getUserLocale(dbUser);
+
+    const dbUser = await fetchUserData(interaction.user.id);
+    const locale = dbUser ? await fetchUserLocale(dbUser) : 'en';
 
     const originalMsg =
       (await getOriginalMessage(interaction.targetId)) ??

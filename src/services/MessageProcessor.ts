@@ -5,6 +5,7 @@ import { getConnectionHubId } from '#main/utils/ConnectedListUtils.js';
 import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
 import { runChecks } from '#main/utils/network/runChecks.js';
 import { BroadcastService } from './BroadcastService.js';
+import { fetchUserData } from '#main/utils/Utils.js';
 
 export class MessageProcessor {
   private readonly broadcastService: BroadcastService;
@@ -28,8 +29,7 @@ export class MessageProcessor {
     const connection = allConnections.find((c) => c.data.channelId === message.channelId);
     if (!connection?.data.connected) return null;
 
-    const { userManager } = message.client;
-    const userData = await userManager.getUser(message.author.id);
+    const userData = await fetchUserData(message.author.id);
     if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
 
     const attachmentURL = await this.broadcastService.resolveAttachmentURL(message);

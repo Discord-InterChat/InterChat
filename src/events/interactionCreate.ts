@@ -15,7 +15,7 @@ import Constants from '#utils/Constants.js';
 import { CustomID, type ParsedCustomId } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
-import { checkIfStaff, handleError } from '#utils/Utils.js';
+import { checkIfStaff, fetchUserData, fetchUserLocale, handleError } from '#utils/Utils.js';
 
 export default class InteractionCreate extends BaseEventListener<'interactionCreate'> {
   readonly name = 'interactionCreate';
@@ -37,7 +37,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
       return { shouldContinue: false, dbUser: null };
     }
 
-    const dbUser = (await interaction.client.userManager.getUser(interaction.user.id)) ?? null;
+    const dbUser = await fetchUserData(interaction.user.id);
 
     if (await this.isUserBanned(interaction, dbUser)) {
       return { shouldContinue: false, dbUser: null };
@@ -132,8 +132,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
       return false;
     }
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(dbUser);
+    const locale = dbUser ? await fetchUserLocale(dbUser) : 'en';
     const embed = new InfoEmbed({
       description: t('errors.notUsable', locale, {
         emoji: this.getEmoji('slash'),
@@ -172,8 +171,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
     }
 
     if (interaction.isRepliable()) {
-      const { userManager } = interaction.client;
-      const locale = await userManager.getUserLocale(dbUser);
+      const locale = await fetchUserLocale(dbUser);
       await interaction.reply({
         content: t('errors.banned', locale, {
           emoji: this.getEmoji('x_icon'),

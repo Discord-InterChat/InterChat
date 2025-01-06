@@ -10,6 +10,7 @@ import {
   type ChatInputCommandInteraction,
   EmbedBuilder,
 } from 'discord.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -24,18 +25,14 @@ export default class Delete extends HubCommand {
       (h) => h.data.name === hubName,
     );
 
+    const locale = await fetchUserLocale(interaction.user.id);
     if (!hub) {
       const infoEmbed = new InfoEmbed().setDescription(
-        t('hub.notOwner', await interaction.client.userManager.getUserLocale(interaction.user.id), {
-          emoji: this.getEmoji('x_icon'),
-        }),
+        t('hub.notOwner', locale, { emoji: this.getEmoji('x_icon') }),
       );
       await interaction.reply({ embeds: [infoEmbed], flags: ['Ephemeral'] });
       return;
     }
-
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
 
     const confirmEmbed = new EmbedBuilder()
       .setDescription(t('hub.delete.confirm', locale, { hub: hub.data.name }))
@@ -75,8 +72,8 @@ export default class Delete extends HubCommand {
   override async handleComponents(interaction: ButtonInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [userId, hubId] = customId.args;
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+
+    const locale = await fetchUserLocale(interaction.user.id);
 
     if (interaction.user.id !== userId) {
       const infoEmbed = new InfoEmbed().setDescription(

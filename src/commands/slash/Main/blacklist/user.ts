@@ -7,6 +7,7 @@ import { logUserUnblacklist } from '#utils/hub/logger/ModLogs.js';
 import { sendBlacklistNotif } from '#utils/moderation/blacklistUtils.js';
 import BlacklistCommand from './index.js';
 import { Infraction } from '@prisma/client';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 interface BlacklistOptions {
   expiresAt: Date | null;
@@ -39,7 +40,7 @@ export default class extends BlacklistCommand {
 
   private async extractCommandData(interaction: ChatInputCommandInteraction) {
     const moderatorId = interaction.user.id;
-    const locale = await interaction.client.userManager.getUserLocale(moderatorId);
+    const locale = await fetchUserLocale(moderatorId);
 
     const hubName = interaction.options.getString('hub');
     const hub = await this.getHub({ name: hubName, userId: moderatorId });
@@ -88,7 +89,7 @@ export default class extends BlacklistCommand {
   ) {
     const userId = interaction.options.getString('user', true);
     const blacklistManager = new BlacklistManager('user', userId);
-    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     const wasRemoved = await this.removeUserBlacklist(interaction, blacklistManager, userId, {
       hubId,
@@ -110,7 +111,7 @@ export default class extends BlacklistCommand {
     blacklistManager: BlacklistManager,
     hubId: string,
   ) {
-    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
     const { reason, expiresAt: expires } = blacklist;
 
     await this.sendSuccessResponse(
@@ -202,7 +203,7 @@ export default class extends BlacklistCommand {
     blacklistManager: BlacklistManager,
     { userId, hubId, duration }: UserCheckOptions,
   ) {
-    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
     const hiddenOpt = { flags: ['Ephemeral'] } as const;
 
     if (await this.hasBlockingCondition(interaction, userId, duration, locale)) {

@@ -1,6 +1,8 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
 import { type supportedLocaleCodes, supportedLocales, t } from '#utils/Locale.js';
 import SetCommand from './index.js';
+import UserDbService from '#main/services/UserDbService.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class SetLanguage extends SetCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -8,18 +10,17 @@ export default class SetLanguage extends SetCommand {
 
     if (!Object.keys(supportedLocales).includes(locale)) {
       await interaction.reply({
-        content: t(
-          'errors.invalidLangCode',
-          await interaction.client.userManager.getUserLocale(interaction.user.id),
-          { emoji: this.getEmoji('info') },
-        ),
+        content: t('errors.invalidLangCode', await fetchUserLocale(interaction.user.id), {
+          emoji: this.getEmoji('info'),
+        }),
         flags: ['Ephemeral'],
       });
       return;
     }
 
     const { id, username } = interaction.user;
-    await interaction.client.userManager.upsertUser(id, { locale, username });
+    const userService = new UserDbService();
+    await userService.upsertUser(id, { locale, username });
 
     const langInfo = supportedLocales[locale];
     const lang = `${langInfo.emoji} ${langInfo.name}`;

@@ -20,7 +20,7 @@ import db from '#main/utils/Db.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { checkIfStaff } from '#main/utils/Utils.js';
+import { checkIfStaff, fetchUserData, fetchUserLocale } from '#main/utils/Utils.js';
 import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
 import { isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
 import RemoveReactionsHandler from '#main/utils/moderation/modPanel/handlers/RemoveReactionsHandler.js';
@@ -55,7 +55,7 @@ export default class ModPanelHandler {
   async handleButtons(interaction: ButtonInteraction): Promise<void> {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [userId, originalMsgId] = customId.args;
-    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     if (!(await this.validateUser(interaction, userId, locale))) return;
 
@@ -90,7 +90,7 @@ export default class ModPanelHandler {
     const customId = CustomID.parseCustomId(interaction.customId);
     const [originalMsgId] = customId.args;
     const originalMsg = await getOriginalMessage(originalMsgId);
-    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     if (!originalMsg || !(await this.validateMessage(interaction, originalMsg, locale))) {
       return;
@@ -130,13 +130,12 @@ export async function buildModPanel(
   const server = await interaction.client.fetchGuild(originalMsg.guildId);
   const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
 
-  const { userManager } = interaction.client;
   const userBlManager = new BlacklistManager('user', originalMsg.authorId);
   const serverBlManager = new BlacklistManager('server', originalMsg.guildId);
 
   const isUserBlacklisted = Boolean(await userBlManager.fetchBlacklist(originalMsg.hubId));
   const isServerBlacklisted = Boolean(await serverBlManager.fetchBlacklist(originalMsg.hubId));
-  const dbUserTarget = await userManager.getUser(user.id);
+  const dbUserTarget = await fetchUserData(user.id);
 
   const embed = buildInfoEmbed(
     user.username,

@@ -11,10 +11,10 @@ import type BaseCommand from '#main/core/BaseCommand.js';
 import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import type AntiSpamManager from '#main/managers/AntiSpamManager.js';
-import type UserDbManager from '#main/managers/UserDbManager.js';
 import type EventLoader from '#main/modules/Loaders/EventLoader.js';
 import type CooldownService from '#main/services/CooldownService.js';
 import type Scheduler from '#main/services/SchedulerService.js';
+import { LevelingService } from '#main/services/LevelingService.js';
 
 export type RemoveMethods<T> = {
   [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? never : RemoveMethods<T[K]>;
@@ -31,13 +31,13 @@ declare module 'discord.js' {
     readonly interactions: Collection<string, InteractionFunction>;
     readonly prefixCommands: Collection<string, BasePrefixCommand>;
 
-    readonly userManager: UserDbManager;
     readonly eventLoader: EventLoader;
     readonly commandCooldowns: CooldownService;
     readonly reactionCooldowns: Collection<string, number>;
     readonly cluster: ClusterClient<Client>;
-    readonly userManager: UserDbManager;
     readonly antiSpamManager: AntiSpamManager;
+
+    readonly userLevels: LevelingService;
 
     fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined>;
     getScheduler(): Scheduler;

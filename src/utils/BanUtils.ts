@@ -1,6 +1,7 @@
 import type { RepliableInteraction, User } from 'discord.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import Logger from '#utils/Logger.js';
+import UserDbService from '#main/services/UserDbService.js';
 
 export const handleBan = async (
   interaction: RepliableInteraction,
@@ -16,8 +17,8 @@ export const handleBan = async (
     return;
   }
 
-  const { userManager } = interaction.client;
-  const dbUser = await userManager.getUser(targetId);
+  const userService = new UserDbService();
+  const dbUser = await userService.getUser(targetId);
 
   if (dbUser?.banReason) {
     await interaction.reply({
@@ -28,7 +29,7 @@ export const handleBan = async (
   }
 
   const targetUsername = target?.username;
-  await userManager.ban(targetId, reason, targetUsername);
+  await userService.ban(targetId, reason, targetUsername);
 
   Logger.info(`User ${targetUsername} (${targetId}) banned by ${interaction.user.username}.`);
 

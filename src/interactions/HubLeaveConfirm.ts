@@ -4,6 +4,7 @@ import { HubService } from '#main/services/HubService.js';
 import { CustomID } from '#main/utils/CustomID.js';
 import { getEmoji } from '#main/utils/EmojiUtils.js';
 import { t } from '#main/utils/Locale.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 import { logGuildLeaveToHub } from '#main/utils/hub/logger/JoinLeave.js';
 
 export const hubLeaveConfirmButtons = (channelId: string, hubId: string) =>
@@ -32,8 +33,7 @@ export default class ModActionsButton {
       return;
     }
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     const hub = await this.hubService.fetchHub(hubId);
     if (!hub) {

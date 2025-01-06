@@ -1,13 +1,12 @@
-import type { Prisma, UserData } from '@prisma/client';
-import type { Snowflake } from 'discord.js';
 import { CacheManager } from '#main/managers/CacheManager.js';
 import getRedis from '#main/utils/Redis.js';
 import type { ConvertDatesToString } from '#types/Utils.d.ts';
 import { RedisKeys } from '#utils/Constants.js';
 import db from '#utils/Db.js';
-import type { supportedLocaleCodes } from '#utils/Locale.js';
+import type { Prisma, UserData } from '@prisma/client';
+import type { Snowflake } from 'discord.js';
 
-export default class UserDbManager {
+export default class UserDbService {
   private readonly cacheManager: CacheManager;
   private readonly VOTE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -56,13 +55,6 @@ export default class UserDbManager {
     });
     await this.cacheUser(user);
     return user;
-  }
-
-  public async getUserLocale(
-    userOrId: string | UserData | null | undefined,
-  ): Promise<supportedLocaleCodes> {
-    const user = typeof userOrId === 'string' ? await this.getUser(userOrId) : userOrId;
-    return (user?.locale as supportedLocaleCodes) ?? 'en';
   }
 
   public async userVotedToday(id: Snowflake): Promise<boolean> {

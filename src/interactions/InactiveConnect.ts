@@ -5,6 +5,7 @@ import { fetchConnection, updateConnection } from '#utils/ConnectedListUtils.js'
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 type extraOpts = {
   disconnectEmoji?: string;
@@ -52,7 +53,7 @@ export default class InactiveConnectInteraction {
 
     const connection = await fetchConnection(channelId);
     if (!connection) {
-      const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+      const locale = await fetchUserLocale(interaction.user.id);
       const notFoundEmbed = new InfoEmbed().setDescription(
         t('connection.channelNotFound', locale, {
           emoji: getEmoji('x_icon', interaction.client),

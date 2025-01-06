@@ -9,13 +9,14 @@ import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
 import Connection from './index.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class Pause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const channelId = interaction.options.getString('channel') ?? interaction.channelId;
     const connected = await db.connection.findFirst({ where: { channelId } });
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+
+    const locale = await fetchUserLocale(interaction.user.id);
 
     if (!connected) {
       await interaction.reply({
