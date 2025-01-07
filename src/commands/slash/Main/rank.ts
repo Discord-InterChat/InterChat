@@ -105,7 +105,7 @@ export default class Rank extends BaseCommand {
 
       // Draw level
       ctx.font = 'bold 28px "Arial"';
-      ctx.fillStyle = '#5865f2';
+      ctx.fillStyle = Constants.Colors.interchatBlue;
       ctx.fillText(`Level ${stats.level}`, avatarX + avatarSize + 30, avatarY + 80);
 
       // Draw rank

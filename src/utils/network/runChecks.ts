@@ -37,7 +37,6 @@ const checks: CheckFunction[] = [
   checkProfanityAndSlurs,
   checkNewUser,
   checkMessageLength,
-  checkStickers,
   checkInviteLinks,
   checkAttachments,
   checkNSFW,
@@ -197,15 +196,6 @@ function checkMessageLength(message: Message<true>): CheckResult {
   return { passed: true };
 }
 
-function checkStickers(message: Message<true>): CheckResult {
-  if (message.stickers.size > 0 && !message.content) {
-    return {
-      passed: false,
-      reason: 'Sending stickers in the network is not possible due to discord\'s limitations.',
-    };
-  }
-  return { passed: true };
-}
 
 async function checkInviteLinks(
   message: Message<true>,

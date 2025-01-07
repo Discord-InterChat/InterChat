@@ -1,139 +1,54 @@
 import db from '#main/utils/Db.js';
-import { PrismaClient } from '@prisma/client';
-import { Colors, Message, TextChannel } from 'discord.js';
 import { calculateRequiredXP } from '#main/utils/calculateLevel.js';
+import { PrismaClient, UserData } from '@prisma/client';
+import { Message } from 'discord.js';
+
+type LeaderboardType = 'xp' | 'level' | 'messages';
+
+interface UserStats {
+  xp: { rank: number };
+  level: { rank: number };
+  messages: { rank: number };
+}
+
+interface LevelingConfig {
+  xpRange: { min: number; max: number };
+  cooldownSeconds: number;
+}
 
 export class LevelingService {
-  private db: PrismaClient;
-  private xpCooldowns: Map<string, Date>;
+  private readonly db: PrismaClient;
+  private readonly userCooldowns: Map<string, Date>;
+  private readonly config: LevelingConfig;
 
-  constructor(prisma?: PrismaClient) {
+  constructor(prisma?: PrismaClient, config: Partial<LevelingConfig> = {}) {
     this.db = prisma ?? db;
-    this.xpCooldowns = new Map();
-  }
-
-  private isUserOnCooldown(userId: string): boolean {
-    const lastMessage = this.xpCooldowns.get(userId);
-
-    if (!lastMessage) return false;
-
-    const cooldownTime = 5 * 1000; // 5 seconds cooldown
-    return Date.now() - lastMessage.getTime() < cooldownTime;
-  }
-
-  private async createUser(userId: string) {
-    return await this.db.userData.create({
-      data: { id: userId },
-    });
-  }
-
-  private async getOrCreateUser(userId: string) {
-    let user = await this.db.userData.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      user = await this.createUser(userId);
-    }
-
-    return user;
-  }
-
-  private generateXP(): number {
-    // Reduced XP gain: 3-8 XP per message
-    return Math.floor(Math.random() * (8 - 3 + 1)) + 3;
+    this.userCooldowns = new Map();
+    this.config = {
+      xpRange: { min: 3, max: 8 },
+      cooldownSeconds: 5,
+      ...config,
+    };
   }
 
   public async handleMessage(message: Message<true>): Promise<void> {
-    if (message.author.bot) return;
+    if (!this.isValidMessage(message)) return;
 
     const userId = message.author.id;
-
     if (this.isUserOnCooldown(userId)) return;
 
-    const user = await this.getOrCreateUser(userId);
-    const earnedXP = this.generateXP();
-    const currentLevel = user.level;
-    const requiredXP = calculateRequiredXP(currentLevel);
+    await this.processMessageXP(message);
+    this.updateUserCooldown(userId);
+  }
 
-    // Calculate XP within the current level
-    const currentLevelXP = user.xp % requiredXP;
-    let newXP = currentLevelXP + earnedXP;
-    let newLevel = currentLevel;
-    const totalXP = user.xp + earnedXP;
-
-    // Check for level up
-    if (newXP >= requiredXP) {
-      newLevel = currentLevel + 1;
-      // Reset XP for the new level, keeping overflow
-      newXP = newXP - requiredXP;
-      await this.sendLevelUpMessage(message.channel as TextChannel, message.author, newLevel);
+  public async getStats(userId: string): Promise<
+    UserData & {
+      stats: UserStats;
+      requiredXP: number;
     }
-
-    await this.db.userData.update({
-      where: { id: userId },
-      data: {
-        xp: totalXP, // Keep track of total XP earned
-        level: newLevel,
-        messageCount: { increment: 1 },
-        lastMessageAt: new Date(),
-      },
-    });
-
-    // TODO: Uncomment after adding server leaderboard
-    // await this.db.serverData.upsert({
-    //   where: { id: message.guildId },
-    //   create: { id: message.guildId },
-    //   update: { messageCount: { increment: 1 }, lastMessageAt: new Date() },
-    // });
-
-    this.xpCooldowns.set(userId, new Date());
-  }
-
-  private async sendLevelUpMessage(
-    channel: TextChannel,
-    user: Message['author'],
-    newLevel: number,
-  ): Promise<void> {
-    await channel.send({
-      embeds: [
-        {
-          title: '🎉 Level Up!',
-          description: `Congratulations ${user}! You've reached level ${newLevel}!`,
-          color: Colors.Green,
-        },
-      ],
-    });
-  }
-
-  public async getStats(userId: string) {
+  > {
     const user = await this.getOrCreateUser(userId);
-    const stats = {
-      xp: {
-        rank:
-          (await this.db.userData.count({
-            where: {
-              xp: { gt: user.xp },
-            },
-          })) + 1,
-      },
-      level: {
-        rank:
-          (await this.db.userData.count({
-            where: {
-              level: { gt: user.level },
-            },
-          })) + 1,
-      },
-      messages: {
-        rank:
-          (await this.db.userData.count({
-            where: {
-              messageCount: { gt: user.messageCount },
-            },
-          })) + 1,
-      },
-    };
+    const stats = await this.calculateUserStats(user);
 
     return {
       ...user,
@@ -142,16 +57,152 @@ export class LevelingService {
     };
   }
 
-  public async getLeaderboard(type: 'xp' | 'level' | 'messages' = 'xp', limit = 10) {
-    const orderBy = {
-      xp: { xp: 'desc' as const },
-      level: { level: 'desc' as const },
-      messages: { messageCount: 'desc' as const },
-    }[type];
+  public async getLeaderboard(type: LeaderboardType = 'xp', limit = 10): Promise<UserData[]> {
+    const orderBy = this.getLeaderboardOrdering(type);
 
     return await this.db.userData.findMany({
       orderBy,
       take: limit,
     });
+  }
+
+  private isValidMessage(message: Message<true>): boolean {
+    return !message.author.bot;
+  }
+
+  private isUserOnCooldown(userId: string): boolean {
+    const lastMessage = this.userCooldowns.get(userId);
+    if (!lastMessage) return false;
+
+    const cooldownMs = this.config.cooldownSeconds * 1000;
+    return Date.now() - lastMessage.getTime() < cooldownMs;
+  }
+
+  private async processMessageXP(message: Message<true>): Promise<void> {
+    const user = await this.getOrCreateUser(message.author.id);
+    const earnedXP = this.generateXP();
+    const { newLevel, totalXP } = this.calculateXPAndLevel(user, earnedXP);
+
+    if (newLevel > user.level) {
+      await this.handleLevelUp(message, newLevel);
+    }
+
+    await this.updateUserData(user.id, {
+      xp: totalXP,
+      level: newLevel,
+      messageCount: user.messageCount + 1,
+    });
+  }
+
+  private generateXP(): number {
+    const { min, max } = this.config.xpRange;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  private calculateXPAndLevel(
+    user: UserData,
+    earnedXP: number,
+  ): {
+      newLevel: number;
+      newXP: number;
+      totalXP: number;
+    } {
+    const requiredXP = calculateRequiredXP(user.level);
+    const currentLevelXP = user.xp % requiredXP;
+    const totalXP = user.xp + earnedXP;
+    let newXP = currentLevelXP + earnedXP;
+    let newLevel = user.level;
+
+    if (newXP >= requiredXP) {
+      newLevel = user.level + 1;
+      newXP -= requiredXP;
+    }
+
+    return { newLevel, newXP, totalXP };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private async handleLevelUp(message: Message<true>, _newLevel: number): Promise<void> {
+    await message.react('⏫').catch(() => null);
+    // TODO: this
+    // const channel = message.channel as TextChannel;
+    // await channel.send({
+    //   embeds: [
+    //     {
+    //       title: '🎉 Level Up!',
+    //       description: `Congratulations ${message.author}! You've reached level ${newLevel}!`,
+    //       footer: {
+    //         text: `Sent for: ${message.author.username}`,
+    //         icon_url: message.author.displayAvatarURL(),
+    //       },
+    //       color: Colors.Green,
+    //     },
+    //   ],
+    // });
+  }
+
+  private async getOrCreateUser(userId: string): Promise<UserData> {
+    const user = await this.db.userData.findUnique({
+      where: { id: userId },
+    });
+
+    return user ?? (await this.createUser(userId));
+  }
+
+  private async createUser(userId: string): Promise<UserData> {
+    return await this.db.userData.create({
+      data: { id: userId },
+    });
+  }
+
+  private async calculateUserStats(user: UserData): Promise<UserStats> {
+    return {
+      xp: {
+        rank: await this.calculateRank('xp', user.xp),
+      },
+      level: {
+        rank: await this.calculateRank('level', user.level),
+      },
+      messages: {
+        rank: await this.calculateRank('messageCount', user.messageCount),
+      },
+    };
+  }
+
+  private async calculateRank(
+    field: 'xp' | 'level' | 'messageCount',
+    value: number,
+  ): Promise<number> {
+    return (
+      (await this.db.userData.count({
+        where: {
+          [field]: { gt: value },
+        },
+      })) + 1
+    );
+  }
+
+  private async updateUserData(userId: string, data: Partial<UserData>): Promise<void> {
+    await this.db.userData.update({
+      where: { id: userId },
+      data: {
+        ...data,
+        lastMessageAt: new Date(),
+      },
+    });
+  }
+
+  private updateUserCooldown(userId: string): void {
+    this.userCooldowns.set(userId, new Date());
+  }
+
+  private getLeaderboardOrdering(type: LeaderboardType) {
+    const orderByMap = {
+      xp: { xp: 'desc' as const },
+      level: { level: 'desc' as const },
+      messages: { messageCount: 'desc' as const },
+    };
+
+    return orderByMap[type];
   }
 }
