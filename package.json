@@ -25,7 +25,7 @@
   "dependencies": {
     "@prisma/client": "^6.1.0",
     "@sentry/bun": "^8.47.0",
-    "canvas": "^3.0.1",
+    "canvas": "^3.0.0-rc3",
     "common-tags": "^1.8.2",
     "discord-hybrid-sharding": "^2.2.3",
     "discord.js": "^14.17.2",

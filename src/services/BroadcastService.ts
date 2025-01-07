@@ -53,8 +53,8 @@ export class BroadcastService {
     hub: HubManager,
     hubConnections: ConnectionManager[],
     connection: ConnectionManager,
+    attachmentURL: string | undefined,
   ) {
-    const attachmentURL = await this.resolveAttachmentURL(message);
     const username = this.getUsername(hub.settings, message);
     const censoredContent = censor(message.content);
     const referredMessage = await this.fetchReferredMessage(message);

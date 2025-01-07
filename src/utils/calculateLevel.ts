@@ -1,2 +1,1 @@
-export const calculateRequiredXP = (level: number): number =>
-  Math.floor(100 * Math.pow(level, 2));
+export const calculateRequiredXP = (level: number): number => 50 * Math.pow(level, 2) + 25 * level; // arcane formula

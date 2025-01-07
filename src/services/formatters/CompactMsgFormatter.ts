@@ -15,7 +15,6 @@ export class CompactMessageFormatter implements MessageFormatterStrategy {
       referred: opts.referredContent,
       censored: opts.censoredContent,
     };
-
     const { referredAuthor } = opts.referredMsgData;
 
     // check if the person being replied to explicitly allowed mentionOnReply setting for themself
@@ -41,7 +40,11 @@ export class CompactMessageFormatter implements MessageFormatterStrategy {
     // compact mode doesn't need new attachment url for tenor and direct image links
     // we can just slap them right in the content without any problems
     // [] has an empty char in between its not magic kthxbye
-    const attachmentURL = message.attachments.size > 0 ? `\n[⁥](${opts.attachmentURL})` : '';
+    const attachmentURL =
+      message.attachments.size > 0 || message.stickers.size > 0
+        ? `\n[⁥](${opts.attachmentURL})`
+        : '';
+
     const messageContent = `${connection.profFilter ? contents.censored : contents.normal} ${attachmentURL}`;
 
     return {

@@ -60,11 +60,11 @@ export default class InterChatClient extends Client {
         ApplicationCommandManager: 0,
         BaseGuildEmojiManager: 0,
         StageInstanceManager: 0,
-        GuildStickerManager: 0,
         ThreadMemberManager: 0,
         GuildInviteManager: 0,
         GuildEmojiManager: 0,
         GuildBanManager: 0,
+        DMMessageManager: 0,
       }),
       sweepers: {
         messages: {
