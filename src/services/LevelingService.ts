@@ -43,13 +43,13 @@ export class LevelingService {
     this.updateUserCooldown(userId);
   }
 
-  public async getStats(userId: string): Promise<
+  public async getStats(userId: string, username: string): Promise<
     UserData & {
       stats: UserStats;
       requiredXP: number;
     }
   > {
-    const user = await this.getOrCreateUser(userId);
+    const user = await this.getOrCreateUser(userId, username);
     const stats = await this.calculateUserStats(user);
 
     return {
@@ -78,7 +78,7 @@ export class LevelingService {
   }
 
   private async processMessageXP(message: Message<true>): Promise<void> {
-    const user = await this.getOrCreateUser(message.author.id);
+    const user = await this.getOrCreateUser(message.author.id, message.author.username);
     const earnedXP = this.generateXP();
     const { newLevel, totalXP } = this.calculateXPAndLevel(user, earnedXP);
 
@@ -140,10 +140,10 @@ export class LevelingService {
     // });
   }
 
-  private async getOrCreateUser(userId: string): Promise<UserData> {
+  private async getOrCreateUser(userId: string, username: string): Promise<UserData> {
     const user = await this.userService.getUser(userId);
 
-    return user ?? (await this.userService.createUser({ id: userId }));
+    return user ?? (await this.userService.createUser({ id: userId, username }));
   }
 
   private async calculateUserStats(user: UserData): Promise<UserStats> {

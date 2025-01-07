@@ -50,6 +50,12 @@ export class MessageProcessor {
     const { passed } = await checkBlockedWords(message, await hub.fetchBlockWords());
     if (!passed) return;
 
-    await this.broadcastService.broadcastMessage(message, hub, hubConnections, connection);
+    await this.broadcastService.broadcastMessage(
+      message,
+      hub,
+      hubConnections,
+      connection,
+      attachmentURL,
+    );
   }
 }

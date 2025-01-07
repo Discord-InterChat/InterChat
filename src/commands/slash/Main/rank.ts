@@ -67,7 +67,10 @@ export default class RankCommand extends BaseCommand {
 
     try {
       const targetUser = interaction.options.getUser('user') ?? interaction.user;
-      const stats = await interaction.client.userLevels.getStats(targetUser.id);
+      const stats = await interaction.client.userLevels.getStats(
+        targetUser.id,
+        targetUser.username,
+      );
       const rankCard = await this.createRankCard(targetUser, stats);
 
       await interaction.editReply({ files: [rankCard] });
