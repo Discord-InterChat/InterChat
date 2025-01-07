@@ -1,7 +1,7 @@
 {
   "name": "interchat",
   "private": true,
-  "version": "4.1.1",
+  "version": "4.2.0",
   "description": "A growing Discord bot which provides inter-server chat!",
   "main": "src/index.ts",
   "license": "AGPL-3.0-only",
@@ -62,7 +62,9 @@
     }
   },
   "lint-staged": {
-    "*.ts": ["eslint --cache --fix"]
+    "*.ts": [
+      "eslint --cache --fix"
+    ]
   },
   "imports": {
     "#main/*.js": "./src/*.ts",
