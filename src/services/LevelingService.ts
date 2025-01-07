@@ -1,3 +1,4 @@
+import UserDbService from '#main/services/UserDbService.js';
 import db from '#main/utils/Db.js';
 import { calculateRequiredXP } from '#main/utils/calculateLevel.js';
 import { PrismaClient, UserData } from '@prisma/client';
@@ -20,6 +21,7 @@ export class LevelingService {
   private readonly db: PrismaClient;
   private readonly userCooldowns: Map<string, Date>;
   private readonly config: LevelingConfig;
+  private readonly userService = new UserDbService();
 
   constructor(prisma?: PrismaClient, config: Partial<LevelingConfig> = {}) {
     this.db = prisma ?? db;
@@ -60,10 +62,7 @@ export class LevelingService {
   public async getLeaderboard(type: LeaderboardType = 'xp', limit = 10): Promise<UserData[]> {
     const orderBy = this.getLeaderboardOrdering(type);
 
-    return await this.db.userData.findMany({
-      orderBy,
-      take: limit,
-    });
+    return await this.db.userData.findMany({ orderBy, take: limit });
   }
 
   private isValidMessage(message: Message<true>): boolean {
@@ -142,17 +141,9 @@ export class LevelingService {
   }
 
   private async getOrCreateUser(userId: string): Promise<UserData> {
-    const user = await this.db.userData.findUnique({
-      where: { id: userId },
-    });
+    const user = await this.userService.getUser(userId);
 
-    return user ?? (await this.createUser(userId));
-  }
-
-  private async createUser(userId: string): Promise<UserData> {
-    return await this.db.userData.create({
-      data: { id: userId },
-    });
+    return user ?? (await this.userService.createUser({ id: userId }));
   }
 
   private async calculateUserStats(user: UserData): Promise<UserStats> {
@@ -183,13 +174,7 @@ export class LevelingService {
   }
 
   private async updateUserData(userId: string, data: Partial<UserData>): Promise<void> {
-    await this.db.userData.update({
-      where: { id: userId },
-      data: {
-        ...data,
-        lastMessageAt: new Date(),
-      },
-    });
+    await this.userService.updateUser(userId, { ...data, lastMessageAt: new Date() });
   }
 
   private updateUserCooldown(userId: string): void {

@@ -152,7 +152,7 @@ export function handleError(error: unknown, options: ErrorHandlerOptions = {}): 
 
   // Send error response if possible
   if (repliable) {
-    void sendErrorResponse(repliable, errorCode, comment);
+    sendErrorResponse(repliable, errorCode, comment);
   }
 }
 
@@ -202,7 +202,7 @@ export const trimAndCensorBannedWebhookWords = (content: string) =>
   content.slice(0, 35).replace(Constants.Regex.BannedWebhookWords, '[censored]');
 
 export const fetchUserData = async (userId: Snowflake) => {
-  const user = new UserDbService().getUser(userId);
+  const user = await new UserDbService().getUser(userId);
   return user;
 };
 

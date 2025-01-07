@@ -26,6 +26,7 @@ export default class Leaderboard extends BaseCommand {
       leaderboard.map(async (user, index) => {
         const discordUser = await interaction.client.users.fetch(user.id);
         switch (type) {
+          default:
           case 'xp':
             return `${index + 1}. ${discordUser.username} - Level ${user.level} (${user.xp} XP)`;
           case 'level':
