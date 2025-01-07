@@ -1,6 +1,6 @@
 rules:
   rules: |
-    ### {rules_emoji} Rules:
+    ### Rules:
     These rules are in place to make a safe and enjoyable experience for everyone. Read and follow them carefully:
 
     1. **No NSFW, NSFL, or Gore Content**
@@ -145,6 +145,7 @@ hub:
     noConnections: '{emoji} No server has joined this hub yet. Use `/hub join` to join this hub.'
     notConnected: "{emoji} That server isn't a part of **{hub}**."
     connectionInfo: |
+      ServerID: {serverId}
       Channel: #{channelName} `({channelId})`
       Joined At: {joinedAt}
       Invite: {invite}
@@ -242,15 +243,15 @@ hub:
     icon:
       changed: Hub icon successfully changed.
       modal:
-        title: Change Icon
+        title: Edit Icon
         label: Icon URL
       selects:
-        label: Change Icon
+        label: Edit Icon
         description: Change the icon of this hub.
     description:
       changed: Hub description successfully changed.
       modal:
-        title: Change Description
+        title: Edit Description
         label: Description
         placeholder: Enter a description for this hub.
       selects:
@@ -260,16 +261,36 @@ hub:
       changed: Hub banner successfully changed.
       removed: Hub banner successfully removed.
       modal:
-        title: Change Banner
+        title: Edit Banner
         label: Banner URL
       selects:
-        label: Change Banner
+        label: Edit Banner
         description: Change the banner of this hub.
     visibility:
       success: '{emoji} Hub visibility successfully changed to **{visibility}**.'
       selects:
         label: Change Visibility
         description: Make this hub public or private.
+    toggleLock:
+      selects:
+        label: "Lock/Unlock Hub"
+        description: "Lock or unlock the hub chats"
+      confirmation: "Hub chats are now {status}."
+      announcementTitle: "Hub chats are now {status}."
+      announcementDescription:
+        locked: "Only moderators can send messages."
+        unlocked: "Everyone can send messages."
+    embed:
+      visibility: "Visibility"
+      connections: "Connections"
+      chatsLocked: "Chats Locked"
+      blacklists: "Blacklists"
+      total: "Total"
+      users: "Users"
+      servers: "Servers"
+      hubStats: "Hub Stats"
+      moderators: "Moderators"
+      owner: "Owner"
     logs:
       title: Logs Configuration
       reset: '{emoji} Successfully reset the logs configuration for `{type}` logs.'
@@ -353,10 +374,14 @@ errors:
   banned: |
     {emoji} You have been banned from using InterChat for violating our [guidelines](https://interchat.tech/guidelines).
     If you think an appeal is applicable create a ticket in the [support server]( {support_invite} ).
-misc:
+global:
   webhookNoLongerExists: '{emoji} The webhook for this channel no longer exists. To continue using InterChat, please re-create the webhook by using `/connection unpause`.'
   noReason: No reason provided.
   noDesc: No Description.
   version: InterChat v{version}
   loading: '{emoji} Please wait while I process your request...'
   reportOptionMoved: '{emoji} This option has moved! To report a message to hub moderators, use the updated `Apps > Message Info/Report` command. For direct reporting to InterChat staff, just hop into the [support server]({support_invite}) and create a ticket with proof.'
+  private: "Private"
+  public: "Public"
+  yes: "Yes"
+  no: "No"

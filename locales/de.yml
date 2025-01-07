@@ -1,6 +1,6 @@
 rules:
   rules: |
-    ### {rules_emoji} Rules:
+    ### Rules:
     These rules are in place to make a safe and enjoyable experience for everyone. Read and follow them carefully:
 
     1. **No NSFW, NSFL, or Gore Content**
@@ -24,64 +24,64 @@ rules:
 
     And remember to follow [Discord's Terms of Service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines).
   welcome: |
-    {emoji} Hey {user}, welcome to InterChat!
-    Before you can start chatting with people from other servers using InterChat, you need to accept the rules. Use the button below to accept them.
+    {emoji} Hey {user}, Willkommen bei InterChat!
+    Bevor du mit dem Chatten mit Leuten von anderen Server welche InterChat nutzen beginnen kannst, musst du zunächst die Regeln akzeptieren. Nutze den Button unterhalb, um diese zu akzeptieren.
   accepted: |
-    {emoji} Welcome to InterChat! You have accepted the rules and are now ready to chat with members from other servers!
-    If you are not already in a hub, use `/hub browse` to join one and start chatting. If you have any questions or need help, feel free to ask in the [support server]({support_invite}).
-    If you enjoy using InterChat, please consider [donating]({donateLink}) to support the development costs.
-  alreadyAccepted: '{emoji} You have already accepted the rules. You can now use InterChat to its full extent.'
+    {emoji} Willkommen bei InterChat! Du hast die Regeln akzeptiert und bist jetzt bereit mit Mitgliedern anderer Server zu Chatten!
+    Wenn noch nicht in einem Hub bist, nutze `/hub browse` um einem beizutreten und das Chatten zu beginnen. Wenn du Fragen hast oder Hilfe benötigst, scheue dich nicht davor auf unserem [Support Sserver]({support_invite}) nachzufragen.
+    Wenn dir InterChat gefällt, bitte ziehe eine [Spende]({donateLink}) in Betracht um uns bei den Entwicklungskosten zu unterstützen.
+  alreadyAccepted: '{emoji} Du hast die Regeln bereits akzeptiert. Du kannst nun InterChat im Ganzen Genießen.'
 vote:
-  description: By voting you support us by helping InterChat rank higher on topgg searches.
-  footer: Thank you for supporting!
+  description: Indem du für uns votest, unterstützt du uns, indem InterChat bei topgg suchen höher gelistet wird.
+  footer: Vielen Dank für deine Unterstützung!
 network:
-  accountTooNew: '{emoji} {user} Your account is too new to send messages using InterChat. Please try again later.'
-  deleteSuccess: '{emoji} Message by {user} has been deleted from __**{deleted}/{total}**__ servers.'
-  editSuccess: '{emoji} Message by {user} has been edited in __**{edited}/{total}**__ servers.'
+  accountTooNew: '{emoji} {user} Dein Account ist zu neu um Nachrichten mittels InterChat zu senden. Bitte versuche es später erneut.'
+  deleteSuccess: '{emoji} Nachricht von {user} wurde von __**{deleted}/{total}**__ Servern gelöscht.'
+  editSuccess: '{emoji} Nachricht von {user} wurde auf__**{edited}/{total}**__ Servern bearbeitet.'
   onboarding:
     embed:
-      title: '👋 Hey there, welcome to {hubName}!'
+      title: '👋 Hey und Willkommen bei {hubName}!'
       description: |
-        Hey there! You are trying to join a hub called **{hubName}**. In order to chat with members from other servers, you need to accept InterChat's guidelines. Use the button below to continue.
-      footer: InterChat Network | Version {version}
-    inProgress: '{emoji} {channel} is already in the process of being setup to join a hub. Please wait for the setup to complete or cancel it if you were the one who initiated it.'
+        Hey! Du versuchst einem Hub namens **{hubName}** beizutreten. Wenn du mit Mitgliedern anderer Server chatten möchtest, musst du InterChat's Richtlinien zustimmen. Nutze den Button unterhalb um fortzufahren.
+      footer: InterChat Netzwerk | Version {version}
+    inProgress: '{emoji} {channel} Befindet sich bereits im Aufbauprozess für den Beitritt zu einem Hub. Bitte warte, bis die Einrichtung abgeschlossen ist, oder brich diese ab, wenn du sie initiiert hast.'
 blacklist:
-  success: '{emoji} **{name}** has been successfully blacklisted!'
-  removed: '{emoji} **{name}** has been removed from the blacklist!'
+  success: '{emoji} **{name}** wurde erfolgreich auf die schwarze Liste gesetzt!'
+  removed: '{emoji} **{name}** wurde von der schwarzen Liste entfernt!'
   modal:
     reason:
-      label: Reason
-      placeholder: Reason for blacklisting
+      label: Grund
+      placeholder: Grund für die schwarze Liste
     duration:
-      label: Duration
-      placeholder: 'Duration of blacklist. Eg: 1d, 1w, 1m, 1y. Leave blank for permanent.'
+      label: Dauer
+      placeholder: 'Dauer des Schwarzlisten. Z.b.: 1d, 1w, 1m, 1y (Tag/ Woche/ Monat/ Jahr). Leer lassen für Dauerhaft.'
   user:
-    alreadyBlacklisted: '{emoji} This user is already blacklisted.'
+    alreadyBlacklisted: '{emoji} Dieser User steht bereits auf der schwarzen Liste.'
     easterEggs:
-      blacklistBot: You can't blacklist me wtf.
+      blacklistBot: Du kannst mich nicht auf die schwarze Liste setzen wtf.
   server:
-    alreadyBlacklisted: '{emoji} This server is already blacklisted.'
-    unknownError: Failed to blacklist **{server}**. Enquire with the developers for more information.
+    alreadyBlacklisted: '{emoji} Dieser Server steht bereits auf der schwarzen Liste.'
+    unknownError: Fehler beim Schwarzlisten von **{server}**. Wende dich für weitere Informationen an die Entwickler.
   list:
     user: |
-      **UserID:** {id}
+      **Nutzer ID:** {id}
       **Moderator:** {moderator}
-      **Reason:** {reason}
-      **Expires:** {expires}
+      **Grund:** {reason}
+      **Läuft ab:** {expires}
     server: |
-      **ServerId:** {id}
+      **Server ID:** {id}
       **Moderator:** {moderator}
-      **Reason:** {reason}
-      **Expires:** {expires}
+      **Grund:** {reason}
+      **Läuft ab:** {expires}
 msgInfo:
   buttons:
-    message: Message Info
+    message: Nachrichten Info
     server: Server Info
-    user: User Info
-    report: Report
+    user: Nutzer Info
+    report: Melden
   report:
-    notEnabled: '{emoji} Reporting is not enabled for this hub.'
-    success: '{emoji} Report submitted successfully. Thank you!'
+    notEnabled: '{emoji} Melden ist nicht aktiviert für diesen Hub.'
+    success: '{emoji} Meldung erfolgreich übermittelt. Vielen Dank!'
 invite: |
   Thank you for choosing to invite InterChat! If you have any questions or need help, we are always here to help you in the support server!
 
@@ -99,15 +99,15 @@ connection:
   emColorInvalid: '{emoji} Invalid color. Please make sure you have entered a valid hex color code.'
   emColorChange: '{emoji} Embed color successfully {action}'
   embed:
-    title: Connection Details
+    title: Verbindungsdetails
     fields:
       hub: Hub
-      channel: Channel
-      invite: Invite
-      connected: Connected
-      emColor: Embed Color
-      compact: Compact Mode
-      profanity: Profanity Filter
+      channel: Kanal
+      invite: Einladung
+      connected: Verbunden
+      emColor: Einbettung-Farbe
+      compact: Kompakter Modus
+      profanity: Profanität-Filter
     footer: Use the button & dropdown below to manage your connection.
   selects:
     placeholder: '🛠️ Select an option to edit this connection'
@@ -145,25 +145,26 @@ hub:
     noConnections: '{emoji} No server has joined this hub yet. Use `/hub join` to join this hub.'
     notConnected: "{emoji} That server isn't a part of **{hub}**."
     connectionInfo: |
+      ServerID: {serverId}
       Channel: #{channelName} `({channelId})`
       Joined At: {joinedAt}
       Invite: {invite}
       Connected: {connected}
   create:
     modal:
-      title: Create Hub
+      title: Hub erstellen
       name:
         label: Hub Name
-        placeholder: Enter a name for your hub.
+        placeholder: Gib einen Namen für deinen Hub ein.
       description:
-        label: Description
-        placeholder: Enter a description for your hub.
+        label: Beschreibung
+        placeholder: Gib eine Beschreibung für deinen Hub ein.
       icon:
-        label: Icon URL
-        placeholder: Enter an Imgur image URL.
+        label: Symbol URL
+        placeholder: Gib eine Imgur Bild URL ein.
       banner:
         label: Banner URL
-        placeholder: Enter an Imgur image URL.
+        placeholder: Gib eine Imgur Bild URL ein.
     maxHubs: '{emoji} You have reached the maximum number of hubs (3) you can create. Please delete a hub before creating another one.'
     invalidName: '{emoji} Invalid hub name. It must not contain `discord`, `clyde` or \`\`\` . Please choose another name.'
     nameTaken: '{emoji} This hub name is already taken. Please choose another name.'
@@ -242,34 +243,54 @@ hub:
     icon:
       changed: Hub icon successfully changed.
       modal:
-        title: Change Icon
-        label: Icon URL
+        title: Bearbeitungssymbol
+        label: Symbol URL
       selects:
-        label: Change Icon
-        description: Change the icon of this hub.
+        label: Bearbeitungssymbol
+        description: Verändere das Symbol dieses Hubs.
     description:
-      changed: Hub description successfully changed.
+      changed: Hub Beschreibung erfolgreich verändert.
       modal:
-        title: Change Description
-        label: Description
-        placeholder: Enter a description for this hub.
+        title: Bearbeite Beschreibung
+        label: Beschreibung
+        placeholder: Gibt eine Beschreibung für diesen Hub ein.
       selects:
-        label: Change Description
-        description: Change the description of this hub.
+        label: Wechsle Beschreibung
+        description: Wechsle die Beschreibung dieses Hubs.
     banner:
-      changed: Hub banner successfully changed.
-      removed: Hub banner successfully removed.
+      changed: Hub Banner erfolgreich verändert.
+      removed: Hub Banner erfolgreich entfernt.
       modal:
-        title: Change Banner
+        title: Banner Bearbeiten
         label: Banner URL
       selects:
-        label: Change Banner
-        description: Change the banner of this hub.
+        label: Banner Bearbeiten
+        description: Ändere das Banner dieses Hubs.
     visibility:
       success: '{emoji} Hub visibility successfully changed to **{visibility}**.'
       selects:
-        label: Change Visibility
-        description: Make this hub public or private.
+        label: Wechsle Sichtbarkeit
+        description: Stelle diesen Hub öffentlich oder privat.
+    toggleLock:
+      selects:
+        label: "Hub Verriegeln / Entriegeln"
+        description: "Verriegele oder Entriegele die Chats des Hubs"
+      confirmation: "Hub Chats sind jetzt {status}."
+      announcementTitle: "Hub chats are now {status}."
+      announcementDescription:
+        locked: "Only moderators can send messages."
+        unlocked: "Everyone can send messages."
+    embed:
+      visibility: "Visibility"
+      connections: "Connections"
+      chatsLocked: "Chats Locked"
+      blacklists: "Blacklists"
+      total: "Total"
+      users: "Users"
+      servers: "Servers"
+      hubStats: "Hub Stats"
+      moderators: "Moderators"
+      owner: "Owner"
     logs:
       title: Logs Configuration
       reset: '{emoji} Successfully reset the logs configuration for `{type}` logs.'
@@ -284,31 +305,31 @@ hub:
           {arrow} Select a log channel and/or role to be pinged from the dropdown below.
           {arrow} You can also disable logging by using the button below.
         fields:
-          channel: Channel
-          role: Role Mention
+          channel: Kanal
+          role: Rollen Erwähnung
       reports:
-        label: Reports
+        label: Meldungen
         description: Receive reports from users.
       modLogs:
         label: Mod Logs
-        description: Log Moderation actions. (eg. blacklist, message deletes, etc.)
+        description: 'Zeichne Moderator Aktionen auf. (Z.b.: Schwarzlisten, Nachrichten löschen, usw.)'
       profanity:
-        label: Profanity Filter
+        label: Profanität-Filter
         description: Log messages that are caught by the profanity filter.
       joinLeaves:
-        label: Join/Leave
+        label: Beitreten/ Verlassen
         description: Log when a server joins or leaves this hub.
       appeals:
-        label: Appeals
+        label: Beschwerden
         description: Recieve appeals from blacklisted users/servers.
       networkAlerts:
-        label: Network Alerts
+        label: Netzwerk Alarme
         description: Recieve alerts about automatically blocked messages.
 report:
   modal:
-    title: Report Details
+    title: Meldungs-Details
     other:
-      label: Report Details
+      label: Meldungs-Details
       placeholder: A detailed description of the report.
     bug:
       input1:
@@ -319,8 +340,8 @@ report:
         placeholder: Steps you took. Eg. 1. Run /help 2. Wait for 5 seconds...
   submitted: '{emoji} Report submitted successfully. Join the {support_command} to get more details. Thank you!'
   bug:
-    title: Bug Report
-    affected: Affected Components
+    title: Bug Meldung
+    affected: Betroffene Komponenten
     description: Please choose what component of the bot you are facing issues with.
 language:
   set: Language set! I will now respond to you in **{lang}**.
@@ -353,10 +374,14 @@ errors:
   banned: |
     {emoji} You have been banned from using InterChat for violating our [guidelines](https://interchat.tech/guidelines).
     If you think an appeal is applicable create a ticket in the [support server]( {support_invite} ).
-misc:
+global:
   webhookNoLongerExists: '{emoji} The webhook for this channel no longer exists. To continue using InterChat, please re-create the webhook by using `/connection unpause`.'
   noReason: No reason provided.
   noDesc: No Description.
   version: InterChat v{version}
   loading: '{emoji} Please wait while I process your request...'
   reportOptionMoved: '{emoji} This option has moved! To report a message to hub moderators, use the updated `Apps > Message Info/Report` command. For direct reporting to InterChat staff, just hop into the [support server]({support_invite}) and create a ticket with proof.'
+  private: "Private"
+  public: "Public"
+  yes: "Yes"
+  no: "No"
