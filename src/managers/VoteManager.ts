@@ -10,7 +10,7 @@ import {
   userMention,
 } from 'discord.js';
 import ms from 'ms';
-import UserDbManager from '#main/managers/UserDbManager.js';
+import UserDbService from '#main/services/UserDbService.js';
 import Scheduler from '#main/services/SchedulerService.js';
 import type { WebhookPayload } from '#types/TopGGPayload.d.ts';
 import Constants from '#utils/Constants.js';
@@ -20,7 +20,7 @@ import { getOrdinalSuffix } from '#utils/Utils.js';
 
 export class VoteManager {
   private scheduler: Scheduler;
-  private readonly userDbManager = new UserDbManager();
+  private readonly userDbManager = new UserDbService();
   private readonly rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN as string);
 
   constructor(scheduler = new Scheduler()) {

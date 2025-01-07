@@ -83,11 +83,15 @@ export function createErrorHint(repliable?: Repliable, comment?: string): ErrorH
   return { user: extractUserInfo(repliable), extra: Object.fromEntries(extra) };
 }
 
-export async function sendErrorResponse(repliable: Repliable, errorCode: string): Promise<void> {
+export async function sendErrorResponse(
+  repliable: Repliable,
+  errorCode: string,
+  comment?: string,
+): Promise<void> {
   if (!('reply' in repliable)) return;
 
   try {
-    await sendErrorEmbed(repliable, errorCode);
+    await sendErrorEmbed(repliable, errorCode, comment);
   }
   catch (error) {
     Logger.error(error);

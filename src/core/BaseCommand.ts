@@ -31,7 +31,7 @@ import {
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import Logger from '#utils/Logger.js';
-import { getReplyMethod } from '#utils/Utils.js';
+import { fetchUserLocale, getReplyMethod } from '#utils/Utils.js';
 
 export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
 export type CmdData =
@@ -67,8 +67,8 @@ export default abstract class BaseCommand {
     const remainingCooldown = await this.getRemainingCooldown(interaction);
 
     if (remainingCooldown) {
-      const { userManager } = interaction.client;
-      const locale = await userManager.getUserLocale(interaction.user.id);
+
+      const locale = await fetchUserLocale(interaction.user.id);
       await this.sendCooldownError(interaction, remainingCooldown, locale);
       return true;
     }
@@ -208,7 +208,6 @@ export default abstract class BaseCommand {
   protected async getLocale(
     interaction: Interaction | MessageComponentInteraction,
   ): Promise<supportedLocaleCodes> {
-    const { userManager } = interaction.client;
-    return await userManager.getUserLocale(interaction.user.id);
+    return await fetchUserLocale(interaction.user.id);
   }
 }

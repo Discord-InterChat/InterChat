@@ -12,6 +12,7 @@ import HubSettingsManager from '#main/managers/HubSettingsManager.js';
 import type { HubSettingsString } from '#main/modules/BitFields.js';
 import { CustomID } from '#utils/CustomID.js';
 import { t } from '#utils/Locale.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class Settings extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -69,7 +70,7 @@ export default class Settings extends HubCommand {
         interaction,
         t(
           'errors.notYourAction',
-          await interaction.client.userManager.getUserLocale(interaction.user.id),
+          await fetchUserLocale(interaction.user.id),
         ),
         { flags: ['Ephemeral'] },
       );

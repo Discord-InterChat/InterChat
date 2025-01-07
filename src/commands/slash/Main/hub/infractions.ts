@@ -15,7 +15,7 @@ import type HubManager from '#main/managers/HubManager.js';
 import InfractionManager from '#main/managers/InfractionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import type { RemoveMethods } from '#main/types/Utils.js';
-import { msToReadable } from '#main/utils/Utils.js';
+import { fetchUserLocale, msToReadable } from '#main/utils/Utils.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
@@ -58,7 +58,7 @@ export default class ViewInfractions extends HubCommand {
     );
 
     if (!hub) {
-      const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+      const locale = await fetchUserLocale(interaction.user.id);
       await this.replyEmbed(
         interaction,
         t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),

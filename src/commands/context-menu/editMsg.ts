@@ -31,7 +31,7 @@ import db from '#utils/Db.js';
 import { getAttachmentURL } from '#utils/ImageUtils.js';
 import { t } from '#utils/Locale.js';
 import { censor } from '#utils/ProfanityUtils.js';
-import { containsInviteLinks, handleError, replaceLinks } from '#utils/Utils.js';
+import { containsInviteLinks, fetchUserLocale, handleError, replaceLinks } from '#utils/Utils.js';
 
 interface ImageUrls {
   oldURL?: string | null;
@@ -51,10 +51,9 @@ export default class EditMessage extends BaseCommand {
     const isOnCooldown = await this.checkOrSetCooldown(interaction);
     if (isOnCooldown) return;
 
-    const { userManager } = interaction.client;
     const target = interaction.targetMessage;
-    const locale = await userManager.getUserLocale(interaction.user.id);
-    const voteLimiter = new VoteBasedLimiter('editMsg', interaction.user.id, userManager);
+    const locale = await fetchUserLocale(interaction.user.id);
+    const voteLimiter = new VoteBasedLimiter('editMsg', interaction.user.id);
 
     if (await voteLimiter.hasExceededLimit()) {
       await interaction.reply({
@@ -226,11 +225,7 @@ export default class EditMessage extends BaseCommand {
       .catch(handleError);
 
     // Decrement the vote limiter
-    const voteLimiter = new VoteBasedLimiter(
-      'editMsg',
-      interaction.user.id,
-      interaction.client.userManager,
-    );
+    const voteLimiter = new VoteBasedLimiter('editMsg', interaction.user.id);
     await voteLimiter.decrementUses();
   }
 

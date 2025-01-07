@@ -9,7 +9,7 @@ import ConnectionManager from '#main/managers/ConnectionManager.js';
 import { Pagination } from '#main/modules/Pagination.js';
 import Constants from '#utils/Constants.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
-import { resolveEval } from '#utils/Utils.js';
+import { fetchUserLocale, resolveEval } from '#utils/Utils.js';
 import HubCommand from './index.js';
 
 interface ConnectionDisplayData {
@@ -96,7 +96,7 @@ export default class Servers extends HubCommand {
     const hubName = interaction.options.getString('hub', true);
     const serverId = interaction.options.getString('server');
     const client = interaction.client;
-    const locale = await client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
     if (!hub) {

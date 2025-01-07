@@ -5,6 +5,7 @@ import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import ConnectionCommand from './index.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class List extends ConnectionCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -13,8 +14,7 @@ export default class List extends ConnectionCommand {
       include: { hub: true },
     });
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
     if (connections.length === 0) {
       await interaction.reply(
         t('hub.joined.noJoinedHubs', locale, {

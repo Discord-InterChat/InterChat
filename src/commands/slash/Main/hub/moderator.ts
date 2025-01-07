@@ -4,13 +4,14 @@ import { type HubModerator, Role } from '@prisma/client';
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import HubCommand from './index.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class Moderator extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const hubName = interaction.options.getString('hub', true);
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
-    const locale = await interaction.client.userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
     if (!hub || !(await hub.isManager(interaction.user.id))) {
       await this.replyEmbed(
         interaction,

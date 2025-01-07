@@ -1,5 +1,6 @@
 import Constants from '#utils/Constants.js';
 import Logger from '#utils/Logger.js';
+import { CanvasRenderingContext2D } from 'canvas';
 
 /**
  * Returns the URL of an attachment in a message, if it exists.
@@ -33,3 +34,29 @@ export const getAttachmentURL = async (string: string) => {
 
 export const stripTenorLinks = (content: string, imgUrl: string) =>
   content.replace(Constants.Regex.TenorLinks, '').replace(imgUrl, '');
+
+export const drawRankProgressBar = (
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  progress: number,
+  backgroundColor = '#484b4e',
+  progressColor = Constants.Colors.interchatBlue,
+): void => {
+  // Draw background
+  ctx.fillStyle = backgroundColor;
+  ctx.beginPath();
+  ctx.roundRect(x, y, width, height, height / 2);
+  ctx.fill();
+
+  // Draw progress
+  const progressWidth = (width - 4) * Math.min(Math.max(progress, 0), 1);
+  if (progressWidth > 0) {
+    ctx.fillStyle = progressColor;
+    ctx.beginPath();
+    ctx.roundRect(x + 2, y + 2, progressWidth, height - 4, (height - 4) / 2);
+    ctx.fill();
+  }
+};

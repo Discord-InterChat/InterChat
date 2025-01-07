@@ -15,6 +15,9 @@ import type { RemoveMethods, ThreadParentChannel } from '#types/CustomClientProp
 import Constants from '#utils/Constants.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
+import UserDbService from '#main/services/UserDbService.js';
+import { UserData } from '@prisma/client';
+import { supportedLocaleCodes } from '#main/utils/Locale.js';
 
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
@@ -111,8 +114,11 @@ export const getReplyMethod = (
 export const sendErrorEmbed = async (
   repliable: RepliableInteraction | Message,
   errorCode: string,
+  comment?: string,
 ) => {
   const errorEmbed = new ErrorEmbed(repliable.client, { errorCode });
+  if (comment) errorEmbed.setDescription(comment);
+
   if (repliable instanceof Message) {
     return await repliable.reply({
       embeds: [errorEmbed],
@@ -146,10 +152,9 @@ export function handleError(error: unknown, options: ErrorHandlerOptions = {}): 
 
   // Send error response if possible
   if (repliable) {
-    void sendErrorResponse(repliable, errorCode);
+    sendErrorResponse(repliable, errorCode, comment);
   }
 }
-
 
 export const isDev = (userId: Snowflake) => Constants.DeveloperIds.includes(userId);
 
@@ -196,3 +201,12 @@ export const isHumanMessage = (message: Message) =>
 export const trimAndCensorBannedWebhookWords = (content: string) =>
   content.slice(0, 35).replace(Constants.Regex.BannedWebhookWords, '[censored]');
 
+export const fetchUserData = async (userId: Snowflake) => {
+  const user = await new UserDbService().getUser(userId);
+  return user;
+};
+
+export const fetchUserLocale = async (user: Snowflake | UserData) => {
+  const userData = typeof user === 'string' ? await fetchUserData(user) : user;
+  return (userData?.locale ?? 'en') as supportedLocaleCodes;
+};

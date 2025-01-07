@@ -38,6 +38,7 @@ import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { sendHubReport } from '#utils/hub/logger/Report.js';
 import { isStaffOrHubMod } from '#utils/hub/utils.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 type LocaleInfo = { locale: supportedLocaleCodes };
 type AuthorInfo = { author: User };
@@ -388,8 +389,7 @@ export default class MessageInfo extends BaseCommand {
   }
 
   private async getMessageInfo(interaction: MessageContextMenuCommandInteraction) {
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id) ?? 'en';
     const target = interaction.targetMessage;
     const originalMsg =
       (await getOriginalMessage(target.id)) ?? (await findOriginalMessage(target.id));
@@ -404,8 +404,7 @@ export default class MessageInfo extends BaseCommand {
     const originalMsg =
       (await getOriginalMessage(messageId)) ?? (await findOriginalMessage(messageId));
 
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id) ?? 'en';
 
     return { originalMsg, locale, messageId };
   }

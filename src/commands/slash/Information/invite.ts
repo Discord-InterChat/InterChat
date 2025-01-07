@@ -2,6 +2,7 @@ import type { ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand from '#main/core/BaseCommand.js';
 import Constants from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class Invite extends BaseCommand {
   readonly data = {
@@ -9,8 +10,7 @@ export default class Invite extends BaseCommand {
     description: '👋 Invite me to your server!',
   };
   async execute(interaction: ChatInputCommandInteraction) {
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
     await interaction.reply({
       content: t('invite', locale, {
         support: Constants.Links.SupportInvite,

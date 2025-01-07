@@ -2,7 +2,7 @@ import type { Infraction, InfractionStatus, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { type Client, EmbedBuilder, type Snowflake, type User } from 'discord.js';
 import InfractionManager from '#main/managers/InfractionManager.js';
-import UserDbManager from '#main/managers/UserDbManager.js';
+import UserDbService from '#main/services/UserDbService.js';
 import { HubService } from '#main/services/HubService.js';
 import type { RemoveMethods } from '#main/types/Utils.d.js';
 import Constants from '#main/utils/Constants.js';
@@ -14,7 +14,7 @@ export default class BlacklistManager {
   public readonly targetId: Snowflake;
   public readonly infractions;
   private readonly type: 'user' | 'server';
-  private readonly userManager = new UserDbManager();
+  private readonly userManager = new UserDbService();
 
   constructor(type: 'user' | 'server', targetId: Snowflake) {
     this.type = type;

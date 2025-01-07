@@ -1,6 +1,7 @@
 import { stripIndents } from 'common-tags';
 import { type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
 import { HubService } from '#main/services/HubService.js';
+import { fetchUserData } from '#main/utils/Utils.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
@@ -19,7 +20,7 @@ export default class Server extends Find {
       return;
     }
 
-    const userData = await interaction.client.userManager.getUser(user.id);
+    const userData = await fetchUserData(user.id);
     const blacklistList = await db.infraction.findMany({
       where: { userId: user.id, status: 'ACTIVE', type: 'BLACKLIST' },
       select: { hub: { select: { name: true } } },

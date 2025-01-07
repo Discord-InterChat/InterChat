@@ -8,15 +8,15 @@ import { fetchCommands, findCommand } from '#utils/CommandUtils.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
-import { getOrCreateWebhook } from '#utils/Utils.js';
+import { fetchUserLocale, getOrCreateWebhook } from '#utils/Utils.js';
 import Connection from './index.js';
 
 export default class Unpause extends Connection {
   override async execute(interaction: ChatInputCommandInteraction): Promise<void> {
     const channelId = interaction.options.getString('channel') ?? interaction.channelId;
     const connected = await db.connection.findFirst({ where: { channelId } });
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+
+    const locale = await fetchUserLocale(interaction.user.id);
 
     if (!connected) {
       await this.replyEmbed(

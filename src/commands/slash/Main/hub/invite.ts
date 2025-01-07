@@ -1,18 +1,17 @@
-import { type CacheType, type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
-import ms from 'ms';
 import { HubService } from '#main/services/HubService.js';
 import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { handleError } from '#main/utils/Utils.js';
+import { fetchUserLocale, handleError } from '#main/utils/Utils.js';
 import db from '#utils/Db.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
+import { type CacheType, type ChatInputCommandInteraction, EmbedBuilder } from 'discord.js';
+import ms from 'ms';
 import HubCommand from './index.js';
 
 export default class Invite extends HubCommand {
   readonly cooldown = 3000; // 3 seconds
 
   async execute(interaction: ChatInputCommandInteraction<CacheType>) {
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = await fetchUserLocale(interaction.user.id);
 
     const handlers = {
       create: () => this.handleCreateSubcommand(interaction, locale),

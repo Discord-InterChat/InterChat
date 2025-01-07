@@ -10,6 +10,7 @@ import {
 import BaseCommand from '#main/core/BaseCommand.js';
 import Constants from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
+import { fetchUserData, fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class Vote extends BaseCommand {
   readonly data = {
@@ -18,10 +19,9 @@ export default class Vote extends BaseCommand {
   };
   async execute(interaction: ChatInputCommandInteraction) {
     const { id } = interaction.user;
-    const userData = await interaction.client.userManager.getUser(id);
+    const userData = await fetchUserData(id);
     const voteCount = String(userData?.voteCount ?? 0);
-    const { userManager } = interaction.client;
-    const locale = await userManager.getUserLocale(interaction.user.id);
+    const locale = userData ? await fetchUserLocale(userData) : 'en';
 
     const embed = new EmbedBuilder()
       .setDescription(t('vote.description', locale))

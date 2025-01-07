@@ -139,7 +139,9 @@ export class BroadcastService {
   }
   async resolveAttachmentURL(message: Message) {
     return (
-      message.attachments.first()?.url ?? (await getAttachmentURL(message.content)) ?? undefined
+      message.attachments.first()?.url ??
+      (await getAttachmentURL(message.content)) ??
+      message.stickers.first()?.url
     );
   }
 

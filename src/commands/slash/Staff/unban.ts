@@ -1,6 +1,7 @@
 import { ApplicationCommandOptionType, type ChatInputCommandInteraction } from 'discord.js';
 import BaseCommand, { type CmdData } from '#main/core/BaseCommand.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
+import UserDbService from '#main/services/UserDbService.js';
 
 export default class Unban extends BaseCommand {
   readonly staffOnly = true;
@@ -19,8 +20,8 @@ export default class Unban extends BaseCommand {
   override async execute(interaction: ChatInputCommandInteraction): Promise<unknown> {
     const user = interaction.options.getUser('user', true);
 
-    const { userManager } = interaction.client;
-    const alreadyBanned = await userManager.getUser(user.id);
+    const userService = new UserDbService();
+    const alreadyBanned = await userService.getUser(user.id);
 
     if (!alreadyBanned?.banReason) {
       const notBannedEmbed = new InfoEmbed().setDescription(
@@ -30,7 +31,7 @@ export default class Unban extends BaseCommand {
       return;
     }
 
-    await userManager.unban(user.id, user.username);
+    await userService.unban(user.id, user.username);
 
     const unbanEmbed = new InfoEmbed().setDescription(
       `${this.getEmoji('tick')} Successfully unbanned \`${user.username}\`. They can use the bot again.`,

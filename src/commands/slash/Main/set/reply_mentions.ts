@@ -1,21 +1,23 @@
 import type { ChatInputCommandInteraction } from 'discord.js';
 import SetCommand from './index.js';
+import UserDbService from '#main/services/UserDbService.js';
 
 export default class ReplyMention extends SetCommand {
   async execute(interaction: ChatInputCommandInteraction) {
-    const { userManager } = interaction.client;
-    const dbUser = await userManager.getUser(interaction.user.id);
+
+    const userService = new UserDbService();
+    const dbUser = await userService.getUser(interaction.user.id);
 
     const mentionOnReply = interaction.options.getBoolean('enable', true);
     if (!dbUser) {
-      await userManager.createUser({
+      await userService.createUser({
         id: interaction.user.id,
         username: interaction.user.username,
         mentionOnReply,
       });
     }
     else {
-      await userManager.updateUser(interaction.user.id, { mentionOnReply });
+      await userService.updateUser(interaction.user.id, { mentionOnReply });
     }
 
     await this.replyEmbed(

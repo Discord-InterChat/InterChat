@@ -5,6 +5,7 @@ import ms from 'ms';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
 import HubCommand from './index.js';
+import { fetchUserLocale } from '#main/utils/Utils.js';
 
 export default class AppealCommand extends HubCommand {
   async execute(interaction: ChatInputCommandInteraction) {
@@ -53,7 +54,7 @@ export default class AppealCommand extends HubCommand {
         interaction,
         t(
           'hub.notFound_mod',
-          await interaction.client.userManager.getUserLocale(interaction.user.id),
+          await fetchUserLocale(interaction.user.id),
           { emoji: this.getEmoji('x_icon') },
         ),
         { flags: ['Ephemeral'] },
