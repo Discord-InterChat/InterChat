@@ -22,7 +22,9 @@ rules:
     9. **Relatar violações**
       -# Use o comando `Apps > Message Info/Report` para notificar os moderadores sobre qualquer conteúdo que viole as regras.
 
-    E lembre-se de seguir os [Termos de Serviço do Discord] (https://discord.com/terms) e as [Diretrizes da Comunidade] (https://discord.com/guidelines).
+    E lembre-se de seguir os [Termos de Serviço do Discord] (https://discord.com/terms) e as [Diretrizes da Comunidade] (https://discord.com/guidelines)
+
+    🇧🇷Tradução feita por: 𝕯𝖆𝖓𝖎𝖊𝖑 𝕭𝖆𝖗𝖇𝖔𝖘𝖆 @dannybarbosabr.
   welcome: |
     {emoji} Hey {user}, bem-vindo ao InterChat!
     Antes de começar a conversar com pessoas de outros servidores usando o InterChat, você precisa aceitar as regras. Use o botão abaixo para aceitá-las.
@@ -30,7 +32,7 @@ rules:
     {emoji} Bem-vindo ao InterChat! Você aceitou as regras e agora está pronto para conversar com membros de outros servidores!
     Se ainda não estiver em um hub, use `/hub browse` para entrar em um e começar a conversar. Se você tiver alguma dúvida ou precisar de ajuda, fique à vontade para perguntar no [servidor de suporte]({support_invite}).
     Se você gosta de usar o InterChat, considere a possibilidade de [doar]({donateLink}) para ajudar nos custos de desenvolvimento.
-  alreadyAccepted: '{emoji} Você já aceitou as regras. Agora você pode usar o InterChat em toda sua extensão.'
+  alreadyAccepted: "### Regras:\nEstas regras foram estabelecidas para proporcionar uma experiência segura e agradável para todos. Leia-as e siga-as cuidadosamente:\n\n1. **Não há conteúdo NSFW, NSFL ou Gore**\n  -# Aplica-se a imagens de perfil, nomes de usuário, imagens explícitas, vídeos e texto.\n2. **Não há racismo ou discriminação**\n  -# Trate todos com respeito e gentileza. Discursos de ódio e calúnias são proibidos.\n3. **Não há conteúdo sexual**\n  -# Isso inclui piadas sugestivas, gifs e qualquer outra forma de insinuação. Mantenha o ambiente amigável para todos.\n4. **Não há publicidade ou autopromoção**\n  -# Evite compartilhar links para servidores pessoais, mídias sociais ou outros bots no InterChat.\n5. **Não há assédio ou Doxxing**\n  -# Respeite a privacidade e o bem-estar de todos. O assédio, o doxxing e o incentivo à automutilação são estritamente proibidos.\n6. **Não há spam ou flooding**\n  -# Não envie mensagens repetitivas nem inunde o bate-papo. O excesso de spam pode resultar em penalidades mais severas e afetar o desempenho do bot.\n7. **Não há discussões polêmicas**\n  -# Mantenha um ambiente amigável e acolhedor para todos. Evite discutir política, religião ou outros tópicos polêmicos.\n8. **Use o bom senso**\n  -# Se você acha que algo pode não ser apropriado, evite-o.\n9. **Relatar violações**\n  -# Use o comando `Apps > Message Info/Report` para notificar os moderadores sobre qualquer conteúdo que viole as regras.\n\nE lembre-se de seguir os [Termos de Serviço do Discord] (https://discord.com/terms) e as [Diretrizes da Comunidade] (https://discord.com/guidelines)\n\n🇧🇷Tradução feita por: 𝕯𝖆𝖓𝖎𝖊𝖑 𝕭𝖆𝖗𝖇𝖔𝖘𝖆 @dannybarbosabr."
 vote:
   description: Ao votar, você nos apoia ajudando o InterChat a ter uma classificação mais alta nas principais pesquisas.
   footer: Obrigado pelo apoio!
@@ -56,7 +58,7 @@ blacklist:
       label: Duração
       placeholder: 'Duração da lista negra. Ex.: 1d, 1s, 1m, 1a. Deixe em branco para permanente.'
   user:
-    alreadyBlacklisted: '{emoji} This user is already blacklisted.'
+    alreadyBlacklisted: '{emoji} Este usuário já está na lista negra.'
     easterEggs:
       blacklistBot: Você não pode me colocar na lista negra, wtf.
   server:
@@ -78,7 +80,7 @@ msgInfo:
     message: Informações da mensagem
     server: Informações do servidor
     user: Informações do usuário
-    report: Report
+    report: Reportar
   report:
     notEnabled: '{emoji} Os relatórios não estão habilitados para este hub.'
     success: '{emoji} Relatório enviado com sucesso. Obrigado!'
@@ -94,45 +96,45 @@ connection:
   switchCalled: '{emoji} Troca de canal chamada, use o comando novamente para visualizar a nova conexão.'
   switchSuccess: '{emoji} Canal trocado. Agora você está conectado de **{channel}**.'
   inviteRemoved: '{emoji} Convite do servidor removido para este hub.'
-  inviteInvalid: '{emoji} Invalid invite. Please make sure you have entered a valid invite link.'
-  inviteAdded: '{emoji} Invite Added. Others can now join this server by using `Apps > Message Info/Report` command.'
-  emColorInvalid: '{emoji} Invalid color. Please make sure you have entered a valid hex color code.'
-  emColorChange: '{emoji} Embed color successfully {action}'
+  inviteInvalid: '{emoji} Convite inválido. Certifique-se de ter inserido um link de convite válido.'
+  inviteAdded: '{emoji} Convite Adicionado. Outros agora podem se juntar a este servidor usando o comando `Apps > Message Info/Report`.'
+  emColorInvalid: '{emoji} Cor inválida. Certifique-se de ter inserido um código de cor hexadecimal válido.'
+  emColorChange: '{emoji} Incorporar cor com sucesso {action}'
   embed:
     title: Connection Details
     fields:
       hub: Hub
       channel: Channel
       invite: Invite
-      connected: Connected
-      emColor: Embed Color
+      connected: Conectado
+      emColor: Incorporar cor
       compact: Compact Mode
-      profanity: Profanity Filter
-    footer: Use the button & dropdown below to manage your connection.
+      profanity: Filtro de profanidade
+    footer: Use o botão e o menu suspenso abaixo para gerenciar sua conexão.
   selects:
     placeholder: '🛠️ Select an option to edit this connection'
   unpaused:
     desc: |
-      ### {tick_emoji} Unpaused Connection
+      ### {tick_emoji} Conexão não pausada
 
-      Unpaused connection for {channel}! Messages from the hub will start coming into the channel and you can send messages to the hub again.
+      Conexão não pausada para {channel}! Mensagens do hub começarão a chegar ao canal e você poderá enviar mensagens para o hub novamente.
     tips: |
-      **💡 Tip:** Use {pause_cmd} to pause the connection or {edit_cmd} to set embed colors, toggle profanity filter, and more.
+      **💡 Dica:** Use {pause_cmd} para pausar a conexão ou {edit_cmd} para definir cores incorporadas, alternar filtros de palavrões e muito mais.
   paused:
     desc: |
       ### {clock_emoji} Paused Connection
       Paused connection for {channel}! Messages from the hub will no longer come into the channel and your messages won't be broadcasted to them.
     tips: |
-      **💡 Tip:** Use {unpause_cmd} to unpause the connection or {leave_cmd} to permanently stop recieving messages.
+      **💡 Dica:** Use {unpause_cmd} para retomar a conexão ou {leave_cmd} para parar permanentemente de receber mensagens.
 hub:
-  notFound: '{emoji} Unable to find hub. Please make sure you have entered the correct hub name.'
-  notFound_mod: '{emoji} Unable to find hub. Please make sure you have entered the correct hub name & that you are the owner or a moderator of the hub.'
-  notManager: '{emoji} You must be a hub manager to perform this action.'
-  notModerator: '{emoji} You need to be a hub moderator to perform this action.'
-  notPrivate: '{emoji} This hub is not private.'
-  notOwner: '{emoji} Only the owner of this hub can perform this action.'
-  alreadyJoined: '{emoji} You have already joined **{hub}** from {channel}!'
-  invalidChannel: '{emoji} Invalid channel. Only text and thread channels are supported!'
+  notFound: '{emoji} Não foi possível encontrar o hub. Certifique-se de ter inserido o nome correto do hub.'
+  notFound_mod: '{emoji} Não foi possível encontrar o hub. Certifique-se de ter inserido o nome correto do hub e de que você é o proprietário ou moderador do hub.'
+  notManager: '{emoji} Você deve ser um gerente de hub para executar esta ação.'
+  notModerator: '{emoji} Você deve ser um gerente de hub para executar esta ação.'
+  notPrivate: '{emoji} Este hub não é privado.'
+  notOwner: '{emoji} Somente o proprietário deste hub pode executar esta ação.'
+  alreadyJoined: '{emoji} Você já entrou no **{hub}** do {channel}!'
+  invalidChannel: '{emoji} Canal inválido. Somente canais de texto e thread são suportados!'
   invalidImgurUrl: '{emoji} Invalid image URL for icon or banner. Please make sure you have entered a valid Imgur image URL that is not a gallery or album.'
   join:
     success: |
@@ -182,20 +184,20 @@ hub:
 
       If you have any questions or need help, feel free to ask in the [support server]({support_invite}). Consider [donating]({donateLink}) to support the development costs.
   delete:
-    confirm: Are you sure you wish to delete **{hub}**? This action is irreversible. All connected servers, invites and message data will be removed from this hub.
-    ownerOnly: '{emoji} Only the owner of this hub can delete it.'
-    success: '{emoji} Hub **{hub}** has been deleted.'
-    cancelled: '{emoji} Hub deletion has been cancelled.'
+    confirm: Tem certeza de que deseja excluir **{hub}**? Esta ação é irreversível. Todos os servidores conectados, convites e dados de mensagens serão removidos deste hub.
+    ownerOnly: '{emoji} Somente o proprietário deste hub pode excluí-lo.'
+    success: '{emoji} O hub **{hub}** foi excluído.'
+    cancelled: '{emoji} A exclusão do Hub foi cancelada.'
   browse:
     joinConfirm: |
-      Are you sure you wish to join {hub} from {channel}?
+      Tem certeza de que deseja ingressar no {hub} a partir do {channel}?
 
-      **Note:** You can always change this later using `/connection`.
-    joinFooter: Want to use a different channel? Use the dropdown below.
-    noHubs: '{emoji} There are no hubs listed here at the moment. Please try again later!'
+      **Observação:** você sempre pode alterar isso mais tarde usando `/connection`.
+    joinFooter: Quer usar um canal diferente? Use o menu suspenso abaixo.
+    noHubs: '{emoji} Não há hubs listados aqui no momento. Tente novamente mais tarde!'
     rating:
-      invalid: Invalid rating. You must enter a number between 1 and 5.
-      success: Rating submitted! Thank you for your feedback.
+      invalid: Classificação inválida. Você deve digitar um número entre 1 e 5.
+      success: Avaliação enviada! Obrigado pelo seu feedback.
   invite:
     create:
       success: |
@@ -210,90 +212,90 @@ hub:
 
         **Note:** You can revoke this invite anytime using `/hub invite revoke {inviteCode}`.
     revoke:
-      invalidCode: '{emoji} Invalid invite code. Please make sure you have entered a valid invite code.'
-      success: '{emoji} Invite {inviteCode} revoked.'
+      invalidCode: '{emoji} Código de convite inválido. Certifique-se de ter inserido um código de convite válido.'
+      success: '{emoji} Convite {inviteCode} revogado.'
     list:
-      title: '**Invite Codes:**'
-      noInvites: '{emoji} This hub has no invites yet. Use `/hub invite create` to create one.'
-      notPrivate: '{emoji} Only private hubs can have invites. Use `/hub edit` to make this hub private.'
+      title: '**Códigos de convite:**'
+      noInvites: '**Códigos de convite:**'
+      notPrivate: '{emoji} Somente hubs privados podem ter convites. Use `/hub edit` para tornar este hub privado.'
   joined:
-    noJoinedHubs: '{emoji} This server has not joined any hubs yet. Use `/hub browse` to view a list of hubs.'
-    joinedHubs: This server is a part of **{total}** hub(s). Use `/hub leave` to leave a hub.
+    noJoinedHubs: '{emoji} Este servidor ainda não se juntou a nenhum hub. Use `/hub browse` para visualizar uma lista de hubs.'
+    joinedHubs: Este servidor faz parte de **{total}** hub(s). Use `/hub leave` para sair de um hub.
   leave:
-    noHub: '{emoji} That channel is invalid or has not joined any hubs.'
-    confirm: Are you sure you wish to leave **{hub}** from {channel}? No more messages will be sent to this server from this hub.
-    confirmFooter: Confirm using the button below within 10 seconds.
-    success: '{emoji} Left the hub from {channel}. No more messages will be sent to this server from this hub. You can rejoin using `/hub join`.'
+    noHub: '{emoji} Esse canal é inválido ou não se juntou a nenhum hub.'
+    confirm: Tem certeza de que deseja sair de **{hub}** de {channel}? Nenhuma outra mensagem será enviada para este servidor deste hub.
+    confirmFooter: Confirme usando o botão abaixo em até 10 segundos.
+    success: '{emoji} Saiu do hub de {channel}. Nenhuma outra mensagem será enviada para este servidor deste hub. Você pode entrar novamente usando `/hub join`.'
   moderator:
-    noModerators: '{emoji} This hub has no moderators yet. Use `/hub moderator add` to add one.'
+    noModerators: '{emoji} Este hub ainda não tem moderadores. Use `/hub moderator add` para adicionar um.'
     add:
-      success: '{emoji} **{user}** has been added as a moderator of position **{position}**.'
+      success: '{emoji} **{user}** foi adicionado como moderador da posição **{position}**.'
       alreadyModerator: '{emoji} **{user}** is already a moderator.'
     remove:
-      success: '{emoji} **{user}** has been removed as a moderator.'
-      notModerator: '{emoji} **{user}** is not a moderator.'
+      success: '{emoji} **{user}** foi removido como moderador.'
+      notModerator: '{emoji} **{user}** não é um moderador.'
       notOwner: '{emoji} Only the owner of this hub can remove a manager.'
     update:
-      success: "{emoji} **{user}**'s position has been updated to **{position}**."
-      notModerator: '{emoji} **{user}** is not a moderator.'
+      success: "{emoji} A posição de **{user}** foi atualizada para **{position}**."
+      notModerator: '{emoji} **{user}** não é um moderador.'
       notAllowed: "{emoji} Only hub managers can update a moderator's position."
-      notOwner: "{emoji} Only the owner of this hub can update a manager's position."
+      notOwner: "{emoji} Somente o proprietário deste hub pode atualizar a posição de um gerente."
   manage:
-    enterImgurUrl: Enter a valid Imgur image URL that is not a gallery or album.
+    enterImgurUrl: Insira uma URL de imagem Imgur válida que não seja uma galeria ou álbum.
     icon:
-      changed: Hub icon successfully changed.
+      changed: Ícone do Hub alterado com sucesso.
       modal:
-        title: Edit Icon
-        label: Icon URL
+        title: Ícone de edição
+        label: URL do ícone
       selects:
-        label: Edit Icon
-        description: Change the icon of this hub.
+        label: Ícone de edição
+        description: Alterar o ícone deste hub.
     description:
       changed: Hub description successfully changed.
       modal:
-        title: Edit Description
-        label: Description
-        placeholder: Enter a description for this hub.
+        title: Editar Descrição
+        label: Dwdcircao
+        placeholder: Insira uma descrição para este hub.
       selects:
-        label: Change Description
-        description: Change the description of this hub.
+        label: Alterar descrição
+        description: Alterar a descrição deste hub.
     banner:
       changed: Hub banner successfully changed.
-      removed: Hub banner successfully removed.
+      removed: O banner do Hub foi removido com sucesso.
       modal:
-        title: Edit Banner
-        label: Banner URL
+        title: Editar Banner
+        label: URL do banner
       selects:
         label: Edit Banner
         description: Change the banner of this hub.
     visibility:
-      success: '{emoji} Hub visibility successfully changed to **{visibility}**.'
+      success: '{emoji} A visibilidade do Hub foi alterada com sucesso para **{visibility}**.'
       selects:
-        label: Change Visibility
-        description: Make this hub public or private.
+        label: Alterar Visibilidade
+        description: Torne este hub público ou privado.
     toggleLock:
       selects:
-        label: "Lock/Unlock Hub"
-        description: "Lock or unlock the hub chats"
-      confirmation: "Hub chats are now {status}."
-      announcementTitle: "Hub chats are now {status}."
+        label: "Bloquear/Desbloquear Hub"
+        description: "Bloquear ou desbloquear os chats do hub"
+      confirmation: "Os chats do Hub agora são {status}."
+      announcementTitle: "Os chats do Hub agora são {status}."
       announcementDescription:
-        locked: "Only moderators can send messages."
-        unlocked: "Everyone can send messages."
+        locked: "Somente moderadores podem enviar mensagens."
+        unlocked: "Todos podem enviar mensagens."
     embed:
-      visibility: "Visibility"
-      connections: "Connections"
+      visibility: "Visibilidade"
+      connections: "Conexões"
       chatsLocked: "Chats Locked"
-      blacklists: "Blacklists"
+      blacklists: "Listas negras"
       total: "Total"
       users: "Users"
       servers: "Servers"
-      hubStats: "Hub Stats"
-      moderators: "Moderators"
-      owner: "Owner"
+      hubStats: "Estatísticas do Hub"
+      moderators: "Moderadores"
+      owner: "Dono"
     logs:
-      title: Logs Configuration
-      reset: '{emoji} Successfully reset the logs configuration for `{type}` logs.'
+      title: Configuração de Logs
+      reset: '{emoji} A configuração de logs para logs `{type}` foi redefinida com sucesso.'
       roleSuccess: '{emoji} Logs of type `{type}` will now mention {role}!'
       channelSuccess: '{emoji} Logs of type `{type}` will be sent to  {channel} from now!'
       channelSelect: '#️⃣ Select a channel to send the logs'
@@ -384,4 +386,4 @@ global:
   private: "Private"
   public: "Public"
   yes: "Yes"
-  no: "No"
+  no: "Não"
