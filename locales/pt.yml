@@ -62,7 +62,7 @@ blacklist:
     easterEggs:
       blacklistBot: Você não pode me colocar na lista negra, wtf.
   server:
-    alreadyBlacklisted: '{emoji} Este servidor já está na lista negra.'
+    alreadyBlacklisted: '{emoji}{emoji} Este servidor já está na lista negra.'
     unknownError: Falha ao colocar **{server}** na lista negra. Entre em contato com os desenvolvedores para obter mais informações.
   list:
     user: |
@@ -112,7 +112,7 @@ connection:
       profanity: Filtro de profanidade
     footer: Use o botão e o menu suspenso abaixo para gerenciar sua conexão.
   selects:
-    placeholder: "## {tick_emoji} Conexão não pausada\n\nConexão não pausada para {channel}! Mensagens do hub começarão a chegar ao canal e você poderá enviar mensagens para o hub novamente"
+    placeholder: 'Selecione uma opção para editar esta conexão'
   unpaused:
     desc: |
       ### {tick_emoji} Conexão não pausada
@@ -253,7 +253,7 @@ hub:
       changed: '{emoji} Somente os gerentes do hub podem atualizar a posição de um moderador.'
       modal:
         title: Editar Descrição
-        label: Dwdcircao
+        label: Descrição
         placeholder: Insira uma descrição para este hub.
       selects:
         label: Alterar descrição
@@ -287,8 +287,8 @@ hub:
       chatsLocked: "Bate-papos bloqueados"
       blacklists: "Listas negras"
       total: "Total"
-      users: "Users"
-      servers: "Servers"
+      users: "Usuários"
+      servers: "Servidores"
       hubStats: "Estatísticas do Hub"
       moderators: "Moderadores"
       owner: "Dono"
