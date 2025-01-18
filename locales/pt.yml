@@ -1,99 +1,99 @@
 rules:
   rules: |
-    ### Rules:
-    These rules are in place to make a safe and enjoyable experience for everyone. Read and follow them carefully:
+    ### Regras:
+    Estas regras foram estabelecidas para proporcionar uma experiência segura e agradável para todos. Leia-as e siga-as cuidadosamente:
 
-    1. **No NSFW, NSFL, or Gore Content**
-      -# Applies to profile images, usernames, explicit images, videos, and text.
-    2. **No Racism or Discrimination**
-      -# Treat everyone respectfully and kindly. Hate speech and slurs are prohibited.
-    3. **No Sexual Content**
-      -# This includes suggestive jokes, gifs, and any other form of innuendo. Keep it friendly for everyone.
-    4. **No Advertising or Self-Promotion**
-      -# Avoid sharing links to personal servers, social media, or other bots on InterChat.
-    5. **No Harassment or Doxxing**
-      -# Respect everyone’s privacy and well-being. Harassment, doxxing, and encouraging self-harm are strictly forbidden.
-    6. **No Spam or Flooding**
-      -# Don’t send repetitive messages or flood the chat. Excessive spamming may result in harsher penalties and impacts bot performance.
-    7. **No Controversial Discussions**
-      -# Maintain a friendly, welcoming environment for everyone. Avoid discussing politics, religion, or other controversial topics.
-    8. **Use Common Sense**
-      -# If you think something might not be appropriate, avoid it.
-    9. **Report Violations**
-      -# Use the `Apps > Message Info/Report` command to notify moderators of any rule-breaking content.
+    1. **Não há conteúdo NSFW, NSFL ou Gore**
+      -# Aplica-se a imagens de perfil, nomes de usuário, imagens explícitas, vídeos e texto.
+    2. **Não há racismo ou discriminação**
+      -# Trate todos com respeito e gentileza. Discursos de ódio e calúnias são proibidos.
+    3. **Não há conteúdo sexual**
+      -# Isso inclui piadas sugestivas, gifs e qualquer outra forma de insinuação. Mantenha o ambiente amigável para todos.
+    4. **Não há publicidade ou autopromoção**
+      -# Evite compartilhar links para servidores pessoais, mídias sociais ou outros bots no InterChat.
+    5. **Não há assédio ou Doxxing**
+      -# Respeite a privacidade e o bem-estar de todos. O assédio, o doxxing e o incentivo à automutilação são estritamente proibidos.
+    6. **Não há spam ou flooding**
+      -# Não envie mensagens repetitivas nem inunde o bate-papo. O excesso de spam pode resultar em penalidades mais severas e afetar o desempenho do bot.
+    7. **Não há discussões polêmicas**
+      -# Mantenha um ambiente amigável e acolhedor para todos. Evite discutir política, religião ou outros tópicos polêmicos.
+    8. **Use o bom senso**
+      -# Se você acha que algo pode não ser apropriado, evite-o.
+    9. **Relatar violações**
+      -# Use o comando `Apps > Message Info/Report` para notificar os moderadores sobre qualquer conteúdo que viole as regras.
 
-    And remember to follow [Discord's Terms of Service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines).
+    E lembre-se de seguir os [Termos de Serviço do Discord] (https://discord.com/terms) e as [Diretrizes da Comunidade] (https://discord.com/guidelines).
   welcome: |
-    {emoji} Hey {user}, welcome to InterChat!
-    Before you can start chatting with people from other servers using InterChat, you need to accept the rules. Use the button below to accept them.
+    {emoji} Hey {user}, bem-vindo ao InterChat!
+    Antes de começar a conversar com pessoas de outros servidores usando o InterChat, você precisa aceitar as regras. Use o botão abaixo para aceitá-las.
   accepted: |
-    {emoji} Welcome to InterChat! You have accepted the rules and are now ready to chat with members from other servers!
-    If you are not already in a hub, use `/hub browse` to join one and start chatting. If you have any questions or need help, feel free to ask in the [support server]({support_invite}).
-    If you enjoy using InterChat, please consider [donating]({donateLink}) to support the development costs.
-  alreadyAccepted: '{emoji} You have already accepted the rules. You can now use InterChat to its full extent.'
+    {emoji} Bem-vindo ao InterChat! Você aceitou as regras e agora está pronto para conversar com membros de outros servidores!
+    Se ainda não estiver em um hub, use `/hub browse` para entrar em um e começar a conversar. Se você tiver alguma dúvida ou precisar de ajuda, fique à vontade para perguntar no [servidor de suporte]({support_invite}).
+    Se você gosta de usar o InterChat, considere a possibilidade de [doar]({donateLink}) para ajudar nos custos de desenvolvimento.
+  alreadyAccepted: '{emoji} Você já aceitou as regras. Agora você pode usar o InterChat em toda sua extensão.'
 vote:
-  description: By voting you support us by helping InterChat rank higher on topgg searches.
-  footer: Thank you for supporting!
+  description: Ao votar, você nos apoia ajudando o InterChat a ter uma classificação mais alta nas principais pesquisas.
+  footer: Obrigado pelo apoio!
 network:
-  accountTooNew: '{emoji} {user} Your account is too new to send messages using InterChat. Please try again later.'
-  deleteSuccess: '{emoji} Message by {user} has been deleted from __**{deleted}/{total}**__ servers.'
-  editSuccess: '{emoji} Message by {user} has been edited in __**{edited}/{total}**__ servers.'
+  accountTooNew: '{emoji} {user} Sua conta é muito nova para enviar mensagens usando o InterChat. Tente novamente mais tarde.'
+  deleteSuccess: '{emoji} A mensagem de {user} foi excluída de __**{deleted}/{total}**__ servidores.'
+  editSuccess: '{emoji} A mensagem de {user} foi editada em __**{edited}/{total}**__ servidores.'
   onboarding:
     embed:
-      title: '👋 Hey there, welcome to {hubName}!'
+      title: 'Olá, bem-vindo ao {hubName}!'
       description: |
-        Hey there! You are trying to join a hub called **{hubName}**. In order to chat with members from other servers, you need to accept InterChat's guidelines. Use the button below to continue.
-      footer: InterChat Network | Version {version}
-    inProgress: '{emoji} {channel} is already in the process of being setup to join a hub. Please wait for the setup to complete or cancel it if you were the one who initiated it.'
+        Olá! Você está tentando entrar em um hub chamado **{hubName}**. Para conversar com membros de outros servidores, você precisa aceitar as diretrizes do InterChat. Use o botão abaixo para continuar.
+      footer: Rede InterChat | Versão {version}
+    inProgress: '{emoji} {channel} já está em processo de configuração para se juntar a um hub. Aguarde a conclusão da configuração ou cancele-a se você foi quem a iniciou.'
 blacklist:
-  success: '{emoji} **{name}** has been successfully blacklisted!'
-  removed: '{emoji} **{name}** has been removed from the blacklist!'
+  success: '{emoji} **{name}** foi colocado na lista negra com sucesso!'
+  removed: '{emoji} **{name}** foi removido da lista negra!'
   modal:
     reason:
-      label: Reason
-      placeholder: Reason for blacklisting
+      label: Causa
+      placeholder: Motivo da lista negra
     duration:
-      label: Duration
-      placeholder: 'Duration of blacklist. Eg: 1d, 1w, 1m, 1y. Leave blank for permanent.'
+      label: Duração
+      placeholder: 'Duração da lista negra. Ex.: 1d, 1s, 1m, 1a. Deixe em branco para permanente.'
   user:
     alreadyBlacklisted: '{emoji} This user is already blacklisted.'
     easterEggs:
-      blacklistBot: You can't blacklist me wtf.
+      blacklistBot: Você não pode me colocar na lista negra, wtf.
   server:
-    alreadyBlacklisted: '{emoji} This server is already blacklisted.'
-    unknownError: Failed to blacklist **{server}**. Enquire with the developers for more information.
+    alreadyBlacklisted: '{emoji} Este servidor já está na lista negra.'
+    unknownError: Falha ao colocar **{server}** na lista negra. Entre em contato com os desenvolvedores para obter mais informações.
   list:
     user: |
-      **UserID:** {id}
-      **Moderator:** {moderator}
-      **Reason:** {reason}
-      **Expires:** {expires}
+      **UserID:** {id} 
+      **Moderador:** {moderator} 
+      **Motivo:** {reason} 
+      **Expira:** {expires}
     server: |
       **ServerId:** {id}
-      **Moderator:** {moderator}
-      **Reason:** {reason}
-      **Expires:** {expires}
+      **Moderador:** {moderator}
+      **Motivo:** {reason}
+      **Expira:** {expires}
 msgInfo:
   buttons:
-    message: Message Info
-    server: Server Info
-    user: User Info
+    message: Informações da mensagem
+    server: Informações do servidor
+    user: Informações do usuário
     report: Report
   report:
-    notEnabled: '{emoji} Reporting is not enabled for this hub.'
-    success: '{emoji} Report submitted successfully. Thank you!'
+    notEnabled: '{emoji} Os relatórios não estão habilitados para este hub.'
+    success: '{emoji} Relatório enviado com sucesso. Obrigado!'
 invite: |
   Thank you for choosing to invite InterChat! If you have any questions or need help, we are always here to help you in the support server!
 
   **[{invite_emoji} `Invite Link`]( {invite} ) [{support_emoji} `Support Server`]( {support} )**
 connection:
-  notFound: '{emoji} Invalid connection. Verify the channel ID or select from displayed options.'
+  notFound: '{emoji} Conexão inválida. Verifique o ID do canal ou selecione entre as opções exibidas.'
   channelNotFound: '{emoji} Unable to find connected channel. To talk again choose a new channel.'
-  alreadyConnected: '{emoji} Channel {channel} is already connected to a hub.'
+  alreadyConnected: '{emoji} O canal {channel} já está conectado a um hub.'
   switchChannel: '{emoji} Select a channel to switch to using the select menu below:'
-  switchCalled: '{emoji} Channel switch called, use the command again to view new connection.'
-  switchSuccess: '{emoji} Channel switched. You are now connected from **{channel}**.'
-  inviteRemoved: '{emoji} Server Invite removed for this hub.'
+  switchCalled: '{emoji} Troca de canal chamada, use o comando novamente para visualizar a nova conexão.'
+  switchSuccess: '{emoji} Canal trocado. Agora você está conectado de **{channel}**.'
+  inviteRemoved: '{emoji} Convite do servidor removido para este hub.'
   inviteInvalid: '{emoji} Invalid invite. Please make sure you have entered a valid invite link.'
   inviteAdded: '{emoji} Invite Added. Others can now join this server by using `Apps > Message Info/Report` command.'
   emColorInvalid: '{emoji} Invalid color. Please make sure you have entered a valid hex color code.'
