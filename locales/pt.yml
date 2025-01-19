@@ -60,7 +60,7 @@ blacklist:
   user:
     alreadyBlacklisted: '{emoji} Este usuário já está na lista negra.'
     easterEggs:
-      blacklistBot: Você não pode me colocar na lista negra, wtf.
+      blacklistBot: Você não pode me colocar na lista negra, wtf, tá achando que e o danny ou devoid .
   server:
     alreadyBlacklisted: '{emoji}{emoji} Este servidor já está na lista negra.'
     unknownError: Falha ao colocar **{server}** na lista negra. Entre em contato com os desenvolvedores para obter mais informações.
