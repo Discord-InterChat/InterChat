@@ -5,6 +5,7 @@ import { showRulesScreening } from '#main/interactions/RulesScreening.js';
 import { MessageProcessor } from '#main/services/MessageProcessor.js';
 import Constants from '#main/utils/Constants.js';
 import { fetchUserData, handleError, isHumanMessage } from '#utils/Utils.js';
+import { executeCommand, resolveCommand } from '#main/utils/CommandUtils.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';
@@ -19,7 +20,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     if (!message.inGuild() || !isHumanMessage(message)) return;
 
     if (message.content.startsWith('c!')) {
-      await this.handlePrefixCommand(message, 'c!');
+      await this.handlePrefixCommand(message);
       return;
     }
     if (
@@ -42,27 +43,14 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     await this.handleChatMessage(message).catch((e) => handleError(e, { repliable: message }));
   }
 
-  private async handlePrefixCommand(message: Message, prefix: string) {
-    try {
-      const userData = await fetchUserData(message.author.id);
-      if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
+  private async handlePrefixCommand(message: Message) {
+    const userData = await fetchUserData(message.author.id);
+    if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
 
-      const args = message.content.slice(prefix.length).trim().split(/ +/);
-      const commandName = args.shift()?.toLowerCase();
+    const { command, prefixArgs } = resolveCommand(message.client.commands, message);
+    if (!command) return;
 
-      if (!commandName) return;
-
-      const command =
-        message.client.prefixCommands.get(commandName) ||
-        message.client.prefixCommands.find((cmd) => cmd.data.aliases?.includes(commandName));
-
-      if (!command) return;
-
-      await command.execute(message, args);
-    }
-    catch (e) {
-      handleError(e, { repliable: message });
-    }
+    await executeCommand(message, command, prefixArgs);
   }
 
   private async handleChatMessage(message: Message<true>) {

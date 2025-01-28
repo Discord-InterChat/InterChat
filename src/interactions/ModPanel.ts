@@ -1,17 +1,4 @@
-import { stripIndents } from 'common-tags';
-import {
-  ActionRowBuilder,
-  ButtonBuilder,
-  type ButtonInteraction,
-  ButtonStyle,
-  type Client,
-  EmbedBuilder,
-  type Interaction,
-  Message,
-  type ModalSubmitInteraction,
-  type RepliableInteraction,
-  type Snowflake,
-} from 'discord.js';
+import type Context from '#main/core/CommandContext/Context.js';
 import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
 import BlacklistManager from '#main/managers/BlacklistManager.js';
 import { HubService } from '#main/services/HubService.js';
@@ -33,6 +20,19 @@ import UserBanHandler from '#main/utils/moderation/modPanel/handlers/userBanHand
 import ViewInfractionsHandler from '#main/utils/moderation/modPanel/handlers/viewInfractions.js';
 import { type OriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
 import Constants from '#utils/Constants.js';
+import { stripIndents } from 'common-tags';
+import {
+  ActionRowBuilder,
+  ButtonBuilder,
+  type ButtonInteraction,
+  ButtonStyle,
+  type Client,
+  EmbedBuilder,
+  type Interaction,
+  type ModalSubmitInteraction,
+  type RepliableInteraction,
+  type Snowflake,
+} from 'discord.js';
 
 type BuilderOpts = {
   isUserBlacklisted: boolean;
@@ -123,11 +123,11 @@ export default class ModPanelHandler {
 }
 
 export async function buildModPanel(
-  interaction: Interaction | Message,
+  ctx: Context | Interaction,
   originalMsg: OriginalMessage,
 ) {
-  const user = await interaction.client.users.fetch(originalMsg.authorId);
-  const server = await interaction.client.fetchGuild(originalMsg.guildId);
+  const user = await ctx.client.users.fetch(originalMsg.authorId);
+  const server = await ctx.client.fetchGuild(originalMsg.guildId);
   const deleteInProgress = await isDeleteInProgress(originalMsg.messageId);
 
   const userBlManager = new BlacklistManager('user', originalMsg.authorId);
@@ -140,7 +140,7 @@ export async function buildModPanel(
   const embed = buildInfoEmbed(
     user.username,
     server?.name ?? 'Unknown Server',
-    interaction.client,
+    ctx.client,
     {
       isUserBlacklisted,
       isServerBlacklisted,
@@ -149,7 +149,7 @@ export async function buildModPanel(
     },
   );
 
-  const buttons = buildButtons(interaction, originalMsg.messageId, {
+  const buttons = buildButtons(ctx, originalMsg.messageId, {
     isUserBlacklisted,
     isServerBlacklisted,
     isBanned: Boolean(dbUserTarget?.banReason),
@@ -159,27 +159,27 @@ export async function buildModPanel(
   return { embed, buttons };
 }
 
-function buildButtons(interaction: Interaction | Message, messageId: Snowflake, opts: BuilderOpts) {
-  const author = interaction instanceof Message ? interaction.author : interaction.user;
+function buildButtons(ctx: Context | Interaction, messageId: Snowflake, opts: BuilderOpts) {
+  const author = ctx.user;
   const buttons = new ActionRowBuilder<ButtonBuilder>().addComponents(
     new ButtonBuilder()
       .setCustomId(new CustomID('modPanel:blacklistUser', [author.id, messageId]).toString())
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(getEmoji('person_icon', interaction.client))
+      .setEmoji(getEmoji('person_icon', ctx.client))
       .setDisabled(opts.isUserBlacklisted),
     new ButtonBuilder()
       .setCustomId(new CustomID('modPanel:blacklistServer', [author.id, messageId]).toString())
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(getEmoji('globe_icon', interaction.client))
+      .setEmoji(getEmoji('globe_icon', ctx.client))
       .setDisabled(opts.isServerBlacklisted),
     new ButtonBuilder()
       .setCustomId(new CustomID('modPanel:removeAllReactions', [author.id, messageId]).toString())
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(getEmoji('plus_icon', interaction.client)),
+      .setEmoji(getEmoji('plus_icon', ctx.client)),
     new ButtonBuilder()
       .setCustomId(new CustomID('modPanel:deleteMsg', [author.id, messageId]).toString())
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(getEmoji('deleteDanger_icon', interaction.client))
+      .setEmoji(getEmoji('deleteDanger_icon', ctx.client))
       .setDisabled(opts.isDeleteInProgress),
   );
 
@@ -188,7 +188,7 @@ function buildButtons(interaction: Interaction | Message, messageId: Snowflake, 
       new ButtonBuilder()
         .setCustomId(new CustomID('modPanel:banUser', [author.id, messageId]).toString())
         .setStyle(ButtonStyle.Secondary)
-        .setEmoji(getEmoji('blobFastBan', interaction.client))
+        .setEmoji(getEmoji('blobFastBan', ctx.client))
         .setDisabled(opts.isBanned),
     );
   }
@@ -198,7 +198,7 @@ function buildButtons(interaction: Interaction | Message, messageId: Snowflake, 
       .setCustomId(new CustomID('modPanel:viewInfractions', [author.id, messageId]).toString())
       .setLabel('View Infractions')
       .setStyle(ButtonStyle.Secondary)
-      .setEmoji(getEmoji('exclamation', interaction.client)),
+      .setEmoji(getEmoji('exclamation', ctx.client)),
   );
 
   return [buttons, extras];

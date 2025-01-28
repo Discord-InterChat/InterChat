@@ -9,18 +9,20 @@ import {
   Sweepers,
 } from 'discord.js';
 import type BaseCommand from '#main/core/BaseCommand.js';
-import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
 import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
 import AntiSpamManager from '#main/managers/AntiSpamManager.js';
 import EventLoader from '#main/modules/Loaders/EventLoader.js';
 import CooldownService from '#main/services/CooldownService.js';
 import { LevelingService } from '#main/services/LevelingService.js';
 import Scheduler from '#main/services/SchedulerService.js';
-import { loadCommands, loadInteractions } from '#main/utils/CommandUtils.js';
+import { loadInteractions } from '#main/utils/CommandUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import Constants from '#utils/Constants.js';
 import { loadLocales } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
+import { loadCommands } from '#main/utils/Loaders.js';
+import { MetadataHandler } from '#main/core/FileLoader.js';
+import Logger from '#main/utils/Logger.js';
 
 export default class InterChatClient extends Client {
   static instance: InterChatClient;
@@ -29,7 +31,6 @@ export default class InterChatClient extends Client {
 
   public readonly commands = new Collection<string, BaseCommand>();
   public readonly interactions = new Collection<string, InteractionFunction>();
-  public readonly prefixCommands = new Collection<string, BasePrefixCommand>();
 
   public readonly version = Constants.ProjectVersion;
   public readonly reactionCooldowns = new Collection<string, number>();
@@ -97,8 +98,22 @@ export default class InterChatClient extends Client {
 
     // initialize i18n for localization
     loadLocales('locales');
-    loadCommands(this.commands, this.prefixCommands, this.interactions, this);
-    loadInteractions(this.interactions);
+    await loadCommands(this.commands);
+    Logger.info(`Loaded ${this.commands.size} commands`);
+    await loadInteractions(this.interactions);
+    Logger.info(`Loaded ${this.interactions.size} interactions`);
+
+    // FIXME: move this interaction loading to somewhere else
+    // biome-ignore lint/complexity/noForEach: <explanation>
+    this.commands.forEach((command) => {
+      if (command.subcommands) {
+        // biome-ignore lint/complexity/noForEach: <explanation>
+        Object.values(command.subcommands).forEach((subcommand) =>
+          MetadataHandler.loadMetadata(subcommand, this.interactions),
+        );
+      }
+      MetadataHandler.loadMetadata(command, this.interactions);
+    });
     this.eventLoader.load();
 
     // Discord.js automatically uses DISCORD_TOKEN env variable
@@ -106,11 +121,13 @@ export default class InterChatClient extends Client {
   }
 
   /**
-   * Fetches a guild by its ID from the cache of one of the clusters.
-   * @param guildId The ID of the guild to fetch.
-   * @returns The fetched guild **without any methods**, or undefined if the guild is not found.
-   */
-  async fetchGuild(guildId: Snowflake): Promise<RemoveMethods<Guild> | undefined> {
+	 * Fetches a guild by its ID from the cache of one of the clusters.
+	 * @param guildId The ID of the guild to fetch.
+	 * @returns The fetched guild **without any methods**, or undefined if the guild is not found.
+	 */
+  async fetchGuild(
+    guildId: Snowflake,
+  ): Promise<RemoveMethods<Guild> | undefined> {
     const fetch = (await this.cluster.broadcastEval(
       (client, guildID) => client.guilds.cache.get(guildID),
       { guildId, context: guildId },

@@ -16,6 +16,7 @@ import { CustomID, type ParsedCustomId } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
 import { checkIfStaff, fetchUserData, fetchUserLocale, handleError } from '#utils/Utils.js';
+import { executeCommand, resolveCommand } from '#main/utils/CommandUtils.js';
 
 export default class InteractionCreate extends BaseEventListener<'interactionCreate'> {
   readonly name = 'interactionCreate';
@@ -66,8 +67,8 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
       | ContextMenuCommandInteraction
       | AutocompleteInteraction,
   ) {
-    const { commands } = interaction.client;
-    const command = commands.get(interaction.commandName);
+    const { command } = resolveCommand(interaction.client.commands, interaction);
+    if (!command) return;
 
     if (!this.validateCommandAccess(command, interaction)) return;
 
@@ -76,7 +77,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
       return;
     }
 
-    await command?.execute(interaction);
+    await executeCommand(interaction, command);
   }
 
   private validateCommandAccess(

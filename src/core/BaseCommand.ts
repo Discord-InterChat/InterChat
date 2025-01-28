@@ -1,213 +1,165 @@
-import { MetadataHandler } from '#main/core/FileLoader.js';
-import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
-import { type EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
-import type { TranslationKeys } from '#types/TranslationKeys.d.ts';
-
+import type Context from '#main/core/CommandContext/Context.js';
 import {
-  type APIActionRowComponent,
-  type APIMessageActionRowComponent,
-  type ActionRowData,
+  type APIApplicationCommandBasicOption,
+  ApplicationCommandOptionType,
+  type ApplicationCommandStringOption,
+  type ApplicationCommandType,
+  ApplicationIntegrationType,
   type AutocompleteInteraction,
-  type BitFieldResolvable,
   type ChatInputCommandInteraction,
-  type Client,
-  type Collection,
+  ContextMenuCommandBuilder,
   type ContextMenuCommandInteraction,
-  type Interaction,
-  type InteractionResponse,
-  type JSONEncodable,
-  type Message,
-  type MessageActionRowComponentBuilder,
-  type MessageActionRowComponentData,
-  type MessageComponentInteraction,
-  type MessageFlags,
-  type MessageFlagsString,
-  type ModalSubmitInteraction,
+  InteractionContextType,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
-  type RepliableInteraction,
-  time,
+  SlashCommandBuilder,
 } from 'discord.js';
-import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { type supportedLocaleCodes, t } from '#utils/Locale.js';
-import Logger from '#utils/Logger.js';
-import { fetchUserLocale, getReplyMethod } from '#utils/Utils.js';
+import isEmpty from 'lodash/isEmpty.js';
 
-export type CmdInteraction = ChatInputCommandInteraction | ContextMenuCommandInteraction;
+export const createStringOption = (
+  data: Omit<ApplicationCommandStringOption, 'type'>,
+) => ({ ...data, type: ApplicationCommandOptionType.String });
+
+export type CmdInteraction =
+	| ChatInputCommandInteraction
+	| ContextMenuCommandInteraction;
 export type CmdData =
-  | RESTPostAPIChatInputApplicationCommandsJSONBody
-  | RESTPostAPIContextMenuApplicationCommandsJSONBody;
+	| RESTPostAPIChatInputApplicationCommandsJSONBody
+	| RESTPostAPIContextMenuApplicationCommandsJSONBody;
+
+interface Config {
+  name: string;
+  description: string;
+  staffOnly?: boolean;
+  contexts?: { guildOnly?: boolean; userInstall?: boolean };
+  options?: APIApplicationCommandBasicOption[];
+}
+
+interface CommandConfig extends Config {
+  types: {
+    slash?: boolean;
+    prefix?: boolean;
+    contextMenu?: never;
+  };
+  subcommands?: Record<string, BaseCommand | Record<string, BaseCommand>>;
+}
+
+interface ContextMenuConfig extends Config {
+  types: {
+    slash?: boolean;
+    prefix?: boolean;
+    contextMenu: {
+      name: string;
+      type: ApplicationCommandType.Message | ApplicationCommandType.User;
+    };
+  };
+  subcommands?: never;
+}
 
 export default abstract class BaseCommand {
-  abstract readonly data: CmdData;
-  readonly staffOnly?: boolean;
-  readonly cooldown?: number;
-  readonly description?: string;
-  protected readonly client: Client | null;
+  readonly name: CommandConfig['name'];
+  readonly description: CommandConfig['description'];
+  readonly types: CommandConfig['types'] | ContextMenuConfig['types'];
+  readonly contexts: CommandConfig['contexts'];
+  readonly staffOnly: CommandConfig['staffOnly'];
 
-  static readonly subcommands?: Collection<string, BaseCommand>;
+  // if contextMenu has been set to "Message" options should only contain one sring option
+  // which is assumed to be the id of the target message
+  // same thing for user ctx menu, user option must be used
+  readonly options: APIApplicationCommandBasicOption[];
+  readonly subcommands: CommandConfig['subcommands'];
 
-  constructor(client: Client | null) {
-    this.client = client;
+  constructor(opts: ContextMenuConfig | CommandConfig) {
+    this.name = opts.name;
+    this.description = opts.description;
+    this.types = opts.types;
+    this.contexts = opts.contexts;
+    this.options = opts.options || [];
+    this.subcommands = 'subcommands' in opts ? opts.subcommands : undefined;
+    this.staffOnly = opts.staffOnly || false;
   }
 
-  protected getEmoji(name: EmojiKeys): string {
-    if (!this.client?.isReady()) return '';
-    return getEmoji(name, this.client);
-  }
+  async execute?(ctx: Context): Promise<void>;
+  async autocomplete?(interaction: AutocompleteInteraction): Promise<void>;
 
-  abstract execute(interaction: CmdInteraction): Promise<unknown>;
+  getData() {
+    let slashCommand: RESTPostAPIChatInputApplicationCommandsJSONBody | null =
+			null;
+    let prefixCommand: Omit<CommandConfig, 'types'> | null = null;
+    let contextMenu: RESTPostAPIContextMenuApplicationCommandsJSONBody | null =
+			null;
 
-  // optional methods
-  async autocomplete?(interaction: AutocompleteInteraction): Promise<unknown>;
-  async handleComponents?(interaction: MessageComponentInteraction): Promise<unknown>;
-  async handleModals?(interaction: ModalSubmitInteraction): Promise<unknown>;
-
-  async checkOrSetCooldown(interaction: RepliableInteraction): Promise<boolean> {
-    const remainingCooldown = await this.getRemainingCooldown(interaction);
-
-    if (remainingCooldown) {
-
-      const locale = await fetchUserLocale(interaction.user.id);
-      await this.sendCooldownError(interaction, remainingCooldown, locale);
-      return true;
-    }
-
-    await this.setUserCooldown(interaction);
-    return false;
-  }
-
-  async sendCooldownError(
-    interaction: RepliableInteraction,
-    remainingCooldown: number,
-    locale: supportedLocaleCodes,
-  ): Promise<void> {
-    const waitUntil = Math.round((Date.now() + remainingCooldown) / 1000);
-
-    await interaction.reply({
-      content: t('errors.cooldown', locale, {
-        time: `${time(waitUntil, 'T')} (${time(waitUntil, 'R')})`,
-        emoji: this.getEmoji('x_icon'),
-      }),
-      flags: ['Ephemeral'],
-    });
-  }
-
-  async getRemainingCooldown(interaction: RepliableInteraction): Promise<number> {
-    let remainingCooldown: number | undefined;
-    const { commandCooldowns } = interaction.client;
-
-    if (interaction.isChatInputCommand()) {
-      const subcommand = interaction.options.getSubcommand(false);
-      const subcommandGroup = interaction.options.getSubcommandGroup(false);
-
-      remainingCooldown = await commandCooldowns.getRemainingCooldown(
-        `${interaction.user.id}-${interaction.commandName}${
-          subcommandGroup ? `-${subcommandGroup}` : ''
-        }${subcommand ? `-${subcommand}` : ''}`,
-      );
-    }
-    else if (interaction.isContextMenuCommand()) {
-      remainingCooldown = await commandCooldowns.getRemainingCooldown(
-        `${interaction.user.id}-${interaction.commandName}`,
+    if (this.options && this.subcommands) {
+      throw new Error(
+        'A command must only either have subcommands or options. Not both.',
       );
     }
 
-    return remainingCooldown || 0;
-  }
+    if (this.types.slash) {
+      slashCommand = new SlashCommandBuilder()
+        .setName(this.name)
+        .setDescription(this.description)
+        .setIntegrationTypes(
+          this.contexts?.userInstall
+            ? ApplicationIntegrationType.UserInstall
+            : ApplicationIntegrationType.GuildInstall,
+        )
+        .toJSON();
 
-  async setUserCooldown(interaction: RepliableInteraction): Promise<void> {
-    if (!this.cooldown) return;
-    const { commandCooldowns } = interaction.client;
+      if (!isEmpty(this.options)) {
+        slashCommand.options = this.options;
+      }
+      if (this.contexts?.guildOnly) {
+        slashCommand.contexts?.push(InteractionContextType.Guild);
+      }
 
-    if (interaction.isChatInputCommand()) {
-      const subcommand = interaction.options.getSubcommand(false);
-      const subcommandGroup = interaction.options.getSubcommandGroup(false);
-      const id = `${interaction.user.id}-${interaction.commandName}${
-        subcommandGroup ? `-${subcommandGroup}` : ''
-      }${subcommand ? `-${subcommand}` : ''}`;
-
-      await commandCooldowns.setCooldown(id, this.cooldown);
+      if (!isEmpty(this.subcommands)) {
+        // biome-ignore lint/complexity/noForEach: <explanation>
+        Object.entries(this.subcommands).forEach(([name, data]) => {
+          if (data instanceof BaseCommand) {
+            slashCommand?.options?.push({
+              type: ApplicationCommandOptionType.Subcommand,
+              name: data.name,
+              description: data.description,
+              options: data.options,
+            });
+          }
+          else {
+            const subcommandGroupName = name;
+            slashCommand?.options?.push({
+              type: ApplicationCommandOptionType.SubcommandGroup,
+              name: subcommandGroupName,
+              description: 'placeholder',
+              options: Object.entries(data).map(
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                ([_subcommandName, subcommandData]) => ({
+                  type: ApplicationCommandOptionType.Subcommand,
+                  name: subcommandData.name,
+                  description: subcommandData.description,
+                  options: subcommandData.options,
+                }),
+              ),
+            });
+          }
+        });
+      }
     }
-    else if (interaction.isContextMenuCommand()) {
-      await commandCooldowns.setCooldown(
-        `${interaction.user.id}-${interaction.commandName}`,
-        this.cooldown,
-      );
+    else if (this.types.prefix) {
+      prefixCommand = {
+        name: this.name,
+        description: this.description,
+        options: this.options,
+        subcommands: this.subcommands,
+        contexts: this.contexts,
+      };
     }
-  }
-
-  async replyEmbed<K extends keyof TranslationKeys>(
-    interaction: RepliableInteraction | MessageComponentInteraction,
-    desc: K | (string & NonNullable<unknown>),
-    opts?: {
-      t?: { [Key in TranslationKeys[K]]: string };
-      content?: string;
-      title?: string;
-      components?: readonly (
-        | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
-        | ActionRowData<MessageActionRowComponentData | MessageActionRowComponentBuilder>
-        | APIActionRowComponent<APIMessageActionRowComponent>
-      )[];
-      flags?: BitFieldResolvable<
-        Extract<MessageFlagsString, 'Ephemeral' | 'SuppressEmbeds' | 'SuppressNotifications'>,
-        MessageFlags.Ephemeral | MessageFlags.SuppressEmbeds | MessageFlags.SuppressNotifications
-      >;
-      edit?: boolean;
-    },
-  ): Promise<InteractionResponse | Message> {
-    let description = desc as string;
-
-    if (t(desc as K, 'en')) {
-      const locale = await this.getLocale(interaction);
-      description = t(desc as K, locale, opts?.t);
+    else if (this.types.contextMenu) {
+      const { contextMenu: rawCtxData } = this.types;
+      contextMenu = new ContextMenuCommandBuilder()
+        .setName(rawCtxData.name)
+        .setType(rawCtxData.type);
     }
 
-    const embed = new InfoEmbed().setDescription(description).setTitle(opts?.title);
-    const message = {
-      content: opts?.content,
-      embeds: [embed],
-      components: opts?.components,
-    };
-
-    if (opts?.edit) return await interaction.editReply(message);
-    const methodName = getReplyMethod(interaction);
-    return await interaction[methodName]({
-      ...message,
-      flags: opts?.flags,
-    });
-  }
-
-  build(
-    fileName: string,
-    opts: {
-      commandsMap: Collection<string, BaseCommand>;
-      interactionsMap: Collection<string, InteractionFunction>;
-    },
-  ): void {
-    if (Object.getPrototypeOf(this.constructor) === BaseCommand) {
-      opts.commandsMap.set(this.data.name, this);
-      this.loadCommandInteractions(this, opts.interactionsMap);
-    }
-    else {
-      const parentCommand = Object.getPrototypeOf(this.constructor) as typeof BaseCommand;
-      parentCommand.subcommands?.set(fileName.replace('.ts', ''), this);
-      this.loadCommandInteractions(this, opts.interactionsMap);
-    }
-  }
-
-  private loadCommandInteractions(
-    command: BaseCommand,
-    map: Collection<string, InteractionFunction>,
-  ): void {
-    Logger.debug(`Adding interactions for command: ${command.data.name}`);
-    MetadataHandler.loadMetadata(command, map);
-    Logger.debug(`Finished adding interactions for command: ${command.data.name}`);
-  }
-
-  protected async getLocale(
-    interaction: Interaction | MessageComponentInteraction,
-  ): Promise<supportedLocaleCodes> {
-    return await fetchUserLocale(interaction.user.id);
+    return { prefix: prefixCommand, contextMenu, slash: slashCommand };
   }
 }

@@ -6,7 +6,7 @@ import {
   type WebhookMessageCreateOptions,
   userMention,
 } from 'discord.js';
-import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
+import type { BroadcastOpts, ReferredMsgData } from '#utils/network/Types.js';
 import { CompactMessageFormatter } from './formatters/CompactMsgFormatter.js';
 import { EmbedMessageFormatter } from './formatters/EmbedMsgFormatter.js';
 

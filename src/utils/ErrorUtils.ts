@@ -1,14 +1,19 @@
 import { CustomID } from '#main/utils/CustomID.js';
 import Logger from '#main/utils/Logger.js';
 import { sendErrorEmbed } from '#main/utils/Utils.js';
-import { EventHint } from '@sentry/bun';
-import { Interaction, InteractionType, Message } from 'discord.js';
+import type { EventHint } from '@sentry/bun';
 import {
+  type ContextMenuCommandInteraction,
+  type Interaction,
+  InteractionType,
+  Message,
+} from 'discord.js';
+import type {
   CaptureContext,
   ScopeContext,
 } from 'node_modules/@sentry/core/build/types/types-hoist/scope.js';
 
-type Repliable = Message | Interaction;
+type Repliable = Message | Interaction | ContextMenuCommandInteraction;
 
 export interface ErrorHandlerOptions {
   repliable?: Repliable;
@@ -21,14 +26,14 @@ interface UserInfo {
 }
 
 export type ErrorHint =
-  | (CaptureContext &
-      Partial<{
-        [key in keyof EventHint]: never;
-      }>)
-  | (EventHint &
-      Partial<{
-        [key in keyof ScopeContext]: never;
-      }>);
+	| (CaptureContext &
+			Partial<{
+			  [key in keyof EventHint]: never;
+			}>)
+	| (EventHint &
+			Partial<{
+			  [key in keyof ScopeContext]: never;
+			}>);
 
 function extractUserInfo(repliable: Repliable): UserInfo {
   if (repliable instanceof Message) {
@@ -44,7 +49,9 @@ function extractUserInfo(repliable: Repliable): UserInfo {
   };
 }
 
-function extractCommandInfo(interaction: Interaction): string | undefined {
+function extractCommandInfo(
+  interaction: Interaction | ContextMenuCommandInteraction,
+): string | undefined {
   if (!interaction.isCommand() && !interaction.isAutocomplete()) {
     return undefined;
   }
@@ -58,7 +65,10 @@ function extractCommandInfo(interaction: Interaction): string | undefined {
   return interaction.commandName;
 }
 
-export function createErrorHint(repliable?: Repliable, comment?: string): ErrorHint | undefined {
+export function createErrorHint(
+  repliable?: Repliable,
+  comment?: string,
+): ErrorHint | undefined {
   if (!repliable) {
     return undefined;
   }
