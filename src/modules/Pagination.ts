@@ -1,3 +1,7 @@
+import Context from '#src/core/CommandContext/Context.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import Logger from '#src/utils/Logger.js';
+import { getReplyMethod } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -15,9 +19,6 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import Logger from '#main/utils/Logger.js';
-import { getReplyMethod } from '#utils/Utils.js';
 
 type PaginationInteraction = Exclude<RepliableInteraction, ModalSubmitInteraction>;
 
@@ -229,7 +230,7 @@ export class Pagination {
     }
   }
 
-  public async run(ctx: PaginationInteraction | Message, options?: RunOptions) {
+  public async run(ctx: PaginationInteraction | Message | Context, options?: RunOptions) {
     if (this.pages.length < 1) {
       await this.sendReply(
         ctx,
@@ -314,14 +315,14 @@ export class Pagination {
   }
 
   private async sendReply(
-    ctx: PaginationInteraction | Message,
+    ctx: PaginationInteraction | Message | Context,
     opts: BaseMessageOptions,
     interactionOpts?: {
       ephemeral?: boolean;
       flags?: InteractionReplyOptions['flags'];
     },
   ) {
-    if (ctx instanceof Message) return await ctx.reply(opts);
+    if (ctx instanceof Message || ctx instanceof Context) return await ctx.reply(opts);
 
     const replyMethod = getReplyMethod(ctx);
     return await ctx[replyMethod]({

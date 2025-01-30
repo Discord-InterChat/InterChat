@@ -1,8 +1,8 @@
 import type { ButtonInteraction, Snowflake } from 'discord.js';
-import InfractionManager from '#main/managers/InfractionManager.js';
-import { Pagination } from '#main/modules/Pagination.js';
-import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
-import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
+import InfractionManager from '#src/managers/InfractionManager.js';
+import { Pagination } from '#src/modules/Pagination.js';
+import { type ModAction, replyWithUnknownMessage } from '#src/utils/moderation/modPanel/utils.js';
+import { getOriginalMessage } from '#src/utils/network/messageUtils.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';
 import { buildInfractionListEmbeds } from '#utils/moderation/infractionUtils.js';
 

@@ -1,4 +1,4 @@
-import Context from '#main/core/CommandContext/Context.js';
+import Context from '#src/core/CommandContext/Context.js';
 import type {
   APIModalInteractionResponseCallbackData,
   ChatInputCommandInteraction,
@@ -8,7 +8,6 @@ import type {
   InteractionResponse,
   JSONEncodable,
   Message,
-  MessagePayload,
   ModalComponentData,
 } from 'discord.js';
 
@@ -17,15 +16,20 @@ export default class InteractionContext extends Context<{
   ctx: InteractionContext;
   responseType: Message | InteractionResponse;
 }> {
+
   public get deferred() {
     return this.interaction.deferred;
+  }
+
+  public get replied() {
+    return this.interaction.replied;
   }
 
   public async deferReply(opts?: { flags?: ['Ephemeral'] }) {
     return await this.interaction.deferReply({ flags: opts?.flags });
   }
 
-  public async reply(data: string | MessagePayload | InteractionReplyOptions) {
+  public async reply(data: string | InteractionReplyOptions) {
     if (this.interaction.replied || this.interaction.deferred) {
       return await this.interaction.followUp(data);
     }
@@ -38,7 +42,7 @@ export default class InteractionContext extends Context<{
   }
 
   public async editReply(
-    data: string | MessagePayload | InteractionEditReplyOptions,
+    data: string | InteractionEditReplyOptions,
   ): Promise<Message<boolean> | InteractionResponse<boolean>> {
     return await this.interaction.editReply(data);
   }

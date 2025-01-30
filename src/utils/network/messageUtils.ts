@@ -1,8 +1,8 @@
 import type { Message, Snowflake } from 'discord.js';
 import isEmpty from 'lodash/isEmpty.js';
-import Logger from '#main/utils/Logger.js';
-import getRedis from '#main/utils/Redis.js';
-import { handleError } from '#main/utils/Utils.js';
+import Logger from '#src/utils/Logger.js';
+import getRedis from '#src/utils/Redis.js';
+import { handleError } from '#src/utils/Utils.js';
 import Constants, { RedisKeys } from '#utils/Constants.js';
 
 export interface OriginalMessage {

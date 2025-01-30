@@ -1,7 +1,7 @@
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import BlacklistManager from '#main/managers/BlacklistManager.js';
-import HubLogManager from '#main/managers/HubLogManager.js';
-import InfractionManager from '#main/managers/InfractionManager.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import BlacklistManager from '#src/managers/BlacklistManager.js';
+import HubLogManager from '#src/managers/HubLogManager.js';
+import InfractionManager from '#src/managers/InfractionManager.js';
 
 import {
   ActionRowBuilder,
@@ -14,8 +14,8 @@ import {
   type Snowflake,
   type User,
 } from 'discord.js';
-import { HubService } from '#main/services/HubService.js';
-import db from '#main/utils/Db.js';
+import { HubService } from '#src/services/HubService.js';
+import db from '#src/utils/Db.js';
 import { CustomID } from '#utils/CustomID.js';
 import { ErrorEmbed, InfoEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';

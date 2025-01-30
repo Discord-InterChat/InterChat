@@ -1,15 +1,15 @@
 import type { BlockWord, Hub } from '@prisma/client';
 import type { Redis } from 'ioredis';
-import { CacheConfig, CacheManager } from '#main/managers/CacheManager.js';
-import HubConnectionsManager from '#main/managers/HubConnectionsManager.js';
-import HubLogManager from '#main/managers/HubLogManager.js';
-import HubModeratorManager from '#main/managers/HubModeratorManager.js';
-import HubSettingsManager from '#main/managers/HubSettingsManager.js';
-import { HubService } from '#main/services/HubService.js';
-import { RedisKeys } from '#main/utils/Constants.js';
-import db from '#main/utils/Db.js';
-import Logger from '#main/utils/Logger.js';
-import getRedis from '#main/utils/Redis.js';
+import { CacheConfig, CacheManager } from '#src/managers/CacheManager.js';
+import HubConnectionsManager from '#src/managers/HubConnectionsManager.js';
+import HubLogManager from '#src/managers/HubLogManager.js';
+import HubModeratorManager from '#src/managers/HubModeratorManager.js';
+import HubSettingsManager from '#src/managers/HubSettingsManager.js';
+import { HubService } from '#src/services/HubService.js';
+import { RedisKeys } from '#src/utils/Constants.js';
+import db from '#src/utils/Db.js';
+import Logger from '#src/utils/Logger.js';
+import getRedis from '#src/utils/Redis.js';
 
 export default class HubManager {
   private readonly cacheManager: CacheManager;

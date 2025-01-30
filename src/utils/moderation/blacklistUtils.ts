@@ -12,9 +12,9 @@ import {
   TextInputStyle,
   type User,
 } from 'discord.js';
-import { buildAppealSubmitButton } from '#main/interactions/BlacklistAppeal.js';
-import { HubService } from '#main/services/HubService.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { buildAppealSubmitButton } from '#src/interactions/BlacklistAppeal.js';
+import { HubService } from '#src/services/HubService.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';

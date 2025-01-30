@@ -7,14 +7,14 @@ import type {
   Snowflake,
   TextChannel,
 } from 'discord.js';
-import type BaseCommand from '#main/core/BaseCommand.js';
-import type BasePrefixCommand from '#main/core/BasePrefixCommand.js';
-import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
-import type AntiSpamManager from '#main/managers/AntiSpamManager.js';
-import type EventLoader from '#main/modules/Loaders/EventLoader.js';
-import type CooldownService from '#main/services/CooldownService.js';
-import type Scheduler from '#main/services/SchedulerService.js';
-import { LevelingService } from '#main/services/LevelingService.js';
+import type BaseCommand from '#src/core/BaseCommand.js';
+import type BasePrefixCommand from '#src/core/BasePrefixCommand.js';
+import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
+import type AntiSpamManager from '#src/managers/AntiSpamManager.js';
+import type EventLoader from '#src/modules/Loaders/EventLoader.js';
+import type CooldownService from '#src/services/CooldownService.js';
+import type Scheduler from '#src/services/SchedulerService.js';
+import { LevelingService } from '#src/services/LevelingService.js';
 
 export type RemoveMethods<T> = {
   [K in keyof T]: T[K] extends (...args: unknown[]) => unknown ? never : RemoveMethods<T[K]>;

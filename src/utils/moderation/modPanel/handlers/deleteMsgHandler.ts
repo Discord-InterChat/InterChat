@@ -1,15 +1,15 @@
-import { buildModPanel } from '#main/interactions/ModPanel.js';
-import { HubService } from '#main/services/HubService.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { logMsgDelete } from '#main/utils/hub/logger/ModLogs.js';
-import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
-import { getBroadcasts, getOriginalMessage } from '#main/utils/network/messageUtils.js';
+import { buildModPanel } from '#src/interactions/ModPanel.js';
+import { HubService } from '#src/services/HubService.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { logMsgDelete } from '#src/utils/hub/logger/ModLogs.js';
+import { type ModAction, replyWithUnknownMessage } from '#src/utils/moderation/modPanel/utils.js';
+import { getBroadcasts, getOriginalMessage } from '#src/utils/network/messageUtils.js';
 
 import type { ButtonInteraction, Snowflake } from 'discord.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { deleteMessageFromHub, isDeleteInProgress } from '#utils/moderation/deleteMessage.js';
-import { fetchUserLocale } from '#main/utils/Utils.js';
+import { fetchUserLocale } from '#src/utils/Utils.js';
 
 export default class DeleteMessageHandler implements ModAction {
   async handle(

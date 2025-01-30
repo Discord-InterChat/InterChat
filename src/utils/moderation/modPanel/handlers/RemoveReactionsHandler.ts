@@ -1,7 +1,7 @@
 import type { ButtonInteraction, Snowflake } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
-import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { type ModAction, replyWithUnknownMessage } from '#src/utils/moderation/modPanel/utils.js';
+import { getOriginalMessage } from '#src/utils/network/messageUtils.js';
 import type { ReactionArray } from '#types/Utils.d.ts';
 import { updateReactions } from '#utils/reaction/actions.js';
 import sortReactions from '#utils/reaction/sortReactions.js';

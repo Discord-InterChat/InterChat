@@ -7,11 +7,11 @@ import {
   type Interaction,
   Message,
 } from 'discord.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import UserDbService from '#main/services/UserDbService.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import Logger from '#main/utils/Logger.js';
-import { fetchUserData, fetchUserLocale, getReplyMethod, handleError } from '#main/utils/Utils.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import UserDbService from '#src/services/UserDbService.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import Logger from '#src/utils/Logger.js';
+import { fetchUserData, fetchUserLocale, getReplyMethod, handleError } from '#src/utils/Utils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';

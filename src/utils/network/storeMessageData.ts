@@ -5,7 +5,7 @@ import {
   addBroadcasts,
   storeMessage,
   storeMessageTimestamp,
-} from '#main/utils/network/messageUtils.js';
+} from '#src/utils/network/messageUtils.js';
 import { updateConnections } from '#utils/ConnectedListUtils.js';
 import type { ConnectionMode } from '#utils/Constants.js';
 

@@ -1,5 +1,5 @@
-import type ConnectionManager from '#main/managers/ConnectionManager.js';
-import type HubManager from '#main/managers/HubManager.js';
+import type ConnectionManager from '#src/managers/ConnectionManager.js';
+import type HubManager from '#src/managers/HubManager.js';
 
 export interface ConnectionData {
   connection: ConnectionManager;

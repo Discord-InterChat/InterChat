@@ -2,11 +2,11 @@ import type { HubModerator, Role } from '@prisma/client';
 import { Collection } from 'discord.js';
 import type { Redis } from 'ioredis';
 import isEmpty from 'lodash/isEmpty.js';
-import type HubManager from '#main/managers/HubManager.js';
-import { RedisKeys } from '#main/utils/Constants.js';
-import db from '#main/utils/Db.js';
-import getRedis from '#main/utils/Redis.js';
-import { handleError } from '#main/utils/Utils.js';
+import type HubManager from '#src/managers/HubManager.js';
+import { RedisKeys } from '#src/utils/Constants.js';
+import db from '#src/utils/Db.js';
+import getRedis from '#src/utils/Redis.js';
+import { handleError } from '#src/utils/Utils.js';
 
 export default class HubModeratorManager {
   private readonly hub: HubManager;

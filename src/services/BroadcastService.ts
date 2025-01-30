@@ -6,12 +6,12 @@ import {
   WebhookClient,
   type WebhookMessageCreateOptions,
 } from 'discord.js';
-import type ConnectionManager from '#main/managers/ConnectionManager.js';
-import type HubManager from '#main/managers/HubManager.js';
-import type HubSettingsManager from '#main/managers/HubSettingsManager.js';
-import MessageFormattingService from '#main/services/MessageFormattingService.js';
-import Logger from '#main/utils/Logger.js';
-import type { BroadcastOpts, ReferredMsgData } from '#main/utils/network/Types.js';
+import type ConnectionManager from '#src/managers/ConnectionManager.js';
+import type HubManager from '#src/managers/HubManager.js';
+import type HubSettingsManager from '#src/managers/HubSettingsManager.js';
+import MessageFormattingService from '#src/services/MessageFormattingService.js';
+import Logger from '#src/utils/Logger.js';
+import type { BroadcastOpts, ReferredMsgData } from '#src/utils/network/Types.d.ts';
 import { generateJumpButton as getJumpButton } from '#utils/ComponentUtils.js';
 import { ConnectionMode } from '#utils/Constants.js';
 import { getAttachmentURL } from '#utils/ImageUtils.js';

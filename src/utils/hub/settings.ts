@@ -1,6 +1,6 @@
 import { ActionRowBuilder, type Client, type Snowflake, StringSelectMenuBuilder } from 'discord.js';
-import type { SerializedHubSettings } from '#main/modules/BitFields.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import type { SerializedHubSettings } from '#src/modules/BitFields.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 
 export const buildSettingsMenu = (

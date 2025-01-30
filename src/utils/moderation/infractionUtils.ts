@@ -1,7 +1,7 @@
 import type { Infraction } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { type Client, EmbedBuilder, type User, time } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import Constants from '#utils/Constants.js';
 import { msToReadable, toTitleCase } from '#utils/Utils.js';
 

@@ -1,18 +1,31 @@
 import { isDate } from 'node:util/types';
-import type { Infraction, InfractionStatus, InfractionType, Prisma } from '@prisma/client';
+import type {
+  Infraction,
+  InfractionStatus,
+  InfractionType,
+  Prisma,
+} from '@prisma/client';
 import type { Client, Snowflake, User } from 'discord.js';
-import { HubService } from '#main/services/HubService.js';
-import db from '#main/utils/Db.js';
-import { logServerUnblacklist, logUserUnblacklist } from '#main/utils/hub/logger/ModLogs.js';
+import { HubService } from '#src/services/HubService.js';
+import db from '#src/utils/Db.js';
+import {
+  logServerUnblacklist,
+  logUserUnblacklist,
+} from '#src/utils/hub/logger/ModLogs.js';
 import type { ConvertDatesToString } from '#types/Utils.d.ts';
-import { cacheData, getCachedData } from '#utils/CacheUtils.js';
+import { CacheManager } from '#src/managers/CacheManager.js';
+import getRedis from '#src/utils/Redis.js';
 
 export default class InfractionManager {
   public readonly targetId: Snowflake;
   public readonly targetType: 'user' | 'server';
 
   private readonly modelName = 'Infraction';
-  private readonly cacheExpirySecs = 5 * 60;
+  // private readonly cacheExpirySecs = 5 * 60;
+  private readonly cacheManager = new CacheManager(getRedis(), {
+    prefix: this.modelName,
+    expirationMs: 60 * 5 * 1000, // 5 minutes
+  });
 
   constructor(targetType: 'user' | 'server', targetId: Snowflake) {
     this.targetId = targetId;
@@ -20,7 +33,7 @@ export default class InfractionManager {
   }
 
   private getKey(entityId: Snowflake, hubId: string) {
-    return `${this.modelName}:${entityId}:${hubId}`;
+    return `${entityId}:${hubId}`;
   }
 
   public async addInfraction(
@@ -62,7 +75,11 @@ export default class InfractionManager {
     filter: { type: InfractionType; hubId: string; status?: InfractionStatus },
     data: Prisma.InfractionUpdateInput,
   ) {
-    const infraction = await this.fetchInfraction(filter.type, filter.hubId, filter.status);
+    const infraction = await this.fetchInfraction(
+      filter.type,
+      filter.hubId,
+      filter.status,
+    );
     if (!infraction) return null;
 
     const updated = await db.infraction.update({
@@ -87,21 +104,27 @@ export default class InfractionManager {
     });
   }
 
-  public async getHubInfractions(hubId: string, opts?: { type?: InfractionType; count?: number }) {
-    const fetched = await getCachedData(
-      `${this.modelName}:${this.targetId}:${hubId}`,
-      async () => await this.queryEntityInfractions(hubId),
-      this.cacheExpirySecs,
-    );
+  public async getHubInfractions(
+    hubId: string,
+    opts?: { type?: InfractionType; count?: number },
+  ) {
+    let infractionsArr =
+			(await this.cacheManager.get(
+			  `${this.targetId}:${hubId}`,
+			  async () => await this.queryEntityInfractions(hubId),
+			)) ?? [];
 
-    let infractionsArr = fetched.data ?? [];
     if (opts?.type) infractionsArr = infractionsArr.filter((i) => i.type === opts.type);
     if (opts?.count) infractionsArr = infractionsArr.slice(0, opts.count);
 
     return this.updateInfractionDates(infractionsArr);
   }
 
-  public async fetchInfraction(type: InfractionType, hubId: string, status?: InfractionStatus) {
+  public async fetchInfraction(
+    type: InfractionType,
+    hubId: string,
+    status?: InfractionStatus,
+  ) {
     const infractions = await this.getHubInfractions(hubId, { type });
     const infraction = infractions.find(
       (i) => (status ? i.status === status : true) && i.type === type,
@@ -115,7 +138,10 @@ export default class InfractionManager {
     hubId: string,
     status: Exclude<InfractionStatus, 'ACTIVE'> = 'REVOKED',
   ) {
-    const revoked = await this.updateInfraction({ type, hubId, status: 'ACTIVE' }, { status });
+    const revoked = await this.updateInfraction(
+      { type, hubId, status: 'ACTIVE' },
+      { status },
+    );
     return revoked;
   }
 
@@ -147,17 +173,17 @@ export default class InfractionManager {
   protected async refreshCache(hubId: string) {
     const key = this.getKey(this.targetId, hubId);
     const infractions = await this.queryEntityInfractions(hubId);
-    await cacheData(key, JSON.stringify(infractions), this.cacheExpirySecs);
+    await this.cacheManager.set(key, JSON.stringify(infractions));
   }
 
   protected async cacheEntity(entity: Infraction) {
     const entitySnowflake = entity.userId ?? entity.serverId;
     const key = this.getKey(entitySnowflake as string, entity.hubId);
-    const existing = (await this.getHubInfractions(entity.hubId, { type: entity.type })).filter(
-      (i) => i.id !== entity.id,
-    );
+    const existing = (
+      await this.getHubInfractions(entity.hubId, { type: entity.type })
+    ).filter((i) => i.id !== entity.id);
 
-    return cacheData(key, JSON.stringify([...existing, entity]), this.cacheExpirySecs);
+    return this.cacheManager.set(key, JSON.stringify([...existing, entity]));
   }
 
   protected async removeCachedInfraction(entity: Infraction) {
@@ -165,14 +191,15 @@ export default class InfractionManager {
       type: entity.type,
     });
     const entitySnowflake = entity.userId ?? entity.serverId;
-    return cacheData(
+    return this.cacheManager.set(
       this.getKey(entitySnowflake as string, entity.hubId),
       JSON.stringify(existingInfractions.filter((i) => i.id !== entity.id)),
-      this.cacheExpirySecs,
     );
   }
 
-  protected updateInfractionDates(infractions: ConvertDatesToString<Infraction>[]) {
+  protected updateInfractionDates(
+    infractions: ConvertDatesToString<Infraction>[],
+  ) {
     if (infractions.length === 0) {
       return [];
     }
@@ -192,7 +219,11 @@ export default class InfractionManager {
   }
 
   public filterValidInfractions(infractions: Infraction[]): Infraction[] {
-    return infractions.filter(({ expiresAt }) => !expiresAt || expiresAt > new Date()) ?? [];
+    return (
+      infractions.filter(
+        ({ expiresAt }) => !expiresAt || expiresAt > new Date(),
+      ) ?? []
+    );
   }
 
   public isExpiredInfraction(infraction: Infraction | null) {

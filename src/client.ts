@@ -1,6 +1,7 @@
-import '#main/instrument.js';
-import InterChatClient from '#main/core/BaseClient.js';
+import '#src/instrument.js';
+import InterChatClient from '#src/core/BaseClient.js';
 import Logger from '#utils/Logger.js';
+import 'dotenv/config';
 
 const client = new InterChatClient();
 

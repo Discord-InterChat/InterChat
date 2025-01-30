@@ -1,12 +1,12 @@
 import type { MessageReaction, PartialMessageReaction, PartialUser, User } from 'discord.js';
-import BaseEventListener from '#main/core/BaseEventListener.js';
-import { HubService } from '#main/services/HubService.js';
-import db from '#main/utils/Db.js';
+import BaseEventListener from '#src/core/BaseEventListener.js';
+import { HubService } from '#src/services/HubService.js';
+import db from '#src/utils/Db.js';
 import {
   findOriginalMessage,
   getOriginalMessage,
   storeMessage,
-} from '#main/utils/network/messageUtils.js';
+} from '#src/utils/network/messageUtils.js';
 import { addReaction, updateReactions } from '#utils/reaction/actions.js';
 import { checkBlacklists } from '#utils/reaction/helpers.js';
 

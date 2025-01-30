@@ -9,17 +9,17 @@ import {
   StringSelectMenuBuilder,
   time,
 } from 'discord.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import type HubManager from '#main/managers/HubManager.js';
-import { HubService } from '#main/services/HubService.js';
-import db from '#main/utils/Db.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import type HubManager from '#src/managers/HubManager.js';
+import { HubService } from '#src/services/HubService.js';
+import db from '#src/utils/Db.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import {
   type OriginalMessage,
   findOriginalMessage,
   getOriginalMessage,
   storeMessage,
-} from '#main/utils/network/messageUtils.js';
+} from '#src/utils/network/messageUtils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID, type ParsedCustomId } from '#utils/CustomID.js';
 import { t } from '#utils/Locale.js';

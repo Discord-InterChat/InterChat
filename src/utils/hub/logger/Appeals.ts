@@ -7,8 +7,8 @@ import {
   type User,
   codeBlock,
 } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { sendLog } from '#main/utils/hub/logger/Default.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { sendLog } from '#src/utils/hub/logger/Default.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { toTitleCase } from '#utils/Utils.js';

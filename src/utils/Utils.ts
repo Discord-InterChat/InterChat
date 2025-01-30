@@ -15,7 +15,7 @@ import {
   type ErrorHandlerOptions,
   createErrorHint,
   sendErrorResponse,
-} from '#main/utils/ErrorUtils.js';
+} from '#src/utils/ErrorUtils.js';
 import type {
   RemoveMethods,
   ThreadParentChannel,
@@ -23,9 +23,10 @@ import type {
 import Constants from '#utils/Constants.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
-import UserDbService from '#main/services/UserDbService.js';
+import UserDbService from '#src/services/UserDbService.js';
 import type { UserData } from '@prisma/client';
-import type { supportedLocaleCodes } from '#main/utils/Locale.js';
+import type { supportedLocaleCodes } from '#src/utils/Locale.js';
+import type Context from '#src/core/CommandContext/Context.js';
 
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
@@ -130,7 +131,8 @@ export const getReplyMethod = (
   interaction:
 		| RepliableInteraction
 		| CommandInteraction
-		| MessageComponentInteraction,
+		| MessageComponentInteraction
+    | Context,
 ) => (interaction.replied || interaction.deferred ? 'followUp' : 'reply');
 
 /**

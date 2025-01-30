@@ -5,7 +5,7 @@ import type {
   TextChannel,
   VoiceChannel,
 } from 'discord.js';
-import BaseEventListener from '#main/core/BaseEventListener.js';
+import BaseEventListener from '#src/core/BaseEventListener.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';

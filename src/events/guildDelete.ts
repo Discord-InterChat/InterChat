@@ -1,5 +1,5 @@
 import type { Guild } from 'discord.js';
-import BaseEventListener from '#main/core/BaseEventListener.js';
+import BaseEventListener from '#src/core/BaseEventListener.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import Constants from '#utils/Constants.js';
 import { logGuildLeave } from '#utils/GuildUtils.js';

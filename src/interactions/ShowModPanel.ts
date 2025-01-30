@@ -1,13 +1,13 @@
 import { ButtonBuilder, type ButtonInteraction, ButtonStyle } from 'discord.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { buildModPanel } from '#main/interactions/ModPanel.js';
-import { HubService } from '#main/services/HubService.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
-import { findOriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import { buildModPanel } from '#src/interactions/ModPanel.js';
+import { HubService } from '#src/services/HubService.js';
+import { CustomID } from '#src/utils/CustomID.js';
+import db from '#src/utils/Db.js';
+import { InfoEmbed } from '#src/utils/EmbedUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { isStaffOrHubMod } from '#src/utils/hub/utils.js';
+import { findOriginalMessage, getOriginalMessage } from '#src/utils/network/messageUtils.js';
 
 export const modPanelButton = (targetMsgId: string, emoji: string, opts?: { label?: string }) =>
   new ButtonBuilder()

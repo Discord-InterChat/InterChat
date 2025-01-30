@@ -6,7 +6,7 @@ import type {
   Collection,
   ContextMenuCommandInteraction,
 } from 'discord.js';
-import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
+import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
 import Logger from '#utils/Logger.js';
 import 'reflect-metadata';
 
@@ -66,7 +66,7 @@ export class FileLoader {
       if (stats.isDirectory() && this.recursive) {
         await this.processDirectory(filePath, processor);
       }
-      else if (file.endsWith('.ts')) {
+      else if (file.endsWith('.js')) {
         await processor(filePath);
       }
     }

@@ -1,4 +1,4 @@
-import type Context from '#main/core/CommandContext/Context.js';
+import type Context from '#src/core/CommandContext/Context.js';
 import {
   type APIApplicationCommandBasicOption,
   ApplicationCommandOptionType,
@@ -33,6 +33,7 @@ interface Config {
   staffOnly?: boolean;
   contexts?: { guildOnly?: boolean; userInstall?: boolean };
   options?: APIApplicationCommandBasicOption[];
+  defaultPermission?: string; // TODO: implent this, make this bigint for easier bitwise operations
 }
 
 interface CommandConfig extends Config {
@@ -61,7 +62,7 @@ export default abstract class BaseCommand {
   readonly description: CommandConfig['description'];
   readonly types: CommandConfig['types'] | ContextMenuConfig['types'];
   readonly contexts: CommandConfig['contexts'];
-  readonly staffOnly: CommandConfig['staffOnly'];
+  readonly staffOnly: boolean;
 
   // if contextMenu has been set to "Message" options should only contain one sring option
   // which is assumed to be the id of the target message
@@ -89,11 +90,12 @@ export default abstract class BaseCommand {
     let contextMenu: RESTPostAPIContextMenuApplicationCommandsJSONBody | null =
 			null;
 
-    if (this.options && this.subcommands) {
+    if (this.options.length > 0 && !isEmpty(this.subcommands)) {
       throw new Error(
-        'A command must only either have subcommands or options. Not both.',
+        `Command "${this.name}" is invalid. A command must either have subcommands or options. Not both.`,
       );
     }
+
 
     if (this.types.slash) {
       slashCommand = new SlashCommandBuilder()
@@ -144,7 +146,7 @@ export default abstract class BaseCommand {
         });
       }
     }
-    else if (this.types.prefix) {
+    if (this.types.prefix) {
       prefixCommand = {
         name: this.name,
         description: this.description,
@@ -153,11 +155,12 @@ export default abstract class BaseCommand {
         contexts: this.contexts,
       };
     }
-    else if (this.types.contextMenu) {
+    if (this.types.contextMenu) {
       const { contextMenu: rawCtxData } = this.types;
       contextMenu = new ContextMenuCommandBuilder()
         .setName(rawCtxData.name)
-        .setType(rawCtxData.type);
+        .setType(rawCtxData.type)
+        .toJSON();
     }
 
     return { prefix: prefixCommand, contextMenu, slash: slashCommand };

@@ -8,21 +8,21 @@ import {
   type Snowflake,
   Sweepers,
 } from 'discord.js';
-import type BaseCommand from '#main/core/BaseCommand.js';
-import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
-import AntiSpamManager from '#main/managers/AntiSpamManager.js';
-import EventLoader from '#main/modules/Loaders/EventLoader.js';
-import CooldownService from '#main/services/CooldownService.js';
-import { LevelingService } from '#main/services/LevelingService.js';
-import Scheduler from '#main/services/SchedulerService.js';
-import { loadInteractions } from '#main/utils/CommandUtils.js';
+import type BaseCommand from '#src/core/BaseCommand.js';
+import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
+import AntiSpamManager from '#src/managers/AntiSpamManager.js';
+import EventLoader from '#src/modules/Loaders/EventLoader.js';
+import CooldownService from '#src/services/CooldownService.js';
+import { LevelingService } from '#src/services/LevelingService.js';
+import Scheduler from '#src/services/SchedulerService.js';
+import { loadInteractions } from '#src/utils/CommandUtils.js';
 import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
 import Constants from '#utils/Constants.js';
 import { loadLocales } from '#utils/Locale.js';
 import { resolveEval } from '#utils/Utils.js';
-import { loadCommands } from '#main/utils/Loaders.js';
-import { MetadataHandler } from '#main/core/FileLoader.js';
-import Logger from '#main/utils/Logger.js';
+import { loadCommands } from '#src/utils/Loaders.js';
+import { MetadataHandler } from '#src/core/FileLoader.js';
+import Logger from '#src/utils/Logger.js';
 
 export default class InterChatClient extends Client {
   static instance: InterChatClient;
@@ -98,14 +98,22 @@ export default class InterChatClient extends Client {
 
     // initialize i18n for localization
     loadLocales('locales');
+
     await loadCommands(this.commands);
     Logger.info(`Loaded ${this.commands.size} commands`);
+
+    this.loadInteractions();
+    this.eventLoader.load();
+
+    // Discord.js automatically uses DISCORD_TOKEN env variable
+    await this.login(process.env.DISCORD_TOKEN);
+  }
+
+  async loadInteractions() {
     await loadInteractions(this.interactions);
     Logger.info(`Loaded ${this.interactions.size} interactions`);
 
-    // FIXME: move this interaction loading to somewhere else
-    // biome-ignore lint/complexity/noForEach: <explanation>
-    this.commands.forEach((command) => {
+    for (const command of this.commands.values()) {
       if (command.subcommands) {
         // biome-ignore lint/complexity/noForEach: <explanation>
         Object.values(command.subcommands).forEach((subcommand) =>
@@ -113,11 +121,7 @@ export default class InterChatClient extends Client {
         );
       }
       MetadataHandler.loadMetadata(command, this.interactions);
-    });
-    this.eventLoader.load();
-
-    // Discord.js automatically uses DISCORD_TOKEN env variable
-    await this.login(process.env.DISCORD_TOKEN);
+    }
   }
 
   /**

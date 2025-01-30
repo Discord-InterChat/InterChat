@@ -1,7 +1,7 @@
 import { stripIndents } from 'common-tags';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, type Guild } from 'discord.js';
-import BaseEventListener from '#main/core/BaseEventListener.js';
-import { donateButton } from '#main/utils/ComponentUtils.js';
+import BaseEventListener from '#src/core/BaseEventListener.js';
+import { donateButton } from '#src/utils/ComponentUtils.js';
 import Constants from '#utils/Constants.js';
 import {
   getGuildOwnerOrFirstChannel as getGuildOwnerAndFirstChannel,

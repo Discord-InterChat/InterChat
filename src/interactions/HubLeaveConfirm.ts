@@ -1,11 +1,11 @@
 import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle } from 'discord.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { HubService } from '#main/services/HubService.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { t } from '#main/utils/Locale.js';
-import { fetchUserLocale } from '#main/utils/Utils.js';
-import { logGuildLeaveToHub } from '#main/utils/hub/logger/JoinLeave.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import { HubService } from '#src/services/HubService.js';
+import { CustomID } from '#src/utils/CustomID.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { t } from '#src/utils/Locale.js';
+import { fetchUserLocale } from '#src/utils/Utils.js';
+import { logGuildLeaveToHub } from '#src/utils/hub/logger/JoinLeave.js';
 
 export const hubLeaveConfirmButtons = (channelId: string, hubId: string) =>
   new ActionRowBuilder<ButtonBuilder>().addComponents([

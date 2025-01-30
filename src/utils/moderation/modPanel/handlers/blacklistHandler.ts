@@ -11,11 +11,11 @@ import {
   time,
 } from 'discord.js';
 import ms from 'ms';
-import { buildModPanel } from '#main/interactions/ModPanel.js';
-import BlacklistManager from '#main/managers/BlacklistManager.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import type { ModAction } from '#main/utils/moderation/modPanel/utils.js';
-import type { OriginalMessage } from '#main/utils/network/messageUtils.js';
+import { buildModPanel } from '#src/interactions/ModPanel.js';
+import BlacklistManager from '#src/managers/BlacklistManager.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import type { ModAction } from '#src/utils/moderation/modPanel/utils.js';
+import type { OriginalMessage } from '#src/utils/network/messageUtils.js';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';

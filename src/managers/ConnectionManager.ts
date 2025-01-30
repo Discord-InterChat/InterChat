@@ -1,10 +1,10 @@
 import type { Connection, Prisma } from '@prisma/client';
 import type { HexColorString } from 'discord.js';
-import { HubService } from '#main/services/HubService.js';
-import { cacheHubConnection } from '#main/utils/ConnectedListUtils.js';
-import { RedisKeys } from '#main/utils/Constants.js';
-import db from '#main/utils/Db.js';
-import getRedis from '#main/utils/Redis.js';
+import { HubService } from '#src/services/HubService.js';
+import { cacheHubConnection } from '#src/utils/ConnectedListUtils.js';
+import { RedisKeys } from '#src/utils/Constants.js';
+import db from '#src/utils/Db.js';
+import getRedis from '#src/utils/Redis.js';
 
 export default class ConnectionManager {
   private readonly cache = getRedis();

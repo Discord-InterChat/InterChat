@@ -1,9 +1,9 @@
 import type { Client } from 'discord.js';
-import type HubManager from '#main/managers/HubManager.js';
-import { type HubCreationData, HubService } from '#main/services/HubService.js';
-import Constants from '#main/utils/Constants.js';
-import { type EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
-import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
+import type HubManager from '#src/managers/HubManager.js';
+import { type HubCreationData, HubService } from '#src/services/HubService.js';
+import Constants from '#src/utils/Constants.js';
+import { type EmojiKeys, getEmoji } from '#src/utils/EmojiUtils.js';
+import { type supportedLocaleCodes, t } from '#src/utils/Locale.js';
 
 export interface ValidationResult {
   isValid: boolean;

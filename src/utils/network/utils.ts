@@ -4,12 +4,12 @@ import {
   findOriginalMessage,
   getBroadcasts,
   getOriginalMessage,
-} from '#main/utils/network/messageUtils.js';
+} from '#src/utils/network/messageUtils.js';
 import Constants from '#utils/Constants.js';
 import { stripTenorLinks } from '#utils/ImageUtils.js';
 import { censor } from '#utils/ProfanityUtils.js';
 import type { ReferredMsgData } from './Types.js';
-import { fetchUserData } from '#main/utils/Utils.js';
+import { fetchUserData } from '#src/utils/Utils.js';
 
 /**
  * Retrieves the content of a referred message, which can be either the message's text content or the description of its first embed.

@@ -1,12 +1,12 @@
-import BlacklistManager from '#main/managers/BlacklistManager.js';
+import BlacklistManager from '#src/managers/BlacklistManager.js';
 
 import { type BlockWord, BlockWordAction } from '@prisma/client';
 import type { ActionRowBuilder, Awaitable, ButtonBuilder, Message } from 'discord.js';
-import Logger from '#main/utils/Logger.js';
-import { logBlockwordAlert } from '#main/utils/hub/logger/BlockWordAlert.js';
-import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
-import { createRegexFromWords } from '#main/utils/moderation/blockWords.js';
-import type { CheckResult } from '#main/utils/network/runChecks.js';
+import Logger from '#src/utils/Logger.js';
+import { logBlockwordAlert } from '#src/utils/hub/logger/BlockWordAlert.js';
+import { sendBlacklistNotif } from '#src/utils/moderation/blacklistUtils.js';
+import { createRegexFromWords } from '#src/utils/moderation/blockWords.js';
+import type { CheckResult } from '#src/utils/network/runChecks.js';
 
 // Interface for action handler results
 interface ActionResult {

@@ -10,7 +10,7 @@ import {
   StringSelectMenuOptionBuilder,
   codeBlock,
 } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import Constants from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';

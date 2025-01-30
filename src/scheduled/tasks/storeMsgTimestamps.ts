@@ -1,4 +1,4 @@
-import getRedis from '#main/utils/Redis.js';
+import getRedis from '#src/utils/Redis.js';
 import { updateConnection } from '#utils/ConnectedListUtils.js';
 import { RedisKeys } from '#utils/Constants.js';
 import Logger from '#utils/Logger.js';

@@ -1,4 +1,4 @@
-import BlacklistManager from '#main/managers/BlacklistManager.js';
+import BlacklistManager from '#src/managers/BlacklistManager.js';
 
 import { isBlacklisted } from '#utils/moderation/blacklistUtils.js';
 

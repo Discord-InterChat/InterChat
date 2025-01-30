@@ -8,7 +8,7 @@ import {
   type TextChannel,
   type User,
 } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import Constants from '#utils/Constants.js';
 
 /**

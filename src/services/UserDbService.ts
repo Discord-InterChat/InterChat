@@ -1,5 +1,5 @@
-import { CacheManager } from '#main/managers/CacheManager.js';
-import getRedis from '#main/utils/Redis.js';
+import { CacheManager } from '#src/managers/CacheManager.js';
+import getRedis from '#src/utils/Redis.js';
 import type { ConvertDatesToString } from '#types/Utils.d.ts';
 import { RedisKeys } from '#utils/Constants.js';
 import db from '#utils/Db.js';

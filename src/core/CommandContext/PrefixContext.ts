@@ -1,5 +1,5 @@
-import type BaseCommand from '#main/core/BaseCommand.js';
-import Context from '#main/core/CommandContext/Context.js';
+import type BaseCommand from '#src/core/BaseCommand.js';
+import Context from '#src/core/CommandContext/Context.js';
 import {
   type APIModalInteractionResponseCallbackData,
   ActionRowBuilder,
@@ -11,7 +11,6 @@ import {
   type JSONEncodable,
   type Message,
   type MessageEditOptions,
-  type MessagePayload,
   type MessageReplyOptions,
   type ModalComponentData,
 } from 'discord.js';
@@ -45,9 +44,16 @@ export default class PrefixContext extends Context<{
   public get deferred() {
     return this._deferred;
   }
+  public get replied() {
+    return Boolean(this.lastReply);
+  }
 
-  public async reply(data: string | MessagePayload | MessageReplyOptions) {
-    this.lastReply = await this.interaction.reply(data);
+  public async reply(data: string | MessageReplyOptions) {
+    this.lastReply = await this.interaction.reply(
+      typeof data === 'string'
+        ? { content: data }
+        : { ...data, content: data.content ?? '' },
+    );
     return this.lastReply;
   }
 
@@ -57,14 +63,20 @@ export default class PrefixContext extends Context<{
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async deferReply(_opts?: { flags?: string[] }) {
-    // NOTE: Mayeb for ephemeral messages we can use the flags property to DM user instead
+    // TODO: Mayeb for ephemeral messages we can use the flags property to DM user instead
     this._deferred = true;
     this.lastReply = await this.interaction.reply('Processing...');
     return this.lastReply;
   }
 
-  public async editReply(data: string | MessagePayload | MessageEditOptions) {
-    return await this.lastReply?.edit(data) ?? null;
+  public async editReply(data: string | MessageEditOptions) {
+    return (
+      (await this.lastReply?.edit(
+        typeof data === 'string'
+          ? { content: data }
+          : { ...data, content: data.content ?? '' },
+      )) ?? null
+    );
   }
 
   public async showModal(

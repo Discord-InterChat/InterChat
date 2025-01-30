@@ -1,14 +1,14 @@
 import { type Snowflake, WebhookClient } from 'discord.js';
-import { type Broadcast, deleteMessageCache } from '#main/utils/network/messageUtils.js';
-import { cacheData, getCachedData } from '#utils/CacheUtils.js';
+import { type Broadcast, deleteMessageCache } from '#src/utils/network/messageUtils.js';
 import { getHubConnections } from '#utils/ConnectedListUtils.js';
 import { RedisKeys } from '#utils/Constants.js';
 import getRedis from '#utils/Redis.js';
 
 export const setDeleteLock = async (messageId: string) => {
+  const redis = getRedis();
   const key = `${RedisKeys.msgDeleteInProgress}:${messageId}` as const;
-  const alreadyLocked = await getCachedData(key);
-  if (!alreadyLocked.data) await cacheData(key, 't', 900); // 15 mins
+  const alreadyLocked = await redis.get(key);
+  if (alreadyLocked !== 't') await redis.set(key, 't', 'EX', 900); // 15 mins
 };
 
 export const deleteMessageFromHub = async (

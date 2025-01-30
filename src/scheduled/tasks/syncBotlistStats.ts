@@ -1,4 +1,4 @@
-import { handleError } from '#main/utils/Utils.js';
+import { handleError } from '#src/utils/Utils.js';
 import Logger from '#utils/Logger.js';
 
 const logPostError = (error: unknown) => {

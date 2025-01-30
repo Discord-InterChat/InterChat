@@ -1,7 +1,7 @@
-import BlacklistManager from '#main/managers/BlacklistManager.js';
-import HubManager from '#main/managers/HubManager.js';
-import { HubService } from '#main/services/HubService.js';
-import { type EmojiKeys, getEmoji } from '#main/utils/EmojiUtils.js';
+import BlacklistManager from '#src/managers/BlacklistManager.js';
+import HubManager from '#src/managers/HubManager.js';
+import { HubService } from '#src/services/HubService.js';
+import { type EmojiKeys, getEmoji } from '#src/utils/EmojiUtils.js';
 
 import { stripIndents } from 'common-tags';
 import type {
@@ -17,16 +17,23 @@ import { check } from '#utils/ProfanityUtils.js';
 import { getOrCreateWebhook, getReplyMethod } from '#utils/Utils.js';
 import { logJoinToHub } from '#utils/hub/logger/JoinLeave.js';
 import { sendToHub } from '#utils/hub/utils.js';
+import Context from '#src/core/CommandContext/Context.js';
+// eslint-disable-next-line no-duplicate-imports
+import type { CachedContextType } from '#src/core/CommandContext/Context.js';
 
 export class HubJoinService {
   private readonly interaction:
-    | ChatInputCommandInteraction<'cached'>
-    | MessageComponentInteraction<'cached'>;
+		| ChatInputCommandInteraction<'cached'>
+		| MessageComponentInteraction<'cached'>
+		| Context<CachedContextType>;
   private readonly locale: supportedLocaleCodes;
   private readonly hubService: HubService;
 
   constructor(
-    interaction: ChatInputCommandInteraction<'cached'> | MessageComponentInteraction<'cached'>,
+    interaction:
+			| ChatInputCommandInteraction<'cached'>
+			| MessageComponentInteraction<'cached'>
+			| Context<CachedContextType>,
     locale: supportedLocaleCodes,
     hubService: HubService = new HubService(),
   ) {
@@ -50,24 +57,36 @@ export class HubJoinService {
     return await this.joinHub(channel, randomHub.name);
   }
 
-  async joinHub(channel: GuildTextBasedChannel, hubInviteOrName: string | undefined) {
-    if (!this.interaction.deferred) await this.interaction.deferReply({ flags: ['Ephemeral'] });
+  async joinHub(
+    channel: GuildTextBasedChannel,
+    hubInviteOrName: string | undefined,
+  ) {
+    if (!this.interaction.deferred) {
+      if ('type' in this.interaction) {
+        await this.interaction.deferReply({ flags: ['Ephemeral'] });
+      }
+      else {
+        await this.interaction.deferReply({ flags: ['Ephemeral'] });
+      }
+    }
 
     const checksPassed = await this.runChecks(channel);
     if (!checksPassed) return false;
 
     const hub = await this.fetchHub(hubInviteOrName);
     if (!hub) {
-      await this.interaction.followUp({
+      await this.interaction.editReply({
         content: t('hub.notFound', this.locale, {
           emoji: this.getEmoji('x_icon'),
         }),
-        flags: ['Ephemeral'],
       });
       return false;
     }
 
-    if ((await this.isAlreadyInHub(channel, hub.id)) || (await this.isBlacklisted(hub))) {
+    if (
+      (await this.isAlreadyInHub(channel, hub.id)) ||
+			(await this.isBlacklisted(hub))
+    ) {
       return false;
     }
 
@@ -91,7 +110,11 @@ export class HubJoinService {
   }
 
   private async runChecks(channel: GuildTextBasedChannel) {
-    if (!channel.permissionsFor(this.interaction.member).has('ManageMessages', true)) {
+    if (
+      !channel
+        .permissionsFor(this.interaction.member)
+        .has('ManageMessages', true)
+    ) {
       await this.replyError('errors.missingPermissions', {
         permissions: 'Manage Messages',
         emoji: this.getEmoji('x_icon'),
@@ -147,8 +170,14 @@ export class HubJoinService {
   }
 
   private async isBlacklisted(hub: HubManager) {
-    const userBlManager = new BlacklistManager('user', this.interaction.user.id);
-    const serverBlManager = new BlacklistManager('server', this.interaction.guildId);
+    const userBlManager = new BlacklistManager(
+      'user',
+      this.interaction.user.id,
+    );
+    const serverBlManager = new BlacklistManager(
+      'server',
+      this.interaction.guildId,
+    );
 
     const userBlacklist = await userBlManager.fetchBlacklist(hub.id);
     const serverBlacklist = await serverBlManager.fetchBlacklist(hub.id);
@@ -176,27 +205,36 @@ export class HubJoinService {
     return webhook;
   }
 
-  private async sendSuccessMessages(hub: HubManager, channel: GuildTextBasedChannel) {
-    const replyMethod = getReplyMethod(this.interaction);
-    await this.interaction[replyMethod]({
+  private async sendSuccessMessages(
+    hub: HubManager,
+    channel: GuildTextBasedChannel,
+  ) {
+    const replyData = {
       content: t('hub.join.success', this.locale, {
         channel: `${channel}`,
         hub: hub.data.name,
       }),
       embeds: [],
       components: [],
-    });
+    } as const;
+    if (this.interaction instanceof Context) {
+      await this.interaction.reply(replyData);
+      return;
+    }
+
+    const replyMethod = getReplyMethod(this.interaction);
+    await this.interaction[replyMethod](replyData);
 
     const totalConnections =
-      (await hub.connections.fetch())?.reduce(
-        (total, c) => total + (c.data.connected ? 1 : 0),
-        0,
-      ) ?? 0;
+			(await hub.connections.fetch())?.reduce(
+			  (total, c) => total + (c.data.connected ? 1 : 0),
+			  0,
+			) ?? 0;
 
     const serverCountMessage =
-      totalConnections === 0
-        ? 'There are no other servers connected to this hub yet. *cricket noises* 🦗'
-        : `We now have ${totalConnections} servers in this hub! 🎉`;
+			totalConnections === 0
+			  ? 'There are no other servers connected to this hub yet. *cricket noises* 🦗'
+			  : `We now have ${totalConnections} servers in this hub! 🎉`;
 
     // Announce to hub
     await sendToHub(hub.id, {
@@ -224,11 +262,13 @@ export class HubJoinService {
     options?: { [key in TranslationKeys[K]]: string },
   ) {
     const content = t(key, this.locale, options);
-    const replyMethod = getReplyMethod(this.interaction);
 
-    await this.interaction[replyMethod]({
-      content,
-      flags: ['Ephemeral'],
-    });
+    if (this.interaction instanceof Context) {
+      await this.interaction.reply({ content, flags: ['Ephemeral'] });
+      return;
+    }
+
+    const replyMethod = getReplyMethod(this.interaction);
+    await this.interaction[replyMethod]({ content, flags: ['Ephemeral'] });
   }
 }

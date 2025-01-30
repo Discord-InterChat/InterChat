@@ -10,8 +10,8 @@ import {
   userMention,
 } from 'discord.js';
 import ms from 'ms';
-import UserDbService from '#main/services/UserDbService.js';
-import Scheduler from '#main/services/SchedulerService.js';
+import UserDbService from '#src/services/UserDbService.js';
+import Scheduler from '#src/services/SchedulerService.js';
 import type { WebhookPayload } from '#types/TopGGPayload.d.ts';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';

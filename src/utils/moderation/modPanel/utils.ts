@@ -4,9 +4,9 @@ import type {
   RepliableInteraction,
   Snowflake,
 } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { getReplyMethod } from '#main/utils/Utils.js';
-import type { OriginalMessage } from '#main/utils/network/messageUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { getReplyMethod } from '#src/utils/Utils.js';
+import type { OriginalMessage } from '#src/utils/network/messageUtils.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 

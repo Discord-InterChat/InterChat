@@ -1,5 +1,5 @@
-import { VoteManager } from '#main/managers/VoteManager.js';
-import Constants from '#main/utils/Constants.js';
+import { VoteManager } from '#src/managers/VoteManager.js';
+import Constants from '#src/utils/Constants.js';
 import Logger from '#utils/Logger.js';
 
 export const startApi = () => {

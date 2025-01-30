@@ -1,9 +1,9 @@
-import { modPanelButton } from '#main/interactions/ShowModPanel.js';
+import { modPanelButton } from '#src/interactions/ShowModPanel.js';
 import {
   findOriginalMessage,
   getBroadcast,
   getOriginalMessage,
-} from '#main/utils/network/messageUtils.js';
+} from '#src/utils/network/messageUtils.js';
 
 import { stripIndents } from 'common-tags';
 import {
@@ -15,9 +15,9 @@ import {
   type User,
   messageLink,
 } from 'discord.js';
-import { markResolvedButton } from '#main/interactions/MarkResolvedButton.js';
-import { HubService } from '#main/services/HubService.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { markResolvedButton } from '#src/interactions/MarkResolvedButton.js';
+import { HubService } from '#src/services/HubService.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import db from '#utils/Db.js';
 import { resolveEval } from '#utils/Utils.js';
 import { sendLog } from './Default.js';

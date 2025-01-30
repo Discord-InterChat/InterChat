@@ -11,7 +11,7 @@ import {
   TextInputStyle,
   codeBlock,
 } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import { numberEmojis } from '#utils/Constants.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';

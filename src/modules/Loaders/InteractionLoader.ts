@@ -6,8 +6,8 @@ import {
   FileLoader,
   MetadataHandler,
   type ResourceLoader,
-} from '#main/core/FileLoader.js';
-import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
+} from '#src/core/FileLoader.js';
+import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
 import Logger from '#utils/Logger.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

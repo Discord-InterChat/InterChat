@@ -1,11 +1,11 @@
 import { stripIndents } from 'common-tags';
 import type { Client, Message } from 'discord.js';
-import BaseEventListener from '#main/core/BaseEventListener.js';
-import { showRulesScreening } from '#main/interactions/RulesScreening.js';
-import { MessageProcessor } from '#main/services/MessageProcessor.js';
-import Constants from '#main/utils/Constants.js';
+import BaseEventListener from '#src/core/BaseEventListener.js';
+import { showRulesScreening } from '#src/interactions/RulesScreening.js';
+import { MessageProcessor } from '#src/services/MessageProcessor.js';
+import Constants from '#src/utils/Constants.js';
 import { fetchUserData, handleError, isHumanMessage } from '#utils/Utils.js';
-import { executeCommand, resolveCommand } from '#main/utils/CommandUtils.js';
+import { executeCommand, resolveCommand } from '#src/utils/CommandUtils.js';
 
 export default class MessageCreate extends BaseEventListener<'messageCreate'> {
   readonly name = 'messageCreate';

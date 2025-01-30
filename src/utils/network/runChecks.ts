@@ -1,13 +1,13 @@
-import BlacklistManager from '#main/managers/BlacklistManager.js';
-import type HubManager from '#main/managers/HubManager.js';
-import type HubSettingsManager from '#main/managers/HubSettingsManager.js';
+import BlacklistManager from '#src/managers/BlacklistManager.js';
+import type HubManager from '#src/managers/HubManager.js';
+import type HubSettingsManager from '#src/managers/HubSettingsManager.js';
 
 import type { UserData } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { type Awaitable, EmbedBuilder, type Message } from 'discord.js';
-import NSFWDetector from '#main/modules/NSFWDetection.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
+import NSFWDetector from '#src/modules/NSFWDetection.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { sendBlacklistNotif } from '#src/utils/moderation/blacklistUtils.js';
 import Constants from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';

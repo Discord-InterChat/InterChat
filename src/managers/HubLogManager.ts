@@ -1,3 +1,11 @@
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import getRedis from '#src/utils/Redis.js';
+import { handleError } from '#src/utils/Utils.js';
+import { RedisKeys } from '#utils/Constants.js';
+import { CustomID } from '#utils/CustomID.js';
+import db from '#utils/Db.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import type { HubLogConfig, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
@@ -7,14 +15,6 @@ import {
   StringSelectMenuBuilder,
   roleMention,
 } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { handleError } from '#main/utils/Utils.js';
-import { cacheData, getCachedData } from '#utils/CacheUtils.js';
-import { RedisKeys } from '#utils/Constants.js';
-import { CustomID } from '#utils/CustomID.js';
-import db from '#utils/Db.js';
-import { InfoEmbed } from '#utils/EmbedUtils.js';
-import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 
 export type RoleIdLogConfigs = 'appeals' | 'reports' | 'networkAlerts';
 export type LogConfigTypes = keyof Omit<Omit<HubLogConfig, 'hubId'>, 'id'>;
@@ -35,17 +35,18 @@ export default class HubLogManager {
   }
 
   static async create(hubId: string) {
-    const logConfig = await getCachedData(
+    const logConfigCache = await getRedis().get(
       `${RedisKeys.hubLogConfig}:${hubId}`,
-      async () =>
-        await db.hubLogConfig.upsert({
-          where: { hubId },
-          create: { hubId },
-          update: { hubId },
-        }),
     );
+    const logConfig = logConfigCache
+      ? JSON.parse(logConfigCache)
+      : await db.hubLogConfig.upsert({
+        where: { hubId },
+        create: { hubId },
+        update: { hubId },
+      });
 
-    return new HubLogManager(logConfig.data as HubLogConfig);
+    return new HubLogManager(logConfig as HubLogConfig);
   }
 
   get config() {
@@ -69,10 +70,15 @@ export default class HubLogManager {
 
   private async refreshCache() {
     try {
-      await cacheData(`${RedisKeys.hubLogConfig}:${this.hubId}`, JSON.stringify(this.logConfig));
+      await getRedis().set(
+        `${RedisKeys.hubLogConfig}:${this.hubId}`,
+        JSON.stringify(this.logConfig),
+      );
     }
     catch (error) {
-      handleError(error, { comment: 'Failed to refresh cache for hub log config' });
+      handleError(error, {
+        comment: 'Failed to refresh cache for hub log config',
+      });
     }
   }
 
@@ -84,7 +90,10 @@ export default class HubLogManager {
 
   async resetLog(...type: LogConfigTypes[]) {
     await this.updateLogConfig(
-      type.reduce((acc, typ) => Object.assign(acc, { [typ]: { unset: true } }), {}),
+      type.reduce(
+        (acc, typ) => Object.assign(acc, { [typ]: { unset: true } }),
+        {},
+      ),
     );
   }
 
@@ -109,7 +118,11 @@ export default class HubLogManager {
     });
   }
 
-  async setChannelAndRole(type: LogConfigTypes, channelId: string, roleId: string) {
+  async setChannelAndRole(
+    type: LogConfigTypes,
+    channelId: string,
+    roleId: string,
+  ) {
     if (!this.logsWithRoleId.includes(type)) return;
 
     await this.setLogChannel(type, channelId);
@@ -127,12 +140,16 @@ export default class HubLogManager {
     const logDesc = this.logTypes
       .map((type) => {
         const configType = this.config[type];
-        const mentionedRole = typeof configType !== 'string' && configType?.roleId ? roleMention(configType.roleId) : x_icon;
+        const mentionedRole =
+					typeof configType !== 'string' && configType?.roleId
+					  ? roleMention(configType.roleId)
+					  : x_icon;
         const roleInfo = this.logsWithRoleId.includes(type)
           ? `${dividerEnd} ${roleStr} ${mentionedRole}`
           : '';
 
-        const channelId = typeof configType === 'string' ? configType : configType?.channelId;
+        const channelId =
+					typeof configType === 'string' ? configType : configType?.channelId;
         return stripIndents`
           ${getEmoji('arrow', client)} \`${type}:\`
           ${divider} ${t(`hub.manage.logs.${type}.description`, locale)}
@@ -147,7 +164,11 @@ export default class HubLogManager {
       .setThumbnail('https://i.imgur.com/tHVt3Gw.png');
   }
 
-  public createSelectMenu(userId: Snowflake, hubId: string, locale: supportedLocaleCodes) {
+  public createSelectMenu(
+    userId: Snowflake,
+    hubId: string,
+    locale: supportedLocaleCodes,
+  ) {
     return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId(
@@ -186,7 +207,8 @@ export default class HubLogManager {
           {
             label: 'Appeals',
             value: 'appeals',
-            description: 'Appeals from users/servers who have been blacklisted.',
+            description:
+							'Appeals from users/servers who have been blacklisted.',
             emoji: '📝',
           },
         ]),

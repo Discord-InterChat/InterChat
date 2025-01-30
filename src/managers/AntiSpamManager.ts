@@ -1,6 +1,6 @@
 import type { Message } from 'discord.js';
 import type { Redis } from 'ioredis';
-import getRedis from '#main/utils/Redis.js';
+import getRedis from '#src/utils/Redis.js';
 
 export default class AntiSpamManager {
   private config: SpamConfig;

@@ -8,15 +8,15 @@ import type {
   MessageComponentInteraction,
   ModalSubmitInteraction,
 } from 'discord.js';
-import type BaseCommand from '#main/core/BaseCommand.js';
-import BaseEventListener from '#main/core/BaseEventListener.js';
-import { showRulesScreening } from '#main/interactions/RulesScreening.js';
+import type BaseCommand from '#src/core/BaseCommand.js';
+import BaseEventListener from '#src/core/BaseEventListener.js';
+import { showRulesScreening } from '#src/interactions/RulesScreening.js';
 import Constants from '#utils/Constants.js';
 import { CustomID, type ParsedCustomId } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
 import { checkIfStaff, fetchUserData, fetchUserLocale, handleError } from '#utils/Utils.js';
-import { executeCommand, resolveCommand } from '#main/utils/CommandUtils.js';
+import { executeCommand, resolveCommand } from '#src/utils/CommandUtils.js';
 
 export default class InteractionCreate extends BaseEventListener<'interactionCreate'> {
   readonly name = 'interactionCreate';

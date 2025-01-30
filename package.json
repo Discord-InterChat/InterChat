@@ -3,12 +3,12 @@
   "private": true,
   "version": "4.2.2",
   "description": "A growing Discord bot which provides inter-server chat!",
-  "main": "src/index.ts",
+  "main": "build/index.js",
   "license": "AGPL-3.0-only",
   "scripts": {
-    "start": "bun run .",
+    "start": "node .",
     "start:prod": "pm2 start .ecosystem.config.js",
-    "dev": "nodemon --exec \"bun typecheck && bun start\" --ext ts,js,json",
+    "dev": "nodemon --exec \"npm run build && npm start\" --ext ts,js,json --ignore build/",
     "build": "tsc --build",
     "typecheck": "tsc --noEmit",
     "gen:locale-types": "bun scripts/genLocaleTypes.js",
@@ -29,6 +29,7 @@
     "common-tags": "^1.8.2",
     "discord-hybrid-sharding": "^2.2.3",
     "discord.js": "^14.17.2",
+    "dotenv": "^16.4.7",
     "husky": "^9.1.7",
     "ioredis": "^5.4.2",
     "js-yaml": "^4.1.0",
@@ -67,7 +68,7 @@
     ]
   },
   "imports": {
-    "#main/*.js": "./src/*.ts",
-    "#utils/*.js": "./src/utils/*.ts"
+    "#src/*.js": "./build/*.js",
+    "#utils/*.js": "./build/utils/*.js"
   }
 }

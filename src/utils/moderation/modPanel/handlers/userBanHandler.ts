@@ -7,9 +7,9 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { type ModAction, replyWithUnknownMessage } from '#main/utils/moderation/modPanel/utils.js';
-import { getOriginalMessage } from '#main/utils/network/messageUtils.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import { type ModAction, replyWithUnknownMessage } from '#src/utils/moderation/modPanel/utils.js';
+import { getOriginalMessage } from '#src/utils/network/messageUtils.js';
 import { handleBan } from '#utils/BanUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import type { supportedLocaleCodes } from '#utils/Locale.js';

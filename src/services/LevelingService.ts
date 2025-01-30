@@ -1,8 +1,8 @@
-import UserDbService from '#main/services/UserDbService.js';
-import db from '#main/utils/Db.js';
-import { calculateRequiredXP } from '#main/utils/calculateLevel.js';
-import { PrismaClient, UserData } from '@prisma/client';
-import { Message } from 'discord.js';
+import UserDbService from '#src/services/UserDbService.js';
+import db from '#src/utils/Db.js';
+import { calculateRequiredXP } from '#src/utils/calculateLevel.js';
+import type { PrismaClient, UserData } from '@prisma/client';
+import type { Message } from 'discord.js';
 
 type LeaderboardType = 'xp' | 'level' | 'messages';
 
@@ -123,7 +123,7 @@ export class LevelingService {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private async handleLevelUp(message: Message<true>, _newLevel: number): Promise<void> {
     await message.react('⏫').catch(() => null);
-    // TODO: this
+    // TODO: this. and also send a random tip along with the level up message
     // const channel = message.channel as TextChannel;
     // await channel.send({
     //   embeds: [

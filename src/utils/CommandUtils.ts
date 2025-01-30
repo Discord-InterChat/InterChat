@@ -1,10 +1,10 @@
-import BaseCommand from '#main/core/BaseCommand.js';
-import type Context from '#main/core/CommandContext/Context.js';
-import InteractionContext from '#main/core/CommandContext/InteractionContext.js';
-import PrefixContext from '#main/core/CommandContext/PrefixContext.js';
-import type { InteractionFunction } from '#main/decorators/RegisterInteractionHandler.js';
-import { InteractionLoader } from '#main/modules/Loaders/InteractionLoader.js';
-import { handleError } from '#main/utils/Utils.js';
+import BaseCommand from '#src/core/BaseCommand.js';
+import type Context from '#src/core/CommandContext/Context.js';
+import InteractionContext from '#src/core/CommandContext/InteractionContext.js';
+import PrefixContext from '#src/core/CommandContext/PrefixContext.js';
+import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
+import { InteractionLoader } from '#src/modules/Loaders/InteractionLoader.js';
+import { handleError } from '#src/utils/Utils.js';
 import {
   type ApplicationCommand,
   ApplicationCommandOptionType,
@@ -79,6 +79,22 @@ export function resolveCommand(
     const name = prefixArgs.shift()?.toLowerCase();
     if (!name) return { command: null, prefixArgs };
 
+    // if an arg is surrounded by quotes, join the args together (removes the quotes)
+    prefixArgs.forEach((arg, index) => {
+      if (arg.startsWith('"')) {
+        const nextQuoteIndex = prefixArgs.findIndex(
+          (_arg, i) => i > index && _arg.endsWith('"'),
+        );
+        if (nextQuoteIndex !== -1) {
+          const joinedArgs = prefixArgs
+            .slice(index, nextQuoteIndex + 1)
+            .join(' ')
+            .slice(1, -1);
+          prefixArgs.splice(index, nextQuoteIndex - index + 1, joinedArgs);
+        }
+      }
+    });
+
     commandName = name;
   }
   else if (interactionOrMessage.isContextMenuCommand()) {
@@ -96,47 +112,47 @@ export function resolveCommand(
   if (!command) return { command: null, prefixArgs };
 
   if (command.subcommands) {
-    const subcommandName =
+    /** Slash command visualization: `/<command>` ***`<subcommand2>`*** `<subcommand3>` */
+    const secondSubcommandName =
 			interactionOrMessage instanceof Message
 			  ? prefixArgs.shift()?.toLowerCase()
-			  : (
-			    interactionOrMessage as ChatInputCommandInteraction
-			  ).options.getSubcommand();
+			  : (interactionOrMessage.options.getSubcommandGroup() ??
+					interactionOrMessage.options.getSubcommand());
 
-    if (!subcommandName) return { command: null, prefixArgs };
+    if (!secondSubcommandName) return { command: null, prefixArgs };
 
-    const subcommand = command.subcommands[subcommandName];
+    const subcommand = command.subcommands[secondSubcommandName];
     if (subcommand instanceof BaseCommand) {
       command = subcommand;
     }
     else if (typeof subcommand === 'object') {
-      const subcommandGroupName =
+      /** Slash command visualization: `/<command>` `<subcommand2>` ***`<subcommand3>`*** */
+      const thirdSubcommandName =
 				interactionOrMessage instanceof Message
 				  ? prefixArgs.shift()?.toLowerCase()
 				  : (
 				    interactionOrMessage as ChatInputCommandInteraction
-				  ).options.getSubcommandGroup();
+				  ).options.getSubcommand();
 
-      if (!subcommandGroupName) return { command: null, prefixArgs };
+      if (!thirdSubcommandName) return { command: null, prefixArgs };
 
-      command = subcommand[subcommandGroupName];
+      command = subcommand[thirdSubcommandName];
     }
   }
+
   return { command, prefixArgs };
 }
 
 async function validatePrefixCommand(
   message: Message,
   command: BaseCommand,
-  prefixArgs: string[] | undefined,
+  prefixArgs: string[],
 ) {
+  const requiredArgs = command.options.filter((opt) => opt.required);
   // check if any required arguments are missing
-  if (
-    command.options.length > 0 &&
-		prefixArgs?.length !== command.options.length
-  ) {
+  if (command.options.length > 0 && prefixArgs?.length < requiredArgs.length) {
     await message.reply(
-      `Invalid usage! The command \`${command.name}\` requires the following arguments: ${command.options
+      `Invalid usage! The command \`${command.name}\` has the following arguments: ${command.options
         .map((opt) => `\`${opt.name}\``)
         .join(', ')}. Use \`c!help ${command.name}\` for more information.`,
     );
@@ -152,7 +168,7 @@ export async function executeCommand(
 		| ChatInputCommandInteraction
 		| ContextMenuCommandInteraction,
   command: BaseCommand | undefined,
-  prefixArgs?: string[],
+  prefixArgs: string[] = [],
 ) {
   if (!command) return;
 
@@ -161,7 +177,7 @@ export async function executeCommand(
     if (
       !(await validatePrefixCommand(interactionOrMessage, command, prefixArgs))
     ) return;
-    ctx = new PrefixContext(interactionOrMessage, command, prefixArgs ?? []);
+    ctx = new PrefixContext(interactionOrMessage, command, prefixArgs);
   }
   else {
     ctx = new InteractionContext(interactionOrMessage, command);

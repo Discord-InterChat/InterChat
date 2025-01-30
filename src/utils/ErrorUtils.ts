@@ -1,6 +1,6 @@
-import { CustomID } from '#main/utils/CustomID.js';
-import Logger from '#main/utils/Logger.js';
-import { sendErrorEmbed } from '#main/utils/Utils.js';
+import { CustomID } from '#src/utils/CustomID.js';
+import Logger from '#src/utils/Logger.js';
+import { sendErrorEmbed } from '#src/utils/Utils.js';
 import type { EventHint } from '@sentry/bun';
 import {
   type ContextMenuCommandInteraction,

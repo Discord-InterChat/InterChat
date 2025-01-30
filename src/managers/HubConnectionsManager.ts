@@ -1,13 +1,13 @@
 import type { Connection, Prisma } from '@prisma/client';
 import type { Redis } from 'ioredis';
 import isEmpty from 'lodash/isEmpty.js';
-import ConnectionManager from '#main/managers/ConnectionManager.js';
-import type HubManager from '#main/managers/HubManager.js';
-import { cacheHubConnection, convertToConnectedList } from '#main/utils/ConnectedListUtils.js';
-import { RedisKeys } from '#main/utils/Constants.js';
-import db from '#main/utils/Db.js';
-import Logger from '#main/utils/Logger.js';
-import getRedis from '#main/utils/Redis.js';
+import ConnectionManager from '#src/managers/ConnectionManager.js';
+import type HubManager from '#src/managers/HubManager.js';
+import { cacheHubConnection, convertToConnectedList } from '#src/utils/ConnectedListUtils.js';
+import { RedisKeys } from '#src/utils/Constants.js';
+import db from '#src/utils/Db.js';
+import Logger from '#src/utils/Logger.js';
+import getRedis from '#src/utils/Redis.js';
 
 interface CacheConfig {
   expirationMs: number;

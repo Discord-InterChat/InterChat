@@ -1,5 +1,5 @@
-import type BaseCommand from '#main/core/BaseCommand.js';
-import { Collection } from 'discord.js';
+import BaseCommand from '#src/core/BaseCommand.js';
+import type { Collection } from 'discord.js';
 import { readdir, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -20,17 +20,16 @@ export const loadCommands = async (
       }
 
       const { default: Command } = await import(`${path}/${file}`);
-      const command = new Command();
-      map.set(command.name, command);
+      if (Command.prototype instanceof BaseCommand) {
+        const command: BaseCommand = new Command();
+        map.set(command.name, command);
+      }
     }
 
     const stats = await stat(join(path, file));
-    if (!stats.isDirectory()) {
-      continue;
+    if (stats.isDirectory()) {
+      // Recursively load commands from subdirectories
+      await loadCommands(map, depth + 1, dirName ? join(dirName, file) : file);
     }
-    await loadCommands(map, depth + 1, dirName ? join(dirName, file) : file);
   }
 };
-
-const commands = new Collection<string, BaseCommand>();
-await loadCommands(commands);

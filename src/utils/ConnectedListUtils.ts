@@ -1,7 +1,7 @@
 import type { Connection, Prisma } from '@prisma/client';
 import isEmpty from 'lodash/isEmpty.js';
-import Logger from '#main/utils/Logger.js';
-import { handleError } from '#main/utils/Utils.js';
+import Logger from '#src/utils/Logger.js';
+import { handleError } from '#src/utils/Utils.js';
 import type { ConvertDatesToString } from '#types/Utils.d.ts';
 import { RedisKeys } from '#utils/Constants.js';
 import db from '#utils/Db.js';

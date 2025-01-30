@@ -22,7 +22,7 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["bun-types"],
     "paths": {
-      "#main/*": ["./src/*"],
+      "#src/*": ["./src/*"],
       "#utils/*": ["./src/utils/*"],
       "#types/*.d.ts": ["src/types/*.d.ts"]
     }

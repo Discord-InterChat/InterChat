@@ -1,11 +1,11 @@
 import type { Message } from 'discord.js';
-import { showRulesScreening } from '#main/interactions/RulesScreening.js';
-import { HubService } from '#main/services/HubService.js';
-import { getConnectionHubId } from '#main/utils/ConnectedListUtils.js';
-import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
-import { runChecks } from '#main/utils/network/runChecks.js';
+import { showRulesScreening } from '#src/interactions/RulesScreening.js';
+import { HubService } from '#src/services/HubService.js';
+import { getConnectionHubId } from '#src/utils/ConnectedListUtils.js';
+import { checkBlockedWords } from '#src/utils/network/blockwordsRunner.js';
+import { runChecks } from '#src/utils/network/runChecks.js';
 import { BroadcastService } from './BroadcastService.js';
-import { fetchUserData } from '#main/utils/Utils.js';
+import { fetchUserData } from '#src/utils/Utils.js';
 
 export class MessageProcessor {
   private readonly broadcastService: BroadcastService;

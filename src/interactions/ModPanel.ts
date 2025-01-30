@@ -1,24 +1,24 @@
-import type Context from '#main/core/CommandContext/Context.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import BlacklistManager from '#main/managers/BlacklistManager.js';
-import { HubService } from '#main/services/HubService.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import db from '#main/utils/Db.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { type supportedLocaleCodes, t } from '#main/utils/Locale.js';
-import { checkIfStaff, fetchUserData, fetchUserLocale } from '#main/utils/Utils.js';
-import { isStaffOrHubMod } from '#main/utils/hub/utils.js';
-import { isDeleteInProgress } from '#main/utils/moderation/deleteMessage.js';
-import RemoveReactionsHandler from '#main/utils/moderation/modPanel/handlers/RemoveReactionsHandler.js';
+import type Context from '#src/core/CommandContext/Context.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import BlacklistManager from '#src/managers/BlacklistManager.js';
+import { HubService } from '#src/services/HubService.js';
+import { CustomID } from '#src/utils/CustomID.js';
+import db from '#src/utils/Db.js';
+import { InfoEmbed } from '#src/utils/EmbedUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { type supportedLocaleCodes, t } from '#src/utils/Locale.js';
+import { checkIfStaff, fetchUserData, fetchUserLocale } from '#src/utils/Utils.js';
+import { isStaffOrHubMod } from '#src/utils/hub/utils.js';
+import { isDeleteInProgress } from '#src/utils/moderation/deleteMessage.js';
+import RemoveReactionsHandler from '#src/utils/moderation/modPanel/handlers/RemoveReactionsHandler.js';
 import {
   BlacklistServerHandler,
   BlacklistUserHandler,
-} from '#main/utils/moderation/modPanel/handlers/blacklistHandler.js';
-import DeleteMessageHandler from '#main/utils/moderation/modPanel/handlers/deleteMsgHandler.js';
-import UserBanHandler from '#main/utils/moderation/modPanel/handlers/userBanHandler.js';
-import ViewInfractionsHandler from '#main/utils/moderation/modPanel/handlers/viewInfractions.js';
-import { type OriginalMessage, getOriginalMessage } from '#main/utils/network/messageUtils.js';
+} from '#src/utils/moderation/modPanel/handlers/blacklistHandler.js';
+import DeleteMessageHandler from '#src/utils/moderation/modPanel/handlers/deleteMsgHandler.js';
+import UserBanHandler from '#src/utils/moderation/modPanel/handlers/userBanHandler.js';
+import ViewInfractionsHandler from '#src/utils/moderation/modPanel/handlers/viewInfractions.js';
+import { type OriginalMessage, getOriginalMessage } from '#src/utils/network/messageUtils.js';
 import Constants from '#utils/Constants.js';
 import { stripIndents } from 'common-tags';
 import {

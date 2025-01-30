@@ -5,9 +5,9 @@ import {
   ButtonStyle,
   type MessageActionRowComponentBuilder,
 } from 'discord.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { CustomID } from '#main/utils/CustomID.js';
-import { handleError } from '#main/utils/Utils.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import { CustomID } from '#src/utils/CustomID.js';
+import { handleError } from '#src/utils/Utils.js';
 
 export const markResolvedButton = () =>
   new ButtonBuilder()

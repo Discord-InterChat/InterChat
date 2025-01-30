@@ -1,9 +1,9 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { type Client, type ClientEvents, Collection } from 'discord.js';
-import type InterChatClient from '#main/core/BaseClient.js';
-import type BaseEventListener from '#main/core/BaseEventListener.js';
-import { FileLoader } from '#main/core/FileLoader.js';
+import type InterChatClient from '#src/core/BaseClient.js';
+import type BaseEventListener from '#src/core/BaseEventListener.js';
+import { FileLoader } from '#src/core/FileLoader.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

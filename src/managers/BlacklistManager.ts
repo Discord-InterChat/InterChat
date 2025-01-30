@@ -1,14 +1,14 @@
 import type { Infraction, InfractionStatus, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { type Client, EmbedBuilder, type Snowflake, type User } from 'discord.js';
-import InfractionManager from '#main/managers/InfractionManager.js';
-import UserDbService from '#main/services/UserDbService.js';
-import { HubService } from '#main/services/HubService.js';
-import type { RemoveMethods } from '#main/types/Utils.d.js';
-import Constants from '#main/utils/Constants.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { resolveEval } from '#main/utils/Utils.js';
-import { sendLog } from '#main/utils/hub/logger/Default.js';
+import InfractionManager from '#src/managers/InfractionManager.js';
+import UserDbService from '#src/services/UserDbService.js';
+import { HubService } from '#src/services/HubService.js';
+import type { RemoveMethods } from '#src/types/Utils.d.js';
+import Constants from '#src/utils/Constants.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { resolveEval } from '#src/utils/Utils.js';
+import { sendLog } from '#src/utils/hub/logger/Default.js';
 
 export default class BlacklistManager {
   public readonly targetId: Snowflake;

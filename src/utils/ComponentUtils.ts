@@ -11,8 +11,8 @@ import {
   type Snowflake,
   messageLink,
 } from 'discord.js';
-import type Scheduler from '#main/services/SchedulerService.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import type Scheduler from '#src/services/SchedulerService.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import Constants from '#utils/Constants.js';
 
 export const greyOutButton = (row: ActionRowBuilder<ButtonBuilder>, disableElement: number) => {

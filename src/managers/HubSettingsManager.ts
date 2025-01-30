@@ -1,13 +1,13 @@
-import type HubManager from '#main/managers/HubManager.js';
+import type HubManager from '#src/managers/HubManager.js';
 import {
   HubSettingsBitField,
   HubSettingsBits,
   type HubSettingsString,
-} from '#main/modules/BitFields.js';
-import { HubService } from '#main/services/HubService.js';
-import Constants from '#main/utils/Constants.js';
-import { InfoEmbed } from '#main/utils/EmbedUtils.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+} from '#src/modules/BitFields.js';
+import { HubService } from '#src/services/HubService.js';
+import Constants from '#src/utils/Constants.js';
+import { InfoEmbed } from '#src/utils/EmbedUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 
 import type { BitFieldResolvable, Client, EmbedBuilder } from 'discord.js';
 

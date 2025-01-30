@@ -1,10 +1,11 @@
 import type { RepliableInteraction, User } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import Logger from '#utils/Logger.js';
-import UserDbService from '#main/services/UserDbService.js';
+import UserDbService from '#src/services/UserDbService.js';
+import type Context from '#src/core/CommandContext/Context.js';
 
 export const handleBan = async (
-  interaction: RepliableInteraction,
+  interaction: RepliableInteraction | Context,
   targetId: string,
   target: User | null,
   reason: string,

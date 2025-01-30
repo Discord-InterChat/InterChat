@@ -1,10 +1,10 @@
 import { stripIndents } from 'common-tags';
 import { type Client, EmbedBuilder, type Snowflake, User, codeBlock } from 'discord.js';
-import BlacklistManager from '#main/managers/BlacklistManager.js';
-import type HubLogManager from '#main/managers/HubLogManager.js';
-import type HubManager from '#main/managers/HubManager.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import type { OriginalMessage } from '#main/utils/network/messageUtils.js';
+import BlacklistManager from '#src/managers/BlacklistManager.js';
+import type HubLogManager from '#src/managers/HubLogManager.js';
+import type HubManager from '#src/managers/HubManager.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import type { OriginalMessage } from '#src/utils/network/messageUtils.js';
 import Constants from '#utils/Constants.js';
 import { sendLog } from './Default.js';
 

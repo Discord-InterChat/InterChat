@@ -1,5 +1,5 @@
-import { ConvertDatesToString } from '#main/types/Utils.d.js';
-import { handleError } from '#main/utils/Utils.js';
+import { ConvertDatesToString } from '#src/types/Utils.d.js';
+import { handleError } from '#src/utils/Utils.js';
 import getRedis from '#utils/Redis.js';
 import type { Redis } from 'ioredis';
 

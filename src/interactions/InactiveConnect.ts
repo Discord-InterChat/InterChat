@@ -1,11 +1,11 @@
 import { ActionRowBuilder, ButtonBuilder, type ButtonInteraction, ButtonStyle } from 'discord.js';
-import { RegisterInteractionHandler } from '#main/decorators/RegisterInteractionHandler.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import { fetchConnection, updateConnection } from '#utils/ConnectedListUtils.js';
 import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
-import { fetchUserLocale } from '#main/utils/Utils.js';
+import { fetchUserLocale } from '#src/utils/Utils.js';
 
 type extraOpts = {
   disconnectEmoji?: string;
