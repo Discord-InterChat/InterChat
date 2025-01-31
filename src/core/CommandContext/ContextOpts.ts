@@ -1,208 +1,122 @@
 import type BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import type PrefixContext from '#src/core/CommandContext/PrefixContext.js';
-import { ApplicationCommandOptionType, type Channel, Message } from 'discord.js';
-
-const acceptedBooleanValues = {
-  true: true,
-  false: false,
-  yes: true,
-  no: false,
-  y: true,
-  n: false,
-};
-
-const channelRegex =
-	/(?:https?:\/\/(?:\w+\.)*discord\.com\/channels\/\d+\/(\d+)(?:\/\d+)?(?:\?.*)?|<#(\d+)>|\b(\d{17,19})\b)/;
-const userRegex = /(?:<@!? ?(\d+)>|\b(\d{17,19})\b(?!\/))/;
-const roleRegex = /(?:<@& ?(\d+)>|\b(\d{17,19})\b(?!\/))/;
-
-const extractChannelId = (input: string | undefined) => {
-  const match = input?.match(channelRegex);
-  return match ? match[1] || match[2] || match[3] : null;
-};
-
-const extractUserId = (input: string) => {
-  const match = input.match(userRegex);
-  return match ? match[1] || match[2] : null;
-};
-
-const extractRoleId = (input: string) => {
-  const match = input.match(roleRegex);
-  return match ? match[1] || match[2] : null;
-};
+import {
+  ApplicationCommandOptionType,
+  Message,
+  type Channel,
+} from 'discord.js';
 
 export default class ContextOptions {
   readonly ctx: Context;
   readonly command: BaseCommand;
+
   constructor(ctx: Context, command: BaseCommand) {
     this.ctx = ctx;
     this.command = command;
   }
+
+  // Generic getter with type checking
+  private getOption<T extends string | number | boolean>(
+    name: string,
+    expectedType: ApplicationCommandOptionType,
+    required = false,
+  ): T | null {
+    if (this.ctx.originalInteraction instanceof Message) {
+      const arg = (this.ctx as PrefixContext).args.get(name);
+
+      if (required && !arg) {
+        throw new Error(`Missing required option: ${name}`);
+      }
+
+      // Type safety enforced by PrefixContext parsing
+      return arg?.type === expectedType ? arg.value as T : null;
+    }
+
+    if (this.ctx.originalInteraction.isChatInputCommand()) {
+      return this.ctx.originalInteraction.options.getString(name, required) as T;
+    }
+
+    throw new Error(`Cannot get ${expectedType} option from context menu`);
+  }
+
+  // Simplified type-specific methods
   public getString(name: string, required: true): string;
   public getString(name: string, required?: boolean): string | null;
-  public getString(name: string, required = false): string | null {
-    if (this.ctx.originalInteraction instanceof Message) {
-      const arg = (this.ctx as PrefixContext).args.get(name);
-      if ((required && !arg) || arg?.type !== ApplicationCommandOptionType.String) {
-        throw new Error(`Missing required string option: ${name}`);
-      }
-      return arg.value;
-    }
-    if (this.ctx.originalInteraction.isChatInputCommand()) {
-      return this.ctx.originalInteraction.options.getString(name, required);
-    }
-
-    throw new Error('Cannot get string option from a context menu command');
+  public getString(name: string, required = false) {
+    return this.getOption(
+      name,
+      ApplicationCommandOptionType.String,
+      required,
+    ) as string;
   }
 
-  public getNumber(name: string): number | null {
-    if (this.ctx.originalInteraction instanceof Message) {
-      const arg = (this.ctx as PrefixContext).args.get(name);
-      if (
-        arg?.type !== ApplicationCommandOptionType.Number ||
-				Number.isNaN(Number(arg.value))
-      ) return null;
-
-      return Number(arg.value);
-    }
-    if (this.ctx.originalInteraction.isChatInputCommand()) {
-      return this.ctx.originalInteraction.options.getNumber(name);
-    }
-
-    throw new Error('Cannot get number option from a context menu command');
+  public getNumber(name: string, required = false): number | null {
+    const value = this.getOption(
+      name,
+      ApplicationCommandOptionType.Number,
+      required,
+    );
+    return value ? Number(value) : null;
   }
 
-  public getBoolean(name: string) {
-    if (this.ctx.originalInteraction instanceof Message) {
-      const arg = (this.ctx as PrefixContext).args.get(name);
-      if (
-        !arg ||
-				arg?.type !== ApplicationCommandOptionType.Boolean ||
-				arg.value in acceptedBooleanValues === false
-      ) {
-        return false;
-      }
-
-      return acceptedBooleanValues[
-        arg.value as keyof typeof acceptedBooleanValues
-      ];
-    }
-    if (this.ctx.originalInteraction.isChatInputCommand()) {
-      return this.ctx.originalInteraction.options.getBoolean(name);
-    }
-
-    throw new Error('Cannot get boolean option from a context menu command');
+  public getBoolean(name: string, required = false): boolean | null {
+    const value = this.getOption(
+      name,
+      ApplicationCommandOptionType.Boolean,
+      required,
+    );
+    return value !== null ? (value as boolean) : null;
   }
 
-  public getUserId(name: string): string | null {
-    if (this.ctx.originalInteraction instanceof Message) {
-      const arg = (this.ctx as PrefixContext).args.get(name);
-      if (arg?.type !== ApplicationCommandOptionType.User) return null;
-
-      const userId = extractUserId(arg.value);
-      return userId ?? null;
-    }
-
-    if (this.ctx.originalInteraction.isChatInputCommand()) {
-      return this.ctx.originalInteraction.options.getUser(name)?.id ?? null;
-    }
-
-    throw new Error('Cannot get user option from a context menu command');
+  // User-related methods
+  public getUserId(name: string, required = false): string | null {
+    return this.getOption<string>(
+      name,
+      ApplicationCommandOptionType.User,
+      required,
+    );
   }
 
-  public async getUser(name: string) {
-    if (this.ctx.originalInteraction instanceof Message) {
-      const userId = this.getUserId(name);
-      if (!userId) return null;
-
-      const user =
-				this.ctx.originalInteraction.mentions.users.get(userId) ??
-				(await this.ctx.client.users.fetch(userId)) ??
-				null;
-      return user;
-    }
-
-    if (this.ctx.originalInteraction.isChatInputCommand()) {
-      return this.ctx.originalInteraction.options.getUser(name);
-    }
-
-    throw new Error('Cannot get user option from a context menu command');
+  public async getUser(name: string, required = false) {
+    const userId = this.getUserId(name, required);
+    if (!userId) return null;
+    return this.ctx.client.users.fetch(userId).catch(() => null);
   }
 
-  public async getChannel(name: string): Promise<Channel | null> {
-    if (this.ctx.originalInteraction instanceof Message) {
-      const arg = (this.ctx as PrefixContext).args.get(name);
-      if (!arg || arg?.type !== ApplicationCommandOptionType.Channel) return null;
-
-      const channelId = extractChannelId(arg.value);
-      if (!channelId) return null;
-
-      const channel =
-      this.ctx.originalInteraction.mentions.channels.get(channelId) ??
-      (await this.ctx.client.channels.fetch(channelId)) ??
-      null;
-
-      return channel;
-    }
-    if (this.ctx.originalInteraction.isChatInputCommand()) {
-      if (!this.ctx.inGuild()) return null;
-      return this.ctx.originalInteraction.options.getChannel(name);
-    }
-
-    throw new Error('Cannot get channel option from a context menu command');
+  // Channel methods
+  public async getChannel(
+    name: string,
+    required = false,
+  ): Promise<Channel | null> {
+    const channelId = this.getOption<string>(
+      name,
+      ApplicationCommandOptionType.Channel,
+      required,
+    );
+    if (!channelId) return null;
+    return this.ctx.client.channels.fetch(channelId).catch(() => null);
   }
 
-  public async getMember(name: string) {
-    if (this.ctx.originalInteraction instanceof Message) {
-      const arg = (this.ctx as PrefixContext).args.get(name);
-      if (!arg || arg?.type !== ApplicationCommandOptionType.User) return null;
-
-      const userId = extractUserId(arg.value);
-      if (!userId) return null;
-
-      const user =
-				this.ctx.originalInteraction.mentions.users.get(userId) ??
-				(await this.ctx.client.users.fetch(userId)) ??
-				null;
-      return user;
-    }
-    if (this.ctx.originalInteraction.isChatInputCommand()) {
-      return this.ctx.originalInteraction.options.getMember(name);
-    }
-
-    throw new Error('Cannot get member option from a context menu command');
+  // Role methods
+  public getRoleId(name: string, required = false): string | null {
+    return this.getOption(name, ApplicationCommandOptionType.Role, required);
   }
 
-  public async getRole(name: string) {
+  public async getRole(name: string, required = false) {
     if (!this.ctx.inGuild()) return null;
-
-    if (this.ctx.originalInteraction instanceof Message) {
-      const arg = (this.ctx as unknown as PrefixContext).args.get(name);
-      if (!arg || arg?.type !== ApplicationCommandOptionType.Role) return null;
-
-      const roleId = extractRoleId(arg.value);
-      if (!roleId) return null;
-
-      return (
-        this.ctx.originalInteraction.mentions.roles.get(roleId) ??
-				(await this.ctx.guild?.roles.fetch(roleId)) ??
-				null
-      );
-    }
-    if (this.ctx.originalInteraction.isChatInputCommand()) {
-      return this.ctx.originalInteraction.options.getRole(name);
-    }
-
-    throw new Error('Cannot get role option from a context menu command');
+    const roleId = this.getRoleId(name, required);
+    return roleId ? (this.ctx.guild?.roles.fetch(roleId) ?? null) : null;
   }
+
+  // Attachment handling
   public getAttachment(name: string) {
     if (this.ctx.originalInteraction instanceof Message) {
       return this.ctx.originalInteraction.attachments.first() ?? null;
     }
     if (this.ctx.originalInteraction.isChatInputCommand()) {
-      return this.ctx.originalInteraction.options.getAttachment(name);
+      return this.ctx.originalInteraction.options.getAttachment(name) ?? null;
     }
-    throw new Error('Cannot get attachment option from a context menu command');
+    return null;
   }
 }

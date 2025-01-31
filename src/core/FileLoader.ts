@@ -18,28 +18,27 @@ export interface ResourceLoader {
 
 const importPrefix = process.platform === 'win32' ? 'file://' : '';
 
-export class MetadataHandler {
-  static getMetadata(target: { constructor: object }): {
-    customId: string;
-    methodName: string;
-  }[] {
-    return Reflect.getMetadata('interactions', target.constructor) || [];
-  }
+export function getMetadata(target: { constructor: object }): {
+  customId: string;
+  methodName: string;
+}[] {
+  return Reflect.getMetadata('interactions', target.constructor) || [];
+}
 
-  static loadMetadata(
-    target: { constructor: object },
-    map: Collection<string, InteractionFunction>,
-  ): void {
-    const metadata = MetadataHandler.getMetadata(target);
+export function loadMetadata(
+  target: { constructor: object },
+  map: Collection<string, InteractionFunction>,
+): void {
+  const metadata = getMetadata(target);
 
-    for (const { customId, methodName } of metadata) {
-      Logger.debug(`Adding interaction: ${customId} with method ${methodName}`);
-      // @ts-expect-error The names of child class properties can be custom
-      const method: InteractionFunction = target[methodName];
-      if (method) map.set(customId, method.bind(target));
-    }
+  for (const { customId, methodName } of metadata) {
+    Logger.debug(`Adding interaction: ${customId} with method ${methodName}`);
+    // @ts-expect-error The names of child class properties can be custom
+    const method: InteractionFunction = target[methodName];
+    if (method) map.set(customId, method.bind(target));
   }
 }
+
 
 export class FileLoader {
   private readonly baseDir: string;

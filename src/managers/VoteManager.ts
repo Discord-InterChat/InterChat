@@ -17,35 +17,46 @@ import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import Logger from '#utils/Logger.js';
 import { getOrdinalSuffix } from '#utils/Utils.js';
+import type { Context } from 'hono';
+import type { BlankEnv, BlankInput } from 'hono/types';
 
 export class VoteManager {
   private scheduler: Scheduler;
   private readonly userDbManager = new UserDbService();
-  private readonly rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN as string);
+  private readonly rest = new REST({ version: '10' }).setToken(
+    process.env.DISCORD_TOKEN as string,
+  );
 
   constructor(scheduler = new Scheduler()) {
     this.scheduler = scheduler;
-    this.scheduler.addRecurringTask('removeVoterRole', 60 * 60 * 1_000, async () => {
-      const expiredVotes = await db.userData.findMany({
-        where: { lastVoted: { lt: new Date() } },
-      });
-      for (const vote of expiredVotes) {
-        await this.removeVoterRole(vote.id);
-      }
-    });
+    this.scheduler.addRecurringTask(
+      'removeVoterRole',
+      60 * 60 * 1_000,
+      async () => {
+        const expiredVotes = await db.userData.findMany({
+          where: { lastVoted: { lt: new Date() } },
+        });
+        for (const vote of expiredVotes) {
+          await this.removeVoterRole(vote.id);
+        }
+      },
+    );
   }
 
-  async middleware(req: Request) {
-    const dblHeader = req.headers.get('Authorization');
+  async middleware(c: Context<BlankEnv, '/dbl', BlankInput>) {
+    const dblHeader = c.header('Authorization');
     if (dblHeader !== process.env.TOPGG_WEBHOOK_SECRET) {
-      return Response.json({ message: 'Unauthorized' }, { status: 401 });
+      return c.json({ message: 'Unauthorized' }, 401);
     }
 
-    const payload = await req.json();
+    const payload = await c.req.json();
 
     if (!this.isValidVotePayload(payload)) {
-      Logger.error('Invalid payload received from top.gg, possible untrusted request: %O', payload);
-      return Response.json({ message: 'Invalid payload' }, { status: 400 });
+      Logger.error(
+        'Invalid payload received from top.gg, possible untrusted request: %O',
+        payload,
+      );
+      return c.json({ message: 'Invalid payload' }, 400);
     }
 
     if (payload.type === 'upvote') {
@@ -55,7 +66,7 @@ export class VoteManager {
 
     await this.announceVote(payload);
 
-    return new Response(null, { status: 204 });
+    return c.status(204);
   }
 
   async getUserVoteCount(id: string) {
@@ -79,7 +90,9 @@ export class VoteManager {
   }
 
   async getUsername(userId: string) {
-    const user = (await this.getAPIUser(userId)) ?? (await this.userDbManager.getUser(userId));
+    const user =
+			(await this.getAPIUser(userId)) ??
+			(await this.userDbManager.getUser(userId));
     return user?.username ?? 'Unknown User';
   }
 
@@ -93,7 +106,10 @@ export class VoteManager {
     const username = await this.getUsername(vote.user);
 
     const isTestVote = vote.type === 'test';
-    const timeUntilNextVote = time(new Date(Date.now() + (ms('12h') ?? 0)), 'R');
+    const timeUntilNextVote = time(
+      new Date(Date.now() + (ms('12h') ?? 0)),
+      'R',
+    );
 
     await webhook.send({
       content: `${userMentionStr} (**${username}**)`,
@@ -122,7 +138,9 @@ export class VoteManager {
     if (!userInGuild?.roles.includes(roleId)) return;
 
     const method = type === 'add' ? 'put' : 'delete';
-    await this.rest[method](Routes.guildMemberRole(Constants.SupportServerId, userId, roleId));
+    await this.rest[method](
+      Routes.guildMemberRole(Constants.SupportServerId, userId, roleId),
+    );
     return;
   }
 
@@ -139,12 +157,13 @@ export class VoteManager {
   private isValidVotePayload(payload: WebhookPayload) {
     const payloadTypes = ['upvote', 'test'];
     const isValidData =
-      typeof payload.user === 'string' &&
-      typeof payload.bot === 'string' &&
-      payloadTypes.includes(payload.type);
+			typeof payload.user === 'string' &&
+			typeof payload.bot === 'string' &&
+			payloadTypes.includes(payload.type);
 
     const isValidWeekendType =
-      typeof payload.isWeekend === 'boolean' || typeof payload.isWeekend === 'undefined';
+			typeof payload.isWeekend === 'boolean' ||
+			typeof payload.isWeekend === 'undefined';
 
     return isValidData && isValidWeekendType;
   }

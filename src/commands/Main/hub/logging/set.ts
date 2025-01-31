@@ -1,4 +1,4 @@
-import { hubOption, logTypeChoices } from '#src/commands/Main/hub/index.js';
+import { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 // biome-ignore lint/style/useImportType: <explanation>
@@ -26,6 +26,15 @@ interface SetLogOptions {
 
 type LogTarget = GuildTextBasedChannel | Role | null;
 type SetLogType = 'channel' | 'role';
+
+const logTypeChoices = [
+  { name: 'Reports', value: 'reports' },
+  { name: 'Moderation Logs', value: 'modLogs' },
+  { name: 'Profanity', value: 'profanity' },
+  { name: 'Join/Leave', value: 'joinLeaves' },
+  { name: 'Appeals', value: 'appeals' },
+  { name: 'Network Alerts', value: 'networkAlerts' },
+] ;
 
 export default class HubLoggingSetSubcommand extends BaseCommand {
   constructor() {
@@ -58,16 +67,6 @@ export default class HubLoggingSetSubcommand extends BaseCommand {
     });
   }
   public async execute(ctx: Context) {
-    const channel = await ctx.options.getChannel('channel');
-    const role = await ctx.options.getRole('role');
-    if (!role && !channel) {
-      await ctx.replyEmbed(
-        'You must specify a channel or a role mention (if the channel was already configured) or both.',
-        { flags: ['Ephemeral'] },
-      );
-      return;
-    }
-
     const hub = await HubLoggingSetSubcommand.getHubForUser(ctx);
     if (!hub) {
       await ctx.replyEmbed('hub.notFound_mod', { flags: ['Ephemeral'] });
@@ -75,6 +74,8 @@ export default class HubLoggingSetSubcommand extends BaseCommand {
     }
 
     const logType = ctx.options.getString('log_type', true);
+
+    const channel = await ctx.options.getChannel('channel');
 
     if (channel?.isTextBased() && !channel.isDMBased()) {
       if (!(await this.isChannelPermissionValid(channel, ctx))) return;
@@ -89,7 +90,10 @@ export default class HubLoggingSetSubcommand extends BaseCommand {
       );
 
       await this.sendSetConfirmationMessage(ctx, logType, channel, 'channel');
+      return;
     }
+
+    const role = await ctx.options.getRole('role');
     if (role) {
       await this.setLogConfig(
         {
@@ -101,7 +105,14 @@ export default class HubLoggingSetSubcommand extends BaseCommand {
       );
 
       await this.sendSetConfirmationMessage(ctx, logType, role, 'role');
+      return;
     }
+
+    await ctx.replyEmbed(
+      'You must specify a channel or a role mention (if the channel was already configured) or both.',
+      { flags: ['Ephemeral'] },
+    );
+    return;
   }
 
   static async getHubForUser(ctx: Context): Promise<HubManager | null> {

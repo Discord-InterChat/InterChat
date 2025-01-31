@@ -1,22 +1,21 @@
+import { Hono } from 'hono';
 import { VoteManager } from '#src/managers/VoteManager.js';
 import Constants from '#src/utils/Constants.js';
 import Logger from '#utils/Logger.js';
+import { serve } from '@hono/node-server';
 
 export const startApi = () => {
+  const app = new Hono({});
   const voteManager = new VoteManager();
-  const server = Bun.serve({
-    static: {
-      '/': Response.redirect(Constants.Links.Website),
-    },
-    fetch(request) {
-      const url = new URL(request.url);
-      if (url.pathname === '/dbl' && request.method === 'POST') {
-        voteManager.middleware(request);
-      }
 
-      return new Response('404!');
-    },
+  app.get('/', (c) => c.redirect(Constants.Links.Website));
+
+  app.post('/dbl', async (c) => {
+    await voteManager.middleware(c);
+    return c.text('Vote received');
   });
 
-  Logger.info(`API server started on port ${server.port}`);
+  app.all('*', (c) => c.text('404!', 404));
+  serve({ fetch: app.fetch, port: Number(process.env.PORT || 3000) });
+  Logger.info(`API server started on port ${process.env.PORT || 3000}`);
 };

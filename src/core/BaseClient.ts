@@ -1,3 +1,18 @@
+import type BaseCommand from '#src/core/BaseCommand.js';
+import { loadMetadata } from '#src/core/FileLoader.js';
+import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
+import AntiSpamManager from '#src/managers/AntiSpamManager.js';
+import EventLoader from '#src/modules/Loaders/EventLoader.js';
+import CooldownService from '#src/services/CooldownService.js';
+import { LevelingService } from '#src/services/LevelingService.js';
+import Scheduler from '#src/services/SchedulerService.js';
+import { loadInteractions } from '#src/utils/CommandUtils.js';
+import { loadCommands } from '#src/utils/Loaders.js';
+import Logger from '#src/utils/Logger.js';
+import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
+import Constants from '#utils/Constants.js';
+import { loadLocales } from '#utils/Locale.js';
+import { resolveEval } from '#utils/Utils.js';
 import { ClusterClient, getInfo } from 'discord-hybrid-sharding';
 import {
   Client,
@@ -8,21 +23,6 @@ import {
   type Snowflake,
   Sweepers,
 } from 'discord.js';
-import type BaseCommand from '#src/core/BaseCommand.js';
-import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
-import AntiSpamManager from '#src/managers/AntiSpamManager.js';
-import EventLoader from '#src/modules/Loaders/EventLoader.js';
-import CooldownService from '#src/services/CooldownService.js';
-import { LevelingService } from '#src/services/LevelingService.js';
-import Scheduler from '#src/services/SchedulerService.js';
-import { loadInteractions } from '#src/utils/CommandUtils.js';
-import type { RemoveMethods } from '#types/CustomClientProps.d.ts';
-import Constants from '#utils/Constants.js';
-import { loadLocales } from '#utils/Locale.js';
-import { resolveEval } from '#utils/Utils.js';
-import { loadCommands } from '#src/utils/Loaders.js';
-import { MetadataHandler } from '#src/core/FileLoader.js';
-import Logger from '#src/utils/Logger.js';
 
 export default class InterChatClient extends Client {
   static instance: InterChatClient;
@@ -117,10 +117,10 @@ export default class InterChatClient extends Client {
       if (command.subcommands) {
         // biome-ignore lint/complexity/noForEach: <explanation>
         Object.values(command.subcommands).forEach((subcommand) =>
-          MetadataHandler.loadMetadata(subcommand, this.interactions),
+          loadMetadata(subcommand, this.interactions),
         );
       }
-      MetadataHandler.loadMetadata(command, this.interactions);
+      loadMetadata(command, this.interactions);
     }
   }
 

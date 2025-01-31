@@ -4,7 +4,7 @@ import { HubService } from '#src/services/HubService.js';
 import { ApplicationCommandOptionType } from 'discord.js';
 import ms from 'ms';
 
-export default class InviteCreateSubcommand extends BaseCommand {
+export default class HubInviteCreateSubcommand extends BaseCommand {
   constructor() {
     super({
       name: 'create',
@@ -31,11 +31,11 @@ export default class InviteCreateSubcommand extends BaseCommand {
   public async execute(ctx: Context) {
     const hubName = ctx.options.getString('hub', true);
     const expiryStr = ctx.options.getString('expiry');
-    const duration = expiryStr ? ms(expiryStr) : undefined;
+    const duration = expiryStr ? ms(expiryStr as ms.StringValue) : undefined;
     const expires = new Date(Date.now() + (duration || 60 * 60 * 4000));
 
     const hubService = new HubService();
-    const hub = await (await hubService.findHubsByName(hubName)).at(0);
+    const hub = (await hubService.findHubsByName(hubName)).at(0);
 
     if (!hub) {
       await ctx.replyEmbed('hub.notFound_mod', {

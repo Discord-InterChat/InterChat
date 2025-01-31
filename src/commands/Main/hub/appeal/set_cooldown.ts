@@ -51,7 +51,7 @@ export default class AppealCooldownCommand extends BaseCommand {
       return;
     }
 
-    const appealCooldownHours = ms(cooldown) / 1000 / 60 / 60;
+    const appealCooldownHours = ms(cooldown as ms.StringValue) / 1000 / 60 / 60;
     if (!appealCooldownHours || appealCooldownHours < 1) {
       const embed = new ErrorEmbed(ctx.client).setDescription(
         'Cooldown must be atleast **1 hour** long.',

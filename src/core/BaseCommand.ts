@@ -2,30 +2,17 @@ import type Context from '#src/core/CommandContext/Context.js';
 import {
   type APIApplicationCommandBasicOption,
   ApplicationCommandOptionType,
-  type ApplicationCommandStringOption,
   type ApplicationCommandType,
   ApplicationIntegrationType,
   type AutocompleteInteraction,
-  type ChatInputCommandInteraction,
   ContextMenuCommandBuilder,
-  type ContextMenuCommandInteraction,
   InteractionContextType,
+  type PermissionsBitField,
   type RESTPostAPIChatInputApplicationCommandsJSONBody,
   type RESTPostAPIContextMenuApplicationCommandsJSONBody,
   SlashCommandBuilder,
 } from 'discord.js';
 import isEmpty from 'lodash/isEmpty.js';
-
-export const createStringOption = (
-  data: Omit<ApplicationCommandStringOption, 'type'>,
-) => ({ ...data, type: ApplicationCommandOptionType.String });
-
-export type CmdInteraction =
-	| ChatInputCommandInteraction
-	| ContextMenuCommandInteraction;
-export type CmdData =
-	| RESTPostAPIChatInputApplicationCommandsJSONBody
-	| RESTPostAPIContextMenuApplicationCommandsJSONBody;
 
 interface Config {
   name: string;
@@ -33,7 +20,7 @@ interface Config {
   staffOnly?: boolean;
   contexts?: { guildOnly?: boolean; userInstall?: boolean };
   options?: APIApplicationCommandBasicOption[];
-  defaultPermission?: string; // TODO: implent this, make this bigint for easier bitwise operations
+  defaultPermissions?: PermissionsBitField;
 }
 
 interface CommandConfig extends Config {
@@ -58,10 +45,11 @@ interface ContextMenuConfig extends Config {
 }
 
 export default abstract class BaseCommand {
-  readonly name: CommandConfig['name'];
-  readonly description: CommandConfig['description'];
+  readonly name: Config['name'];
+  readonly description: Config['description'];
   readonly types: CommandConfig['types'] | ContextMenuConfig['types'];
-  readonly contexts: CommandConfig['contexts'];
+  readonly contexts: Config['contexts'];
+  readonly defaultPermissions: Config['defaultPermissions'];
   readonly staffOnly: boolean;
 
   // if contextMenu has been set to "Message" options should only contain one sring option
@@ -77,6 +65,7 @@ export default abstract class BaseCommand {
     this.contexts = opts.contexts;
     this.options = opts.options || [];
     this.subcommands = 'subcommands' in opts ? opts.subcommands : undefined;
+    this.defaultPermissions = opts.defaultPermissions;
     this.staffOnly = opts.staffOnly || false;
   }
 
@@ -101,6 +90,7 @@ export default abstract class BaseCommand {
       slashCommand = new SlashCommandBuilder()
         .setName(this.name)
         .setDescription(this.description)
+        .setDefaultMemberPermissions(this.defaultPermissions?.toJSON())
         .setIntegrationTypes(
           this.contexts?.userInstall
             ? ApplicationIntegrationType.UserInstall
@@ -165,4 +155,11 @@ export default abstract class BaseCommand {
 
     return { prefix: prefixCommand, contextMenu, slash: slashCommand };
   }
+
+  // TODO implement cooldowns
+  // protected async clearCooldown(
+  //   userId: string,
+  //   ctx: Context,
+  // ): Promise<void> {
+  // }
 }

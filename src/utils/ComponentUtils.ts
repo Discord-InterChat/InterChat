@@ -1,4 +1,5 @@
-import { randomBytes } from 'node:crypto';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import Constants from '#utils/Constants.js';
 import {
   type ActionRow,
   ActionRowBuilder,
@@ -6,14 +7,10 @@ import {
   ButtonStyle,
   type Client,
   ComponentType,
-  type Message,
   type MessageActionRowComponent,
   type Snowflake,
   messageLink,
 } from 'discord.js';
-import type Scheduler from '#src/services/SchedulerService.js';
-import { getEmoji } from '#src/utils/EmojiUtils.js';
-import Constants from '#utils/Constants.js';
 
 export const greyOutButton = (row: ActionRowBuilder<ButtonBuilder>, disableElement: number) => {
   row.components.forEach((c) => c.setDisabled(false));
@@ -64,29 +61,6 @@ export const disableAllComponents = (
 
     return jsonRow;
   });
-
-/**
- *
- * @param scheduler The scheduler to use
- * @param message The message on which to disable components
- * @param time The time in milliseconds after which to disable the components
- */
-export const setComponentExpiry = (
-  scheduler: Scheduler,
-  message: Message,
-  time: number | Date,
-): string => {
-  const timerId = randomBytes(8).toString('hex');
-  scheduler.addTask(`disableComponents_${timerId}`, time, async () => {
-    const updatedMsg = await message.fetch().catch(() => null);
-    if (updatedMsg?.components.length === 0 || !updatedMsg?.editable) return;
-
-    const disabled = disableAllComponents(message.components);
-    await updatedMsg.edit({ components: disabled });
-  });
-
-  return timerId;
-};
 
 export const donateButton = new ButtonBuilder()
   .setLabel('Donate')

@@ -44,7 +44,10 @@ abstract class BaseBlacklistHandler implements ModAction {
     return new ModalBuilder()
       .setTitle(title)
       .setCustomId(
-        new CustomID().setIdentifier('blacklist_modal', type).setArgs(originalMsgId).toString(),
+        new CustomID()
+          .setIdentifier('blacklist_modal', type)
+          .setArgs(originalMsgId)
+          .toString(),
       )
       .addComponents(
         new ActionRowBuilder<TextInputBuilder>().addComponents(
@@ -69,8 +72,10 @@ abstract class BaseBlacklistHandler implements ModAction {
 
   protected getModalData(interaction: ModalSubmitInteraction) {
     const reason = interaction.fields.getTextInputValue('reason');
-    // NOTE: ms() doesn't accept empty string, so we use this hack instead
-    const duration = ms(interaction.fields.getTextInputValue('duration') || ' ');
+    const duration = ms(
+      (interaction.fields.getTextInputValue('duration') ||
+				' ') as ms.StringValue,
+    );
     const expiresAt = duration ? new Date(Date.now() + duration) : null;
 
     return { reason, expiresAt };
@@ -99,7 +104,9 @@ abstract class BaseBlacklistHandler implements ModAction {
         },
         {
           name: 'Expires',
-          value: expires ? `${time(Math.round(expires.getTime() / 1000), 'R')}` : 'Never.',
+          value: expires
+            ? `${time(Math.round(expires.getTime() / 1000), 'R')}`
+            : 'Never.',
           inline: true,
         },
       );
@@ -112,7 +119,9 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     originalMsgId: Snowflake,
     locale: supportedLocaleCodes,
   ) {
-    await interaction.showModal(this.buildModal('Blacklist User', 'user', originalMsgId, locale));
+    await interaction.showModal(
+      this.buildModal('Blacklist User', 'user', originalMsgId, locale),
+    );
   }
 
   async handleModal(
@@ -120,7 +129,9 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
     originalMsg: OriginalMessage,
     locale: supportedLocaleCodes,
   ) {
-    const user = await interaction.client.users.fetch(originalMsg.authorId).catch(() => null);
+    const user = await interaction.client.users
+      .fetch(originalMsg.authorId)
+      .catch(() => null);
 
     if (!user) {
       await interaction.reply({
@@ -142,7 +153,8 @@ export class BlacklistUserHandler extends BaseBlacklistHandler {
 
     if (originalMsg.authorId === interaction.user.id) {
       await interaction.followUp({
-        content: '<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
+        content:
+					'<a:nuhuh:1256859727158050838> Nuh uh! You can\'t blacklist yourself.',
         flags: ['Ephemeral'],
       });
       return;
@@ -235,7 +247,10 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
     }
 
     const { reason, expiresAt } = this.getModalData(interaction);
-    const blacklistManager = new BlacklistManager('server', originalMsg.guildId);
+    const blacklistManager = new BlacklistManager(
+      'server',
+      originalMsg.guildId,
+    );
 
     await blacklistManager.addBlacklist({
       reason,
@@ -268,7 +283,13 @@ export class BlacklistServerHandler extends BaseBlacklistHandler {
         .catch(() => null);
     }
 
-    const successEmbed = this.buildSuccessEmbed(server.name, reason, expiresAt, client, locale);
+    const successEmbed = this.buildSuccessEmbed(
+      server.name,
+      reason,
+      expiresAt,
+      client,
+      locale,
+    );
 
     const { embed, buttons } = await buildModPanel(interaction, originalMsg);
     await interaction.editReply({ embeds: [embed], components: buttons });

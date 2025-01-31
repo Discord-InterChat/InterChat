@@ -1,5 +1,4 @@
 import BlacklistManager from '#src/managers/BlacklistManager.js';
-
 import type { ChatInputCommandInteraction, Snowflake } from 'discord.js';
 import ms from 'ms';
 import { deleteConnections } from '#utils/ConnectedListUtils.js';

@@ -159,6 +159,15 @@ async function validatePrefixCommand(
     return false;
   }
 
+  if (command.defaultPermissions && message.inGuild()) {
+    if (!message.member?.permissions.has(command.defaultPermissions, true)) {
+      await message.reply(
+        `You do not have the required permissions to use this command. Required permissions: \`${command.defaultPermissions}\`.`,
+      );
+      return false;
+    }
+  }
+
   return true;
 }
 

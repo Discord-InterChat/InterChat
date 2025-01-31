@@ -249,3 +249,18 @@ export const fetchUserLocale = async (user: Snowflake | UserData) => {
   const userData = typeof user === 'string' ? await fetchUserData(user) : user;
   return (userData?.locale ?? 'en') as supportedLocaleCodes;
 };
+
+export const extractChannelId = (input: string | undefined) => {
+  const match = input?.match(Constants.Regex.ChannelId);
+  return match ? match[1] || match[2] || match[3] : null;
+};
+
+export const extractUserId = (input: string | undefined) => {
+  const match = input?.match(Constants.Regex.UserId);
+  return match ? match[1] || match[2] : null;
+};
+
+export const extractRoleId = (input: string | undefined) => {
+  const match = input?.match(Constants.Regex.RoleId);
+  return match ? match[1] || match[2] : null;
+};

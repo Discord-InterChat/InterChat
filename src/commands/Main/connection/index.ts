@@ -3,7 +3,7 @@ import db from '#utils/Db.js';
 import { escapeRegexChars } from '#utils/Utils.js';
 import {
   type AutocompleteInteraction,
-  PermissionFlagsBits,
+  PermissionsBitField,
 } from 'discord.js';
 
 export default class Connection extends BaseCommand {
@@ -12,7 +12,7 @@ export default class Connection extends BaseCommand {
       name: 'connection',
       description: 'Pause, unpause or edit your connections to hubs in this server.',
       types: { prefix: true, slash: true },
-      defaultPermission: PermissionFlagsBits.ManageMessages.toString(),
+      defaultPermissions: new PermissionsBitField('SendMessages'),
       contexts: { guildOnly: true },
     });
   }

@@ -1,14 +1,14 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-import type { Collection } from 'discord.js';
 import {
   type Class,
   FileLoader,
-  MetadataHandler,
+  loadMetadata,
   type ResourceLoader,
 } from '#src/core/FileLoader.js';
 import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
 import Logger from '#utils/Logger.js';
+import type { Collection } from 'discord.js';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export class InteractionLoader implements ResourceLoader {
@@ -32,6 +32,6 @@ export class InteractionLoader implements ResourceLoader {
     Logger.debug(`Importing interaction file: ${filePath}`);
     const imported = await FileLoader.import<{ default: Class }>(filePath);
     const interactionHandler = new imported.default();
-    MetadataHandler.loadMetadata(interactionHandler, this.map);
+    loadMetadata(interactionHandler, this.map);
   }
 }

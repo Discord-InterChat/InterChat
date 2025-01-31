@@ -2,7 +2,7 @@ import UserDbService from '#src/services/UserDbService.js';
 import db from '#src/utils/Db.js';
 import { calculateRequiredXP } from '#src/utils/calculateLevel.js';
 import type { PrismaClient, UserData } from '@prisma/client';
-import type { Message } from 'discord.js';
+import { Colors, type Message } from 'discord.js';
 
 type LeaderboardType = 'xp' | 'level' | 'messages';
 
@@ -120,24 +120,22 @@ export class LevelingService {
     return { newLevel, newXP, totalXP };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async handleLevelUp(message: Message<true>, _newLevel: number): Promise<void> {
-    await message.react('⏫').catch(() => null);
-    // TODO: this. and also send a random tip along with the level up message
-    // const channel = message.channel as TextChannel;
-    // await channel.send({
-    //   embeds: [
-    //     {
-    //       title: '🎉 Level Up!',
-    //       description: `Congratulations ${message.author}! You've reached level ${newLevel}!`,
-    //       footer: {
-    //         text: `Sent for: ${message.author.username}`,
-    //         icon_url: message.author.displayAvatarURL(),
-    //       },
-    //       color: Colors.Green,
-    //     },
-    //   ],
-    // });
+
+  private async handleLevelUp(message: Message<true>, newLevel: number): Promise<void> {
+    // TODO: also send a random tip along with the level up message
+    await message.channel.send({
+      embeds: [
+        {
+          title: '🎉 Level Up!',
+          description: `Congratulations ${message.author}! You've reached level ${newLevel}!`,
+          footer: {
+            text: `Sent for: ${message.author.username}`,
+            icon_url: message.author.displayAvatarURL(),
+          },
+          color: Colors.Green,
+        },
+      ],
+    });
   }
 
   private async getOrCreateUser(userId: string, username: string): Promise<UserData> {

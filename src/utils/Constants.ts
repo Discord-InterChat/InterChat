@@ -71,6 +71,9 @@ export default {
     SimpleRegexEscape: /[.*+?^${}()|[\]\\]/g,
     RegexChars: /[-[\]{}()*+?.,\\^$|#\s]/g,
     DiscordEmojiUrl: /^https:\/\/cdn\.discordapp\.com\/emojis\/(\d+)\.[a-z]+$/i,
+    ChannelId: /(?<=\/channels\/\d{17,20}\/|<#?)\d{17,20}(?=>?)(?!\d)/,
+    UserId: /(?:<@!? ?(\d+)>|\b(\d{17,20})\b(?!\/))/,
+    RoleId: /(?:<@& ?(\d+)>|\b(\d{17,20})\b(?!\/))/,
   },
 
   Links: {

@@ -66,14 +66,14 @@ While InterChat is available as a hosted bot, you can also self-host it. Follow 
 2. Install dependencies:
 
    ```sh
-   pnpm install
+   bun i
    ```
 
 3. Set up your `.env` file with your Discord bot token and other required environment variables.
 4. Run the bot:
 
    ```sh
-   pnpm dev
+   bun dev
    ```
 
 ## 🤝 Contributing

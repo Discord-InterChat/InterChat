@@ -11,7 +11,7 @@ export default class CooldownService {
   }
   /**
    * Set a cooldown
-   * @param id A unique id for the cooldown
+   * @param id A unique id for the cooldown. Eg. <command name>:<user id>
    * @param ms The duration of the cooldown in milliseconds
    */
   public async setCooldown(id: string, ms: number) {

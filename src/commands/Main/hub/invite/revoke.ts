@@ -3,7 +3,7 @@ import type Context from '#src/core/CommandContext/Context.js';
 import db from '#src/utils/Db.js';
 import { ApplicationCommandOptionType } from 'discord.js';
 
-export default class InviteRevokeSubcommand extends BaseCommand {
+export default class HubInviteRevokeSubcommand extends BaseCommand {
   constructor() {
     super({
       name: 'revoke',

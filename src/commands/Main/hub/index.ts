@@ -8,8 +8,9 @@ import HubCreateSubCommand from '#src/commands/Main/hub/create.js';
 import HubDeleteSubcommand from '#src/commands/Main/hub/delete.js';
 import HubEditSubcommand from '#src/commands/Main/hub/edit.js';
 import HubInfractionsSubcommand from '#src/commands/Main/hub/infractions.js';
-import InviteCreateSubcommand from '#src/commands/Main/hub/invite/create.js';
-import InviteRevokeSubcommand from '#src/commands/Main/hub/invite/revoke.js';
+import HubInviteCreateSubcommand from '#src/commands/Main/hub/invite/create.js';
+import HubInviteListSubcommand from '#src/commands/Main/hub/invite/list.js';
+import HubInviteRevokeSubcommand from '#src/commands/Main/hub/invite/revoke.js';
 import HubJoinSubcommand from '#src/commands/Main/hub/join.js';
 import HubLeaveSubcommand from '#src/commands/Main/hub/leave.js';
 import HubLoggingSetSubcommand from '#src/commands/Main/hub/logging/set.js';
@@ -43,15 +44,6 @@ export const hubOption: APIApplicationCommandBasicOption = {
   autocomplete: true,
 };
 
-export const logTypeChoices = [
-  { name: 'Reports', value: 'reports' },
-  { name: 'Moderation Logs', value: 'modLogs' },
-  { name: 'Profanity', value: 'profanity' },
-  { name: 'Join/Leave', value: 'joinLeaves' },
-  { name: 'Appeals', value: 'appeals' },
-  { name: 'Network Alerts', value: 'networkAlerts' },
-] ;
-
 export default class HubCommand extends BaseCommand {
   constructor() {
     super({
@@ -67,8 +59,9 @@ export default class HubCommand extends BaseCommand {
           list: new ListBlockWords(),
         },
         invite: {
-          create: new InviteCreateSubcommand(),
-          revoke: new InviteRevokeSubcommand(),
+          create: new HubInviteCreateSubcommand(),
+          revoke: new HubInviteRevokeSubcommand(),
+          list: new HubInviteListSubcommand(),
         },
         logging: {
           set: new HubLoggingSetSubcommand(),
@@ -100,6 +93,7 @@ export default class HubCommand extends BaseCommand {
 
   private readonly hubService = new HubService();
 
+  // TODO: implement autocomplete
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const modCmds = ['servers', 'invite', 'announce'];
     const managerCmds = [

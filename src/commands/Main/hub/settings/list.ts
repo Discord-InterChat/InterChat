@@ -10,7 +10,7 @@ export default class HubSettingsListSubcommand extends BaseCommand {
       name: 'list',
       description: '🔎 List all the settings of the hub.',
       types: { slash: true, prefix: true },
-      options: [{ ...hubOption }],
+      options: [hubOption],
     });
   }
   private readonly hubService = new HubService();
