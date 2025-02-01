@@ -91,7 +91,7 @@ export default class BlacklistUserSubcommand extends BaseCommand {
 
     const expiresAt =
 			duration && duration?.length > 1
-			  ? new Date(ms(duration as ms.StringValue))
+			  ? new Date(Date.now() + ms(duration as ms.StringValue))
 			  : null;
 
     await blacklistManager.addBlacklist({
