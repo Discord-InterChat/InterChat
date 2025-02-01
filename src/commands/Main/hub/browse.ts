@@ -155,7 +155,7 @@ export default class BrowseCommand extends BaseCommand {
 
     for (let i = 0; i < hubs.length; i += HUBS_PER_PAGE) {
       const pageHubs = hubs.slice(i, i + HUBS_PER_PAGE);
-      const page = await this.buildHubsPage(
+      const page = this.buildHubsPage(
         client,
         guildId,
         pageHubs,
@@ -167,12 +167,12 @@ export default class BrowseCommand extends BaseCommand {
     return pages;
   }
 
-  private async buildHubsPage(
+  private buildHubsPage(
     client: Client,
     guildId: string,
     pageHubs: HubManager[],
     connectionsByHub: Map<string, ConnectionManager[]>,
-  ): Promise<BaseMessageOptions> {
+  ): BaseMessageOptions {
     const fields: EmbedField[] = [];
     const joinMenu =
 			new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(

@@ -55,7 +55,10 @@ export default class BlacklistListSubcommand extends BaseCommand {
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
     const locale = await fetchUserLocale(ctx.user.id);
-    if (!hub || !runHubPermissionChecksAndReply(hub, ctx, { checkIfMod: true })) return;
+    if (
+      !hub ||
+			!(await runHubPermissionChecksAndReply(hub, ctx, { checkIfMod: true }))
+    ) return;
 
     const list = await db.infraction.findMany({
       where: { hubId: hub.id, type: 'BLACKLIST', status: 'ACTIVE' },

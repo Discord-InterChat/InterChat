@@ -46,12 +46,12 @@ export default class HubServersSubcommand extends BaseCommand {
     });
   }
 
-  private async getConnectionInfoEmbed(
+  private getConnectionInfoEmbed(
     locale: supportedLocaleCodes,
     connection: ConnectionManager,
     server: Guild | null,
     channel: GuildBasedChannel | null,
-  ): Promise<EmbedBuilder> {
+  ) {
     return new EmbedBuilder()
       .setTitle(
         `${server?.name ?? 'Unknown Server'} \`(${connection.data.serverId})\``,
@@ -96,7 +96,7 @@ export default class HubServersSubcommand extends BaseCommand {
     locale: supportedLocaleCodes,
     startIndex: number,
   ): Promise<{ name: string; value: string }[]> {
-    return Promise.all(
+    return await Promise.all(
       connections.map(async (connection, index) => {
         const displayData = await this.fetchConnectionDisplayData(
           client,
@@ -168,7 +168,7 @@ export default class HubServersSubcommand extends BaseCommand {
       const channel = await server?.channels
         .fetch(connection.channelId)
         .catch(() => null);
-      const embed = await this.getConnectionInfoEmbed(
+      const embed = this.getConnectionInfoEmbed(
         locale,
         connection,
         server,

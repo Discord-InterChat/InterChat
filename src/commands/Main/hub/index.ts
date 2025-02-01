@@ -141,7 +141,7 @@ export default class HubCommand extends BaseCommand {
     }
     else if (subcommand === 'infractions') {
       const choices = await this.getInfractionSubcommandChoices(interaction);
-      await interaction.respond(choices ?? []);
+      await interaction.respond(choices);
       return;
     }
 
@@ -221,6 +221,7 @@ export default class HubCommand extends BaseCommand {
         value: hub.data.name,
       }));
     }
+    return [];
   }
 
   private async getLeaveSubcommandChoices(

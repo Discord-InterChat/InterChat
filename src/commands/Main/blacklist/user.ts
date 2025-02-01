@@ -57,14 +57,13 @@ export default class BlacklistUserSubcommand extends BaseCommand {
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
     if (
       !hub ||
-			!runHubPermissionChecksAndReply(hub, ctx, {
+			!(await runHubPermissionChecksAndReply(hub, ctx, {
 			  checkIfMod: true,
 			  checkIfStaff: true,
-			})
+			}))
     ) return;
 
-
-    if (!user || !await fetchUserData(user.id)) {
+    if (!user || !(await fetchUserData(user.id))) {
       await ctx.replyEmbed('errors.userNotFound', {
         t: { emoji: ctx.getEmoji('x_icon') },
         flags: ['Ephemeral'],

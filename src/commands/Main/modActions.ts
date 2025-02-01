@@ -73,10 +73,6 @@ export default class ModPanelCommand extends BaseCommand {
     const hubService = new HubService(db);
     const hub = await hubService.fetchHub(originalMsg.hubId);
 
-    if (!hub || !(await isStaffOrHubMod(ctx.user.id, hub))) {
-      return false;
-    }
-
-    return true;
+    return Boolean(hub && (await isStaffOrHubMod(ctx.user.id, hub)));
   }
 }

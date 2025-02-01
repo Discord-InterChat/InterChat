@@ -56,10 +56,10 @@ export default class BlacklistServerSubcommand extends BaseCommand {
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
     if (
       !hub ||
-			!runHubPermissionChecksAndReply(hub, ctx, {
+			!(await runHubPermissionChecksAndReply(hub, ctx, {
 			  checkIfMod: true,
 			  checkIfStaff: true,
-			})
+			}))
     ) return;
 
     const server = await ctx.client.fetchGuild(serverId);

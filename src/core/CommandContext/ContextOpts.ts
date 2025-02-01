@@ -88,7 +88,7 @@ export default class ContextOptions {
 
     const userId = this.getUserId(name, required);
     if (!userId) return null;
-    return this.ctx.client.users.fetch(userId).catch(() => null);
+    return await this.ctx.client.users.fetch(userId).catch(() => null);
   }
 
   // Channel methods
@@ -108,7 +108,7 @@ export default class ContextOptions {
       required,
     );
     if (!channelId) return null;
-    return this.ctx.client.channels.fetch(channelId).catch(() => null);
+    return await this.ctx.client.channels.fetch(channelId).catch(() => null);
   }
 
   // Role methods
@@ -122,7 +122,7 @@ export default class ContextOptions {
       return this.ctx.originalInteraction.options.getRole(name, required);
     }
     const roleId = this.getRoleId(name, required);
-    return roleId ? (this.ctx.guild?.roles.fetch(roleId) ?? null) : null;
+    return roleId ? (await this.ctx.guild?.roles.fetch(roleId) ?? null) : null;
   }
 
   // Attachment handling

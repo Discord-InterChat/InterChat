@@ -41,7 +41,10 @@ export default class UnblacklistUserSubcommand extends BaseCommand {
     const userId = ctx.options.getString('user', true);
 
     const hub = (await this.hubService.findHubsByName(hubName)).at(0);
-    if (!hub || !runHubPermissionChecksAndReply(hub, ctx, { checkIfMod: true })) return;
+    if (
+      !hub ||
+			!(await runHubPermissionChecksAndReply(hub, ctx, { checkIfMod: true }))
+    ) return;
 
     const blacklistManager = new BlacklistManager('user', userId);
     const blacklist = await blacklistManager.fetchBlacklist(hub.id);

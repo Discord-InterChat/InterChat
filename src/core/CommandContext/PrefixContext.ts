@@ -71,7 +71,15 @@ export default class PrefixContext extends Context<{
   private parseArguments(
     rawArgs: string[],
     commandOptions: Map<string, APIApplicationCommandBasicOption>,
-  ) {
+  ):
+		| Collection<
+		  string,
+		  {
+		    value: string | number | boolean | null;
+		    type: ApplicationCommandOptionType;
+		  }
+		>
+		| undefined {
     const args = new Collection<
       string,
       {

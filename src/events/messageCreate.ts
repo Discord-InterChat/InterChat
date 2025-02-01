@@ -43,7 +43,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     await this.handleChatMessage(message).catch((e) => handleError(e, { repliable: message }));
   }
 
-  private async handlePrefixCommand(message: Message) {
+  private async handlePrefixCommand(message: Message): Promise<void> {
     const userData = await fetchUserData(message.author.id);
     if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
 

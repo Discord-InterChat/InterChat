@@ -68,17 +68,18 @@ function parseArgs(input: string): string[] {
     return [];
   }
 
+  const quoteRegex = /^(?:["'])|(?:["']$)/g;
   // Process matches to handle key-value pairs with quoted values
   return matches.map((match) => {
     // Check if the match is a key-value pair with a quoted value
     if (/=.+/.test(match)) {
       const [key, value] = match.split('=');
       // Remove surrounding quotes from the value if present
-      const cleanedValue = value.replace(/^["']|["']$/g, '');
+      const cleanedValue = value.replace(quoteRegex, '');
       return `${key}=${cleanedValue}`;
     }
     // Remove surrounding quotes from standalone arguments if present
-    return match.replace(/^["']|["']$/g, '');
+    return match.replace(quoteRegex, '');
   });
 }
 
