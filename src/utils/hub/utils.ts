@@ -100,11 +100,6 @@ export const runHubPermissionChecksAndReply = async (
 ): Promise<boolean> => {
   const validationChecks: ValidationCheck[] = [
     {
-      condition: Boolean(options.checkIfStaff),
-      validator: () => checkIfStaff(context.user.id),
-      errorMessageKey: 'hub.notFound_mod',
-    },
-    {
       condition: Boolean(options.checkIfManager),
       validator: () => hub.isManager(context.user.id),
       errorMessageKey: 'hub.notManager',
@@ -120,6 +115,8 @@ export const runHubPermissionChecksAndReply = async (
       errorMessageKey: 'hub.notOwner',
     },
   ];
+
+  if (options.checkIfStaff && checkIfStaff(context.user.id)) return true;
 
   for (const check of validationChecks) {
     if (!check.condition) continue;

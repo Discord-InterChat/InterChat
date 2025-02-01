@@ -14,10 +14,10 @@ import {
   ApplicationCommandType,
 } from 'discord.js';
 
-export default class BlacklistCtxMenu extends BaseCommand {
+export default class ModPanelCommand extends BaseCommand {
   constructor() {
     super({
-      name: 'modactions',
+      name: 'modpanel',
       description: 'Open the moderation actions panel for a message',
       types: {
         prefix: true,

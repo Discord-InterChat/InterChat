@@ -11,7 +11,7 @@ import {
 import { writeFile, readFile } from "node:fs/promises";
 
 // Read the YAML file
-const file = await readFile("src/locales/en.yaml", "utf8");
+const file = await readFile("locales/en.yml", "utf8");
 
 // Parse the YAML content
 /** @type {{ [key: string]: string }} */

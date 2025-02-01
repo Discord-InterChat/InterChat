@@ -1,7 +1,13 @@
 import type BaseCommand from '#src/core/BaseCommand.js';
 import Context from '#src/core/CommandContext/Context.js';
-import { extractUserId, extractChannelId, extractRoleId } from '#src/utils/Utils.js';
+import Logger from '#src/utils/Logger.js';
 import {
+  extractUserId,
+  extractChannelId,
+  extractRoleId,
+} from '#src/utils/Utils.js';
+import {
+  type APIApplicationCommandBasicOption,
   type APIModalInteractionResponseCallbackData,
   ActionRowBuilder,
   ApplicationCommandOptionType,
@@ -32,76 +38,113 @@ export default class PrefixContext extends Context<{
 }> {
   private lastReply: Message | null = null;
   private _deferred = false;
+  private argumentValidationPassed = true;
 
-  private readonly _args = new Collection<
+  private readonly _args: Collection<
     string,
-    { value: string | number | boolean; type: ApplicationCommandOptionType }
-  >();
-
-  constructor(message: Message, command: BaseCommand, args: string[]) {
-    super(message, command);
-    let argIndex = 0;
-    const commandOptions = Object.values(command.options);
-
-    for (let i = 0; i < commandOptions.length; i++) {
-      const option = commandOptions[i];
-      if (argIndex >= args.length) {
-        if (option.required) {
-          throw new Error(`Missing required argument: ${option.name}`);
-        }
-        continue;
-      }
-
-      const currentArg = args[argIndex];
-      const extracted = this.processArg(currentArg, option.type);
-      let matchesFutureType = false;
-
-      // Check if currentArg matches any future options' types (only if current option is String)
-      if (option.type === ApplicationCommandOptionType.String) {
-        for (let j = i + 1; j < commandOptions.length; j++) {
-          const futureOption = commandOptions[j];
-          if (this.processArg(currentArg, futureOption.type) !== null) {
-            matchesFutureType = true;
-            break;
-          }
-        }
-      }
-
-      if (extracted !== null) {
-        this.args.set(option.name, {
-          value: extracted,
-          type: option.type,
-        });
-        argIndex++;
-      }
-      else if (
-        option.type === ApplicationCommandOptionType.String &&
-        !matchesFutureType
-      ) {
-        // Assign to String option if no future types match
-        this.args.set(option.name, { value: currentArg, type: option.type });
-        argIndex++;
-      }
-      else if (option.required) {
-        throw new Error(
-          `Required argument '${option.name}' of type ${option.type} not found.`,
-        );
-      }
-      // Skip optional option and check again with the same argIndex
+    {
+      value: string | number | boolean | null;
+      type: ApplicationCommandOptionType;
     }
+  >;
+
+  constructor(message: Message, command: BaseCommand, input: string[]) {
+    super(message, command);
+
+    // Split arguments with quote handling
+    const commandOptions = new Map(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      Object.entries(command.options).map(([_i, option]) => [
+        option.name,
+        option,
+      ]),
+    );
+
+    // Store parsed arguments with resolved values
+    this._args = this.parseArguments(input, commandOptions) ?? new Collection();
+  }
+
+  public get isValid() {
+    return this.argumentValidationPassed;
+  }
+
+  private parseArguments(
+    rawArgs: string[],
+    commandOptions: Map<string, APIApplicationCommandBasicOption>,
+  ) {
+    const args = new Collection<
+      string,
+      {
+        value: string | number | boolean | null;
+        type: ApplicationCommandOptionType;
+      }
+    >();
+    // First process named arguments
+    for (const arg of rawArgs) {
+      if (arg.includes('=')) {
+        const [name, ...valueParts] = arg.split('=');
+        const value = valueParts.join('=');
+        const option = commandOptions.get(name.trim());
+
+        if (!option) {
+          this.argumentValidationPassed = false;
+          Logger.error(`Unknown option: ${name}`);
+          return;
+        }
+        const parsed = this.processArg(value, option.type);
+        if (parsed === null) {
+          this.argumentValidationPassed = false;
+          Logger.error(`Invalid value for ${name}`);
+          return;
+        }
+        args.set(option.name, { value: parsed, type: option.type });
+        commandOptions.delete(option.name);
+        rawArgs.splice(rawArgs.indexOf(arg), 1);
+      }
+    }
+
+    // Then process positional arguments
+    const commandOptionsArray = Array.from(commandOptions.values());
+    for (let i = 0; i < commandOptionsArray.length; i++) {
+      const value = rawArgs[i];
+      const option = commandOptionsArray[i];
+
+      if (!option) {
+        this.argumentValidationPassed = false;
+        Logger.error(`Unknown option: ${value}`);
+        return;
+      }
+      const parsed = this.processArg(value, option.type);
+      if (parsed === null) {
+        this.argumentValidationPassed = false;
+        Logger.error(`Invalid value for ${value}`);
+        return;
+      }
+      args.set(option.name, { value: parsed, type: option.type });
+    }
+
+    // Validate required options
+    for (const [name, option] of commandOptions) {
+      if (option.required && !args.has(name)) {
+        this.argumentValidationPassed = false;
+        Logger.error(`Missing required option: ${name}`);
+        return;
+      }
+    }
+
+    return args;
   }
 
   private processArg(arg: string, type: ApplicationCommandOptionType) {
     switch (type) {
-      case ApplicationCommandOptionType.User: {
+      case ApplicationCommandOptionType.String:
+        return arg;
+      case ApplicationCommandOptionType.User:
         return extractUserId(arg);
-      }
-      case ApplicationCommandOptionType.Channel: {
+      case ApplicationCommandOptionType.Channel:
         return extractChannelId(arg);
-      }
-      case ApplicationCommandOptionType.Role: {
+      case ApplicationCommandOptionType.Role:
         return extractRoleId(arg);
-      }
       case ApplicationCommandOptionType.Number: {
         const num = Number(arg);
         return Number.isNaN(num) ? null : num;
@@ -110,12 +153,8 @@ export default class PrefixContext extends Context<{
         const key = arg.toLowerCase() as keyof typeof acceptedBooleanValues;
         return key in acceptedBooleanValues ? acceptedBooleanValues[key] : null;
       }
-      case ApplicationCommandOptionType.String: {
-        return arg;
-      }
-      default: {
+      default:
         return null;
-      }
     }
   }
 

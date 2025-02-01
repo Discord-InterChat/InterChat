@@ -60,9 +60,9 @@ export default class SetupCommand extends BaseCommand {
       `,
     );
 
-    // FIXME: add this property
     const channel = await ctx.options.getChannel('channel');
     if (!channel) return;
+    // FIXME: add this argument
     // [
     //   ChannelType.GuildText,
     //   ChannelType.PublicThread,

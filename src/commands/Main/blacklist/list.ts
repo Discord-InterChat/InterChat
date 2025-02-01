@@ -1,30 +1,61 @@
 import type { Infraction } from '@prisma/client';
-import { type ChatInputCommandInteraction, EmbedBuilder, type User, time } from 'discord.js';
+import {
+  ApplicationCommandOptionType,
+  EmbedBuilder,
+  type User,
+  time,
+} from 'discord.js';
 import { Pagination } from '#src/modules/Pagination.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { fetchUserLocale, toTitleCase } from '#utils/Utils.js';
-import BlacklistCommand from './index.js';
+import BaseCommand from '#src/core/BaseCommand.js';
+import type Context from '#src/core/CommandContext/Context.js';
+import { HubService } from '#src/services/HubService.js';
+import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
 
 // Type guard
 const isServerType = (list: Infraction) => list.serverId && list.serverName;
 
-export default class ListBlacklists extends BlacklistCommand {
+export default class BlacklistListSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
+  constructor() {
+    super({
+      name: 'list',
+      description: 'List all blacklisted users/servers in your hub.',
+      types: { slash: true, prefix: true },
+      options: [
+        {
+          name: 'hub',
+          description: 'The hub to list blacklisted users/servers from.',
+          type: ApplicationCommandOptionType.String,
+          required: true,
+          autocomplete: true,
+        },
+        {
+          name: 'type',
+          description: 'The type of blacklist to list.',
+          type: ApplicationCommandOptionType.String,
+          choices: [
+            { name: 'User', value: 'user' },
+            { name: 'Server', value: 'server' },
+          ],
+          required: true,
+        },
+      ],
+    });
+  }
+
   async execute(ctx: Context) {
-    await interaction.deferReply();
+    await ctx.deferReply();
 
-    const hubName = interaction.options.getString('hub', true);
-    const hub = await this.findHubsByName(hubName, interaction.user.id, 1);
+    const hubName = ctx.options.getString('hub', true);
+    const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
-    const locale = await fetchUserLocale(interaction.user.id);
-    if (!hub) {
-      await ctx.replyEmbed(
-        interaction,
-        t('hub.notFound_mod', locale, { emoji: this.getEmoji('x_icon') }),
-      );
-      return;
-    }
+    const locale = await fetchUserLocale(ctx.user.id);
+    if (!hub || !runHubPermissionChecksAndReply(hub, ctx, { checkIfMod: true })) return;
 
     const list = await db.infraction.findMany({
       where: { hubId: hub.id, type: 'BLACKLIST', status: 'ACTIVE' },
@@ -38,10 +69,10 @@ export default class ListBlacklists extends BlacklistCommand {
     let counter = 0;
     const type = isServerType(list[0]) ? 'server' : 'user';
 
-    const paginator = new Pagination(interaction.client);
+    const paginator = new Pagination(ctx.client);
     for (const data of list) {
       const moderator = data.moderatorId
-        ? await interaction.client.users.fetch(data.moderatorId).catch(() => null)
+        ? await ctx.client.users.fetch(data.moderatorId).catch(() => null)
         : null;
 
       fields.push(this.createFieldData(data, type, { moderator, locale }));
@@ -65,7 +96,7 @@ export default class ListBlacklists extends BlacklistCommand {
       }
     }
 
-    await paginator.run(interaction);
+    await paginator.run(ctx);
   }
 
   private createFieldData(
@@ -87,7 +118,9 @@ export default class ListBlacklists extends BlacklistCommand {
       name,
       value: t(`blacklist.list.${type}`, locale, {
         id: (data.userId ?? data.serverId) as string,
-        moderator: moderator ? `@${moderator.username} (${moderator.id})` : 'Unknown',
+        moderator: moderator
+          ? `@${moderator.username} (${moderator.id})`
+          : 'Unknown',
         reason: `${data?.reason}`,
         expires: !data?.expiresAt
           ? 'Never.'

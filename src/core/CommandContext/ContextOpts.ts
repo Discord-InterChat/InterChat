@@ -3,6 +3,7 @@ import type Context from '#src/core/CommandContext/Context.js';
 import type PrefixContext from '#src/core/CommandContext/PrefixContext.js';
 import {
   ApplicationCommandOptionType,
+  ChatInputCommandInteraction,
   Message,
   type Channel,
 } from 'discord.js';
@@ -16,7 +17,6 @@ export default class ContextOptions {
     this.command = command;
   }
 
-  // Generic getter with type checking
   private getOption<T extends string | number | boolean>(
     name: string,
     expectedType: ApplicationCommandOptionType,
@@ -30,11 +30,14 @@ export default class ContextOptions {
       }
 
       // Type safety enforced by PrefixContext parsing
-      return arg?.type === expectedType ? arg.value as T : null;
+      return arg?.type === expectedType ? (arg.value as T) : null;
     }
 
     if (this.ctx.originalInteraction.isChatInputCommand()) {
-      return this.ctx.originalInteraction.options.getString(name, required) as T;
+      return this.ctx.originalInteraction.options.getString(
+        name,
+        required,
+      ) as T;
     }
 
     throw new Error(`Cannot get ${expectedType} option from context menu`);
@@ -79,6 +82,10 @@ export default class ContextOptions {
   }
 
   public async getUser(name: string, required = false) {
+    if (this.ctx.originalInteraction instanceof ChatInputCommandInteraction) {
+      return this.ctx.originalInteraction.options.getUser(name, required);
+    }
+
     const userId = this.getUserId(name, required);
     if (!userId) return null;
     return this.ctx.client.users.fetch(userId).catch(() => null);
@@ -89,6 +96,12 @@ export default class ContextOptions {
     name: string,
     required = false,
   ): Promise<Channel | null> {
+    if (!this.ctx.inGuild()) return null;
+
+    if (this.ctx.originalInteraction instanceof ChatInputCommandInteraction) {
+      return this.ctx.originalInteraction.options.getChannel(name, required);
+    }
+
     const channelId = this.getOption<string>(
       name,
       ApplicationCommandOptionType.Channel,
@@ -105,6 +118,9 @@ export default class ContextOptions {
 
   public async getRole(name: string, required = false) {
     if (!this.ctx.inGuild()) return null;
+    if (this.ctx.originalInteraction instanceof ChatInputCommandInteraction) {
+      return this.ctx.originalInteraction.options.getRole(name, required);
+    }
     const roleId = this.getRoleId(name, required);
     return roleId ? (this.ctx.guild?.roles.fetch(roleId) ?? null) : null;
   }

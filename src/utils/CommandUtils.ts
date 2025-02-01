@@ -1,5 +1,4 @@
 import BaseCommand from '#src/core/BaseCommand.js';
-import type Context from '#src/core/CommandContext/Context.js';
 import InteractionContext from '#src/core/CommandContext/InteractionContext.js';
 import PrefixContext from '#src/core/CommandContext/PrefixContext.js';
 import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
@@ -60,6 +59,29 @@ export const findSubcommand = (
   );
 };
 
+function parseArgs(input: string): string[] {
+  // Regex to match key-value pairs with optional quotes or standalone arguments
+  const regex = /(?:[^\s"']+|"[^"]*"|'[^']*')+/g;
+  const matches = input.match(regex);
+
+  if (!matches) {
+    return [];
+  }
+
+  // Process matches to handle key-value pairs with quoted values
+  return matches.map((match) => {
+    // Check if the match is a key-value pair with a quoted value
+    if (/=.+/.test(match)) {
+      const [key, value] = match.split('=');
+      // Remove surrounding quotes from the value if present
+      const cleanedValue = value.replace(/^["']|["']$/g, '');
+      return `${key}=${cleanedValue}`;
+    }
+    // Remove surrounding quotes from standalone arguments if present
+    return match.replace(/^["']|["']$/g, '');
+  });
+}
+
 export function resolveCommand(
   commands: Collection<string, BaseCommand>,
   interactionOrMessage:
@@ -68,32 +90,14 @@ export function resolveCommand(
 		| ContextMenuCommandInteraction
 		| Message,
 ): { command: BaseCommand | null; prefixArgs: string[] } {
-  let commandName = '';
+  let commandName: string;
   let prefixArgs: string[] = [];
 
   if (interactionOrMessage instanceof Message) {
-    prefixArgs = interactionOrMessage.content
-      .slice('c!'.length)
-      .trim()
-      .split(/ +/);
+    prefixArgs = parseArgs(interactionOrMessage.content.slice('c!'.length));
+
     const name = prefixArgs.shift()?.toLowerCase();
     if (!name) return { command: null, prefixArgs };
-
-    // if an arg is surrounded by quotes, join the args together (removes the quotes)
-    prefixArgs.forEach((arg, index) => {
-      if (arg.startsWith('"')) {
-        const nextQuoteIndex = prefixArgs.findIndex(
-          (_arg, i) => i > index && _arg.endsWith('"'),
-        );
-        if (nextQuoteIndex !== -1) {
-          const joinedArgs = prefixArgs
-            .slice(index, nextQuoteIndex + 1)
-            .join(' ')
-            .slice(1, -1);
-          prefixArgs.splice(index, nextQuoteIndex - index + 1, joinedArgs);
-        }
-      }
-    });
 
     commandName = name;
   }
@@ -144,17 +148,13 @@ export function resolveCommand(
 }
 
 async function validatePrefixCommand(
-  message: Message,
+  ctx: PrefixContext,
   command: BaseCommand,
-  prefixArgs: string[],
+  message: Message,
 ) {
-  const requiredArgs = command.options.filter((opt) => opt.required);
-  // check if any required arguments are missing
-  if (command.options.length > 0 && prefixArgs?.length < requiredArgs.length) {
-    await message.reply(
-      `Invalid usage! The command \`${command.name}\` has the following arguments: ${command.options
-        .map((opt) => `\`${opt.name}\``)
-        .join(', ')}. Use \`c!help ${command.name}\` for more information.`,
+  if (!ctx.isValid) {
+    await ctx.reply(
+      `${ctx.getEmoji('x_icon')} Invalid arguments provided. Use \`help\` command to see the command usage.`,
     );
     return false;
   }
@@ -181,12 +181,10 @@ export async function executeCommand(
 ) {
   if (!command) return;
 
-  let ctx: Context;
+  let ctx: PrefixContext | InteractionContext;
   if (interactionOrMessage instanceof Message) {
-    if (
-      !(await validatePrefixCommand(interactionOrMessage, command, prefixArgs))
-    ) return;
     ctx = new PrefixContext(interactionOrMessage, command, prefixArgs);
+    if (!(await validatePrefixCommand(ctx, command, interactionOrMessage))) return;
   }
   else {
     ctx = new InteractionContext(interactionOrMessage, command);
