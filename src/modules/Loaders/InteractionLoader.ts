@@ -7,10 +7,9 @@ import {
 import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
 import Logger from '#utils/Logger.js';
 import type { Collection } from 'discord.js';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = new URL('.', import.meta.url).pathname;
 export class InteractionLoader implements ResourceLoader {
   private readonly map: Collection<string, InteractionFunction>;
   private readonly fileLoader: FileLoader;

@@ -30,6 +30,8 @@ interface UserStats {
   };
 }
 
+const __dirname = new URL('.', import.meta.url).pathname;
+
 export default class RankCommand extends BaseCommand {
   private static readonly DIMENSIONS: RankCardDimensions = {
     width: 900,
