@@ -56,6 +56,7 @@ blacklist:
       label: Duration
       placeholder: 'Duration of blacklist. Eg: 1d, 1w, 1m, 1y. Leave blank for permanent.'
   user:
+    cannotBlacklistMod: '{emoji} You cannot blacklist a moderator. Please remove their moderator role first.'
     alreadyBlacklisted: '{emoji} This user is already blacklisted.'
     easterEggs:
       blacklistBot: You can't blacklist me wtf.
@@ -150,6 +151,9 @@ hub:
       Joined At: {joinedAt}
       Invite: {invite}
       Connected: {connected}
+  blockwords:
+    noRules: '{emoji} No blocked words have been set for this hub yet. Use `/hub blockword add` to add one.'
+    notFound: '{emoji} Blocked word rule not found.'
   create:
     modal:
       title: Create Hub
