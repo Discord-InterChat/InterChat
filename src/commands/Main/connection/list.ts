@@ -74,7 +74,7 @@ export default class ConnectionListSubcommand extends BaseCommand {
   }
 
   async autocomplete(interaction: AutocompleteInteraction) {
-    ConnectionCommand.autocomplete(interaction);
+    await ConnectionCommand.autocomplete(interaction);
   }
 
   private createPaginatedEmbeds(

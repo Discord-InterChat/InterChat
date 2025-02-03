@@ -23,6 +23,7 @@ import { drawRankProgressBar } from '#src/utils/ImageUtils.js';
 import { handleError } from '#src/utils/Utils.js';
 import { type CanvasRenderingContext2D, createCanvas, loadImage } from 'canvas';
 import {
+  ApplicationCommandOptionType,
   AttachmentBuilder,
   type User,
 } from 'discord.js';
@@ -71,6 +72,14 @@ export default class RankCommand extends BaseCommand {
       name: 'rank',
       description: 'Display user rank and statistics',
       types: { slash: true, prefix: true },
+      options: [
+        {
+          name: 'user',
+          description: 'The user to get the rank of',
+          type: ApplicationCommandOptionType.User,
+          required: false,
+        },
+      ],
     });
   }
 
@@ -108,7 +117,7 @@ export default class RankCommand extends BaseCommand {
   }
 
   private async drawBackground(ctx: CanvasRenderingContext2D): Promise<void> {
-    const background = await loadImage(join(__dirname, '../../../../assets/rankBg.png'));
+    const background = await loadImage(join(__dirname, '../../../assets/rankBg.png'));
     ctx.drawImage(background, 0, 0, RankCommand.DIMENSIONS.width, RankCommand.DIMENSIONS.height);
 
     // Add semi-transparent overlay
@@ -172,17 +181,12 @@ export default class RankCommand extends BaseCommand {
     const barWidth = width - (avatarX + avatarSize + 60) - 40;
     const textX = avatarX + avatarSize + 30;
 
-    const currentLevelXP = stats.xp % calculateRequiredXP(stats.level);
-    const requiredXP = calculateRequiredXP(stats.level);
-    const progress = currentLevelXP / requiredXP;
+    const currentLevelTotalXP = calculateRequiredXP(stats.level);
+    const nextLevelTotalXP = calculateRequiredXP(stats.level + 1);
+    const requiredXP = nextLevelTotalXP - currentLevelTotalXP;
+    const currentLevelXP = Math.max(stats.xp - currentLevelTotalXP, 0);
+    const progress = requiredXP > 0 ? currentLevelXP / requiredXP : 0;
 
     drawRankProgressBar(ctx, textX, avatarY + 100, barWidth, 25, progress);
-
-    // XP Progress Text
-    ctx.font = RankCommand.FONTS.XP_PROGRESS;
-    ctx.fillStyle = '#ffffff';
-    const xpText = `${currentLevelXP} / ${requiredXP} XP`;
-    const xpWidth = ctx.measureText(xpText).width;
-    ctx.fillText(xpText, textX + (barWidth - xpWidth) / 2, avatarY + 118);
   }
 }

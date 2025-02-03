@@ -74,6 +74,7 @@ export class MessageProcessor {
       connection,
       attachmentURL,
     );
+
     await message.client.userLevels.handleMessage(message);
   }
 }

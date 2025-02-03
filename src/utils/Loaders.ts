@@ -25,6 +25,19 @@ import { join } from 'node:path';
 
 const __dirname = new URL('.', import.meta.url).pathname;
 
+export const loadInteractionsForCommand = (
+  command: BaseCommand,
+  interactionMap: Collection<string, InteractionFunction>,
+) => {
+  if (!isEmpty(command.subcommands)) {
+    for (const subcommand of Object.values(command.subcommands)) {
+      loadMetadata(subcommand, interactionMap);
+    }
+  }
+
+  loadMetadata(command, interactionMap);
+};
+
 export const loadCommands = async (
   map: Collection<string, BaseCommand>,
   interactionMap?: Collection<string, InteractionFunction>,
@@ -61,15 +74,3 @@ export const loadCommands = async (
   }
 };
 
-export const loadInteractionsForCommand = async (
-  command: BaseCommand,
-  interactionMap: Collection<string, InteractionFunction>,
-) => {
-  if (!isEmpty(command.subcommands)) {
-    for (const subcommand of Object.values(command.subcommands)) {
-      loadMetadata(subcommand, interactionMap);
-    }
-  }
-
-  loadMetadata(command, interactionMap);
-};

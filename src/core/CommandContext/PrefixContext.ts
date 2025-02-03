@@ -87,7 +87,7 @@ export default class PrefixContext extends Context<{
 
   private parseArguments(
     rawArgs: string[],
-    commandOptions: Map<string, APIApplicationCommandBasicOption>,
+    definedOpts: Map<string, APIApplicationCommandBasicOption>,
   ):
 		| Collection<
 		  string,
@@ -109,51 +109,60 @@ export default class PrefixContext extends Context<{
       if (arg.includes('=')) {
         const [name, ...valueParts] = arg.split('=');
         const value = valueParts.join('=');
-        const option = commandOptions.get(name.trim());
+        const option = definedOpts.get(name.trim());
 
         if (!option) {
           this.argumentValidationPassed = false;
           Logger.error(`Unknown option: ${name}`);
           return;
         }
-        const parsed = this.processArg(value, option.type);
-        if (parsed === null) {
+
+        if (!value && option.required) {
           this.argumentValidationPassed = false;
-          Logger.error(`Invalid value for ${name}`);
+          Logger.error(`Missing required option: ${option.name}`);
           return;
         }
-        args.set(option.name, { value: parsed, type: option.type });
-        commandOptions.delete(option.name);
-        rawArgs.splice(rawArgs.indexOf(arg), 1);
+
+        if (value) {
+          const parsed = this.processArg(value, option.type);
+          if (parsed === null) {
+            this.argumentValidationPassed = false;
+            Logger.error(`Invalid value for ${name}`);
+            return;
+          }
+          args.set(option.name, { value: parsed, type: option.type });
+          definedOpts.delete(option.name);
+          rawArgs.splice(rawArgs.indexOf(arg), 1);
+        }
       }
     }
 
     // Then process positional arguments
-    const commandOptionsArray = Array.from(commandOptions.values());
+    const commandOptionsArray = Array.from(definedOpts.values());
     for (let i = 0; i < commandOptionsArray.length; i++) {
-      const value = rawArgs[i];
-      const option = commandOptionsArray[i];
+      const value = rawArgs.at(i);
+      const option = commandOptionsArray.at(i);
 
       if (!option) {
         this.argumentValidationPassed = false;
         Logger.error(`Unknown option: ${value}`);
         return;
       }
-      const parsed = this.processArg(value, option.type);
-      if (parsed === null) {
+
+      if (!value && option.required) {
         this.argumentValidationPassed = false;
-        Logger.error(`Invalid value for ${value}`);
+        Logger.error(`Missing required option: ${option.name}`);
         return;
       }
-      args.set(option.name, { value: parsed, type: option.type });
-    }
 
-    // Validate required options
-    for (const [name, option] of commandOptions) {
-      if (option.required && !args.has(name)) {
-        this.argumentValidationPassed = false;
-        Logger.error(`Missing required option: ${name}`);
-        return;
+      if (value) {
+        const parsed = this.processArg(value, option.type);
+        if (parsed === null) {
+          this.argumentValidationPassed = false;
+          Logger.error(`Invalid value for ${value}`);
+          return;
+        }
+        args.set(option.name, { value: parsed, type: option.type });
       }
     }
 
@@ -231,7 +240,7 @@ export default class PrefixContext extends Context<{
 			| ModalComponentData
 			| APIModalInteractionResponseCallbackData,
   ) {
-    const r = await this.reply({
+    const reply = await this.reply({
       content: 'Click button to enter data.',
       components: [
         new ActionRowBuilder<ButtonBuilder>().addComponents(
@@ -243,7 +252,7 @@ export default class PrefixContext extends Context<{
       ],
     });
 
-    const collector = r?.createMessageComponentCollector({
+    const collector = reply?.createMessageComponentCollector({
       componentType: ComponentType.Button,
       filter: (i) =>
         i.customId === 'openForm' && i.user.id === this.interaction.author.id,

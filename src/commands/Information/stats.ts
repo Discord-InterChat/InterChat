@@ -15,7 +15,13 @@
  * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { cpus, totalmem } from 'node:os';
+import BaseCommand from '#src/core/BaseCommand.js';
+import type Context from '#src/core/CommandContext/Context.js';
+import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import { donateButton } from '#src/utils/ComponentUtils.js';
+import Constants from '#utils/Constants.js';
+import { CustomID } from '#utils/CustomID.js';
+import { msToReadable } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -26,13 +32,7 @@ import {
   Status,
   time,
 } from 'discord.js';
-import BaseCommand from '#src/core/BaseCommand.js';
-import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
-import { donateButton } from '#src/utils/ComponentUtils.js';
-import Constants from '#utils/Constants.js';
-import { CustomID } from '#utils/CustomID.js';
-import { msToReadable } from '#utils/Utils.js';
-import type Context from '#src/core/CommandContext/Context.js';
+import { cpus } from 'node:os';
 
 export default class Stats extends BaseCommand {
   constructor() {
@@ -59,10 +59,8 @@ export default class Stats extends BaseCommand {
     );
 
     const upSince = new Date(Date.now() - ctx.client.uptime);
-    const totalMemory = Math.round(totalmem() / 1024 / 1024 / 1024);
     const memoryUsedRaw = await ctx.client.cluster.broadcastEval(() =>
-      Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-    );
+      Math.round(process.memoryUsage().heapUsed / 1024 / 1024));
     const memoryUsed = memoryUsedRaw.reduce((p, n) => p + (n ?? 0), 0);
 
     const embed = new EmbedBuilder()
@@ -76,9 +74,9 @@ export default class Stats extends BaseCommand {
         {
           name: `${ctx.getEmoji('bot_icon')} Bot Stats`,
           value: stripIndents`
-	          Up Since: ${time(upSince, 'R')}
+            Up Since: ${time(upSince, 'R')}
             Servers: ${guildCount.reduce((p, n) => p + n, 0)}
-	          Members: ${memberCount.reduce((p, n) => p + n, 0)}`,
+            Members: ${memberCount.reduce((p, n) => p + n, 0)}`,
           inline: true,
         },
         {
@@ -86,7 +84,7 @@ export default class Stats extends BaseCommand {
           value: stripIndents`
             OS: Linux
             CPU Cores: ${cpus().length}
-            RAM Usage: ${memoryUsed} MB / ${totalMemory} GB`,
+            RAM Usage: ${memoryUsed} MB`,
           inline: true,
         },
       ]);

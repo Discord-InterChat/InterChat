@@ -123,7 +123,7 @@ export default class InterChatClient extends Client {
     // initialize i18n for localization
     loadLocales('locales');
 
-    await loadCommands(this.commands);
+    await loadCommands(this.commands, this.interactions);
     Logger.info(`Loaded ${this.commands.size} commands`);
 
     await loadInteractions(this.interactions);

@@ -15,6 +15,10 @@
  * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import ConnectionEditSubcommand from '#src/commands/Main/connection/edit.js';
+import ConnectionListSubcommand from '#src/commands/Main/connection/list.js';
+import ConnectionPauseSubcommand from '#src/commands/Main/connection/pause.js';
+import ConnectionUnpauseSubcommand from '#src/commands/Main/connection/unpause.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import db from '#utils/Db.js';
 import { escapeRegexChars } from '#utils/Utils.js';
@@ -31,6 +35,12 @@ export default class ConnectionCommand extends BaseCommand {
       types: { prefix: true, slash: true },
       defaultPermissions: new PermissionsBitField('SendMessages'),
       contexts: { guildOnly: true },
+      subcommands: {
+        edit: new ConnectionEditSubcommand(),
+        pause: new ConnectionPauseSubcommand(),
+        unpause: new ConnectionUnpauseSubcommand(),
+        list: new ConnectionListSubcommand(),
+      },
     });
   }
 
