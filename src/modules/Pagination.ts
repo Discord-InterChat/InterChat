@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2025 InterChat
+ *
+ * InterChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * InterChat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import Context from '#src/core/CommandContext/Context.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import Logger from '#src/utils/Logger.js';
+import { getReplyMethod } from '#utils/Utils.js';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
@@ -15,9 +36,6 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from 'discord.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import Logger from '#main/utils/Logger.js';
-import { getReplyMethod } from '#utils/Utils.js';
 
 type PaginationInteraction = Exclude<RepliableInteraction, ModalSubmitInteraction>;
 
@@ -229,7 +247,7 @@ export class Pagination {
     }
   }
 
-  public async run(ctx: PaginationInteraction | Message, options?: RunOptions) {
+  public async run(ctx: PaginationInteraction | Message | Context, options?: RunOptions) {
     if (this.pages.length < 1) {
       await this.sendReply(
         ctx,
@@ -314,14 +332,14 @@ export class Pagination {
   }
 
   private async sendReply(
-    ctx: PaginationInteraction | Message,
+    ctx: PaginationInteraction | Message | Context,
     opts: BaseMessageOptions,
     interactionOpts?: {
       ephemeral?: boolean;
       flags?: InteractionReplyOptions['flags'];
     },
   ) {
-    if (ctx instanceof Message) return await ctx.reply(opts);
+    if (ctx instanceof Message || ctx instanceof Context) return await ctx.reply(opts);
 
     const replyMethod = getReplyMethod(ctx);
     return await ctx[replyMethod]({

@@ -1,13 +1,30 @@
-import BlacklistManager from '#main/managers/BlacklistManager.js';
-import type HubManager from '#main/managers/HubManager.js';
-import type HubSettingsManager from '#main/managers/HubSettingsManager.js';
+/*
+ * Copyright (C) 2025 InterChat
+ *
+ * InterChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * InterChat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import BlacklistManager from '#src/managers/BlacklistManager.js';
+import type HubManager from '#src/managers/HubManager.js';
+import type HubSettingsManager from '#src/managers/HubSettingsManager.js';
 
 import type { UserData } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import { type Awaitable, EmbedBuilder, type Message } from 'discord.js';
-import NSFWDetector from '#main/modules/NSFWDetection.js';
-import { getEmoji } from '#main/utils/EmojiUtils.js';
-import { sendBlacklistNotif } from '#main/utils/moderation/blacklistUtils.js';
+import NSFWDetector from '#src/modules/NSFWDetection.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { sendBlacklistNotif } from '#src/utils/moderation/blacklistUtils.js';
 import Constants from '#utils/Constants.js';
 import { t } from '#utils/Locale.js';
 import { check as checkProfanity } from '#utils/ProfanityUtils.js';

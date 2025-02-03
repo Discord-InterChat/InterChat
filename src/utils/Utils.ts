@@ -1,6 +1,24 @@
+/*
+ * Copyright (C) 2025 InterChat
+ *
+ * InterChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * InterChat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import { captureException } from '@sentry/node';
 import {
   type CommandInteraction,
+  type ContextMenuCommandInteraction,
   type GuildTextBasedChannel,
   Message,
   type MessageComponentInteraction,
@@ -10,14 +28,22 @@ import {
 } from 'discord.js';
 import startCase from 'lodash/startCase.js';
 import toLower from 'lodash/toLower.js';
-import { ErrorHandlerOptions, createErrorHint, sendErrorResponse } from '#main/utils/ErrorUtils.js';
-import type { RemoveMethods, ThreadParentChannel } from '#types/CustomClientProps.d.ts';
+import {
+  type ErrorHandlerOptions,
+  createErrorHint,
+  sendErrorResponse,
+} from '#src/utils/ErrorUtils.js';
+import type {
+  RemoveMethods,
+  ThreadParentChannel,
+} from '#types/CustomClientProps.d.ts';
 import Constants from '#utils/Constants.js';
 import { ErrorEmbed } from '#utils/EmbedUtils.js';
 import Logger from '#utils/Logger.js';
-import UserDbService from '#main/services/UserDbService.js';
-import { UserData } from '@prisma/client';
-import { supportedLocaleCodes } from '#main/utils/Locale.js';
+import UserDbService from '#src/services/UserDbService.js';
+import type { UserData } from '@prisma/client';
+import type { supportedLocaleCodes } from '#src/utils/Locale.js';
+import type Context from '#src/core/CommandContext/Context.js';
 
 export const resolveEval = <T>(value: T[]) =>
   value?.find((res) => Boolean(res)) as RemoveMethods<T> | undefined;
@@ -42,7 +68,11 @@ export const msToReadable = (milliseconds: number, short = true): string => {
     const value = Math.floor(remainingMs / unit.div);
     if (value > 0) {
       // eslint-disable-next-line no-nested-ternary
-      const suffix = short ? unit.short : value === 1 ? ` ${unit.long}` : ` ${unit.long}s`;
+      const suffix = short
+        ? unit.short
+        : value === 1
+          ? ` ${unit.long}`
+          : ` ${unit.long}s`;
 
       parts.push(`${value}${suffix}`);
       remainingMs %= unit.div;
@@ -53,12 +83,18 @@ export const msToReadable = (milliseconds: number, short = true): string => {
   return parts.join(' ');
 };
 
-export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export const wait = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
-export const yesOrNoEmoji = (option: unknown, yesEmoji: string, noEmoji: string) =>
-  option ? yesEmoji : noEmoji;
+export const yesOrNoEmoji = (
+  option: unknown,
+  yesEmoji: string,
+  noEmoji: string,
+) => (option ? yesEmoji : noEmoji);
 
-export const findExistingWebhook = async (channel: ThreadParentChannel | VoiceBasedChannel) => {
+export const findExistingWebhook = async (
+  channel: ThreadParentChannel | VoiceBasedChannel,
+) => {
   const webhooks = await channel?.fetchWebhooks().catch(() => null);
   return webhooks?.find((w) => w.owner?.id === channel.client.user?.id);
 };
@@ -84,7 +120,9 @@ export const getOrCreateWebhook = async (
   if (!channelOrParent) return null;
 
   const existingWebhook = await findExistingWebhook(channelOrParent);
-  return existingWebhook || (await createWebhook(channelOrParent, avatar, name));
+  return (
+    existingWebhook || (await createWebhook(channelOrParent, avatar, name))
+  );
 };
 
 export const getCredits = () => [
@@ -94,7 +132,10 @@ export const getCredits = () => [
 ];
 
 export const checkIfStaff = (userId: string, onlyCheckForDev = false) => {
-  const staffMembers = [...Constants.DeveloperIds, ...(onlyCheckForDev ? [] : Constants.StaffIds)];
+  const staffMembers = [
+    ...Constants.DeveloperIds,
+    ...(onlyCheckForDev ? [] : Constants.StaffIds),
+  ];
   return staffMembers.includes(userId);
 };
 
@@ -104,7 +145,11 @@ export const replaceLinks = (string: string, replaceText = '`[LINK HIDDEN]`') =>
 export const toTitleCase = (str: string) => startCase(toLower(str));
 
 export const getReplyMethod = (
-  interaction: RepliableInteraction | CommandInteraction | MessageComponentInteraction,
+  interaction:
+		| RepliableInteraction
+		| CommandInteraction
+		| MessageComponentInteraction
+    | Context,
 ) => (interaction.replied || interaction.deferred ? 'followUp' : 'reply');
 
 /**
@@ -112,7 +157,7 @@ export const getReplyMethod = (
     It will send an error message to the user and log the error to the system.
   */
 export const sendErrorEmbed = async (
-  repliable: RepliableInteraction | Message,
+  repliable: RepliableInteraction | Message | ContextMenuCommandInteraction,
   errorCode: string,
   comment?: string,
 ) => {
@@ -133,7 +178,10 @@ export const sendErrorEmbed = async (
   });
 };
 
-export function handleError(error: unknown, options: ErrorHandlerOptions = {}): void {
+export function handleError(
+  error: unknown,
+  options: ErrorHandlerOptions = {},
+): void {
   const { repliable, comment } = options;
 
   // Enhance error message if possible
@@ -156,11 +204,17 @@ export function handleError(error: unknown, options: ErrorHandlerOptions = {}): 
   }
 }
 
-export const isDev = (userId: Snowflake) => Constants.DeveloperIds.includes(userId);
+export const isDev = (userId: Snowflake) =>
+  Constants.DeveloperIds.includes(userId);
 
-export const escapeRegexChars = (input: string, type: 'simple' | 'full' = 'simple'): string =>
+export const escapeRegexChars = (
+  input: string,
+  type: 'simple' | 'full' = 'simple',
+): string =>
   input.replace(
-    type === 'simple' ? Constants.Regex.SimpleRegexEscape : Constants.Regex.RegexChars,
+    type === 'simple'
+      ? Constants.Regex.SimpleRegexEscape
+      : Constants.Regex.RegexChars,
     '\\$&',
   );
 
@@ -199,7 +253,9 @@ export const isHumanMessage = (message: Message) =>
   !message.author.bot && !message.system && !message.webhookId;
 
 export const trimAndCensorBannedWebhookWords = (content: string) =>
-  content.slice(0, 35).replace(Constants.Regex.BannedWebhookWords, '[censored]');
+  content
+    .slice(0, 35)
+    .replace(Constants.Regex.BannedWebhookWords, '[censored]');
 
 export const fetchUserData = async (userId: Snowflake) => {
   const user = await new UserDbService().getUser(userId);
@@ -209,4 +265,19 @@ export const fetchUserData = async (userId: Snowflake) => {
 export const fetchUserLocale = async (user: Snowflake | UserData) => {
   const userData = typeof user === 'string' ? await fetchUserData(user) : user;
   return (userData?.locale ?? 'en') as supportedLocaleCodes;
+};
+
+export const extractChannelId = (input: string | undefined) => {
+  const match = input?.match(Constants.Regex.ChannelId);
+  return match ? match[1] || match[2] || match[3] : null;
+};
+
+export const extractUserId = (input: string | undefined) => {
+  const match = input?.match(Constants.Regex.UserId);
+  return match ? match[1] || match[2] : null;
+};
+
+export const extractRoleId = (input: string | undefined) => {
+  const match = input?.match(Constants.Regex.RoleId);
+  return match ? match[1] || match[2] : null;
 };

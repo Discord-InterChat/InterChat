@@ -1,11 +1,28 @@
+/*
+ * Copyright (C) 2025 InterChat
+ *
+ * InterChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * InterChat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 import type { Message } from 'discord.js';
-import { showRulesScreening } from '#main/interactions/RulesScreening.js';
-import { HubService } from '#main/services/HubService.js';
-import { getConnectionHubId } from '#main/utils/ConnectedListUtils.js';
-import { checkBlockedWords } from '#main/utils/network/blockwordsRunner.js';
-import { runChecks } from '#main/utils/network/runChecks.js';
+import { showRulesScreening } from '#src/interactions/RulesScreening.js';
+import { HubService } from '#src/services/HubService.js';
+import { getConnectionHubId } from '#src/utils/ConnectedListUtils.js';
+import { checkBlockedWords } from '#src/utils/network/blockwordsRunner.js';
+import { runChecks } from '#src/utils/network/runChecks.js';
 import { BroadcastService } from './BroadcastService.js';
-import { fetchUserData } from '#main/utils/Utils.js';
+import { fetchUserData } from '#src/utils/Utils.js';
 
 export class MessageProcessor {
   private readonly broadcastService: BroadcastService;

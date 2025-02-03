@@ -1,14 +1,36 @@
-import { CustomID } from '#main/utils/CustomID.js';
-import Logger from '#main/utils/Logger.js';
-import { sendErrorEmbed } from '#main/utils/Utils.js';
-import { EventHint } from '@sentry/bun';
-import { Interaction, InteractionType, Message } from 'discord.js';
+/*
+ * Copyright (C) 2025 InterChat
+ *
+ * InterChat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * InterChat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+import { CustomID } from '#src/utils/CustomID.js';
+import Logger from '#src/utils/Logger.js';
+import { sendErrorEmbed } from '#src/utils/Utils.js';
+import type { EventHint } from '@sentry/node';
 import {
+  type ContextMenuCommandInteraction,
+  type Interaction,
+  InteractionType,
+  Message,
+} from 'discord.js';
+import type {
   CaptureContext,
   ScopeContext,
 } from 'node_modules/@sentry/core/build/types/types-hoist/scope.js';
 
-type Repliable = Message | Interaction;
+type Repliable = Message | Interaction | ContextMenuCommandInteraction;
 
 export interface ErrorHandlerOptions {
   repliable?: Repliable;
@@ -21,14 +43,14 @@ interface UserInfo {
 }
 
 export type ErrorHint =
-  | (CaptureContext &
-      Partial<{
-        [key in keyof EventHint]: never;
-      }>)
-  | (EventHint &
-      Partial<{
-        [key in keyof ScopeContext]: never;
-      }>);
+	| (CaptureContext &
+			Partial<{
+			  [key in keyof EventHint]: never;
+			}>)
+	| (EventHint &
+			Partial<{
+			  [key in keyof ScopeContext]: never;
+			}>);
 
 function extractUserInfo(repliable: Repliable): UserInfo {
   if (repliable instanceof Message) {
@@ -44,7 +66,9 @@ function extractUserInfo(repliable: Repliable): UserInfo {
   };
 }
 
-function extractCommandInfo(interaction: Interaction): string | undefined {
+function extractCommandInfo(
+  interaction: Interaction | ContextMenuCommandInteraction,
+): string | undefined {
   if (!interaction.isCommand() && !interaction.isAutocomplete()) {
     return undefined;
   }
@@ -58,7 +82,10 @@ function extractCommandInfo(interaction: Interaction): string | undefined {
   return interaction.commandName;
 }
 
-export function createErrorHint(repliable?: Repliable, comment?: string): ErrorHint | undefined {
+export function createErrorHint(
+  repliable?: Repliable,
+  comment?: string,
+): ErrorHint | undefined {
   if (!repliable) {
     return undefined;
   }
