@@ -1,6 +1,7 @@
 import type { Infraction } from '@prisma/client';
 import {
   ApplicationCommandOptionType,
+  type AutocompleteInteraction,
   EmbedBuilder,
   type User,
   time,
@@ -14,6 +15,7 @@ import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import { HubService } from '#src/services/HubService.js';
 import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
+import { showModeratedHubsAutocomplete } from '#src/utils/moderation/blacklistUtils.js';
 
 // Type guard
 const isServerType = (list: Infraction) => list.serverId && list.serverName;
@@ -100,6 +102,10 @@ export default class BlacklistListSubcommand extends BaseCommand {
     }
 
     await paginator.run(ctx);
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    await showModeratedHubsAutocomplete(interaction, this.hubService);
   }
 
   private createFieldData(

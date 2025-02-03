@@ -6,6 +6,7 @@ import { sendToHub } from '#src/utils/hub/utils.js';
 
 import {
   ActionRowBuilder,
+  type AutocompleteInteraction,
   EmbedBuilder,
   ModalBuilder,
   type ModalSubmitInteraction,
@@ -15,9 +16,13 @@ import {
 import { getEmoji } from '#src/utils/EmojiUtils.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import BaseCommand from '#src/core/BaseCommand.js';
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
+import { escapeRegexChars } from '#src/utils/Utils.js';
 
 export default class AnnounceCommand extends BaseCommand {
+  private readonly hubService = new HubService();
+  readonly cooldown = 1 * 60 * 1000;
+
   constructor() {
     super({
       name: 'announce',
@@ -26,7 +31,6 @@ export default class AnnounceCommand extends BaseCommand {
       options: [hubOption],
     });
   }
-  readonly cooldown = 1 * 60 * 1000;
   async execute(ctx: Context) {
     const hubName = ctx.options.getString('hub');
     if (!hubName) {
@@ -37,8 +41,7 @@ export default class AnnounceCommand extends BaseCommand {
       return;
     }
 
-    const hubService = new HubService();
-    const hub = (await hubService.findHubsByName(hubName)).at(0);
+    const hub = (await this.hubService.findHubsByName(hubName)).at(0);
 
     if (!hub || !(await hub.isMod(ctx.user.id))) {
       await ctx.replyEmbed('hub.notFound_mod', {
@@ -64,6 +67,22 @@ export default class AnnounceCommand extends BaseCommand {
       );
 
     await ctx.showModal(modal);
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = escapeRegexChars(interaction.options.getFocused());
+    const hubChoices = await HubCommand.getModeratedHubs(
+      focusedValue,
+      interaction.user.id,
+      this.hubService,
+    );
+
+    await interaction.respond(
+      hubChoices.map((hub) => ({
+        name: hub.data.name,
+        value: hub.data.name,
+      })),
+    );
   }
 
   @RegisterInteractionHandler('hub_announce')

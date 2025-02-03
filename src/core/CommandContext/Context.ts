@@ -126,7 +126,7 @@ export default abstract class Context<T extends classT = classT> {
     T['responseType']
   >;
 
-  getTargetMessageId(name: string | null): string | null {
+  public getTargetMessageId(name: string | null): string | null {
     if (this.interaction instanceof MessageContextMenuCommandInteraction) {
       return this.interaction.targetId;
     }

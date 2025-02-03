@@ -1,5 +1,4 @@
 import type BaseCommand from '#src/core/BaseCommand.js';
-import { loadMetadata } from '#src/core/FileLoader.js';
 import type { InteractionFunction } from '#src/decorators/RegisterInteractionHandler.js';
 import AntiSpamManager from '#src/managers/AntiSpamManager.js';
 import EventLoader from '#src/modules/Loaders/EventLoader.js';
@@ -71,7 +70,7 @@ export default class InterChatClient extends Client {
         messages: {
           interval: 3600,
           filter: Sweepers.filterByLifetime({
-            lifetime: 43200, // 12 hours
+            lifetime: 7200, // 2 hours
             getComparisonTimestamp: (message) => message.createdTimestamp,
           }),
         },
@@ -96,32 +95,24 @@ export default class InterChatClient extends Client {
     // initialize the client
     InterChatClient.instance = this;
 
+    // load commands, interactions and event handlers to memory
+    this.loadResoruces();
+
+    // Discord.js automatically uses DISCORD_TOKEN env variable
+    await this.login();
+  }
+
+  async loadResoruces() {
     // initialize i18n for localization
     loadLocales('locales');
 
     await loadCommands(this.commands);
     Logger.info(`Loaded ${this.commands.size} commands`);
 
-    this.loadInteractions();
-    this.eventLoader.load();
-
-    // Discord.js automatically uses DISCORD_TOKEN env variable
-    await this.login(process.env.DISCORD_TOKEN);
-  }
-
-  async loadInteractions() {
     await loadInteractions(this.interactions);
     Logger.info(`Loaded ${this.interactions.size} interactions`);
 
-    for (const command of this.commands.values()) {
-      if (command.subcommands) {
-        // biome-ignore lint/complexity/noForEach: <explanation>
-        Object.values(command.subcommands).forEach((subcommand) =>
-          loadMetadata(subcommand, this.interactions),
-        );
-      }
-      loadMetadata(command, this.interactions);
-    }
+    this.eventLoader.load();
   }
 
   /**

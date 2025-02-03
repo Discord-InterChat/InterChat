@@ -1,3 +1,4 @@
+import HubCommand from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import type ConnectionManager from '#src/managers/ConnectionManager.js';
@@ -5,9 +6,10 @@ import { Pagination } from '#src/modules/Pagination.js';
 import { HubService } from '#src/services/HubService.js';
 import Constants from '#utils/Constants.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
-import { fetchUserLocale, resolveEval } from '#utils/Utils.js';
+import { escapeRegexChars, fetchUserLocale, resolveEval } from '#utils/Utils.js';
 import {
   ApplicationCommandOptionType,
+  type AutocompleteInteraction,
   type Client,
   EmbedBuilder,
   type Guild,
@@ -211,5 +213,21 @@ export default class HubServersSubcommand extends BaseCommand {
     }
 
     await paginator.run(ctx);
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = escapeRegexChars(interaction.options.getFocused());
+    const hubChoices = await HubCommand.getModeratedHubs(
+      focusedValue,
+      interaction.user.id,
+      this.hubService,
+    );
+
+    await interaction.respond(
+      hubChoices.map((hub) => ({
+        name: hub.data.name,
+        value: hub.data.name,
+      })),
+    );
   }
 }

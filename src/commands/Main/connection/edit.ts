@@ -17,6 +17,7 @@ import {
 import {
   ActionRowBuilder,
   ApplicationCommandOptionType,
+  type AutocompleteInteraction,
   type ChannelSelectMenuInteraction,
   ModalBuilder,
   type ModalSubmitInteraction,
@@ -26,6 +27,7 @@ import {
 } from 'discord.js';
 import { getEmoji } from '#src/utils/EmojiUtils.js';
 import BaseCommand from '#src/core/BaseCommand.js';
+import ConnectionCommand from '#src/commands/Main/connection/index.js';
 
 export default class ConnectionEditSubcommand extends BaseCommand {
   constructor() {
@@ -82,6 +84,10 @@ export default class ConnectionEditSubcommand extends BaseCommand {
       embeds: [embed],
       components: [channelSelect, editSelect],
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    ConnectionCommand.autocomplete(interaction);
   }
 
   @RegisterInteractionHandler('connectionModal')

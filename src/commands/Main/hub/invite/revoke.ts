@@ -1,9 +1,14 @@
+import HubCommand from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
+import { HubService } from '#src/services/HubService.js';
 import db from '#src/utils/Db.js';
-import { ApplicationCommandOptionType } from 'discord.js';
+import { escapeRegexChars } from '#src/utils/Utils.js';
+import { ApplicationCommandOptionType, type AutocompleteInteraction } from 'discord.js';
 
 export default class HubInviteRevokeSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'revoke',
@@ -54,5 +59,20 @@ export default class HubInviteRevokeSubcommand extends BaseCommand {
       },
       flags: ['Ephemeral'],
     });
+  }
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = escapeRegexChars(interaction.options.getFocused());
+    const hubChoices = await HubCommand.getModeratedHubs(
+      focusedValue,
+      interaction.user.id,
+      this.hubService,
+    );
+
+    await interaction.respond(
+      hubChoices.map((hub) => ({
+        name: hub.data.name,
+        value: hub.data.name,
+      })),
+    );
   }
 }

@@ -1,6 +1,6 @@
 import { hubLeaveConfirmButtons } from '#src/interactions/HubLeaveConfirm.js';
-import { EmbedBuilder } from 'discord.js';
-import { fetchUserLocale } from '#src/utils/Utils.js';
+import { type AutocompleteInteraction, EmbedBuilder } from 'discord.js';
+import { escapeRegexChars, fetchUserLocale } from '#src/utils/Utils.js';
 import db from '#utils/Db.js';
 import { t } from '#utils/Locale.js';
 import type Context from '#src/core/CommandContext/Context.js';
@@ -63,5 +63,41 @@ export default class HubLeaveSubcommand extends BaseCommand {
       embeds: [resetConfirmEmbed],
       components: [hubLeaveConfirmButtons(channelId, isChannelConnected.hubId)],
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    if (!interaction.inCachedGuild()) {
+      await interaction.respond([]);
+      return;
+    }
+    const focusedValue = escapeRegexChars(interaction.options.getFocused());
+    const networks = await db.connection.findMany({
+      where: {
+        serverId: interaction.guild.id,
+        channelId: focusedValue
+          ? { contains: focusedValue, mode: 'insensitive' }
+          : undefined,
+      },
+      select: { channelId: true, hub: true },
+      take: 25,
+    });
+
+    const choices = await Promise.all(
+      networks
+        .filter((network) =>
+          network.hub?.name.toLowerCase().includes(focusedValue.toLowerCase()),
+        )
+        .map(async (network) => {
+          const channel = await interaction.guild.channels
+            .fetch(network.channelId)
+            .catch(() => null);
+          return {
+            name: `${network.hub?.name} | #${channel?.name ?? network.channelId}`,
+            value: network.channelId,
+          };
+        }),
+    );
+
+    await interaction.respond(choices);
   }
 }

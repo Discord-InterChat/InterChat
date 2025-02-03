@@ -2,10 +2,15 @@ import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import BlacklistManager from '#src/managers/BlacklistManager.js';
 import { HubService } from '#src/services/HubService.js';
+import db from '#src/utils/Db.js';
 import { logUserUnblacklist } from '#src/utils/hub/logger/ModLogs.js';
 import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
+import { showModeratedHubsAutocomplete } from '#src/utils/moderation/blacklistUtils.js';
 import { fetchUserData } from '#src/utils/Utils.js';
-import { ApplicationCommandOptionType } from 'discord.js';
+import {
+  ApplicationCommandOptionType,
+  type AutocompleteInteraction,
+} from 'discord.js';
 
 export default class UnblacklistUserSubcommand extends BaseCommand {
   private readonly hubService = new HubService();
@@ -67,5 +72,37 @@ export default class UnblacklistUserSubcommand extends BaseCommand {
       },
       edit: true,
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const hubAutocomplete = interaction.options.get('hub');
+    const userAutocomplete = interaction.options.get('user');
+    if (hubAutocomplete?.focused) {
+      await showModeratedHubsAutocomplete(interaction, this.hubService);
+    }
+    else if (userAutocomplete?.focused) {
+      const userValue = interaction.options.getFocused();
+      const activeInfractions = await db.infraction.findMany({
+        where: {
+          type: 'BLACKLIST',
+          status: 'ACTIVE',
+          OR: [
+            { userId: { mode: 'insensitive', contains: userValue } },
+            {
+              user: { username: { mode: 'insensitive', contains: userValue } },
+            },
+          ],
+        },
+        include: { user: true },
+        take: 25,
+      });
+
+      await interaction.respond(
+        activeInfractions.map((user) => ({
+          name: user.user?.username ?? 'Unknown User',
+          value: user.id ?? 'Unknown UserId',
+        })),
+      );
+    }
   }
 }

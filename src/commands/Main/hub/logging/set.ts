@@ -1,4 +1,4 @@
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 // biome-ignore lint/style/useImportType: <explanation>
@@ -16,6 +16,7 @@ import {
   type Channel,
   type Role,
   ApplicationCommandOptionType,
+  type AutocompleteInteraction,
 } from 'discord.js';
 
 interface SetLogOptions {
@@ -37,6 +38,8 @@ const logTypeChoices = [
 ] ;
 
 export default class HubLoggingSetSubcommand extends BaseCommand {
+  private readonly hubService = new HubService(db);
+
   constructor() {
     super({
       name: 'set',
@@ -66,6 +69,7 @@ export default class HubLoggingSetSubcommand extends BaseCommand {
       ],
     });
   }
+
   public async execute(ctx: Context) {
     const hub = await HubLoggingSetSubcommand.getHubForUser(ctx);
     if (!hub) {
@@ -113,6 +117,10 @@ export default class HubLoggingSetSubcommand extends BaseCommand {
       { flags: ['Ephemeral'] },
     );
     return;
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    return await HubCommand.handleManagerCmdAutocomplete(interaction, this.hubService);
   }
 
   static async getHubForUser(ctx: Context): Promise<HubManager | null> {

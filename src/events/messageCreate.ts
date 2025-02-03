@@ -40,7 +40,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
         .catch(() => null);
     }
 
-    await this.handleChatMessage(message).catch((e) => handleError(e, { repliable: message }));
+    await this.handleChatMessage(message).catch(handleError);
   }
 
   private async handlePrefixCommand(message: Message): Promise<void> {

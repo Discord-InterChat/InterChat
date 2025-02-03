@@ -6,7 +6,7 @@ import {
   PermissionsBitField,
 } from 'discord.js';
 
-export default class Connection extends BaseCommand {
+export default class ConnectionCommand extends BaseCommand {
   constructor() {
     super({
       name: 'connection',
@@ -17,7 +17,7 @@ export default class Connection extends BaseCommand {
     });
   }
 
-  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+  static async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const focusedValue = escapeRegexChars(interaction.options.getFocused());
 
     const isInDb = await db.connection.findMany({

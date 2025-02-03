@@ -1,3 +1,4 @@
+import { getBlockWordRules } from '#src/commands/Main/hub/blockwords/create.js';
 import { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
@@ -6,6 +7,7 @@ import {
   runHubPermissionChecksAndReply,
 } from '#src/utils/hub/utils.js';
 import { buildBlockWordListEmbed } from '#src/utils/moderation/blockWords.js';
+import type { AutocompleteInteraction } from 'discord.js';
 
 export default class ListBlockWords extends BaseCommand {
   constructor() {
@@ -36,5 +38,13 @@ export default class ListBlockWords extends BaseCommand {
 
     const embed = buildBlockWordListEmbed(blockWords, ctx.client);
     await ctx.reply({ embeds: [embed] });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const subcommand = interaction.options.getSubcommand();
+    if (subcommand !== 'edit') return;
+
+    const choices = await getBlockWordRules(interaction);
+    await interaction.respond(choices ?? []);
   }
 }

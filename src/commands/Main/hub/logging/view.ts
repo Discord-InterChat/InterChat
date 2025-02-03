@@ -1,9 +1,13 @@
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import HubLoggingSetSubcommand from './set.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
+import type { AutocompleteInteraction } from 'discord.js';
+import { HubService } from '#src/services/HubService.js';
 
 export default class LoggingViewSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'view',
@@ -19,5 +23,9 @@ export default class LoggingViewSubcommand extends BaseCommand {
     const hubLogManager = await hub.fetchLogConfig();
     const embed = hubLogManager.getEmbed(ctx.client);
     await ctx.reply({ embeds: [embed] });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    return await HubCommand.handleManagerCmdAutocomplete(interaction, this.hubService);
   }
 }

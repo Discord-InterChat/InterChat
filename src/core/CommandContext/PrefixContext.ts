@@ -192,7 +192,7 @@ export default class PrefixContext extends Context<{
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public async deferReply(_opts?: { flags?: string[] }) {
-    // TODO: Mayeb for ephemeral messages we can use the flags property to DM user instead
+    // TODO: Maybe for ephemeral messages we can use the flags property to DM user instead
     this._deferred = true;
     this.lastReply = await this.interaction.reply('Processing...');
     return this.lastReply;

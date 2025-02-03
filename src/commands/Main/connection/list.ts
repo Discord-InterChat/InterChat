@@ -1,5 +1,5 @@
 import type { Connection, Hub } from '@prisma/client';
-import { EmbedBuilder, type EmbedField } from 'discord.js';
+import { type AutocompleteInteraction, EmbedBuilder, type EmbedField } from 'discord.js';
 import { Pagination } from '#src/modules/Pagination.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
@@ -7,6 +7,7 @@ import { t } from '#utils/Locale.js';
 import { fetchUserLocale } from '#src/utils/Utils.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import BaseCommand from '#src/core/BaseCommand.js';
+import ConnectionCommand from '#src/commands/Main/connection/index.js';
 
 export default class ConnectionListSubcommand extends BaseCommand {
   constructor() {
@@ -53,6 +54,10 @@ export default class ConnectionListSubcommand extends BaseCommand {
     const pages = this.createPaginatedEmbeds(connections, description, emojis);
 
     new Pagination(ctx.client).addPages(pages).run(ctx);
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    ConnectionCommand.autocomplete(interaction);
   }
 
   private createPaginatedEmbeds(

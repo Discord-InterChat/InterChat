@@ -1,5 +1,9 @@
 import { stripIndents } from 'common-tags';
-import { ApplicationCommandOptionType, EmbedBuilder } from 'discord.js';
+import {
+  ApplicationCommandOptionType,
+  type AutocompleteInteraction,
+  EmbedBuilder,
+} from 'discord.js';
 import { HubService } from '#src/services/HubService.js';
 import { fetchUserData } from '#src/utils/Utils.js';
 import Constants from '#utils/Constants.js';
@@ -19,18 +23,21 @@ export default class FindUserSubcommand extends BaseCommand {
         {
           type: ApplicationCommandOptionType.String,
           name: 'user',
-          description: 'The username (if they\'ve used the bot within 24h) or user ID',
+          description:
+						'The username (if they\'ve used the bot within 24h) or user ID',
           required: true,
           autocomplete: true,
         },
         {
           type: ApplicationCommandOptionType.Boolean,
           name: 'hidden',
-          description: 'The response will be hidden for others. (Default: True)',
+          description:
+						'The response will be hidden for others. (Default: True)',
         },
       ],
     });
   }
+
   async execute(ctx: Context): Promise<void> {
     const hideResponse = ctx.options.getBoolean('hidden') ?? true;
     const userId = ctx.options.getString('user', true);
@@ -50,18 +57,21 @@ export default class FindUserSubcommand extends BaseCommand {
     });
 
     const blacklistedFromStr =
-      blacklistList && blacklistList.length > 0
-        ? blacklistList.map((bl) => bl.hub.name).join(', ')
-        : 'None';
+			blacklistList && blacklistList.length > 0
+			  ? blacklistList.map((bl) => bl.hub.name).join(', ')
+			  : 'None';
 
     const serversOwned = user.client.guilds.cache
       .filter((guild) => guild.ownerId === user.id)
       .map((guild) => guild.name);
 
     const ownedHubs = await new HubService().getOwnedHubs(user.id);
-    const numServersOwned = serversOwned.length > 0 ? serversOwned.join(', ') : 'None';
+    const numServersOwned =
+			serversOwned.length > 0 ? serversOwned.join(', ') : 'None';
     const numHubOwned =
-      ownedHubs.length > 0 ? ownedHubs.map((hub) => hub.data.name).join(', ') : 'None';
+			ownedHubs.length > 0
+			  ? ownedHubs.map((hub) => hub.data.name).join(', ')
+			  : 'None';
 
     const embed = new EmbedBuilder()
       .setAuthor({ name: user.username, iconURL: user.avatarURL()?.toString() })
@@ -94,5 +104,20 @@ export default class FindUserSubcommand extends BaseCommand {
       embeds: [embed],
       ephemeral: hideResponse,
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    const users = interaction.client.users.cache;
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    const filtered = users
+      .filter(
+        (choice) =>
+          choice.username.toLowerCase().includes(focusedValue) ||
+					choice.id.toLowerCase().includes(focusedValue),
+      )
+      .map((user) => ({ name: user.username, value: user.id }))
+      .slice(0, 25);
+
+    await interaction.respond(filtered);
   }
 }

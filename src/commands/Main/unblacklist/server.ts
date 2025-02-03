@@ -4,7 +4,8 @@ import BlacklistManager from '#src/managers/BlacklistManager.js';
 import { HubService } from '#src/services/HubService.js';
 import { logUserUnblacklist } from '#src/utils/hub/logger/ModLogs.js';
 import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
-import { ApplicationCommandOptionType } from 'discord.js';
+import { showModeratedHubsAutocomplete } from '#src/utils/moderation/blacklistUtils.js';
+import { ApplicationCommandOptionType, type AutocompleteInteraction } from 'discord.js';
 
 export default class UnblacklistserverSubcommand extends BaseCommand {
   private readonly hubService = new HubService();
@@ -24,7 +25,7 @@ export default class UnblacklistserverSubcommand extends BaseCommand {
         },
         {
           name: 'server',
-          description: 'The server to unblacklist',
+          description: 'The ID server to unblacklist',
           type: ApplicationCommandOptionType.String,
           required: true,
         },
@@ -63,5 +64,9 @@ export default class UnblacklistserverSubcommand extends BaseCommand {
         name: (await ctx.client.fetchGuild(serverId))?.name ?? 'Unknown User',
       },
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    await showModeratedHubsAutocomplete(interaction, this.hubService);
   }
 }

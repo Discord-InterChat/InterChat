@@ -26,9 +26,9 @@ import {
   time,
 } from 'discord.js';
 
-const HUBS_PER_PAGE = 4;
 
 export default class BrowseCommand extends BaseCommand {
+  private readonly HUBS_PER_PAGE = 4;
   constructor() {
     super({
       name: 'browse',
@@ -153,8 +153,8 @@ export default class BrowseCommand extends BaseCommand {
       connectionsByHub.set(hub.id, connections);
     }
 
-    for (let i = 0; i < hubs.length; i += HUBS_PER_PAGE) {
-      const pageHubs = hubs.slice(i, i + HUBS_PER_PAGE);
+    for (let i = 0; i < hubs.length; i += this.HUBS_PER_PAGE) {
+      const pageHubs = hubs.slice(i, i + this.HUBS_PER_PAGE);
       const page = this.buildHubsPage(
         client,
         guildId,
@@ -233,7 +233,8 @@ export default class BrowseCommand extends BaseCommand {
 
     return {
       name: `${hub.name}`,
-      value: stripIndents`${getEmoji('person_icon', client)} ${connections.length}
+      value:
+				stripIndents`${getEmoji('person_icon', client)} ${connections.length}
               ${getEmoji('chat_icon', client)} ${time(lastActiveConnection?.data.lastActive ?? new Date(), 'R')}
 
               ${hub.description}`.slice(0, 300),

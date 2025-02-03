@@ -5,6 +5,7 @@ import type { Hub } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   ActionRowBuilder,
+  type AutocompleteInteraction,
   type Client,
   EmbedBuilder,
   type MessageComponentInteraction,
@@ -29,7 +30,7 @@ import { CustomID } from '#utils/CustomID.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import { sendToHub } from '#utils/hub/utils.js';
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 
 const HUB_EDIT_IDENTIFIER = 'hubEdit';
 const HUB_EDIT_MODAL_IDENTIFIER = 'hubEditModal';
@@ -68,6 +69,10 @@ export default class HubEditSubcommand extends BaseCommand {
     const actionRow = this.buildActionsSelectMenu(ctx.user.id, hub.id, locale);
 
     await ctx.reply({ embeds: [embed], components: [actionRow] });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    return await HubCommand.handleManagerCmdAutocomplete(interaction, this.hubService);
   }
 
   private buildActionsSelectMenu(

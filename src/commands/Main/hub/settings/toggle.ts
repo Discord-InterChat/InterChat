@@ -1,4 +1,4 @@
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
@@ -18,10 +18,13 @@ import {
   ApplicationCommandOptionType,
   ButtonBuilder,
   ButtonStyle,
+  type AutocompleteInteraction,
   type ButtonInteraction,
 } from 'discord.js';
 
 export default class SettingsToggleSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'toggle',
@@ -38,11 +41,11 @@ export default class SettingsToggleSubcommand extends BaseCommand {
             value: s,
           })),
         },
-        { ...hubOption },
+        hubOption,
       ],
     });
   }
-  private readonly hubService = new HubService();
+
   async execute(ctx: Context) {
     const hubName = ctx.options.getString('hub');
     const hub = hubName
@@ -79,6 +82,10 @@ export default class SettingsToggleSubcommand extends BaseCommand {
       `Setting \`${settingStr}\` is now **${value ? `${ctx.getEmoji('enabled')} enabled` : `${ctx.getEmoji('disabled')} disabled`}**.`,
       { flags: ['Ephemeral'], components: [viewSettingsButton] },
     );
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    return await HubCommand.handleManagerCmdAutocomplete(interaction, this.hubService);
   }
 
   @RegisterInteractionHandler('hubSettings')

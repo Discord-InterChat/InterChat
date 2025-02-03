@@ -5,21 +5,24 @@ import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import { getEmoji } from '#src/utils/EmojiUtils.js';
 import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
-import { fetchUserLocale } from '#src/utils/Utils.js';
+import { escapeRegexChars, fetchUserLocale } from '#src/utils/Utils.js';
 import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { t } from '#utils/Locale.js';
 import {
   ActionRowBuilder,
+  type AutocompleteInteraction,
   ButtonBuilder,
   type ButtonInteraction,
   ButtonStyle,
   EmbedBuilder,
 } from 'discord.js';
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 
 export default class HubDeleteSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'delete',
@@ -28,7 +31,6 @@ export default class HubDeleteSubcommand extends BaseCommand {
       options: [hubOption],
     });
   }
-  private readonly hubService = new HubService();
 
   async execute(ctx: Context): Promise<void> {
     const hubName = ctx.options.getString('hub', true);
@@ -72,6 +74,19 @@ export default class HubDeleteSubcommand extends BaseCommand {
       embeds: [confirmEmbed],
       components: [confirmButtons],
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = escapeRegexChars(interaction.options.getFocused());
+    const hubChoices = await HubCommand.getOwnedHubs(
+      focusedValue,
+      interaction.user.id,
+      this.hubService,
+    );
+
+    await interaction.respond(
+      hubChoices.map((hub) => ({ name: hub.data.name, value: hub.data.name })),
+    );
   }
 
   @RegisterInteractionHandler('hub_delete')

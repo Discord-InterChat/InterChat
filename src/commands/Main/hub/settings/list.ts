@@ -1,10 +1,13 @@
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import { HubService } from '#src/services/HubService.js';
 import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
+import type { AutocompleteInteraction } from 'discord.js';
 
 export default class HubSettingsListSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'list',
@@ -13,7 +16,7 @@ export default class HubSettingsListSubcommand extends BaseCommand {
       options: [hubOption],
     });
   }
-  private readonly hubService = new HubService();
+
   async execute(ctx: Context) {
     const hubName = ctx.options.getString('hub');
     const hub = hubName
@@ -30,5 +33,9 @@ export default class HubSettingsListSubcommand extends BaseCommand {
     await ctx.reply({
       embeds: [hub.settings.getEmbed(ctx.client)],
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    return await HubCommand.handleManagerCmdAutocomplete(interaction, this.hubService);
   }
 }

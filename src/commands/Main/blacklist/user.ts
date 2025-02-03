@@ -3,9 +3,9 @@ import type Context from '#src/core/CommandContext/Context.js';
 import BlacklistManager from '#src/managers/BlacklistManager.js';
 import { HubService } from '#src/services/HubService.js';
 import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
-import { sendBlacklistNotif } from '#src/utils/moderation/blacklistUtils.js';
+import { sendBlacklistNotif, showModeratedHubsAutocomplete } from '#src/utils/moderation/blacklistUtils.js';
 import { fetchUserData } from '#src/utils/Utils.js';
-import { ApplicationCommandOptionType } from 'discord.js';
+import { ApplicationCommandOptionType, type AutocompleteInteraction } from 'discord.js';
 import ms from 'ms';
 
 export default class BlacklistUserSubcommand extends BaseCommand {
@@ -19,7 +19,7 @@ export default class BlacklistUserSubcommand extends BaseCommand {
       options: [
         {
           name: 'user',
-          description: 'The user to blacklist',
+          description: 'The ID of the user to blacklist (get id using /messageinfo command)',
           type: ApplicationCommandOptionType.User,
           required: true,
         },
@@ -117,5 +117,9 @@ export default class BlacklistUserSubcommand extends BaseCommand {
     await ctx.replyEmbed('blacklist.success', {
       t: { emoji: ctx.getEmoji('tick_icon'), name: user.username },
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    await showModeratedHubsAutocomplete(interaction, this.hubService);
   }
 }

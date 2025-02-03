@@ -1,3 +1,4 @@
+import { getBlockWordRules } from '#src/commands/Main/hub/blockwords/create.js';
 import { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
@@ -18,6 +19,7 @@ import {
 import type { BlockWordAction } from '@prisma/client';
 import {
   ApplicationCommandOptionType,
+  type AutocompleteInteraction,
   type ButtonInteraction,
   type StringSelectMenuInteraction,
 } from 'discord.js';
@@ -63,6 +65,14 @@ export default class EditBlockWords extends BaseCommand {
     const embed = buildBWRuleEmbed(rule, ctx.client);
     const buttons = buildBlockedWordsBtns(hub.id, rule.id);
     await ctx.reply({ embeds: [embed], components: [buttons] });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const subcommand = interaction.options.getSubcommand();
+    if (subcommand !== 'edit') return;
+
+    const choices = await getBlockWordRules(interaction);
+    await interaction.respond(choices ?? []);
   }
 
   @RegisterInteractionHandler('blockwordsButton', 'editWords')

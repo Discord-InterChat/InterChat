@@ -15,7 +15,24 @@ import {
   buildBWRuleEmbed,
   sanitizeWords,
 } from '#src/utils/moderation/blockWords.js';
-import { ButtonBuilder, type ModalSubmitInteraction } from 'discord.js';
+import { type AutocompleteInteraction, ButtonBuilder, type ModalSubmitInteraction } from 'discord.js';
+
+export async function getBlockWordRules(interaction: AutocompleteInteraction) {
+  const focused = interaction.options.getFocused(true);
+  const hubName = interaction.options.getString('hub');
+
+  if (focused.name === 'rule') {
+    if (!hubName) return [{ name: 'Please select a hub first.', value: '' }];
+
+    const rules = await db.blockWord.findMany({
+      where: { hub: { name: hubName } },
+      select: { id: true, name: true },
+    });
+
+    return rules.map((rule) => ({ name: rule.name, value: rule.name }));
+  }
+  return null;
+}
 
 export default class HubBlockwordsCreateSubcommand extends BaseCommand {
   constructor() {
@@ -26,6 +43,7 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
       options: [hubOption],
     });
   }
+
   public async execute(ctx: Context) {
     const hubName = ctx.options.getString('hub') ?? undefined;
 
@@ -40,6 +58,14 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
 
     const modal = buildBlockWordModal(hub.id);
     await ctx.showModal(modal);
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const subcommand = interaction.options.getSubcommand();
+    if (subcommand !== 'edit') return;
+
+    const choices = await getBlockWordRules(interaction);
+    await interaction.respond(choices ?? []);
   }
 
   @RegisterInteractionHandler('blockwordsModal')

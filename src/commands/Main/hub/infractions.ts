@@ -1,4 +1,4 @@
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import type HubManager from '#src/managers/HubManager.js';
@@ -15,6 +15,7 @@ import type { Infraction, UserData } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
   ApplicationCommandOptionType,
+  type AutocompleteInteraction,
   type BaseMessageOptions,
   type Client,
   Collection,
@@ -57,7 +58,6 @@ export default class HubInfractionsSubcommand extends BaseCommand {
           required: false,
         },
       ],
-
     });
   }
   private readonly hubService = new HubService();
@@ -80,9 +80,23 @@ export default class HubInfractionsSubcommand extends BaseCommand {
     await this.showTargetInfractions(ctx, hub, type, targetId);
   }
 
-  private async validateAndGetHub(
-    ctx: Context,
-  ): Promise<HubManager | null> {
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focused = interaction.options.getFocused(true);
+    let choices: { name: string; value: string }[] = [];
+    if (focused.name === 'hub') {
+      choices = (
+        await HubCommand.getModeratedHubs(
+          focused.value,
+          interaction.user.id,
+          this.hubService,
+        )
+      ).map((hub) => ({ name: hub.data.name, value: hub.data.name }));
+    }
+
+    await interaction.respond(choices);
+  }
+
+  private async validateAndGetHub(ctx: Context): Promise<HubManager | null> {
     const hubName = ctx.options.getString('hub', true);
     const hub = (await this.hubService.fetchModeratedHubs(ctx.user.id)).find(
       (h) => h.data.name === hubName,
@@ -116,9 +130,9 @@ export default class HubInfractionsSubcommand extends BaseCommand {
 
     // Update target name if it's a server infraction
     const finalTargetName =
-      infractionManager.targetType === 'user'
-        ? targetInfo.name
-        : (infractions.at(0)?.serverName ?? 'Unknown Server');
+			infractionManager.targetType === 'user'
+			  ? targetInfo.name
+			  : (infractions.at(0)?.serverName ?? 'Unknown Server');
 
     const embeds = await buildInfractionListEmbeds(
       ctx.client,
@@ -156,11 +170,17 @@ export default class HubInfractionsSubcommand extends BaseCommand {
     type: InfractionType,
   ) {
     const Infractions = await this.getInfractions(hub.id);
-    const embeds = await this.buildAllInfractionsEmbed(interaction.client, Infractions, type);
+    const embeds = await this.buildAllInfractionsEmbed(
+      interaction.client,
+      Infractions,
+      type,
+    );
     await this.displayPagination(interaction, embeds);
   }
 
-  private async getInfractions(hubId: string): Promise<Collection<string, GroupedInfraction>> {
+  private async getInfractions(
+    hubId: string,
+  ): Promise<Collection<string, GroupedInfraction>> {
     // Fetch all infractions in a single query with included relations
     const infractions = await db.infraction.findMany({
       where: { hubId },
@@ -220,7 +240,13 @@ export default class HubInfractionsSubcommand extends BaseCommand {
       currentFields.push(field);
       counter++;
 
-      if (this.shouldCreateNewPage(counter, currentFields.length, Infractions.size)) {
+      if (
+        this.shouldCreateNewPage(
+          counter,
+          currentFields.length,
+          Infractions.size,
+        )
+      ) {
         pages.push(this.createPageEmbed(currentFields));
         currentFields = [];
         counter = 0;
@@ -230,7 +256,11 @@ export default class HubInfractionsSubcommand extends BaseCommand {
     return pages;
   }
 
-  private async batchFetchTargets(client: Client, targetIds: string[], type: InfractionType) {
+  private async batchFetchTargets(
+    client: Client,
+    targetIds: string[],
+    type: InfractionType,
+  ) {
     const targets = new Collection<string, User | RemoveMethods<Guild>>();
 
     if (type === 'user') {
@@ -283,7 +313,10 @@ export default class HubInfractionsSubcommand extends BaseCommand {
     return infraction.userId ?? infraction.serverId ?? '';
   }
 
-  private async createInfractionField(client: Client, infraction: GroupedInfraction) {
+  private async createInfractionField(
+    client: Client,
+    infraction: GroupedInfraction,
+  ) {
     const moderator = await this.fetchModerator(client, infraction.moderatorId);
     const expiresAt = this.formatExpirationTime(infraction.expiresAt);
     const targetInfo = await this.getTargetFieldInfo(client, infraction);
@@ -307,7 +340,10 @@ export default class HubInfractionsSubcommand extends BaseCommand {
       : `Expired at ${expiresAt.toLocaleDateString()}`;
   }
 
-  private async getTargetFieldInfo(client: Client, infraction: GroupedInfraction) {
+  private async getTargetFieldInfo(
+    client: Client,
+    infraction: GroupedInfraction,
+  ) {
     const targetId = this.getTargetId(infraction);
 
     if (infraction.userId) {
@@ -340,8 +376,15 @@ export default class HubInfractionsSubcommand extends BaseCommand {
     `;
   }
 
-  private shouldCreateNewPage(counter: number, fieldsLength: number, totalSize: number): boolean {
-    return counter >= HubInfractionsSubcommand.INFRACTIONS_PER_PAGE || fieldsLength === totalSize;
+  private shouldCreateNewPage(
+    counter: number,
+    fieldsLength: number,
+    totalSize: number,
+  ): boolean {
+    return (
+      counter >= HubInfractionsSubcommand.INFRACTIONS_PER_PAGE ||
+			fieldsLength === totalSize
+    );
   }
 
   private createPageEmbed(fields: { name: string; value: string }[]) {

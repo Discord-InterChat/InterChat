@@ -1,14 +1,15 @@
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import { HubService } from '#src/services/HubService.js';
 import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
 import { t } from '#src/utils/Locale.js';
 import { Role } from '@prisma/client';
-import { EmbedBuilder } from 'discord.js';
+import { EmbedBuilder, type AutocompleteInteraction } from 'discord.js';
 
 export default class HubModeratorListSubcommand extends BaseCommand {
   private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'list',
@@ -17,6 +18,7 @@ export default class HubModeratorListSubcommand extends BaseCommand {
       options: [hubOption],
     });
   }
+
   public async execute(ctx: Context) {
     const hubName = ctx.options.getString('hub', true);
     const hub = hubName
@@ -56,5 +58,9 @@ export default class HubModeratorListSubcommand extends BaseCommand {
       ],
       flags: ['Ephemeral'],
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    return await HubCommand.handleManagerCmdAutocomplete(interaction, this.hubService);
   }
 }

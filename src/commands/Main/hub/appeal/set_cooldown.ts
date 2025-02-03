@@ -5,14 +5,20 @@ import { fetchUserLocale } from '#src/utils/Utils.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import { HubService } from '#src/services/HubService.js';
-import { ApplicationCommandOptionType } from 'discord.js';
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import {
+  ApplicationCommandOptionType,
+  type AutocompleteInteraction,
+} from 'discord.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 
 export default class AppealCooldownCommand extends BaseCommand {
+  private hubService = new HubService();
+
   constructor() {
     super({
       name: 'set_cooldown',
-      description:'⌛ Set the duration a user must wait before appealing a blacklist again.',
+      description:
+				'⌛ Set the duration a user must wait before appealing a blacklist again.',
       types: { slash: true, prefix: true },
       options: [
         {
@@ -23,10 +29,8 @@ export default class AppealCooldownCommand extends BaseCommand {
         },
         { ...hubOption },
       ],
-
     });
   }
-  private hubService = new HubService();
   public async execute(ctx: Context) {
     const hubName = ctx.options.getString('hub', true);
 
@@ -73,5 +77,9 @@ export default class AppealCooldownCommand extends BaseCommand {
       content: `${ctx.getEmoji('clock_icon')} Appeal cooldown has been set to **${appealCooldownHours}** hour(s).`,
       flags: ['Ephemeral'],
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    return await HubCommand.handleManagerCmdAutocomplete(interaction, this.hubService);
   }
 }

@@ -1,5 +1,5 @@
 import { stripIndents } from 'common-tags';
-import { ApplicationCommandOptionType, EmbedBuilder, GuildPremiumTier } from 'discord.js';
+import { ApplicationCommandOptionType, type AutocompleteInteraction, EmbedBuilder, GuildPremiumTier } from 'discord.js';
 import Constants from '#utils/Constants.js';
 import db from '#utils/Db.js';
 import { toTitleCase } from '#utils/Utils.js';
@@ -101,5 +101,23 @@ export default class Server extends BaseCommand {
       content: guild?.id,
       embeds: [embed],
     });
+  }
+  async autocomplete(interaction: AutocompleteInteraction) {
+    const guilds = interaction.client.guilds.cache;
+    const focusedValue = interaction.options.getFocused().toLowerCase();
+    const choices = guilds.map((guild) => ({
+      name: guild.name,
+      value: guild.id,
+    }));
+
+    const filtered = choices
+      .filter(
+        (choice) =>
+          choice.name.toLowerCase().includes(focusedValue) ||
+                choice.value.toLowerCase().includes(focusedValue),
+      )
+      .slice(0, 25);
+
+    await interaction.respond(filtered);
   }
 }

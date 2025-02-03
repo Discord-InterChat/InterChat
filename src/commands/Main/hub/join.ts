@@ -1,10 +1,14 @@
 import type Context from '#src/core/CommandContext/Context.js';
 import { HubJoinService } from '#src/services/HubJoinService.js';
-import { ApplicationCommandOptionType, ChannelType, type GuildTextBasedChannel } from 'discord.js';
+import { ApplicationCommandOptionType, type AutocompleteInteraction, ChannelType, type GuildTextBasedChannel } from 'discord.js';
 import BaseCommand from '#src/core/BaseCommand.js';
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
+import { escapeRegexChars } from '#src/utils/Utils.js';
+import { HubService } from '#src/services/HubService.js';
 
 export default class HubJoinSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'join',
@@ -50,5 +54,16 @@ export default class HubJoinSubcommand extends BaseCommand {
 
     if (hubInviteOrName) await hubJoinService.joinHub(channel, hubInviteOrName);
     else await hubJoinService.joinRandomHub(channel);
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
+    const focusedValue = escapeRegexChars(interaction.options.getFocused());
+    const hubChoices = await HubCommand.getPublicHubs(
+      focusedValue,
+      this.hubService,
+    );
+    await interaction.respond(
+      hubChoices.map((hub) => ({ name: hub.data.name, value: hub.data.name })),
+    );
   }
 }

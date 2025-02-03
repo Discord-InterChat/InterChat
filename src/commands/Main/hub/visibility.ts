@@ -3,11 +3,11 @@ import { InfoEmbed } from '#src/utils/EmbedUtils.js';
 import { wait } from '#src/utils/Utils.js';
 
 import { stripIndents } from 'common-tags';
-import { ApplicationCommandOptionType, time } from 'discord.js';
+import { ApplicationCommandOptionType, time, type AutocompleteInteraction } from 'discord.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import { HubService } from '#src/services/HubService.js';
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 
 export default class HubVisibilitySubcommnd extends BaseCommand {
   constructor() {
@@ -69,6 +69,10 @@ export default class HubVisibilitySubcommnd extends BaseCommand {
         visibility: hub.data.private ? 'private' : 'public',
       },
     });
+  }
+
+  async autocomplete(interaction: AutocompleteInteraction) {
+    return await HubCommand.handleManagerCmdAutocomplete(interaction, this.hubService);
   }
 
   private async runPublicRequirementChecks(ctx: Context, hub: HubManager) {
