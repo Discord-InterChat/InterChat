@@ -19,7 +19,7 @@ import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import { HubService } from '#src/services/HubService.js';
-import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
+import { executeHubRoleChecksAndReply } from '#src/utils/hub/utils.js';
 import { t } from '#src/utils/Locale.js';
 import { Role } from '@prisma/client';
 import { EmbedBuilder, type AutocompleteInteraction } from 'discord.js';
@@ -43,7 +43,7 @@ export default class HubModeratorListSubcommand extends BaseCommand {
       : undefined;
     if (
       !hub ||
-			!(await runHubPermissionChecksAndReply(hub, ctx, {
+			!(await executeHubRoleChecksAndReply(hub, ctx, {
 			  checkIfManager: true,
 			}))
     ) return;

@@ -27,7 +27,7 @@ import {
 import { HubService } from '#src/services/HubService.js';
 import { CustomID } from '#src/utils/CustomID.js';
 import { ErrorEmbed } from '#src/utils/EmbedUtils.js';
-import { runHubPermissionChecksAndReply } from '#src/utils/hub/utils.js';
+import { executeHubRoleChecksAndReply } from '#src/utils/hub/utils.js';
 import { t } from '#src/utils/Locale.js';
 import { fetchUserLocale } from '#src/utils/Utils.js';
 import {
@@ -71,7 +71,7 @@ export default class SettingsToggleSubcommand extends BaseCommand {
 
     if (
       !hub ||
-			!(await runHubPermissionChecksAndReply(hub, ctx, {
+			!(await executeHubRoleChecksAndReply(hub, ctx, {
 			  checkIfManager: true,
 			}))
     ) return;

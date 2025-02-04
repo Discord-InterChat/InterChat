@@ -24,7 +24,7 @@ import db from '#src/utils/Db.js';
 import { getEmoji } from '#src/utils/EmojiUtils.js';
 import {
   fetchHub,
-  runHubPermissionChecksAndReply,
+  executeHubRoleChecksAndReply,
 } from '#src/utils/hub/utils.js';
 import {
   buildBlockedWordsBtns,
@@ -71,7 +71,7 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
     const hub = await fetchHub({ name: hubName });
     if (
       !hub ||
-			!(await runHubPermissionChecksAndReply(hub, ctx, {
+			!(await executeHubRoleChecksAndReply(hub, ctx, {
 			  checkIfManager: true,
 			}))
     ) return;

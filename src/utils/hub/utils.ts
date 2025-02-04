@@ -105,7 +105,7 @@ interface ValidationCheck {
 		| 'hub.notOwner';
 }
 
-export const runHubPermissionChecksAndReply = async (
+export const executeHubRoleChecksAndReply = async (
   hub: HubManager,
   context: Context | RepliableInteraction,
   options: {
@@ -127,7 +127,7 @@ export const runHubPermissionChecksAndReply = async (
       errorMessageKey: 'hub.notModerator',
     },
     {
-      condition: Boolean(options.checkIfMod),
+      condition: Boolean(options.checkIfOwner),
       validator: () => hub.isOwner(context.user.id),
       errorMessageKey: 'hub.notOwner',
     },

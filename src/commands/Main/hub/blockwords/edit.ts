@@ -24,7 +24,7 @@ import { CustomID } from '#src/utils/CustomID.js';
 import db from '#src/utils/Db.js';
 import {
   fetchHub,
-  runHubPermissionChecksAndReply,
+  executeHubRoleChecksAndReply,
 } from '#src/utils/hub/utils.js';
 import {
   ACTION_LABELS,
@@ -64,7 +64,7 @@ export default class EditBlockWords extends BaseCommand {
     const hub = await fetchHub({ name: hubName ?? undefined });
     if (
       !hub ||
-			!(await runHubPermissionChecksAndReply(hub, ctx, {
+			!(await executeHubRoleChecksAndReply(hub, ctx, {
 			  checkIfManager: true,
 			}))
     ) return;
@@ -100,7 +100,7 @@ export default class EditBlockWords extends BaseCommand {
 
     if (
       !hub ||
-			!(await runHubPermissionChecksAndReply(hub, interaction, {
+			!(await executeHubRoleChecksAndReply(hub, interaction, {
 			  checkIfManager: true,
 			}))
     ) return;
@@ -128,7 +128,7 @@ export default class EditBlockWords extends BaseCommand {
     const hub = await fetchHub({ id: hubId });
     if (
       !hub ||
-			!(await runHubPermissionChecksAndReply(hub, interaction, {
+			!(await executeHubRoleChecksAndReply(hub, interaction, {
 			  checkIfManager: true,
 			}))
     ) return;

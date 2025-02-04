@@ -42,7 +42,7 @@ import HubSettingsToggleSubcommand from '#src/commands/Main/hub/settings/toggle.
 import HubVisibilitySubcommnd from '#src/commands/Main/hub/visibility.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import HubManager from '#src/managers/HubManager.js';
-import { HubService } from '#src/services/HubService.js';
+import type { HubService } from '#src/services/HubService.js';
 import db from '#utils/Db.js';
 import { escapeRegexChars } from '#utils/Utils.js';
 import {
@@ -106,8 +106,6 @@ export default class HubCommand extends BaseCommand {
       },
     });
   }
-
-  private readonly hubService = new HubService();
 
   static async handleManagerCmdAutocomplete(
     interaction: AutocompleteInteraction,

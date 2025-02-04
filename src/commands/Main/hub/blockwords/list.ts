@@ -21,7 +21,7 @@ import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import {
   fetchHub,
-  runHubPermissionChecksAndReply,
+  executeHubRoleChecksAndReply,
 } from '#src/utils/hub/utils.js';
 import { buildBlockWordListEmbed } from '#src/utils/moderation/blockWords.js';
 import type { AutocompleteInteraction } from 'discord.js';
@@ -40,7 +40,7 @@ export default class ListBlockWords extends BaseCommand {
     const hub = await fetchHub({ name: hubName });
     if (
       !hub ||
-			!(await runHubPermissionChecksAndReply(hub, ctx, {
+			!(await executeHubRoleChecksAndReply(hub, ctx, {
 			  checkIfManager: true,
 			}))
     ) return;

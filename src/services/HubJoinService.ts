@@ -79,12 +79,9 @@ export class HubJoinService {
     hubInviteOrName: string | undefined,
   ) {
     if (!this.interaction.deferred) {
-      if ('type' in this.interaction) {
-        await this.interaction.deferReply({ flags: ['Ephemeral'] });
-      }
-      else {
-        await this.interaction.deferReply({ flags: ['Ephemeral'] });
-      }
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-expect-error
+      await this.interaction.deferReply({ flags: ['Ephemeral'] });
     }
 
     const checksPassed = await this.runChecks(channel);
