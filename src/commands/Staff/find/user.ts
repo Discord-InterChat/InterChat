@@ -119,7 +119,7 @@ export default class FindUserSubcommand extends BaseCommand {
     await ctx.reply({
       content: user.id,
       embeds: [embed],
-      ephemeral: hideResponse,
+      flags: hideResponse ? ['Ephemeral'] : [],
     });
   }
 

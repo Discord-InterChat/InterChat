@@ -37,7 +37,10 @@ import {
   TextInputStyle,
 } from 'discord.js';
 
-type PaginationInteraction = Exclude<RepliableInteraction, ModalSubmitInteraction>;
+type PaginationInteraction = Exclude<
+  RepliableInteraction,
+  ModalSubmitInteraction
+>;
 
 type ButtonEmojis = {
   back: string;
@@ -54,7 +57,8 @@ type RunOptions = {
 
 export class Pagination {
   private readonly pages: BaseMessageOptions[] = [];
-  private readonly hiddenButtons: Partial<Record<keyof ButtonEmojis, boolean>> = {};
+  private readonly hiddenButtons: Partial<Record<keyof ButtonEmojis, boolean>> =
+    {};
   private readonly client: Client<true>;
   private customEmojis: ButtonEmojis;
 
@@ -104,7 +108,9 @@ export class Pagination {
       searchableContent.push(page.content);
     }
 
-    const embedArray = Array.isArray(page.embeds) ? page.embeds : [page.embeds].filter(Boolean);
+    const embedArray = Array.isArray(page.embeds)
+      ? page.embeds
+      : [page.embeds].filter(Boolean);
 
     for (const embed of embedArray) {
       if (!embed) continue;
@@ -130,7 +136,9 @@ export class Pagination {
     interaction: PaginationInteraction,
     totalPages: number,
   ): Promise<number | null> {
-    const modal = new ModalBuilder().setCustomId('page_select_modal').setTitle('Go to Page');
+    const modal = new ModalBuilder()
+      .setCustomId('page_select_modal')
+      .setTitle('Go to Page');
 
     const pageInput = new TextInputBuilder()
       .setCustomId('page_number_input')
@@ -140,7 +148,9 @@ export class Pagination {
       .setMinLength(1)
       .setMaxLength(4);
 
-    const actionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(pageInput);
+    const actionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+      pageInput,
+    );
     modal.addComponents(actionRow);
 
     await interaction.showModal(modal);
@@ -151,9 +161,15 @@ export class Pagination {
         filter: (i) => i.customId === 'page_select_modal',
       });
 
-      const pageNumber = Number.parseInt(modalSubmit.fields.getTextInputValue('page_number_input'));
+      const pageNumber = Number.parseInt(
+        modalSubmit.fields.getTextInputValue('page_number_input'),
+      );
 
-      if (Number.isNaN(pageNumber) || pageNumber < 1 || pageNumber > totalPages) {
+      if (
+        Number.isNaN(pageNumber) ||
+				pageNumber < 1 ||
+				pageNumber > totalPages
+      ) {
         await modalSubmit.reply({
           content: `Please enter a valid page number between 1 and ${totalPages}`,
           flags: ['Ephemeral'],
@@ -179,8 +195,12 @@ export class Pagination {
     }
   }
 
-  private async handleSearch(interaction: PaginationInteraction): Promise<number | null> {
-    const modal = new ModalBuilder().setCustomId('search_modal').setTitle('Search Pages');
+  private async handleSearch(
+    interaction: PaginationInteraction,
+  ): Promise<number | null> {
+    const modal = new ModalBuilder()
+      .setCustomId('search_modal')
+      .setTitle('Search Pages');
 
     const searchInput = new TextInputBuilder()
       .setCustomId('search_input')
@@ -190,7 +210,9 @@ export class Pagination {
       .setMinLength(1)
       .setMaxLength(100);
 
-    const actionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(searchInput);
+    const actionRow = new ActionRowBuilder<TextInputBuilder>().addComponents(
+      searchInput,
+    );
     modal.addComponents(actionRow);
 
     await interaction.showModal(modal);
@@ -201,12 +223,15 @@ export class Pagination {
         filter: (i) => i.customId === 'search_modal',
       });
 
-      const searchTerm = modalSubmit.fields.getTextInputValue('search_input').toLowerCase();
+      const searchTerm = modalSubmit.fields
+        .getTextInputValue('search_input')
+        .toLowerCase();
       const results: { page: number; matches: number }[] = [];
 
       for (let i = 0; i < this.pages.length; i++) {
         const content = this.getPageContent(this.pages[i]);
-        const matchCount = (content.match(new RegExp(searchTerm, 'g')) || []).length;
+        const matchCount = (content.match(new RegExp(searchTerm, 'g')) || [])
+          .length;
 
         if (matchCount > 0) {
           results.push({ page: i, matches: matchCount });
@@ -217,11 +242,14 @@ export class Pagination {
         results.sort((a, b) => b.matches - a.matches);
 
         const topResult = results[0];
-        const totalMatches = results.reduce((sum, result) => sum + result.matches, 0);
+        const totalMatches = results.reduce(
+          (sum, result) => sum + result.matches,
+          0,
+        );
         const otherResultsStr =
-          results.length > 1
-            ? `-# ${getEmoji('info', this.client)} Also found in the following pages: ${results.map((r) => r.page + 1).join(', ')}`
-            : '';
+					results.length > 1
+					  ? `-# ${getEmoji('info', this.client)} Also found in the following pages: ${results.map((r) => r.page + 1).join(', ')}`
+					  : '';
 
         await modalSubmit.reply({
           content: stripIndents`
@@ -247,7 +275,10 @@ export class Pagination {
     }
   }
 
-  public async run(ctx: PaginationInteraction | Message | Context, options?: RunOptions) {
+  public async run(
+    ctx: PaginationInteraction | Message | Context,
+    options?: RunOptions,
+  ) {
     if (this.pages.length < 1) {
       await this.sendReply(
         ctx,
@@ -264,7 +295,7 @@ export class Pagination {
     const listMessage = await this.sendReply(
       ctx,
       { ...resp, content: resp.content },
-      { ephemeral: options?.ephemeral, flags: [] },
+      { flags: options?.ephemeral ? ['Ephemeral'] : [] },
     );
 
     const col = listMessage.createMessageComponentCollector({
@@ -334,17 +365,13 @@ export class Pagination {
   private async sendReply(
     ctx: PaginationInteraction | Message | Context,
     opts: BaseMessageOptions,
-    interactionOpts?: {
-      ephemeral?: boolean;
-      flags?: InteractionReplyOptions['flags'];
-    },
+    interactionOpts?: { flags?: InteractionReplyOptions['flags'] },
   ) {
     if (ctx instanceof Message || ctx instanceof Context) return await ctx.reply(opts);
 
     const replyMethod = getReplyMethod(ctx);
     return await ctx[replyMethod]({
       ...opts,
-      ephemeral: interactionOpts?.ephemeral,
       flags: interactionOpts?.flags,
     });
   }

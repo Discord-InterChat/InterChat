@@ -167,7 +167,7 @@ export default class EditMessage extends BaseCommand {
         ),
       });
 
-      await interaction.followUp({ embeds: [embed], ephemeral: true });
+      await interaction.followUp({ embeds: [embed], flags: ['Ephemeral'] });
       return;
     }
 
@@ -186,7 +186,7 @@ export default class EditMessage extends BaseCommand {
           },
         ),
       });
-      await interaction.followUp({ embeds: [embed], ephemeral: true });
+      await interaction.followUp({ embeds: [embed], flags: ['Ephemeral'] });
       return;
     }
 

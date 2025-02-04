@@ -32,7 +32,11 @@ import {
   buildBWRuleEmbed,
   sanitizeWords,
 } from '#src/utils/moderation/blockWords.js';
-import { type AutocompleteInteraction, ButtonBuilder, type ModalSubmitInteraction } from 'discord.js';
+import {
+  type AutocompleteInteraction,
+  ButtonBuilder,
+  type ModalSubmitInteraction,
+} from 'discord.js';
 
 export async function getBlockWordRules(interaction: AutocompleteInteraction) {
   const focused = interaction.options.getFocused(true);
@@ -69,7 +73,6 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
       !hub ||
 			!(await runHubPermissionChecksAndReply(hub, ctx, {
 			  checkIfManager: true,
-			  checkIfStaff: true,
 			}))
     ) return;
 

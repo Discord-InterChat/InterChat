@@ -66,7 +66,6 @@ export default class EditBlockWords extends BaseCommand {
       !hub ||
 			!(await runHubPermissionChecksAndReply(hub, ctx, {
 			  checkIfManager: true,
-			  checkIfStaff: true,
 			}))
     ) return;
 
@@ -102,7 +101,6 @@ export default class EditBlockWords extends BaseCommand {
     if (
       !hub ||
 			!(await runHubPermissionChecksAndReply(hub, interaction, {
-			  checkIfStaff: true,
 			  checkIfManager: true,
 			}))
     ) return;
@@ -131,7 +129,6 @@ export default class EditBlockWords extends BaseCommand {
     if (
       !hub ||
 			!(await runHubPermissionChecksAndReply(hub, interaction, {
-			  checkIfStaff: true,
 			  checkIfManager: true,
 			}))
     ) return;

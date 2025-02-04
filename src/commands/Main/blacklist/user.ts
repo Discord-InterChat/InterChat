@@ -83,7 +83,6 @@ export default class BlacklistUserSubcommand extends BaseCommand {
       !hub ||
 			!(await runHubPermissionChecksAndReply(hub, ctx, {
 			  checkIfMod: true,
-			  checkIfStaff: true,
 			}))
     ) return;
 

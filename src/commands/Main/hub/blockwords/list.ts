@@ -42,7 +42,6 @@ export default class ListBlockWords extends BaseCommand {
       !hub ||
 			!(await runHubPermissionChecksAndReply(hub, ctx, {
 			  checkIfManager: true,
-			  checkIfStaff: true,
 			}))
     ) return;
 
