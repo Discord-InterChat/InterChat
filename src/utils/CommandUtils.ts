@@ -101,13 +101,13 @@ function parseArgs(input: string): string[] {
 }
 
 export function resolveCommand(
-  commands: Collection<string, BaseCommand>,
   interactionOrMessage:
 		| ChatInputCommandInteraction
 		| AutocompleteInteraction
 		| ContextMenuCommandInteraction
 		| Message,
 ): { command: BaseCommand | null; prefixArgs: string[] } {
+  const { commands } = interactionOrMessage.client;
   let commandName: string;
   let prefixArgs: string[] = [];
 

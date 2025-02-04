@@ -64,7 +64,7 @@ export default class MessageCreate extends BaseEventListener<'messageCreate'> {
     const userData = await fetchUserData(message.author.id);
     if (!userData?.acceptedRules) return await showRulesScreening(message, userData);
 
-    const { command, prefixArgs } = resolveCommand(message.client.commands, message);
+    const { command, prefixArgs } = resolveCommand(message);
     if (!command) return;
 
     await executeCommand(message, command, prefixArgs);

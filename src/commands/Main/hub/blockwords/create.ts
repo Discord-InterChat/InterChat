@@ -15,10 +15,11 @@
  * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import { HubService } from '#src/services/HubService.js';
 import { CustomID } from '#src/utils/CustomID.js';
 import db from '#src/utils/Db.js';
 import { getEmoji } from '#src/utils/EmojiUtils.js';
@@ -38,24 +39,9 @@ import {
   type ModalSubmitInteraction,
 } from 'discord.js';
 
-export async function getBlockWordRules(interaction: AutocompleteInteraction) {
-  const focused = interaction.options.getFocused(true);
-  const hubName = interaction.options.getString('hub');
-
-  if (focused.name === 'rule') {
-    if (!hubName) return [{ name: 'Please select a hub first.', value: '' }];
-
-    const rules = await db.blockWord.findMany({
-      where: { hub: { name: hubName } },
-      select: { id: true, name: true },
-    });
-
-    return rules.map((rule) => ({ name: rule.name, value: rule.name }));
-  }
-  return null;
-}
-
 export default class HubBlockwordsCreateSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'create',
@@ -81,11 +67,15 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const subcommand = interaction.options.getSubcommand();
-    if (subcommand !== 'edit') return;
+    const hubs = await HubCommand.getModeratedHubs(
+      interaction.options.getFocused(),
+      interaction.user.id,
+      this.hubService,
+    );
 
-    const choices = await getBlockWordRules(interaction);
-    await interaction.respond(choices ?? []);
+    await interaction.respond(
+      hubs.map(({ data }) => ({ name: data.name, value: data.name })),
+    );
   }
 
   @RegisterInteractionHandler('blockwordsModal')

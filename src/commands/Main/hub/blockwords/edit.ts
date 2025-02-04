@@ -15,7 +15,6 @@
  * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { getBlockWordRules } from '#src/commands/Main/hub/blockwords/create.js';
 import { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
@@ -41,7 +40,24 @@ import {
   type StringSelectMenuInteraction,
 } from 'discord.js';
 
-export default class EditBlockWords extends BaseCommand {
+async function getBlockWordRules(interaction: AutocompleteInteraction) {
+  const focused = interaction.options.getFocused(true);
+  const hubName = interaction.options.getString('hub');
+
+  if (focused.name === 'rule') {
+    if (!hubName) return [{ name: 'Please select a hub first.', value: '' }];
+
+    const rules = await db.blockWord.findMany({
+      where: { hub: { name: hubName } },
+      select: { id: true, name: true },
+    });
+
+    return rules.map((rule) => ({ name: rule.name, value: rule.name }));
+  }
+  return null;
+}
+
+export default class HubBlockwordsEditSubcommand extends BaseCommand {
   constructor() {
     super({
       name: 'edit',
@@ -59,6 +75,7 @@ export default class EditBlockWords extends BaseCommand {
       ],
     });
   }
+
   public async execute(ctx: Context) {
     const hubName = ctx.options.getString('hub') ?? undefined;
     const hub = await fetchHub({ name: hubName ?? undefined });
@@ -83,10 +100,7 @@ export default class EditBlockWords extends BaseCommand {
     await ctx.reply({ embeds: [embed], components: [buttons] });
   }
 
-  async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const subcommand = interaction.options.getSubcommand();
-    if (subcommand !== 'edit') return;
-
+  async areturnutocomplete(interaction: AutocompleteInteraction): Promise<void> {
     const choices = await getBlockWordRules(interaction);
     await interaction.respond(choices ?? []);
   }

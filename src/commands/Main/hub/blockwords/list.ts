@@ -15,10 +15,10 @@
  * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { getBlockWordRules } from '#src/commands/Main/hub/blockwords/create.js';
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
+import { HubService } from '#src/services/HubService.js';
 import {
   fetchHub,
   executeHubRoleChecksAndReply,
@@ -26,7 +26,9 @@ import {
 import { buildBlockWordListEmbed } from '#src/utils/moderation/blockWords.js';
 import type { AutocompleteInteraction } from 'discord.js';
 
-export default class ListBlockWords extends BaseCommand {
+export default class HubBlockwordsListSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'list',
@@ -57,10 +59,14 @@ export default class ListBlockWords extends BaseCommand {
   }
 
   async autocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const subcommand = interaction.options.getSubcommand();
-    if (subcommand !== 'edit') return;
+    const hubs = await HubCommand.getModeratedHubs(
+      interaction.options.getFocused(),
+      interaction.user.id,
+      this.hubService,
+    );
 
-    const choices = await getBlockWordRules(interaction);
-    await interaction.respond(choices ?? []);
+    await interaction.respond(
+      hubs.map(({ data }) => ({ name: data.name, value: data.name })),
+    );
   }
 }

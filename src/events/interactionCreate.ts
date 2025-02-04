@@ -84,7 +84,7 @@ export default class InteractionCreate extends BaseEventListener<'interactionCre
       | ContextMenuCommandInteraction
       | AutocompleteInteraction,
   ) {
-    const { command } = resolveCommand(interaction.client.commands, interaction);
+    const { command } = resolveCommand(interaction);
     if (!command) return;
 
     if (!this.validateCommandAccess(command, interaction)) return;
