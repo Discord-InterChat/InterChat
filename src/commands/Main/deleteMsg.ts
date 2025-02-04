@@ -137,7 +137,7 @@ export default class DeleteMessage extends BaseCommand {
     const locale = await fetchUserLocale(ctx.user.id);
 
     if (!originalMsg || !hub) {
-      await ctx.editReply(
+      await ctx.editOrReply(
         t('errors.unknownNetworkMessage', locale, {
           emoji: ctx.getEmoji('x_icon'),
         }),

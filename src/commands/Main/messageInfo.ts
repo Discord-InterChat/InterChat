@@ -103,7 +103,7 @@ export default class MessageInfo extends BaseCommand {
     const { locale, originalMsg, hub, target } = await this.getMessageInfo(ctx);
 
     if (!hub || !originalMsg || !target) {
-      await ctx.reply({
+      await ctx.editOrReply({
         content: t('errors.unknownNetworkMessage', locale, {
           emoji: ctx.getEmoji('x_icon'),
         }),
@@ -147,17 +147,18 @@ export default class MessageInfo extends BaseCommand {
       inviteButtonUrl: connection?.data.invite,
     });
 
-    const reply = await ctx.reply({
+    const reply = await ctx.editOrReply({
       embeds: [embed],
       components,
       flags: ['Ephemeral'],
     });
-    const collector = reply.createMessageComponentCollector({
+
+    const collector = reply?.createMessageComponentCollector({
       idle: 60_000,
       componentType: ComponentType.Button,
     });
 
-    collector.on('collect', (i) => {
+    collector?.on('collect', (i) => {
       const customId = CustomID.parseCustomId(i.customId);
       // component builders taken from the original message
       const newComponents = [
@@ -207,7 +208,7 @@ export default class MessageInfo extends BaseCommand {
       }
     });
 
-    collector.on('end', async (i) => {
+    collector?.on('end', async (i) => {
       greyOutButtons(components);
       await i.first()?.editReply({ components });
     });

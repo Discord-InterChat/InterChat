@@ -66,6 +66,7 @@ export default class ModPanelCommand extends BaseCommand {
       await ctx.replyEmbed('errors.messageNotSentOrExpired', {
         t: { emoji: ctx.getEmoji('x_icon') },
         edit: true,
+        flags: ['Ephemeral'],
       });
       return;
     }
@@ -77,6 +78,7 @@ export default class ModPanelCommand extends BaseCommand {
     if (!originalMsg || !(await this.validateMessage(ctx, originalMsg))) {
       await ctx.replyEmbed('errors.messageNotSentOrExpired', {
         t: { emoji: ctx.getEmoji('x_icon') },
+        flags: ['Ephemeral'],
         edit: true,
       });
       return;

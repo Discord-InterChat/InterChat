@@ -116,8 +116,8 @@ export default class UnblacklistUserSubcommand extends BaseCommand {
 
       await interaction.respond(
         activeInfractions.map((user) => ({
-          name: user.user?.username ?? 'Unknown User',
-          value: user.id ?? 'Unknown UserId',
+          name: `${user.user?.username ?? 'Unknown User'} (${user.userId})`,
+          value: user.userId ?? 'Unknown UserId',
         })),
       );
     }

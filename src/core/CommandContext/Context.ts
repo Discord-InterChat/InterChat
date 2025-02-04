@@ -245,7 +245,7 @@ export default abstract class Context<T extends classT = classT> {
   async editOrReply(
     data: string | MessageEditOptions | InteractionReplyOptions,
   ): Promise<T['responseType'] | null> {
-    if (this.deferred) {
+    if (this.deferred || this.replied) {
       return await this.editReply(data);
     }
     return await this.reply(data);

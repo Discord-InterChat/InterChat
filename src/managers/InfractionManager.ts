@@ -190,7 +190,7 @@ export default class InfractionManager {
   protected async refreshCache(hubId: string) {
     const key = this.getKey(this.targetId, hubId);
     const infractions = await this.queryEntityInfractions(hubId);
-    await this.cacheManager.set(key, JSON.stringify(infractions));
+    await this.cacheManager.set(key, infractions);
   }
 
   protected async cacheEntity(entity: Infraction) {
@@ -200,7 +200,7 @@ export default class InfractionManager {
       await this.getHubInfractions(entity.hubId, { type: entity.type })
     ).filter((i) => i.id !== entity.id);
 
-    return this.cacheManager.set(key, JSON.stringify([...existing, entity]));
+    return this.cacheManager.set(key, [...existing, entity]);
   }
 
   protected async removeCachedInfraction(entity: Infraction) {
@@ -210,7 +210,7 @@ export default class InfractionManager {
     const entitySnowflake = entity.userId ?? entity.serverId;
     return this.cacheManager.set(
       this.getKey(entitySnowflake as string, entity.hubId),
-      JSON.stringify(existingInfractions.filter((i) => i.id !== entity.id)),
+      existingInfractions.filter((i) => i.id !== entity.id),
     );
   }
 
