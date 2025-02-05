@@ -15,16 +15,19 @@
  * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { hubOption } from '#src/commands/Main/hub/index.js';
+import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import type Context from '#src/core/CommandContext/Context.js';
 import { RegisterInteractionHandler } from '#src/decorators/RegisterInteractionHandler.js';
+import { HubService } from '#src/services/HubService.js';
 import { CustomID } from '#src/utils/CustomID.js';
 import db from '#src/utils/Db.js';
+import { getEmoji } from '#src/utils/EmojiUtils.js';
 import {
   fetchHub,
   executeHubRoleChecksAndReply,
 } from '#src/utils/hub/utils.js';
+import { t } from '#src/utils/Locale.js';
 import {
   ACTION_LABELS,
   buildBlockedWordsBtns,
@@ -32,6 +35,7 @@ import {
   buildBlockWordModal,
   buildBWRuleEmbed,
 } from '#src/utils/moderation/blockWords.js';
+import { fetchUserLocale } from '#src/utils/Utils.js';
 import type { BlockWordAction } from '@prisma/client';
 import {
   ApplicationCommandOptionType,
@@ -39,6 +43,28 @@ import {
   type ButtonInteraction,
   type StringSelectMenuInteraction,
 } from 'discord.js';
+
+export async function blockwordRuleAndHubAutocomplete(
+  interaction: AutocompleteInteraction,
+  hubService: HubService,
+) {
+  const hubOpt = interaction.options.get('hub');
+
+  if (hubOpt?.focused) {
+    const hubs = await HubCommand.getModeratedHubs(
+      interaction.options.getFocused(),
+      interaction.user.id,
+      hubService,
+    );
+
+    await interaction.respond(
+      hubs.map(({ data }) => ({ name: data.name, value: data.name })),
+    );
+  }
+
+  const choices = await getBlockWordRules(interaction);
+  await interaction.respond(choices ?? []);
+}
 
 async function getBlockWordRules(interaction: AutocompleteInteraction) {
   const focused = interaction.options.getFocused(true);
@@ -58,6 +84,8 @@ async function getBlockWordRules(interaction: AutocompleteInteraction) {
 }
 
 export default class HubBlockwordsEditSubcommand extends BaseCommand {
+  private readonly hubService = new HubService();
+
   constructor() {
     super({
       name: 'edit',
@@ -100,9 +128,8 @@ export default class HubBlockwordsEditSubcommand extends BaseCommand {
     await ctx.reply({ embeds: [embed], components: [buttons] });
   }
 
-  async areturnutocomplete(interaction: AutocompleteInteraction): Promise<void> {
-    const choices = await getBlockWordRules(interaction);
-    await interaction.respond(choices ?? []);
+  async autocomplete(interaction: AutocompleteInteraction) {
+    await blockwordRuleAndHubAutocomplete(interaction, this.hubService);
   }
 
   @RegisterInteractionHandler('blockwordsButton', 'editWords')
@@ -124,7 +151,11 @@ export default class HubBlockwordsEditSubcommand extends BaseCommand {
 
     if (!presetRule) {
       await interaction.reply({
-        content: 'This rule does not exist.',
+        content: t(
+          'hub.blockwords.notFound',
+          await fetchUserLocale(interaction.user.id),
+          { emoji: getEmoji('x_icon', interaction.client) },
+        ),
         flags: ['Ephemeral'],
       });
       return;
@@ -147,10 +178,14 @@ export default class HubBlockwordsEditSubcommand extends BaseCommand {
 			}))
     ) return;
 
+    const locale = await fetchUserLocale(interaction.user.id);
+
     const rule = (await hub.fetchBlockWords()).find((r) => r.id === ruleId);
     if (!rule) {
       await interaction.reply({
-        content: 'Rule not found',
+        content: t('hub.blockwords.notFound', locale, {
+          emoji: getEmoji('x_icon', interaction.client),
+        }),
         flags: ['Ephemeral'],
       });
       return;
@@ -161,12 +196,14 @@ export default class HubBlockwordsEditSubcommand extends BaseCommand {
       ruleId,
       rule.actions || [],
     );
+
     await interaction.reply({
-      content: `Configure actions for rule: ${rule.name}`,
+      content: t('hub.blockwords.configure', locale, { rule: rule.name }),
       components: [selectMenu],
       flags: ['Ephemeral'],
     });
   }
+
   @RegisterInteractionHandler('blockwordsSelect', 'actions')
   async handleActionSelection(interaction: StringSelectMenuInteraction) {
     const customId = CustomID.parseCustomId(interaction.customId);
@@ -183,7 +220,14 @@ export default class HubBlockwordsEditSubcommand extends BaseCommand {
       .join(', ');
 
     await interaction.update({
-      content: `✅ Actions updated for rule: ${actionLabels}`,
+      content: t(
+        'hub.blockwords.actionsUpdated',
+        await fetchUserLocale(interaction.user.id),
+        {
+          emoji: getEmoji('tick_icon', interaction.client),
+          actions: actionLabels,
+        },
+      ),
       components: [],
     });
   }

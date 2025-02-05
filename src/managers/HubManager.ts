@@ -17,7 +17,7 @@
 
 import type { BlockWord, Hub } from '@prisma/client';
 import type { Redis } from 'ioredis';
-import { CacheConfig, CacheManager } from '#src/managers/CacheManager.js';
+import { type CacheConfig, CacheManager } from '#src/managers/CacheManager.js';
 import HubConnectionsManager from '#src/managers/HubConnectionsManager.js';
 import HubLogManager from '#src/managers/HubLogManager.js';
 import HubModeratorManager from '#src/managers/HubModeratorManager.js';
@@ -127,10 +127,7 @@ export default class HubManager {
   }
 
   public async fetchBlockWords(): Promise<BlockWord[]> {
-    return await this.cacheManager.getSetMembers<BlockWord>(
-      'blockWords',
-      async () => await db.blockWord.findMany({ where: { hubId: this.hub.id } }),
-    );
+    return await db.blockWord.findMany({ where: { hubId: this.hub.id } });
   }
 
   public async fetchInvites() {

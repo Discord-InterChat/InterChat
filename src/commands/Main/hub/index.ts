@@ -18,6 +18,7 @@
 import AnnounceCommand from '#src/commands/Main/hub/announce.js';
 import AppealCooldownCommand from '#src/commands/Main/hub/appeal/set_cooldown.js';
 import HubBlockwordsCreateSubcommand from '#src/commands/Main/hub/blockwords/create.js';
+import HubBlockwordsDeleteSubcommand from '#src/commands/Main/hub/blockwords/delete.js';
 import HubBlockwordsEditSubcommand from '#src/commands/Main/hub/blockwords/edit.js';
 import HubBlockwordsListSubcommand from '#src/commands/Main/hub/blockwords/list.js';
 import BrowseCommand from '#src/commands/Main/hub/browse.js';
@@ -71,6 +72,7 @@ export default class HubCommand extends BaseCommand {
         appeal: { set_cooldown: new AppealCooldownCommand() },
         blockwords: {
           create: new HubBlockwordsCreateSubcommand(),
+          delete: new HubBlockwordsDeleteSubcommand(),
           edit: new HubBlockwordsEditSubcommand(),
           list: new HubBlockwordsListSubcommand(),
         },
