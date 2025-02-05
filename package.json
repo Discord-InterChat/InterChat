@@ -11,7 +11,7 @@
     "dev": "nodemon --exec \"bun run build && npm start\" --ext ts,js,json --ignore build/",
     "build": "tsc --build",
     "typecheck": "tsc --noEmit",
-    "gen:locale-types": "bun scripts/genLocaleTypes.js",
+    "locale-types": "bun scripts/genLocaleTypes.js",
     "sync:commands": "bun scripts/syncCommands.js",
     "sync:emojis": "bun scripts/syncEmojis.js",
     "release": "release-it",
