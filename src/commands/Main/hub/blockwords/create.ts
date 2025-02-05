@@ -27,16 +27,17 @@ import {
   fetchHub,
   executeHubRoleChecksAndReply,
 } from '#src/utils/hub/utils.js';
+import { t } from '#src/utils/Locale.js';
 import {
   buildBlockedWordsBtns,
   buildBlockWordModal,
   buildBWRuleEmbed,
   sanitizeWords,
 } from '#src/utils/moderation/blockWords.js';
-import {
-  type AutocompleteInteraction,
-  ButtonBuilder,
-  type ModalSubmitInteraction,
+import { fetchUserLocale } from '#src/utils/Utils.js';
+import type {
+  AutocompleteInteraction,
+  ModalSubmitInteraction,
 } from 'discord.js';
 
 export default class HubBlockwordsCreateSubcommand extends BaseCommand {
@@ -86,8 +87,12 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
     const hub = await fetchHub({ id: hubId });
     if (!hub) return;
 
+    const locale = await fetchUserLocale(interaction.user.id);
+
     await interaction.reply({
-      content: `${getEmoji('loading', interaction.client)} Validating blocked words...`,
+      content: t('hub.blockwords.validating', locale, {
+        emoji: getEmoji('loading', interaction.client),
+      }),
       flags: ['Ephemeral'],
     });
 
@@ -96,11 +101,15 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
       interaction.fields.getTextInputValue('words'),
     );
 
+    const emojiArg = { emoji: getEmoji('x_icon', interaction.client) } as const;
+
     // new rule
     if (!ruleId) {
       if ((await hub.fetchBlockWords()).length >= 2) {
         await interaction.editReply(
-          'You can only have 2 block word rules per hub.',
+          t('hub.blockwords.maxRules', locale, {
+            emoji: getEmoji('x_icon', interaction.client),
+          }),
         );
         return;
       }
@@ -110,11 +119,9 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
       });
 
       const embed = buildBWRuleEmbed(rule, interaction.client);
-      const buttons = buildBlockedWordsBtns(hub.id, rule.id).addComponents(
-        new ButtonBuilder(),
-      );
+      const buttons = buildBlockedWordsBtns(hub.id, rule.id);
       await interaction.editReply({
-        content: `${getEmoji('tick_icon', interaction.client)} Rule added.`,
+        content: t('hub.blockwords.created', locale, emojiArg),
         embeds: [embed],
         components: [buttons],
       });
@@ -123,7 +130,7 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
     else if (newWords.length === 0) {
       await db.blockWord.delete({ where: { id: ruleId } });
       await interaction.editReply(
-        `${getEmoji('tick_icon', interaction.client)} Rule removed.`,
+        t('hub.blockwords.deleted', locale, emojiArg),
       );
     }
 
@@ -133,8 +140,9 @@ export default class HubBlockwordsCreateSubcommand extends BaseCommand {
         where: { id: ruleId },
         data: { words: newWords, name },
       });
+
       await interaction.editReply(
-        `${getEmoji('tick_icon', interaction.client)} Rule updated.`,
+        t('hub.blockwords.updated', locale, emojiArg),
       );
     }
   }
