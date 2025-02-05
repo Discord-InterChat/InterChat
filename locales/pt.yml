@@ -152,8 +152,16 @@ hub:
       Convidar: {invite}
       Conectado: {connected}
   blockwords:
+    created: '{emoji} Block word rule successfully created! Add actions using the `Configure Actions` button. You can also do this using `/hub blockwords edit`.'
+    updated: '{emoji} Block word rule successfully updated!'
+    deleted: '{emoji} Block word rule successfully deleted!'
     noRules: '{emoji} No blocked words have been set for this hub yet. Use `/hub blockword add` to add one.'
-    notFound: '{emoji} Blocked word rule not found.'
+    notFound: '{emoji} Block word rule not found.'
+    deleting: '{emoji} Deleting block word rule...'
+    maxRules: '{emoji} You have reached the maximum number of block word rules (2) for this hub. Please delete a rule before adding another one.'
+    configure: 'Configure actions for rule: {rule}'
+    actionsUpdated: '{emoji} Following actions have been updated: {actions}'
+    validating: '{emoji} Validating block word rule...'
   create:
     modal:
       title: Criar Hub
