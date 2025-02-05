@@ -49,14 +49,13 @@ export const loadCommands = async (
 
   for (const file of files) {
     if (file.endsWith('.js')) {
-      if (depth > 1 && file !== 'index.js') {
-        continue;
-      }
-
       const { default: Command } = await import(`${path}/${file}`);
       if (Command.prototype instanceof BaseCommand) {
         const command: BaseCommand = new Command();
-        map.set(command.name, command);
+        if (depth <= 1 || (depth > 1 && file === 'index.js')) {
+          map.set(command.name, command);
+        }
+
         if (interactionMap) loadInteractionsForCommand(command, interactionMap);
       }
     }
@@ -73,4 +72,3 @@ export const loadCommands = async (
     }
   }
 };
-
