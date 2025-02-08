@@ -16,12 +16,11 @@
  */
 
 import AnnounceCommand from '#src/commands/Main/hub/announce.js';
-import AppealCooldownCommand from '#src/commands/Main/hub/appeal/set_cooldown.js';
-import HubBlockwordsCreateSubcommand from '#src/commands/Main/hub/blockwords/create.js';
-import HubBlockwordsDeleteSubcommand from '#src/commands/Main/hub/blockwords/delete.js';
-import HubBlockwordsEditSubcommand from '#src/commands/Main/hub/blockwords/edit.js';
-import HubBlockwordsListSubcommand from '#src/commands/Main/hub/blockwords/list.js';
 import BrowseCommand from '#src/commands/Main/hub/browse.js';
+import HubConfigAntiSwearSubcommand from '#src/commands/Main/hub/config/anti-swear.js';
+import HubConfigAppealCooldownSubcommand from '#src/commands/Main/hub/config/appealCooldown.js';
+import HubConfigLoggingSubcommand from '#src/commands/Main/hub/config/logging.js';
+import HubConfigSettingsSubcommand from '#src/commands/Main/hub/config/settings.js';
 import HubCreateSubCommand from '#src/commands/Main/hub/create.js';
 import HubDeleteSubcommand from '#src/commands/Main/hub/delete.js';
 import HubEditSubcommand from '#src/commands/Main/hub/edit.js';
@@ -31,15 +30,11 @@ import HubInviteListSubcommand from '#src/commands/Main/hub/invite/list.js';
 import HubInviteRevokeSubcommand from '#src/commands/Main/hub/invite/revoke.js';
 import HubJoinSubcommand from '#src/commands/Main/hub/join.js';
 import HubLeaveSubcommand from '#src/commands/Main/hub/leave.js';
-import HubLoggingSetSubcommand from '#src/commands/Main/hub/logging/set.js';
-import LoggingViewSubcommand from '#src/commands/Main/hub/logging/view.js';
 import HubModeratorAddSubcommand from '#src/commands/Main/hub/moderator/add.js';
 import HubModeratorEditSubcommand from '#src/commands/Main/hub/moderator/edit.js';
 import HubModeratorListSubcommand from '#src/commands/Main/hub/moderator/list.js';
 import HubModeratorRemoveSubcommand from '#src/commands/Main/hub/moderator/remove.js';
 import HubServersSubcommand from '#src/commands/Main/hub/servers.js';
-import HubSettingsListSubcommand from '#src/commands/Main/hub/settings/list.js';
-import HubSettingsToggleSubcommand from '#src/commands/Main/hub/settings/toggle.js';
 import HubVisibilitySubcommnd from '#src/commands/Main/hub/visibility.js';
 import BaseCommand from '#src/core/BaseCommand.js';
 import HubManager from '#src/managers/HubManager.js';
@@ -69,31 +64,22 @@ export default class HubCommand extends BaseCommand {
       contexts: { guildOnly: true },
       types: { slash: true, prefix: true },
       subcommands: {
-        appeal: { set_cooldown: new AppealCooldownCommand() },
-        blockwords: {
-          create: new HubBlockwordsCreateSubcommand(),
-          delete: new HubBlockwordsDeleteSubcommand(),
-          edit: new HubBlockwordsEditSubcommand(),
-          list: new HubBlockwordsListSubcommand(),
+        config: {
+          logging: new HubConfigLoggingSubcommand(),
+          settings: new HubConfigSettingsSubcommand(),
+          'anti-swear': new HubConfigAntiSwearSubcommand(),
+          'set-appeal-cooldown': new HubConfigAppealCooldownSubcommand(),
         },
         invite: {
           create: new HubInviteCreateSubcommand(),
           revoke: new HubInviteRevokeSubcommand(),
           list: new HubInviteListSubcommand(),
         },
-        logging: {
-          set: new HubLoggingSetSubcommand(),
-          view: new LoggingViewSubcommand(),
-        },
         moderator: {
           add: new HubModeratorAddSubcommand(),
           remove: new HubModeratorRemoveSubcommand(),
           edit: new HubModeratorEditSubcommand(),
           list: new HubModeratorListSubcommand(),
-        },
-        settings: {
-          list: new HubSettingsListSubcommand(),
-          toggle: new HubSettingsToggleSubcommand(),
         },
         announce: new AnnounceCommand(),
         browse: new BrowseCommand(),
@@ -140,41 +126,27 @@ export default class HubCommand extends BaseCommand {
     return hubs.map((hub) => new HubManager(hub, { hubService }));
   }
 
-  static async getModeratedHubs(
-    focusedValue: string,
-    modId: Snowflake,
-    hubService: HubService,
-  ) {
+  static matchHubName(hubName: string, focusedValue: string) {
+    return hubName.toLowerCase().includes(focusedValue.toLowerCase());
+  }
+
+  static async getModeratedHubs(focusedValue: string, modId: Snowflake, hubService: HubService) {
     const hubs = (await hubService.fetchModeratedHubs(modId))
-      .filter((hub) =>
-        hub.data.name.toLowerCase().includes(focusedValue.toLowerCase()),
-      )
+      .filter((hub) => HubCommand.matchHubName(hub.data.name, focusedValue))
       .slice(0, 25);
     return hubs;
   }
 
-  static async getManagedHubs(
-    focusedValue: string,
-    modId: Snowflake,
-    hubService: HubService,
-  ) {
+  static async getManagedHubs(focusedValue: string, modId: Snowflake, hubService: HubService) {
     const hubs = (await hubService.fetchModeratedHubs(modId))
-      .filter((hub) =>
-        hub.data.name.toLowerCase().includes(focusedValue.toLowerCase()),
-      )
+      .filter((hub) => HubCommand.matchHubName(hub.data.name, focusedValue))
       .slice(0, 25);
 
     return hubs;
   }
 
-  static async getOwnedHubs(
-    focusedValue: string,
-    ownerId: Snowflake,
-    hubService: HubService,
-  ) {
+  static async getOwnedHubs(focusedValue: string, ownerId: Snowflake, hubService: HubService) {
     const hubs = await hubService.getOwnedHubs(ownerId);
-    return hubs.filter((hub) =>
-      hub.data.name.toLowerCase().includes(focusedValue.toLowerCase()),
-    );
+    return hubs.filter((hub) => HubCommand.matchHubName(hub.data.name, focusedValue));
   }
 }

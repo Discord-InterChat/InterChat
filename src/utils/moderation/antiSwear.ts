@@ -15,23 +15,23 @@
  * along with InterChat.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-import { type BlockWord, BlockWordAction } from '@prisma/client';
-import { stripIndents } from 'common-tags';
-import {
+import { getEmoji } from '#src/utils/EmojiUtils.js';
+import { supportedLocaleCodes, t } from '#src/utils/Locale.js';
+import Constants, { numberEmojis } from '#utils/Constants.js';
+import { CustomID } from '#utils/CustomID.js';
+import { InfoEmbed } from '#utils/EmbedUtils.js';
+import { type BlockWord, BlockWordAction } from '@prisma/client';import {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
   type Client,
+  EmbedBuilder,
   ModalBuilder,
   StringSelectMenuBuilder,
   TextInputBuilder,
   TextInputStyle,
   codeBlock,
 } from 'discord.js';
-import { getEmoji } from '#src/utils/EmojiUtils.js';
-import { numberEmojis } from '#utils/Constants.js';
-import { CustomID } from '#utils/CustomID.js';
-import { InfoEmbed } from '#utils/EmbedUtils.js';
 
 export const ACTION_LABELS = {
   [BlockWordAction.BLOCK_MESSAGE]: '🚫 Block Message',
@@ -56,58 +56,79 @@ export const sanitizeWords = (words: string) =>
     .map((word) => word.trim())
     .join(',');
 
-export const buildBlockWordListEmbed = (rules: BlockWord[], client: Client) =>
+export const buildAntiSpamListEmbed = (
+  rules: BlockWord[],
+  locale: supportedLocaleCodes,
+  client: Client,
+) =>
   new InfoEmbed()
     .removeTitle()
     .setDescription(
-      stripIndents`
-      ### ${getEmoji('alert_icon', client)} Blocked Words
-      This hub has **${rules.length}**/2 blocked word rules.
-      `,
+      t('hub.blockwords.listDescription', locale, {
+        totalRules: rules.length.toString(),
+        emoji: getEmoji('alert_icon', client),
+      }),
     )
     .addFields(
-      rules.map(({ words, name }, index) => ({
+      rules.map(({ name, actions }, index) => ({
         name: `${numberEmojis[index + 1]}: ${name}`,
-        value: codeBlock(words.replace(/\.\*/g, '*')),
+        value: `**Actions:** ${actions.map((a) => ACTION_LABELS[a]).join(', ') || 'None'}`,
       })),
-    );
-
-export const buildBWRuleEmbed = (rule: BlockWord, client: Client) => {
-  const actions = rule.actions.map((a) => ACTION_LABELS[a]).join(', ');
-  return new InfoEmbed()
-    .removeTitle()
-    .setDescription(
-      stripIndents`
-          ### ${getEmoji('alert_icon', client)} Editing Rule: ${rule.name}
-          ${rule.words ? `**Blocked Words:**\n${codeBlock(rule.words.replace(/\.\*/g, '*'))}` : ''}
-          -# Configured Actions: **${actions.length > 0 ? actions : 'None. Configure using the button below.'}**
-          `,
     )
-    .setFooter({ text: 'Click the button below to edit' });
-};
-export const buildBlockedWordsBtns = (hubId: string, ruleId: string) =>
-  new ActionRowBuilder<ButtonBuilder>().addComponents(
-    new ButtonBuilder()
-      .setCustomId(new CustomID('blockwordsButton:configActions', [hubId, ruleId]).toString())
-      .setLabel('Configure Actions')
-      .setStyle(ButtonStyle.Secondary),
-    new ButtonBuilder()
-      .setCustomId(new CustomID('blockwordsButton:editWords', [hubId, ruleId]).toString())
-      .setLabel('Edit Words')
-      .setStyle(ButtonStyle.Secondary),
-  );
+    .setFooter({ text: t('hub.blockwords.listFooter', locale) });
 
-export const buildBlockWordModal = (hubId: string, opts?: { presetRule: BlockWord }) => {
-  const customId = new CustomID('blockwordsModal', [hubId]);
+export const buildAntiSwearRuleEmbed = (
+  rule: BlockWord,
+  locale: supportedLocaleCodes,
+  client: Client,
+) => {
+  const actions = rule.actions.map((a) => ACTION_LABELS[a]).join(', ');
+  return new EmbedBuilder()
+    .setColor(Constants.Colors.invisible)
+    .setDescription(
+      t('hub.blockwords.ruleDescription', locale, {
+        emoji: getEmoji('alert_icon', client),
+        ruleName: rule.name,
+        words: rule.words ? codeBlock(rule.words.replace(/\.\*/g, '*')) : '',
+      }),
+    )
+    .addFields({
+      name: t('hub.blockwords.embedFields.actionsName', locale),
+      value: t('hub.blockwords.embedFields.actionsValue', locale, {
+        actions:
+          actions.length > 0
+            ? `**${actions}**`
+            : t('hub.blockwords.embedFields.noActions', locale, {
+              emoji: getEmoji('alert_icon', client),
+            }),
+      }),
+    })
+    .setFooter({ text: t('hub.blockwords.ruleFooter', locale) });
+};
+export const buildEditAntiSwearRuleButton = (hubId: string, ruleId: string) =>
+  new ButtonBuilder()
+    .setCustomId(new CustomID('antiSwear:editRule', [hubId, ruleId]).toString())
+    .setLabel('Edit Rule')
+    .setStyle(ButtonStyle.Secondary);
+
+export const buildAntiSwearModal = (
+  hubId: string,
+  { locale, presetRule }: { locale: supportedLocaleCodes; presetRule?: BlockWord },
+) => {
+  const customId = new CustomID('antiSwear:modal', [hubId]);
   const modal = new ModalBuilder()
-    .setTitle(opts?.presetRule ? `Edit Block Rule ${opts.presetRule.name}` : 'Add Block Word Rule')
+    .setTitle(
+      presetRule
+        ? t('hub.blockwords.modal.editingRule', locale)
+        : t('hub.blockwords.modal.addRule', locale),
+    )
     .setCustomId(customId.toString())
     .addComponents(
       new ActionRowBuilder<TextInputBuilder>().addComponents(
         new TextInputBuilder()
           .setCustomId('name')
           .setStyle(TextInputStyle.Short)
-          .setLabel('Rule Name')
+          .setLabel(t('hub.blockwords.modal.ruleNameLabel', locale))
           .setMinLength(3)
           .setMaxLength(40)
           .setRequired(true),
@@ -116,21 +137,17 @@ export const buildBlockWordModal = (hubId: string, opts?: { presetRule: BlockWor
         new TextInputBuilder()
           .setCustomId('words')
           .setStyle(TextInputStyle.Paragraph)
-          .setLabel(
-            opts?.presetRule
-              ? 'Edit words (leave empty to delete)'
-              : 'Words seperated by comma (use * for wildcard)',
-          )
-          .setPlaceholder('word1, *word2*, *word3, word4*')
+          .setLabel(t('hub.blockwords.modal.wordsLabel', locale))
+          .setPlaceholder(t('hub.blockwords.modal.wordsPlaceholder', locale))
           .setMinLength(3)
-          .setRequired(!opts?.presetRule),
+          .setRequired(true),
       ),
     );
 
-  if (opts?.presetRule) {
-    modal.setCustomId(customId.setArgs(hubId, opts.presetRule.id).toString());
-    modal.components[0].components[0].setValue(opts.presetRule.name);
-    modal.components[1].components[0].setValue(opts.presetRule.words.replace(/\.\*/g, '*'));
+  if (presetRule) {
+    modal.setCustomId(customId.setArgs(hubId, presetRule.id).toString());
+    modal.components[0].components[0].setValue(presetRule.name);
+    modal.components[1].components[0].setValue(presetRule.words.replace(/\.\*/g, '*'));
   }
 
   return modal;
@@ -140,11 +157,12 @@ export const buildBlockWordActionsSelect = (
   hubId: string,
   ruleId: string,
   currentActions: BlockWordAction[],
+  locale: supportedLocaleCodes,
 ) =>
   new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
     new StringSelectMenuBuilder()
-      .setCustomId(new CustomID('blockwordsSelect:actions', [hubId, ruleId]).toString())
-      .setPlaceholder('Select actions for this rule')
+      .setCustomId(new CustomID('antiSwear:actions', [hubId, ruleId]).toString())
+      .setPlaceholder(t('hub.blockwords.actionSelectPlaceholder', locale))
       .setMinValues(1)
       .setMaxValues(Object.keys(BlockWordAction).length)
       .setOptions(

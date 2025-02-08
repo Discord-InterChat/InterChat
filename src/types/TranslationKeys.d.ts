@@ -37,6 +37,7 @@ export type TranslationKeys = {
   'msgInfo.report.notEnabled': 'emoji';
   'msgInfo.report.success': 'emoji';
   invite: 'invite_emoji' | 'invite' | 'support_emoji' | 'support';
+  'connection.joinRequestsDisabled': 'emoji';
   'connection.notFound': 'emoji';
   'connection.channelNotFound': 'emoji';
   'connection.alreadyConnected': 'emoji' | 'channel';
@@ -85,13 +86,26 @@ export type TranslationKeys = {
   'hub.blockwords.created': 'emoji';
   'hub.blockwords.updated': 'emoji';
   'hub.blockwords.deleted': 'emoji';
-  'hub.blockwords.noRules': 'emoji';
   'hub.blockwords.notFound': 'emoji';
-  'hub.blockwords.deleting': 'emoji';
   'hub.blockwords.maxRules': 'emoji';
   'hub.blockwords.configure': 'rule';
   'hub.blockwords.actionsUpdated': 'emoji' | 'actions';
+  'hub.blockwords.selectRuleToEdit': never;
+  'hub.blockwords.listDescription': 'emoji' | 'totalRules';
+  'hub.blockwords.listFooter': never;
+  'hub.blockwords.ruleDescription': 'emoji' | 'ruleName' | 'words';
+  'hub.blockwords.ruleFooter': never;
+  'hub.blockwords.actionSelectPlaceholder': never;
+  'hub.blockwords.embedFields.noActions': 'emoji';
+  'hub.blockwords.embedFields.actionsName': never;
+  'hub.blockwords.embedFields.actionsValue': 'actions';
+  'hub.blockwords.modal.addRule': never;
+  'hub.blockwords.modal.editingRule': never;
+  'hub.blockwords.modal.ruleNameLabel': never;
+  'hub.blockwords.modal.wordsLabel': never;
+  'hub.blockwords.modal.wordsPlaceholder': never;
   'hub.blockwords.validating': 'emoji';
+  'hub.blockwords.noRules': 'emoji';
   'hub.create.modal.title': never;
   'hub.create.modal.name.label': never;
   'hub.create.modal.name.placeholder': never;
@@ -176,6 +190,7 @@ export type TranslationKeys = {
   'hub.manage.logs.title': never;
   'hub.manage.logs.reset': 'emoji' | 'type';
   'hub.manage.logs.roleSuccess': 'emoji' | 'type' | 'role';
+  'hub.manage.logs.roleRemoved': 'emoji' | 'type';
   'hub.manage.logs.channelSuccess': 'emoji' | 'type' | 'channel';
   'hub.manage.logs.channelSelect': never;
   'hub.manage.logs.roleSelect': never;
@@ -240,6 +255,7 @@ export type TranslationKeys = {
   'global.public': never;
   'global.yes': never;
   'global.no': never;
+  'global.cancelled': 'emoji';
 };
 
 export type ErrorLocaleKeys = Extract<keyof TranslationKeys, `errors.${string}`>;

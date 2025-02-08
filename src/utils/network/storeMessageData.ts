@@ -25,6 +25,7 @@ import {
 } from '#src/utils/network/messageUtils.js';
 import { updateConnections } from '#utils/ConnectedListUtils.js';
 import type { ConnectionMode } from '#utils/Constants.js';
+import Logger from '#src/utils/Logger.js';
 
 interface ErrorResult {
   webhookURL: string;
@@ -60,6 +61,7 @@ export default async (
     messageId: message.id,
     authorId: message.author.id,
     guildId: message.guildId,
+    channelId: message.channelId,
     referredMessageId: dbReference?.messageId,
     timestamp: message.createdTimestamp,
   });
@@ -78,6 +80,7 @@ export default async (
   for (const res of broadcastResults) {
     if ('error' in res) {
       if (validErrors.some((e) => res.error.includes(e))) invalidWebhookURLs.push(res.webhookURL);
+      Logger.debug(`Failed to send a message with error: ${res.error}. Disconnecting connection.`);
       continue;
     }
     validBroadcasts.push({

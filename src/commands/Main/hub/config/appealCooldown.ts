@@ -28,12 +28,12 @@ import {
 } from 'discord.js';
 import HubCommand, { hubOption } from '#src/commands/Main/hub/index.js';
 
-export default class AppealCooldownCommand extends BaseCommand {
+export default class HubConfigAppealCooldownSubcommand extends BaseCommand {
   private hubService = new HubService();
 
   constructor() {
     super({
-      name: 'set_cooldown',
+      name: 'set-appeal-cooldown',
       description:
 				'⌛ Set the duration a user must wait before appealing a blacklist again.',
       types: { slash: true, prefix: true },

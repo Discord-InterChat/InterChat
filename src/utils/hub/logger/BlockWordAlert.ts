@@ -21,7 +21,7 @@ import { EmbedBuilder, type Message } from 'discord.js';
 import HubLogManager from '#src/managers/HubLogManager.js';
 import { getEmoji } from '#src/utils/EmojiUtils.js';
 import { sendLog } from '#src/utils/hub/logger/Default.js';
-import { ACTION_LABELS, createRegexFromWords } from '#src/utils/moderation/blockWords.js';
+import { ACTION_LABELS, createRegexFromWords } from '#utils/moderation/antiSwear.js';
 
 const boldANSIText = (text: string) => `\u001b[1;2m${text}\u001b[0m`;
 

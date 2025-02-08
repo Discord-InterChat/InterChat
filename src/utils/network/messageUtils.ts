@@ -27,6 +27,7 @@ export interface OriginalMessage {
   content: string;
   imageUrl: string | null;
   messageId: string;
+  channelId: string;
   guildId: string;
   authorId: string;
   timestamp: number;

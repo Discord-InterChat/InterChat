@@ -135,7 +135,7 @@ export class BroadcastService {
         hub,
         opts,
       );
-      const { error, message: messageRes } = await this.sendMessage(
+      const { error, message: messageRes } = await BroadcastService.sendMessage(
         webhookURL,
         messageFormat,
       );
@@ -210,7 +210,7 @@ export class BroadcastService {
       : undefined;
   }
 
-  private async sendMessage(
+  static async sendMessage(
     webhookUrl: string,
     data: WebhookMessageCreateOptions,
   ): Promise<{ message?: APIMessage; error?: string }> {

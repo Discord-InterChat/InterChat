@@ -126,8 +126,11 @@ export default class HubManager {
     });
   }
 
-  public async fetchBlockWords(): Promise<BlockWord[]> {
+  public async fetchAntiSwearRules(): Promise<BlockWord[]> {
     return await db.blockWord.findMany({ where: { hubId: this.hub.id } });
+  }
+  public async fetchAntiSwearRule(ruleId: string): Promise<BlockWord | null> {
+    return await db.blockWord.findUnique({ where: { id: ruleId } });
   }
 
   public async fetchInvites() {

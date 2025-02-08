@@ -19,17 +19,13 @@ import { getEmoji } from '#src/utils/EmojiUtils.js';
 import getRedis from '#src/utils/Redis.js';
 import { handleError } from '#src/utils/Utils.js';
 import { RedisKeys } from '#utils/Constants.js';
-import { CustomID } from '#utils/CustomID.js';
 import db from '#utils/Db.js';
 import { InfoEmbed } from '#utils/EmbedUtils.js';
 import { type supportedLocaleCodes, t } from '#utils/Locale.js';
 import type { HubLogConfig, Prisma } from '@prisma/client';
 import { stripIndents } from 'common-tags';
 import {
-  ActionRowBuilder,
   type Client,
-  type Snowflake,
-  StringSelectMenuBuilder,
   roleMention,
 } from 'discord.js';
 
@@ -70,6 +66,16 @@ export default class HubLogManager {
     return this.logConfig;
   }
 
+  async fetchConfig() {
+    const config = await db.hubLogConfig.findUnique({
+      where: { hubId: this.hubId },
+    });
+    this.logConfig = config || ({} as HubLogConfig);
+    this.refreshCache();
+
+    return this.logConfig;
+  }
+
   async deleteAll() {
     await db.hubLogConfig.delete({ where: { hubId: this.hubId } });
     this.logConfig = {} as HubLogConfig;
@@ -81,6 +87,7 @@ export default class HubLogManager {
       where: { hubId: this.hubId },
       data,
     });
+
     this.logConfig = updated;
     this.refreshCache();
   }
@@ -131,7 +138,7 @@ export default class HubLogManager {
     if (!this.config[type]) return await this.resetLog(type);
 
     await this.updateLogConfig({
-      appeals: { set: { channelId: this.config[type].channelId } },
+      [type]: { set: { channelId: this.config[type].channelId } },
     });
   }
 
@@ -179,56 +186,5 @@ export default class HubLogManager {
       .removeTitle()
       .setDescription(`## ${t('hub.manage.logs.title', locale)}\n\n${logDesc}`)
       .setThumbnail('https://i.imgur.com/tHVt3Gw.png');
-  }
-
-  public createSelectMenu(
-    userId: Snowflake,
-    hubId: string,
-    locale: supportedLocaleCodes,
-  ) {
-    return new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId(
-          new CustomID()
-            .setIdentifier('hubEdit', 'logsSelect')
-            .setArgs(userId)
-            .setArgs(hubId)
-            .toString(),
-        )
-        .setPlaceholder('Choose a log type to set a channel.')
-        .addOptions([
-          {
-            label: t('hub.manage.logs.reports.label', locale),
-            value: 'reports',
-            description: t('hub.manage.logs.reports.description', locale),
-            emoji: '📢',
-          },
-          {
-            label: t('hub.manage.logs.modLogs.label', locale),
-            value: 'modLogs',
-            description: t('hub.manage.logs.modLogs.description', locale),
-            emoji: '👮',
-          },
-          {
-            label: t('hub.manage.logs.profanity.label', locale),
-            value: 'profanity',
-            description: t('hub.manage.logs.profanity.description', locale),
-            emoji: '🤬',
-          },
-          {
-            label: t('hub.manage.logs.joinLeaves.label', locale),
-            value: 'joinLeaves',
-            description: t('hub.manage.logs.joinLeaves.description', locale),
-            emoji: '👋',
-          },
-          {
-            label: 'Appeals',
-            value: 'appeals',
-            description:
-							'Appeals from users/servers who have been blacklisted.',
-            emoji: '📝',
-          },
-        ]),
-    );
   }
 }

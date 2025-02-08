@@ -64,7 +64,7 @@ export class MessageProcessor {
 
     message.channel.sendTyping().catch(() => null);
 
-    const { passed } = await checkBlockedWords(message, await hub.fetchBlockWords());
+    const { passed } = await checkBlockedWords(message, await hub.fetchAntiSwearRules());
     if (!passed) return;
 
     await this.broadcastService.broadcastMessage(

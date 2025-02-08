@@ -22,7 +22,7 @@ import type { ActionRowBuilder, Awaitable, ButtonBuilder, Message } from 'discor
 import Logger from '#src/utils/Logger.js';
 import { logBlockwordAlert } from '#src/utils/hub/logger/BlockWordAlert.js';
 import { sendBlacklistNotif } from '#src/utils/moderation/blacklistUtils.js';
-import { createRegexFromWords } from '#src/utils/moderation/blockWords.js';
+import { createRegexFromWords } from '#utils/moderation/antiSwear.js';
 import type { CheckResult } from '#src/utils/network/runChecks.js';
 
 // Interface for action handler results
